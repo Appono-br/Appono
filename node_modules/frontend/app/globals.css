@@ -1,21 +1,47 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #fff4e1;
+  --foreground: #121212;
+  --app-cacau-intenso: #4a2c0a;
+  --app-caramelo-torrado: #8a552a;
+  --app-creme-suave: #f5e5d3;
+  --app-baunilha-dourada: #ebd2a8;
+  --app-cafe-profundo: #2f1b10;
+  --app-mocha: #683f22;
+  --app-dourado-mel: #b8743a;
+  --app-creme-leve: #fff4e1;
+  --app-areia-quente: #f7cda1;
+  --app-chantilly: #fffffb;
+  --app-texto-escuro: #121212;
+  --app-cinza: #787979;
+  --app-vermelho-erro: #aa6020;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-app-cacau-intenso: var(--app-cacau-intenso);
+  --color-app-caramelo-torrado: var(--app-caramelo-torrado);
+  --color-app-creme-suave: var(--app-creme-suave);
+  --color-app-baunilha-dourada: var(--app-baunilha-dourada);
+  --color-app-cafe-profundo: var(--app-cafe-profundo);
+  --color-app-mocha: var(--app-mocha);
+  --color-app-dourado-mel: var(--app-dourado-mel);
+  --color-app-creme-leve: var(--app-creme-leve);
+  --color-app-areia-quente: var(--app-areia-quente);
+  --color-app-chantilly: var(--app-chantilly);
+  --color-app-texto-escuro: var(--app-texto-escuro);
+  --color-app-cinza: var(--app-cinza);
+  --color-app-vermelho-erro: var(--app-vermelho-erro);
   --font-sans: Arial, Helvetica, sans-serif;
   --font-mono: "Courier New", Courier, monospace;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #2f1b10;
+    --foreground: #fff4e1;
   }
 }
 
