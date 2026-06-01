@@ -52,7 +52,11 @@ export function LoginForm() {
         "appono:session",
         JSON.stringify({ type: "client", name: client.name, remember }),
       );
-      setMessage(`Bem-vindo, ${client.name}.`);
+      localStorage.setItem(
+        "appono:pendingVerification",
+        JSON.stringify({ type: "client", name: client.name, email: client.email }),
+      );
+      window.location.href = "/verificacao";
       return;
     }
 
@@ -65,7 +69,15 @@ export function LoginForm() {
           remember,
         }),
       );
-      setMessage(`Bem-vindo, ${restaurant.legalName}.`);
+      localStorage.setItem(
+        "appono:pendingVerification",
+        JSON.stringify({
+          type: "restaurant",
+          name: restaurant.legalName,
+          email: restaurant.email,
+        }),
+      );
+      window.location.href = "/verificacao";
       return;
     }
 
