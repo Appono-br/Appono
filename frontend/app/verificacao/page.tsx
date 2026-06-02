@@ -77,7 +77,8 @@ export default function VerificationPage() {
       }),
     );
     localStorage.removeItem("appono:pendingVerification");
-    window.location.href = "/dashboard";
+    window.location.href =
+      pending?.type === "restaurant" ? "/restaurante/home" : "/dashboard";
   }
 
   return (
