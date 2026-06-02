@@ -40,7 +40,7 @@ export function AuthFooter({ dark = false, compact = false }: AuthFooterProps) {
           } ${compact ? "text-[10px]" : "text-xs"}`}
         >
           <Link className="transition hover:text-app-dourado-mel" href="#">
-            Politica de Privacidade
+            Política de Privacidade
           </Link>
           <Link className="transition hover:text-app-dourado-mel" href="#">
             Termos de Uso

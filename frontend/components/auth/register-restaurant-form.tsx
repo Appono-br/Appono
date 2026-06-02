@@ -136,7 +136,7 @@ export function RegisterRestaurantForm() {
             <p className="mt-1 text-sm leading-5 text-app-mocha">
               {step === 1
                 ? "Informe os dados operacionais do estabelecimento."
-                : "Cadastre a conta juridica para receber os repasses da plataforma."}
+                : "Cadastre a conta jurídica para receber os repasses da plataforma."}
             </p>
           </div>
           <div className="grid grid-cols-2 overflow-hidden border border-app-baunilha-dourada text-center text-[10px] font-bold uppercase tracking-[0.18em]">
@@ -168,7 +168,7 @@ export function RegisterRestaurantForm() {
         {step === 1 ? (
           <div className="mt-3 grid gap-1.5 sm:grid-cols-6 xl:grid-cols-12">
             <FormField
-              label="Razao social"
+              label="Razão social"
               value={form.legalName}
               onChange={(event) => updateField("legalName", event.target.value)}
               placeholder="Ex: Terra Artisan Gastronomia LTDA"
@@ -209,7 +209,7 @@ export function RegisterRestaurantForm() {
               className="sm:col-span-2 xl:col-span-2"
             />
             <FormField
-              label="Endereco"
+              label="Endereço"
               value={form.address}
               onChange={(event) => updateField("address", event.target.value)}
               placeholder="Rua, Avenida, etc."
@@ -228,7 +228,7 @@ export function RegisterRestaurantForm() {
               label="Cidade"
               value={form.city}
               onChange={(event) => updateField("city", event.target.value)}
-              placeholder="Ex: Sao Paulo"
+              placeholder="Ex: São Paulo"
               required
               className="sm:col-span-2 xl:col-span-3"
             />
@@ -242,7 +242,7 @@ export function RegisterRestaurantForm() {
               className="sm:col-span-2 xl:col-span-1"
             />
             <FormField
-              label="Numero"
+              label="Número"
               value={form.number}
               onChange={(event) => updateField("number", event.target.value)}
               placeholder="Ex: 123"
@@ -257,7 +257,7 @@ export function RegisterRestaurantForm() {
               className="sm:col-span-3 xl:col-span-3"
             />
             <FormField
-              label="Numero de mesas"
+              label="Número de mesas"
               type="number"
               min="1"
               value={form.tables}
@@ -280,7 +280,7 @@ export function RegisterRestaurantForm() {
         ) : (
           <div className="mt-3 grid gap-2 sm:grid-cols-6">
             <FormField
-              label="Codigo do banco"
+              label="Código do banco"
               value={form.bankCode}
               onChange={(event) => updateField("bankCode", event.target.value)}
               placeholder="Ex: 260, 001"
@@ -288,7 +288,7 @@ export function RegisterRestaurantForm() {
               className="sm:col-span-2"
             />
             <FormField
-              label="Agencia"
+              label="Agência"
               value={form.agency}
               onChange={(event) => updateField("agency", event.target.value)}
               placeholder="Ex: 0001"
@@ -296,7 +296,7 @@ export function RegisterRestaurantForm() {
               className="sm:col-span-2"
             />
             <FormField
-              label="Conta corrente com digito"
+              label="Conta corrente com dígito"
               value={form.checkingAccount}
               onChange={(event) =>
                 updateField("checkingAccount", event.target.value)
@@ -306,29 +306,28 @@ export function RegisterRestaurantForm() {
               className="sm:col-span-2"
             />
             <FormField
-              label="Chave Pix vinculada a conta"
+              label="Chave Pix vinculada à conta"
               value={form.pixKey}
               onChange={(event) => updateField("pixKey", event.target.value)}
               placeholder="Opcional"
               className="sm:col-span-6"
             />
             <div className="border border-app-baunilha-dourada bg-app-creme-suave px-4 py-3 text-xs leading-5 text-app-mocha sm:col-span-6">
-              Os dados bancarios devem pertencer ao mesmo CNPJ informado na etapa
-              1. A validacao de titularidade e o split de pagamento serao
-              tratados pelo backend posteriormente.
+              Os dados bancários devem pertencer ao mesmo CNPJ informado na etapa
+              1. Confira as informações antes de finalizar o cadastro.
             </div>
           </div>
         )}
 
         <div className="mt-3 flex flex-col-reverse gap-2 border-t border-app-baunilha-dourada pt-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-[10px] leading-4 text-app-cinza">
-            Ao finalizar, voce concorda com nossos{" "}
+            Ao finalizar, você concorda com nossos{" "}
             <Link href="#" className="underline transition hover:text-app-mocha">
               Termos
             </Link>{" "}
             e{" "}
             <Link href="#" className="underline transition hover:text-app-mocha">
-              Politica de Privacidade
+              Política de Privacidade
             </Link>
             .
           </p>
@@ -352,7 +351,7 @@ export function RegisterRestaurantForm() {
 
         <div className="mt-2 flex flex-col gap-2 text-sm text-app-cinza sm:flex-row sm:items-center sm:justify-between">
           <span>
-            Ja possui uma conta?{" "}
+            Já possui uma conta?{" "}
             <Link
               href="/login"
               className="font-bold text-app-cafe-profundo transition hover:text-app-caramelo-torrado"

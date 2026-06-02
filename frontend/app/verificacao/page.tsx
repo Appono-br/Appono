@@ -64,7 +64,7 @@ export default function VerificationPage() {
     event.preventDefault();
 
     if (code.some((digit) => !digit)) {
-      setMessage("Informe os 6 digitos do codigo.");
+      setMessage("Informe os 6 dígitos do código.");
       return;
     }
 
@@ -154,7 +154,7 @@ export default function VerificationPage() {
               <button
                 type="button"
                 onClick={() =>
-                  setMessage("Codigo reenviado de forma simulada no frontend.")
+                  setMessage("Código reenviado de forma simulada no frontend.")
                 }
                 className="mt-1.5 text-xs font-semibold text-app-caramelo-torrado transition hover:text-app-cafe-profundo"
               >
@@ -172,7 +172,7 @@ export default function VerificationPage() {
               <button
                 type="button"
                 onClick={() =>
-                  setMessage("A verificacao real sera conectada ao backend.")
+                  setMessage("Verifique o código informado e tente novamente.")
                 }
                 className="flex h-7 w-7 items-center justify-center rounded-full border border-app-cinza font-bold transition hover:border-app-cafe-profundo hover:text-app-cafe-profundo"
                 aria-label="Ajuda"

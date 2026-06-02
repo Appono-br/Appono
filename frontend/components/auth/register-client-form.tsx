@@ -130,7 +130,7 @@ export function RegisterClientForm() {
 
         <div className="mt-3 flex flex-col-reverse gap-2 border-t border-app-baunilha-dourada pt-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-xs text-app-cinza">
-            Ja possui uma conta?{" "}
+            Já possui uma conta?{" "}
             <Link
               href="/login"
               className="font-bold text-app-caramelo-torrado transition hover:text-app-cafe-profundo"

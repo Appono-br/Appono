@@ -13,7 +13,7 @@ const restaurantImage =
 
 const valueCards = [
   {
-    title: "Reserva facil",
+    title: "Reserva fácil",
     text: "Escolha restaurante, horário e quantidade de pessoas com poucos passos.",
   },
   {
@@ -30,12 +30,12 @@ const faqs = [
   {
     question: "A Appono faz delivery?",
     answer:
-      "Nao. A proposta da Appono e melhorar a experiência presencial em restaurantes, conectando reserva de mesa e pedido antecipado.",
+      "Não. A proposta da Appono é melhorar a experiência presencial em restaurantes, conectando reserva de mesa e pedido antecipado.",
   },
   {
     question: "Preciso escolher os pratos antes de chegar?",
     answer:
-      "A escolha antecipada e opcional, mas e ela que ajuda o restaurante a reduzir espera e organizar melhor a cozinha.",
+      "A escolha antecipada é opcional, mas é ela que ajuda o restaurante a reduzir espera e organizar melhor a cozinha.",
   },
   {
     question: "O restaurante também usa a plataforma?",
@@ -70,7 +70,7 @@ export default function HomePage() {
           </Link>
 
           <nav className="hidden items-center gap-8 text-sm font-medium text-app-cafe-profundo md:flex">
-            <Link href="#inicio">Inicio</Link>
+            <Link href="#inicio">Início</Link>
             <Link href="#reserva">Como usar</Link>
             <Link href="#sobre">Sobre</Link>
           </nav>
@@ -112,7 +112,7 @@ export default function HomePage() {
           >
             <nav className="mx-auto flex max-w-6xl flex-col gap-3 text-sm font-semibold text-app-cafe-profundo">
               <Link href="#inicio" onClick={closeMenu}>
-                Inicio
+                Início
               </Link>
               <Link href="#reserva" onClick={closeMenu}>
                 Como usar
@@ -205,7 +205,7 @@ export default function HomePage() {
           </div>
           <Image
             src={foodImage}
-            alt="Experiencia gastronomica"
+            alt="Experiência gastronômica"
             width={560}
             height={420}
             className="h-64 w-full object-cover transition duration-300 hover:brightness-90 md:h-80"
@@ -315,7 +315,7 @@ export default function HomePage() {
               Appono
             </h3>
             <div className="mt-4 flex flex-col gap-2 text-sm text-app-mocha">
-              <Link href="#inicio">Inicio</Link>
+              <Link href="#inicio">Início</Link>
               <Link href="#reserva">Como usar</Link>
               <Link href="#sobre">Sobre</Link>
             </div>
@@ -412,7 +412,7 @@ export default function HomePage() {
                   Sou restaurante
                 </strong>
                 <span className="mt-1 block text-sm leading-6 text-app-mocha">
-                  Quero organizar reservas, cardapio e pedidos antecipados.
+                  Quero organizar reservas, cardápio e pedidos antecipados.
                 </span>
               </button>
             </div>

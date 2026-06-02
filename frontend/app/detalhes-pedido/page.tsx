@@ -29,9 +29,9 @@ const reservation: ReservationDetails | null = null;
 const navItems = [
   { label: "Início", href: "/dashboard" },
   { label: "Detalhes do pedido", href: "/detalhes-pedido" },
-  { label: "Reservas", href: "#" },
-  { label: "Mensagens", href: "#" },
-  { label: "Configurações", href: "#" },
+  { label: "Reservas", href: "/reservas" },
+  { label: "Mensagens", href: "/mensagens" },
+  { label: "Configurações", href: "/configuracoes" },
 ];
 
 function Icon({
@@ -128,7 +128,7 @@ function DetailSlot({
           {label}
         </p>
         <p className="mt-5 text-xl text-app-mocha">
-          {value ?? "Aguardando informação"}
+          {value ?? "Não informado"}
         </p>
       </div>
     </div>
@@ -224,11 +224,11 @@ export default function OrderDetailsPage() {
       </header>
 
       {!hasReservation ? (
-        <section className="mx-auto flex w-full max-w-7xl flex-1 items-center px-5 py-16">
+        <section className="mx-auto flex w-full max-w-7xl flex-1 items-center justify-center px-5 py-16">
           <EmptyDataBlock
             icon="shield"
             title="Nenhum pedido registrado"
-            description="Quando houver uma reserva ou pedido confirmado, o backend enviará os dados para esta página e as informações serão exibidas no modelo de detalhes do pedido."
+            description="Você ainda não possui uma reserva ou pedido confirmado para visualizar nesta página."
           />
         </section>
       ) : (
@@ -327,7 +327,7 @@ export default function OrderDetailsPage() {
               <div className="mt-8">
                 <EmptyDataBlock
                   title="Pedido ainda não carregado"
-                  description="Os itens escolhidos, quantidades e valores serão exibidos aqui quando o backend enviar os dados da reserva."
+                  description="Nenhum item foi registrado para esta reserva."
                 />
               </div>
             )}
@@ -335,15 +335,15 @@ export default function OrderDetailsPage() {
             <div className="mt-10 grid gap-4 border-t border-app-baunilha-dourada/60 pt-8 text-app-cinza">
               <div className="flex items-center justify-between gap-4">
                 <span>Subtotal</span>
-                <span>Aguardando cálculo</span>
+                <span>Não informado</span>
               </div>
               <div className="flex items-center justify-between gap-4">
                 <span>Taxa de Reserva</span>
-                <span>Aguardando cálculo</span>
+                <span>Não informado</span>
               </div>
               <div className="mt-4 flex flex-col gap-2 border-t border-app-baunilha-dourada/60 pt-8 text-app-cafe-profundo sm:flex-row sm:items-center sm:justify-between">
                 <span className="text-3xl font-medium">Total Pago</span>
-                <span className="text-3xl font-medium">Aguardando</span>
+                <span className="text-3xl font-medium">Não informado</span>
               </div>
             </div>
           </article>
@@ -359,7 +359,7 @@ export default function OrderDetailsPage() {
                 Localização
               </p>
               <p className="mt-6 text-xl leading-8 text-app-cafe-profundo">
-                Endereço será carregado pelo backend.
+                Endereço não informado.
               </p>
               <button
                 type="button"

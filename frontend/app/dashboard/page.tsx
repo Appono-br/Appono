@@ -38,9 +38,9 @@ const filters = [
 const navItems = [
   { label: "Início", href: "/dashboard" },
   { label: "Detalhes do pedido", href: "/detalhes-pedido" },
-  { label: "Reservas", href: "#" },
-  { label: "Mensagens", href: "#" },
-  { label: "Configurações", href: "#" },
+  { label: "Reservas", href: "/reservas" },
+  { label: "Mensagens", href: "/mensagens" },
+  { label: "Configurações", href: "/configuracoes" },
 ];
 
 function Icon({
@@ -288,7 +288,7 @@ export default function DashboardPage() {
               <EmptyState
                 compact
                 title="Lista em construção"
-                description="Os favoritos secundários serão carregados pelo backend."
+                description="Ainda não há restaurantes favoritos para exibir."
               />
             )}
           </div>
@@ -338,7 +338,7 @@ export default function DashboardPage() {
             ) : (
               <EmptyState
                 title="Nenhum restaurante encontrado"
-                description="Quando os restaurantes forem cadastrados no backend, eles aparecerão aqui conforme busca, especialidade e distância."
+                description="Nenhum restaurante corresponde aos filtros selecionados."
               />
             )}
           </div>

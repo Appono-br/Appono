@@ -81,7 +81,7 @@ export function LoginForm() {
       return;
     }
 
-    setMessage("Cadastro nao encontrado neste navegador.");
+    setMessage("Cadastro não encontrado neste navegador.");
   }
 
   return (
@@ -114,13 +114,13 @@ export function LoginForm() {
             Bem-vindo de volta
           </h1>
           <p className="mt-1 text-xs leading-4 text-app-mocha">
-            Entre para continuar sua jornada gastronomica ou torne-se um membro.
+            Entre para continuar sua jornada gastronômica ou torne-se um membro.
           </p>
 
           <form onSubmit={submitLogin} className="mt-3 space-y-2">
             <label className="flex flex-col gap-1">
               <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-app-mocha">
-                Endereco de e-mail ou CPF/CNPJ
+                Endereço de e-mail ou CPF/CNPJ
               </span>
               <input
                 value={identifier}
@@ -172,7 +172,7 @@ export function LoginForm() {
               </label>
               <button
                 type="button"
-                onClick={() => setMessage("Recuperacao de senha sera ligada ao backend.")}
+                onClick={() => setMessage("Recuperação de senha indisponível no momento.")}
                 className="w-fit text-app-caramelo-torrado transition hover:text-app-cafe-profundo"
               >
                 Esqueceu a senha?
@@ -211,7 +211,7 @@ export function LoginForm() {
 
           <button
             type="button"
-            onClick={() => setMessage("Login com Google sera conectado depois.")}
+            onClick={() => setMessage("Login com Google indisponível no momento.")}
             className="mt-2 flex h-8 w-full items-center justify-center gap-2 border border-[#dadce0] bg-white text-xs font-bold uppercase tracking-wide text-[#3c4043] transition hover:border-[#c8d3e2] hover:bg-[#f8fafd] focus:outline-none focus:ring-4 focus:ring-[#4285f4]/15"
           >
             <svg
@@ -240,19 +240,19 @@ export function LoginForm() {
           </button>
 
           <p className="mt-2 text-center text-[9px] uppercase leading-4 tracking-[0.12em] text-app-cinza">
-            Ao continuar, voce concorda com nossos{" "}
+            Ao continuar, você concorda com nossos{" "}
             <Link
               href="#"
               className="text-app-caramelo-torrado underline underline-offset-4 transition hover:text-app-cafe-profundo"
             >
-              termos de servico
+              termos de serviço
             </Link>{" "}
             &{" "}
             <Link
               href="#"
               className="text-app-caramelo-torrado underline underline-offset-4 transition hover:text-app-cafe-profundo"
             >
-              politica de privacidade
+              política de privacidade
             </Link>
           </p>
         </div>
@@ -305,7 +305,7 @@ export function LoginForm() {
                   Sou restaurante
                 </strong>
                 <span className="mt-2 block text-sm leading-6 text-app-mocha">
-                  Quero organizar reservas, cardapio e pedidos antecipados.
+                  Quero organizar reservas, cardápio e pedidos antecipados.
                 </span>
               </Link>
             </div>
