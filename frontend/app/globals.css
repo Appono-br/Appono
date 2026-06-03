@@ -1,21 +1,21 @@
 @import "tailwindcss";
 
 :root {
-  --background: #fff4e1;
-  --foreground: #121212;
-  --app-cacau-intenso: #4a2c0a;
-  --app-caramelo-torrado: #8a552a;
-  --app-creme-suave: #f5e5d3;
-  --app-baunilha-dourada: #ebd2a8;
-  --app-cafe-profundo: #2f1b10;
-  --app-mocha: #683f22;
-  --app-dourado-mel: #b8743a;
-  --app-creme-leve: #fff4e1;
-  --app-areia-quente: #f7cda1;
-  --app-chantilly: #fffffb;
-  --app-texto-escuro: #121212;
-  --app-cinza: #787979;
-  --app-vermelho-erro: #aa6020;
+  --background: #f7f3ec;
+  --foreground: #2b1d16;
+  --app-cacau-intenso: #3b271d;
+  --app-caramelo-torrado: #8b5738;
+  --app-creme-suave: #ece8df;
+  --app-baunilha-dourada: #d7c7b4;
+  --app-cafe-profundo: #2b1d16;
+  --app-mocha: #65483a;
+  --app-dourado-mel: #b7653f;
+  --app-creme-leve: #f1ede5;
+  --app-areia-quente: #d69a4e;
+  --app-chantilly: #fffdf9;
+  --app-texto-escuro: #18110d;
+  --app-cinza: #6d6862;
+  --app-vermelho-erro: #a84d3c;
 }
 
 @theme inline {
@@ -40,8 +40,8 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #2f1b10;
-    --foreground: #fff4e1;
+    --background: #2b1d16;
+    --foreground: #f7f3ec;
   }
 }
 

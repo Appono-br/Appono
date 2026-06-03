@@ -1,0 +1,345 @@
+"use client";
+
+import Image from "next/image";
+import Link from "next/link";
+import { FormEvent, useState } from "react";
+
+type RestaurantSession = {
+  type?: "client" | "restaurant";
+  name?: string;
+};
+
+type BankForm = {
+  legalName: string;
+  document: string;
+  bankCode: string;
+  agency: string;
+  account: string;
+  accountDigit: string;
+  accountType: "checking" | "savings";
+  pixKeyType: "document" | "email" | "phone" | "random";
+  pixKey: string;
+  payoutCadence: "daily" | "weekly" | "biweekly";
+};
+
+const initialForm: BankForm = {
+  legalName: "",
+  document: "",
+  bankCode: "",
+  agency: "",
+  account: "",
+  accountDigit: "",
+  accountType: "checking",
+  pixKeyType: "document",
+  pixKey: "",
+  payoutCadence: "weekly",
+};
+
+function getStorage() {
+  if (typeof window === "undefined" || !window.localStorage) {
+    return null;
+  }
+
+  return window.localStorage;
+}
+
+function Icon({
+  type,
+  className = "h-5 w-5",
+}: {
+  type: "arrow-left" | "bank" | "card" | "help" | "lock" | "pix" | "shield";
+  className?: string;
+}) {
+  const paths = {
+    "arrow-left": "M19 12H5M12 19l-7-7 7-7",
+    bank: "M3 10h18L12 4 3 10z M5 10v8M9 10v8M15 10v8M19 10v8M3 20h18",
+    card: "M4 7h16v10H4V7z M4 10h16M8 14h3",
+    help: "M9.1 9a3 3 0 1 1 4.9 2.3c-1 .6-1.5 1.1-1.5 2.2M12 17h.01M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z",
+    lock: "M6 10V8a6 6 0 0 1 12 0v2M5 10h14v11H5V10z",
+    pix: "M12 3 21 12 12 21 3 12 12 3z M8 12l4-4 4 4-4 4-4-4z",
+    shield: "M12 21s7-3.2 7-9.8V5l-7-3-7 3v6.2C5 17.8 12 21 12 21z",
+  };
+
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 24" className={className}>
+      <path
+        d={paths[type]}
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.8"
+      />
+    </svg>
+  );
+}
+
+function Field({
+  label,
+  value,
+  onChange,
+  className = "",
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  className?: string;
+}) {
+  return (
+    <label className={`grid gap-2 ${className}`}>
+      <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-cinza">
+        {label}
+      </span>
+      <input
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="h-12 rounded-[8px] border border-app-baunilha-dourada bg-app-creme-suave px-4 text-sm outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20"
+      />
+    </label>
+  );
+}
+
+export default function RestaurantBankSettingsPage() {
+  const [session] = useState<RestaurantSession | null>(() => {
+    if (typeof window === "undefined") {
+      return null;
+    }
+
+    const storedSession = getStorage()?.getItem("appono:session");
+    return storedSession ? (JSON.parse(storedSession) as RestaurantSession) : null;
+  });
+  const [form, setForm] = useState<BankForm>(() => {
+    if (typeof window === "undefined") {
+      return initialForm;
+    }
+
+    const stored = getStorage()?.getItem("appono:restaurantBankDraft");
+    return stored ? (JSON.parse(stored) as BankForm) : initialForm;
+  });
+  const [message, setMessage] = useState("");
+
+  const isRestaurant = session?.type === "restaurant";
+
+  function updateField<Key extends keyof BankForm>(field: Key, value: BankForm[Key]) {
+    setForm((current) => ({ ...current, [field]: value }));
+    setMessage("");
+  }
+
+  function submitForm(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    getStorage()?.setItem("appono:restaurantBankDraft", JSON.stringify(form));
+    setMessage("Dados bancarios salvos neste navegador para validacao futura.");
+  }
+
+  if (!isRestaurant) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-app-chantilly px-5 text-app-cafe-profundo">
+        <section className="w-full max-w-lg rounded-[8px] bg-app-creme-leve p-8 text-center shadow-sm ring-1 ring-app-baunilha-dourada">
+          <Image src="/brand/appono-mark.svg" alt="Appono" width={88} height={88} className="mx-auto h-20 w-20" priority />
+          <h1 className="mt-6 text-3xl font-semibold">Acesso restrito</h1>
+          <p className="mt-3 text-sm leading-6 text-app-cinza">
+            Esta area e destinada a contas de restaurante.
+          </p>
+          <Link href="/login" className="mt-6 inline-flex h-11 items-center justify-center rounded-[8px] bg-app-dourado-mel px-6 text-sm font-bold text-white transition hover:bg-app-caramelo-torrado">
+            Entrar
+          </Link>
+        </section>
+      </main>
+    );
+  }
+
+  return (
+    <main className="flex min-h-screen flex-col bg-app-chantilly text-app-cafe-profundo">
+      <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-transparent text-app-cafe-profundo backdrop-blur-sm">
+        <div className="mx-auto grid min-h-20 max-w-7xl grid-cols-[auto_1fr_auto] items-center gap-4 px-5 py-3">
+          <Link href="/restaurante/home" aria-label="Home do restaurante">
+            <Image src="/brand/appono-mark.svg" alt="Appono" width={72} height={72} className="h-14 w-14" priority />
+          </Link>
+          <div className="flex items-center justify-center gap-6">
+            <Link href="/restaurante/configuracoes" className="transition hover:text-app-caramelo-torrado" aria-label="Voltar para configuracoes">
+              <Icon type="arrow-left" className="h-5 w-5" />
+            </Link>
+            <h1 className="text-xl font-bold uppercase tracking-[0.16em] sm:text-3xl">
+              Configuracoes
+            </h1>
+          </div>
+          <Icon type="help" className="hidden h-5 w-5 justify-self-end text-app-mocha sm:block" />
+        </div>
+      </header>
+
+      <section className="mx-auto w-full max-w-7xl flex-1 px-5 py-10 sm:py-14">
+        <div className="border-t border-app-baunilha-dourada/60 pt-10">
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">
+            Repasses e conciliacao
+          </p>
+          <h2 className="mt-3 text-4xl font-medium leading-tight text-app-cafe-profundo sm:text-5xl">
+            Dados Bancarios
+          </h2>
+          <p className="mt-4 max-w-3xl text-sm leading-6 text-app-cinza sm:text-base">
+            Cadastre a conta juridica que recebera os repasses. A validacao
+            definitiva fica pendente ate a integracao financeira estar ativa.
+          </p>
+        </div>
+
+        <form onSubmit={submitForm} className="mt-10 grid gap-8 lg:grid-cols-[1fr_0.5fr]">
+          <section className="rounded-[8px] bg-app-chantilly p-6 shadow-sm ring-1 ring-app-baunilha-dourada/45 sm:p-8">
+            <div className="flex flex-col gap-4 border-b border-app-baunilha-dourada/60 pb-7 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <h3 className="text-2xl font-medium text-app-cafe-profundo">
+                  Conta de repasse
+                </h3>
+                <p className="mt-2 text-sm leading-6 text-app-cinza">
+                  Os dados devem pertencer ao mesmo CNPJ do restaurante.
+                </p>
+              </div>
+              <span className="flex h-12 w-12 items-center justify-center rounded-[8px] bg-app-baunilha-dourada text-app-caramelo-torrado">
+                <Icon type="bank" className="h-6 w-6" />
+              </span>
+            </div>
+
+            <div className="mt-7 grid gap-5 sm:grid-cols-2">
+              <Field label="Razao social titular" value={form.legalName} onChange={(value) => updateField("legalName", value)} className="sm:col-span-2" />
+              <Field label="CNPJ titular" value={form.document} onChange={(value) => updateField("document", value)} />
+              <Field label="Codigo do banco" value={form.bankCode} onChange={(value) => updateField("bankCode", value)} />
+              <Field label="Agencia" value={form.agency} onChange={(value) => updateField("agency", value)} />
+              <div className="grid gap-5 sm:grid-cols-[1fr_0.38fr]">
+                <Field label="Conta" value={form.account} onChange={(value) => updateField("account", value)} />
+                <Field label="Digito" value={form.accountDigit} onChange={(value) => updateField("accountDigit", value)} />
+              </div>
+              <label className="grid gap-2">
+                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-cinza">
+                  Tipo de conta
+                </span>
+                <select
+                  value={form.accountType}
+                  onChange={(event) => updateField("accountType", event.target.value as BankForm["accountType"])}
+                  className="h-12 rounded-[8px] border border-app-baunilha-dourada bg-app-creme-suave px-4 text-sm outline-none transition focus:border-app-caramelo-torrado"
+                >
+                  <option value="checking">Conta corrente</option>
+                  <option value="savings">Conta poupanca</option>
+                </select>
+              </label>
+            </div>
+
+            <section className="mt-8 border-t border-app-baunilha-dourada/60 pt-8">
+              <h3 className="flex items-center gap-3 text-2xl font-medium text-app-cafe-profundo">
+                <Icon type="pix" className="h-6 w-6 text-app-caramelo-torrado" />
+                Chave Pix de contingencia
+              </h3>
+              <div className="mt-6 grid gap-5 sm:grid-cols-[0.46fr_1fr]">
+                <label className="grid gap-2">
+                  <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-cinza">
+                    Tipo da chave
+                  </span>
+                  <select
+                    value={form.pixKeyType}
+                    onChange={(event) => updateField("pixKeyType", event.target.value as BankForm["pixKeyType"])}
+                    className="h-12 rounded-[8px] border border-app-baunilha-dourada bg-app-creme-suave px-4 text-sm outline-none transition focus:border-app-caramelo-torrado"
+                  >
+                    <option value="document">CNPJ</option>
+                    <option value="email">Email</option>
+                    <option value="phone">Telefone</option>
+                    <option value="random">Chave aleatoria</option>
+                  </select>
+                </label>
+                <Field label="Chave Pix" value={form.pixKey} onChange={(value) => updateField("pixKey", value)} />
+              </div>
+            </section>
+
+            <section className="mt-8 border-t border-app-baunilha-dourada/60 pt-8">
+              <h3 className="text-2xl font-medium text-app-cafe-profundo">
+                Frequencia de repasse
+              </h3>
+              <div className="mt-5 grid gap-3 sm:grid-cols-3">
+                {([
+                  ["daily", "Diario"],
+                  ["weekly", "Semanal"],
+                  ["biweekly", "Quinzenal"],
+                ] as Array<[BankForm["payoutCadence"], string]>).map(([value, label]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => updateField("payoutCadence", value)}
+                    className={`rounded-[8px] px-5 py-4 text-sm font-bold uppercase transition ${
+                      form.payoutCadence === value
+                        ? "bg-app-cafe-profundo text-app-creme-leve"
+                        : "bg-app-creme-suave text-app-mocha hover:bg-app-baunilha-dourada"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </section>
+
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-end">
+              <Link href="/restaurante/configuracoes" className="flex h-12 items-center justify-center rounded-[8px] border border-app-mocha px-8 text-xs font-bold uppercase tracking-wide text-app-mocha transition hover:bg-app-creme-leve">
+                Cancelar
+              </Link>
+              <button type="submit" className="h-12 rounded-[8px] bg-app-dourado-mel px-8 text-xs font-bold uppercase tracking-wide text-white transition hover:bg-app-caramelo-torrado">
+                Salvar dados
+              </button>
+            </div>
+            {message ? <p className="mt-4 text-sm font-semibold text-app-caramelo-torrado">{message}</p> : null}
+          </section>
+
+          <aside className="grid gap-6">
+            <section className="rounded-[8px] bg-app-creme-leve p-6 shadow-sm ring-1 ring-app-baunilha-dourada/60 sm:p-8">
+              <span className="flex h-12 w-12 items-center justify-center rounded-[8px] bg-app-cafe-profundo text-app-creme-leve">
+                <Icon type="shield" className="h-6 w-6" />
+              </span>
+              <h3 className="mt-5 text-2xl font-medium text-app-cafe-profundo">
+                Validacao financeira
+              </h3>
+              <p className="mt-3 text-sm leading-6 text-app-mocha">
+                Alteracoes bancarias devem passar por conferencia documental
+                antes de liberar repasses reais.
+              </p>
+            </section>
+
+            <section className="rounded-[8px] bg-app-chantilly p-6 shadow-sm ring-1 ring-app-baunilha-dourada/45 sm:p-8">
+              <h3 className="flex items-center gap-3 text-xl font-medium text-app-cafe-profundo">
+                <Icon type="lock" className="h-5 w-5 text-app-caramelo-torrado" />
+                Dados sensiveis
+              </h3>
+              <p className="mt-3 text-sm leading-6 text-app-cinza">
+                Evite compartilhar acessos. A troca de conta bancaria deve ser
+                revisada por um perfil administrativo.
+              </p>
+            </section>
+
+            <section className="rounded-[8px] bg-app-baunilha-dourada p-6 shadow-sm">
+              <h3 className="flex items-center gap-3 text-xl font-medium text-app-cafe-profundo">
+                <Icon type="card" className="h-5 w-5" />
+                Status de repasse
+              </h3>
+              <div className="mt-5 rounded-[8px] bg-app-chantilly p-5">
+                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-cinza">
+                  Nenhum backend conectado
+                </p>
+                <p className="mt-2 text-sm leading-6 text-app-mocha">
+                  O historico de repasses aparecera aqui quando a integracao
+                  financeira estiver disponivel.
+                </p>
+              </div>
+            </section>
+          </aside>
+        </form>
+      </section>
+
+      <footer className="border-t border-app-cacau-intenso/20 bg-app-cafe-profundo px-5 py-7 text-app-creme-leve">
+        <div className="mx-auto flex max-w-7xl flex-col items-center gap-5 text-center sm:flex-row sm:justify-between">
+          <Image src="/brand/appono-mark.svg" alt="Appono" width={80} height={80} className="h-14 w-14 brightness-0 invert" />
+          <nav className="flex flex-wrap justify-center gap-8 text-[10px] font-bold uppercase text-app-baunilha-dourada">
+            <Link href="#" className="transition hover:text-app-chantilly">Politica de Privacidade</Link>
+            <Link href="#" className="transition hover:text-app-chantilly">Termos de Uso</Link>
+            <Link href="#" className="transition hover:text-app-chantilly">Contato</Link>
+          </nav>
+          <p className="text-xs font-semibold text-app-creme-suave">
+            &copy; 2026 APPONO. Todos os direitos reservados.
+          </p>
+        </div>
+      </footer>
+    </main>
+  );
+}

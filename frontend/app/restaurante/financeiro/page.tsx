@@ -16,7 +16,7 @@ const navItems = [
   { label: "Desempenho", href: "/restaurante/desempenho" },
   { label: "Relatorio financeiro", href: "/restaurante/financeiro" },
   { label: "Reservas", href: "/restaurante/reservas" },
-  { label: "Mensagens", href: "#" },
+  { label: "Mensagens", href: "/restaurante/mensagens" },
   { label: "Configuracoes", href: "/restaurante/configuracoes" },
 ];
 

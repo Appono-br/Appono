@@ -29,6 +29,14 @@ const initialForm: FormData = {
   postalCode: "",
 };
 
+function getStorage() {
+  if (typeof window === "undefined" || !window.localStorage) {
+    return null;
+  }
+
+  return window.localStorage;
+}
+
 const navItems = [
   { label: "Home", href: "/restaurante/home" },
   { label: "Dashboard", href: "/restaurante/dashboard" },
@@ -36,16 +44,33 @@ const navItems = [
   { label: "Desempenho", href: "/restaurante/desempenho" },
   { label: "Relatorio financeiro", href: "/restaurante/financeiro" },
   { label: "Reservas", href: "/restaurante/reservas" },
-  { label: "Mensagens", href: "#" },
+  { label: "Mensagens", href: "/restaurante/mensagens" },
   { label: "Configuracoes", href: "/restaurante/configuracoes" },
 ];
 
 const settingsItems = [
-  { label: "Informacoes da loja", icon: "store" },
-  { label: "Preferencias de notificacao", icon: "bell" },
-  { label: "Seguranca e acesso", icon: "shield" },
-  { label: "Dados bancarios", icon: "card" },
-  { label: "Operacoes & logisticas", icon: "settings" },
+  { label: "Informacoes da loja", icon: "store", href: "/restaurante/configuracoes" },
+  { label: "Endereco da loja", icon: "map-pin", href: "/restaurante/configuracoes/endereco" },
+  {
+    label: "Preferencias de notificacao",
+    icon: "bell",
+    href: "/restaurante/configuracoes/notificacoes",
+  },
+  {
+    label: "Seguranca e acesso",
+    icon: "shield",
+    href: "/restaurante/configuracoes/seguranca",
+  },
+  {
+    label: "Dados bancarios",
+    icon: "card",
+    href: "/restaurante/configuracoes/dados-bancarios",
+  },
+  {
+    label: "Operacao & logistica",
+    icon: "settings",
+    href: "/restaurante/configuracoes/operacao",
+  },
 ];
 
 function Icon({
@@ -126,7 +151,7 @@ export default function RestaurantSettingsPage() {
       return null;
     }
 
-    const storedSession = window.localStorage.getItem("appono:session");
+    const storedSession = getStorage()?.getItem("appono:session");
     return storedSession ? (JSON.parse(storedSession) as RestaurantSession) : null;
   });
   const [form, setForm] = useState<FormData>(initialForm);
@@ -142,7 +167,7 @@ export default function RestaurantSettingsPage() {
 
   function submitForm(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    window.localStorage.setItem("appono:restaurantSettingsDraft", JSON.stringify(form));
+    getStorage()?.setItem("appono:restaurantSettingsDraft", JSON.stringify(form));
     setMessage("Alteracoes salvas neste navegador.");
   }
 
@@ -259,9 +284,9 @@ export default function RestaurantSettingsPage() {
 
             <nav className="rounded-[8px] bg-app-chantilly p-2 shadow-sm ring-1 ring-app-baunilha-dourada/45">
               {settingsItems.map((item, index) => (
-                <button
+                <Link
                   key={item.label}
-                  type="button"
+                  href={item.href}
                   className={`flex w-full items-center justify-between gap-4 rounded-[8px] px-5 py-4 text-left transition ${
                     index === 0
                       ? "bg-app-creme-suave text-app-cafe-profundo"
@@ -270,13 +295,21 @@ export default function RestaurantSettingsPage() {
                 >
                   <span className="flex items-center gap-3">
                     <Icon
-                      type={item.icon as "store" | "bell" | "shield" | "card" | "settings"}
+                      type={
+                        item.icon as
+                          | "store"
+                          | "bell"
+                          | "shield"
+                          | "card"
+                          | "settings"
+                          | "map-pin"
+                      }
                       className="h-5 w-5"
                     />
                     <span className="text-sm font-semibold">{item.label}</span>
                   </span>
                   <Icon type="chevron-right" className="h-4 w-4" />
-                </button>
+                </Link>
               ))}
             </nav>
           </aside>

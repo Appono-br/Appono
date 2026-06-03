@@ -16,7 +16,7 @@ const navItems = [
   { label: "Desempenho", href: "/restaurante/desempenho" },
   { label: "Relatorio financeiro", href: "/restaurante/financeiro" },
   { label: "Reservas", href: "/restaurante/reservas" },
-  { label: "Mensagens", href: "#" },
+  { label: "Mensagens", href: "/restaurante/mensagens" },
   { label: "Configuracoes", href: "/restaurante/configuracoes" },
 ];
 
@@ -72,7 +72,10 @@ function EmptyMenuSection({ title }: { title: string }) {
       </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-3">
-        <div className="flex min-h-[280px] flex-col items-center justify-center rounded-[8px] border border-dashed border-app-caramelo-torrado/35 bg-app-chantilly px-6 py-10 text-center">
+        <Link
+          href="/restaurante/cardapio/editar"
+          className="flex min-h-[280px] flex-col items-center justify-center rounded-[8px] border border-dashed border-app-caramelo-torrado/35 bg-app-chantilly px-6 py-10 text-center transition hover:-translate-y-0.5 hover:bg-app-creme-leve"
+        >
           <span className="flex h-12 w-12 items-center justify-center rounded-[8px] bg-app-creme-suave text-app-caramelo-torrado">
             <Icon type="plus" className="h-6 w-6" />
           </span>
@@ -82,7 +85,7 @@ function EmptyMenuSection({ title }: { title: string }) {
           <p className="mt-3 max-w-xs text-sm leading-6 text-app-cinza">
             Adicione nome, descricao, preco e disponibilidade do prato.
           </p>
-        </div>
+        </Link>
       </div>
     </section>
   );
@@ -218,13 +221,13 @@ export default function RestaurantMenuManagementPage() {
               <Icon type="category" className="h-5 w-5" />
               Categorias
             </button>
-            <button
-              type="button"
+            <Link
+              href="/restaurante/cardapio/editar"
               className="inline-flex h-12 items-center justify-center gap-2 rounded-[8px] bg-app-dourado-mel px-7 text-xs font-bold uppercase text-white transition hover:bg-app-caramelo-torrado"
             >
               <Icon type="plus" className="h-4 w-4" />
               Adicionar item
-            </button>
+            </Link>
           </div>
         </div>
 
