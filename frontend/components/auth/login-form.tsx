@@ -3,20 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { FormEvent, useState } from "react";
-
-type StoredClient = {
-  name: string;
-  cpf: string;
-  email: string;
-  password: string;
-};
-
-type StoredRestaurant = {
-  legalName: string;
-  email: string;
-  cnpj: string;
-  password: string;
-};
+import { apiRequest } from "@/lib/api";
+import { AuthResponse, persistAuthResponse } from "@/lib/session";
 
 export function LoginForm() {
   const [identifier, setIdentifier] = useState("");
@@ -25,63 +13,38 @@ export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [registerDialog, setRegisterDialog] = useState(false);
   const [message, setMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  function submitLogin(event: FormEvent<HTMLFormElement>) {
+  async function submitLogin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setIsSubmitting(true);
+    setMessage("");
 
-    const clients = JSON.parse(
-      localStorage.getItem("appono:clients") ?? "[]",
-    ) as StoredClient[];
-    const restaurants = JSON.parse(
-      localStorage.getItem("appono:restaurants") ?? "[]",
-    ) as StoredRestaurant[];
+    try {
+      const auth = await apiRequest<AuthResponse>("/auth/login", {
+        method: "POST",
+        body: JSON.stringify({ email: identifier, password }),
+      });
 
-    const client = clients.find(
-      (item) =>
-        (item.email === identifier || item.cpf === identifier) &&
-        item.password === password,
-    );
-    const restaurant = restaurants.find(
-      (item) =>
-        (item.email === identifier || item.cnpj === identifier) &&
-        item.password === password,
-    );
+      await persistAuthResponse({ session: auth.session });
 
-    if (client) {
-      localStorage.setItem(
-        "appono:session",
-        JSON.stringify({ type: "client", name: client.name, remember }),
-      );
-      localStorage.setItem(
-        "appono:pendingVerification",
-        JSON.stringify({ type: "client", name: client.name, email: client.email }),
-      );
+      const profile = await apiRequest<{
+        tipo: "cliente" | "restaurante";
+        perfil: { nome?: string; email?: string };
+      }>("/me");
+
+      await persistAuthResponse({ ...profile, session: auth.session });
+      localStorage.setItem("appono:remember", JSON.stringify({ remember }));
       window.location.href = "/verificacao";
-      return;
-    }
-
-    if (restaurant) {
-      localStorage.setItem(
-        "appono:session",
-        JSON.stringify({
-          type: "restaurant",
-          name: restaurant.legalName,
-          remember,
-        }),
+    } catch (error) {
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : "Nao foi possivel entrar. Tente novamente.",
       );
-      localStorage.setItem(
-        "appono:pendingVerification",
-        JSON.stringify({
-          type: "restaurant",
-          name: restaurant.legalName,
-          email: restaurant.email,
-        }),
-      );
-      window.location.href = "/verificacao";
-      return;
+    } finally {
+      setIsSubmitting(false);
     }
-
-    setMessage("Cadastro não encontrado neste navegador.");
   }
 
   return (
@@ -110,17 +73,18 @@ export function LoginForm() {
               Acesso Appono
             </p>
           </div>
+
           <h1 className="text-2xl italic text-app-cafe-profundo">
             Bem-vindo de volta
           </h1>
           <p className="mt-1 text-xs leading-4 text-app-mocha">
-            Entre para continuar sua jornada gastronômica ou torne-se um membro.
+            Entre para continuar sua jornada gastronomica ou torne-se um membro.
           </p>
 
           <form onSubmit={submitLogin} className="mt-3 space-y-2">
             <label className="flex flex-col gap-1">
               <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-app-mocha">
-                Endereço de e-mail ou CPF/CNPJ
+                Endereco de e-mail
               </span>
               <input
                 value={identifier}
@@ -172,7 +136,7 @@ export function LoginForm() {
               </label>
               <button
                 type="button"
-                onClick={() => setMessage("Recuperação de senha indisponível no momento.")}
+                onClick={() => setMessage("Recuperacao de senha indisponivel no momento.")}
                 className="w-fit text-app-caramelo-torrado transition hover:text-app-cafe-profundo"
               >
                 Esqueceu a senha?
@@ -181,9 +145,10 @@ export function LoginForm() {
 
             <button
               type="submit"
-              className="h-8 w-full bg-app-dourado-mel text-xs font-bold uppercase tracking-wide text-white transition hover:-translate-y-0.5 hover:bg-app-caramelo-torrado focus:outline-none focus:ring-4 focus:ring-app-dourado-mel/25"
+              disabled={isSubmitting}
+              className="h-8 w-full bg-app-dourado-mel text-xs font-bold uppercase tracking-wide text-white transition hover:-translate-y-0.5 hover:bg-app-caramelo-torrado focus:outline-none focus:ring-4 focus:ring-app-dourado-mel/25 disabled:cursor-not-allowed disabled:opacity-70"
             >
-              Entrar
+              {isSubmitting ? "Entrando..." : "Entrar"}
             </button>
 
             <button
@@ -211,48 +176,26 @@ export function LoginForm() {
 
           <button
             type="button"
-            onClick={() => setMessage("Login com Google indisponível no momento.")}
+            onClick={() => setMessage("Login com Google indisponivel no momento.")}
             className="mt-2 flex h-8 w-full items-center justify-center gap-2 border border-[#dadce0] bg-white text-xs font-bold uppercase tracking-wide text-[#3c4043] transition hover:border-[#c8d3e2] hover:bg-[#f8fafd] focus:outline-none focus:ring-4 focus:ring-[#4285f4]/15"
           >
-            <svg
-              aria-hidden="true"
-              className="h-4 w-4"
-              viewBox="0 0 24 24"
-            >
-              <path
-                fill="#4285F4"
-                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-              />
-              <path
-                fill="#34A853"
-                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-              />
-              <path
-                fill="#FBBC05"
-                d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.1s.13-1.44.35-2.1V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l3.66-2.84z"
-              />
-              <path
-                fill="#EA4335"
-                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06L5.84 9.9C6.71 7.31 9.14 5.38 12 5.38z"
-              />
-            </svg>
             Google
           </button>
 
           <p className="mt-2 text-center text-[9px] uppercase leading-4 tracking-[0.12em] text-app-cinza">
-            Ao continuar, você concorda com nossos{" "}
+            Ao continuar, voce concorda com nossos{" "}
             <Link
               href="#"
               className="text-app-caramelo-torrado underline underline-offset-4 transition hover:text-app-cafe-profundo"
             >
-              termos de serviço
+              termos de servico
             </Link>{" "}
             &{" "}
             <Link
               href="#"
               className="text-app-caramelo-torrado underline underline-offset-4 transition hover:text-app-cafe-profundo"
             >
-              política de privacidade
+              politica de privacidade
             </Link>
           </p>
         </div>
@@ -305,7 +248,7 @@ export function LoginForm() {
                   Sou restaurante
                 </strong>
                 <span className="mt-2 block text-sm leading-6 text-app-mocha">
-                  Quero organizar reservas, cardápio e pedidos antecipados.
+                  Quero organizar reservas, cardapio e pedidos antecipados.
                 </span>
               </Link>
             </div>

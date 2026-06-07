@@ -4,6 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { FormField } from "@/components/auth/form-field";
+import { apiRequest } from "@/lib/api";
+import { AuthResponse, persistAuthResponse } from "@/lib/session";
 
 type RestaurantForm = {
   legalName: string;
@@ -49,6 +51,7 @@ export function RegisterRestaurantForm() {
   const [form, setForm] = useState<RestaurantForm>(initialForm);
   const [step, setStep] = useState<1 | 2>(1);
   const [message, setMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   function updateField(field: keyof RestaurantForm, value: string) {
     setForm((current) => ({ ...current, [field]: value }));
@@ -82,7 +85,7 @@ export function RegisterRestaurantForm() {
     setMessage("");
   }
 
-  function submitForm(event: FormEvent<HTMLFormElement>) {
+  async function submitForm(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (!restaurantDetailsAreFilled()) {
@@ -91,30 +94,49 @@ export function RegisterRestaurantForm() {
       return;
     }
 
-    const current = JSON.parse(
-      localStorage.getItem("appono:restaurants") ?? "[]",
-    ) as RestaurantForm[];
-    const next = [
-      ...current.filter((restaurant) => restaurant.cnpj !== form.cnpj),
-      form,
-    ];
+    setIsSubmitting(true);
+    setMessage("");
 
-    localStorage.setItem("appono:restaurants", JSON.stringify(next));
-    setMessage("Perfil de restaurante cadastrado neste navegador.");
+    try {
+      const response = await apiRequest<AuthResponse>(
+        "/auth/register/restaurant",
+        {
+          method: "POST",
+          body: JSON.stringify(form),
+        },
+      );
+
+      await persistAuthResponse(response);
+
+      if (response.session) {
+        window.location.href = "/verificacao";
+        return;
+      }
+
+      setMessage(response.message ?? "Conta criada. Verifique seu e-mail.");
+    } catch (error) {
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : "Nao foi possivel criar a conta do restaurante.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
     <form onSubmit={submitForm} className="mx-auto w-full max-w-6xl">
       <div className="rounded-[12px] bg-app-chantilly px-5 py-4 shadow-[0_18px_50px_rgba(74,44,10,0.08)] ring-1 ring-app-baunilha-dourada sm:px-7">
         <div className="mb-3 flex justify-center">
-            <Image
-              src="/brand/appono-mark.svg"
-              alt="Appono"
-              width={108}
-              height={108}
-              className="h-16 w-16"
-              priority
-            />
+          <Image
+            src="/brand/appono-mark.svg"
+            alt="Appono"
+            width={108}
+            height={108}
+            className="h-16 w-16"
+            priority
+          />
         </div>
 
         <div className="mb-3 flex items-center justify-between gap-3">
@@ -128,6 +150,7 @@ export function RegisterRestaurantForm() {
             Cadastro de parceiro
           </p>
         </div>
+
         <div className="grid gap-3 lg:grid-cols-[1fr_auto] lg:items-end">
           <div>
             <h1 className="text-2xl font-bold text-app-cafe-profundo">
@@ -136,7 +159,7 @@ export function RegisterRestaurantForm() {
             <p className="mt-1 text-sm leading-5 text-app-mocha">
               {step === 1
                 ? "Informe os dados operacionais do estabelecimento."
-                : "Cadastre a conta jurídica para receber os repasses da plataforma."}
+                : "Cadastre a conta juridica para receber os repasses da plataforma."}
             </p>
           </div>
           <div className="grid grid-cols-2 overflow-hidden border border-app-baunilha-dourada text-center text-[10px] font-bold uppercase tracking-[0.18em]">
@@ -167,169 +190,36 @@ export function RegisterRestaurantForm() {
 
         {step === 1 ? (
           <div className="mt-3 grid gap-1.5 sm:grid-cols-6 xl:grid-cols-12">
-            <FormField
-              label="Razão social"
-              value={form.legalName}
-              onChange={(event) => updateField("legalName", event.target.value)}
-              placeholder="Ex: Terra Artisan Gastronomia LTDA"
-              required
-              className="sm:col-span-6 xl:col-span-4"
-            />
-            <FormField
-              label="E-mail"
-              type="email"
-              value={form.email}
-              onChange={(event) => updateField("email", event.target.value)}
-              placeholder="contato@restaurante.com"
-              required
-              className="sm:col-span-3 xl:col-span-3"
-            />
-            <FormField
-              label="Telefone"
-              value={form.phone}
-              onChange={(event) => updateField("phone", event.target.value)}
-              placeholder="(11) 99999-9999"
-              required
-              className="sm:col-span-3 xl:col-span-2"
-            />
-            <FormField
-              label="CNPJ"
-              value={form.cnpj}
-              onChange={(event) => updateField("cnpj", event.target.value)}
-              placeholder="00.000.000/0001-00"
-              required
-              className="sm:col-span-3 xl:col-span-3"
-            />
-            <FormField
-              label="CEP"
-              value={form.cep}
-              onChange={(event) => updateField("cep", event.target.value)}
-              placeholder="00000-000"
-              required
-              className="sm:col-span-2 xl:col-span-2"
-            />
-            <FormField
-              label="Endereço"
-              value={form.address}
-              onChange={(event) => updateField("address", event.target.value)}
-              placeholder="Rua, Avenida, etc."
-              required
-              className="sm:col-span-4 xl:col-span-4"
-            />
-            <FormField
-              label="Bairro"
-              value={form.neighborhood}
-              onChange={(event) => updateField("neighborhood", event.target.value)}
-              placeholder="Ex: Jardins"
-              required
-              className="sm:col-span-2 xl:col-span-2"
-            />
-            <FormField
-              label="Cidade"
-              value={form.city}
-              onChange={(event) => updateField("city", event.target.value)}
-              placeholder="Ex: São Paulo"
-              required
-              className="sm:col-span-2 xl:col-span-3"
-            />
-            <FormField
-              label="UF"
-              value={form.uf}
-              onChange={(event) => updateField("uf", event.target.value)}
-              placeholder="Ex: SP"
-              required
-              maxLength={2}
-              className="sm:col-span-2 xl:col-span-1"
-            />
-            <FormField
-              label="Número"
-              value={form.number}
-              onChange={(event) => updateField("number", event.target.value)}
-              placeholder="Ex: 123"
-              required
-              className="sm:col-span-3 xl:col-span-2"
-            />
-            <FormField
-              label="Complemento"
-              value={form.complement}
-              onChange={(event) => updateField("complement", event.target.value)}
-              placeholder="Sala, Bloco, etc."
-              className="sm:col-span-3 xl:col-span-3"
-            />
-            <FormField
-              label="Número de mesas"
-              type="number"
-              min="1"
-              value={form.tables}
-              onChange={(event) => updateField("tables", event.target.value)}
-              placeholder="Ex: 12"
-              required
-              className="sm:col-span-3 xl:col-span-2"
-            />
-            <FormField
-              label="Senha"
-              type="password"
-              value={form.password}
-              onChange={(event) => updateField("password", event.target.value)}
-              placeholder="Digite aqui"
-              required
-              minLength={6}
-              className="sm:col-span-3 xl:col-span-2"
-            />
+            <FormField label="Razao social" value={form.legalName} onChange={(event) => updateField("legalName", event.target.value)} placeholder="Ex: Terra Artisan Gastronomia LTDA" required className="sm:col-span-6 xl:col-span-4" />
+            <FormField label="E-mail" type="email" value={form.email} onChange={(event) => updateField("email", event.target.value)} placeholder="contato@restaurante.com" required className="sm:col-span-3 xl:col-span-3" />
+            <FormField label="Telefone" value={form.phone} onChange={(event) => updateField("phone", event.target.value)} placeholder="(11) 99999-9999" required className="sm:col-span-3 xl:col-span-2" />
+            <FormField label="CNPJ" value={form.cnpj} onChange={(event) => updateField("cnpj", event.target.value)} placeholder="00.000.000/0001-00" required className="sm:col-span-3 xl:col-span-3" />
+            <FormField label="CEP" value={form.cep} onChange={(event) => updateField("cep", event.target.value)} placeholder="00000-000" required className="sm:col-span-2 xl:col-span-2" />
+            <FormField label="Endereco" value={form.address} onChange={(event) => updateField("address", event.target.value)} placeholder="Rua, Avenida, etc." required className="sm:col-span-4 xl:col-span-4" />
+            <FormField label="Bairro" value={form.neighborhood} onChange={(event) => updateField("neighborhood", event.target.value)} placeholder="Ex: Jardins" required className="sm:col-span-2 xl:col-span-2" />
+            <FormField label="Cidade" value={form.city} onChange={(event) => updateField("city", event.target.value)} placeholder="Ex: Sao Paulo" required className="sm:col-span-2 xl:col-span-3" />
+            <FormField label="UF" value={form.uf} onChange={(event) => updateField("uf", event.target.value)} placeholder="Ex: SP" required maxLength={2} className="sm:col-span-2 xl:col-span-1" />
+            <FormField label="Numero" value={form.number} onChange={(event) => updateField("number", event.target.value)} placeholder="Ex: 123" required className="sm:col-span-3 xl:col-span-2" />
+            <FormField label="Complemento" value={form.complement} onChange={(event) => updateField("complement", event.target.value)} placeholder="Sala, Bloco, etc." className="sm:col-span-3 xl:col-span-3" />
+            <FormField label="Numero de mesas" type="number" min="1" value={form.tables} onChange={(event) => updateField("tables", event.target.value)} placeholder="Ex: 12" required className="sm:col-span-3 xl:col-span-2" />
+            <FormField label="Senha" type="password" value={form.password} onChange={(event) => updateField("password", event.target.value)} placeholder="Digite aqui" required minLength={6} className="sm:col-span-3 xl:col-span-2" />
           </div>
         ) : (
           <div className="mt-3 grid gap-2 sm:grid-cols-6">
-            <FormField
-              label="Código do banco"
-              value={form.bankCode}
-              onChange={(event) => updateField("bankCode", event.target.value)}
-              placeholder="Ex: 260, 001"
-              required
-              className="sm:col-span-2"
-            />
-            <FormField
-              label="Agência"
-              value={form.agency}
-              onChange={(event) => updateField("agency", event.target.value)}
-              placeholder="Ex: 0001"
-              required
-              className="sm:col-span-2"
-            />
-            <FormField
-              label="Conta corrente com dígito"
-              value={form.checkingAccount}
-              onChange={(event) =>
-                updateField("checkingAccount", event.target.value)
-              }
-              placeholder="Ex: 12345-6"
-              required
-              className="sm:col-span-2"
-            />
-            <FormField
-              label="Chave Pix vinculada à conta"
-              value={form.pixKey}
-              onChange={(event) => updateField("pixKey", event.target.value)}
-              placeholder="Opcional"
-              className="sm:col-span-6"
-            />
+            <FormField label="Codigo do banco" value={form.bankCode} onChange={(event) => updateField("bankCode", event.target.value)} placeholder="Ex: 260, 001" className="sm:col-span-2" />
+            <FormField label="Agencia" value={form.agency} onChange={(event) => updateField("agency", event.target.value)} placeholder="Ex: 0001" className="sm:col-span-2" />
+            <FormField label="Conta corrente com digito" value={form.checkingAccount} onChange={(event) => updateField("checkingAccount", event.target.value)} placeholder="Ex: 12345-6" className="sm:col-span-2" />
+            <FormField label="Chave Pix vinculada a conta" value={form.pixKey} onChange={(event) => updateField("pixKey", event.target.value)} placeholder="Opcional" className="sm:col-span-6" />
             <div className="border border-app-baunilha-dourada bg-app-creme-suave px-4 py-3 text-xs leading-5 text-app-mocha sm:col-span-6">
-              Os dados bancários devem pertencer ao mesmo CNPJ informado na etapa
-              1. Confira as informações antes de finalizar o cadastro.
+              Os dados bancarios devem pertencer ao mesmo CNPJ informado na etapa 1.
+              Confira as informacoes antes de finalizar o cadastro.
             </div>
           </div>
         )}
 
         <div className="mt-3 flex flex-col-reverse gap-2 border-t border-app-baunilha-dourada pt-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-[10px] leading-4 text-app-cinza">
-            Ao finalizar, você concorda com nossos{" "}
-            <Link href="#" className="underline transition hover:text-app-mocha">
-              Termos
-            </Link>{" "}
-            e{" "}
-            <Link href="#" className="underline transition hover:text-app-mocha">
-              Política de Privacidade
-            </Link>
-            .
+            Ao finalizar, voce concorda com nossos Termos e Politica de Privacidade.
           </p>
           {step === 1 ? (
             <button
@@ -342,16 +232,17 @@ export function RegisterRestaurantForm() {
           ) : (
             <button
               type="submit"
-              className="flex h-9 w-full items-center justify-center bg-app-dourado-mel px-6 text-xs font-bold uppercase tracking-wide text-white transition hover:-translate-y-0.5 hover:bg-app-caramelo-torrado focus:outline-none focus:ring-4 focus:ring-app-dourado-mel/25 sm:w-auto"
+              disabled={isSubmitting}
+              className="flex h-9 w-full items-center justify-center bg-app-dourado-mel px-6 text-xs font-bold uppercase tracking-wide text-white transition hover:-translate-y-0.5 hover:bg-app-caramelo-torrado focus:outline-none focus:ring-4 focus:ring-app-dourado-mel/25 disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto"
             >
-              Criar conta
+              {isSubmitting ? "Criando..." : "Criar conta"}
             </button>
           )}
         </div>
 
         <div className="mt-2 flex flex-col gap-2 text-sm text-app-cinza sm:flex-row sm:items-center sm:justify-between">
           <span>
-            Já possui uma conta?{" "}
+            Ja possui uma conta?{" "}
             <Link
               href="/login"
               className="font-bold text-app-cafe-profundo transition hover:text-app-caramelo-torrado"

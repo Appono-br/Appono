@@ -2,7 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { apiRequest } from "@/lib/api";
 
 type Restaurant = {
   id: string;
@@ -23,7 +24,6 @@ type Specialty = {
   imageUrl?: string;
 };
 
-const restaurants: Restaurant[] = [];
 const highlightedRestaurants: Restaurant[] = [];
 const specialties: Specialty[] = [];
 
@@ -108,6 +108,41 @@ export default function DashboardPage() {
   const [activeFilter, setActiveFilter] = useState(filters[0]);
   const [query, setQuery] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
+  const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    async function loadRestaurants() {
+      try {
+        const data = await apiRequest<
+          Array<{
+            id_restaurante: number;
+            nome: string;
+            endereco?: string | null;
+            logo_url?: string | null;
+          }>
+        >("/restaurantes");
+
+        setRestaurants(
+          data.map((restaurant) => ({
+            id: String(restaurant.id_restaurante),
+            name: restaurant.nome,
+            specialty: "Restaurante",
+            neighborhood: restaurant.endereco ?? undefined,
+            imageUrl: restaurant.logo_url ?? undefined,
+          })),
+        );
+      } catch (error) {
+        setMessage(
+          error instanceof Error
+            ? error.message
+            : "Nao foi possivel carregar restaurantes.",
+        );
+      }
+    }
+
+    loadRestaurants();
+  }, []);
 
   const filteredRestaurants = useMemo(() => {
     return restaurants.filter((restaurant) => {
@@ -264,6 +299,11 @@ export default function DashboardPage() {
             Ver todos
           </Link>
         </div>
+        {message ? (
+          <p className="mt-4 rounded-[8px] bg-app-creme-leve p-3 text-sm font-semibold text-app-caramelo-torrado">
+            {message}
+          </p>
+        ) : null}
 
         <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_0.48fr]">
           <EmptyState

@@ -1,57 +1,31 @@
-type ApiResult<T> =
-  | {
-      apiUrl: string;
-      data: T;
-      error: null;
-      online: true;
-    }
-  | {
-      apiUrl: string;
-      data: null;
-      error: string;
-      online: false;
-    };
+import { supabase } from "./supabase";
 
-export type HealthResponse = {
-  status: string;
-};
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001/api";
 
-const API_URL = process.env.API_URL ?? "http://localhost:3001";
+export async function apiRequest<T>(
+  path: string,
+  options: RequestInit = {},
+): Promise<T> {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
 
-async function apiRequest<T>(path: string): Promise<ApiResult<T>> {
-  try {
-    const response = await fetch(`${API_URL}${path}`, {
-      cache: "no-store",
-      headers: {
-        Accept: "application/json",
-      },
-    });
+  const response = await fetch(`${API_URL}${path}`, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...(session?.access_token
+        ? { Authorization: `Bearer ${session.access_token}` }
+        : {}),
+      ...options.headers,
+    },
+  });
 
-    if (!response.ok) {
-      return {
-        apiUrl: API_URL,
-        data: null,
-        error: `HTTP ${response.status}`,
-        online: false,
-      };
-    }
+  const body = await response.json();
 
-    return {
-      apiUrl: API_URL,
-      data: (await response.json()) as T,
-      error: null,
-      online: true,
-    };
-  } catch {
-    return {
-      apiUrl: API_URL,
-      data: null,
-      error: "Backend indisponivel",
-      online: false,
-    };
+  if (!response.ok) {
+    throw new Error(body.error ?? "Erro inesperado");
   }
-}
 
-export function getApiHealth() {
-  return apiRequest<HealthResponse>("/api/health");
+  return body;
 }

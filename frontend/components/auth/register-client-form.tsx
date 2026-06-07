@@ -4,6 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { FormField } from "@/components/auth/form-field";
+import { apiRequest } from "@/lib/api";
+import { AuthResponse, persistAuthResponse } from "@/lib/session";
 
 type ClientForm = {
   name: string;
@@ -26,36 +28,55 @@ const initialForm: ClientForm = {
 export function RegisterClientForm() {
   const [form, setForm] = useState<ClientForm>(initialForm);
   const [message, setMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   function updateField(field: keyof ClientForm, value: string) {
     setForm((current) => ({ ...current, [field]: value }));
     setMessage("");
   }
 
-  function submitForm(event: FormEvent<HTMLFormElement>) {
+  async function submitForm(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setIsSubmitting(true);
+    setMessage("");
 
-    const current = JSON.parse(
-      localStorage.getItem("appono:clients") ?? "[]",
-    ) as ClientForm[];
-    const next = [...current.filter((client) => client.email !== form.email), form];
+    try {
+      const response = await apiRequest<AuthResponse>("/auth/register/client", {
+        method: "POST",
+        body: JSON.stringify(form),
+      });
 
-    localStorage.setItem("appono:clients", JSON.stringify(next));
-    setMessage("Conta de cliente cadastrada neste navegador.");
+      await persistAuthResponse(response);
+
+      if (response.session) {
+        window.location.href = "/verificacao";
+        return;
+      }
+
+      setMessage(response.message ?? "Conta criada. Verifique seu e-mail.");
+    } catch (error) {
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : "Nao foi possivel criar a conta.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
     <form onSubmit={submitForm} className="mx-auto w-full max-w-xl">
       <div className="rounded-[12px] bg-app-chantilly px-5 py-4 shadow-[0_18px_50px_rgba(74,44,10,0.08)] ring-1 ring-app-baunilha-dourada sm:px-7">
         <div className="mb-3 flex justify-center">
-            <Image
-              src="/brand/appono-mark.svg"
-              alt="Appono"
-              width={108}
-              height={108}
-              className="h-16 w-16"
-              priority
-            />
+          <Image
+            src="/brand/appono-mark.svg"
+            alt="Appono"
+            width={108}
+            height={108}
+            className="h-16 w-16"
+            priority
+          />
         </div>
 
         <div className="mb-3 flex items-center justify-between gap-3">
@@ -130,7 +151,7 @@ export function RegisterClientForm() {
 
         <div className="mt-3 flex flex-col-reverse gap-2 border-t border-app-baunilha-dourada pt-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-xs text-app-cinza">
-            Já possui uma conta?{" "}
+            Ja possui uma conta?{" "}
             <Link
               href="/login"
               className="font-bold text-app-caramelo-torrado transition hover:text-app-cafe-profundo"
@@ -140,9 +161,10 @@ export function RegisterClientForm() {
           </p>
           <button
             type="submit"
-            className="flex h-9 w-full items-center justify-center bg-app-dourado-mel px-6 text-xs font-bold uppercase tracking-wide text-white transition hover:-translate-y-0.5 hover:bg-app-caramelo-torrado focus:outline-none focus:ring-4 focus:ring-app-dourado-mel/25 sm:w-auto"
+            disabled={isSubmitting}
+            className="flex h-9 w-full items-center justify-center bg-app-dourado-mel px-6 text-xs font-bold uppercase tracking-wide text-white transition hover:-translate-y-0.5 hover:bg-app-caramelo-torrado focus:outline-none focus:ring-4 focus:ring-app-dourado-mel/25 disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto"
           >
-            Criar conta
+            {isSubmitting ? "Criando..." : "Criar conta"}
           </button>
         </div>
 

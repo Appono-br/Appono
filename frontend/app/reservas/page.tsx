@@ -2,14 +2,16 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { apiRequest } from "@/lib/api";
 
 type Reservation = {
   id: string;
   date: string;
+  time: string;
+  status: string;
+  restaurant: string;
 };
-
-const reservations: Reservation[] = [];
 
 const navItems = [
   { label: "Início", href: "/dashboard" },
@@ -135,6 +137,7 @@ function EmptyReservationPanel() {
 export default function ReservationsPage() {
   const today = new Date();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [reservations, setReservations] = useState<Reservation[]>([]);
   const [period, setPeriod] = useState({
     month: today.getMonth(),
     year: today.getFullYear(),
@@ -147,8 +150,38 @@ export default function ReservationsPage() {
 
   const reservationDates = useMemo(
     () => new Set(reservations.map((reservation) => reservation.date)),
-    [],
+    [reservations],
   );
+
+  useEffect(() => {
+    async function loadReservations() {
+      try {
+        const data = await apiRequest<
+          Array<{
+            id_reserva: number;
+            data_reserva: string;
+            horario_inicio: string;
+            status_reserva: string;
+            restaurantes?: { nome?: string } | null;
+          }>
+        >("/reservas");
+
+        setReservations(
+          data.map((reservation) => ({
+            id: String(reservation.id_reserva),
+            date: reservation.data_reserva,
+            time: reservation.horario_inicio,
+            status: reservation.status_reserva,
+            restaurant: reservation.restaurantes?.nome ?? "Restaurante",
+          })),
+        );
+      } catch {
+        setReservations([]);
+      }
+    }
+
+    loadReservations();
+  }, []);
 
   function changeMonth(direction: -1 | 1) {
     setPeriod((current) => {
@@ -332,7 +365,13 @@ export default function ReservationsPage() {
                     className="rounded-[8px] bg-app-creme-leve p-6 shadow-sm"
                   >
                     <p className="text-sm font-semibold text-app-caramelo-torrado">
-                      {reservation.date}
+                      {reservation.date} as {reservation.time}
+                    </p>
+                    <h2 className="mt-2 text-xl font-semibold text-app-cafe-profundo">
+                      {reservation.restaurant}
+                    </h2>
+                    <p className="mt-2 text-sm uppercase tracking-wide text-app-cinza">
+                      Status: {reservation.status}
                     </p>
                   </article>
                 ))}
