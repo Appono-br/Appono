@@ -5,7 +5,7 @@ import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { FormField } from "@/components/auth/form-field";
 import { apiRequest } from "@/lib/api";
-import { AuthResponse, persistAuthResponse } from "@/lib/session";
+import { AuthResponse, getDashboardPath, persistAuthResponse } from "@/lib/session";
 
 type RestaurantForm = {
   legalName: string;
@@ -109,11 +109,14 @@ export function RegisterRestaurantForm() {
       await persistAuthResponse(response);
 
       if (response.session) {
-        window.location.href = "/verificacao";
+        window.location.href = getDashboardPath(response.tipo);
         return;
       }
 
-      setMessage(response.message ?? "Conta criada. Verifique seu e-mail.");
+      setMessage(
+        response.message ??
+          "Conta criada. Confirme seu e-mail para entrar direto no painel.",
+      );
     } catch (error) {
       setMessage(
         error instanceof Error

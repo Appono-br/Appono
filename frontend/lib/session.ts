@@ -13,6 +13,10 @@ export type AuthResponse = {
   message?: string;
 };
 
+export function getDashboardPath(tipo?: ProfileType) {
+  return tipo === "restaurante" ? "/restaurante/dashboard" : "/dashboard";
+}
+
 export async function persistAuthResponse(response: AuthResponse) {
   if (response.session) {
     await supabase.auth.setSession({
@@ -29,15 +33,6 @@ export async function persistAuthResponse(response: AuthResponse) {
       JSON.stringify({
         type: sessionType,
         name: response.perfil.nome,
-      }),
-    );
-
-    localStorage.setItem(
-      "appono:pendingVerification",
-      JSON.stringify({
-        type: sessionType,
-        name: response.perfil.nome,
-        email: response.perfil.email,
       }),
     );
   }

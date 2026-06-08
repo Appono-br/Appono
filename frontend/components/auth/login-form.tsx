@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { apiRequest } from "@/lib/api";
-import { AuthResponse, persistAuthResponse } from "@/lib/session";
+import { AuthResponse, getDashboardPath, persistAuthResponse } from "@/lib/session";
 
 export function LoginForm() {
   const [identifier, setIdentifier] = useState("");
@@ -35,7 +35,7 @@ export function LoginForm() {
 
       await persistAuthResponse({ ...profile, session: auth.session });
       localStorage.setItem("appono:remember", JSON.stringify({ remember }));
-      window.location.href = "/verificacao";
+      window.location.href = getDashboardPath(profile.tipo);
     } catch (error) {
       setMessage(
         error instanceof Error

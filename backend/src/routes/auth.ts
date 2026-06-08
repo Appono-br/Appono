@@ -1,9 +1,5 @@
 import { Router } from "express";
-import {
-  createUserSupabaseClient,
-  supabaseAdmin,
-  supabaseAuth,
-} from "../lib/supabase";
+import { createUserSupabaseClient, supabaseAuth } from "../lib/supabase";
 
 type ClientRegistrationBody = {
   name?: string;
@@ -36,14 +32,14 @@ type RestaurantRegistrationBody = {
 
 export const authRouter = Router();
 
+const frontendOrigin = (process.env.FRONTEND_ORIGIN ?? "http://localhost:3000").replace(
+  /\/$/,
+  "",
+);
+
 function requireFields(body: Record<string, unknown>, fields: string[]) {
   const missing = fields.filter((field) => !body[field]);
-
-  if (missing.length) {
-    return `Campos obrigatorios ausentes: ${missing.join(", ")}`;
-  }
-
-  return null;
+  return missing.length ? `Campos obrigatorios ausentes: ${missing.join(", ")}` : null;
 }
 
 function buildAddress(body: RestaurantRegistrationBody) {
@@ -59,18 +55,58 @@ function buildAddress(body: RestaurantRegistrationBody) {
     .join(", ");
 }
 
-function parseTableCount(value?: string) {
-  const parsed = Number(value);
-  return Number.isFinite(parsed) && parsed > 0 ? Math.floor(parsed) : 0;
+function getEmailRedirectUrl() {
+  return `${frontendOrigin}/auth/callback`;
 }
 
-async function insertProfileWithUserSession(
-  accessToken: string,
-  table: "clientes" | "restaurantes",
-  payload: Record<string, unknown>,
-) {
+function getAuthErrorMessage(message?: string) {
+  if (!message) {
+    return "Erro ao criar usuario.";
+  }
+
+  const normalizedMessage = message.toLowerCase();
+
+  if (
+    normalizedMessage.includes("email rate limit exceeded") ||
+    normalizedMessage.includes("rate limit") ||
+    normalizedMessage.includes("limite de envio")
+  ) {
+    return "Limite temporario de envio de e-mails atingido. Aguarde alguns minutos ou tente novamente mais tarde.";
+  }
+
+  return message;
+}
+
+async function getProfile(accessToken: string) {
   const supabase = createUserSupabaseClient(accessToken);
-  return supabase.from(table).insert(payload).select("*").single();
+
+  const { data: cliente, error: clienteError } = await supabase
+    .from("clientes")
+    .select("*")
+    .maybeSingle();
+
+  if (clienteError) {
+    throw new Error(clienteError.message);
+  }
+
+  if (cliente) {
+    return { tipo: "cliente" as const, perfil: cliente };
+  }
+
+  const { data: restaurante, error: restauranteError } = await supabase
+    .from("restaurantes")
+    .select("*")
+    .maybeSingle();
+
+  if (restauranteError) {
+    throw new Error(restauranteError.message);
+  }
+
+  if (restaurante) {
+    return { tipo: "restaurante" as const, perfil: restaurante };
+  }
+
+  return null;
 }
 
 authRouter.post("/login", async (req, res) => {
@@ -89,7 +125,14 @@ authRouter.post("/login", async (req, res) => {
     return res.status(401).json({ error: "Credenciais invalidas." });
   }
 
+  const profile = await getProfile(data.session.access_token);
+
+  if (!profile) {
+    return res.status(404).json({ error: "Perfil nao encontrado para este usuario." });
+  }
+
   return res.json({
+    ...profile,
     user: data.user,
     session: data.session,
   });
@@ -113,64 +156,39 @@ authRouter.post("/register/client", async (req, res) => {
   const { data: authData, error: authError } = await supabaseAuth.auth.signUp({
     email: body.email!,
     password: body.password!,
+    options: {
+      emailRedirectTo: getEmailRedirectUrl(),
+      data: {
+        appono_profile: {
+          tipo: "cliente",
+          nome: body.name,
+          cpf: body.cpf,
+          telefone: body.phone,
+          email: body.email,
+          dt_nasc: body.birthDate,
+        },
+      },
+    },
   });
 
   if (authError || !authData.user) {
-    return res.status(400).json({ error: authError?.message ?? "Erro ao criar usuario." });
+    return res.status(400).json({ error: getAuthErrorMessage(authError?.message) });
   }
 
-  const profile = {
-    id_auth: authData.user.id,
-    nome: body.name,
-    cpf: body.cpf,
-    telefone: body.phone,
-    email: body.email,
-    dt_nasc: body.birthDate,
-  };
-
-  if (authData.session) {
-    const { data, error } = await insertProfileWithUserSession(
-      authData.session.access_token,
-      "clientes",
-      profile,
-    );
-
-    if (error) {
-      return res.status(400).json({ error: error.message });
-    }
-
-    return res.status(201).json({
-      tipo: "cliente",
-      perfil: data,
-      session: authData.session,
+  if (!authData.session) {
+    return res.status(202).json({
       user: authData.user,
-    });
-  }
-
-  if (supabaseAdmin) {
-    const { data, error } = await supabaseAdmin
-      .from("clientes")
-      .insert(profile)
-      .select("*")
-      .single();
-
-    if (error) {
-      return res.status(400).json({ error: error.message });
-    }
-
-    return res.status(201).json({
-      tipo: "cliente",
-      perfil: data,
       session: null,
-      user: authData.user,
+      message: "Conta criada. Confirme o e-mail para ativar o acesso.",
     });
   }
 
-  return res.status(202).json({
+  const profile = await getProfile(authData.session.access_token);
+
+  return res.status(201).json({
+    ...profile,
     user: authData.user,
-    session: null,
-    message:
-      "Usuario criado. Confirme o e-mail antes de continuar ou configure SUPABASE_SECRET_KEY no backend para criar o perfil automaticamente.",
+    session: authData.session,
   });
 });
 
@@ -198,82 +216,47 @@ authRouter.post("/register/restaurant", async (req, res) => {
   const { data: authData, error: authError } = await supabaseAuth.auth.signUp({
     email: body.email!,
     password: body.password!,
+    options: {
+      emailRedirectTo: getEmailRedirectUrl(),
+      data: {
+        appono_profile: {
+          tipo: "restaurante",
+          nome: body.legalName,
+          cnpj: body.cnpj,
+          telefone: body.phone,
+          email: body.email,
+          cep: body.cep,
+          endereco: buildAddress(body),
+          horario_funcionamento: "A definir",
+          quantidade_mesas: body.tables,
+          dados_bancarios: {
+            cod_banco: body.bankCode,
+            agencia: body.agency,
+            conta_corrente: body.checkingAccount,
+            chave_pix: body.pixKey,
+          },
+        },
+      },
+    },
   });
 
   if (authError || !authData.user) {
-    return res.status(400).json({ error: authError?.message ?? "Erro ao criar usuario." });
+    return res.status(400).json({ error: getAuthErrorMessage(authError?.message) });
   }
 
-  const restaurantProfile = {
-    id_auth: authData.user.id,
-    nome: body.legalName,
-    cnpj: body.cnpj,
-    telefone: body.phone,
-    email: body.email,
-    cep: body.cep,
-    endereco: buildAddress(body),
-    horario_funcionamento: "A definir",
-  };
-
-  const accessToken = authData.session?.access_token;
-  const writer = accessToken ? createUserSupabaseClient(accessToken) : supabaseAdmin;
-
-  if (!writer) {
+  if (!authData.session) {
     return res.status(202).json({
       user: authData.user,
       session: null,
-      message:
-        "Usuario criado. Confirme o e-mail antes de continuar ou configure SUPABASE_SECRET_KEY no backend para criar o perfil automaticamente.",
+      message: "Conta criada. Confirme o e-mail para ativar o acesso.",
     });
   }
 
-  const { data: restaurante, error: restaurantError } = await writer
-    .from("restaurantes")
-    .insert(restaurantProfile)
-    .select("*")
-    .single();
-
-  if (restaurantError) {
-    return res.status(400).json({ error: restaurantError.message });
-  }
-
-  const bankFieldsWereFilled =
-    body.bankCode || body.agency || body.checkingAccount || body.pixKey;
-
-  if (bankFieldsWereFilled) {
-    const { error: bankError } = await writer.from("dados_bancarios_restaurante").insert({
-      id_restaurante: restaurante.id_restaurante,
-      cod_banco: body.bankCode || null,
-      agencia: body.agency || null,
-      conta_corrente: body.checkingAccount || null,
-      chave_pix: body.pixKey || null,
-    });
-
-    if (bankError) {
-      return res.status(400).json({ error: bankError.message });
-    }
-  }
-
-  const tableCount = parseTableCount(body.tables);
-
-  if (tableCount > 0) {
-    const mesas = Array.from({ length: tableCount }, (_, index) => ({
-      id_restaurante: restaurante.id_restaurante,
-      numero_mesa: index + 1,
-      capacidade: 4,
-    }));
-
-    const { error: tablesError } = await writer.from("mesas").insert(mesas);
-
-    if (tablesError) {
-      return res.status(400).json({ error: tablesError.message });
-    }
-  }
+  const profile = await getProfile(authData.session.access_token);
 
   return res.status(201).json({
-    tipo: "restaurante",
-    perfil: restaurante,
-    session: authData.session,
+    ...profile,
     user: authData.user,
+    session: authData.session,
   });
 });
