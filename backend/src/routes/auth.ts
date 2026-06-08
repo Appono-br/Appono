@@ -1,5 +1,10 @@
 import { Router } from "express";
-import { createUserSupabaseClient, supabaseAuth } from "../lib/supabase";
+import {
+  createUserSupabaseClient,
+  isSupabaseConfigured,
+  supabaseAdmin,
+  supabaseAuth,
+} from "../lib/supabase";
 
 type ClientRegistrationBody = {
   name?: string;
@@ -109,7 +114,43 @@ async function getProfile(accessToken: string) {
   return null;
 }
 
+async function confirmAndSignInCreatedUser(
+  userId: string,
+  email: string,
+  password: string,
+) {
+  if (!supabaseAdmin) {
+    return null;
+  }
+
+  const { error: confirmError } = await supabaseAdmin.auth.admin.updateUserById(
+    userId,
+    { email_confirm: true },
+  );
+
+  if (confirmError) {
+    throw new Error("Nao foi possivel ativar sua conta agora.");
+  }
+
+  const { data, error } = await supabaseAuth.auth.signInWithPassword({
+    email,
+    password,
+  });
+
+  if (error || !data.session) {
+    throw new Error("Conta criada. Entre com seu e-mail e senha.");
+  }
+
+  return data;
+}
+
 authRouter.post("/login", async (req, res) => {
+  if (!isSupabaseConfigured()) {
+    return res.status(503).json({
+      error: "O acesso esta temporariamente indisponivel. Tente novamente mais tarde.",
+    });
+  }
+
   const { email, password } = req.body as { email?: string; password?: string };
 
   if (!email || !password) {
@@ -122,7 +163,12 @@ authRouter.post("/login", async (req, res) => {
   });
 
   if (error || !data.session) {
-    return res.status(401).json({ error: "Credenciais invalidas." });
+    return res.status(401).json({
+      error:
+        error?.message.toLowerCase().includes("email not confirmed")
+          ? "Confirme seu e-mail antes de entrar."
+          : "Credenciais invalidas.",
+    });
   }
 
   const profile = await getProfile(data.session.access_token);
@@ -139,6 +185,12 @@ authRouter.post("/login", async (req, res) => {
 });
 
 authRouter.post("/register/client", async (req, res) => {
+  if (!isSupabaseConfigured()) {
+    return res.status(503).json({
+      error: "O cadastro esta temporariamente indisponivel. Tente novamente mais tarde.",
+    });
+  }
+
   const body = req.body as ClientRegistrationBody;
   const missing = requireFields(body, [
     "name",
@@ -176,6 +228,22 @@ authRouter.post("/register/client", async (req, res) => {
   }
 
   if (!authData.session) {
+    const confirmedAuthData = await confirmAndSignInCreatedUser(
+      authData.user.id,
+      body.email!,
+      body.password!,
+    );
+
+    if (confirmedAuthData?.session) {
+      const profile = await getProfile(confirmedAuthData.session.access_token);
+
+      return res.status(201).json({
+        ...profile,
+        user: confirmedAuthData.user,
+        session: confirmedAuthData.session,
+      });
+    }
+
     return res.status(202).json({
       user: authData.user,
       session: null,
@@ -193,6 +261,12 @@ authRouter.post("/register/client", async (req, res) => {
 });
 
 authRouter.post("/register/restaurant", async (req, res) => {
+  if (!isSupabaseConfigured()) {
+    return res.status(503).json({
+      error: "O cadastro esta temporariamente indisponivel. Tente novamente mais tarde.",
+    });
+  }
+
   const body = req.body as RestaurantRegistrationBody;
   const missing = requireFields(body, [
     "legalName",
@@ -245,6 +319,22 @@ authRouter.post("/register/restaurant", async (req, res) => {
   }
 
   if (!authData.session) {
+    const confirmedAuthData = await confirmAndSignInCreatedUser(
+      authData.user.id,
+      body.email!,
+      body.password!,
+    );
+
+    if (confirmedAuthData?.session) {
+      const profile = await getProfile(confirmedAuthData.session.access_token);
+
+      return res.status(201).json({
+        ...profile,
+        user: confirmedAuthData.user,
+        session: confirmedAuthData.session,
+      });
+    }
+
     return res.status(202).json({
       user: authData.user,
       session: null,

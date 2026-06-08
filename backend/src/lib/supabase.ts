@@ -4,24 +4,51 @@ import path from "path";
 
 dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 
+if (
+  process.env.NODE_ENV !== "production" &&
+  process.env.SUPABASE_ALLOW_INSECURE_TLS === "true"
+) {
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+}
+
 const supabaseUrl = process.env.SUPABASE_URL;
 const publishableKey = process.env.SUPABASE_PUBLISHABLE_KEY;
 const secretKey = process.env.SUPABASE_SECRET_KEY;
 
-if (!supabaseUrl || !publishableKey) {
-  throw new Error("SUPABASE_URL e SUPABASE_PUBLISHABLE_KEY precisam estar configuradas.");
+const missingSupabaseConfigMessage =
+  "O acesso esta temporariamente indisponivel. Tente novamente mais tarde.";
+
+function hasSupabasePlaceholder(value?: string) {
+  return (
+    !value ||
+    value.includes("seu-projeto") ||
+    value.includes("sua-chave") ||
+    value.includes("sua-chave-secreta")
+  );
 }
 
-const requiredSupabaseUrl = supabaseUrl;
-const requiredPublishableKey = publishableKey;
+function createUnavailableSupabaseClient(): ReturnType<typeof createClient> {
+  return new Proxy(
+    {},
+    {
+      get() {
+        throw new Error(missingSupabaseConfigMessage);
+      },
+    },
+  ) as ReturnType<typeof createClient>;
+}
 
-export const supabaseAuth = createClient(
-  requiredSupabaseUrl,
-  requiredPublishableKey,
-);
+export function isSupabaseConfigured() {
+  return !hasSupabasePlaceholder(supabaseUrl) && !hasSupabasePlaceholder(publishableKey);
+}
 
-export const supabaseAdmin = secretKey
-  ? createClient(requiredSupabaseUrl, secretKey, {
+export const supabaseAuth =
+  isSupabaseConfigured()
+    ? createClient(supabaseUrl!, publishableKey!)
+    : createUnavailableSupabaseClient();
+
+export const supabaseAdmin = isSupabaseConfigured() && !hasSupabasePlaceholder(secretKey)
+  ? createClient(supabaseUrl!, secretKey!, {
       auth: {
         autoRefreshToken: false,
         persistSession: false,
@@ -30,7 +57,11 @@ export const supabaseAdmin = secretKey
   : null;
 
 export function createUserSupabaseClient(accessToken: string) {
-  return createClient(requiredSupabaseUrl, requiredPublishableKey, {
+  if (!isSupabaseConfigured()) {
+    throw new Error(missingSupabaseConfigMessage);
+  }
+
+  return createClient(supabaseUrl!, publishableKey!, {
     global: {
       headers: {
         Authorization: `Bearer ${accessToken}`,

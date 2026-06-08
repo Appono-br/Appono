@@ -157,7 +157,7 @@ export default function DashboardPage() {
 
       return matchesFilter && matchesSearch;
     });
-  }, [activeFilter, query]);
+  }, [activeFilter, query, restaurants]);
 
   return (
     <main className="min-h-screen bg-app-chantilly text-app-cafe-profundo">

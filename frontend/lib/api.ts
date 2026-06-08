@@ -1,4 +1,4 @@
-import { supabase } from "./supabase";
+import { getAccessToken } from "./session";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001/api";
 
@@ -6,25 +6,29 @@ export async function apiRequest<T>(
   path: string,
   options: RequestInit = {},
 ): Promise<T> {
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+  const accessToken = getAccessToken();
 
-  const response = await fetch(`${API_URL}${path}`, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...(session?.access_token
-        ? { Authorization: `Bearer ${session.access_token}` }
-        : {}),
-      ...options.headers,
-    },
-  });
+  let response: Response;
 
-  const body = await response.json();
+  try {
+    response = await fetch(`${API_URL}${path}`, {
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+        ...options.headers,
+      },
+    });
+  } catch {
+    throw new Error(
+      "Nao conseguimos acessar o servico agora. Tente novamente em alguns instantes.",
+    );
+  }
+
+  const body = await response.json().catch(() => null);
 
   if (!response.ok) {
-    throw new Error(body.error ?? "Erro inesperado");
+    throw new Error(body?.error ?? "Nao conseguimos concluir agora.");
   }
 
   return body;
