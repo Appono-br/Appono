@@ -3,11 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-
-type RestaurantSession = {
-  type?: "client" | "restaurant";
-  name?: string;
-};
+import { TelaCarregandoSessao, useSessaoLocal } from "@/lib/use-sessao-local";
 
 type Metric = {
   label: string;
@@ -134,19 +130,14 @@ function EmptyPanel({
 }
 
 export default function RestaurantDashboardPage() {
-  const [session] = useState<RestaurantSession | null>(() => {
-    if (typeof window === "undefined") {
-      return null;
-    }
-
-    const storedSession = window.localStorage.getItem("appono:session");
-    return storedSession ? (JSON.parse(storedSession) as RestaurantSession) : null;
-  });
+  const { sessao, sessaoCarregada } = useSessaoLocal();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const isRestaurant = session?.type === "restaurant";
+  if (!sessaoCarregada) {
+    return <TelaCarregandoSessao />;
+  }
 
-  if (!isRestaurant) {
+  if (sessao?.type !== "restaurant") {
     return (
       <main className="flex min-h-screen items-center justify-center bg-app-chantilly px-5 text-app-cafe-profundo">
         <section className="w-full max-w-lg rounded-[8px] bg-app-creme-leve p-8 text-center shadow-sm ring-1 ring-app-baunilha-dourada">

@@ -2,12 +2,12 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { FormEvent, useState } from "react";
-
-type RestaurantSession = {
-  type?: "client" | "restaurant";
-  name?: string;
-};
+import { FormEvent, useEffect, useState } from "react";
+import { apiRequest } from "@/lib/api";
+import { TelaCarregandoSessao, useSessaoLocal } from "@/lib/use-sessao-local";
+import { aplicarMascaraCep } from "@/lib/validacoes/cep";
+import { aplicarMascaraCnpj } from "@/lib/validacoes/cnpj";
+import { aplicarMascaraTelefone } from "@/lib/validacoes/telefone";
 
 type FormData = {
   storeName: string;
@@ -29,13 +29,17 @@ const initialForm: FormData = {
   postalCode: "",
 };
 
-function getStorage() {
-  if (typeof window === "undefined" || !window.localStorage) {
-    return null;
-  }
-
-  return window.localStorage;
-}
+type RespostaPerfilRestaurante = {
+  tipo: "restaurante";
+  perfil: {
+    nome?: string;
+    cnpj?: string;
+    telefone?: string;
+    email?: string;
+    endereco?: string;
+    cep?: string;
+  };
+};
 
 const navItems = [
   { label: "Home", href: "/restaurante/home" },
@@ -146,19 +150,42 @@ function Field({
 }
 
 export default function RestaurantSettingsPage() {
-  const [session] = useState<RestaurantSession | null>(() => {
-    if (typeof window === "undefined") {
-      return null;
-    }
-
-    const storedSession = getStorage()?.getItem("appono:session");
-    return storedSession ? (JSON.parse(storedSession) as RestaurantSession) : null;
-  });
+  const { sessao, sessaoCarregada } = useSessaoLocal();
   const [form, setForm] = useState<FormData>(initialForm);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState("Carregando dados cadastrados...");
 
-  const isRestaurant = session?.type === "restaurant";
+  useEffect(() => {
+    if (!sessaoCarregada || sessao?.type !== "restaurant") {
+      return;
+    }
+
+    async function carregarDadosCadastrados() {
+      try {
+        const resposta = await apiRequest<RespostaPerfilRestaurante>("/me");
+        const restaurante = resposta.perfil;
+
+        setForm({
+          storeName: restaurante.nome ?? "",
+          document: aplicarMascaraCnpj(restaurante.cnpj ?? ""),
+          legalName: restaurante.nome ?? "",
+          phone: aplicarMascaraTelefone(restaurante.telefone ?? ""),
+          email: restaurante.email ?? "",
+          address: restaurante.endereco ?? "",
+          postalCode: aplicarMascaraCep(restaurante.cep ?? ""),
+        });
+        setMessage("");
+      } catch (error) {
+        setMessage(
+          error instanceof Error
+            ? error.message
+            : "Nao foi possivel carregar os dados cadastrados.",
+        );
+      }
+    }
+
+    carregarDadosCadastrados();
+  }, [sessao, sessaoCarregada]);
 
   function updateField(field: keyof FormData, value: string) {
     setForm((current) => ({ ...current, [field]: value }));
@@ -167,11 +194,14 @@ export default function RestaurantSettingsPage() {
 
   function submitForm(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    getStorage()?.setItem("appono:restaurantSettingsDraft", JSON.stringify(form));
-    setMessage("Alteracoes salvas neste navegador.");
+    setMessage("A edicao dos dados cadastrados sera integrada em uma proxima etapa.");
   }
 
-  if (!isRestaurant) {
+  if (!sessaoCarregada) {
+    return <TelaCarregandoSessao />;
+  }
+
+  if (sessao?.type !== "restaurant") {
     return (
       <main className="flex min-h-screen items-center justify-center bg-app-chantilly px-5 text-app-cafe-profundo">
         <section className="w-full max-w-lg rounded-[8px] bg-app-creme-leve p-8 text-center shadow-sm ring-1 ring-app-baunilha-dourada">

@@ -2,10 +2,19 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { FormEvent, useState } from "react";
+import { useState } from "react";
 import { FormField } from "@/components/auth/form-field";
 import { apiRequest } from "@/lib/api";
 import { AuthResponse, getDashboardPath, persistAuthResponse } from "@/lib/session";
+import { aplicarMascaraCep, cepEstaCompleto } from "@/lib/validacoes/cep";
+import { aplicarMascaraCnpj, cnpjEstaCompleto } from "@/lib/validacoes/cnpj";
+import { somenteNumeros } from "@/lib/validacoes/comum";
+import {
+  aplicarMascaraAgencia,
+  aplicarMascaraCodigoBanco,
+  aplicarMascaraConta,
+} from "@/lib/validacoes/dados-bancarios";
+import { aplicarMascaraTelefone } from "@/lib/validacoes/telefone";
 
 type RestaurantForm = {
   legalName: string;
@@ -25,6 +34,18 @@ type RestaurantForm = {
   checkingAccount: string;
   pixKey: string;
   password: string;
+};
+
+type ResultadoConsultaCep = {
+  rua: string;
+  bairro: string;
+  cidade: string;
+  estado: string;
+};
+
+type ResultadoConsultaCnpj = {
+  razaoSocial: string;
+  situacao: string;
 };
 
 const initialForm: RestaurantForm = {
@@ -53,12 +74,12 @@ export function RegisterRestaurantForm() {
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  function updateField(field: keyof RestaurantForm, value: string) {
+  function atualizarCampo(field: keyof RestaurantForm, value: string) {
     setForm((current) => ({ ...current, [field]: value }));
     setMessage("");
   }
 
-  function restaurantDetailsAreFilled() {
+  function dadosRestauranteEstaoPreenchidos() {
     return Boolean(
       form.legalName &&
         form.email &&
@@ -75,8 +96,8 @@ export function RegisterRestaurantForm() {
     );
   }
 
-  function goToBankStep() {
-    if (!restaurantDetailsAreFilled()) {
+  function irParaEtapaBancaria() {
+    if (!dadosRestauranteEstaoPreenchidos()) {
       setMessage("Preencha os dados do restaurante antes de continuar.");
       return;
     }
@@ -85,10 +106,55 @@ export function RegisterRestaurantForm() {
     setMessage("");
   }
 
-  async function submitForm(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  async function validarCnpj() {
+    if (!cnpjEstaCompleto(form.cnpj)) {
+      return;
+    }
 
-    if (!restaurantDetailsAreFilled()) {
+    try {
+      const company = await apiRequest<ResultadoConsultaCnpj>(
+        `/validacoes/cnpj/${somenteNumeros(form.cnpj)}`,
+      );
+
+      setForm((current) => ({
+        ...current,
+        legalName: company.razaoSocial || current.legalName,
+      }));
+      setMessage(
+        company.situacao
+          ? `CNPJ consultado na ReceitaWS. Situacao: ${company.situacao}.`
+          : "CNPJ consultado na ReceitaWS.",
+      );
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "CNPJ invalido.");
+    }
+  }
+
+  async function validarCep() {
+    if (!cepEstaCompleto(form.cep)) {
+      return;
+    }
+
+    try {
+      const address = await apiRequest<ResultadoConsultaCep>(
+        `/validacoes/cep/${somenteNumeros(form.cep)}`,
+      );
+
+      setForm((current) => ({
+        ...current,
+        address: address.rua || current.address,
+        neighborhood: address.bairro || current.neighborhood,
+        city: address.cidade || current.city,
+        uf: address.estado || current.uf,
+      }));
+      setMessage("Endereco preenchido pelo ViaCEP.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "CEP invalido.");
+    }
+  }
+
+  async function criarRestaurante() {
+    if (!dadosRestauranteEstaoPreenchidos()) {
       setStep(1);
       setMessage("Preencha os dados do restaurante antes de finalizar.");
       return;
@@ -129,7 +195,7 @@ export function RegisterRestaurantForm() {
   }
 
   return (
-    <form onSubmit={submitForm} className="mx-auto w-full max-w-6xl">
+    <div className="mx-auto w-full max-w-6xl">
       <div className="rounded-[12px] bg-app-chantilly px-5 py-4 shadow-[0_18px_50px_rgba(74,44,10,0.08)] ring-1 ring-app-baunilha-dourada sm:px-7">
         <div className="mb-3 flex justify-center">
           <Image
@@ -179,7 +245,7 @@ export function RegisterRestaurantForm() {
             </button>
             <button
               type="button"
-              onClick={goToBankStep}
+              onClick={irParaEtapaBancaria}
               className={`px-4 py-2 transition ${
                 step === 2
                   ? "bg-app-cafe-profundo text-app-creme-leve"
@@ -193,29 +259,30 @@ export function RegisterRestaurantForm() {
 
         {step === 1 ? (
           <div className="mt-3 grid gap-1.5 sm:grid-cols-6 xl:grid-cols-12">
-            <FormField label="Razao social" value={form.legalName} onChange={(event) => updateField("legalName", event.target.value)} placeholder="Ex: Terra Artisan Gastronomia LTDA" required className="sm:col-span-6 xl:col-span-4" />
-            <FormField label="E-mail" type="email" value={form.email} onChange={(event) => updateField("email", event.target.value)} placeholder="contato@restaurante.com" required className="sm:col-span-3 xl:col-span-3" />
-            <FormField label="Telefone" value={form.phone} onChange={(event) => updateField("phone", event.target.value)} placeholder="(11) 99999-9999" required className="sm:col-span-3 xl:col-span-2" />
-            <FormField label="CNPJ" value={form.cnpj} onChange={(event) => updateField("cnpj", event.target.value)} placeholder="00.000.000/0001-00" required className="sm:col-span-3 xl:col-span-3" />
-            <FormField label="CEP" value={form.cep} onChange={(event) => updateField("cep", event.target.value)} placeholder="00000-000" required className="sm:col-span-2 xl:col-span-2" />
-            <FormField label="Endereco" value={form.address} onChange={(event) => updateField("address", event.target.value)} placeholder="Rua, Avenida, etc." required className="sm:col-span-4 xl:col-span-4" />
-            <FormField label="Bairro" value={form.neighborhood} onChange={(event) => updateField("neighborhood", event.target.value)} placeholder="Ex: Jardins" required className="sm:col-span-2 xl:col-span-2" />
-            <FormField label="Cidade" value={form.city} onChange={(event) => updateField("city", event.target.value)} placeholder="Ex: Sao Paulo" required className="sm:col-span-2 xl:col-span-3" />
-            <FormField label="UF" value={form.uf} onChange={(event) => updateField("uf", event.target.value)} placeholder="Ex: SP" required maxLength={2} className="sm:col-span-2 xl:col-span-1" />
-            <FormField label="Numero" value={form.number} onChange={(event) => updateField("number", event.target.value)} placeholder="Ex: 123" required className="sm:col-span-3 xl:col-span-2" />
-            <FormField label="Complemento" value={form.complement} onChange={(event) => updateField("complement", event.target.value)} placeholder="Sala, Bloco, etc." className="sm:col-span-3 xl:col-span-3" />
-            <FormField label="Numero de mesas" type="number" min="1" value={form.tables} onChange={(event) => updateField("tables", event.target.value)} placeholder="Ex: 12" required className="sm:col-span-3 xl:col-span-2" />
-            <FormField label="Senha" type="password" value={form.password} onChange={(event) => updateField("password", event.target.value)} placeholder="Digite aqui" required minLength={6} className="sm:col-span-3 xl:col-span-2" />
+            <FormField label="Razao social" value={form.legalName} onChange={(event) => atualizarCampo("legalName", event.target.value)} placeholder="Ex: Terra Artisan Gastronomia LTDA" required className="sm:col-span-6 xl:col-span-4" />
+            <FormField label="E-mail" type="email" value={form.email} onChange={(event) => atualizarCampo("email", event.target.value)} placeholder="contato@restaurante.com" required className="sm:col-span-3 xl:col-span-3" />
+            <FormField label="Telefone" value={form.phone} onChange={(event) => atualizarCampo("phone", aplicarMascaraTelefone(event.target.value))} placeholder="(11) 99999-9999" inputMode="tel" maxLength={15} required className="sm:col-span-3 xl:col-span-2" />
+            <FormField label="CNPJ" value={form.cnpj} onChange={(event) => atualizarCampo("cnpj", aplicarMascaraCnpj(event.target.value))} onBlur={validarCnpj} placeholder="00.000.000/0001-00" inputMode="numeric" maxLength={18} required className="sm:col-span-3 xl:col-span-3" />
+            <FormField label="CEP" value={form.cep} onChange={(event) => atualizarCampo("cep", aplicarMascaraCep(event.target.value))} onBlur={validarCep} placeholder="00000-000" inputMode="numeric" maxLength={9} required className="sm:col-span-2 xl:col-span-2" />
+            <FormField label="Endereco" value={form.address} onChange={(event) => atualizarCampo("address", event.target.value)} placeholder="Rua, Avenida, etc." required className="sm:col-span-4 xl:col-span-4" />
+            <FormField label="Bairro" value={form.neighborhood} onChange={(event) => atualizarCampo("neighborhood", event.target.value)} placeholder="Ex: Jardins" required className="sm:col-span-2 xl:col-span-2" />
+            <FormField label="Cidade" value={form.city} onChange={(event) => atualizarCampo("city", event.target.value)} placeholder="Ex: Sao Paulo" required className="sm:col-span-2 xl:col-span-3" />
+            <FormField label="UF" value={form.uf} onChange={(event) => atualizarCampo("uf", event.target.value)} placeholder="Ex: SP" required maxLength={2} className="sm:col-span-2 xl:col-span-1" />
+            <FormField label="Numero" value={form.number} onChange={(event) => atualizarCampo("number", event.target.value)} placeholder="Ex: 123" required className="sm:col-span-3 xl:col-span-2" />
+            <FormField label="Complemento" value={form.complement} onChange={(event) => atualizarCampo("complement", event.target.value)} placeholder="Sala, Bloco, etc." className="sm:col-span-3 xl:col-span-3" />
+            <FormField label="Numero de mesas" type="number" min="1" value={form.tables} onChange={(event) => atualizarCampo("tables", event.target.value)} placeholder="Ex: 12" required className="sm:col-span-3 xl:col-span-2" />
+            <FormField label="Senha" type="password" value={form.password} onChange={(event) => atualizarCampo("password", event.target.value)} placeholder="Digite aqui" required minLength={6} className="sm:col-span-3 xl:col-span-2" />
           </div>
         ) : (
           <div className="mt-3 grid gap-2 sm:grid-cols-6">
-            <FormField label="Codigo do banco" value={form.bankCode} onChange={(event) => updateField("bankCode", event.target.value)} placeholder="Ex: 260, 001" className="sm:col-span-2" />
-            <FormField label="Agencia" value={form.agency} onChange={(event) => updateField("agency", event.target.value)} placeholder="Ex: 0001" className="sm:col-span-2" />
-            <FormField label="Conta corrente com digito" value={form.checkingAccount} onChange={(event) => updateField("checkingAccount", event.target.value)} placeholder="Ex: 12345-6" className="sm:col-span-2" />
-            <FormField label="Chave Pix vinculada a conta" value={form.pixKey} onChange={(event) => updateField("pixKey", event.target.value)} placeholder="Opcional" className="sm:col-span-6" />
+            <FormField label="Codigo do banco" value={form.bankCode} onChange={(event) => atualizarCampo("bankCode", aplicarMascaraCodigoBanco(event.target.value))} placeholder="Ex: 260, 001" inputMode="numeric" maxLength={3} className="sm:col-span-2" />
+            <FormField label="Agencia" value={form.agency} onChange={(event) => atualizarCampo("agency", aplicarMascaraAgencia(event.target.value))} placeholder="Ex: 0001" inputMode="numeric" maxLength={5} className="sm:col-span-2" />
+            <FormField label="Conta corrente com digito" value={form.checkingAccount} onChange={(event) => atualizarCampo("checkingAccount", aplicarMascaraConta(event.target.value))} placeholder="Ex: 12345-6" inputMode="numeric" maxLength={22} className="sm:col-span-2" />
+            <FormField label="Chave Pix vinculada a conta" value={form.pixKey} onChange={(event) => atualizarCampo("pixKey", event.target.value)} placeholder="Opcional" className="sm:col-span-6" />
             <div className="border border-app-baunilha-dourada bg-app-creme-suave px-4 py-3 text-xs leading-5 text-app-mocha sm:col-span-6">
-              Os dados bancarios devem pertencer ao mesmo CNPJ informado na etapa 1.
-              Confira as informacoes antes de finalizar o cadastro.
+              Os dados bancarios sao opcionais neste MVP. Quando informados, devem
+              pertencer ao mesmo CNPJ da etapa 1. Conta: ate 20 numeros e digito
+              opcional apos hifen.
             </div>
           </div>
         )}
@@ -227,14 +294,15 @@ export function RegisterRestaurantForm() {
           {step === 1 ? (
             <button
               type="button"
-              onClick={goToBankStep}
+              onClick={irParaEtapaBancaria}
               className="flex h-9 w-full items-center justify-center bg-app-dourado-mel px-6 text-xs font-bold uppercase tracking-wide text-white transition hover:-translate-y-0.5 hover:bg-app-caramelo-torrado focus:outline-none focus:ring-4 focus:ring-app-dourado-mel/25 sm:w-auto"
             >
               Continuar
             </button>
           ) : (
             <button
-              type="submit"
+              type="button"
+              onClick={criarRestaurante}
               disabled={isSubmitting}
               className="flex h-9 w-full items-center justify-center bg-app-dourado-mel px-6 text-xs font-bold uppercase tracking-wide text-white transition hover:-translate-y-0.5 hover:bg-app-caramelo-torrado focus:outline-none focus:ring-4 focus:ring-app-dourado-mel/25 disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto"
             >
@@ -260,6 +328,6 @@ export function RegisterRestaurantForm() {
           ) : null}
         </div>
       </div>
-    </form>
+    </div>
   );
 }

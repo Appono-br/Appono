@@ -27,5 +27,5 @@ function createMissingSupabaseClient(): ReturnType<typeof createClient> {
 
 export const supabase =
     !hasSupabasePlaceholder(supabaseUrl) && !hasSupabasePlaceholder(publishableKey)
-        ? createClient(supabaseUrl, publishableKey)
+        ? createClient(supabaseUrl!, publishableKey!)
         : createMissingSupabaseClient();

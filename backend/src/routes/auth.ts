@@ -5,6 +5,11 @@ import {
   supabaseAdmin,
   supabaseAuth,
 } from "../lib/supabase";
+import { consultarCepViaCep } from "../services/validacoes/cep";
+import { consultarCnpjReceitaWs } from "../services/validacoes/cnpj";
+import { somenteNumeros } from "../services/validacoes/comum";
+import { validarCpf } from "../services/validacoes/cpf";
+import { validarDadosBancarios } from "../services/validacoes/dados-bancarios";
 
 type ClientRegistrationBody = {
   name?: string;
@@ -42,29 +47,20 @@ const frontendOrigin = (process.env.FRONTEND_ORIGIN ?? "http://localhost:3000").
   "",
 );
 
-function requireFields(body: Record<string, unknown>, fields: string[]) {
+function verificarCamposObrigatorios(body: Record<string, unknown>, fields: string[]) {
   const missing = fields.filter((field) => !body[field]);
   return missing.length ? `Campos obrigatorios ausentes: ${missing.join(", ")}` : null;
 }
 
-function buildAddress(body: RestaurantRegistrationBody) {
-  return [
-    body.address,
-    body.number,
-    body.complement,
-    body.neighborhood,
-    body.city,
-    body.uf,
-  ]
-    .filter(Boolean)
-    .join(", ");
+function montarEndereco(...parts: Array<string | undefined>) {
+  return parts.filter(Boolean).join(", ");
 }
 
-function getEmailRedirectUrl() {
+function obterUrlRedirecionamentoEmail() {
   return `${frontendOrigin}/auth/callback`;
 }
 
-function getAuthErrorMessage(message?: string) {
+function obterMensagemErroAutenticacao(message?: string) {
   if (!message) {
     return "Erro ao criar usuario.";
   }
@@ -82,7 +78,7 @@ function getAuthErrorMessage(message?: string) {
   return message;
 }
 
-async function getProfile(accessToken: string) {
+async function obterPerfil(accessToken: string) {
   const supabase = createUserSupabaseClient(accessToken);
 
   const { data: cliente, error: clienteError } = await supabase
@@ -114,7 +110,7 @@ async function getProfile(accessToken: string) {
   return null;
 }
 
-async function confirmAndSignInCreatedUser(
+async function confirmarEEntrarComUsuarioCriado(
   userId: string,
   email: string,
   password: string,
@@ -171,7 +167,7 @@ authRouter.post("/login", async (req, res) => {
     });
   }
 
-  const profile = await getProfile(data.session.access_token);
+  const profile = await obterPerfil(data.session.access_token);
 
   if (!profile) {
     return res.status(404).json({ error: "Perfil nao encontrado para este usuario." });
@@ -192,7 +188,7 @@ authRouter.post("/register/client", async (req, res) => {
   }
 
   const body = req.body as ClientRegistrationBody;
-  const missing = requireFields(body, [
+  const missing = verificarCamposObrigatorios(body, [
     "name",
     "birthDate",
     "cpf",
@@ -205,16 +201,22 @@ authRouter.post("/register/client", async (req, res) => {
     return res.status(400).json({ error: missing });
   }
 
+  if (!validarCpf(body.cpf)) {
+    return res.status(400).json({ error: "Informe um CPF valido." });
+  }
+
+  const cpf = somenteNumeros(body.cpf);
+
   const { data: authData, error: authError } = await supabaseAuth.auth.signUp({
     email: body.email!,
     password: body.password!,
     options: {
-      emailRedirectTo: getEmailRedirectUrl(),
+      emailRedirectTo: obterUrlRedirecionamentoEmail(),
       data: {
         appono_profile: {
           tipo: "cliente",
           nome: body.name,
-          cpf: body.cpf,
+          cpf,
           telefone: body.phone,
           email: body.email,
           dt_nasc: body.birthDate,
@@ -224,18 +226,18 @@ authRouter.post("/register/client", async (req, res) => {
   });
 
   if (authError || !authData.user) {
-    return res.status(400).json({ error: getAuthErrorMessage(authError?.message) });
+    return res.status(400).json({ error: obterMensagemErroAutenticacao(authError?.message) });
   }
 
   if (!authData.session) {
-    const confirmedAuthData = await confirmAndSignInCreatedUser(
+    const confirmedAuthData = await confirmarEEntrarComUsuarioCriado(
       authData.user.id,
       body.email!,
       body.password!,
     );
 
     if (confirmedAuthData?.session) {
-      const profile = await getProfile(confirmedAuthData.session.access_token);
+      const profile = await obterPerfil(confirmedAuthData.session.access_token);
 
       return res.status(201).json({
         ...profile,
@@ -251,7 +253,7 @@ authRouter.post("/register/client", async (req, res) => {
     });
   }
 
-  const profile = await getProfile(authData.session.access_token);
+  const profile = await obterPerfil(authData.session.access_token);
 
   return res.status(201).json({
     ...profile,
@@ -268,7 +270,7 @@ authRouter.post("/register/restaurant", async (req, res) => {
   }
 
   const body = req.body as RestaurantRegistrationBody;
-  const missing = requireFields(body, [
+  const missing = verificarCamposObrigatorios(body, [
     "legalName",
     "email",
     "phone",
@@ -287,25 +289,72 @@ authRouter.post("/register/restaurant", async (req, res) => {
     return res.status(400).json({ error: missing });
   }
 
+  let validatedCnpj;
+  let validatedCep;
+
+  try {
+    [validatedCnpj, validatedCep] = await Promise.all([
+      consultarCnpjReceitaWs(body.cnpj),
+      consultarCepViaCep(body.cep),
+    ]);
+  } catch (error) {
+    return res.status(400).json({
+      error:
+        error instanceof Error
+          ? error.message
+          : "Nao foi possivel validar os dados do restaurante.",
+    });
+  }
+
+  if (
+    validatedCnpj.situacao &&
+    validatedCnpj.situacao.toUpperCase() !== "ATIVA"
+  ) {
+    return res.status(400).json({
+      error: `O CNPJ informado esta com situacao ${validatedCnpj.situacao}.`,
+    });
+  }
+
+  const bankError = validarDadosBancarios(body);
+
+  if (bankError) {
+    return res.status(400).json({ error: bankError });
+  }
+
+  const validatedAddressBody = {
+    ...body,
+    address: validatedCep.rua || body.address,
+    neighborhood: validatedCep.bairro || body.neighborhood,
+    city: validatedCep.cidade || body.city,
+    uf: validatedCep.estado || body.uf,
+  };
+
   const { data: authData, error: authError } = await supabaseAuth.auth.signUp({
     email: body.email!,
     password: body.password!,
     options: {
-      emailRedirectTo: getEmailRedirectUrl(),
+      emailRedirectTo: obterUrlRedirecionamentoEmail(),
       data: {
         appono_profile: {
           tipo: "restaurante",
           nome: body.legalName,
-          cnpj: body.cnpj,
+          cnpj: validatedCnpj.cnpj,
           telefone: body.phone,
           email: body.email,
-          cep: body.cep,
-          endereco: buildAddress(body),
+          cep: validatedCep.cep,
+          endereco: montarEndereco(
+            validatedAddressBody.address,
+            validatedAddressBody.number,
+            validatedAddressBody.complement,
+            validatedAddressBody.neighborhood,
+            validatedAddressBody.city,
+            validatedAddressBody.uf,
+          ),
           horario_funcionamento: "A definir",
           quantidade_mesas: body.tables,
           dados_bancarios: {
-            cod_banco: body.bankCode,
-            agencia: body.agency,
+            cod_banco: somenteNumeros(body.bankCode),
+            agencia: somenteNumeros(body.agency),
             conta_corrente: body.checkingAccount,
             chave_pix: body.pixKey,
           },
@@ -315,18 +364,18 @@ authRouter.post("/register/restaurant", async (req, res) => {
   });
 
   if (authError || !authData.user) {
-    return res.status(400).json({ error: getAuthErrorMessage(authError?.message) });
+    return res.status(400).json({ error: obterMensagemErroAutenticacao(authError?.message) });
   }
 
   if (!authData.session) {
-    const confirmedAuthData = await confirmAndSignInCreatedUser(
+    const confirmedAuthData = await confirmarEEntrarComUsuarioCriado(
       authData.user.id,
       body.email!,
       body.password!,
     );
 
     if (confirmedAuthData?.session) {
-      const profile = await getProfile(confirmedAuthData.session.access_token);
+      const profile = await obterPerfil(confirmedAuthData.session.access_token);
 
       return res.status(201).json({
         ...profile,
@@ -342,7 +391,7 @@ authRouter.post("/register/restaurant", async (req, res) => {
     });
   }
 
-  const profile = await getProfile(authData.session.access_token);
+  const profile = await obterPerfil(authData.session.access_token);
 
   return res.status(201).json({
     ...profile,

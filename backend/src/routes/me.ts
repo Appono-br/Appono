@@ -22,7 +22,7 @@ meRouter.get("/", requireAuth, async (_req, res) => {
 
   const { data: restaurante, error: restauranteError } = await supabase
     .from("restaurantes")
-    .select("*")
+    .select("*, dados_bancarios_restaurante(*)")
     .maybeSingle();
 
   if (restauranteError) {

@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { FormEvent, useState } from "react";
+import { aplicarMascaraTelefone } from "@/lib/validacoes/telefone";
 
 type Session = {
   type?: "client" | "restaurant";
@@ -59,7 +60,7 @@ function Icon({
   );
 }
 
-function getInitialForm(): AccountForm {
+function obterFormularioInicial(): AccountForm {
   const empty = {
     name: "",
     birthDate: "",
@@ -116,15 +117,15 @@ function getInitialForm(): AccountForm {
 }
 
 export default function AccountSettingsPage() {
-  const [form, setForm] = useState<AccountForm>(() => getInitialForm());
+  const [form, setForm] = useState<AccountForm>(() => obterFormularioInicial());
   const [message, setMessage] = useState("");
 
-  function updateField(field: "name" | "email" | "phone", value: string) {
+  function atualizarCampo(field: "name" | "email" | "phone", value: string) {
     setForm((current) => ({ ...current, [field]: value }));
     setMessage("");
   }
 
-  function submitForm(event: FormEvent<HTMLFormElement>) {
+  function enviarFormulario(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     window.localStorage.setItem("appono:accountDraft", JSON.stringify(form));
     setMessage("Alterações salvas neste navegador.");
@@ -175,7 +176,7 @@ export default function AccountSettingsPage() {
         </div>
 
         <form
-          onSubmit={submitForm}
+          onSubmit={enviarFormulario}
           className="mt-10 rounded-[8px] bg-app-chantilly p-6 shadow-sm ring-1 ring-app-baunilha-dourada/45 sm:grid sm:grid-cols-2 sm:gap-6 sm:p-8"
         >
           <label className="grid gap-2 sm:col-span-2">
@@ -184,7 +185,7 @@ export default function AccountSettingsPage() {
             </span>
             <input
               value={form.name}
-              onChange={(event) => updateField("name", event.target.value)}
+              onChange={(event) => atualizarCampo("name", event.target.value)}
               className="h-12 border-b border-app-baunilha-dourada bg-transparent text-base text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado"
             />
           </label>
@@ -221,7 +222,7 @@ export default function AccountSettingsPage() {
             <input
               type="email"
               value={form.email}
-              onChange={(event) => updateField("email", event.target.value)}
+              onChange={(event) => atualizarCampo("email", event.target.value)}
               className="h-12 border-b border-app-baunilha-dourada bg-transparent text-base text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado"
             />
           </label>
@@ -232,7 +233,11 @@ export default function AccountSettingsPage() {
             </span>
             <input
               value={form.phone}
-              onChange={(event) => updateField("phone", event.target.value)}
+              onChange={(event) =>
+                atualizarCampo("phone", aplicarMascaraTelefone(event.target.value))
+              }
+              inputMode="tel"
+              maxLength={15}
               className="h-12 border-b border-app-baunilha-dourada bg-transparent text-base text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado"
             />
           </label>

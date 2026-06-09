@@ -9,3 +9,4 @@ dist/
 .codex-analysis/
 .agents/
 skills-lock.json
+supabase/.temp/

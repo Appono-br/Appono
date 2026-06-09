@@ -6,6 +6,9 @@ import { FormEvent, useState } from "react";
 import { FormField } from "@/components/auth/form-field";
 import { apiRequest } from "@/lib/api";
 import { AuthResponse, getDashboardPath, persistAuthResponse } from "@/lib/session";
+import { somenteNumeros } from "@/lib/validacoes/comum";
+import { aplicarMascaraCpf, cpfEstaCompleto } from "@/lib/validacoes/cpf";
+import { aplicarMascaraTelefone } from "@/lib/validacoes/telefone";
 
 type ClientForm = {
   name: string;
@@ -30,13 +33,19 @@ export function RegisterClientForm() {
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  function updateField(field: keyof ClientForm, value: string) {
+  function atualizarCampo(field: keyof ClientForm, value: string) {
     setForm((current) => ({ ...current, [field]: value }));
     setMessage("");
   }
 
-  async function submitForm(event: FormEvent<HTMLFormElement>) {
+  async function enviarFormulario(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    if (!cpfEstaCompleto(form.cpf)) {
+      setMessage("Informe um CPF completo e valido.");
+      return;
+    }
+
     setIsSubmitting(true);
     setMessage("");
 
@@ -69,7 +78,7 @@ export function RegisterClientForm() {
   }
 
   return (
-    <form onSubmit={submitForm} className="mx-auto w-full max-w-xl">
+    <form onSubmit={enviarFormulario} className="mx-auto w-full max-w-xl">
       <div className="rounded-[12px] bg-app-chantilly px-5 py-4 shadow-[0_18px_50px_rgba(74,44,10,0.08)] ring-1 ring-app-baunilha-dourada sm:px-7">
         <div className="mb-3 flex justify-center">
           <Image
@@ -104,7 +113,7 @@ export function RegisterClientForm() {
           <FormField
             label="Nome completo"
             value={form.name}
-            onChange={(event) => updateField("name", event.target.value)}
+            onChange={(event) => atualizarCampo("name", event.target.value)}
             placeholder="Ex: Maria Silva"
             required
             className="sm:col-span-2"
@@ -113,21 +122,34 @@ export function RegisterClientForm() {
             label="Data de nascimento"
             type="date"
             value={form.birthDate}
-            onChange={(event) => updateField("birthDate", event.target.value)}
+            onChange={(event) => atualizarCampo("birthDate", event.target.value)}
             required
           />
           <FormField
             label="CPF"
             value={form.cpf}
-            onChange={(event) => updateField("cpf", event.target.value)}
+            onChange={(event) => atualizarCampo("cpf", aplicarMascaraCpf(event.target.value))}
+            onBlur={async () => {
+              if (!cpfEstaCompleto(form.cpf)) {
+                return;
+              }
+
+              try {
+                await apiRequest(`/validacoes/cpf/${somenteNumeros(form.cpf)}`);
+              } catch (error) {
+                setMessage(error instanceof Error ? error.message : "CPF invalido.");
+              }
+            }}
             placeholder="000.000.000-00"
+            inputMode="numeric"
+            maxLength={14}
             required
           />
           <FormField
             label="E-mail"
             type="email"
             value={form.email}
-            onChange={(event) => updateField("email", event.target.value)}
+            onChange={(event) => atualizarCampo("email", event.target.value)}
             placeholder="maria@exemplo.com"
             required
             className="sm:col-span-2"
@@ -135,8 +157,10 @@ export function RegisterClientForm() {
           <FormField
             label="Telefone"
             value={form.phone}
-            onChange={(event) => updateField("phone", event.target.value)}
+            onChange={(event) => atualizarCampo("phone", aplicarMascaraTelefone(event.target.value))}
             placeholder="(11) 99999-9999"
+            inputMode="tel"
+            maxLength={15}
             required
             className="sm:col-span-2"
           />
@@ -144,7 +168,7 @@ export function RegisterClientForm() {
             label="Senha"
             type="password"
             value={form.password}
-            onChange={(event) => updateField("password", event.target.value)}
+            onChange={(event) => atualizarCampo("password", event.target.value)}
             placeholder="********"
             required
             minLength={6}

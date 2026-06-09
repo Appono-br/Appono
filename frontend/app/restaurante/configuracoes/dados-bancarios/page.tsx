@@ -2,12 +2,16 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { FormEvent, useState } from "react";
-
-type RestaurantSession = {
-  type?: "client" | "restaurant";
-  name?: string;
-};
+import { FormEvent, useEffect, useState } from "react";
+import { apiRequest } from "@/lib/api";
+import { TelaCarregandoSessao, useSessaoLocal } from "@/lib/use-sessao-local";
+import { aplicarMascaraCnpj, cnpjEstaCompleto } from "@/lib/validacoes/cnpj";
+import { somenteNumeros } from "@/lib/validacoes/comum";
+import {
+  aplicarMascaraAgencia,
+  aplicarMascaraCodigoBanco,
+} from "@/lib/validacoes/dados-bancarios";
+import { aplicarMascaraTelefone } from "@/lib/validacoes/telefone";
 
 type BankForm = {
   legalName: string;
@@ -35,13 +39,19 @@ const initialForm: BankForm = {
   payoutCadence: "weekly",
 };
 
-function getStorage() {
-  if (typeof window === "undefined" || !window.localStorage) {
-    return null;
-  }
-
-  return window.localStorage;
-}
+type RespostaPerfilRestaurante = {
+  tipo: "restaurante";
+  perfil: {
+    nome?: string;
+    cnpj?: string;
+    dados_bancarios_restaurante?: Array<{
+      cod_banco?: string;
+      agencia?: string;
+      conta_corrente?: string;
+      chave_pix?: string;
+    }>;
+  };
+};
 
 function Icon({
   type,
@@ -79,11 +89,15 @@ function Field({
   value,
   onChange,
   className = "",
+  inputMode,
+  maxLength,
 }: {
   label: string;
   value: string;
   onChange: (value: string) => void;
   className?: string;
+  inputMode?: "numeric" | "text" | "tel";
+  maxLength?: number;
 }) {
   return (
     <label className={`grid gap-2 ${className}`}>
@@ -93,6 +107,8 @@ function Field({
       <input
         value={value}
         onChange={(event) => onChange(event.target.value)}
+        inputMode={inputMode}
+        maxLength={maxLength}
         className="h-12 rounded-[8px] border border-app-baunilha-dourada bg-app-creme-suave px-4 text-sm outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20"
       />
     </label>
@@ -100,38 +116,77 @@ function Field({
 }
 
 export default function RestaurantBankSettingsPage() {
-  const [session] = useState<RestaurantSession | null>(() => {
-    if (typeof window === "undefined") {
-      return null;
+  const { sessao, sessaoCarregada } = useSessaoLocal();
+  const [form, setForm] = useState<BankForm>(initialForm);
+  const [message, setMessage] = useState("Carregando dados bancarios...");
+
+  useEffect(() => {
+    if (!sessaoCarregada || sessao?.type !== "restaurant") {
+      return;
     }
 
-    const storedSession = getStorage()?.getItem("appono:session");
-    return storedSession ? (JSON.parse(storedSession) as RestaurantSession) : null;
-  });
-  const [form, setForm] = useState<BankForm>(() => {
-    if (typeof window === "undefined") {
-      return initialForm;
+    async function carregarDadosBancarios() {
+      try {
+        const resposta = await apiRequest<RespostaPerfilRestaurante>("/me");
+        const restaurante = resposta.perfil;
+        const dadosBancarios = restaurante.dados_bancarios_restaurante?.[0];
+        const [conta = "", digito = ""] =
+          dadosBancarios?.conta_corrente?.split("-") ?? [];
+
+        setForm((atual) => ({
+          ...atual,
+          legalName: restaurante.nome ?? "",
+          document: aplicarMascaraCnpj(restaurante.cnpj ?? ""),
+          bankCode: dadosBancarios?.cod_banco ?? "",
+          agency: dadosBancarios?.agencia ?? "",
+          account: conta,
+          accountDigit: digito,
+          pixKey: dadosBancarios?.chave_pix ?? "",
+        }));
+        setMessage("");
+      } catch (error) {
+        setMessage(
+          error instanceof Error
+            ? error.message
+            : "Nao foi possivel carregar os dados bancarios.",
+        );
+      }
     }
 
-    const stored = getStorage()?.getItem("appono:restaurantBankDraft");
-    return stored ? (JSON.parse(stored) as BankForm) : initialForm;
-  });
-  const [message, setMessage] = useState("");
+    carregarDadosBancarios();
+  }, [sessao, sessaoCarregada]);
 
-  const isRestaurant = session?.type === "restaurant";
-
-  function updateField<Key extends keyof BankForm>(field: Key, value: BankForm[Key]) {
+  function atualizarCampo<Key extends keyof BankForm>(field: Key, value: BankForm[Key]) {
     setForm((current) => ({ ...current, [field]: value }));
     setMessage("");
   }
 
-  function submitForm(event: FormEvent<HTMLFormElement>) {
+  function enviarFormulario(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    getStorage()?.setItem("appono:restaurantBankDraft", JSON.stringify(form));
-    setMessage("Dados bancarios salvos neste navegador para validacao futura.");
+
+    if (form.document && !cnpjEstaCompleto(form.document)) {
+      setMessage("Informe um CNPJ completo.");
+      return;
+    }
+
+    if (form.bankCode && somenteNumeros(form.bankCode).length !== 3) {
+      setMessage("O codigo do banco deve possuir 3 digitos.");
+      return;
+    }
+
+    if (form.agency && somenteNumeros(form.agency).length > 5) {
+      setMessage("A agencia deve possuir no maximo 5 digitos.");
+      return;
+    }
+
+    setMessage("A edicao dos dados bancarios sera integrada em uma proxima etapa.");
   }
 
-  if (!isRestaurant) {
+  if (!sessaoCarregada) {
+    return <TelaCarregandoSessao />;
+  }
+
+  if (sessao?.type !== "restaurant") {
     return (
       <main className="flex min-h-screen items-center justify-center bg-app-chantilly px-5 text-app-cafe-profundo">
         <section className="w-full max-w-lg rounded-[8px] bg-app-creme-leve p-8 text-center shadow-sm ring-1 ring-app-baunilha-dourada">
@@ -181,7 +236,7 @@ export default function RestaurantBankSettingsPage() {
           </p>
         </div>
 
-        <form onSubmit={submitForm} className="mt-10 grid gap-8 lg:grid-cols-[1fr_0.5fr]">
+        <form onSubmit={enviarFormulario} className="mt-10 grid gap-8 lg:grid-cols-[1fr_0.5fr]">
           <section className="rounded-[8px] bg-app-chantilly p-6 shadow-sm ring-1 ring-app-baunilha-dourada/45 sm:p-8">
             <div className="flex flex-col gap-4 border-b border-app-baunilha-dourada/60 pb-7 sm:flex-row sm:items-start sm:justify-between">
               <div>
@@ -198,13 +253,13 @@ export default function RestaurantBankSettingsPage() {
             </div>
 
             <div className="mt-7 grid gap-5 sm:grid-cols-2">
-              <Field label="Razao social titular" value={form.legalName} onChange={(value) => updateField("legalName", value)} className="sm:col-span-2" />
-              <Field label="CNPJ titular" value={form.document} onChange={(value) => updateField("document", value)} />
-              <Field label="Codigo do banco" value={form.bankCode} onChange={(value) => updateField("bankCode", value)} />
-              <Field label="Agencia" value={form.agency} onChange={(value) => updateField("agency", value)} />
+              <Field label="Razao social titular" value={form.legalName} onChange={(value) => atualizarCampo("legalName", value)} className="sm:col-span-2" />
+              <Field label="CNPJ titular" value={form.document} onChange={(value) => atualizarCampo("document", aplicarMascaraCnpj(value))} inputMode="numeric" maxLength={18} />
+              <Field label="Codigo do banco" value={form.bankCode} onChange={(value) => atualizarCampo("bankCode", aplicarMascaraCodigoBanco(value))} inputMode="numeric" maxLength={3} />
+              <Field label="Agencia" value={form.agency} onChange={(value) => atualizarCampo("agency", aplicarMascaraAgencia(value))} inputMode="numeric" maxLength={5} />
               <div className="grid gap-5 sm:grid-cols-[1fr_0.38fr]">
-                <Field label="Conta" value={form.account} onChange={(value) => updateField("account", value)} />
-                <Field label="Digito" value={form.accountDigit} onChange={(value) => updateField("accountDigit", value)} />
+                <Field label="Conta" value={form.account} onChange={(value) => atualizarCampo("account", somenteNumeros(value).slice(0, 20))} inputMode="numeric" maxLength={20} />
+                <Field label="Digito" value={form.accountDigit} onChange={(value) => atualizarCampo("accountDigit", value.replace(/[^\dXx]/g, "").slice(0, 1).toUpperCase())} maxLength={1} />
               </div>
               <label className="grid gap-2">
                 <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-cinza">
@@ -212,7 +267,7 @@ export default function RestaurantBankSettingsPage() {
                 </span>
                 <select
                   value={form.accountType}
-                  onChange={(event) => updateField("accountType", event.target.value as BankForm["accountType"])}
+                  onChange={(event) => atualizarCampo("accountType", event.target.value as BankForm["accountType"])}
                   className="h-12 rounded-[8px] border border-app-baunilha-dourada bg-app-creme-suave px-4 text-sm outline-none transition focus:border-app-caramelo-torrado"
                 >
                   <option value="checking">Conta corrente</option>
@@ -233,7 +288,7 @@ export default function RestaurantBankSettingsPage() {
                   </span>
                   <select
                     value={form.pixKeyType}
-                    onChange={(event) => updateField("pixKeyType", event.target.value as BankForm["pixKeyType"])}
+                    onChange={(event) => atualizarCampo("pixKeyType", event.target.value as BankForm["pixKeyType"])}
                     className="h-12 rounded-[8px] border border-app-baunilha-dourada bg-app-creme-suave px-4 text-sm outline-none transition focus:border-app-caramelo-torrado"
                   >
                     <option value="document">CNPJ</option>
@@ -242,7 +297,21 @@ export default function RestaurantBankSettingsPage() {
                     <option value="random">Chave aleatoria</option>
                   </select>
                 </label>
-                <Field label="Chave Pix" value={form.pixKey} onChange={(value) => updateField("pixKey", value)} />
+                <Field
+                  label="Chave Pix"
+                  value={form.pixKey}
+                  onChange={(value) =>
+                    atualizarCampo(
+                      "pixKey",
+                      form.pixKeyType === "document"
+                        ? aplicarMascaraCnpj(value)
+                        : form.pixKeyType === "phone"
+                          ? aplicarMascaraTelefone(value)
+                          : value,
+                    )
+                  }
+                  inputMode={form.pixKeyType === "phone" ? "tel" : "text"}
+                />
               </div>
             </section>
 
@@ -259,7 +328,7 @@ export default function RestaurantBankSettingsPage() {
                   <button
                     key={value}
                     type="button"
-                    onClick={() => updateField("payoutCadence", value)}
+                    onClick={() => atualizarCampo("payoutCadence", value)}
                     className={`rounded-[8px] px-5 py-4 text-sm font-bold uppercase transition ${
                       form.payoutCadence === value
                         ? "bg-app-cafe-profundo text-app-creme-leve"

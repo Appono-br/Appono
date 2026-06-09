@@ -6,6 +6,7 @@ import { meRouter } from "./routes/me";
 import { ordersRouter } from "./routes/orders";
 import { reservationsRouter } from "./routes/reservations";
 import { restaurantsRouter } from "./routes/restaurants";
+import { rotasValidacoes } from "./routes/validacoes";
 
 dotenv.config();
 
@@ -31,6 +32,7 @@ app.use("/api/me", meRouter);
 app.use("/api/restaurantes", restaurantsRouter);
 app.use("/api/reservas", reservationsRouter);
 app.use("/api/pedidos", ordersRouter);
+app.use("/api/validacoes", rotasValidacoes);
 
 // Iniciar servidor
 app.listen(PORT, () => {
