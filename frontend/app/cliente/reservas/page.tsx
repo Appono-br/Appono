@@ -11,6 +11,8 @@ type Reservation = {
   time: string;
   status: string;
   restaurant: string;
+  people: number;
+  minimumTotal: number;
 };
 
 const navItems = [
@@ -46,8 +48,11 @@ function Icon({
     | "bell"
     | "chevron-left"
     | "chevron-right"
+    | "clock"
+    | "people"
     | "menu"
-    | "plus";
+    | "plus"
+    | "wallet";
   className?: string;
 }) {
   const paths = {
@@ -55,8 +60,11 @@ function Icon({
     bell: "M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0",
     "chevron-left": "m15 18-6-6 6-6",
     "chevron-right": "m9 18 6-6-6-6",
+    clock: "M12 7v5l3 2M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z",
+    people: "M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2M9.5 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z M22 21v-2a4 4 0 0 0-3-3.9",
     menu: "M4 7h16M4 12h16M4 17h16",
     plus: "M12 5v14M5 12h14",
+    wallet: "M4 7h16v12H4V7z M4 7l12-3v3M15 12h5",
   };
 
   return (
@@ -71,6 +79,31 @@ function Icon({
       />
     </svg>
   );
+}
+
+function formatarDataReserva(data: string) {
+  const dataLocal = new Date(`${data}T12:00:00`);
+  return {
+    dia: String(dataLocal.getDate()).padStart(2, "0"),
+    mes: dataLocal.toLocaleDateString("pt-BR", { month: "short" }).replace(".", ""),
+    semana: dataLocal.toLocaleDateString("pt-BR", { weekday: "short" }).replace(".", ""),
+  };
+}
+
+function formatarHorario(horario: string) {
+  return horario.slice(0, 5);
+}
+
+function obterStatusReserva(status: string) {
+  if (status === "CONFIRMADA") {
+    return { texto: "Confirmada", classe: "bg-app-baunilha-dourada text-app-cafe-profundo" };
+  }
+
+  if (status === "CANCELADA") {
+    return { texto: "Cancelada", classe: "bg-app-vermelho-erro/10 text-app-vermelho-erro" };
+  }
+
+  return { texto: status.toLowerCase(), classe: "bg-app-creme-suave text-app-mocha" };
 }
 
 function getCalendarDays(month: number, year: number) {
@@ -149,7 +182,16 @@ export default function ReservationsPage() {
   );
 
   const reservationDates = useMemo(
-    () => new Set(reservations.map((reservation) => reservation.date)),
+    () =>
+      new Set(
+        reservations
+          .filter((reservation) => ["PENDENTE", "CONFIRMADA"].includes(reservation.status))
+          .map((reservation) => reservation.date),
+      ),
+    [reservations],
+  );
+  const reservasAtivas = useMemo(
+    () => reservations.filter((reservation) => ["PENDENTE", "CONFIRMADA"].includes(reservation.status)),
     [reservations],
   );
 
@@ -162,6 +204,8 @@ export default function ReservationsPage() {
             data_reserva: string;
             horario_inicio: string;
             status_reserva: string;
+            quantidade_pessoas: number;
+            valor_minimo_total: number;
             restaurantes?: { nome?: string } | null;
           }>
         >("/reservas");
@@ -173,6 +217,8 @@ export default function ReservationsPage() {
             time: reservation.horario_inicio,
             status: reservation.status_reserva,
             restaurant: reservation.restaurantes?.nome ?? "Restaurante",
+            people: reservation.quantidade_pessoas,
+            minimumTotal: reservation.valor_minimo_total,
           })),
         );
       } catch {
@@ -188,6 +234,31 @@ export default function ReservationsPage() {
       const date = new Date(current.year, current.month + direction, 1);
       return { month: date.getMonth(), year: date.getFullYear() };
     });
+  }
+
+  async function cancelarReserva(id: string) {
+    try {
+      const atualizada = await apiRequest<{ status_reserva: string }>(
+        `/reservas/${id}/cancelar`,
+        { method: "PATCH" },
+      );
+      setReservations((atuais) =>
+        atuais.map((reserva) =>
+          reserva.id === id ? { ...reserva, status: atualizada.status_reserva } : reserva,
+        ),
+      );
+    } catch {
+      return;
+    }
+  }
+
+  async function excluirReservaDaLista(id: string) {
+    try {
+      await apiRequest(`/reservas/${id}/ocultar`, { method: "PATCH" });
+      setReservations((atuais) => atuais.filter((reserva) => reserva.id !== id));
+    } catch {
+      return;
+    }
   }
 
   return (
@@ -350,29 +421,83 @@ export default function ReservationsPage() {
             <p className="mt-8 text-base leading-7 text-app-mocha">
               Você possui{" "}
               <span className="font-bold text-app-caramelo-torrado">
-                {reservations.length}
+                {reservasAtivas.length}
               </span>{" "}
               reservas confirmadas neste período.
             </p>
           </aside>
 
-          <section className="grid gap-6">
+          <section className="grid content-start gap-6 self-start">
             {reservations.length ? (
-              <div className="grid gap-4">
+              <div className="grid auto-rows-max content-start gap-4">
                 {reservations.map((reservation) => (
                   <article
                     key={reservation.id}
-                    className="rounded-[8px] bg-app-creme-leve p-6 shadow-sm"
+                    className="overflow-hidden rounded-[12px] bg-app-creme-leve shadow-sm ring-1 ring-app-baunilha-dourada/70 transition hover:-translate-y-0.5 hover:shadow-md"
                   >
-                    <p className="text-sm font-semibold text-app-caramelo-torrado">
-                      {reservation.date} as {reservation.time}
-                    </p>
-                    <h2 className="mt-2 text-xl font-semibold text-app-cafe-profundo">
-                      {reservation.restaurant}
-                    </h2>
-                    <p className="mt-2 text-sm uppercase tracking-wide text-app-cinza">
-                      Status: {reservation.status}
-                    </p>
+                    <div className="grid sm:grid-cols-[112px_1fr_auto]">
+                      <div className="flex items-center gap-4 border-b border-app-baunilha-dourada/60 bg-app-creme-suave px-5 py-4 sm:flex-col sm:justify-center sm:border-b-0 sm:border-r sm:px-4 sm:text-center">
+                        <span className="text-3xl font-semibold leading-none text-app-cafe-profundo">
+                          {formatarDataReserva(reservation.date).dia}
+                        </span>
+                        <div>
+                          <p className="text-xs font-bold uppercase text-app-caramelo-torrado">
+                            {formatarDataReserva(reservation.date).mes}
+                          </p>
+                          <p className="mt-0.5 text-xs capitalize text-app-cinza">
+                            {formatarDataReserva(reservation.date).semana}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="min-w-0 bg-app-creme-leve p-5">
+                        <h2 className="truncate text-xl font-semibold text-app-cafe-profundo">
+                          {reservation.restaurant}
+                        </h2>
+                        <div className="mt-4 flex flex-wrap gap-x-5 gap-y-3 text-sm text-app-mocha">
+                          <span className="flex items-center gap-2">
+                            <Icon type="clock" className="h-4 w-4 text-app-caramelo-torrado" />
+                            {formatarHorario(reservation.time)}
+                          </span>
+                          <span className="flex items-center gap-2">
+                            <Icon type="people" className="h-4 w-4 text-app-caramelo-torrado" />
+                            {reservation.people} {reservation.people === 1 ? "pessoa" : "pessoas"}
+                          </span>
+                          <span className="flex items-center gap-2">
+                            <Icon type="wallet" className="h-4 w-4 text-app-caramelo-torrado" />
+                            Consumo minimo{" "}
+                            {new Intl.NumberFormat("pt-BR", {
+                              style: "currency",
+                              currency: "BRL",
+                            }).format(reservation.minimumTotal)}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col items-center justify-center gap-4 border-t border-app-baunilha-dourada/60 bg-app-creme-suave/55 p-5 text-center sm:min-w-40 sm:border-l sm:border-t-0">
+                        <span className={`rounded-full px-3 py-1 text-xs font-bold ${obterStatusReserva(reservation.status).classe}`}>
+                          {obterStatusReserva(reservation.status).texto}
+                        </span>
+                        {["PENDENTE", "CONFIRMADA"].includes(reservation.status) ? (
+                          <button
+                            type="button"
+                            onClick={() => cancelarReserva(reservation.id)}
+                            className="text-xs font-bold text-app-vermelho-erro transition hover:text-app-cafe-profundo"
+                          >
+                            Desmarcar reserva
+                          </button>
+                        ) : null}
+                        {["CANCELADA", "RECUSADA"].includes(reservation.status) ? (
+                          <button
+                            type="button"
+                            onClick={() => excluirReservaDaLista(reservation.id)}
+                            className="text-xs font-bold text-app-cinza transition hover:text-app-vermelho-erro"
+                          >
+                            Excluir da lista
+                          </button>
+                        ) : null}
+                      </div>
+                    </div>
                   </article>
                 ))}
               </div>

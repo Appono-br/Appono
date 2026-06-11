@@ -24,6 +24,7 @@ type FormData = {
   address: string;
   postalCode: string;
   logoUrl: string;
+  minimumReservationValue: string;
 };
 
 const initialForm: FormData = {
@@ -35,6 +36,7 @@ const initialForm: FormData = {
   address: "",
   postalCode: "",
   logoUrl: "",
+  minimumReservationValue: "0",
 };
 
 type RespostaPerfilRestaurante = {
@@ -48,6 +50,7 @@ type RespostaPerfilRestaurante = {
     endereco?: string;
     cep?: string;
     logo_url?: string;
+    valor_minimo_reserva_por_pessoa?: number;
   };
   message?: string;
 };
@@ -192,6 +195,7 @@ export default function RestaurantSettingsPage() {
           address: restaurante.endereco ?? "",
           postalCode: aplicarMascaraCep(restaurante.cep ?? ""),
           logoUrl: restaurante.logo_url ?? "",
+          minimumReservationValue: String(restaurante.valor_minimo_reserva_por_pessoa ?? 0),
         });
         setMessage("");
       } catch (error) {
@@ -237,11 +241,11 @@ export default function RestaurantSettingsPage() {
         method: "PATCH",
         body: JSON.stringify({
           nome: form.storeName,
-          razao_social: form.legalName,
           telefone: form.phone,
           email: form.email,
           endereco: form.address,
           cep: form.postalCode,
+          valor_minimo_reserva_por_pessoa: Number(form.minimumReservationValue),
         }),
       });
       if (novaImagem) {
@@ -472,6 +476,7 @@ export default function RestaurantSettingsPage() {
                 label="Razao social"
                 value={form.legalName}
                 onChange={(value) => updateField("legalName", value)}
+                disabled
               />
               <Field
                 label="Telefone de contato"
@@ -482,6 +487,14 @@ export default function RestaurantSettingsPage() {
                 label="Email comercial"
                 value={form.email}
                 onChange={(value) => updateField("email", value)}
+                className="sm:col-span-2"
+              />
+              <Field
+                label="Consumo minimo por pessoa (R$)"
+                value={form.minimumReservationValue}
+                onChange={(value) =>
+                  updateField("minimumReservationValue", value.replace(/[^\d.,]/g, "").replace(",", "."))
+                }
                 className="sm:col-span-2"
               />
             </section>

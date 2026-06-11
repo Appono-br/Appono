@@ -4,7 +4,6 @@ import { requireAuth } from "../middleware/auth";
 
 type ReservationBody = {
   id_restaurante?: number;
-  id_mesa?: number;
   data_reserva?: string;
   horario_inicio?: string;
   horario_fim?: string;
@@ -18,17 +17,44 @@ reservationsRouter.use(requireAuth);
 
 reservationsRouter.get("/", async (_req, res) => {
   const supabase = createUserSupabaseClient(res.locals.accessToken);
+  const { data: cliente } = await supabase
+    .from("clientes")
+    .select("id_cliente")
+    .maybeSingle();
+  const colunaOcultacao = cliente ? "ocultada_cliente" : "ocultada_restaurante";
 
   const { data, error } = await supabase
     .from("reservas")
     .select(
-      "*, restaurantes(nome, endereco), mesas(numero_mesa, capacidade), pedidos(id_pedido, status_pedido, valor_total)",
+      "*, restaurantes(nome, endereco), clientes(nome, telefone), mesas(numero_mesa, capacidade), pedidos(id_pedido, status_pedido, valor_total)",
     )
+    .eq(colunaOcultacao, false)
     .order("data_reserva", { ascending: true })
     .order("horario_inicio", { ascending: true });
 
   if (error) {
     return res.status(400).json({ error: error.message });
+  }
+
+  return res.json(data);
+});
+
+reservationsRouter.patch("/:id/ocultar", async (req, res) => {
+  const reservationId = Number(req.params.id);
+  const supabase = createUserSupabaseClient(res.locals.accessToken);
+
+  if (!Number.isFinite(reservationId)) {
+    return res.status(400).json({ error: "Reserva invalida." });
+  }
+
+  const { data, error } = await supabase.rpc("ocultar_reserva_do_historico", {
+    reserva_id: reservationId,
+  });
+
+  if (error) {
+    return res.status(409).json({
+      error: "Apenas reservas canceladas podem ser excluidas da lista.",
+    });
   }
 
   return res.json(data);
@@ -40,7 +66,6 @@ reservationsRouter.post("/", async (req, res) => {
 
   if (
     !body.id_restaurante ||
-    !body.id_mesa ||
     !body.data_reserva ||
     !body.horario_inicio ||
     !body.horario_fim ||
@@ -49,55 +74,44 @@ reservationsRouter.post("/", async (req, res) => {
     return res.status(400).json({ error: "Dados da reserva incompletos." });
   }
 
-  const { data: cliente, error: clienteError } = await supabase
-    .from("clientes")
-    .select("id_cliente")
-    .single();
-
-  if (clienteError || !cliente) {
-    return res.status(403).json({ error: "Apenas clientes podem criar reservas." });
-  }
-
-  const { data, error } = await supabase
-    .from("reservas")
-    .insert({
-      id_cliente: cliente.id_cliente,
-      id_restaurante: body.id_restaurante,
-      id_mesa: body.id_mesa,
-      data_reserva: body.data_reserva,
-      horario_inicio: body.horario_inicio,
-      horario_fim: body.horario_fim,
-      quantidade_pessoas: body.quantidade_pessoas,
-      observacoes: body.observacoes ?? null,
-    })
-    .select("*")
-    .single();
+  const { data, error } = await supabase.rpc("criar_reserva_com_mesa_disponivel", {
+    restaurante_id: body.id_restaurante,
+    data_escolhida: body.data_reserva,
+    inicio: body.horario_inicio,
+    fim: body.horario_fim,
+    pessoas: body.quantidade_pessoas,
+    observacoes_cliente: body.observacoes ?? null,
+  });
 
   if (error) {
-    return res.status(409).json({ error: error.message });
+    const mensagem =
+      error.message.includes("Nao ha mesa disponivel")
+        ? "Nao ha mesa disponivel para este horario e quantidade de pessoas."
+        : error.message;
+    return res.status(409).json({ error: mensagem });
   }
 
   return res.status(201).json(data);
 });
 
-reservationsRouter.patch("/:id/status", async (req, res) => {
+reservationsRouter.patch("/:id/cancelar", async (req, res) => {
   const reservationId = Number(req.params.id);
-  const { status_reserva } = req.body as { status_reserva?: string };
   const supabase = createUserSupabaseClient(res.locals.accessToken);
 
-  if (!Number.isFinite(reservationId) || !status_reserva) {
-    return res.status(400).json({ error: "Status da reserva invalido." });
+  if (!Number.isFinite(reservationId)) {
+    return res.status(400).json({ error: "Reserva invalida." });
   }
 
-  const { data, error } = await supabase
-    .from("reservas")
-    .update({ status_reserva })
-    .eq("id_reserva", reservationId)
-    .select("*")
-    .single();
+  const { data, error } = await supabase.rpc("cancelar_reserva_propria", {
+    reserva_id: reservationId,
+  });
 
   if (error) {
-    return res.status(400).json({ error: error.message });
+    return res.status(409).json({
+      error: error.message.includes("nao pode mais ser cancelada")
+        ? "A reserva nao foi encontrada ou nao pode mais ser cancelada."
+        : error.message,
+    });
   }
 
   return res.json(data);

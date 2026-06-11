@@ -19,6 +19,29 @@ restaurantsRouter.get("/", async (_req, res) => {
   return res.json(data);
 });
 
+restaurantsRouter.get("/:id", async (req, res) => {
+  const restaurantId = Number(req.params.id);
+
+  if (!Number.isFinite(restaurantId)) {
+    return res.status(400).json({ error: "Restaurante invalido." });
+  }
+
+  const { data, error } = await supabaseAuth
+    .from("restaurantes")
+    .select(
+      "id_restaurante, nome, telefone, email, endereco, horario_funcionamento, logo_url, valor_minimo_reserva_por_pessoa",
+    )
+    .eq("id_restaurante", restaurantId)
+    .eq("ativo", true)
+    .single();
+
+  if (error) {
+    return res.status(404).json({ error: "Restaurante nao encontrado." });
+  }
+
+  return res.json(data);
+});
+
 restaurantsRouter.get("/:id/cardapio", async (req, res) => {
   const restaurantId = Number(req.params.id);
 

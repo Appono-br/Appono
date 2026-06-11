@@ -2,11 +2,25 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { apiRequest } from "@/lib/api";
 
 type RestaurantSession = {
   type?: "client" | "restaurant";
   name?: string;
+};
+
+type ReservaRecebida = {
+  id_reserva: number;
+  data_reserva: string;
+  horario_inicio: string;
+  horario_fim: string;
+  quantidade_pessoas: number;
+  status_reserva: string;
+  valor_minimo_total: number;
+  observacoes?: string | null;
+  clientes?: { nome?: string; telefone?: string } | null;
+  mesas?: { numero_mesa?: number; capacidade?: number } | null;
 };
 
 const navItems = [
@@ -20,31 +34,17 @@ const navItems = [
   { label: "Configuracoes", href: "/restaurante/configuracoes" },
 ];
 
-const periodSummary = [
-  { label: "Total de capas" },
-  { label: "Mesas VIP" },
-];
-
-const compactMetrics = [
-  { label: "Ocupacao", icon: "users" },
-  { label: "Avaliacao media", icon: "star" },
-];
-
 function Icon({
   type,
   className = "h-5 w-5",
 }: {
-  type: "filter" | "menu" | "plus" | "star" | "users" | "utensils";
+  type: "filter" | "menu" | "plus" | "utensils";
   className?: string;
 }) {
   const paths = {
     filter: "M4 7h16M7 12h10M10 17h4",
     menu: "M4 7h16M4 12h16M4 17h16",
     plus: "M12 5v14M5 12h14",
-    star:
-      "m12 3 2.7 5.5 6.1.9-4.4 4.3 1 6.1L12 16.9 6.6 19.8l1-6.1-4.4-4.3 6.1-.9L12 3z",
-    users:
-      "M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2M9.5 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8",
     utensils:
       "M7 3v8M4 3v8M10 3v8M4 11h6M7 11v10M17 3v18M14 3h3a3 3 0 0 1 3 3v5a3 3 0 0 1-3 3h-3",
   };
@@ -94,8 +94,44 @@ export default function RestaurantReservationsPage() {
     return storedSession ? (JSON.parse(storedSession) as RestaurantSession) : null;
   });
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [reservas, setReservas] = useState<ReservaRecebida[]>([]);
+  const [mensagem, setMensagem] = useState("");
 
   const isRestaurant = session?.type === "restaurant";
+
+  useEffect(() => {
+    if (!isRestaurant) return;
+
+    apiRequest<ReservaRecebida[]>("/reservas")
+      .then(setReservas)
+      .catch((erro) =>
+        setMensagem(erro instanceof Error ? erro.message : "Nao foi possivel carregar as reservas."),
+      );
+  }, [isRestaurant]);
+
+  async function cancelarReserva(id: number) {
+    try {
+      const atualizada = await apiRequest<ReservaRecebida>(`/reservas/${id}/cancelar`, {
+        method: "PATCH",
+      });
+      setReservas((atuais) =>
+        atuais.map((reserva) => (reserva.id_reserva === id ? { ...reserva, ...atualizada } : reserva)),
+      );
+      setMensagem("Reserva desmarcada.");
+    } catch (erro) {
+      setMensagem(erro instanceof Error ? erro.message : "Nao foi possivel desmarcar a reserva.");
+    }
+  }
+
+  async function excluirReservaDaLista(id: number) {
+    try {
+      await apiRequest(`/reservas/${id}/ocultar`, { method: "PATCH" });
+      setReservas((atuais) => atuais.filter((reserva) => reserva.id_reserva !== id));
+      setMensagem("Reserva removida da lista.");
+    } catch (erro) {
+      setMensagem(erro instanceof Error ? erro.message : "Nao foi possivel remover a reserva.");
+    }
+  }
 
   if (!isRestaurant) {
     return (
@@ -224,82 +260,66 @@ export default function RestaurantReservationsPage() {
           </div>
         </div>
 
-        <section className="mt-10 grid gap-8 lg:grid-cols-[0.45fr_1fr]">
-          <aside className="h-fit rounded-[8px] bg-app-creme-suave p-7 shadow-sm ring-1 ring-app-baunilha-dourada/60 sm:p-8">
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">
-              Resumo do periodo
-            </p>
-            <h2 className="mt-5 text-3xl font-medium italic text-app-mocha">
-              Manha & Almoco
-            </h2>
-
-            <div className="mt-8 grid gap-5">
-              {periodSummary.map((item) => (
-                <div
-                  key={item.label}
-                  className="flex items-center justify-between gap-5 text-sm"
-                >
-                  <span className="text-app-cinza">{item.label}</span>
-                  <strong className="text-lg text-app-cafe-profundo">--</strong>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-9 h-px bg-app-baunilha-dourada/70" />
-          </aside>
-
+        <section className="mt-10">
           <section>
             <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <h2 className="text-xs font-bold uppercase tracking-[0.18em] text-app-mocha">
                 Proximos clientes
               </h2>
-              <p className="text-sm text-app-cinza">-- agendamentos restantes</p>
+              <p className="text-sm text-app-cinza">{reservas.length} agendamentos</p>
             </div>
 
-            <EmptyPanel
-              title="Nenhum agendamento para exibir"
-              description="Os agendamentos do dia aparecerao nesta lista."
-              className="min-h-[310px] bg-app-chantilly"
-            />
+            {mensagem ? <p className="mb-4 text-sm font-semibold text-app-caramelo-torrado">{mensagem}</p> : null}
+            {reservas.length ? (
+              <div className="grid gap-3">
+                {reservas.map((reserva) => (
+                  <article key={reserva.id_reserva} className="rounded-[8px] bg-app-chantilly p-5 shadow-sm ring-1 ring-app-baunilha-dourada/60">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                      <div>
+                        <p className="text-xs font-bold uppercase text-app-caramelo-torrado">
+                          {reserva.data_reserva} · {reserva.horario_inicio} - {reserva.horario_fim}
+                        </p>
+                        <h3 className="mt-2 text-lg font-semibold">{reserva.clientes?.nome ?? "Cliente"}</h3>
+                        <p className="mt-1 text-sm text-app-mocha">
+                          {reserva.quantidade_pessoas} pessoas · Mesa {reserva.mesas?.numero_mesa ?? "-"}
+                        </p>
+                        <p className="mt-1 text-sm text-app-mocha">
+                          Consumo minimo: {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(reserva.valor_minimo_total)}
+                        </p>
+                        <p className="mt-2 text-xs font-bold uppercase text-app-cinza">Status: {reserva.status_reserva}</p>
+                      </div>
+                      {["PENDENTE", "CONFIRMADA"].includes(reserva.status_reserva) ? (
+                        <button
+                          type="button"
+                          onClick={() => cancelarReserva(reserva.id_reserva)}
+                          className="h-9 rounded-[8px] border border-app-vermelho-erro/40 px-3 text-xs font-bold text-app-vermelho-erro transition hover:bg-app-vermelho-erro hover:text-white"
+                        >
+                          Desmarcar
+                        </button>
+                      ) : null}
+                      {["CANCELADA", "RECUSADA"].includes(reserva.status_reserva) ? (
+                        <button
+                          type="button"
+                          onClick={() => excluirReservaDaLista(reserva.id_reserva)}
+                          className="h-9 rounded-[8px] border border-app-baunilha-dourada px-3 text-xs font-bold text-app-cinza transition hover:border-app-vermelho-erro/40 hover:text-app-vermelho-erro"
+                        >
+                          Excluir da lista
+                        </button>
+                      ) : null}
+                    </div>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <EmptyPanel
+                title="Nenhum agendamento para exibir"
+                description="Os agendamentos recebidos aparecerao nesta lista."
+                className="min-h-[310px] bg-app-chantilly"
+              />
+            )}
           </section>
         </section>
 
-        <section className="mt-8 grid gap-8 lg:grid-cols-[1fr_0.52fr]">
-          <article className="relative min-h-[320px] overflow-hidden rounded-[8px] bg-app-cafe-profundo p-8 text-app-creme-leve shadow-sm">
-            <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(47,27,16,0.96),rgba(138,85,42,0.58))]" />
-            <div className="relative z-10 flex h-full min-h-[260px] flex-col justify-end">
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-app-baunilha-dourada">
-                Prato destaque do dia
-              </p>
-              <h2 className="mt-4 text-3xl font-medium italic text-app-chantilly">
-                Nenhum destaque selecionado
-              </h2>
-              <p className="mt-4 max-w-md text-sm leading-6 text-app-creme-suave">
-                Escolha um prato para destacar nas reservas de hoje.
-              </p>
-            </div>
-          </article>
-
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-1">
-            {compactMetrics.map((metric) => (
-              <article
-                key={metric.label}
-                className="rounded-[8px] bg-app-creme-suave p-7 shadow-sm ring-1 ring-app-baunilha-dourada/60"
-              >
-                <Icon
-                  type={metric.icon as "users" | "star"}
-                  className="h-6 w-6 text-app-caramelo-torrado"
-                />
-                <strong className="mt-5 block text-4xl font-medium text-app-cafe-profundo">
-                  --
-                </strong>
-                <p className="mt-2 text-xs font-bold uppercase tracking-[0.18em] text-app-mocha">
-                  {metric.label}
-                </p>
-              </article>
-            ))}
-          </div>
-        </section>
       </section>
 
       <footer className="border-t border-app-cacau-intenso/20 bg-app-cafe-profundo px-5 py-7 text-app-creme-leve">
@@ -327,6 +347,7 @@ export default function RestaurantReservationsPage() {
           </p>
         </div>
       </footer>
+
     </main>
   );
 }

@@ -15,6 +15,7 @@ type Restaurant = {
   rating?: number;
   imageUrl?: string;
   isFavorite?: boolean;
+  openingHours?: string;
 };
 
 type Specialty = {
@@ -46,15 +47,17 @@ const navItems = [
 function Icon({
   type,
   className = "h-5 w-5",
+  filled = false,
 }: {
   type: "bag" | "bell" | "heart" | "menu" | "pin" | "search" | "sliders";
   className?: string;
+  filled?: boolean;
 }) {
   const paths = {
     bag: "M6 7h12l-1 14H7L6 7z M9 7a3 3 0 0 1 6 0",
     bell: "M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0",
     heart:
-      "M12 20s-7-4.35-9.2-8.2C1.2 9 2.9 5.8 6 5.4c1.8-.2 3.2.7 4 2 0.8-1.3 2.2-2.2 4-2 3.1.4 4.8 3.6 3.2 6.4C19 15.65 12 20 12 20z",
+      "M12 20.25 4.35 12.9A4.65 4.65 0 0 1 10.93 6.3L12 7.38l1.07-1.08a4.65 4.65 0 0 1 6.58 6.6L12 20.25z",
     menu: "M4 7h16M4 12h16M4 17h16",
     pin: "M12 21s6-5.2 6-11a6 6 0 0 0-12 0c0 5.8 6 11 6 11z M12 12a2 2 0 1 0 0-4 2 2 0 0 0 0 4z",
     search: "m21 21-4.35-4.35M11 18a7 7 0 1 1 0-14 7 7 0 0 1 0 14z",
@@ -63,10 +66,10 @@ function Icon({
   };
 
   return (
-    <svg aria-hidden="true" viewBox="0 0 24 24" className={className}>
+    <svg aria-hidden="true" viewBox="0 0 24 24" className={`shrink-0 overflow-visible ${className}`}>
       <path
         d={paths[type]}
-        fill="none"
+        fill={filled ? "currentColor" : "none"}
         stroke="currentColor"
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -119,6 +122,7 @@ export default function DashboardPage() {
             id_restaurante: number;
             nome: string;
             endereco?: string | null;
+            horario_funcionamento?: string | null;
             logo_url?: string | null;
           }>
         >("/restaurantes");
@@ -130,6 +134,7 @@ export default function DashboardPage() {
             specialty: "Restaurante",
             neighborhood: restaurant.endereco ?? undefined,
             imageUrl: restaurant.logo_url ?? undefined,
+            openingHours: restaurant.horario_funcionamento ?? undefined,
           })),
         );
       } catch (error) {
@@ -158,6 +163,16 @@ export default function DashboardPage() {
       return matchesFilter && matchesSearch;
     });
   }, [activeFilter, query, restaurants]);
+
+  function alternarFavorito(id: string) {
+    setRestaurants((atuais) =>
+      atuais.map((restaurante) =>
+        restaurante.id === id
+          ? { ...restaurante, isFavorite: !restaurante.isFavorite }
+          : restaurante,
+      ),
+    );
+  }
 
   return (
     <main className="min-h-screen bg-app-chantilly text-app-cafe-profundo">
@@ -352,39 +367,73 @@ export default function DashboardPage() {
             </p>
           </div>
 
-          <div className="mt-8">
+          <div className="mt-6">
             {filteredRestaurants.length ? (
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
                 {filteredRestaurants.map((restaurant) => (
-                  <article key={restaurant.id} className="group">
-                    <div className="relative aspect-[0.92] overflow-hidden rounded-[8px] border border-app-baunilha-dourada bg-app-creme-leve">
-                      {restaurant.imageUrl ? (
-                        <Image
-                          src={restaurant.imageUrl}
-                          alt={restaurant.name}
-                          fill
-                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                          className="object-cover transition duration-300 group-hover:scale-105"
-                        />
-                      ) : (
-                        <div className="flex h-full items-center justify-center bg-app-baunilha-dourada/45 text-sm font-semibold text-app-mocha">
-                          Imagem em breve
-                        </div>
-                      )}
-                      <button
-                        type="button"
-                        className="absolute right-4 top-4 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-app-chantilly text-app-cafe-profundo shadow-sm transition hover:bg-app-baunilha-dourada"
-                        aria-label={`Favoritar ${restaurant.name}`}
-                      >
-                        <Icon type="heart" className="h-4 w-4" />
-                      </button>
-                    </div>
-                    <h3 className="mt-4 text-xl font-medium">
-                      {restaurant.name}
-                    </h3>
-                    <p className="mt-1 text-sm text-app-cinza">
-                      {restaurant.specialty}
-                    </p>
+                  <article
+                    key={restaurant.id}
+                    className="group relative min-w-0 rounded-[8px] border border-app-baunilha-dourada bg-app-chantilly p-2.5 shadow-sm transition hover:-translate-y-0.5 hover:border-app-caramelo-torrado/55 hover:shadow-md"
+                  >
+                    <Link
+                      href={`/cliente/restaurantes/${restaurant.id}`}
+                      className="flex min-w-0 gap-3"
+                      aria-label={`Ver ${restaurant.name}`}
+                    >
+                      <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-[8px] bg-app-creme-leve">
+                        {restaurant.imageUrl ? (
+                          <Image
+                            src={restaurant.imageUrl}
+                            alt={restaurant.name}
+                            fill
+                            sizes="96px"
+                            className="object-cover transition duration-300 group-hover:scale-105"
+                          />
+                        ) : (
+                          <div className="flex h-full items-center justify-center bg-app-baunilha-dourada/45 px-2 text-center text-xs font-medium leading-4 text-app-mocha">
+                            Imagem em breve
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="min-w-0 flex-1 py-0.5 pr-7">
+                        <h3 className="truncate text-[15px] font-semibold leading-5 text-app-cafe-profundo antialiased">
+                          {restaurant.name}
+                        </h3>
+                        <p className="mt-0.5 truncate text-xs font-medium leading-4 text-app-mocha antialiased">
+                          <span className="font-semibold text-app-caramelo-torrado">
+                            {restaurant.rating?.toFixed(1) ?? "Novo"}
+                          </span>
+                          <span className="mx-1.5 text-app-cinza">•</span>
+                          {restaurant.specialty}
+                        </p>
+                        <p className="mt-1 truncate text-xs leading-4 text-app-mocha antialiased">
+                          {restaurant.neighborhood ?? "Endereco em atualizacao"}
+                        </p>
+                        <p className="truncate text-xs leading-4 text-app-mocha antialiased">
+                          {restaurant.openingHours && restaurant.openingHours !== "A definir"
+                            ? restaurant.openingHours
+                            : "Consulte os horarios"}
+                        </p>
+                        <span className="mt-1 inline-flex rounded-[5px] bg-app-creme-suave px-2 py-0.5 text-xs font-semibold leading-4 text-app-caramelo-torrado antialiased">
+                          Reserva e pedido antecipado
+                        </span>
+                      </div>
+                    </Link>
+
+                    <button
+                      type="button"
+                      onClick={() => alternarFavorito(restaurant.id)}
+                      className={`absolute right-2 top-2 z-10 flex h-8 w-8 items-center justify-center rounded-full p-1.5 transition ${
+                        restaurant.isFavorite
+                          ? "bg-app-creme-suave text-app-vermelho-erro"
+                          : "text-app-mocha hover:bg-app-creme-suave hover:text-app-vermelho-erro"
+                      }`}
+                      aria-label={`${restaurant.isFavorite ? "Remover" : "Adicionar"} ${restaurant.name} dos favoritos`}
+                      aria-pressed={restaurant.isFavorite}
+                    >
+                      <Icon type="heart" filled={restaurant.isFavorite} className="h-full w-full" />
+                    </button>
                   </article>
                 ))}
               </div>

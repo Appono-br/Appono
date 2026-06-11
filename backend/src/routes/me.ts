@@ -8,12 +8,12 @@ export const meRouter = Router();
 
 type AtualizacaoPerfil = {
   nome?: string;
-  razao_social?: string;
   telefone?: string;
   email?: string;
   cep?: string;
   endereco?: string;
   horario_funcionamento?: string;
+  valor_minimo_reserva_por_pessoa?: number;
   preferencias_notificacao?: Record<string, unknown>;
   configuracao_operacao?: Record<string, unknown>;
 };
@@ -81,13 +81,13 @@ meRouter.patch("/", requireAuth, async (req, res) => {
   }
 
   const body = req.body as AtualizacaoPerfil;
-  const camposImutaveis = ["cpf", "cnpj", "dt_nasc", "birthDate"].filter(
+  const camposImutaveis = ["cpf", "cnpj", "dt_nasc", "birthDate", "razao_social"].filter(
     (campo) => Object.prototype.hasOwnProperty.call(req.body, campo),
   );
 
   if (camposImutaveis.length) {
     return res.status(400).json({
-      error: "CPF, CNPJ e data de nascimento nao podem ser alterados.",
+      error: "CPF, CNPJ, data de nascimento e razao social nao podem ser alterados.",
     });
   }
 
@@ -96,14 +96,6 @@ meRouter.patch("/", requireAuth, async (req, res) => {
       Object.prototype.hasOwnProperty.call(req.body, campo) &&
       !textoOpcional(req.body[campo]),
   );
-
-  if (
-    perfilAtual.tipo === "restaurante" &&
-    Object.prototype.hasOwnProperty.call(req.body, "razao_social") &&
-    !textoOpcional(body.razao_social)
-  ) {
-    camposObrigatoriosInformados.push("razao_social");
-  }
 
   if (camposObrigatoriosInformados.length) {
     return res.status(400).json({
@@ -127,12 +119,16 @@ meRouter.patch("/", requireAuth, async (req, res) => {
       perfilAtual.tipo === "restaurante"
         ? {
             ...dadosComuns,
-            razao_social: textoOpcional(body.razao_social),
             cep: textoOpcional(body.cep)
               ? somenteNumeros(body.cep).slice(0, 8)
               : undefined,
             endereco: textoOpcional(body.endereco),
             horario_funcionamento: textoOpcional(body.horario_funcionamento),
+            valor_minimo_reserva_por_pessoa:
+              typeof body.valor_minimo_reserva_por_pessoa === "number" &&
+              body.valor_minimo_reserva_por_pessoa >= 0
+                ? body.valor_minimo_reserva_por_pessoa
+                : undefined,
             preferencias_notificacao: body.preferencias_notificacao,
             configuracao_operacao: body.configuracao_operacao,
           }
