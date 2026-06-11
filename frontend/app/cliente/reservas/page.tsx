@@ -13,6 +13,11 @@ type Reservation = {
   restaurant: string;
   people: number;
   minimumTotal: number;
+  activeOrder?: {
+    id: number;
+    status: string;
+    total: number;
+  };
 };
 
 const navItems = [
@@ -207,19 +212,37 @@ export default function ReservationsPage() {
             quantidade_pessoas: number;
             valor_minimo_total: number;
             restaurantes?: { nome?: string } | null;
+            pedidos?: Array<{
+              id_pedido: number;
+              status_pedido: string;
+              valor_total: number;
+            }>;
           }>
         >("/reservas");
 
         setReservations(
-          data.map((reservation) => ({
-            id: String(reservation.id_reserva),
-            date: reservation.data_reserva,
-            time: reservation.horario_inicio,
-            status: reservation.status_reserva,
-            restaurant: reservation.restaurantes?.nome ?? "Restaurante",
-            people: reservation.quantidade_pessoas,
-            minimumTotal: reservation.valor_minimo_total,
-          })),
+          data.map((reservation) => {
+            const activeOrder = reservation.pedidos?.find((order) =>
+              ["PENDENTE", "CONFIRMADO", "EM_PREPARO", "PRONTO"].includes(order.status_pedido),
+            );
+
+            return {
+              id: String(reservation.id_reserva),
+              date: reservation.data_reserva,
+              time: reservation.horario_inicio,
+              status: reservation.status_reserva,
+              restaurant: reservation.restaurantes?.nome ?? "Restaurante",
+              people: reservation.quantidade_pessoas,
+              minimumTotal: reservation.valor_minimo_total,
+              activeOrder: activeOrder
+                ? {
+                    id: activeOrder.id_pedido,
+                    status: activeOrder.status_pedido,
+                    total: Number(activeOrder.valor_total),
+                  }
+                : undefined,
+            };
+          }),
         );
       } catch {
         setReservations([]);
@@ -486,6 +509,14 @@ export default function ReservationsPage() {
                           >
                             Desmarcar reserva
                           </button>
+                        ) : null}
+                        {reservation.status === "CONFIRMADA" ? (
+                          <Link
+                            href={`/cliente/reservas/${reservation.id}/pedido`}
+                            className="rounded-[8px] bg-app-dourado-mel px-4 py-2 text-xs font-bold text-white transition hover:bg-app-caramelo-torrado"
+                          >
+                            {reservation.activeOrder ? "Ver pedido antecipado" : "Escolher pedido antecipado"}
+                          </Link>
                         ) : null}
                         {["CANCELADA", "RECUSADA"].includes(reservation.status) ? (
                           <button

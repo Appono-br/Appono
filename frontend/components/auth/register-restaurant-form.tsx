@@ -150,11 +150,7 @@ export function RegisterRestaurantForm() {
         ...current,
         legalName: company.razaoSocial || current.legalName,
       }));
-      setMessage(
-        company.situacao
-          ? `CNPJ consultado na ReceitaWS. Situacao: ${company.situacao}.`
-          : "CNPJ consultado na ReceitaWS.",
-      );
+      setMessage("");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "CNPJ invalido.");
     }
@@ -177,7 +173,7 @@ export function RegisterRestaurantForm() {
         city: address.cidade || current.city,
         uf: address.estado || current.uf,
       }));
-      setMessage("Endereco preenchido pelo ViaCEP.");
+      setMessage("");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "CEP invalido.");
     }

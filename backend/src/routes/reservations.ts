@@ -26,7 +26,7 @@ reservationsRouter.get("/", async (_req, res) => {
   const { data, error } = await supabase
     .from("reservas")
     .select(
-      "*, restaurantes(nome, endereco), clientes(nome, telefone), mesas(numero_mesa, capacidade), pedidos(id_pedido, status_pedido, valor_total)",
+      "*, restaurantes(nome, endereco), clientes(nome, telefone), mesas(numero_mesa, capacidade), pedidos(id_pedido, status_pedido, valor_total, horario_entrega_previsto, iniciar_preparo_em, itens_pedido(quantidade, observacoes, produtos(nome)))",
     )
     .eq(colunaOcultacao, false)
     .order("data_reserva", { ascending: true })
@@ -92,6 +92,44 @@ reservationsRouter.post("/", async (req, res) => {
   }
 
   return res.status(201).json(data);
+});
+
+reservationsRouter.get("/:id/cardapio", async (req, res) => {
+  const reservationId = Number(req.params.id);
+  const supabase = createUserSupabaseClient(res.locals.accessToken);
+
+  if (!Number.isFinite(reservationId)) {
+    return res.status(400).json({ error: "Reserva invalida." });
+  }
+
+  const { data: reserva, error: reservaError } = await supabase
+    .from("reservas")
+    .select(
+      "id_reserva, id_restaurante, data_reserva, horario_inicio, status_reserva, restaurantes(nome), pedidos(id_pedido, status_pedido, valor_total, itens_pedido(quantidade, observacoes, produtos(nome)))",
+    )
+    .eq("id_reserva", reservationId)
+    .single();
+
+  if (reservaError || !reserva) {
+    return res.status(404).json({ error: "Reserva nao encontrada." });
+  }
+
+  const { data: cardapios, error: cardapiosError } = await supabase
+    .from("cardapios")
+    .select(
+      "id_cardapio, nome, descricao, categorias(id_categoria, nome, produtos(id_produto, nome, descricao, tempo_preparo_minutos, preco, imagem_url, disponivel))",
+    )
+    .eq("id_restaurante", reserva.id_restaurante)
+    .eq("ativo", true)
+    .eq("categorias.ativo", true)
+    .eq("categorias.produtos.disponivel", true)
+    .order("nome");
+
+  if (cardapiosError) {
+    return res.status(400).json({ error: cardapiosError.message });
+  }
+
+  return res.json({ reserva, cardapios });
 });
 
 reservationsRouter.patch("/:id/cancelar", async (req, res) => {

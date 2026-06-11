@@ -21,6 +21,18 @@ type ReservaRecebida = {
   observacoes?: string | null;
   clientes?: { nome?: string; telefone?: string } | null;
   mesas?: { numero_mesa?: number; capacidade?: number } | null;
+  pedidos?: Array<{
+    id_pedido: number;
+    status_pedido: string;
+    valor_total: number;
+    horario_entrega_previsto?: string | null;
+    iniciar_preparo_em?: string | null;
+    itens_pedido?: Array<{
+      quantidade: number;
+      observacoes?: string | null;
+      produtos?: { nome?: string } | null;
+    }>;
+  }>;
 };
 
 const navItems = [
@@ -130,6 +142,26 @@ export default function RestaurantReservationsPage() {
       setMensagem("Reserva removida da lista.");
     } catch (erro) {
       setMensagem(erro instanceof Error ? erro.message : "Nao foi possivel remover a reserva.");
+    }
+  }
+
+  async function atualizarStatusPedido(idPedido: number, statusPedido: string) {
+    try {
+      const atualizado = await apiRequest<{ status_pedido: string }>(`/pedidos/${idPedido}/status`, {
+        method: "PATCH",
+        body: JSON.stringify({ status_pedido: statusPedido }),
+      });
+      setReservas((atuais) =>
+        atuais.map((reserva) => ({
+          ...reserva,
+          pedidos: reserva.pedidos?.map((pedido) =>
+            pedido.id_pedido === idPedido ? { ...pedido, status_pedido: atualizado.status_pedido } : pedido,
+          ),
+        })),
+      );
+      setMensagem("Status do pedido atualizado.");
+    } catch (erro) {
+      setMensagem(erro instanceof Error ? erro.message : "Nao foi possivel atualizar o pedido.");
     }
   }
 
@@ -287,6 +319,42 @@ export default function RestaurantReservationsPage() {
                           Consumo minimo: {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(reserva.valor_minimo_total)}
                         </p>
                         <p className="mt-2 text-xs font-bold uppercase text-app-cinza">Status: {reserva.status_reserva}</p>
+                        {reserva.pedidos?.map((pedido) => (
+                          <div key={pedido.id_pedido} className="mt-4 rounded-[8px] bg-app-creme-suave p-4 ring-1 ring-app-baunilha-dourada/60">
+                            <p className="text-xs font-bold uppercase text-app-caramelo-torrado">
+                              Pedido antecipado #{pedido.id_pedido}
+                            </p>
+                            <p className="mt-2 text-sm font-semibold text-app-cafe-profundo">
+                              {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(pedido.valor_total))}
+                              {" · "}{pedido.status_pedido}
+                            </p>
+                            <div className="mt-3 grid gap-1 text-sm text-app-mocha">
+                              {pedido.itens_pedido?.map((item, indice) => (
+                                <p key={`${item.produtos?.nome ?? "item"}-${indice}`}>
+                                  {item.quantidade}x {item.produtos?.nome ?? "Item"}
+                                  {item.observacoes ? ` · ${item.observacoes}` : ""}
+                                </p>
+                              ))}
+                            </div>
+                            <div className="mt-3 flex flex-wrap gap-2">
+                              {pedido.status_pedido === "CONFIRMADO" ? (
+                                <button type="button" onClick={() => atualizarStatusPedido(pedido.id_pedido, "EM_PREPARO")} className="rounded-[8px] bg-app-dourado-mel px-3 py-2 text-xs font-bold text-white">
+                                  Iniciar preparo
+                                </button>
+                              ) : null}
+                              {pedido.status_pedido === "EM_PREPARO" ? (
+                                <button type="button" onClick={() => atualizarStatusPedido(pedido.id_pedido, "PRONTO")} className="rounded-[8px] bg-app-cafe-profundo px-3 py-2 text-xs font-bold text-white">
+                                  Marcar como pronto
+                                </button>
+                              ) : null}
+                              {pedido.status_pedido === "PRONTO" ? (
+                                <button type="button" onClick={() => atualizarStatusPedido(pedido.id_pedido, "ENTREGUE")} className="rounded-[8px] bg-app-dourado-mel px-3 py-2 text-xs font-bold text-white">
+                                  Marcar como entregue
+                                </button>
+                              ) : null}
+                            </div>
+                          </div>
+                        ))}
                       </div>
                       {["PENDENTE", "CONFIRMADA"].includes(reserva.status_reserva) ? (
                         <button
