@@ -131,26 +131,26 @@ export default function PaymentSettingsPage() {
   return (
     <main className="flex min-h-screen flex-col bg-app-chantilly text-app-cafe-profundo">
       <header className="border-b border-app-baunilha-dourada/50 bg-app-creme-suave">
-        <div className="mx-auto grid h-20 max-w-7xl grid-cols-[auto_1fr_auto] items-center gap-4 px-5">
-          <Link href="/" aria-label="Ir para o início">
+        <div className="mx-auto grid h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-5">
+          <div aria-label="Appono">
             <Image
               src="/brand/appono-mark.svg"
               alt="Appono"
               width={72}
               height={72}
-              className="h-14 w-14"
+              className="h-11 w-11"
               priority
             />
-          </Link>
+          </div>
           <div className="flex items-center justify-center gap-6">
             <Link
-              href="/configuracoes"
+              href="/cliente/configuracoes"
               className="transition hover:text-app-caramelo-torrado"
               aria-label="Voltar para configurações"
             >
               <Icon type="arrow-left" className="h-5 w-5" />
             </Link>
-            <h1 className="text-xl font-bold uppercase tracking-[0.16em] sm:text-3xl">
+            <h1 className="text-lg font-bold uppercase tracking-[0.14em] sm:text-2xl">
               Configurações
             </h1>
           </div>
@@ -194,7 +194,7 @@ export default function PaymentSettingsPage() {
                   key={option.id}
                   type="button"
                   onClick={() => updateField("kind", option.id)}
-                  className={`grid rounded-[8px] p-3 text-left transition sm:grid-cols-[auto_1fr_auto] sm:items-center sm:gap-3 ${
+                  className={`grid rounded-[8px] p-3 text-left transition sm:grid-cols-[1fr_auto_1fr] sm:items-center sm:gap-3 ${
                     isSelected
                       ? "bg-app-cafe-profundo text-app-creme-leve"
                       : "bg-app-chantilly text-app-cafe-profundo hover:bg-app-baunilha-dourada"
@@ -333,7 +333,7 @@ export default function PaymentSettingsPage() {
                 Salvar método
               </button>
               <Link
-                href="/configuracoes"
+                href="/cliente/configuracoes"
                 className="flex h-11 items-center justify-center rounded-[8px] border border-app-mocha px-8 text-xs font-bold uppercase tracking-wide text-app-mocha transition hover:bg-app-creme-leve"
               >
                 Cancelar

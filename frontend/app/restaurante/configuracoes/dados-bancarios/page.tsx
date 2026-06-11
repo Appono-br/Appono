@@ -5,7 +5,7 @@ import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
 import { apiRequest } from "@/lib/api";
 import { TelaCarregandoSessao, useSessaoLocal } from "@/lib/use-sessao-local";
-import { aplicarMascaraCnpj, cnpjEstaCompleto } from "@/lib/validacoes/cnpj";
+import { aplicarMascaraCnpj } from "@/lib/validacoes/cnpj";
 import { somenteNumeros } from "@/lib/validacoes/comum";
 import {
   aplicarMascaraAgencia,
@@ -43,6 +43,7 @@ type RespostaPerfilRestaurante = {
   tipo: "restaurante";
   perfil: {
     nome?: string;
+    razao_social?: string;
     cnpj?: string;
     dados_bancarios_restaurante?: Array<{
       cod_banco?: string;
@@ -51,6 +52,7 @@ type RespostaPerfilRestaurante = {
       chave_pix?: string;
     }>;
   };
+  message?: string;
 };
 
 function Icon({
@@ -91,6 +93,7 @@ function Field({
   className = "",
   inputMode,
   maxLength,
+  disabled = false,
 }: {
   label: string;
   value: string;
@@ -98,6 +101,7 @@ function Field({
   className?: string;
   inputMode?: "numeric" | "text" | "tel";
   maxLength?: number;
+  disabled?: boolean;
 }) {
   return (
     <label className={`grid gap-2 ${className}`}>
@@ -109,7 +113,8 @@ function Field({
         onChange={(event) => onChange(event.target.value)}
         inputMode={inputMode}
         maxLength={maxLength}
-        className="h-12 rounded-[8px] border border-app-baunilha-dourada bg-app-creme-suave px-4 text-sm outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20"
+        disabled={disabled}
+        className="h-12 rounded-[8px] border border-app-baunilha-dourada bg-app-creme-suave px-4 text-sm outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20 disabled:cursor-not-allowed disabled:opacity-65"
       />
     </label>
   );
@@ -119,6 +124,7 @@ export default function RestaurantBankSettingsPage() {
   const { sessao, sessaoCarregada } = useSessaoLocal();
   const [form, setForm] = useState<BankForm>(initialForm);
   const [message, setMessage] = useState("Carregando dados bancarios...");
+  const [salvando, setSalvando] = useState(false);
 
   useEffect(() => {
     if (!sessaoCarregada || sessao?.type !== "restaurant") {
@@ -135,7 +141,7 @@ export default function RestaurantBankSettingsPage() {
 
         setForm((atual) => ({
           ...atual,
-          legalName: restaurante.nome ?? "",
+          legalName: restaurante.razao_social ?? restaurante.nome ?? "",
           document: aplicarMascaraCnpj(restaurante.cnpj ?? ""),
           bankCode: dadosBancarios?.cod_banco ?? "",
           agency: dadosBancarios?.agencia ?? "",
@@ -161,13 +167,8 @@ export default function RestaurantBankSettingsPage() {
     setMessage("");
   }
 
-  function enviarFormulario(event: FormEvent<HTMLFormElement>) {
+  async function enviarFormulario(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-
-    if (form.document && !cnpjEstaCompleto(form.document)) {
-      setMessage("Informe um CNPJ completo.");
-      return;
-    }
 
     if (form.bankCode && somenteNumeros(form.bankCode).length !== 3) {
       setMessage("O codigo do banco deve possuir 3 digitos.");
@@ -179,7 +180,30 @@ export default function RestaurantBankSettingsPage() {
       return;
     }
 
-    setMessage("A edicao dos dados bancarios sera integrada em uma proxima etapa.");
+    setSalvando(true);
+
+    try {
+      const contaCorrente = form.accountDigit
+        ? `${form.account}-${form.accountDigit}`
+        : form.account;
+      const resposta = await apiRequest<RespostaPerfilRestaurante>(
+        "/me/dados-bancarios",
+        {
+          method: "PATCH",
+          body: JSON.stringify({
+            bankCode: form.bankCode,
+            agency: form.agency,
+            checkingAccount: contaCorrente,
+            pixKey: form.pixKey,
+          }),
+        },
+      );
+      setMessage(resposta.message ?? "Dados bancarios salvos com sucesso.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Nao foi possivel salvar os dados.");
+    } finally {
+      setSalvando(false);
+    }
   }
 
   if (!sessaoCarregada) {
@@ -205,16 +229,16 @@ export default function RestaurantBankSettingsPage() {
 
   return (
     <main className="flex min-h-screen flex-col bg-app-chantilly text-app-cafe-profundo">
-      <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-transparent text-app-cafe-profundo backdrop-blur-sm">
-        <div className="mx-auto grid min-h-20 max-w-7xl grid-cols-[auto_1fr_auto] items-center gap-4 px-5 py-3">
-          <Link href="/restaurante/home" aria-label="Home do restaurante">
-            <Image src="/brand/appono-mark.svg" alt="Appono" width={72} height={72} className="h-14 w-14" priority />
-          </Link>
+      <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-app-creme-leve/90 text-app-cafe-profundo shadow-sm backdrop-blur-md">
+        <div className="mx-auto grid min-h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-5 py-2">
+          <div aria-label="Appono">
+            <Image src="/brand/appono-mark.svg" alt="Appono" width={72} height={72} className="h-11 w-11" priority />
+          </div>
           <div className="flex items-center justify-center gap-6">
             <Link href="/restaurante/configuracoes" className="transition hover:text-app-caramelo-torrado" aria-label="Voltar para configuracoes">
               <Icon type="arrow-left" className="h-5 w-5" />
             </Link>
-            <h1 className="text-xl font-bold uppercase tracking-[0.16em] sm:text-3xl">
+            <h1 className="text-lg font-bold uppercase tracking-[0.14em] sm:text-2xl">
               Configuracoes
             </h1>
           </div>
@@ -253,8 +277,8 @@ export default function RestaurantBankSettingsPage() {
             </div>
 
             <div className="mt-7 grid gap-5 sm:grid-cols-2">
-              <Field label="Razao social titular" value={form.legalName} onChange={(value) => atualizarCampo("legalName", value)} className="sm:col-span-2" />
-              <Field label="CNPJ titular" value={form.document} onChange={(value) => atualizarCampo("document", aplicarMascaraCnpj(value))} inputMode="numeric" maxLength={18} />
+              <Field label="Razao social titular" value={form.legalName} onChange={(value) => atualizarCampo("legalName", value)} className="sm:col-span-2" disabled />
+              <Field label="CNPJ titular" value={form.document} onChange={(value) => atualizarCampo("document", aplicarMascaraCnpj(value))} inputMode="numeric" maxLength={18} disabled />
               <Field label="Codigo do banco" value={form.bankCode} onChange={(value) => atualizarCampo("bankCode", aplicarMascaraCodigoBanco(value))} inputMode="numeric" maxLength={3} />
               <Field label="Agencia" value={form.agency} onChange={(value) => atualizarCampo("agency", aplicarMascaraAgencia(value))} inputMode="numeric" maxLength={5} />
               <div className="grid gap-5 sm:grid-cols-[1fr_0.38fr]">
@@ -345,8 +369,8 @@ export default function RestaurantBankSettingsPage() {
               <Link href="/restaurante/configuracoes" className="flex h-12 items-center justify-center rounded-[8px] border border-app-mocha px-8 text-xs font-bold uppercase tracking-wide text-app-mocha transition hover:bg-app-creme-leve">
                 Cancelar
               </Link>
-              <button type="submit" className="h-12 rounded-[8px] bg-app-dourado-mel px-8 text-xs font-bold uppercase tracking-wide text-white transition hover:bg-app-caramelo-torrado">
-                Salvar dados
+              <button type="submit" disabled={salvando} className="h-12 rounded-[8px] bg-app-dourado-mel px-8 text-xs font-bold uppercase tracking-wide text-white transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-60">
+                {salvando ? "Salvando..." : "Salvar dados"}
               </button>
             </div>
             {message ? <p className="mt-4 text-sm font-semibold text-app-caramelo-torrado">{message}</p> : null}

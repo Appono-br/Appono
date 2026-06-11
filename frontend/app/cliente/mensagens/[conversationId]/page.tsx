@@ -49,8 +49,8 @@ export default function ConversationPage() {
   return (
     <main className="flex min-h-screen flex-col bg-app-chantilly text-app-cafe-profundo">
       <header className="border-b border-app-baunilha-dourada/50 bg-app-creme-suave">
-        <div className="mx-auto grid h-24 max-w-7xl grid-cols-[auto_1fr_auto] items-center gap-4 px-5">
-          <Link href="/" aria-label="Ir para o início">
+        <div className="mx-auto grid h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-5">
+          <div aria-label="Appono">
             <Image
               src="/brand/appono-mark.svg"
               alt="Appono"
@@ -59,10 +59,10 @@ export default function ConversationPage() {
               className="h-16 w-16"
               priority
             />
-          </Link>
+          </div>
           <div className="flex items-center justify-center gap-8">
             <Link
-              href="/mensagens"
+              href="/cliente/mensagens"
               className="transition hover:text-app-caramelo-torrado"
               aria-label="Voltar para mensagens"
             >
@@ -76,14 +76,14 @@ export default function ConversationPage() {
         </div>
       </header>
 
-      <section className="border-b border-app-baunilha-dourada/45 bg-app-chantilly px-5 py-5">
+      <section className="border-b border-app-baunilha-dourada/45 bg-app-chantilly px-5 py-3">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="flex h-14 w-14 items-center justify-center rounded-[8px] bg-app-creme-leve text-app-cafe-profundo ring-1 ring-app-baunilha-dourada/60">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-[8px] bg-app-creme-leve text-app-cafe-profundo ring-1 ring-app-baunilha-dourada/60">
               <Icon type="message" />
             </div>
             <div>
-              <h2 className="text-xl font-medium text-app-cafe-profundo">
+              <h2 className="text-base font-medium text-app-cafe-profundo">
                 Nenhuma conversa selecionada
               </h2>
               <p className="mt-1 text-xs font-semibold uppercase tracking-[0.18em] text-app-cinza">
@@ -91,7 +91,7 @@ export default function ConversationPage() {
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-5 text-app-cinza">
+          <div className="flex items-center gap-3 text-app-cinza">
             <button type="button" aria-label="Ligar" disabled>
               <Icon type="phone" />
             </button>

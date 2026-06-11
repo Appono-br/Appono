@@ -15,8 +15,13 @@ import {
   aplicarMascaraConta,
 } from "@/lib/validacoes/dados-bancarios";
 import { aplicarMascaraTelefone } from "@/lib/validacoes/telefone";
+import {
+  enviarImagemRestaurante,
+  validarImagemRestaurante,
+} from "@/lib/imagem-restaurante";
 
 type RestaurantForm = {
+  storeName: string;
   legalName: string;
   email: string;
   phone: string;
@@ -49,6 +54,7 @@ type ResultadoConsultaCnpj = {
 };
 
 const initialForm: RestaurantForm = {
+  storeName: "",
   legalName: "",
   email: "",
   phone: "",
@@ -73,6 +79,8 @@ export function RegisterRestaurantForm() {
   const [step, setStep] = useState<1 | 2>(1);
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [imagem, setImagem] = useState<File | null>(null);
+  const [imagemPreview, setImagemPreview] = useState("");
 
   function atualizarCampo(field: keyof RestaurantForm, value: string) {
     setForm((current) => ({ ...current, [field]: value }));
@@ -82,6 +90,7 @@ export function RegisterRestaurantForm() {
   function dadosRestauranteEstaoPreenchidos() {
     return Boolean(
       form.legalName &&
+        form.storeName &&
         form.email &&
         form.phone &&
         form.cnpj &&
@@ -94,6 +103,27 @@ export function RegisterRestaurantForm() {
         form.tables &&
         form.password,
     );
+  }
+
+  function selecionarImagem(arquivo?: File) {
+    if (!arquivo) {
+      return;
+    }
+
+    const erro = validarImagemRestaurante(arquivo);
+
+    if (erro) {
+      setMessage(erro);
+      return;
+    }
+
+    if (imagemPreview) {
+      URL.revokeObjectURL(imagemPreview);
+    }
+
+    setImagem(arquivo);
+    setImagemPreview(URL.createObjectURL(arquivo));
+    setMessage("");
   }
 
   function irParaEtapaBancaria() {
@@ -175,6 +205,9 @@ export function RegisterRestaurantForm() {
       await persistAuthResponse(response);
 
       if (response.session) {
+        if (imagem) {
+          await enviarImagemRestaurante(imagem, response.session);
+        }
         window.location.href = getDashboardPath(response.tipo);
         return;
       }
@@ -259,6 +292,7 @@ export function RegisterRestaurantForm() {
 
         {step === 1 ? (
           <div className="mt-3 grid gap-1.5 sm:grid-cols-6 xl:grid-cols-12">
+            <FormField label="Nome da loja" value={form.storeName} onChange={(event) => atualizarCampo("storeName", event.target.value)} placeholder="Nome que aparecera para os clientes" required className="sm:col-span-6 xl:col-span-4" />
             <FormField label="Razao social" value={form.legalName} onChange={(event) => atualizarCampo("legalName", event.target.value)} placeholder="Ex: Terra Artisan Gastronomia LTDA" required className="sm:col-span-6 xl:col-span-4" />
             <FormField label="E-mail" type="email" value={form.email} onChange={(event) => atualizarCampo("email", event.target.value)} placeholder="contato@restaurante.com" required className="sm:col-span-3 xl:col-span-3" />
             <FormField label="Telefone" value={form.phone} onChange={(event) => atualizarCampo("phone", aplicarMascaraTelefone(event.target.value))} placeholder="(11) 99999-9999" inputMode="tel" maxLength={15} required className="sm:col-span-3 xl:col-span-2" />
@@ -272,6 +306,26 @@ export function RegisterRestaurantForm() {
             <FormField label="Complemento" value={form.complement} onChange={(event) => atualizarCampo("complement", event.target.value)} placeholder="Sala, Bloco, etc." className="sm:col-span-3 xl:col-span-3" />
             <FormField label="Numero de mesas" type="number" min="1" value={form.tables} onChange={(event) => atualizarCampo("tables", event.target.value)} placeholder="Ex: 12" required className="sm:col-span-3 xl:col-span-2" />
             <FormField label="Senha" type="password" value={form.password} onChange={(event) => atualizarCampo("password", event.target.value)} placeholder="Digite aqui" required minLength={6} className="sm:col-span-3 xl:col-span-2" />
+            <label className="grid gap-1 rounded-[8px] border border-dashed border-app-caramelo-torrado/50 bg-app-creme-suave p-3 sm:col-span-6 xl:col-span-4">
+              <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-app-cafe-profundo">
+                Imagem do restaurante
+              </span>
+              <span className="flex items-center gap-3">
+                <span
+                  className="h-12 w-12 shrink-0 rounded-[8px] bg-app-baunilha-dourada bg-cover bg-center"
+                  style={imagemPreview ? { backgroundImage: `url("${imagemPreview}")` } : undefined}
+                />
+                <span className="text-xs leading-5 text-app-mocha">
+                  Selecione JPG, PNG ou WebP de ate 5 MB. Esta imagem aparecera para os clientes.
+                </span>
+              </span>
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={(event) => selecionarImagem(event.target.files?.[0])}
+                className="text-xs text-app-mocha file:mr-3 file:border-0 file:bg-app-caramelo-torrado file:px-3 file:py-2 file:text-xs file:font-bold file:text-white"
+              />
+            </label>
           </div>
         ) : (
           <div className="mt-3 grid gap-2 sm:grid-cols-6">

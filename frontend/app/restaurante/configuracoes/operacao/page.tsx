@@ -2,12 +2,11 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { FormEvent, useState } from "react";
-
-type RestaurantSession = {
-  type?: "client" | "restaurant";
-  name?: string;
-};
+import { FormEvent, useEffect, useState } from "react";
+import { apiRequest } from "@/lib/api";
+import { atualizarNomeSessao } from "@/lib/session";
+import { TelaCarregandoSessao, useSessaoLocal } from "@/lib/use-sessao-local";
+import { aplicarMascaraTelefone } from "@/lib/validacoes/telefone";
 
 type DayId = "monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday";
 
@@ -48,13 +47,16 @@ const initialForm: OperationForm = {
   days: initialDays,
 };
 
-function getStorage() {
-  if (typeof window === "undefined" || !window.localStorage) {
-    return null;
-  }
-
-  return window.localStorage;
-}
+type RespostaPerfilRestaurante = {
+  tipo: "restaurante";
+  perfil: {
+    id_restaurante?: number;
+    nome?: string;
+    telefone?: string;
+    configuracao_operacao?: Partial<OperationForm>;
+  };
+  message?: string;
+};
 
 function Icon({
   type,
@@ -123,25 +125,31 @@ function TextField({
 }
 
 export default function RestaurantOperationSettingsPage() {
-  const [session] = useState<RestaurantSession | null>(() => {
-    if (typeof window === "undefined") {
-      return null;
+  const { sessao, sessaoCarregada } = useSessaoLocal();
+  const [form, setForm] = useState<OperationForm>(initialForm);
+  const [message, setMessage] = useState("Carregando configuracoes...");
+  const [salvando, setSalvando] = useState(false);
+
+  useEffect(() => {
+    if (!sessaoCarregada || sessao?.type !== "restaurant") {
+      return;
     }
 
-    const storedSession = getStorage()?.getItem("appono:session");
-    return storedSession ? (JSON.parse(storedSession) as RestaurantSession) : null;
-  });
-  const [form, setForm] = useState<OperationForm>(() => {
-    if (typeof window === "undefined") {
-      return initialForm;
-    }
-
-    const stored = getStorage()?.getItem("appono:restaurantOperationDraft");
-    return stored ? (JSON.parse(stored) as OperationForm) : initialForm;
-  });
-  const [message, setMessage] = useState("");
-
-  const isRestaurant = session?.type === "restaurant";
+    apiRequest<RespostaPerfilRestaurante>("/me")
+      .then(({ perfil }) => {
+        const configuracao = perfil.configuracao_operacao ?? {};
+        setForm({
+          storeName: perfil.nome ?? configuracao.storeName ?? "",
+          storeId: configuracao.storeId ?? String(perfil.id_restaurante ?? ""),
+          phone: aplicarMascaraTelefone(configuracao.phone ?? perfil.telefone ?? ""),
+          days: configuracao.days ?? initialDays,
+        });
+        setMessage("");
+      })
+      .catch((error) =>
+        setMessage(error instanceof Error ? error.message : "Nao foi possivel carregar as configuracoes."),
+      );
+  }, [sessao, sessaoCarregada]);
 
   function updateField(field: "storeName" | "storeId" | "phone", value: string) {
     setForm((current) => ({ ...current, [field]: value }));
@@ -165,13 +173,33 @@ export default function RestaurantOperationSettingsPage() {
     }));
   }
 
-  function submitForm(event: FormEvent<HTMLFormElement>) {
+  async function submitForm(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    getStorage()?.setItem("appono:restaurantOperationDraft", JSON.stringify(form));
-    setMessage("Configuracoes de operacao salvas neste navegador.");
+    setSalvando(true);
+
+    try {
+      const resposta = await apiRequest<RespostaPerfilRestaurante>("/me", {
+        method: "PATCH",
+        body: JSON.stringify({
+          nome: form.storeName,
+          telefone: form.phone,
+          configuracao_operacao: form,
+        }),
+      });
+      atualizarNomeSessao(resposta.perfil.nome);
+      setMessage(resposta.message ?? "Configuracoes salvas com sucesso.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Nao foi possivel salvar as configuracoes.");
+    } finally {
+      setSalvando(false);
+    }
   }
 
-  if (!isRestaurant) {
+  if (!sessaoCarregada) {
+    return <TelaCarregandoSessao />;
+  }
+
+  if (sessao?.type !== "restaurant") {
     return (
       <main className="flex min-h-screen items-center justify-center bg-app-chantilly px-5 text-app-cafe-profundo">
         <section className="w-full max-w-lg rounded-[8px] bg-app-creme-leve p-8 text-center shadow-sm ring-1 ring-app-baunilha-dourada">
@@ -200,18 +228,18 @@ export default function RestaurantOperationSettingsPage() {
 
   return (
     <main className="flex min-h-screen flex-col bg-app-chantilly text-app-cafe-profundo">
-      <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-transparent text-app-cafe-profundo backdrop-blur-sm">
-        <div className="mx-auto grid min-h-20 max-w-7xl grid-cols-[auto_1fr_auto] items-center gap-4 px-5 py-3">
-          <Link href="/restaurante/home" aria-label="Home do restaurante">
+      <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-app-creme-leve/90 text-app-cafe-profundo shadow-sm backdrop-blur-md">
+        <div className="mx-auto grid min-h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-5 py-2">
+          <div aria-label="Appono">
             <Image
               src="/brand/appono-mark.svg"
               alt="Appono"
               width={72}
               height={72}
-              className="h-14 w-14"
+              className="h-11 w-11"
               priority
             />
-          </Link>
+          </div>
           <div className="flex items-center justify-center gap-6">
             <Link
               href="/restaurante/configuracoes"
@@ -220,7 +248,7 @@ export default function RestaurantOperationSettingsPage() {
             >
               <Icon type="arrow-left" className="h-5 w-5" />
             </Link>
-            <h1 className="text-xl font-bold uppercase tracking-[0.16em] sm:text-3xl">
+            <h1 className="text-lg font-bold uppercase tracking-[0.14em] sm:text-2xl">
               Configuracoes
             </h1>
           </div>
@@ -266,7 +294,7 @@ export default function RestaurantOperationSettingsPage() {
                 <TextField
                   label="Telefone de contato"
                   value={form.phone}
-                  onChange={(value) => updateField("phone", value)}
+                  onChange={(value) => updateField("phone", aplicarMascaraTelefone(value))}
                 />
               </div>
               <Link
@@ -414,9 +442,10 @@ export default function RestaurantOperationSettingsPage() {
               </p>
               <button
                 type="submit"
-                className="h-12 rounded-[8px] bg-app-dourado-mel px-8 text-xs font-bold uppercase tracking-wide text-white transition hover:bg-app-caramelo-torrado"
+                disabled={salvando}
+                className="h-12 rounded-[8px] bg-app-dourado-mel px-8 text-xs font-bold uppercase tracking-wide text-white transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-60"
               >
-                Salvar alteracoes
+                {salvando ? "Salvando..." : "Salvar alteracoes"}
               </button>
             </div>
 

@@ -2,12 +2,10 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { FormEvent, useState } from "react";
-
-type RestaurantSession = {
-  type?: "client" | "restaurant";
-  name?: string;
-};
+import { FormEvent, useEffect, useState } from "react";
+import { apiRequest } from "@/lib/api";
+import { TelaCarregandoSessao, useSessaoLocal } from "@/lib/use-sessao-local";
+import { aplicarMascaraTelefone } from "@/lib/validacoes/telefone";
 
 type NotificationKey =
   | "newReservation"
@@ -77,13 +75,15 @@ const initialForm: NotificationForm = {
   rules: initialRules,
 };
 
-function getStorage() {
-  if (typeof window === "undefined" || !window.localStorage) {
-    return null;
-  }
-
-  return window.localStorage;
-}
+type RespostaPerfilRestaurante = {
+  tipo: "restaurante";
+  perfil: {
+    email?: string;
+    telefone?: string;
+    preferencias_notificacao?: Partial<NotificationForm>;
+  };
+  message?: string;
+};
 
 function Icon({
   type,
@@ -144,25 +144,34 @@ function Toggle({
 }
 
 export default function RestaurantNotificationSettingsPage() {
-  const [session] = useState<RestaurantSession | null>(() => {
-    if (typeof window === "undefined") {
-      return null;
+  const { sessao, sessaoCarregada } = useSessaoLocal();
+  const [form, setForm] = useState<NotificationForm>(initialForm);
+  const [message, setMessage] = useState("Carregando preferencias...");
+  const [salvando, setSalvando] = useState(false);
+
+  useEffect(() => {
+    if (!sessaoCarregada || sessao?.type !== "restaurant") {
+      return;
     }
 
-    const storedSession = getStorage()?.getItem("appono:session");
-    return storedSession ? (JSON.parse(storedSession) as RestaurantSession) : null;
-  });
-  const [form, setForm] = useState<NotificationForm>(() => {
-    if (typeof window === "undefined") {
-      return initialForm;
-    }
-
-    const stored = getStorage()?.getItem("appono:restaurantNotificationsDraft");
-    return stored ? (JSON.parse(stored) as NotificationForm) : initialForm;
-  });
-  const [message, setMessage] = useState("");
-
-  const isRestaurant = session?.type === "restaurant";
+    apiRequest<RespostaPerfilRestaurante>("/me")
+      .then(({ perfil }) => {
+        const preferencias = perfil.preferencias_notificacao ?? {};
+        setForm({
+          contactEmail: preferencias.contactEmail ?? perfil.email ?? "",
+          contactPhone: aplicarMascaraTelefone(
+            preferencias.contactPhone ?? perfil.telefone ?? "",
+          ),
+          quietStart: preferencias.quietStart ?? "",
+          quietEnd: preferencias.quietEnd ?? "",
+          rules: preferencias.rules ?? initialRules,
+        });
+        setMessage("");
+      })
+      .catch((error) =>
+        setMessage(error instanceof Error ? error.message : "Nao foi possivel carregar as preferencias."),
+      );
+  }, [sessao, sessaoCarregada]);
 
   function updateField(field: "contactEmail" | "contactPhone" | "quietStart" | "quietEnd", value: string) {
     setForm((current) => ({ ...current, [field]: value }));
@@ -184,13 +193,32 @@ export default function RestaurantNotificationSettingsPage() {
     setMessage("");
   }
 
-  function submitForm(event: FormEvent<HTMLFormElement>) {
+  async function submitForm(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    getStorage()?.setItem("appono:restaurantNotificationsDraft", JSON.stringify(form));
-    setMessage("Preferencias de notificacao salvas neste navegador.");
+    setSalvando(true);
+
+    try {
+      const resposta = await apiRequest<RespostaPerfilRestaurante>("/me", {
+        method: "PATCH",
+        body: JSON.stringify({
+          email: form.contactEmail,
+          telefone: form.contactPhone,
+          preferencias_notificacao: form,
+        }),
+      });
+      setMessage(resposta.message ?? "Preferencias salvas com sucesso.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Nao foi possivel salvar as preferencias.");
+    } finally {
+      setSalvando(false);
+    }
   }
 
-  if (!isRestaurant) {
+  if (!sessaoCarregada) {
+    return <TelaCarregandoSessao />;
+  }
+
+  if (sessao?.type !== "restaurant") {
     return (
       <main className="flex min-h-screen items-center justify-center bg-app-chantilly px-5 text-app-cafe-profundo">
         <section className="w-full max-w-lg rounded-[8px] bg-app-creme-leve p-8 text-center shadow-sm ring-1 ring-app-baunilha-dourada">
@@ -209,16 +237,16 @@ export default function RestaurantNotificationSettingsPage() {
 
   return (
     <main className="flex min-h-screen flex-col bg-app-chantilly text-app-cafe-profundo">
-      <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-transparent text-app-cafe-profundo backdrop-blur-sm">
-        <div className="mx-auto grid min-h-20 max-w-7xl grid-cols-[auto_1fr_auto] items-center gap-4 px-5 py-3">
-          <Link href="/restaurante/home" aria-label="Home do restaurante">
-            <Image src="/brand/appono-mark.svg" alt="Appono" width={72} height={72} className="h-14 w-14" priority />
-          </Link>
+      <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-app-creme-leve/90 text-app-cafe-profundo shadow-sm backdrop-blur-md">
+        <div className="mx-auto grid min-h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-5 py-2">
+          <div aria-label="Appono">
+            <Image src="/brand/appono-mark.svg" alt="Appono" width={72} height={72} className="h-11 w-11" priority />
+          </div>
           <div className="flex items-center justify-center gap-6">
             <Link href="/restaurante/configuracoes" className="transition hover:text-app-caramelo-torrado" aria-label="Voltar para configuracoes">
               <Icon type="arrow-left" className="h-5 w-5" />
             </Link>
-            <h1 className="text-xl font-bold uppercase tracking-[0.16em] sm:text-3xl">
+            <h1 className="text-lg font-bold uppercase tracking-[0.14em] sm:text-2xl">
               Configuracoes
             </h1>
           </div>
@@ -280,7 +308,9 @@ export default function RestaurantNotificationSettingsPage() {
                     <Icon type="phone" className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-app-cinza" />
                     <input
                       value={form.contactPhone}
-                      onChange={(event) => updateField("contactPhone", event.target.value)}
+                      onChange={(event) =>
+                        updateField("contactPhone", aplicarMascaraTelefone(event.target.value))
+                      }
                       className="h-12 w-full rounded-[8px] border border-app-baunilha-dourada bg-app-chantilly px-4 pl-10 text-sm outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20"
                     />
                   </span>
@@ -387,8 +417,8 @@ export default function RestaurantNotificationSettingsPage() {
               <Link href="/restaurante/configuracoes" className="flex h-12 items-center justify-center rounded-[8px] border border-app-mocha px-8 text-xs font-bold uppercase tracking-wide text-app-mocha transition hover:bg-app-creme-leve">
                 Cancelar
               </Link>
-              <button type="submit" className="h-12 rounded-[8px] bg-app-dourado-mel px-8 text-xs font-bold uppercase tracking-wide text-white transition hover:bg-app-caramelo-torrado">
-                Salvar preferencias
+              <button type="submit" disabled={salvando} className="h-12 rounded-[8px] bg-app-dourado-mel px-8 text-xs font-bold uppercase tracking-wide text-white transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-60">
+                {salvando ? "Salvando..." : "Salvar preferencias"}
               </button>
             </div>
             {message ? <p className="mt-4 text-sm font-semibold text-app-mocha">{message}</p> : null}

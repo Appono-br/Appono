@@ -2,13 +2,12 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
+import { apiRequest } from "@/lib/api";
+import { atualizarNomeSessao } from "@/lib/session";
+import { TelaCarregandoSessao, useSessaoLocal } from "@/lib/use-sessao-local";
+import { aplicarMascaraCpf } from "@/lib/validacoes/cpf";
 import { aplicarMascaraTelefone } from "@/lib/validacoes/telefone";
-
-type Session = {
-  type?: "client" | "restaurant";
-  name?: string;
-};
 
 type AccountForm = {
   name: string;
@@ -19,19 +18,16 @@ type AccountForm = {
   phone: string;
 };
 
-type StoredClient = {
-  name: string;
-  birthDate?: string;
-  cpf?: string;
-  email: string;
-  phone?: string;
-};
-
-type StoredRestaurant = {
-  legalName: string;
-  cnpj?: string;
-  email: string;
-  phone?: string;
+type RespostaPerfilCliente = {
+  tipo: "cliente";
+  perfil: {
+    nome?: string;
+    dt_nasc?: string;
+    cpf?: string;
+    email?: string;
+    telefone?: string;
+  };
+  message?: string;
 };
 
 function Icon({
@@ -60,100 +56,101 @@ function Icon({
   );
 }
 
-function obterFormularioInicial(): AccountForm {
-  const empty = {
-    name: "",
-    birthDate: "",
-    documentLabel: "CPF" as const,
-    cpf: "",
-    email: "",
-    phone: "",
-  };
-
-  if (typeof window === "undefined") {
-    return empty;
-  }
-
-  const storedSession = window.localStorage.getItem("appono:session");
-  const session = storedSession ? (JSON.parse(storedSession) as Session) : null;
-
-  if (session?.type === "client") {
-    const clients = JSON.parse(
-      window.localStorage.getItem("appono:clients") ?? "[]",
-    ) as StoredClient[];
-    const client =
-      clients.find((item) => item.name === session.name) ??
-      (clients.length === 1 ? clients[0] : undefined);
-
-    return {
-      name: client?.name ?? session.name ?? "",
-      birthDate: client?.birthDate ?? "",
-      documentLabel: "CPF",
-      cpf: client?.cpf ?? "",
-      email: client?.email ?? "",
-      phone: client?.phone ?? "",
-    };
-  }
-
-  if (session?.type === "restaurant") {
-    const restaurants = JSON.parse(
-      window.localStorage.getItem("appono:restaurants") ?? "[]",
-    ) as StoredRestaurant[];
-    const restaurant =
-      restaurants.find((item) => item.legalName === session.name) ??
-      (restaurants.length === 1 ? restaurants[0] : undefined);
-
-    return {
-      name: restaurant?.legalName ?? session.name ?? "",
-      birthDate: "",
-      documentLabel: "CNPJ",
-      cpf: restaurant?.cnpj ?? "",
-      email: restaurant?.email ?? "",
-      phone: restaurant?.phone ?? "",
-    };
-  }
-
-  return empty;
-}
+const formularioInicial: AccountForm = {
+  name: "",
+  birthDate: "",
+  documentLabel: "CPF",
+  cpf: "",
+  email: "",
+  phone: "",
+};
 
 export default function AccountSettingsPage() {
-  const [form, setForm] = useState<AccountForm>(() => obterFormularioInicial());
-  const [message, setMessage] = useState("");
+  const { sessao, sessaoCarregada } = useSessaoLocal();
+  const [form, setForm] = useState<AccountForm>(formularioInicial);
+  const [message, setMessage] = useState("Carregando dados cadastrados...");
+  const [salvando, setSalvando] = useState(false);
+
+  useEffect(() => {
+    if (!sessaoCarregada || sessao?.type !== "client") {
+      return;
+    }
+
+    apiRequest<RespostaPerfilCliente>("/me")
+      .then(({ perfil }) => {
+        setForm({
+          name: perfil.nome ?? "",
+          birthDate: perfil.dt_nasc ?? "",
+          documentLabel: "CPF",
+          cpf: aplicarMascaraCpf(perfil.cpf ?? ""),
+          email: perfil.email ?? "",
+          phone: aplicarMascaraTelefone(perfil.telefone ?? ""),
+        });
+        setMessage("");
+      })
+      .catch((error) => {
+        setMessage(
+          error instanceof Error ? error.message : "Nao foi possivel carregar os dados.",
+        );
+      });
+  }, [sessao, sessaoCarregada]);
 
   function atualizarCampo(field: "name" | "email" | "phone", value: string) {
     setForm((current) => ({ ...current, [field]: value }));
     setMessage("");
   }
 
-  function enviarFormulario(event: FormEvent<HTMLFormElement>) {
+  async function enviarFormulario(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    window.localStorage.setItem("appono:accountDraft", JSON.stringify(form));
-    setMessage("Alterações salvas neste navegador.");
+    setSalvando(true);
+
+    try {
+      const resposta = await apiRequest<RespostaPerfilCliente>("/me", {
+        method: "PATCH",
+        body: JSON.stringify({
+          nome: form.name,
+          email: form.email,
+          telefone: form.phone,
+        }),
+      });
+      atualizarNomeSessao(resposta.perfil.nome);
+      setMessage(resposta.message ?? "Alterações salvas com sucesso.");
+    } catch (error) {
+      setMessage(
+        error instanceof Error ? error.message : "Não foi possível salvar as alterações.",
+      );
+    } finally {
+      setSalvando(false);
+    }
+  }
+
+  if (!sessaoCarregada) {
+    return <TelaCarregandoSessao />;
   }
 
   return (
     <main className="flex min-h-screen flex-col bg-app-chantilly text-app-cafe-profundo">
       <header className="border-b border-app-baunilha-dourada/50 bg-app-creme-suave">
-        <div className="mx-auto grid h-20 max-w-7xl grid-cols-[auto_1fr_auto] items-center gap-4 px-5">
-          <Link href="/" aria-label="Ir para o início">
+        <div className="mx-auto grid h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-5">
+          <div aria-label="Appono">
             <Image
               src="/brand/appono-mark.svg"
               alt="Appono"
               width={72}
               height={72}
-              className="h-14 w-14"
+              className="h-11 w-11"
               priority
             />
-          </Link>
+          </div>
           <div className="flex items-center justify-center gap-6">
             <Link
-              href="/configuracoes"
+              href="/cliente/configuracoes"
               className="transition hover:text-app-caramelo-torrado"
               aria-label="Voltar para configurações"
             >
               <Icon type="arrow-left" className="h-5 w-5" />
             </Link>
-            <h1 className="text-xl font-bold uppercase tracking-[0.16em] sm:text-3xl">
+            <h1 className="text-lg font-bold uppercase tracking-[0.14em] sm:text-2xl">
               Configurações
             </h1>
           </div>
@@ -245,12 +242,13 @@ export default function AccountSettingsPage() {
           <div className="mt-8 flex flex-col gap-3 sm:col-span-2 sm:flex-row">
             <button
               type="submit"
-              className="h-11 rounded-[8px] bg-app-dourado-mel px-8 text-xs font-bold uppercase tracking-wide text-white transition hover:bg-app-caramelo-torrado"
+              disabled={salvando}
+              className="h-11 rounded-[8px] bg-app-dourado-mel px-8 text-xs font-bold uppercase tracking-wide text-white transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Salvar alterações
+              {salvando ? "Salvando..." : "Salvar alterações"}
             </button>
             <Link
-              href="/configuracoes"
+              href="/cliente/configuracoes"
               className="flex h-11 items-center justify-center rounded-[8px] border border-app-mocha px-8 text-xs font-bold uppercase tracking-wide text-app-mocha transition hover:bg-app-creme-leve"
             >
               Cancelar

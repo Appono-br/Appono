@@ -3,6 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import { SeletorTema } from "@/components/configuracoes/seletor-tema";
+import { encerrarSessao } from "@/lib/session";
 
 type Session = {
   type?: "client" | "restaurant";
@@ -10,24 +12,24 @@ type Session = {
 };
 
 const navItems = [
-  { label: "Início", href: "/dashboard" },
-  { label: "Detalhes do pedido", href: "/detalhes-pedido" },
-  { label: "Reservas", href: "/reservas" },
-  { label: "Mensagens", href: "/mensagens" },
-  { label: "Configurações", href: "/configuracoes" },
+  { label: "Início", href: "/cliente/dashboard" },
+  { label: "Detalhes do pedido", href: "/cliente/detalhes-pedido" },
+  { label: "Reservas", href: "/cliente/reservas" },
+  { label: "Mensagens", href: "/cliente/mensagens" },
+  { label: "Configurações", href: "/cliente/configuracoes" },
 ];
 
 const settingsItems = [
   {
     title: "Conta",
     description: "Atualize suas informações pessoais e foto de perfil",
-    href: "/configuracoes/conta",
+    href: "/cliente/configuracoes/conta",
     icon: "user",
   },
   {
     title: "Pagamentos",
     description: "Gerencie formas de pagamento e dados de cobrança",
-    href: "/configuracoes/pagamentos",
+    href: "/cliente/configuracoes/pagamentos",
     icon: "card",
   },
   {
@@ -51,8 +53,6 @@ function Icon({
     | "language"
     | "log-out"
     | "menu"
-    | "moon"
-    | "sun"
     | "user";
   className?: string;
 }) {
@@ -66,8 +66,6 @@ function Icon({
       "M5 5h8M9 3v2M7 17l4-10M5 17h8M15 19l2.5-6 2.5 6M16 17h3",
     "log-out": "M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9",
     menu: "M4 7h16M4 12h16M4 17h16",
-    moon: "M21 12.8A8 8 0 1 1 11.2 3a6 6 0 0 0 9.8 9.8z",
-    sun: "M12 4V2M12 22v-2M4.9 4.9 3.5 3.5M20.5 20.5l-1.4-1.4M4 12H2M22 12h-2M4.9 19.1l-1.4 1.4M20.5 3.5l-1.4 1.4M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10z",
     user: "M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z",
   };
 
@@ -95,23 +93,9 @@ export default function SettingsPage() {
     const storedSession = window.localStorage.getItem("appono:session");
     return storedSession ? (JSON.parse(storedSession) as Session) : null;
   });
-  const [theme, setTheme] = useState<"light" | "dark">(() => {
-    if (typeof window === "undefined") {
-      return "light";
-    }
-
-    const storedTheme = window.localStorage.getItem("appono:theme");
-    return storedTheme === "dark" ? "dark" : "light";
-  });
-
-  function updateTheme(nextTheme: "light" | "dark") {
-    setTheme(nextTheme);
-    window.localStorage.setItem("appono:theme", nextTheme);
-  }
-
-  function logout() {
-    window.localStorage.removeItem("appono:session");
-    window.location.href = "/login";
+  async function logout() {
+    await encerrarSessao();
+    window.location.assign("/");
   }
 
   const profileName = session?.name || "Perfil não identificado";
@@ -124,20 +108,20 @@ export default function SettingsPage() {
 
   return (
     <main className="flex min-h-screen flex-col bg-app-chantilly text-app-cafe-profundo">
-      <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-transparent text-app-cafe-profundo backdrop-blur-sm">
-        <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-5 lg:h-24">
-          <Link href="/" className="shrink-0" aria-label="Ir para o início">
+      <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-app-creme-leve/90 text-app-cafe-profundo shadow-sm backdrop-blur-md">
+        <div className="mx-auto grid h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-5 lg:h-20">
+          <div className="shrink-0" aria-label="Appono">
             <Image
               src="/brand/appono-mark.svg"
               alt="Appono"
               width={88}
               height={88}
-              className="h-14 w-14 lg:h-20 lg:w-20"
+              className="h-11 w-11 lg:h-14 lg:w-14"
               priority
             />
-          </Link>
+          </div>
 
-          <nav className="hidden items-center gap-10 text-sm font-semibold text-app-cinza lg:flex">
+          <nav className="hidden items-center justify-self-center gap-7 text-xs font-semibold text-app-cinza lg:flex">
             {navItems.map((item, index) => (
               <Link
                 key={item.label}
@@ -153,7 +137,7 @@ export default function SettingsPage() {
             ))}
           </nav>
 
-          <div className="flex items-center gap-4 text-app-cafe-profundo">
+          <div className="flex items-center justify-self-end gap-3 text-app-cafe-profundo">
             <button
               type="button"
               className="transition hover:text-app-caramelo-torrado"
@@ -171,7 +155,7 @@ export default function SettingsPage() {
             <button
               type="button"
               onClick={() => setMobileMenuOpen((current) => !current)}
-              className="flex h-10 w-10 items-center justify-center rounded-[8px] border border-app-baunilha-dourada bg-app-creme-leve lg:hidden"
+              className="flex h-9 w-9 items-center justify-center rounded-[8px] border border-app-baunilha-dourada bg-app-creme-leve lg:hidden"
               aria-label="Abrir menu"
               aria-expanded={mobileMenuOpen}
               aria-controls="settings-mobile-menu"
@@ -184,9 +168,9 @@ export default function SettingsPage() {
         {mobileMenuOpen ? (
           <nav
             id="settings-mobile-menu"
-            className="border-t border-app-baunilha-dourada/50 bg-app-creme-leve px-5 py-4 lg:hidden"
+            className="border-t border-app-baunilha-dourada/50 bg-app-creme-leve px-5 py-3 lg:hidden"
           >
-            <div className="mx-auto grid max-w-7xl gap-3 text-sm font-semibold text-app-cinza">
+            <div className="mx-auto grid max-w-7xl gap-2 text-xs font-semibold text-app-cinza">
               {navItems.map((item, index) => (
                 <Link
                   key={item.label}
@@ -247,7 +231,7 @@ export default function SettingsPage() {
             <Link
               key={item.title}
               href={item.href}
-              className="grid rounded-[8px] bg-app-chantilly p-6 text-left shadow-sm ring-1 ring-app-baunilha-dourada/45 transition hover:-translate-y-0.5 hover:bg-app-creme-leve sm:grid-cols-[auto_1fr_auto] sm:items-center sm:gap-6 sm:p-8"
+              className="grid rounded-[8px] bg-app-chantilly p-6 text-left shadow-sm ring-1 ring-app-baunilha-dourada/45 transition hover:-translate-y-0.5 hover:bg-app-creme-leve sm:grid-cols-[1fr_auto_1fr] sm:items-center sm:gap-6 sm:p-8"
             >
               <span className="flex h-14 w-14 items-center justify-center rounded-[8px] bg-app-baunilha-dourada text-app-caramelo-torrado">
                 <Icon type={item.icon as "user" | "card" | "language"} />
@@ -268,40 +252,7 @@ export default function SettingsPage() {
           ))}
         </section>
 
-        <section className="mx-auto mt-7 flex w-full max-w-xl flex-col gap-4 rounded-[8px] bg-app-chantilly p-6 shadow-sm ring-1 ring-app-baunilha-dourada/45 sm:flex-row sm:items-center sm:justify-center sm:gap-8">
-          <button
-            type="button"
-            onClick={() => updateTheme("light")}
-            className="flex items-center justify-center gap-3 rounded-[8px] px-4 py-3 font-bold text-app-cafe-profundo transition hover:bg-app-creme-leve"
-          >
-            <Icon type="sun" className="h-6 w-6 text-app-caramelo-torrado" />
-            Modo claro
-            <span
-              className={`h-5 w-5 rounded-full border-2 ${
-                theme === "light"
-                  ? "border-app-caramelo-torrado bg-app-caramelo-torrado"
-                  : "border-app-cinza/40"
-              }`}
-            />
-          </button>
-          <button
-            type="button"
-            onClick={() => updateTheme("dark")}
-            className="flex items-center justify-center gap-3 rounded-[8px] px-4 py-3 font-bold text-app-cafe-profundo transition hover:bg-app-creme-leve"
-          >
-            <span className="flex h-9 w-9 items-center justify-center rounded-[8px] bg-app-cafe-profundo text-app-creme-leve">
-              <Icon type="moon" className="h-5 w-5" />
-            </span>
-            Modo escuro
-            <span
-              className={`h-5 w-5 rounded-full border-2 ${
-                theme === "dark"
-                  ? "border-app-caramelo-torrado bg-app-caramelo-torrado"
-                  : "border-app-cinza/40"
-              }`}
-            />
-          </button>
-        </section>
+        <SeletorTema />
 
         <div className="mx-auto mt-7 max-w-md border-t border-app-baunilha-dourada/60 pt-5 text-center">
           <button

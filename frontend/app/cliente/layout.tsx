@@ -16,7 +16,7 @@ function obterEstadoServidor() {
   return false;
 }
 
-export default function LayoutRestaurante({ children }: { children: ReactNode }) {
+export default function LayoutCliente({ children }: { children: ReactNode }) {
   const { tema } = useTemaLocal();
   const estaNoNavegador = useSyncExternalStore(
     inscrever,

@@ -14,11 +14,11 @@ type Conversation = {
 const conversations: Conversation[] = [];
 
 const navItems = [
-  { label: "Início", href: "/dashboard" },
-  { label: "Detalhes do pedido", href: "/detalhes-pedido" },
-  { label: "Reservas", href: "/reservas" },
-  { label: "Mensagens", href: "/mensagens" },
-  { label: "Configurações", href: "/configuracoes" },
+  { label: "Início", href: "/cliente/dashboard" },
+  { label: "Detalhes do pedido", href: "/cliente/detalhes-pedido" },
+  { label: "Reservas", href: "/cliente/reservas" },
+  { label: "Mensagens", href: "/cliente/mensagens" },
+  { label: "Configurações", href: "/cliente/configuracoes" },
 ];
 
 function Icon({
@@ -56,20 +56,20 @@ export default function MessagesPage() {
 
   return (
     <main className="flex min-h-screen flex-col bg-app-chantilly text-app-cafe-profundo">
-      <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-transparent text-app-cafe-profundo backdrop-blur-sm">
-        <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-5 lg:h-24">
-          <Link href="/" className="shrink-0" aria-label="Ir para o início">
+      <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-app-creme-leve/90 text-app-cafe-profundo shadow-sm backdrop-blur-md">
+        <div className="mx-auto grid h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-5 lg:h-20">
+          <div className="shrink-0" aria-label="Appono">
             <Image
               src="/brand/appono-mark.svg"
               alt="Appono"
               width={88}
               height={88}
-              className="h-14 w-14 lg:h-20 lg:w-20"
+              className="h-11 w-11 lg:h-14 lg:w-14"
               priority
             />
-          </Link>
+          </div>
 
-          <nav className="hidden items-center gap-10 text-sm font-semibold text-app-cinza lg:flex">
+          <nav className="hidden items-center justify-self-center gap-7 text-xs font-semibold text-app-cinza lg:flex">
             {navItems.map((item, index) => (
               <Link
                 key={item.label}
@@ -85,7 +85,7 @@ export default function MessagesPage() {
             ))}
           </nav>
 
-          <div className="flex items-center gap-4 text-app-cafe-profundo">
+          <div className="flex items-center justify-self-end gap-3 text-app-cafe-profundo">
             <button
               type="button"
               className="transition hover:text-app-caramelo-torrado"
@@ -103,7 +103,7 @@ export default function MessagesPage() {
             <button
               type="button"
               onClick={() => setMobileMenuOpen((current) => !current)}
-              className="flex h-10 w-10 items-center justify-center rounded-[8px] border border-app-baunilha-dourada bg-app-creme-leve lg:hidden"
+              className="flex h-9 w-9 items-center justify-center rounded-[8px] border border-app-baunilha-dourada bg-app-creme-leve lg:hidden"
               aria-label="Abrir menu"
               aria-expanded={mobileMenuOpen}
               aria-controls="messages-mobile-menu"
@@ -116,9 +116,9 @@ export default function MessagesPage() {
         {mobileMenuOpen ? (
           <nav
             id="messages-mobile-menu"
-            className="border-t border-app-baunilha-dourada/50 bg-app-creme-leve px-5 py-4 lg:hidden"
+            className="border-t border-app-baunilha-dourada/50 bg-app-creme-leve px-5 py-3 lg:hidden"
           >
-            <div className="mx-auto grid max-w-7xl gap-3 text-sm font-semibold text-app-cinza">
+            <div className="mx-auto grid max-w-7xl gap-2 text-xs font-semibold text-app-cinza">
               {navItems.map((item, index) => (
                 <Link
                   key={item.label}
@@ -152,7 +152,7 @@ export default function MessagesPage() {
               {conversations.map((conversation) => (
                 <Link
                   key={conversation.id}
-                  href={`/mensagens/${conversation.id}`}
+                  href={`/cliente/mensagens/${conversation.id}`}
                   className="grid gap-4 p-6 transition hover:bg-app-creme-leve sm:grid-cols-[1fr_auto] sm:items-center sm:p-8"
                 >
                   <span>

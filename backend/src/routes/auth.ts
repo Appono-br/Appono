@@ -21,6 +21,7 @@ type ClientRegistrationBody = {
 };
 
 type RestaurantRegistrationBody = {
+  storeName?: string;
   legalName?: string;
   email?: string;
   phone?: string;
@@ -271,6 +272,7 @@ authRouter.post("/register/restaurant", async (req, res) => {
 
   const body = req.body as RestaurantRegistrationBody;
   const missing = verificarCamposObrigatorios(body, [
+    "storeName",
     "legalName",
     "email",
     "phone",
@@ -337,7 +339,8 @@ authRouter.post("/register/restaurant", async (req, res) => {
       data: {
         appono_profile: {
           tipo: "restaurante",
-          nome: body.legalName,
+          nome: body.storeName,
+          razao_social: body.legalName,
           cnpj: validatedCnpj.cnpj,
           telefone: body.phone,
           email: body.email,

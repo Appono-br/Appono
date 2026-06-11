@@ -1,7 +1,12 @@
 import type { Session } from "@supabase/supabase-js";
+import { supabase } from "./supabase";
 
 type ProfileType = "cliente" | "restaurante";
 const authTokensKey = "appono:auth";
+export type AuthTokens = {
+  accessToken?: string;
+  refreshToken?: string;
+};
 
 export type AuthResponse = {
   tipo?: ProfileType;
@@ -14,7 +19,7 @@ export type AuthResponse = {
 };
 
 export function getDashboardPath(tipo?: ProfileType) {
-  return tipo === "restaurante" ? "/restaurante/dashboard" : "/dashboard";
+  return tipo === "restaurante" ? "/restaurante/dashboard" : "/cliente/dashboard";
 }
 
 export function getAccessToken() {
@@ -29,7 +34,7 @@ export function getAccessToken() {
   }
 
   try {
-    const tokens = JSON.parse(storedTokens) as { accessToken?: string };
+    const tokens = JSON.parse(storedTokens) as AuthTokens;
     return tokens.accessToken ?? null;
   } catch {
     window.localStorage.removeItem(authTokensKey);
@@ -44,6 +49,67 @@ export function clearAuthResponse() {
 
   window.localStorage.removeItem(authTokensKey);
   window.localStorage.removeItem("appono:session");
+}
+
+export function obterTokensAutenticacao() {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  const tokensArmazenados = window.localStorage.getItem(authTokensKey);
+
+  if (!tokensArmazenados) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(tokensArmazenados) as AuthTokens;
+  } catch {
+    return null;
+  }
+}
+
+export function atualizarNomeSessao(nome?: string) {
+  if (typeof window === "undefined" || !nome) {
+    return;
+  }
+
+  const sessaoArmazenada = window.localStorage.getItem("appono:session");
+
+  if (!sessaoArmazenada) {
+    return;
+  }
+
+  try {
+    const sessao = JSON.parse(sessaoArmazenada) as { type?: string; name?: string };
+    window.localStorage.setItem(
+      "appono:session",
+      JSON.stringify({ ...sessao, name: nome }),
+    );
+    window.dispatchEvent(new StorageEvent("storage", { key: "appono:session" }));
+  } catch {
+    window.localStorage.removeItem("appono:session");
+  }
+}
+
+export async function encerrarSessao() {
+  try {
+    const storedTokens = window.localStorage.getItem(authTokensKey);
+    const tokens = storedTokens ? (JSON.parse(storedTokens) as AuthTokens) : null;
+
+    if (tokens?.accessToken && tokens.refreshToken) {
+      await supabase.auth.setSession({
+        access_token: tokens.accessToken,
+        refresh_token: tokens.refreshToken,
+      });
+    }
+
+    await supabase.auth.signOut({ scope: "local" });
+  } catch {
+    return clearAuthResponse();
+  }
+
+  clearAuthResponse();
 }
 
 export async function persistAuthResponse(response: AuthResponse) {

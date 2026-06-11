@@ -168,9 +168,9 @@ export default function RestaurantConversationPage() {
 
   return (
     <main className="flex min-h-screen flex-col bg-app-chantilly text-app-cafe-profundo">
-      <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-transparent text-app-cafe-profundo backdrop-blur-sm">
-        <div className="mx-auto grid h-24 max-w-7xl grid-cols-[auto_1fr_auto] items-center gap-4 px-5">
-          <Link href="/restaurante/home" aria-label="Home do restaurante">
+      <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-app-creme-leve/90 text-app-cafe-profundo shadow-sm backdrop-blur-md">
+        <div className="mx-auto grid h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-5">
+          <div aria-label="Appono">
             <Image
               src="/brand/appono-mark.svg"
               alt="Appono"
@@ -179,7 +179,7 @@ export default function RestaurantConversationPage() {
               className="h-16 w-16"
               priority
             />
-          </Link>
+          </div>
           <div className="flex items-center justify-center gap-8">
             <Link
               href="/restaurante/mensagens"
@@ -196,23 +196,23 @@ export default function RestaurantConversationPage() {
         </div>
       </header>
 
-      <section className="bg-app-cafe-profundo px-5 py-5 text-app-creme-leve">
+      <section className="bg-app-cafe-profundo px-5 py-3 text-app-creme-leve">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <span className="relative flex h-14 w-14 items-center justify-center rounded-[8px] bg-app-mocha text-sm font-bold ring-1 ring-app-baunilha-dourada/30">
+          <div className="flex items-center gap-3">
+            <span className="relative flex h-10 w-10 items-center justify-center rounded-[8px] bg-app-mocha text-xs font-bold ring-1 ring-app-baunilha-dourada/30">
               {conversation.initials}
               {conversation.online ? (
                 <span className="absolute -bottom-1 -right-1 h-3 w-3 rounded-full bg-emerald-500" />
               ) : null}
             </span>
             <div>
-              <h2 className="text-xl font-semibold">{conversation.customer}</h2>
+              <h2 className="text-base font-semibold">{conversation.customer}</h2>
               <p className="mt-1 text-xs font-bold uppercase tracking-[0.18em] text-emerald-400">
                 {conversation.online ? "Online" : "Ultima interacao recente"}
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-5 text-app-baunilha-dourada">
+          <div className="flex items-center gap-3 text-app-baunilha-dourada">
             <button type="button" aria-label="Ligar" className="transition hover:text-app-chantilly">
               <Icon type="phone" />
             </button>

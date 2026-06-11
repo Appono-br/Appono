@@ -169,9 +169,9 @@ export default function RestaurantMenuItemEditorPage() {
 
   return (
     <main className="flex min-h-screen flex-col bg-app-chantilly text-app-cafe-profundo">
-      <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-transparent text-app-cafe-profundo backdrop-blur-sm">
-        <div className="mx-auto grid h-24 max-w-7xl grid-cols-[auto_1fr_auto] items-center gap-4 px-5">
-          <Link href="/restaurante/home" aria-label="Home do restaurante">
+      <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-app-creme-leve/90 text-app-cafe-profundo shadow-sm backdrop-blur-md">
+        <div className="mx-auto grid h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-5">
+          <div aria-label="Appono">
             <Image
               src="/brand/appono-mark.svg"
               alt="Appono"
@@ -180,7 +180,7 @@ export default function RestaurantMenuItemEditorPage() {
               className="h-16 w-16"
               priority
             />
-          </Link>
+          </div>
           <div className="flex items-center justify-center gap-8">
             <Link
               href="/restaurante/cardapio"

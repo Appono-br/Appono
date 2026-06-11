@@ -3,11 +3,17 @@
 import Image from "next/image";
 import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
+import { SeletorTema } from "@/components/configuracoes/seletor-tema";
 import { apiRequest } from "@/lib/api";
+import { atualizarNomeSessao, encerrarSessao } from "@/lib/session";
 import { TelaCarregandoSessao, useSessaoLocal } from "@/lib/use-sessao-local";
 import { aplicarMascaraCep } from "@/lib/validacoes/cep";
 import { aplicarMascaraCnpj } from "@/lib/validacoes/cnpj";
 import { aplicarMascaraTelefone } from "@/lib/validacoes/telefone";
+import {
+  enviarImagemRestaurante,
+  validarImagemRestaurante,
+} from "@/lib/imagem-restaurante";
 
 type FormData = {
   storeName: string;
@@ -17,6 +23,7 @@ type FormData = {
   email: string;
   address: string;
   postalCode: string;
+  logoUrl: string;
 };
 
 const initialForm: FormData = {
@@ -27,18 +34,22 @@ const initialForm: FormData = {
   email: "",
   address: "",
   postalCode: "",
+  logoUrl: "",
 };
 
 type RespostaPerfilRestaurante = {
   tipo: "restaurante";
   perfil: {
     nome?: string;
+    razao_social?: string;
     cnpj?: string;
     telefone?: string;
     email?: string;
     endereco?: string;
     cep?: string;
+    logo_url?: string;
   };
+  message?: string;
 };
 
 const navItems = [
@@ -88,6 +99,7 @@ function Icon({
     | "chevron-right"
     | "map-pin"
     | "menu"
+    | "log-out"
     | "settings"
     | "shield"
     | "store";
@@ -102,6 +114,7 @@ function Icon({
     "map-pin":
       "M12 21s6-5.2 6-11a6 6 0 0 0-12 0c0 5.8 6 11 6 11z M12 12a2 2 0 1 0 0-4 2 2 0 0 0 0 4z",
     menu: "M4 7h16M4 12h16M4 17h16",
+    "log-out": "M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9",
     settings:
       "M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 0 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21a2 2 0 0 1-4 0v-.2a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1A2 2 0 0 1 4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H3a2 2 0 0 1 0-4h.2a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1A2 2 0 0 1 7 4.2l.1.1a1.7 1.7 0 0 0 1.9.3h.1A1.7 1.7 0 0 0 10 3.2V3a2 2 0 0 1 4 0v.2a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1A2 2 0 0 1 19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9v.1a1.7 1.7 0 0 0 1.6.9H21a2 2 0 0 1 0 4h-.2a1.7 1.7 0 0 0-1.6 1z",
     shield:
@@ -129,11 +142,13 @@ function Field({
   value,
   onChange,
   className = "",
+  disabled = false,
 }: {
   label: string;
   value: string;
   onChange: (value: string) => void;
   className?: string;
+  disabled?: boolean;
 }) {
   return (
     <label className={`grid gap-2 ${className}`}>
@@ -143,7 +158,8 @@ function Field({
       <input
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="h-12 rounded-[8px] border border-app-baunilha-dourada bg-app-creme-suave px-4 text-sm text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20"
+        disabled={disabled}
+        className="h-12 rounded-[8px] border border-app-baunilha-dourada bg-app-creme-suave px-4 text-sm text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20 disabled:cursor-not-allowed disabled:opacity-65"
       />
     </label>
   );
@@ -154,6 +170,8 @@ export default function RestaurantSettingsPage() {
   const [form, setForm] = useState<FormData>(initialForm);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [message, setMessage] = useState("Carregando dados cadastrados...");
+  const [salvando, setSalvando] = useState(false);
+  const [novaImagem, setNovaImagem] = useState<File | null>(null);
 
   useEffect(() => {
     if (!sessaoCarregada || sessao?.type !== "restaurant") {
@@ -168,11 +186,12 @@ export default function RestaurantSettingsPage() {
         setForm({
           storeName: restaurante.nome ?? "",
           document: aplicarMascaraCnpj(restaurante.cnpj ?? ""),
-          legalName: restaurante.nome ?? "",
+          legalName: restaurante.razao_social ?? "",
           phone: aplicarMascaraTelefone(restaurante.telefone ?? ""),
           email: restaurante.email ?? "",
           address: restaurante.endereco ?? "",
           postalCode: aplicarMascaraCep(restaurante.cep ?? ""),
+          logoUrl: restaurante.logo_url ?? "",
         });
         setMessage("");
       } catch (error) {
@@ -192,9 +211,56 @@ export default function RestaurantSettingsPage() {
     setMessage("");
   }
 
-  function submitForm(event: FormEvent<HTMLFormElement>) {
+  function selecionarImagem(arquivo?: File) {
+    if (!arquivo) {
+      return;
+    }
+
+    const erro = validarImagemRestaurante(arquivo);
+
+    if (erro) {
+      setMessage(erro);
+      return;
+    }
+
+    setNovaImagem(arquivo);
+    setForm((atual) => ({ ...atual, logoUrl: URL.createObjectURL(arquivo) }));
+    setMessage("");
+  }
+
+  async function submitForm(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setMessage("A edicao dos dados cadastrados sera integrada em uma proxima etapa.");
+    setSalvando(true);
+
+    try {
+      const resposta = await apiRequest<RespostaPerfilRestaurante>("/me", {
+        method: "PATCH",
+        body: JSON.stringify({
+          nome: form.storeName,
+          razao_social: form.legalName,
+          telefone: form.phone,
+          email: form.email,
+          endereco: form.address,
+          cep: form.postalCode,
+        }),
+      });
+      if (novaImagem) {
+        const logoUrl = await enviarImagemRestaurante(novaImagem);
+        setForm((atual) => ({ ...atual, logoUrl }));
+        setNovaImagem(null);
+      }
+      atualizarNomeSessao(resposta.perfil.nome);
+      setMessage(resposta.message ?? "Alteracoes salvas com sucesso.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Nao foi possivel salvar as alteracoes.");
+    } finally {
+      setSalvando(false);
+    }
+  }
+
+  async function logout() {
+    await encerrarSessao();
+    window.location.assign("/");
   }
 
   if (!sessaoCarregada) {
@@ -230,20 +296,20 @@ export default function RestaurantSettingsPage() {
 
   return (
     <main className="flex min-h-screen flex-col bg-app-chantilly text-app-cafe-profundo">
-      <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-transparent text-app-cafe-profundo backdrop-blur-sm">
-        <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-5 lg:h-24">
-          <Link href="/restaurante/home" aria-label="Home do restaurante">
+      <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-app-creme-leve/90 text-app-cafe-profundo shadow-sm backdrop-blur-md">
+        <div className="mx-auto grid h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-5 lg:h-20">
+          <div aria-label="Appono">
             <Image
               src="/brand/appono-mark.svg"
               alt="Appono"
               width={88}
               height={88}
-              className="h-14 w-14 lg:h-20 lg:w-20"
+              className="h-11 w-11 lg:h-14 lg:w-14"
               priority
             />
-          </Link>
+          </div>
 
-          <nav className="hidden items-center gap-8 text-sm font-semibold text-app-cinza xl:flex">
+          <nav className="hidden items-center justify-self-center gap-6 text-xs font-semibold text-app-cinza xl:flex">
             {navItems.map((item, index) => (
               <Link
                 key={item.label}
@@ -262,7 +328,7 @@ export default function RestaurantSettingsPage() {
           <button
             type="button"
             onClick={() => setMobileMenuOpen((current) => !current)}
-            className="flex h-11 w-11 items-center justify-center rounded-[8px] border border-app-baunilha-dourada bg-app-chantilly text-app-cafe-profundo xl:hidden"
+            className="flex h-9 w-9 items-center justify-center justify-self-end rounded-[8px] border border-app-baunilha-dourada bg-app-chantilly text-app-cafe-profundo xl:hidden"
             aria-label="Abrir menu"
             aria-expanded={mobileMenuOpen}
             aria-controls="restaurant-settings-menu"
@@ -274,9 +340,9 @@ export default function RestaurantSettingsPage() {
         {mobileMenuOpen ? (
           <nav
             id="restaurant-settings-menu"
-            className="border-t border-app-baunilha-dourada/55 bg-app-creme-leve px-5 py-4 xl:hidden"
+            className="border-t border-app-baunilha-dourada/55 bg-app-creme-leve px-5 py-3 xl:hidden"
           >
-            <div className="mx-auto grid max-w-7xl gap-3 text-sm font-semibold text-app-cinza">
+            <div className="mx-auto grid max-w-7xl gap-2 text-xs font-semibold text-app-cinza">
               {navItems.map((item, index) => (
                 <Link
                   key={item.label}
@@ -372,12 +438,13 @@ export default function RestaurantSettingsPage() {
             </div>
 
             <section className="mt-8 flex flex-col gap-5 sm:flex-row sm:items-center">
-              <div className="relative flex h-24 w-24 shrink-0 items-center justify-center rounded-[8px] bg-app-cafe-profundo text-app-creme-leve">
-                <Icon type="store" className="h-10 w-10" />
+              <label className="relative flex h-24 w-24 shrink-0 cursor-pointer items-center justify-center overflow-visible rounded-[8px] bg-app-cafe-profundo bg-cover bg-center text-app-creme-leve" style={form.logoUrl ? { backgroundImage: `url("${form.logoUrl}")` } : undefined}>
+                {!form.logoUrl ? <Icon type="store" className="h-10 w-10" /> : null}
                 <span className="absolute -bottom-2 -right-2 flex h-9 w-9 items-center justify-center rounded-full bg-app-caramelo-torrado text-app-chantilly ring-4 ring-app-chantilly">
                   <Icon type="camera" className="h-4 w-4" />
                 </span>
-              </div>
+                <input type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => selecionarImagem(event.target.files?.[0])} className="sr-only" />
+              </label>
               <div>
                 <h3 className="text-lg font-semibold text-app-cafe-profundo">
                   Logotipo da Loja
@@ -399,6 +466,7 @@ export default function RestaurantSettingsPage() {
                 label="CNPJ"
                 value={form.document}
                 onChange={(value) => updateField("document", value)}
+                disabled
               />
               <Field
                 label="Razao social"
@@ -451,9 +519,10 @@ export default function RestaurantSettingsPage() {
               </button>
               <button
                 type="submit"
-                className="h-11 rounded-[8px] bg-app-dourado-mel px-8 text-xs font-bold uppercase text-white transition hover:bg-app-caramelo-torrado"
+                disabled={salvando}
+                className="h-11 rounded-[8px] bg-app-dourado-mel px-8 text-xs font-bold uppercase text-white transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-60"
               >
-                Salvar alteracoes
+                {salvando ? "Salvando..." : "Salvar alteracoes"}
               </button>
             </div>
 
@@ -487,6 +556,19 @@ export default function RestaurantSettingsPage() {
             </div>
           </div>
         </section>
+
+        <SeletorTema />
+
+        <div className="mx-auto mt-7 max-w-md border-t border-app-baunilha-dourada/60 pt-5 text-center">
+          <button
+            type="button"
+            onClick={logout}
+            className="inline-flex items-center gap-3 text-sm font-bold text-app-vermelho-erro transition hover:text-app-cafe-profundo"
+          >
+            <Icon type="log-out" />
+            Sair da conta
+          </button>
+        </div>
       </section>
 
       <footer className="border-t border-app-cacau-intenso/20 bg-app-cafe-profundo px-5 py-7 text-app-creme-leve">

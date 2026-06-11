@@ -2,12 +2,10 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { FormEvent, useState } from "react";
-
-type RestaurantSession = {
-  type?: "client" | "restaurant";
-  name?: string;
-};
+import { FormEvent, useEffect, useState } from "react";
+import { apiRequest } from "@/lib/api";
+import { TelaCarregandoSessao, useSessaoLocal } from "@/lib/use-sessao-local";
+import { aplicarMascaraCep } from "@/lib/validacoes/cep";
 
 type AddressForm = {
   postalCode: string;
@@ -29,12 +27,20 @@ const initialForm: AddressForm = {
   state: "",
 };
 
-function getStorage() {
-  if (typeof window === "undefined" || !window.localStorage) {
-    return null;
-  }
+type RespostaPerfilRestaurante = {
+  tipo: "restaurante";
+  perfil: {
+    cep?: string;
+    endereco?: string;
+  };
+  message?: string;
+};
 
-  return window.localStorage;
+function separarEndereco(endereco?: string): AddressForm {
+  const [street = "", number = "", complement = "", district = "", city = "", state = ""] =
+    endereco?.split(",").map((parte) => parte.trim()) ?? [];
+
+  return { ...initialForm, street, number, complement, district, city, state };
 }
 
 function Icon({
@@ -96,38 +102,66 @@ function Field({
 }
 
 export default function RestaurantAddressSettingsPage() {
-  const [session] = useState<RestaurantSession | null>(() => {
-    if (typeof window === "undefined") {
-      return null;
+  const { sessao, sessaoCarregada } = useSessaoLocal();
+  const [form, setForm] = useState<AddressForm>(initialForm);
+  const [message, setMessage] = useState("Carregando endereco cadastrado...");
+  const [salvando, setSalvando] = useState(false);
+
+  useEffect(() => {
+    if (!sessaoCarregada || sessao?.type !== "restaurant") {
+      return;
     }
 
-    const storedSession = getStorage()?.getItem("appono:session");
-    return storedSession ? (JSON.parse(storedSession) as RestaurantSession) : null;
-  });
-  const [form, setForm] = useState<AddressForm>(() => {
-    if (typeof window === "undefined") {
-      return initialForm;
-    }
-
-    const stored = getStorage()?.getItem("appono:restaurantAddressDraft");
-    return stored ? (JSON.parse(stored) as AddressForm) : initialForm;
-  });
-  const [message, setMessage] = useState("");
-
-  const isRestaurant = session?.type === "restaurant";
+    apiRequest<RespostaPerfilRestaurante>("/me")
+      .then(({ perfil }) => {
+        setForm({
+          ...separarEndereco(perfil.endereco),
+          postalCode: aplicarMascaraCep(perfil.cep ?? ""),
+        });
+        setMessage("");
+      })
+      .catch((error) =>
+        setMessage(error instanceof Error ? error.message : "Nao foi possivel carregar o endereco."),
+      );
+  }, [sessao, sessaoCarregada]);
 
   function updateField(field: keyof AddressForm, value: string) {
     setForm((current) => ({ ...current, [field]: value }));
     setMessage("");
   }
 
-  function submitForm(event: FormEvent<HTMLFormElement>) {
+  async function submitForm(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    getStorage()?.setItem("appono:restaurantAddressDraft", JSON.stringify(form));
-    setMessage("Endereco salvo neste navegador.");
+    setSalvando(true);
+
+    try {
+      const endereco = [
+        form.street,
+        form.number,
+        form.complement,
+        form.district,
+        form.city,
+        form.state,
+      ]
+        .filter(Boolean)
+        .join(", ");
+      const resposta = await apiRequest<RespostaPerfilRestaurante>("/me", {
+        method: "PATCH",
+        body: JSON.stringify({ cep: form.postalCode, endereco }),
+      });
+      setMessage(resposta.message ?? "Endereco salvo com sucesso.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Nao foi possivel salvar o endereco.");
+    } finally {
+      setSalvando(false);
+    }
   }
 
-  if (!isRestaurant) {
+  if (!sessaoCarregada) {
+    return <TelaCarregandoSessao />;
+  }
+
+  if (sessao?.type !== "restaurant") {
     return (
       <main className="flex min-h-screen items-center justify-center bg-app-chantilly px-5 text-app-cafe-profundo">
         <section className="w-full max-w-lg rounded-[8px] bg-app-creme-leve p-8 text-center shadow-sm ring-1 ring-app-baunilha-dourada">
@@ -156,18 +190,18 @@ export default function RestaurantAddressSettingsPage() {
 
   return (
     <main className="flex min-h-screen flex-col bg-app-chantilly text-app-cafe-profundo">
-      <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-transparent text-app-cafe-profundo backdrop-blur-sm">
-        <div className="mx-auto grid min-h-20 max-w-7xl grid-cols-[auto_1fr_auto] items-center gap-4 px-5 py-3">
-          <Link href="/restaurante/home" aria-label="Home do restaurante">
+      <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-app-creme-leve/90 text-app-cafe-profundo shadow-sm backdrop-blur-md">
+        <div className="mx-auto grid min-h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-5 py-2">
+          <div aria-label="Appono">
             <Image
               src="/brand/appono-mark.svg"
               alt="Appono"
               width={72}
               height={72}
-              className="h-14 w-14"
+              className="h-11 w-11"
               priority
             />
-          </Link>
+          </div>
           <div className="flex items-center justify-center gap-6">
             <Link
               href="/restaurante/configuracoes"
@@ -176,17 +210,17 @@ export default function RestaurantAddressSettingsPage() {
             >
               <Icon type="arrow-left" className="h-5 w-5" />
             </Link>
-            <h1 className="text-xl font-bold uppercase tracking-[0.16em] sm:text-3xl">
+            <h1 className="text-lg font-bold uppercase tracking-[0.14em] sm:text-2xl">
               Configuracoes
             </h1>
           </div>
-          <div className="hidden items-center gap-4 text-right sm:flex">
+          <div className="hidden items-center justify-self-end gap-3 text-right sm:flex">
             <Icon type="help" className="h-5 w-5 text-app-mocha" />
             <div>
-              <p className="text-sm font-semibold text-app-mocha">
+              <p className="text-xs font-semibold text-app-mocha">
                 Gestor de Restaurante
               </p>
-              <p className="text-xs font-semibold text-app-caramelo-torrado">
+              <p className="text-[10px] font-semibold text-app-caramelo-torrado">
                 Acesso Administrativo
               </p>
             </div>
@@ -219,7 +253,7 @@ export default function RestaurantAddressSettingsPage() {
             <Field
               label="CEP"
               value={form.postalCode}
-              onChange={(value) => updateField("postalCode", value)}
+              onChange={(value) => updateField("postalCode", aplicarMascaraCep(value))}
               placeholder="00000-000"
             />
             <p className="pb-3 text-sm font-semibold text-app-caramelo-torrado">
@@ -311,9 +345,10 @@ export default function RestaurantAddressSettingsPage() {
           <div className="mt-10 flex flex-col gap-3 sm:flex-row">
             <button
               type="submit"
-              className="h-12 rounded-[8px] bg-app-dourado-mel px-8 text-xs font-bold uppercase tracking-wide text-white transition hover:bg-app-caramelo-torrado"
+              disabled={salvando}
+              className="h-12 rounded-[8px] bg-app-dourado-mel px-8 text-xs font-bold uppercase tracking-wide text-white transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Continuar para fiscal
+              {salvando ? "Salvando..." : "Salvar endereco"}
             </button>
             <Link
               href="/restaurante/configuracoes"
