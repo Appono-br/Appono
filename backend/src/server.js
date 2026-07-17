@@ -30,6 +30,13 @@ app.use(cors({
 }));
 app.use(express.json());
 
+app.get("/", (req, res) => {
+    res.json({
+        status: "API APPONO online",
+        health: "/api/health",
+    });
+});
+
 app.get('/api/health', (req, res) => {
     res.json({ status: 'Server is running' });
 });
