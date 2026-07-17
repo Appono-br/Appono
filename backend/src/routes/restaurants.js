@@ -1,0 +1,51 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.restaurantsRouter = void 0;
+const express_1 = require("express");
+const supabase_1 = require("../lib/supabase");
+exports.restaurantsRouter = (0, express_1.Router)();
+exports.restaurantsRouter.get("/", async (_req, res) => {
+    const { data, error } = await supabase_1.supabaseAuth
+        .from("restaurantes")
+        .select("id_restaurante, nome, telefone, email, cep, endereco, horario_funcionamento, logo_url")
+        .eq("ativo", true)
+        .order("nome");
+    if (error) {
+        return res.status(400).json({ error: error.message });
+    }
+    return res.json(data);
+});
+exports.restaurantsRouter.get("/:id", async (req, res) => {
+    const restaurantId = Number(req.params.id);
+    if (!Number.isFinite(restaurantId)) {
+        return res.status(400).json({ error: "Restaurante invalido." });
+    }
+    const { data, error } = await supabase_1.supabaseAuth
+        .from("restaurantes")
+        .select("id_restaurante, nome, telefone, email, endereco, horario_funcionamento, logo_url, valor_minimo_reserva_por_pessoa")
+        .eq("id_restaurante", restaurantId)
+        .eq("ativo", true)
+        .single();
+    if (error) {
+        return res.status(404).json({ error: "Restaurante nao encontrado." });
+    }
+    return res.json(data);
+});
+exports.restaurantsRouter.get("/:id/cardapio", async (req, res) => {
+    const restaurantId = Number(req.params.id);
+    if (!Number.isFinite(restaurantId)) {
+        return res.status(400).json({ error: "Restaurante invalido." });
+    }
+    const { data: cardapios, error: cardapiosError } = await supabase_1.supabaseAuth
+        .from("cardapios")
+        .select("id_cardapio, nome, descricao, horario_inicio, horario_fim, categorias(id_categoria, nome, descricao, produtos(id_produto, nome, descricao, tempo_preparo_minutos, preco, imagem_url, disponivel))")
+        .eq("id_restaurante", restaurantId)
+        .eq("ativo", true)
+        .eq("categorias.ativo", true)
+        .eq("categorias.produtos.disponivel", true)
+        .order("nome");
+    if (cardapiosError) {
+        return res.status(400).json({ error: cardapiosError.message });
+    }
+    return res.json(cardapios);
+});

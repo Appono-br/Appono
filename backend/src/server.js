@@ -1,24 +1,49 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = __importDefault(require("express"));
-const cors_1 = __importDefault(require("cors"));
-const dotenv_1 = __importDefault(require("dotenv"));
-dotenv_1.default.config();
-const app = (0, express_1.default)();
+
+const express = require("express");
+const cors = require("cors");
+const dotenv = require("dotenv");
+const { authRouter } = require("./routes/auth");
+const { meRouter } = require("./routes/me");
+const { ordersRouter } = require("./routes/orders");
+const { reservationsRouter } = require("./routes/reservations");
+const { restaurantsRouter } = require("./routes/restaurants");
+const { rotasValidacoes } = require("./routes/validacoes");
+
+dotenv.config();
+
+const app = express();
 const PORT = process.env.PORT || 3001;
-// Middleware
-app.use((0, cors_1.default)());
-app.use(express_1.default.json());
-// Rotas
+const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN ?? "http://localhost:3000";
+const allowedOrigins = FRONTEND_ORIGIN.split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
+app.use(cors({
+    origin(origin, callback) {
+        if (!origin || allowedOrigins.includes("*") || allowedOrigins.includes(origin)) {
+            return callback(null, true);
+        }
+
+        return callback(new Error("Origem nao autorizada pelo CORS."));
+    },
+}));
+app.use(express.json());
+
 app.get('/api/health', (req, res) => {
     res.json({ status: 'Server is running' });
 });
-// Iniciar servidor
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-});
-exports.default = app;
-//# sourceMappingURL=server.js.map
+app.use("/api/auth", authRouter);
+app.use("/api/me", meRouter);
+app.use("/api/restaurantes", restaurantsRouter);
+app.use("/api/reservas", reservationsRouter);
+app.use("/api/pedidos", ordersRouter);
+app.use("/api/validacoes", rotasValidacoes);
+
+if (require.main === module) {
+    app.listen(PORT, () => {
+        console.log(`Server is running on port ${PORT}`);
+    });
+}
+
+module.exports = app;
