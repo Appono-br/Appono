@@ -21,10 +21,9 @@ const initialForm = {
     payoutCadence: "weekly",
 };
 const initialBankSummary = {
-    bankCode: "",
-    agency: "",
-    account: "",
-    pixKey: "",
+    status: "nao_configurado",
+    provider: "integracao_externa_pendente",
+    updatedAt: "",
 };
 function Icon({ type, className = "h-5 w-5", }) {
     const paths = {
@@ -69,10 +68,9 @@ export default function RestaurantBankSettingsPage() {
                     document: aplicarMascaraCnpj(restaurante.cnpj ?? ""),
                 }));
                 setBankSummary({
-                    bankCode: dadosBancarios?.cod_banco ?? "",
-                    agency: dadosBancarios?.agencia ?? "",
-                    account: dadosBancarios?.conta_corrente ?? "",
-                    pixKey: dadosBancarios?.chave_pix ?? "",
+                    status: dadosBancarios?.status_cadastro ?? "nao_configurado",
+                    provider: dadosBancarios?.provedor_pagamento ?? "integracao_externa_pendente",
+                    updatedAt: dadosBancarios?.updated_at ?? "",
                 });
                 setMessage("");
             }
@@ -118,10 +116,9 @@ export default function RestaurantBankSettingsPage() {
             });
             const dadosBancarios = resposta.perfil?.dados_bancarios_restaurante?.[0];
             setBankSummary({
-                bankCode: dadosBancarios?.cod_banco ?? "",
-                agency: dadosBancarios?.agencia ?? "",
-                account: dadosBancarios?.conta_corrente ?? "",
-                pixKey: dadosBancarios?.chave_pix ?? "",
+                status: dadosBancarios?.status_cadastro ?? "pendente_validacao",
+                provider: dadosBancarios?.provedor_pagamento ?? "integracao_financeira_externa",
+                updatedAt: dadosBancarios?.updated_at ?? "",
             });
             setForm((atual) => ({
                 ...atual,
@@ -212,18 +209,21 @@ export default function RestaurantBankSettingsPage() {
                 <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-cinza">
                   Dados cadastrados
                 </p>
-                {bankSummary.bankCode || bankSummary.agency || bankSummary.account || bankSummary.pixKey ? (<div className="mt-2 grid gap-2 sm:grid-cols-4">
-                    <span>Banco: <strong>{bankSummary.bankCode || "Nao informado"}</strong></span>
-                    <span>Agencia: <strong>{bankSummary.agency || "Nao informada"}</strong></span>
-                    <span>Conta: <strong>{bankSummary.account || "Nao informada"}</strong></span>
-                    <span>Pix: <strong>{bankSummary.pixKey || "Nao informado"}</strong></span>
-                  </div>) : (<p className="mt-2">
-                    Nenhum dado bancario cadastrado. Informe os dados abaixo para
-                    configurar a conta de repasse.
-                  </p>)}
+                <div className="mt-2 grid gap-2 sm:grid-cols-3">
+                  <span>Status: <strong>{bankSummary.status === "pendente_validacao"
+                ? "Pendente de validacao"
+                : bankSummary.status === "validado"
+                    ? "Validado"
+                    : "Nao configurado"}</strong></span>
+                  <span>Provedor: <strong>{bankSummary.provider}</strong></span>
+                  <span>Atualizacao: <strong>{bankSummary.updatedAt
+                ? new Date(bankSummary.updatedAt).toLocaleDateString("pt-BR")
+                : "Sem registro"}</strong></span>
+                </div>
                 <p className="mt-3 text-xs text-app-cinza">
-                  Por seguranca, dados completos nao sao exibidos depois de salvos.
-                  Para alterar, preencha novamente os campos abaixo.
+                  Por seguranca, a Appono nao armazena banco, agencia, conta ou
+                  Pix. No MVP, o envio abaixo apenas muda o status para validacao
+                  externa pendente.
                 </p>
               </div>
               <Field label="Codigo do banco" value={form.bankCode} onChange={(value) => atualizarCampo("bankCode", aplicarMascaraCodigoBanco(value))} inputMode="numeric" maxLength={3}/>
@@ -305,8 +305,9 @@ export default function RestaurantBankSettingsPage() {
                 Validacao financeira
               </h3>
               <p className="mt-3 text-sm leading-6 text-app-mocha">
-                Alteracoes bancarias devem passar por conferencia documental
-                antes de liberar repasses reais.
+                Em producao, os dados bancarios seriam enviados diretamente para
+                um provedor financeiro. A Appono guardaria apenas o identificador
+                seguro retornado por esse provedor.
               </p>
             </section>
 
@@ -316,8 +317,9 @@ export default function RestaurantBankSettingsPage() {
                 Dados sensiveis
               </h3>
               <p className="mt-3 text-sm leading-6 text-app-cinza">
-                Evite compartilhar acessos. A troca de conta bancaria deve ser
-                revisada por um perfil administrativo.
+                Banco, agencia, conta e Pix nao ficam salvos na base da Appono.
+                Essa decisao reduz exposicao de dados sensiveis e melhora a
+                aderencia a boas praticas de seguranca.
               </p>
             </section>
 

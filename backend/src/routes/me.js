@@ -10,31 +10,12 @@ exports.meRouter = (0, express_1.Router)();
 function textoOpcional(valor) {
     return typeof valor === "string" ? valor.trim() : undefined;
 }
-function mascararFinal(valor, visiveis = 2) {
-    if (!valor) {
-        return "";
-    }
-    const texto = String(valor);
-    const final = texto.slice(-visiveis);
-    return `${"*".repeat(Math.max(texto.length - visiveis, 3))}${final}`;
-}
-function mascararPix(valor) {
-    if (!valor) {
-        return "";
-    }
-    const texto = String(valor);
-    if (texto.includes("@")) {
-        const [usuario, dominio] = texto.split("@");
-        return `${usuario.slice(0, 2)}***@${dominio}`;
-    }
-    return mascararFinal(texto, 4);
-}
-function mascararDadosBancarios(dados) {
+function prepararStatusFinanceiro(dados) {
     return {
-        ...dados,
-        agencia: mascararFinal(dados.agencia, 1),
-        conta_corrente: mascararFinal(dados.conta_corrente, 3),
-        chave_pix: mascararPix(dados.chave_pix),
+        status_cadastro: dados.status_cadastro ?? "nao_configurado",
+        provedor_pagamento: dados.provedor_pagamento ?? "integracao_externa_pendente",
+        referencia_externa: dados.referencia_externa ?? null,
+        updated_at: dados.updated_at ?? null,
     };
 }
 function prepararPerfilParaResposta(perfil) {
@@ -45,7 +26,7 @@ function prepararPerfilParaResposta(perfil) {
         ...perfil,
         perfil: {
             ...perfil.perfil,
-            dados_bancarios_restaurante: (perfil.perfil.dados_bancarios_restaurante ?? []).map(mascararDadosBancarios),
+            dados_bancarios_restaurante: (perfil.perfil.dados_bancarios_restaurante ?? []).map(prepararStatusFinanceiro),
         },
     };
 }
@@ -63,7 +44,7 @@ async function obterPerfil(supabase, userId) {
     }
     const { data: restaurante, error: restauranteError } = await supabase
         .from("restaurantes")
-        .select("*, dados_bancarios_restaurante(*)")
+        .select("*, dados_bancarios_restaurante(status_cadastro, provedor_pagamento, referencia_externa, updated_at)")
         .eq("id_auth", userId)
         .maybeSingle();
     if (restauranteError) {
@@ -168,10 +149,10 @@ exports.meRouter.patch("/dados-bancarios", auth_1.requireAuth, async (req, res) 
     }
     const dados = {
         id_restaurante: perfilAtual.perfil.id_restaurante,
-        cod_banco: (0, comum_1.somenteNumeros)(body.bankCode),
-        agencia: (0, comum_1.somenteNumeros)(body.agency),
-        conta_corrente: textoOpcional(body.checkingAccount),
-        chave_pix: textoOpcional(body.pixKey),
+        status_cadastro: "pendente_validacao",
+        provedor_pagamento: "integracao_financeira_externa",
+        referencia_externa: null,
+        updated_at: new Date().toISOString(),
     };
     const possuiRegistro = Boolean(perfilAtual.perfil.dados_bancarios_restaurante?.length);
     const operacao = possuiRegistro

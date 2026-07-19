@@ -7,7 +7,6 @@ const cep_1 = require("../services/validacoes/cep");
 const cnpj_1 = require("../services/validacoes/cnpj");
 const comum_1 = require("../services/validacoes/comum");
 const cpf_1 = require("../services/validacoes/cpf");
-const dados_bancarios_1 = require("../services/validacoes/dados-bancarios");
 exports.authRouter = (0, express_1.Router)();
 const frontendOrigin = (process.env.FRONTEND_ORIGIN ?? "http://localhost:3000").replace(/\/$/, "");
 function verificarCamposObrigatorios(body, fields) {
@@ -217,10 +216,6 @@ exports.authRouter.post("/register/restaurant", async (req, res) => {
             error: `O CNPJ informado esta com situacao ${validatedCnpj.situacao}.`,
         });
     }
-    const bankError = (0, dados_bancarios_1.validarDadosBancarios)(body);
-    if (bankError) {
-        return res.status(400).json({ error: bankError });
-    }
     const validatedAddressBody = {
         ...body,
         address: validatedCep.rua || body.address,
@@ -245,12 +240,6 @@ exports.authRouter.post("/register/restaurant", async (req, res) => {
                     endereco: montarEndereco(validatedAddressBody.address, validatedAddressBody.number, validatedAddressBody.complement, validatedAddressBody.neighborhood, validatedAddressBody.city, validatedAddressBody.uf),
                     horario_funcionamento: "A definir",
                     quantidade_mesas: body.tables,
-                    dados_bancarios: {
-                        cod_banco: (0, comum_1.somenteNumeros)(body.bankCode),
-                        agencia: (0, comum_1.somenteNumeros)(body.agency),
-                        conta_corrente: body.checkingAccount,
-                        chave_pix: body.pixKey,
-                    },
                 },
             },
         },
