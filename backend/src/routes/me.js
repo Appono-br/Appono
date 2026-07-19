@@ -10,6 +10,45 @@ exports.meRouter = (0, express_1.Router)();
 function textoOpcional(valor) {
     return typeof valor === "string" ? valor.trim() : undefined;
 }
+function mascararFinal(valor, visiveis = 2) {
+    if (!valor) {
+        return "";
+    }
+    const texto = String(valor);
+    const final = texto.slice(-visiveis);
+    return `${"*".repeat(Math.max(texto.length - visiveis, 3))}${final}`;
+}
+function mascararPix(valor) {
+    if (!valor) {
+        return "";
+    }
+    const texto = String(valor);
+    if (texto.includes("@")) {
+        const [usuario, dominio] = texto.split("@");
+        return `${usuario.slice(0, 2)}***@${dominio}`;
+    }
+    return mascararFinal(texto, 4);
+}
+function mascararDadosBancarios(dados) {
+    return {
+        ...dados,
+        agencia: mascararFinal(dados.agencia, 1),
+        conta_corrente: mascararFinal(dados.conta_corrente, 3),
+        chave_pix: mascararPix(dados.chave_pix),
+    };
+}
+function prepararPerfilParaResposta(perfil) {
+    if (!perfil || perfil.tipo !== "restaurante") {
+        return perfil;
+    }
+    return {
+        ...perfil,
+        perfil: {
+            ...perfil.perfil,
+            dados_bancarios_restaurante: (perfil.perfil.dados_bancarios_restaurante ?? []).map(mascararDadosBancarios),
+        },
+    };
+}
 async function obterPerfil(supabase, userId) {
     const { data: cliente, error: clienteError } = await supabase
         .from("clientes")
@@ -39,7 +78,7 @@ exports.meRouter.get("/", auth_1.requireAuth, async (_req, res) => {
     try {
         const perfil = await obterPerfil(supabase, res.locals.user.id);
         return perfil
-            ? res.json(perfil)
+            ? res.json(prepararPerfilParaResposta(perfil))
             : res.status(404).json({ error: "Perfil nao encontrado." });
     }
     catch (error) {
@@ -103,7 +142,7 @@ exports.meRouter.patch("/", auth_1.requireAuth, async (req, res) => {
     }
     const perfilAtualizado = await obterPerfil(supabase, res.locals.user.id);
     return res.json({
-        ...perfilAtualizado,
+        ...prepararPerfilParaResposta(perfilAtualizado),
         message: "Alteracoes salvas com sucesso.",
     });
 });
@@ -114,6 +153,15 @@ exports.meRouter.patch("/dados-bancarios", auth_1.requireAuth, async (req, res) 
         return res.status(403).json({ error: "Apenas restaurantes podem alterar dados bancarios." });
     }
     const body = req.body;
+    const informouAlgumDado = [
+        body.bankCode,
+        body.agency,
+        body.checkingAccount,
+        body.pixKey,
+    ].some((valor) => Boolean(textoOpcional(valor)));
+    if (!informouAlgumDado) {
+        return res.status(400).json({ error: "Informe ao menos um dado bancario para atualizar." });
+    }
     const erroValidacao = (0, dados_bancarios_1.validarDadosBancarios)(body);
     if (erroValidacao) {
         return res.status(400).json({ error: erroValidacao });
@@ -138,7 +186,7 @@ exports.meRouter.patch("/dados-bancarios", auth_1.requireAuth, async (req, res) 
     }
     const perfilAtualizado = await obterPerfil(supabase, res.locals.user.id);
     return res.json({
-        ...perfilAtualizado,
+        ...prepararPerfilParaResposta(perfilAtualizado),
         message: "Dados bancarios salvos com sucesso.",
     });
 });

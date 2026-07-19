@@ -20,6 +20,12 @@ const initialForm = {
     pixKey: "",
     payoutCadence: "weekly",
 };
+const initialBankSummary = {
+    bankCode: "",
+    agency: "",
+    account: "",
+    pixKey: "",
+};
 function Icon({ type, className = "h-5 w-5", }) {
     const paths = {
         "arrow-left": "M19 12H5M12 19l-7-7 7-7",
@@ -45,6 +51,7 @@ function Field({ label, value, onChange, className = "", inputMode, maxLength, d
 export default function RestaurantBankSettingsPage() {
     const { sessao, sessaoCarregada } = useSessaoLocal();
     const [form, setForm] = useState(initialForm);
+    const [bankSummary, setBankSummary] = useState(initialBankSummary);
     const [message, setMessage] = useState("Carregando dados bancarios...");
     const [salvando, setSalvando] = useState(false);
     useEffect(() => {
@@ -56,17 +63,17 @@ export default function RestaurantBankSettingsPage() {
                 const resposta = await apiRequest("/me");
                 const restaurante = resposta.perfil;
                 const dadosBancarios = restaurante.dados_bancarios_restaurante?.[0];
-                const [conta = "", digito = ""] = dadosBancarios?.conta_corrente?.split("-") ?? [];
                 setForm((atual) => ({
                     ...atual,
                     legalName: restaurante.razao_social ?? restaurante.nome ?? "",
                     document: aplicarMascaraCnpj(restaurante.cnpj ?? ""),
+                }));
+                setBankSummary({
                     bankCode: dadosBancarios?.cod_banco ?? "",
                     agency: dadosBancarios?.agencia ?? "",
-                    account: conta,
-                    accountDigit: digito,
+                    account: dadosBancarios?.conta_corrente ?? "",
                     pixKey: dadosBancarios?.chave_pix ?? "",
-                }));
+                });
                 setMessage("");
             }
             catch (error) {
@@ -83,6 +90,10 @@ export default function RestaurantBankSettingsPage() {
     }
     async function enviarFormulario(event) {
         event.preventDefault();
+        if (!form.bankCode || !form.agency || !form.account) {
+            setMessage("Para alterar os dados bancarios, informe banco, agencia e conta completos.");
+            return;
+        }
         if (form.bankCode && somenteNumeros(form.bankCode).length !== 3) {
             setMessage("O codigo do banco deve possuir 3 digitos.");
             return;
@@ -105,6 +116,21 @@ export default function RestaurantBankSettingsPage() {
                     pixKey: form.pixKey,
                 }),
             });
+            const dadosBancarios = resposta.perfil?.dados_bancarios_restaurante?.[0];
+            setBankSummary({
+                bankCode: dadosBancarios?.cod_banco ?? "",
+                agency: dadosBancarios?.agencia ?? "",
+                account: dadosBancarios?.conta_corrente ?? "",
+                pixKey: dadosBancarios?.chave_pix ?? "",
+            });
+            setForm((atual) => ({
+                ...atual,
+                bankCode: "",
+                agency: "",
+                account: "",
+                accountDigit: "",
+                pixKey: "",
+            }));
             setMessage(resposta.message ?? "Dados bancarios salvos com sucesso.");
         }
         catch (error) {
@@ -182,6 +208,24 @@ export default function RestaurantBankSettingsPage() {
             <div className="mt-7 grid gap-5 sm:grid-cols-2">
               <Field label="Razao social titular" value={form.legalName} onChange={(value) => atualizarCampo("legalName", value)} className="sm:col-span-2" disabled/>
               <Field label="CNPJ titular" value={form.document} onChange={(value) => atualizarCampo("document", aplicarMascaraCnpj(value))} inputMode="numeric" maxLength={18} disabled/>
+              <div className="rounded-[8px] border border-app-baunilha-dourada bg-app-creme-suave p-4 text-sm leading-6 text-app-mocha sm:col-span-2">
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-cinza">
+                  Dados cadastrados
+                </p>
+                {bankSummary.bankCode || bankSummary.agency || bankSummary.account || bankSummary.pixKey ? (<div className="mt-2 grid gap-2 sm:grid-cols-4">
+                    <span>Banco: <strong>{bankSummary.bankCode || "Nao informado"}</strong></span>
+                    <span>Agencia: <strong>{bankSummary.agency || "Nao informada"}</strong></span>
+                    <span>Conta: <strong>{bankSummary.account || "Nao informada"}</strong></span>
+                    <span>Pix: <strong>{bankSummary.pixKey || "Nao informado"}</strong></span>
+                  </div>) : (<p className="mt-2">
+                    Nenhum dado bancario cadastrado. Informe os dados abaixo para
+                    configurar a conta de repasse.
+                  </p>)}
+                <p className="mt-3 text-xs text-app-cinza">
+                  Por seguranca, dados completos nao sao exibidos depois de salvos.
+                  Para alterar, preencha novamente os campos abaixo.
+                </p>
+              </div>
               <Field label="Codigo do banco" value={form.bankCode} onChange={(value) => atualizarCampo("bankCode", aplicarMascaraCodigoBanco(value))} inputMode="numeric" maxLength={3}/>
               <Field label="Agencia" value={form.agency} onChange={(value) => atualizarCampo("agency", aplicarMascaraAgencia(value))} inputMode="numeric" maxLength={5}/>
               <div className="grid gap-5 sm:grid-cols-[1fr_0.38fr]">
