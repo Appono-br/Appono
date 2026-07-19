@@ -32,11 +32,12 @@ function obterMensagemErroAutenticacao(message) {
     }
     return message;
 }
-async function obterPerfil(accessToken) {
+async function obterPerfil(accessToken, userId) {
     const supabase = (0, supabase_1.createUserSupabaseClient)(accessToken);
     const { data: cliente, error: clienteError } = await supabase
         .from("clientes")
         .select("*")
+        .eq("id_auth", userId)
         .maybeSingle();
     if (clienteError) {
         throw new Error(clienteError.message);
@@ -47,6 +48,7 @@ async function obterPerfil(accessToken) {
     const { data: restaurante, error: restauranteError } = await supabase
         .from("restaurantes")
         .select("*")
+        .eq("id_auth", userId)
         .maybeSingle();
     if (restauranteError) {
         throw new Error(restauranteError.message);
@@ -94,7 +96,7 @@ exports.authRouter.post("/login", async (req, res) => {
                 : "Credenciais invalidas.",
         });
     }
-    const profile = await obterPerfil(data.session.access_token);
+    const profile = await obterPerfil(data.session.access_token, data.user.id);
     if (!profile) {
         return res.status(404).json({ error: "Perfil nao encontrado para este usuario." });
     }
@@ -149,7 +151,7 @@ exports.authRouter.post("/register/client", async (req, res) => {
     if (!authData.session) {
         const confirmedAuthData = await confirmarEEntrarComUsuarioCriado(authData.user.id, body.email, body.password);
         if (confirmedAuthData?.session) {
-            const profile = await obterPerfil(confirmedAuthData.session.access_token);
+            const profile = await obterPerfil(confirmedAuthData.session.access_token, confirmedAuthData.user.id);
             return res.status(201).json({
                 ...profile,
                 user: confirmedAuthData.user,
@@ -162,7 +164,7 @@ exports.authRouter.post("/register/client", async (req, res) => {
             message: "Conta criada. Confirme o e-mail para ativar o acesso.",
         });
     }
-    const profile = await obterPerfil(authData.session.access_token);
+    const profile = await obterPerfil(authData.session.access_token, authData.user.id);
     return res.status(201).json({
         ...profile,
         user: authData.user,
@@ -259,7 +261,7 @@ exports.authRouter.post("/register/restaurant", async (req, res) => {
     if (!authData.session) {
         const confirmedAuthData = await confirmarEEntrarComUsuarioCriado(authData.user.id, body.email, body.password);
         if (confirmedAuthData?.session) {
-            const profile = await obterPerfil(confirmedAuthData.session.access_token);
+            const profile = await obterPerfil(confirmedAuthData.session.access_token, confirmedAuthData.user.id);
             return res.status(201).json({
                 ...profile,
                 user: confirmedAuthData.user,
@@ -272,7 +274,7 @@ exports.authRouter.post("/register/restaurant", async (req, res) => {
             message: "Conta criada. Confirme o e-mail para ativar o acesso.",
         });
     }
-    const profile = await obterPerfil(authData.session.access_token);
+    const profile = await obterPerfil(authData.session.access_token, authData.user.id);
     return res.status(201).json({
         ...profile,
         user: authData.user,

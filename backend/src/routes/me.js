@@ -10,10 +10,11 @@ exports.meRouter = (0, express_1.Router)();
 function textoOpcional(valor) {
     return typeof valor === "string" ? valor.trim() : undefined;
 }
-async function obterPerfil(supabase) {
+async function obterPerfil(supabase, userId) {
     const { data: cliente, error: clienteError } = await supabase
         .from("clientes")
         .select("*")
+        .eq("id_auth", userId)
         .maybeSingle();
     if (clienteError) {
         throw new Error(clienteError.message);
@@ -24,6 +25,7 @@ async function obterPerfil(supabase) {
     const { data: restaurante, error: restauranteError } = await supabase
         .from("restaurantes")
         .select("*, dados_bancarios_restaurante(*)")
+        .eq("id_auth", userId)
         .maybeSingle();
     if (restauranteError) {
         throw new Error(restauranteError.message);
@@ -35,7 +37,7 @@ async function obterPerfil(supabase) {
 exports.meRouter.get("/", auth_1.requireAuth, async (_req, res) => {
     const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
     try {
-        const perfil = await obterPerfil(supabase);
+        const perfil = await obterPerfil(supabase, res.locals.user.id);
         return perfil
             ? res.json(perfil)
             : res.status(404).json({ error: "Perfil nao encontrado." });
@@ -48,7 +50,7 @@ exports.meRouter.get("/", auth_1.requireAuth, async (_req, res) => {
 });
 exports.meRouter.patch("/", auth_1.requireAuth, async (req, res) => {
     const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
-    const perfilAtual = await obterPerfil(supabase);
+    const perfilAtual = await obterPerfil(supabase, res.locals.user.id);
     if (!perfilAtual) {
         return res.status(404).json({ error: "Perfil nao encontrado." });
     }
@@ -99,7 +101,7 @@ exports.meRouter.patch("/", auth_1.requireAuth, async (req, res) => {
     if (error) {
         return res.status(400).json({ error: error.message });
     }
-    const perfilAtualizado = await obterPerfil(supabase);
+    const perfilAtualizado = await obterPerfil(supabase, res.locals.user.id);
     return res.json({
         ...perfilAtualizado,
         message: "Alteracoes salvas com sucesso.",
@@ -107,7 +109,7 @@ exports.meRouter.patch("/", auth_1.requireAuth, async (req, res) => {
 });
 exports.meRouter.patch("/dados-bancarios", auth_1.requireAuth, async (req, res) => {
     const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
-    const perfilAtual = await obterPerfil(supabase);
+    const perfilAtual = await obterPerfil(supabase, res.locals.user.id);
     if (!perfilAtual || perfilAtual.tipo !== "restaurante") {
         return res.status(403).json({ error: "Apenas restaurantes podem alterar dados bancarios." });
     }
@@ -134,7 +136,7 @@ exports.meRouter.patch("/dados-bancarios", auth_1.requireAuth, async (req, res) 
     if (error) {
         return res.status(400).json({ error: error.message });
     }
-    const perfilAtualizado = await obterPerfil(supabase);
+    const perfilAtualizado = await obterPerfil(supabase, res.locals.user.id);
     return res.json({
         ...perfilAtualizado,
         message: "Dados bancarios salvos com sucesso.",
