@@ -53,6 +53,15 @@ export default function PaginaRestaurante({ params, }) {
             produtos: categoria.produtos ?? [],
         }))).filter((categoria) => categoria.produtos.length > 0);
     }, [cardapios]);
+    const produtosDestaque = useMemo(() => {
+        return produtosPorCategoria
+            .flatMap((categoria) => categoria.produtos.map((produto) => ({
+                ...produto,
+                categoriaNome: categoria.nome,
+            })))
+            .filter((produto) => produto.destaque === true)
+            .slice(0, 3);
+    }, [produtosPorCategoria]);
     async function reservar(event) {
         event.preventDefault();
         if (!restaurante || !aceitouCondicao) {
@@ -109,6 +118,39 @@ export default function PaginaRestaurante({ params, }) {
             <h2 className="text-2xl font-semibold">Cardapio</h2>
             {produtosPorCategoria.length ? (
               <div className="mt-5 grid gap-7">
+                {produtosDestaque.length ? (
+                  <section className="rounded-[12px] bg-app-cafe-profundo p-4 text-app-creme-leve">
+                    <div className="flex flex-wrap items-end justify-between gap-3">
+                      <div>
+                        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-dourado-mel">Selecionados pelo restaurante</p>
+                        <h3 className="mt-1 text-xl font-bold">Destaques do cardapio</h3>
+                      </div>
+                      <span className="rounded-full bg-app-creme-leve/10 px-3 py-1 text-[10px] font-bold uppercase text-app-baunilha-dourada">
+                        {produtosDestaque.length} sugestoes
+                      </span>
+                    </div>
+                    <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                      {produtosDestaque.map((produto) => (
+                        <article key={`destaque-${produto.id_produto}`} className="overflow-hidden rounded-[10px] bg-app-creme-leve text-app-cafe-profundo ring-1 ring-app-baunilha-dourada/45">
+                          <div className="relative h-24 bg-app-baunilha-dourada/45">
+                            {produto.imagem_url ? (
+                              <Image src={produto.imagem_url} alt={produto.nome} fill className="object-cover"/>
+                            ) : (
+                              <span className="flex h-full items-center justify-center text-xs font-bold uppercase text-app-caramelo-torrado">
+                                Appono
+                              </span>
+                            )}
+                          </div>
+                          <div className="p-3">
+                            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">{produto.categoriaNome}</p>
+                            <h4 className="mt-1 line-clamp-2 text-sm font-bold">{produto.nome}</h4>
+                            <strong className="mt-2 block text-sm text-app-caramelo-torrado">{formatarMoeda(Number(produto.preco ?? 0))}</strong>
+                          </div>
+                        </article>
+                      ))}
+                    </div>
+                  </section>
+                ) : null}
                 {produtosPorCategoria.map((categoria) => (
                   <div key={categoria.id_categoria}>
                     <h3 className="text-xs font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">
@@ -150,9 +192,10 @@ export default function PaginaRestaurante({ params, }) {
                 ))}
               </div>
             ) : (
-              <p className="mt-3 rounded-[8px] bg-app-creme-suave p-4 text-sm leading-6 text-app-mocha">
-                Este restaurante ainda nao publicou itens no cardapio.
-              </p>
+              <div className="mt-4 rounded-[10px] bg-app-creme-suave p-5 text-sm leading-6 text-app-mocha ring-1 ring-app-baunilha-dourada/50">
+                <p className="font-bold text-app-cafe-profundo">Cardapio em atualizacao</p>
+                <p className="mt-1">Este restaurante ainda nao publicou itens no cardapio. A reserva continua disponivel normalmente.</p>
+              </div>
             )}
           </section>
 

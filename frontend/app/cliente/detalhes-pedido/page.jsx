@@ -15,6 +15,7 @@ const navItems = [
 
 const statusesAtivos = ["PENDENTE", "CONFIRMADO", "EM_PREPARO", "PRONTO"];
 const etapasPedido = [
+    { status: "PENDENTE", label: "Recebido" },
     { status: "CONFIRMADO", label: "Confirmado" },
     { status: "EM_PREPARO", label: "Em preparo" },
     { status: "PRONTO", label: "Pronto" },
@@ -477,6 +478,46 @@ export default function OrderDetailsPage() {
                             </article>
                         </aside>
                     </section>
+
+                    {historicoPedidos.length ? (
+                        <section className="mx-auto max-w-7xl px-5 pb-16">
+                            <article className="rounded-[16px] bg-app-creme-leve p-5 shadow-sm ring-1 ring-app-baunilha-dourada/70 sm:p-6">
+                                <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                                    <div>
+                                        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">
+                                            Historico de pedidos
+                                        </p>
+                                        <h2 className="mt-2 text-2xl font-semibold text-app-cafe-profundo">Pedidos anteriores</h2>
+                                    </div>
+                                    <span className="rounded-full bg-app-creme-suave px-3 py-1 text-xs font-bold text-app-mocha ring-1 ring-app-baunilha-dourada/60">
+                                        {historicoPedidos.length} registros
+                                    </span>
+                                </div>
+                                <div className="mt-5 grid gap-3 md:grid-cols-2">
+                                    {historicoPedidos.slice(0, 4).map((pedido) => (
+                                        <article key={pedido.id_pedido} className="rounded-[12px] bg-app-chantilly p-4 ring-1 ring-app-baunilha-dourada/60">
+                                            <div className="flex items-start justify-between gap-4">
+                                                <div>
+                                                    <h3 className="text-sm font-bold text-app-cafe-profundo">
+                                                        Pedido #{pedido.id_pedido} - {pedido.restaurantes?.nome ?? "Restaurante"}
+                                                    </h3>
+                                                    <p className="mt-1 text-xs text-app-cinza">
+                                                        {formatarData(pedido.reservas?.data_reserva)} as {formatarHorario(pedido.reservas?.horario_inicio)}
+                                                    </p>
+                                                </div>
+                                                <span className="rounded-full bg-app-creme-suave px-3 py-1 text-xs font-bold text-app-mocha ring-1 ring-app-baunilha-dourada/60">
+                                                    {obterStatusPedido(pedido.status_pedido)}
+                                                </span>
+                                            </div>
+                                            <p className="mt-3 text-sm font-bold text-app-cafe-profundo">
+                                                {formatarMoeda(pedido.valor_total)}
+                                            </p>
+                                        </article>
+                                    ))}
+                                </div>
+                            </article>
+                        </section>
+                    ) : null}
 
                     {modalCancelamentoAberto ? (
                         <div className="fixed inset-0 z-50 flex items-center justify-center bg-app-cafe-profundo/70 px-5 backdrop-blur-sm">

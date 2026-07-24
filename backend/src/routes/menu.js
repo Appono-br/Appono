@@ -36,6 +36,11 @@ function normalizarInteiro(valor, fallback = 0) {
     return Number.isInteger(numero) ? numero : fallback;
 }
 
+function normalizarTempoPreparo(valor) {
+    const tempo = Number(valor);
+    return Number.isInteger(tempo) && tempo > 0 ? tempo : null;
+}
+
 function obterCaminhoStoragePorUrl(url) {
     if (!url) {
         return "";
@@ -374,11 +379,11 @@ exports.menuRouter.post("/produtos", async (req, res) => {
     const categoriaNome = textoObrigatorio(body.category);
     const descricao = textoObrigatorio(body.description);
     const preco = normalizarPreco(body.price);
-    const tempoPreparo = Number(body.preparationTime ?? 30);
+    const tempoPreparo = normalizarTempoPreparo(body.preparationTime);
     const ordemExibicao = normalizarInteiro(body.displayOrder);
-    if (!nome || !categoriaNome || !Number.isFinite(preco) || preco <= 0) {
+    if (!nome || !categoriaNome || !Number.isFinite(preco) || preco <= 0 || !tempoPreparo) {
         return res.status(400).json({
-            error: "Informe nome, categoria e preco valido para publicar o item.",
+            error: "Informe nome, categoria, preco valido e tempo de preparo para publicar o item.",
         });
     }
     try {
@@ -396,7 +401,7 @@ exports.menuRouter.post("/produtos", async (req, res) => {
             nome,
             descricao: descricao || null,
             preco,
-            tempo_preparo_minutos: Number.isFinite(tempoPreparo) && tempoPreparo > 0 ? tempoPreparo : 30,
+            tempo_preparo_minutos: tempoPreparo,
             imagem_url: textoObrigatorio(body.imageUrl) || null,
             disponivel: body.available === false ? false : true,
             destaque: normalizarBooleano(body.featured),
@@ -433,11 +438,11 @@ exports.menuRouter.put("/produtos/:id", async (req, res) => {
     const categoriaNome = textoObrigatorio(body.category);
     const descricao = textoObrigatorio(body.description);
     const preco = normalizarPreco(body.price);
-    const tempoPreparo = Number(body.preparationTime ?? 30);
+    const tempoPreparo = normalizarTempoPreparo(body.preparationTime);
     const ordemExibicao = normalizarInteiro(body.displayOrder);
-    if (!nome || !categoriaNome || !Number.isFinite(preco) || preco <= 0) {
+    if (!nome || !categoriaNome || !Number.isFinite(preco) || preco <= 0 || !tempoPreparo) {
         return res.status(400).json({
-            error: "Informe nome, categoria e preco valido para atualizar o item.",
+            error: "Informe nome, categoria, preco valido e tempo de preparo para atualizar o item.",
         });
     }
     try {
@@ -467,7 +472,7 @@ exports.menuRouter.put("/produtos/:id", async (req, res) => {
             nome,
             descricao: descricao || null,
             preco,
-            tempo_preparo_minutos: Number.isFinite(tempoPreparo) && tempoPreparo > 0 ? tempoPreparo : 30,
+            tempo_preparo_minutos: tempoPreparo,
             imagem_url: textoObrigatorio(body.imageUrl) || null,
             disponivel: body.available === false ? false : true,
             destaque: normalizarBooleano(body.featured),
@@ -599,25 +604,66 @@ exports.menuRouter.delete("/produtos/:id", async (req, res) => {
         if (!produtoExistente) {
             return res.status(404).json({ error: "Produto nao encontrado." });
         }
+
+        const { data: itemVinculado, error: itemVinculadoError } = await supabase
+            .from("itens_pedido")
+            .select("id_item")
+            .eq("id_produto", produtoId)
+            .limit(1)
+            .maybeSingle();
+        if (itemVinculadoError) {
+            return res.status(400).json({ error: itemVinculadoError.message });
+        }
+
+        if (itemVinculado) {
+            const { error } = await supabase
+                .from("produtos")
+                .update({
+                arquivado: true,
+                disponivel: false,
+                destaque: false,
+            })
+                .eq("id_produto", produtoId)
+                .eq("id_restaurante", restaurante.id_restaurante);
+            if (error) {
+                return res.status(400).json({
+                    error: "Nao foi possivel arquivar este item.",
+                });
+            }
+            return res.json({ message: "Item arquivado para preservar o historico de pedidos." });
+        }
+
         const { error } = await supabase
             .from("produtos")
-            .update({
-            arquivado: true,
-            disponivel: false,
-            destaque: false,
-            imagem_url: null,
-        })
+            .delete()
             .eq("id_produto", produtoId)
             .eq("id_restaurante", restaurante.id_restaurante);
         if (error) {
+            if (error.code === "23503" || String(error.message ?? "").toLowerCase().includes("foreign key")) {
+                const { error: arquivoError } = await supabase
+                    .from("produtos")
+                    .update({
+                    arquivado: true,
+                    disponivel: false,
+                    destaque: false,
+                })
+                    .eq("id_produto", produtoId)
+                    .eq("id_restaurante", restaurante.id_restaurante);
+                if (arquivoError) {
+                    return res.status(400).json({
+                        error: "Nao foi possivel arquivar este item.",
+                    });
+                }
+                return res.json({ message: "Item arquivado para preservar o historico de pedidos." });
+            }
             return res.status(400).json({
-                error: "Nao foi possivel arquivar este item.",
+                error: "Nao foi possivel excluir este item.",
             });
         }
         if (produtoExistente.imagem_url) {
             removerImagemCardapioPorUrl(produtoExistente.imagem_url).catch(() => undefined);
         }
-        return res.json({ message: "Item arquivado do cardapio." });
+        return res.json({ message: "Item excluido definitivamente do cardapio." });
     }
     catch (error) {
         return res.status(400).json({

@@ -6,6 +6,8 @@ const supabase_1 = require("../lib/supabase");
 const auth_1 = require("../middleware/auth");
 exports.ordersRouter = (0, express_1.Router)();
 exports.ordersRouter.use(auth_1.requireAuth);
+
+const LIMITE_UNIDADES_POR_ITEM = 10;
 exports.ordersRouter.get("/", async (_req, res) => {
     const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
     const { data, error } = await supabase
@@ -39,13 +41,46 @@ exports.ordersRouter.post("/", async (req, res) => {
     if (!body.id_reserva || !body.itens?.length) {
         return res.status(400).json({ error: "Pedido sem reserva ou itens." });
     }
+    const itensRecebidos = body.itens.map((item) => ({
+        id_produto: Number(item.id_produto),
+        quantidade: Number(item.quantidade),
+        observacoes: typeof item.observacoes === "string" ? item.observacoes.trim().slice(0, 180) : null,
+    }));
+    const itemInvalido = itensRecebidos.some((item) => !Number.isInteger(item.id_produto) ||
+        item.id_produto <= 0 ||
+        !Number.isInteger(item.quantidade) ||
+        item.quantidade <= 0);
+    if (itemInvalido) {
+        return res.status(400).json({
+            error: `Cada item do pedido deve ter entre 1 e ${LIMITE_UNIDADES_POR_ITEM} unidades.`,
+        });
+    }
+    const itensAgrupados = new Map();
+    for (const item of itensRecebidos) {
+        const atual = itensAgrupados.get(item.id_produto) ?? {
+            id_produto: item.id_produto,
+            quantidade: 0,
+            observacoes: [],
+        };
+        atual.quantidade += item.quantidade;
+        if (item.observacoes) {
+            atual.observacoes.push(item.observacoes);
+        }
+        itensAgrupados.set(item.id_produto, atual);
+    }
+    const itensNormalizados = Array.from(itensAgrupados.values()).map((item) => ({
+        id_produto: item.id_produto,
+        quantidade: item.quantidade,
+        observacoes: item.observacoes.join("; ") || null,
+    }));
+    if (itensNormalizados.some((item) => item.quantidade > LIMITE_UNIDADES_POR_ITEM)) {
+        return res.status(400).json({
+            error: `Cada item do pedido deve ter no maximo ${LIMITE_UNIDADES_POR_ITEM} unidades.`,
+        });
+    }
     const { data, error } = await supabase.rpc("criar_pedido_antecipado", {
         reserva_id: body.id_reserva,
-        itens: body.itens.map((item) => ({
-            id_produto: item.id_produto,
-            quantidade: item.quantidade,
-            observacoes: item.observacoes ?? null,
-        })),
+        itens: itensNormalizados,
         observacoes_cliente: body.observacoes ?? null,
     });
     if (error) {

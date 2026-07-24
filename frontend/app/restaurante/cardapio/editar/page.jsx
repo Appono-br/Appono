@@ -35,11 +35,11 @@ function Icon({ type, className = "h-5 w-5" }) {
     );
 }
 
-function Field({ label, value, onChange, className = "", inputMode, placeholder = "" }) {
+function Field({ label, value, onChange, className = "", inputMode, placeholder = "", required = false, min, max }) {
     return (
         <label className={`grid gap-2 ${className}`}>
             <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-cinza">{label}</span>
-            <input value={value} onChange={(event) => onChange(event.target.value)} inputMode={inputMode} placeholder={placeholder} className="h-12 rounded-[8px] border border-app-baunilha-dourada bg-app-creme-suave px-3 text-base text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20" />
+            <input value={value} onChange={(event) => onChange(event.target.value)} inputMode={inputMode} placeholder={placeholder} required={required} min={min} max={max} className="h-12 rounded-[8px] border border-app-baunilha-dourada bg-app-creme-suave px-3 text-base text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20" />
         </label>
     );
 }
@@ -61,6 +61,28 @@ function formatarPrecoParaFormulario(valor) {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
     }).format(Number(valor ?? 0));
+}
+
+function obterPrecoNumerico(valor) {
+    return Number(String(valor ?? "").replace(/\./g, "").replace(",", "."));
+}
+
+function validarFormularioCardapio(form) {
+    const preco = obterPrecoNumerico(form.price);
+    const tempoPreparo = Number(form.preparationTime);
+    if (!form.name.trim()) {
+        return "Informe o nome do item.";
+    }
+    if (!form.category.trim()) {
+        return "Selecione a categoria do item.";
+    }
+    if (!Number.isFinite(preco) || preco <= 0) {
+        return "Informe um preco valido maior que zero.";
+    }
+    if (!Number.isInteger(tempoPreparo) || tempoPreparo <= 0) {
+        return "Informe o tempo de preparo em minutos.";
+    }
+    return "";
 }
 
 function RestaurantMenuItemEditorContent() {
@@ -140,6 +162,11 @@ function RestaurantMenuItemEditorContent() {
 
     async function submitForm(event) {
         event.preventDefault();
+        const erroValidacao = validarFormularioCardapio(form);
+        if (erroValidacao) {
+            setMessage(erroValidacao);
+            return;
+        }
         setIsSubmitting(true);
         setMessage("");
         try {
@@ -209,13 +236,13 @@ function RestaurantMenuItemEditorContent() {
                 </div>
 
                 <form onSubmit={submitForm} className="mx-auto mt-10 grid max-w-4xl gap-6 rounded-[12px] bg-app-creme-leve p-6 shadow-sm ring-1 ring-app-baunilha-dourada/60 sm:p-8">
-                    <Field label="Nome do prato" value={form.name} onChange={(value) => updateField("name", value)} placeholder="Ex: Risoto de cogumelos" />
+                    <Field label="Nome do prato" value={form.name} onChange={(value) => updateField("name", value)} placeholder="Ex: Risoto de cogumelos" required />
 
                     <div className="grid gap-5 sm:grid-cols-3">
                         <label className="grid gap-2">
                             <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-cinza">Categoria</span>
                             <span className="relative">
-                                <select value={form.category} onChange={(event) => updateField("category", event.target.value)} className="h-12 w-full appearance-none rounded-[8px] border border-app-baunilha-dourada bg-app-creme-suave px-3 pr-10 text-base text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado">
+                                <select value={form.category} onChange={(event) => updateField("category", event.target.value)} required className="h-12 w-full appearance-none rounded-[8px] border border-app-baunilha-dourada bg-app-creme-suave px-3 pr-10 text-base text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado">
                                     <option value="">Selecione</option>
                                     {categoriasDisponiveis.map((category) => (
                                         <option key={category} value={category}>
@@ -226,8 +253,8 @@ function RestaurantMenuItemEditorContent() {
                                 <Icon type="chevron-down" className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-app-cinza" />
                             </span>
                         </label>
-                        <Field label="Preco (R$)" value={form.price} onChange={(value) => updateField("price", normalizarPrecoDigitado(value))} inputMode="decimal" placeholder="Ex: 49,90" />
-                        <Field label="Tempo de preparo" value={form.preparationTime} onChange={(value) => updateField("preparationTime", value.replace(/\D/g, "").slice(0, 3))} inputMode="numeric" placeholder="30" />
+                        <Field label="Preco (R$)" value={form.price} onChange={(value) => updateField("price", normalizarPrecoDigitado(value))} inputMode="decimal" placeholder="Ex: 49,90" required />
+                        <Field label="Tempo de preparo (min)" value={form.preparationTime} onChange={(value) => updateField("preparationTime", value.replace(/\D/g, "").slice(0, 3))} inputMode="numeric" placeholder="30" required min="1" max="999" />
                         <Field label="Ordem" value={form.displayOrder} onChange={(value) => updateField("displayOrder", value.replace(/\D/g, "").slice(0, 4))} inputMode="numeric" placeholder="0" />
                     </div>
 

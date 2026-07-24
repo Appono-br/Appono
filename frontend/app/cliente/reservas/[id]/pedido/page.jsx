@@ -20,6 +20,16 @@ function formatarData(data) {
     }).format(new Date(`${data}T12:00:00`));
 }
 
+const LIMITE_UNIDADES_POR_ITEM = 10;
+const statusPedido = {
+    PENDENTE: "Pedido recebido",
+    CONFIRMADO: "Pedido confirmado",
+    EM_PREPARO: "Em preparo",
+    PRONTO: "Pronto para sua chegada",
+    ENTREGUE: "Entregue",
+    CANCELADO: "Cancelado",
+};
+
 function Icon({ type, className = "h-5 w-5" }) {
     const paths = {
         clock: "M12 6v6l4 2M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z",
@@ -49,6 +59,7 @@ export default function PaginaPedidoAntecipado({ params }) {
     const [reservaId, setReservaId] = useState(null);
     const [dados, setDados] = useState(null);
     const [quantidades, setQuantidades] = useState({});
+    const [observacoesItens, setObservacoesItens] = useState({});
     const [observacoes, setObservacoes] = useState("");
     const [mensagem, setMensagem] = useState("Carregando cardapio...");
     const [enviando, setEnviando] = useState(false);
@@ -92,15 +103,27 @@ export default function PaginaPedidoAntecipado({ params }) {
     const total = produtosSelecionados.reduce((soma, produto) => soma + Number(produto.preco) * produto.quantidade, 0);
     const maiorTempoPreparo = produtosSelecionados.reduce((maior, produto) => Math.max(maior, Number(produto.tempo_preparo_minutos ?? 30)), 0);
     const pedidoAtivo = dados?.reserva.pedidos?.find((pedido) => ["PENDENTE", "CONFIRMADO", "EM_PREPARO", "PRONTO"].includes(pedido.status_pedido));
+    const reservaConfirmada = dados?.reserva.status_reserva === "CONFIRMADA";
     const itensPedidoAtivo = pedidoAtivo?.itens_pedido ?? [];
     const totalItensPedidoAtivo = itensPedidoAtivo.reduce((soma, item) => soma + Number(item.quantidade ?? 0), 0);
     const maiorTempoPedidoAtivo = itensPedidoAtivo.reduce((maior, item) => Math.max(maior, Number(item.produtos?.tempo_preparo_minutos ?? 0)), 0);
 
     function alterarQuantidade(produtoId, diferenca) {
         setMensagem("");
-        setQuantidades((atuais) => ({
+        setQuantidades((atuais) => {
+            const proximaQuantidade = Math.min(LIMITE_UNIDADES_POR_ITEM, Math.max(0, (atuais[produtoId] ?? 0) + diferenca));
+            return {
+                ...atuais,
+                [produtoId]: proximaQuantidade,
+            };
+        });
+    }
+
+    function alterarObservacaoItem(produtoId, valor) {
+        setMensagem("");
+        setObservacoesItens((atuais) => ({
             ...atuais,
-            [produtoId]: Math.max(0, (atuais[produtoId] ?? 0) + diferenca),
+            [produtoId]: valor.slice(0, 180),
         }));
     }
 
@@ -108,9 +131,14 @@ export default function PaginaPedidoAntecipado({ params }) {
         if (!reservaId) {
             return;
         }
+        if (!reservaConfirmada) {
+            setMensagem("O pedido antecipado so pode ser criado para uma reserva confirmada.");
+            return;
+        }
         const itens = produtosSelecionados.map((produto) => ({
             id_produto: produto.id_produto,
             quantidade: produto.quantidade,
+            observacoes: observacoesItens[produto.id_produto]?.trim() || null,
         }));
         if (!itens.length) {
             setMensagem("Escolha ao menos um item do cardapio.");
@@ -180,7 +208,7 @@ export default function PaginaPedidoAntecipado({ params }) {
                                     </p>
                                 </div>
                                 <span className="rounded-full bg-app-cafe-profundo px-4 py-2 text-xs font-bold uppercase text-app-creme-leve">
-                                    {pedidoAtivo.status_pedido}
+                                    {statusPedido[pedidoAtivo.status_pedido] ?? pedidoAtivo.status_pedido}
                                 </span>
                             </div>
 
@@ -235,7 +263,7 @@ export default function PaginaPedidoAntecipado({ params }) {
                             <div className="mt-5 grid gap-3 border-t border-app-baunilha-dourada pt-5 text-sm">
                                 <div className="flex justify-between gap-4">
                                     <span className="text-app-mocha">Status</span>
-                                    <strong>{pedidoAtivo.status_pedido}</strong>
+                                    <strong>{statusPedido[pedidoAtivo.status_pedido] ?? pedidoAtivo.status_pedido}</strong>
                                 </div>
                                 <div className="flex justify-between gap-4">
                                     <span className="text-app-mocha">Tempo estimado</span>
@@ -318,10 +346,26 @@ export default function PaginaPedidoAntecipado({ params }) {
                                                             <Icon type="minus" className="h-4 w-4" />
                                                         </button>
                                                         <span className="min-w-8 text-center text-lg font-bold">{quantidade}</span>
-                                                        <button type="button" onClick={() => alterarQuantidade(produto.id_produto, 1)} className="flex h-10 w-10 items-center justify-center rounded-full bg-app-dourado-mel text-white transition hover:bg-app-caramelo-torrado">
+                                                        <button type="button" onClick={() => alterarQuantidade(produto.id_produto, 1)} disabled={quantidade >= LIMITE_UNIDADES_POR_ITEM} className="flex h-10 w-10 items-center justify-center rounded-full bg-app-dourado-mel text-white transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-45">
                                                             <Icon type="plus" className="h-4 w-4" />
                                                         </button>
                                                     </div>
+                                                    {quantidade > 0 ? (
+                                                        <label className="grid gap-2 sm:col-span-3">
+                                                            <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-app-cinza">
+                                                                Observacao deste item
+                                                            </span>
+                                                            <input
+                                                                value={observacoesItens[produto.id_produto] ?? ""}
+                                                                onChange={(evento) => alterarObservacaoItem(produto.id_produto, evento.target.value)}
+                                                                placeholder="Ex: sem cebola, molho separado, ponto da carne..."
+                                                                className="h-10 rounded-[8px] border border-app-baunilha-dourada bg-app-chantilly px-3 text-sm text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado"
+                                                            />
+                                                            <span className="text-[11px] text-app-cinza">
+                                                                Limite de {LIMITE_UNIDADES_POR_ITEM} unidades por item.
+                                                            </span>
+                                                        </label>
+                                                    ) : null}
                                                 </div>
                                             );
                                         })}
@@ -350,9 +394,16 @@ export default function PaginaPedidoAntecipado({ params }) {
                             <div className="mt-5 grid gap-2">
                                 {produtosSelecionados.length ? produtosSelecionados.map((produto) => (
                                     <div key={produto.id_produto} className="grid grid-cols-[1fr_auto] gap-3 rounded-[8px] bg-app-creme-suave p-3 text-sm">
-                                        <span>
-                                            <strong>{produto.quantidade}x</strong> {produto.nome}
-                                        </span>
+                                        <div>
+                                            <span>
+                                                <strong>{produto.quantidade}x</strong> {produto.nome}
+                                            </span>
+                                            {observacoesItens[produto.id_produto]?.trim() ? (
+                                                <p className="mt-1 text-xs text-app-cinza">
+                                                    Obs.: {observacoesItens[produto.id_produto].trim()}
+                                                </p>
+                                            ) : null}
+                                        </div>
                                         <strong>{formatarMoeda(Number(produto.preco) * produto.quantidade)}</strong>
                                     </div>
                                 )) : (
@@ -378,7 +429,12 @@ export default function PaginaPedidoAntecipado({ params }) {
                                 </div>
                             </div>
 
-                            <button type="button" onClick={criarPedido} disabled={enviando || total <= 0} className="mt-5 h-12 w-full rounded-[8px] bg-app-dourado-mel text-xs font-bold uppercase tracking-wide text-white transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-50">
+                            {!reservaConfirmada ? (
+                                <p className="mt-5 rounded-[8px] bg-app-creme-suave p-3 text-sm font-semibold text-app-caramelo-torrado">
+                                    O pedido antecipado fica disponivel apenas para reservas confirmadas.
+                                </p>
+                            ) : null}
+                            <button type="button" onClick={criarPedido} disabled={enviando || total <= 0 || !reservaConfirmada} className="mt-5 h-12 w-full rounded-[8px] bg-app-dourado-mel text-xs font-bold uppercase tracking-wide text-white transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-50">
                                 {enviando ? "Confirmando..." : "Confirmar pedido antecipado"}
                             </button>
                             {mensagem ? <p className="mt-3 text-sm font-semibold text-app-caramelo-torrado">{mensagem}</p> : null}

@@ -99,7 +99,9 @@ exports.reservationsRouter.post("/", async (req, res) => {
     if (error) {
         const mensagem = error.message.includes("Nao ha mesa disponivel")
             ? "Nao ha mesa disponivel para este horario e quantidade de pessoas."
-            : error.message;
+            : error.message.includes("Cliente ja possui reserva ativa neste horario")
+                ? "Voce ja possui uma reserva ativa nesse dia e horario."
+                : error.message;
         return res.status(409).json({ error: mensagem });
     }
     return res.status(201).json(data);

@@ -121,6 +121,8 @@ export default function RestaurantReservationsPage() {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [reservas, setReservas] = useState([]);
     const [filtroPedido, setFiltroPedido] = useState("TODOS");
+    const [reservaParaCancelar, setReservaParaCancelar] = useState(null);
+    const [cancelandoReserva, setCancelandoReserva] = useState(false);
     const [mensagem, setMensagem] = useState("");
     const isRestaurant = session?.type === "restaurant";
 
@@ -137,6 +139,7 @@ export default function RestaurantReservationsPage() {
     }, [isRestaurant]);
 
     async function cancelarReserva(id) {
+        setCancelandoReserva(true);
         try {
             const atualizada = await apiRequest(`/reservas/${id}/cancelar`, {
                 method: "PATCH",
@@ -146,8 +149,12 @@ export default function RestaurantReservationsPage() {
                 atuais.map((reserva) => (reserva.id_reserva === id ? { ...reserva, ...atualizada } : reserva)),
             );
             setMensagem("Reserva desmarcada.");
+            setReservaParaCancelar(null);
         } catch (erro) {
             setMensagem(erro instanceof Error ? erro.message : "Nao foi possivel desmarcar a reserva.");
+        }
+        finally {
+            setCancelandoReserva(false);
         }
     }
 
@@ -346,6 +353,8 @@ export default function RestaurantReservationsPage() {
                                                     {reserva.pedidos.map((pedido) => {
                                                         const acao = obterProximaAcaoPedido(pedido.status_pedido);
                                                         const pedidoCancelado = pedido.status_pedido === "CANCELADO";
+                                                        const totalItensPedido = (pedido.itens_pedido ?? []).reduce((soma, item) => soma + Number(item.quantidade ?? 0), 0);
+                                                        const maiorTempoPedido = (pedido.itens_pedido ?? []).reduce((maior, item) => Math.max(maior, Number(item.produtos?.tempo_preparo_minutos ?? 0)), 0);
 
                                                         return (
                                                             <div
@@ -365,6 +374,23 @@ export default function RestaurantReservationsPage() {
                                                                         {obterStatusPedido(pedido.status_pedido)}
                                                                     </span>
                                                                 </div>
+
+                                                                <div className="mt-4 grid gap-2 text-xs font-semibold text-app-mocha sm:grid-cols-3">
+                                                                    <span className="rounded-[8px] bg-app-creme-leve px-3 py-2 ring-1 ring-app-baunilha-dourada/45">
+                                                                        {totalItensPedido} itens
+                                                                    </span>
+                                                                    <span className="rounded-[8px] bg-app-creme-leve px-3 py-2 ring-1 ring-app-baunilha-dourada/45">
+                                                                        Preparo estimado: {maiorTempoPedido || "--"} min
+                                                                    </span>
+                                                                    <span className="rounded-[8px] bg-app-creme-leve px-3 py-2 ring-1 ring-app-baunilha-dourada/45">
+                                                                        Entrega: {pedido.horario_entrega_previsto ? String(pedido.horario_entrega_previsto).slice(11, 16) : reserva.horario_inicio?.slice(0, 5)}
+                                                                    </span>
+                                                                </div>
+                                                                {pedido.iniciar_preparo_em ? (
+                                                                    <p className="mt-3 rounded-[8px] bg-app-cafe-profundo px-3 py-2 text-xs font-semibold text-app-creme-leve">
+                                                                        Sugestao: iniciar preparo as {String(pedido.iniciar_preparo_em).slice(11, 16)} para o pedido estar pronto no horario da reserva.
+                                                                    </p>
+                                                                ) : null}
 
                                                                 {pedidoCancelado ? (
                                                                     <p className="mt-4 rounded-[8px] bg-app-chantilly px-3 py-2 text-xs font-semibold text-app-vermelho-erro ring-1 ring-app-vermelho-erro/20">
@@ -425,7 +451,7 @@ export default function RestaurantReservationsPage() {
                                             {["PENDENTE", "CONFIRMADA"].includes(reserva.status_reserva) ? (
                                                 <button
                                                     type="button"
-                                                    onClick={() => cancelarReserva(reserva.id_reserva)}
+                                                    onClick={() => setReservaParaCancelar(reserva)}
                                                     className="h-9 rounded-[8px] border border-app-vermelho-erro/40 px-3 text-xs font-bold text-app-vermelho-erro transition hover:bg-app-vermelho-erro hover:text-white"
                                                 >
                                                     Desmarcar
@@ -455,6 +481,53 @@ export default function RestaurantReservationsPage() {
                     )}
                 </section>
             </section>
+
+            {reservaParaCancelar ? (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-app-cafe-profundo/70 px-5 backdrop-blur-sm">
+                    <section className="w-full max-w-md rounded-[16px] bg-app-creme-leve p-6 text-app-cafe-profundo shadow-xl ring-1 ring-app-baunilha-dourada/70">
+                        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">
+                            Cancelamento de reserva
+                        </p>
+                        <h2 className="mt-3 text-2xl font-semibold">
+                            Deseja desmarcar esta reserva?
+                        </h2>
+                        <p className="mt-3 text-sm leading-6 text-app-mocha">
+                            Ao confirmar, esta reserva sera marcada como cancelada para o cliente e sairá do fluxo ativo de atendimento.
+                        </p>
+                        {reservaParaCancelar.pedidos?.some((pedido) => ["PENDENTE", "CONFIRMADO"].includes(pedido.status_pedido)) ? (
+                            <p className="mt-3 rounded-[10px] bg-app-chantilly p-3 text-sm font-semibold leading-6 text-app-cafe-profundo ring-1 ring-app-baunilha-dourada/60">
+                                Existe pedido antecipado vinculado. Se ele ainda nao entrou em preparo, o sistema tambem marcara o pedido como cancelado.
+                            </p>
+                        ) : null}
+                        <div className="mt-6 rounded-[10px] bg-app-chantilly p-4 ring-1 ring-app-baunilha-dourada/60">
+                            <p className="text-sm font-semibold">
+                                {reservaParaCancelar.clientes?.nome ?? "Cliente"}
+                            </p>
+                            <p className="mt-1 text-xs text-app-cinza">
+                                {reservaParaCancelar.data_reserva} - {reservaParaCancelar.horario_inicio} ate {reservaParaCancelar.horario_fim} - {reservaParaCancelar.quantidade_pessoas} pessoas
+                            </p>
+                        </div>
+                        <div className="mt-6 grid gap-3 sm:grid-cols-2">
+                            <button
+                                type="button"
+                                onClick={() => setReservaParaCancelar(null)}
+                                disabled={cancelandoReserva}
+                                className="h-11 rounded-[8px] border border-app-baunilha-dourada px-4 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:bg-app-chantilly disabled:cursor-not-allowed disabled:text-app-cinza"
+                            >
+                                Manter reserva
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => cancelarReserva(reservaParaCancelar.id_reserva)}
+                                disabled={cancelandoReserva}
+                                className="h-11 rounded-[8px] bg-app-vermelho-erro px-4 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-app-cafe-profundo disabled:cursor-not-allowed disabled:bg-app-cinza/50"
+                            >
+                                {cancelandoReserva ? "Cancelando..." : "Confirmar cancelamento"}
+                            </button>
+                        </div>
+                    </section>
+                </div>
+            ) : null}
 
             <footer className="border-t border-app-cacau-intenso/20 bg-app-cafe-profundo px-5 py-7 text-app-creme-leve">
                 <div className="mx-auto flex max-w-7xl flex-col items-center gap-5 text-center sm:flex-row sm:justify-between">

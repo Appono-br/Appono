@@ -457,15 +457,21 @@ export default function RestaurantMenuManagementPage() {
                         ))}
                     </section>
                 ) : (
-                    <section className="mt-10 rounded-[8px] bg-app-creme-leve p-6 shadow-sm ring-1 ring-app-baunilha-dourada/60 sm:p-8">
-                        <div className="flex items-center gap-3">
-                            <span className="flex h-11 w-11 items-center justify-center rounded-[8px] bg-app-baunilha-dourada text-app-caramelo-torrado">
+                    <section className="mt-10 overflow-hidden rounded-[14px] bg-app-creme-leve shadow-sm ring-1 ring-app-baunilha-dourada/60">
+                        <div className="grid gap-5 p-6 sm:grid-cols-[auto_1fr_auto] sm:items-center sm:p-8">
+                            <span className="flex h-14 w-14 items-center justify-center rounded-[12px] bg-app-cafe-profundo text-app-creme-leve">
                                 <Icon type="utensils" />
                             </span>
                             <div>
-                                <h2 className="text-2xl font-medium text-app-cafe-profundo">Cardapio sem itens cadastrados</h2>
-                                <p className="mt-1 text-sm text-app-cinza">Use o botao de adicionar item para publicar o primeiro prato.</p>
+                                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">Comece pelo essencial</p>
+                                <h2 className="mt-2 text-2xl font-bold text-app-cafe-profundo">Cadastre seu primeiro item</h2>
+                                <p className="mt-2 max-w-2xl text-sm leading-6 text-app-mocha">
+                                    Adicione nome, categoria, preco, tempo de preparo e, se quiser, uma imagem. Quando publicado, o item ja aparece para o cliente na pagina do restaurante.
+                                </p>
                             </div>
+                            <Link href="/restaurante/cardapio/editar" className="inline-flex h-11 items-center justify-center rounded-[8px] bg-app-dourado-mel px-5 text-xs font-bold uppercase text-white transition hover:bg-app-caramelo-torrado sm:justify-self-end">
+                                Cadastrar item
+                            </Link>
                         </div>
                     </section>
                 )}
@@ -475,16 +481,16 @@ export default function RestaurantMenuManagementPage() {
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-app-cafe-profundo/55 px-5 backdrop-blur-sm">
                     <section className="w-full max-w-md rounded-[14px] bg-app-creme-leve p-6 text-app-cafe-profundo shadow-2xl ring-1 ring-app-baunilha-dourada">
                         <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">Confirmar exclusao</p>
-                        <h2 className="mt-3 text-2xl font-bold">Excluir item do cardapio?</h2>
+                        <h2 className="mt-3 text-2xl font-bold">Remover item do cardapio?</h2>
                         <p className="mt-3 text-sm leading-6 text-app-mocha">
-                            O item <strong>{produtoParaExcluir.nome}</strong> sera removido do cardapio. Se ele ja estiver vinculado a um pedido, o sistema pode bloquear a exclusao para preservar historico.
+                            O item <strong>{produtoParaExcluir.nome}</strong> sera excluido se ainda nao tiver pedidos. Se ja existir historico, ele sera arquivado e deixara de aparecer para o cliente.
                         </p>
                         <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
                             <button type="button" onClick={() => setProdutoParaExcluir(null)} className="h-11 rounded-[8px] border border-app-baunilha-dourada px-5 text-xs font-bold uppercase text-app-mocha transition hover:bg-app-creme-suave">
                                 Cancelar
                             </button>
                             <button type="button" onClick={excluirProduto} disabled={produtoExcluindoId === produtoParaExcluir.id_produto} className="h-11 rounded-[8px] bg-app-cafe-profundo px-5 text-xs font-bold uppercase text-app-creme-leve transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-60">
-                                {produtoExcluindoId === produtoParaExcluir.id_produto ? "Excluindo..." : "Excluir item"}
+                                {produtoExcluindoId === produtoParaExcluir.id_produto ? "Removendo..." : "Remover item"}
                             </button>
                         </div>
                     </section>
