@@ -21,6 +21,7 @@ function adicionarDuasHoras(horario) {
 export default function PaginaRestaurante({ params, }) {
     const [restauranteId, setRestauranteId] = useState(null);
     const [restaurante, setRestaurante] = useState(null);
+    const [cardapios, setCardapios] = useState([]);
     const [data, setData] = useState(obterDataInicial);
     const [horario, setHorario] = useState("19:00");
     const [pessoas, setPessoas] = useState(2);
@@ -34,14 +35,24 @@ export default function PaginaRestaurante({ params, }) {
     useEffect(() => {
         if (!restauranteId)
             return;
-        apiRequest(`/restaurantes/${restauranteId}`)
-            .then((dados) => {
-            setRestaurante(dados);
+        Promise.all([
+            apiRequest(`/restaurantes/${restauranteId}`),
+            apiRequest(`/restaurantes/${restauranteId}/cardapio`),
+        ])
+            .then(([dadosRestaurante, dadosCardapio]) => {
+            setRestaurante(dadosRestaurante);
+            setCardapios(dadosCardapio ?? []);
             setMensagem("");
         })
             .catch((erro) => setMensagem(erro instanceof Error ? erro.message : "Nao foi possivel carregar o restaurante."));
     }, [restauranteId]);
     const valorTotal = useMemo(() => (restaurante?.valor_minimo_reserva_por_pessoa ?? 0) * pessoas, [pessoas, restaurante]);
+    const produtosPorCategoria = useMemo(() => {
+        return cardapios.flatMap((cardapio) => (cardapio.categorias ?? []).map((categoria) => ({
+            ...categoria,
+            produtos: categoria.produtos ?? [],
+        }))).filter((categoria) => categoria.produtos.length > 0);
+    }, [cardapios]);
     async function reservar(event) {
         event.preventDefault();
         if (!restaurante || !aceitouCondicao) {
@@ -95,6 +106,57 @@ export default function PaginaRestaurante({ params, }) {
 
         <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_0.72fr]">
           <section className="rounded-[12px] bg-app-creme-leve p-6 shadow-sm ring-1 ring-app-baunilha-dourada">
+            <h2 className="text-2xl font-semibold">Cardapio</h2>
+            {produtosPorCategoria.length ? (
+              <div className="mt-5 grid gap-7">
+                {produtosPorCategoria.map((categoria) => (
+                  <div key={categoria.id_categoria}>
+                    <h3 className="text-xs font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">
+                      {categoria.nome}
+                    </h3>
+                    <div className="mt-3 grid gap-3">
+                      {categoria.produtos.map((produto) => (
+                        <article key={produto.id_produto} className="grid gap-4 rounded-[10px] bg-app-creme-suave p-3 ring-1 ring-app-baunilha-dourada/55 sm:grid-cols-[112px_1fr]">
+                          <div className="relative h-28 overflow-hidden rounded-[8px] bg-app-baunilha-dourada/45">
+                            {produto.imagem_url ? (
+                              <Image src={produto.imagem_url} alt={produto.nome} fill className="object-cover"/>
+                            ) : (
+                              <span className="flex h-full items-center justify-center text-xs font-bold uppercase text-app-caramelo-torrado">
+                                Appono
+                              </span>
+                            )}
+                          </div>
+                          <div>
+                            <div className="flex flex-wrap items-start justify-between gap-3">
+                              <div>
+                                <h4 className="text-lg font-bold text-app-cafe-profundo">{produto.nome}</h4>
+                                {produto.destaque ? (
+                                  <span className="mt-1 inline-flex rounded-full bg-app-cafe-profundo px-2.5 py-1 text-[10px] font-bold uppercase text-app-creme-leve">
+                                    Destaque
+                                  </span>
+                                ) : null}
+                              </div>
+                              <strong className="text-base text-app-caramelo-torrado">{formatarMoeda(Number(produto.preco ?? 0))}</strong>
+                            </div>
+                            {produto.descricao ? <p className="mt-2 text-sm leading-6 text-app-mocha">{produto.descricao}</p> : null}
+                            <p className="mt-2 text-xs font-semibold text-app-cinza">
+                              {produto.tempo_preparo_minutos ?? 30} min de preparo
+                            </p>
+                          </div>
+                        </article>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="mt-3 rounded-[8px] bg-app-creme-suave p-4 text-sm leading-6 text-app-mocha">
+                Este restaurante ainda nao publicou itens no cardapio.
+              </p>
+            )}
+          </section>
+
+          <section className="rounded-[12px] bg-app-creme-leve p-6 shadow-sm ring-1 ring-app-baunilha-dourada lg:row-start-2">
             <h2 className="text-2xl font-semibold">Sobre a experiencia</h2>
             <p className="mt-3 text-sm leading-6 text-app-mocha">
               Reserve sua mesa para uma visita de duas horas. A reserva sera confirmada automaticamente quando houver uma mesa disponivel.
@@ -107,7 +169,7 @@ export default function PaginaRestaurante({ params, }) {
             </div>
           </section>
 
-          <form onSubmit={reservar} className="rounded-[12px] bg-app-creme-leve p-6 shadow-sm ring-1 ring-app-baunilha-dourada">
+          <form onSubmit={reservar} className="rounded-[12px] bg-app-creme-leve p-6 shadow-sm ring-1 ring-app-baunilha-dourada lg:row-span-2">
             <h2 className="text-xl font-semibold">Reservar mesa</h2>
             <div className="mt-5 grid gap-4 sm:grid-cols-2">
               <label className="grid gap-1 text-xs font-bold">Data<input type="date" min={obterDataInicial()} value={data} onChange={(e) => setData(e.target.value)} className="h-11 rounded-[8px] border border-app-baunilha-dourada bg-app-chantilly px-3 text-sm"/></label>

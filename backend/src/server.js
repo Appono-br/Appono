@@ -9,6 +9,7 @@ const { ordersRouter } = require("./routes/orders");
 const { reservationsRouter } = require("./routes/reservations");
 const { restaurantsRouter } = require("./routes/restaurants");
 const { rotasValidacoes } = require("./routes/validacoes");
+const { menuRouter } = require("./routes/menu");
 
 dotenv.config();
 
@@ -46,6 +47,7 @@ app.use("/api/restaurantes", restaurantsRouter);
 app.use("/api/reservas", reservationsRouter);
 app.use("/api/pedidos", ordersRouter);
 app.use("/api/validacoes", rotasValidacoes);
+app.use("/api/cardapio", menuRouter);
 
 if (require.main === module) {
     app.listen(PORT, () => {

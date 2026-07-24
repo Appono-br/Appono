@@ -132,7 +132,12 @@ export function RegisterRestaurantForm() {
             await persistAuthResponse(response);
             if (response.session) {
                 if (imagem) {
-                    await enviarImagemRestaurante(imagem, response.session);
+                    try {
+                        await enviarImagemRestaurante(imagem, response.session);
+                    }
+                    catch (error) {
+                        console.warn("Nao foi possivel enviar a imagem do restaurante.", error);
+                    }
                 }
                 window.location.href = getDashboardPath(response.tipo);
                 return;
