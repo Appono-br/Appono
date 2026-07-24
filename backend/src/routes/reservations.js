@@ -29,6 +29,7 @@ function organizarCardapios(cardapios) {
             .filter((categoria) => categoria.produtos.length > 0),
     }));
 }
+
 exports.reservationsRouter.get("/", async (_req, res) => {
     const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
     const { data: cliente } = await supabase
@@ -36,12 +37,13 @@ exports.reservationsRouter.get("/", async (_req, res) => {
         .select("id_cliente")
         .maybeSingle();
     const colunaOcultacao = cliente ? "ocultada_cliente" : "ocultada_restaurante";
-    const { data, error } = await supabase
+    const consultaReservas = supabase
         .from("reservas")
         .select("*, restaurantes(nome, endereco), clientes(nome, telefone), mesas(numero_mesa, capacidade)")
         .eq(colunaOcultacao, false)
         .order("data_reserva", { ascending: true })
         .order("horario_inicio", { ascending: true });
+    const { data, error } = await consultaReservas;
     if (error) {
         return res.status(400).json({ error: error.message });
     }
@@ -59,7 +61,8 @@ exports.reservationsRouter.get("/", async (_req, res) => {
     }
     return res.json(reservas.map((reserva) => ({
         ...reserva,
-        pedidos: (pedidos ?? []).filter((pedido) => pedido.id_reserva === reserva.id_reserva),
+        pedidos: (pedidos ?? []).filter((pedido) => pedido.id_reserva === reserva.id_reserva &&
+            (cliente || pedido.status_pedido !== "PENDENTE")),
     })));
 });
 exports.reservationsRouter.patch("/:id/ocultar", async (req, res) => {
@@ -104,7 +107,19 @@ exports.reservationsRouter.post("/", async (req, res) => {
                 : error.message;
         return res.status(409).json({ error: mensagem });
     }
-    return res.status(201).json(data);
+    const clienteAtualizacao = supabase_1.supabaseAdmin ?? supabase;
+    const { data: reservaConfirmada, error: atualizacaoError } = await clienteAtualizacao
+        .from("reservas")
+        .update({ status_reserva: "CONFIRMADA" })
+        .eq("id_reserva", data.id_reserva)
+        .select("*")
+        .single();
+    if (atualizacaoError) {
+        return res.status(400).json({
+            error: "A reserva foi criada, mas nao foi possivel confirma-la.",
+        });
+    }
+    return res.status(201).json(reservaConfirmada);
 });
 exports.reservationsRouter.get("/:id/cardapio", async (req, res) => {
     const reservationId = Number(req.params.id);
@@ -114,7 +129,7 @@ exports.reservationsRouter.get("/:id/cardapio", async (req, res) => {
     }
     const { data: reserva, error: reservaError } = await supabase
         .from("reservas")
-        .select("id_reserva, id_restaurante, data_reserva, horario_inicio, status_reserva, restaurantes(nome)")
+        .select("id_reserva, id_restaurante, data_reserva, horario_inicio, status_reserva, valor_minimo_total, restaurantes(nome)")
         .eq("id_reserva", reservationId)
         .maybeSingle();
     if (reservaError) {

@@ -22,7 +22,7 @@ function formatarData(data) {
 
 const LIMITE_UNIDADES_POR_ITEM = 10;
 const statusPedido = {
-    PENDENTE: "Pedido recebido",
+    PENDENTE: "Aguardando pagamento",
     CONFIRMADO: "Pedido confirmado",
     EM_PREPARO: "Em preparo",
     PRONTO: "Pronto para sua chegada",
@@ -101,6 +101,8 @@ export default function PaginaPedidoAntecipado({ params }) {
     const produtosSelecionados = useMemo(() => obterProdutosSelecionados(produtos, quantidades), [produtos, quantidades]);
     const totalItens = produtosSelecionados.reduce((soma, produto) => soma + produto.quantidade, 0);
     const total = produtosSelecionados.reduce((soma, produto) => soma + Number(produto.preco) * produto.quantidade, 0);
+    const consumoMinimo = Number(dados?.reserva?.valor_minimo_total ?? 0);
+    const faltaParaMinimo = Math.max(0, consumoMinimo - total);
     const maiorTempoPreparo = produtosSelecionados.reduce((maior, produto) => Math.max(maior, Number(produto.tempo_preparo_minutos ?? 30)), 0);
     const pedidoAtivo = dados?.reserva.pedidos?.find((pedido) => ["PENDENTE", "CONFIRMADO", "EM_PREPARO", "PRONTO"].includes(pedido.status_pedido));
     const reservaConfirmada = dados?.reserva.status_reserva === "CONFIRMADA";
@@ -144,14 +146,24 @@ export default function PaginaPedidoAntecipado({ params }) {
             setMensagem("Escolha ao menos um item do cardapio.");
             return;
         }
+        if (faltaParaMinimo > 0) {
+            setMensagem(`O pedido precisa atingir o consumo minimo. Ainda faltam ${formatarMoeda(faltaParaMinimo)}.`);
+            return;
+        }
         setEnviando(true);
         setMensagem("");
         try {
-            await apiRequest("/pedidos", {
+            const pedidoCriado = await apiRequest("/pedidos", {
                 method: "POST",
                 body: JSON.stringify({ id_reserva: reservaId, itens, observacoes }),
             });
-            window.location.assign("/cliente/reservas");
+            const preferencia = await apiRequest(`/pagamentos/pedido/${pedidoCriado.id_pedido}/preferencia`, {
+                method: "POST",
+            });
+            if (!preferencia.checkout_url) {
+                throw new Error("Nao foi possivel abrir o checkout de pagamento.");
+            }
+            window.location.assign(preferencia.checkout_url);
         }
         catch (erro) {
             setMensagem(erro instanceof Error ? erro.message : "Nao foi possivel criar o pedido.");
@@ -204,7 +216,7 @@ export default function PaginaPedidoAntecipado({ params }) {
                                     <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">Pedido registrado</p>
                                     <h2 className="mt-2 text-3xl font-bold">Itens escolhidos pelo cliente</h2>
                                     <p className="mt-3 max-w-2xl text-sm leading-6 text-app-mocha">
-                                        Este pedido esta vinculado a reserva e ja aparece para o restaurante acompanhar o preparo.
+                                        Este pedido esta vinculado a reserva. Ele so aparece como confirmado para preparo depois da aprovacao do pagamento.
                                     </p>
                                 </div>
                                 <span className="rounded-full bg-app-cafe-profundo px-4 py-2 text-xs font-bold uppercase text-app-creme-leve">
@@ -420,6 +432,10 @@ export default function PaginaPedidoAntecipado({ params }) {
 
                             <div className="mt-5 grid gap-3 border-t border-app-baunilha-dourada pt-5">
                                 <div className="flex items-center justify-between text-sm">
+                                    <span className="text-app-mocha">Consumo minimo</span>
+                                    <strong>{formatarMoeda(consumoMinimo)}</strong>
+                                </div>
+                                <div className="flex items-center justify-between text-sm">
                                     <span className="text-app-mocha">Tempo estimado</span>
                                     <strong>{maiorTempoPreparo || 0} min</strong>
                                 </div>
@@ -434,8 +450,13 @@ export default function PaginaPedidoAntecipado({ params }) {
                                     O pedido antecipado fica disponivel apenas para reservas confirmadas.
                                 </p>
                             ) : null}
-                            <button type="button" onClick={criarPedido} disabled={enviando || total <= 0 || !reservaConfirmada} className="mt-5 h-12 w-full rounded-[8px] bg-app-dourado-mel text-xs font-bold uppercase tracking-wide text-white transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-50">
-                                {enviando ? "Confirmando..." : "Confirmar pedido antecipado"}
+                            {faltaParaMinimo > 0 && total > 0 ? (
+                                <p className="mt-5 rounded-[8px] bg-app-creme-suave p-3 text-sm font-semibold text-app-caramelo-torrado">
+                                    Faltam {formatarMoeda(faltaParaMinimo)} para atingir o consumo minimo da reserva.
+                                </p>
+                            ) : null}
+                            <button type="button" onClick={criarPedido} disabled={enviando || total <= 0 || !reservaConfirmada || faltaParaMinimo > 0} className="mt-5 h-12 w-full rounded-[8px] bg-app-dourado-mel text-xs font-bold uppercase tracking-wide text-white transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-50">
+                                {enviando ? "Abrindo pagamento..." : "Pagar pedido antecipado"}
                             </button>
                             {mensagem ? <p className="mt-3 text-sm font-semibold text-app-caramelo-torrado">{mensagem}</p> : null}
                         </aside>

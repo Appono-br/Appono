@@ -53,6 +53,9 @@ function formatarHorario(horario) {
     return horario.slice(0, 5);
 }
 function obterStatusReserva(status) {
+    if (status === "PENDENTE") {
+        return { texto: "Pendente", classe: "bg-app-cafe-profundo text-app-creme-leve" };
+    }
     if (status === "CONFIRMADA") {
         return { texto: "Confirmada", classe: "bg-app-baunilha-dourada text-app-cafe-profundo" };
     }
@@ -121,10 +124,10 @@ function EmptyReservationPanel() {
         <Icon type="plus" className="h-6 w-6"/>
       </div>
       <h2 className="mt-6 text-2xl font-semibold text-app-cafe-profundo">
-        Planeje sua próxima visita
+        Planeje sua proxima visita
       </h2>
       <p className="mt-4 max-w-lg text-sm leading-6 text-app-cinza sm:text-base">
-        Você ainda não possui reservas confirmadas neste período.
+        Voce ainda nao possui reservas em aberto neste periodo.
       </p>
       <Link href="/cliente/dashboard" className="mt-8 rounded-[8px] bg-app-dourado-mel px-6 py-3 text-xs font-bold uppercase tracking-wide text-white transition hover:bg-app-caramelo-torrado">
         Reservar agora
@@ -143,9 +146,9 @@ export default function ReservationsPage() {
     });
     const calendarDays = useMemo(() => getCalendarDays(period.month, period.year), [period.month, period.year]);
     const reservationDates = useMemo(() => new Set(reservations
-        .filter((reservation) => ["PENDENTE", "CONFIRMADA"].includes(reservation.status))
+        .filter((reservation) => reservation.status === "CONFIRMADA")
         .map((reservation) => reservation.date)), [reservations]);
-    const reservasAtivas = useMemo(() => reservations.filter((reservation) => ["PENDENTE", "CONFIRMADA"].includes(reservation.status)), [reservations]);
+    const reservasConfirmadas = useMemo(() => reservations.filter((reservation) => reservation.status === "CONFIRMADA"), [reservations]);
     useEffect(() => {
         async function loadReservations() {
             try {
@@ -306,11 +309,11 @@ export default function ReservationsPage() {
             </div>
 
             <p className="mt-8 text-base leading-7 text-app-mocha">
-              Você possui{" "}
+              Voce possui{" "}
               <span className="font-bold text-app-caramelo-torrado">
-                {reservasAtivas.length}
+                {reservasConfirmadas.length}
               </span>{" "}
-              reservas confirmadas neste período.
+              reservas confirmadas neste periodo.
             </p>
           </aside>
 

@@ -202,7 +202,7 @@ export default function PaginaRestaurante({ params, }) {
           <section className="rounded-[12px] bg-app-creme-leve p-6 shadow-sm ring-1 ring-app-baunilha-dourada lg:row-start-2">
             <h2 className="text-2xl font-semibold">Sobre a experiencia</h2>
             <p className="mt-3 text-sm leading-6 text-app-mocha">
-              Reserve sua mesa para uma visita de duas horas. A reserva sera confirmada automaticamente quando houver uma mesa disponivel.
+              Reserve sua mesa para uma visita de duas horas. O consumo minimo orienta o valor do pedido antecipado e sera validado quando voce montar o cardapio da reserva.
             </p>
             <div className="mt-6 rounded-[8px] bg-app-creme-suave p-4">
               <p className="text-xs font-bold uppercase text-app-caramelo-torrado">Consumo minimo</p>
@@ -225,10 +225,10 @@ export default function PaginaRestaurante({ params, }) {
             </div>
             <label className="mt-4 flex gap-3 text-xs leading-5 text-app-mocha">
               <input type="checkbox" checked={aceitouCondicao} onChange={(e) => setAceitouCondicao(e.target.checked)}/>
-              Estou ciente de que este valor representa consumo minimo, nao uma cobranca antecipada.
+              Estou ciente de que este valor representa o consumo minimo esperado para o pedido antecipado.
             </label>
             <button type="submit" disabled={enviando} className="mt-5 h-11 w-full rounded-[8px] bg-app-dourado-mel text-xs font-bold uppercase text-white disabled:opacity-60">
-              {enviando ? "Reservando..." : "Confirmar reserva"}
+              {enviando ? "Confirmando reserva..." : "Confirmar reserva"}
             </button>
             {mensagem ? <p className="mt-3 text-sm font-semibold text-app-caramelo-torrado">{mensagem}</p> : null}
           </form>

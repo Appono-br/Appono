@@ -15,7 +15,7 @@ const navItems = [
 
 const statusesAtivos = ["PENDENTE", "CONFIRMADO", "EM_PREPARO", "PRONTO"];
 const etapasPedido = [
-    { status: "PENDENTE", label: "Recebido" },
+    { status: "PENDENTE", label: "Pagamento" },
     { status: "CONFIRMADO", label: "Confirmado" },
     { status: "EM_PREPARO", label: "Em preparo" },
     { status: "PRONTO", label: "Pronto" },
@@ -69,7 +69,7 @@ function formatarHorario(horario) {
 
 function obterStatusPedido(status) {
     const statusMap = {
-        PENDENTE: "Pendente",
+        PENDENTE: "Aguardando pagamento",
         CONFIRMADO: "Confirmado",
         EM_PREPARO: "Em preparo",
         PRONTO: "Pronto para retirada",
@@ -121,6 +121,7 @@ export default function OrderDetailsPage() {
     const [pedidos, setPedidos] = useState([]);
     const [mensagem, setMensagem] = useState("Carregando pedidos...");
     const [cancelando, setCancelando] = useState(false);
+    const [pagando, setPagando] = useState(false);
     const [modalCancelamentoAberto, setModalCancelamentoAberto] = useState(false);
 
     useEffect(() => {
@@ -149,6 +150,7 @@ export default function OrderDetailsPage() {
     const hasPedido = Boolean(pedidoSelecionado);
     const indiceEtapaAtual = obterIndiceEtapa(pedidoSelecionado?.status_pedido);
     const podeCancelarPedido = ["PENDENTE", "CONFIRMADO"].includes(pedidoSelecionado?.status_pedido);
+    const podePagarPedido = pedidoSelecionado?.status_pedido === "PENDENTE";
 
     async function cancelarPedido() {
         if (!pedidoSelecionado || !podeCancelarPedido) {
@@ -169,6 +171,27 @@ export default function OrderDetailsPage() {
         }
         finally {
             setCancelando(false);
+        }
+    }
+
+    async function pagarPedido() {
+        if (!pedidoSelecionado || !podePagarPedido) {
+            return;
+        }
+        setPagando(true);
+        setMensagem("");
+        try {
+            const preferencia = await apiRequest(`/pagamentos/pedido/${pedidoSelecionado.id_pedido}/preferencia`, {
+                method: "POST",
+            });
+            if (!preferencia.checkout_url) {
+                throw new Error("Nao foi possivel abrir o checkout de pagamento.");
+            }
+            window.location.assign(preferencia.checkout_url);
+        }
+        catch (erro) {
+            setMensagem(erro instanceof Error ? erro.message : "Nao foi possivel iniciar o pagamento do pedido.");
+            setPagando(false);
         }
     }
 
@@ -452,6 +475,17 @@ export default function OrderDetailsPage() {
                                     <p className="mt-5 rounded-[8px] bg-app-creme-suave p-3 text-sm font-semibold text-app-caramelo-torrado">
                                         {mensagem}
                                     </p>
+                                ) : null}
+
+                                {podePagarPedido ? (
+                                    <button
+                                        type="button"
+                                        onClick={pagarPedido}
+                                        disabled={pagando}
+                                        className="mt-5 h-11 w-full rounded-[8px] bg-app-dourado-mel px-4 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-60"
+                                    >
+                                        {pagando ? "Abrindo pagamento..." : "Pagar pedido"}
+                                    </button>
                                 ) : null}
 
                                 <button

@@ -3,6 +3,9 @@
 const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
+
+dotenv.config();
+
 const { authRouter } = require("./routes/auth");
 const { meRouter } = require("./routes/me");
 const { ordersRouter } = require("./routes/orders");
@@ -10,8 +13,7 @@ const { reservationsRouter } = require("./routes/reservations");
 const { restaurantsRouter } = require("./routes/restaurants");
 const { rotasValidacoes } = require("./routes/validacoes");
 const { menuRouter } = require("./routes/menu");
-
-dotenv.config();
+const { paymentsRouter } = require("./routes/payments");
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -48,6 +50,7 @@ app.use("/api/reservas", reservationsRouter);
 app.use("/api/pedidos", ordersRouter);
 app.use("/api/validacoes", rotasValidacoes);
 app.use("/api/cardapio", menuRouter);
+app.use("/api/pagamentos", paymentsRouter);
 
 if (require.main === module) {
     app.listen(PORT, () => {

@@ -81,6 +81,16 @@ function obterStatusPedido(status) {
     return statusMap[status] ?? status;
 }
 
+function obterStatusReserva(status) {
+    const statusMap = {
+        PENDENTE: "Pendente",
+        CONFIRMADA: "Confirmada",
+        CANCELADA: "Cancelada",
+        RECUSADA: "Recusada",
+    };
+    return statusMap[status] ?? status;
+}
+
 function obterProximaAcaoPedido(status) {
     if (status === "CONFIRMADO") {
         return {
@@ -345,7 +355,7 @@ export default function RestaurantReservationsPage() {
                                                 <span>Consumo minimo: {formatarMoeda(reserva.valor_minimo_total)}</span>
                                             </div>
                                             <span className="mt-4 inline-flex rounded-full bg-app-creme-suave px-3 py-1 text-xs font-bold uppercase text-app-cafe-profundo ring-1 ring-app-baunilha-dourada/70">
-                                                Reserva {reserva.status_reserva}
+                                                Reserva {obterStatusReserva(reserva.status_reserva)}
                                             </span>
 
                                             {reserva.pedidos?.length ? (

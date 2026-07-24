@@ -4,10 +4,91 @@ exports.ordersRouter = void 0;
 const express_1 = require("express");
 const supabase_1 = require("../lib/supabase");
 const auth_1 = require("../middleware/auth");
+const mercado_pago_1 = require("../services/pagamentos/mercado-pago");
 exports.ordersRouter = (0, express_1.Router)();
 exports.ordersRouter.use(auth_1.requireAuth);
 
 const LIMITE_UNIDADES_POR_ITEM = 10;
+
+function obterStatusPedidoPorPagamento(statusPagamento) {
+    if (statusPagamento === "APROVADO") {
+        return "CONFIRMADO";
+    }
+    if (statusPagamento === "RECUSADO") {
+        return "CANCELADO";
+    }
+    return null;
+}
+
+async function conciliarPedidosPendentes(pedidos) {
+    if (!supabase_1.supabaseAdmin || !(0, mercado_pago_1.obterAccessTokenMercadoPago)()) {
+        return pedidos;
+    }
+    const pedidosPendentes = (pedidos ?? []).filter((pedido) => pedido.status_pedido === "PENDENTE");
+    if (!pedidosPendentes.length) {
+        return pedidos;
+    }
+    const pedidosAtualizados = new Map();
+    for (const pedido of pedidosPendentes) {
+        const referencia = `pedido:${pedido.id_pedido}`;
+        const pagamentoMercadoPago = await (0, mercado_pago_1.consultarPagamentoPorReferenciaMercadoPago)(referencia);
+        if (!pagamentoMercadoPago?.status) {
+            continue;
+        }
+        const statusMapeado = (0, mercado_pago_1.mapearStatusMercadoPago)(pagamentoMercadoPago.status);
+        const statusPedido = obterStatusPedidoPorPagamento(statusMapeado.pagamento);
+        const agora = new Date().toISOString();
+        const pagamentoId = String(pagamentoMercadoPago.id);
+        const { data: pagamentoExistente } = await supabase_1.supabaseAdmin
+            .from("pagamentos")
+            .select("id_pagamento, checkout_url, mercado_pago_preference_id")
+            .eq("referencia_externa", referencia)
+            .maybeSingle();
+        const payloadPagamento = {
+            id_pedido: pedido.id_pedido,
+            id_reserva: pedido.id_reserva ?? null,
+            valor: Number(pagamentoMercadoPago.transaction_amount ?? pedido.valor_total ?? 0),
+            valor_pago: Number(pagamentoMercadoPago.transaction_amount ?? pedido.valor_total ?? 0),
+            status_pagamento: statusMapeado.pagamento,
+            gateway_pagamento: "mercado_pago",
+            provedor: "mercado_pago",
+            referencia_externa: referencia,
+            mercado_pago_payment_id: pagamentoId,
+            id_transacao_gateway: pagamentoId,
+            checkout_url: pagamentoExistente?.checkout_url ?? null,
+            mercado_pago_preference_id: pagamentoExistente?.mercado_pago_preference_id ?? null,
+            atualizado_em: agora,
+            updated_at: agora,
+        };
+        if (statusMapeado.pagamento === "APROVADO") {
+            payloadPagamento.data_pagamento = agora;
+            payloadPagamento.data_aprovacao = agora;
+        }
+        const operacaoPagamento = pagamentoExistente
+            ? supabase_1.supabaseAdmin.from("pagamentos").update(payloadPagamento).eq("id_pagamento", pagamentoExistente.id_pagamento)
+            : supabase_1.supabaseAdmin.from("pagamentos").insert(payloadPagamento);
+        await operacaoPagamento;
+        if (!statusPedido) {
+            continue;
+        }
+        const { data: pedidoAtualizado, error: pedidoError } = await supabase_1.supabaseAdmin
+            .from("pedidos")
+            .update({ status_pedido: statusPedido })
+            .eq("id_pedido", pedido.id_pedido)
+            .select("*")
+            .single();
+        if (!pedidoError && pedidoAtualizado) {
+            pedidosAtualizados.set(pedido.id_pedido, pedidoAtualizado);
+        }
+    }
+    if (!pedidosAtualizados.size) {
+        return pedidos;
+    }
+    return pedidos.map((pedido) => pedidosAtualizados.has(pedido.id_pedido)
+        ? { ...pedido, ...pedidosAtualizados.get(pedido.id_pedido) }
+        : pedido);
+}
+
 exports.ordersRouter.get("/", async (_req, res) => {
     const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
     const { data, error } = await supabase
@@ -17,7 +98,7 @@ exports.ordersRouter.get("/", async (_req, res) => {
     if (error) {
         return res.status(400).json({ error: error.message });
     }
-    const pedidos = data ?? [];
+    const pedidos = await conciliarPedidosPendentes(data ?? []);
     const idsPedidos = pedidos.map((pedido) => pedido.id_pedido);
     if (!idsPedidos.length) {
         return res.json(pedidos);
@@ -92,7 +173,9 @@ exports.ordersRouter.post("/", async (req, res) => {
                     ? "Nao e possivel criar pedido para uma reserva que ja iniciou."
                     : error.message.includes("reserva confirmada")
                         ? "O pedido antecipado exige uma reserva confirmada."
-                        : error.message;
+                        : error.message.includes("consumo minimo")
+                            ? "O pedido precisa atingir o consumo minimo da reserva."
+                            : error.message;
         return res.status(409).json({ error: mensagem });
     }
     return res.status(201).json(data);
