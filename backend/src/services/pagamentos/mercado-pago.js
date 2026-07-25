@@ -1,9 +1,28 @@
 "use strict";
 
+const { MercadoPagoConfig, Preference, Payment } = require("mercadopago");
+
 const MERCADO_PAGO_API = "https://api.mercadopago.com";
 
 function obterAccessTokenMercadoPago() {
     return process.env.MERCADO_PAGO_ACCESS_TOKEN?.trim() ?? "";
+}
+
+function criarClienteMercadoPago(accessToken = obterAccessTokenMercadoPago()) {
+    if (!accessToken) {
+        return null;
+    }
+    return new MercadoPagoConfig({ accessToken });
+}
+
+function criarPreferenciaMercadoPago(accessToken) {
+    const cliente = criarClienteMercadoPago(accessToken);
+    return cliente ? new Preference(cliente) : null;
+}
+
+function criarPagamentoMercadoPago(accessToken) {
+    const cliente = criarClienteMercadoPago(accessToken);
+    return cliente ? new Payment(cliente) : null;
 }
 
 function mapearStatusMercadoPago(status) {
@@ -60,6 +79,9 @@ async function consultarPagamentoPorReferenciaMercadoPago(referencia) {
 module.exports = {
     consultarPagamentoMercadoPago,
     consultarPagamentoPorReferenciaMercadoPago,
+    criarClienteMercadoPago,
+    criarPagamentoMercadoPago,
+    criarPreferenciaMercadoPago,
     mapearStatusMercadoPago,
     obterAccessTokenMercadoPago,
 };

@@ -180,19 +180,7 @@ export default function OrderDetailsPage() {
         }
         setPagando(true);
         setMensagem("");
-        try {
-            const preferencia = await apiRequest(`/pagamentos/pedido/${pedidoSelecionado.id_pedido}/preferencia`, {
-                method: "POST",
-            });
-            if (!preferencia.checkout_url) {
-                throw new Error("Nao foi possivel abrir o checkout de pagamento.");
-            }
-            window.location.assign(preferencia.checkout_url);
-        }
-        catch (erro) {
-            setMensagem(erro instanceof Error ? erro.message : "Nao foi possivel iniciar o pagamento do pedido.");
-            setPagando(false);
-        }
+        window.location.assign(`/cliente/pagamentos/pedido/${pedidoSelecionado.id_pedido}`);
     }
 
     return (

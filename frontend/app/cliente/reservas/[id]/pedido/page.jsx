@@ -157,13 +157,7 @@ export default function PaginaPedidoAntecipado({ params }) {
                 method: "POST",
                 body: JSON.stringify({ id_reserva: reservaId, itens, observacoes }),
             });
-            const preferencia = await apiRequest(`/pagamentos/pedido/${pedidoCriado.id_pedido}/preferencia`, {
-                method: "POST",
-            });
-            if (!preferencia.checkout_url) {
-                throw new Error("Nao foi possivel abrir o checkout de pagamento.");
-            }
-            window.location.assign(preferencia.checkout_url);
+            window.location.assign(`/cliente/pagamentos/pedido/${pedidoCriado.id_pedido}`);
         }
         catch (erro) {
             setMensagem(erro instanceof Error ? erro.message : "Nao foi possivel criar o pedido.");
@@ -456,7 +450,7 @@ export default function PaginaPedidoAntecipado({ params }) {
                                 </p>
                             ) : null}
                             <button type="button" onClick={criarPedido} disabled={enviando || total <= 0 || !reservaConfirmada || faltaParaMinimo > 0} className="mt-5 h-12 w-full rounded-[8px] bg-app-dourado-mel text-xs font-bold uppercase tracking-wide text-white transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-50">
-                                {enviando ? "Abrindo pagamento..." : "Pagar pedido antecipado"}
+                                {enviando ? "Preparando pagamento..." : "Pagar pedido antecipado"}
                             </button>
                             {mensagem ? <p className="mt-3 text-sm font-semibold text-app-caramelo-torrado">{mensagem}</p> : null}
                         </aside>

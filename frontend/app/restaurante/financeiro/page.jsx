@@ -1,7 +1,8 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { apiRequest } from "@/lib/api";
 const navItems = [
     { label: "Home", href: "/restaurante/home" },
     { label: "Dashboard", href: "/restaurante/dashboard" },
@@ -57,6 +58,16 @@ function EmptyTable() {
       </div>
     </div>);
 }
+function obterTextoStatusMercadoPago(status) {
+    const statusMap = {
+        NAO_CONECTADO: "Nao conectado",
+        AGUARDANDO_AUTORIZACAO: "Aguardando autorizacao",
+        CONECTADO: "Conectado",
+        ERRO: "Erro na conexao",
+        DESCONECTADO: "Desconectado",
+    };
+    return statusMap[status] ?? "Nao conectado";
+}
 export default function RestaurantFinancialReportPage() {
     const [session] = useState(() => {
         if (typeof window === "undefined") {
@@ -66,7 +77,61 @@ export default function RestaurantFinancialReportPage() {
         return storedSession ? JSON.parse(storedSession) : null;
     });
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [conexaoMercadoPago, setConexaoMercadoPago] = useState(null);
+    const [mensagemMercadoPago, setMensagemMercadoPago] = useState("Carregando conexao Mercado Pago...");
+    const [processandoMercadoPago, setProcessandoMercadoPago] = useState(false);
     const isRestaurant = session?.type === "restaurant";
+
+    useEffect(() => {
+        if (!isRestaurant) {
+            return;
+        }
+        apiRequest("/marketplace/mercado-pago/status")
+            .then((resposta) => {
+                setConexaoMercadoPago(resposta.conexao);
+                setMensagemMercadoPago("");
+            })
+            .catch((error) => {
+                setMensagemMercadoPago(error instanceof Error ? error.message : "Nao foi possivel consultar o Mercado Pago.");
+            });
+    }, [isRestaurant]);
+
+    async function conectarMercadoPago() {
+        setProcessandoMercadoPago(true);
+        setMensagemMercadoPago("");
+        try {
+            const resposta = await apiRequest("/marketplace/mercado-pago/conectar", {
+                method: "POST",
+            });
+            if (!resposta.authorization_url) {
+                throw new Error("Nao foi possivel iniciar a autorizacao do Mercado Pago.");
+            }
+            window.location.assign(resposta.authorization_url);
+        }
+        catch (error) {
+            setMensagemMercadoPago(error instanceof Error ? error.message : "Nao foi possivel conectar o Mercado Pago.");
+            setProcessandoMercadoPago(false);
+        }
+    }
+
+    async function desconectarMercadoPago() {
+        setProcessandoMercadoPago(true);
+        setMensagemMercadoPago("");
+        try {
+            const resposta = await apiRequest("/marketplace/mercado-pago/desconectar", {
+                method: "POST",
+            });
+            setConexaoMercadoPago(resposta.conexao);
+            setMensagemMercadoPago("Conta Mercado Pago desconectada.");
+        }
+        catch (error) {
+            setMensagemMercadoPago(error instanceof Error ? error.message : "Nao foi possivel desconectar o Mercado Pago.");
+        }
+        finally {
+            setProcessandoMercadoPago(false);
+        }
+    }
+
     if (!isRestaurant) {
         return (<main className="flex min-h-screen items-center justify-center bg-app-chantilly px-5 text-app-cafe-profundo">
         <section className="w-full max-w-lg rounded-[8px] bg-app-creme-leve p-8 text-center shadow-sm ring-1 ring-app-baunilha-dourada">
@@ -140,6 +205,56 @@ export default function RestaurantFinancialReportPage() {
 
         <section className="mt-10 grid gap-6 lg:grid-cols-[1.45fr_0.7fr_0.7fr]">
           {financeCards.map((card, index) => (<FinanceCard key={card.label} label={card.label} featured={index === 0}/>))}
+        </section>
+
+        <section className="mt-10 rounded-[8px] bg-app-creme-leve p-6 shadow-sm ring-1 ring-app-baunilha-dourada/60 sm:p-8">
+          <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-center">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">
+                Marketplace Mercado Pago
+              </p>
+              <h2 className="mt-2 text-2xl font-medium text-app-cafe-profundo">
+                Conta de recebimento do restaurante
+              </h2>
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-app-mocha">
+                Conecte sua conta Mercado Pago para que a Appono consiga criar pagamentos em modelo marketplace, aplicar a comissao da plataforma e conciliar os repasses com mais seguranca.
+              </p>
+            </div>
+            <div className="rounded-[8px] bg-app-chantilly p-5 text-sm ring-1 ring-app-baunilha-dourada/45 lg:min-w-80">
+              <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-app-cinza">
+                Status da conexao
+              </p>
+              <strong className="mt-2 block text-xl text-app-cafe-profundo">
+                {obterTextoStatusMercadoPago(conexaoMercadoPago?.status)}
+              </strong>
+              {conexaoMercadoPago?.mercado_pago_user_id ? (
+                <p className="mt-2 text-xs text-app-mocha">
+                  Conta MP: {conexaoMercadoPago.mercado_pago_user_id}
+                </p>
+              ) : null}
+              {conexaoMercadoPago?.conectado_em ? (
+                <p className="mt-1 text-xs text-app-cinza">
+                  Conectado em {new Date(conexaoMercadoPago.conectado_em).toLocaleDateString("pt-BR")}
+                </p>
+              ) : null}
+            </div>
+          </div>
+
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <button type="button" onClick={conectarMercadoPago} disabled={processandoMercadoPago} className="inline-flex h-11 items-center justify-center rounded-[8px] bg-app-dourado-mel px-6 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-60">
+              {conexaoMercadoPago?.conectado ? "Reconectar Mercado Pago" : "Conectar Mercado Pago"}
+            </button>
+            {conexaoMercadoPago?.conectado ? (
+              <button type="button" onClick={desconectarMercadoPago} disabled={processandoMercadoPago} className="inline-flex h-11 items-center justify-center rounded-[8px] border border-app-baunilha-dourada px-6 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:bg-app-chantilly disabled:cursor-not-allowed disabled:opacity-60">
+                Desconectar
+              </button>
+            ) : null}
+            {mensagemMercadoPago ? (
+              <p className="text-sm font-semibold text-app-caramelo-torrado">
+                {mensagemMercadoPago}
+              </p>
+            ) : null}
+          </div>
         </section>
 
         <section className="mt-10">

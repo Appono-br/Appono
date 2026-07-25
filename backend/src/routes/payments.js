@@ -375,23 +375,18 @@ exports.paymentsRouter.post("/pedido/:id/preferencia", async (req, res) => {
         if (urlPermiteRetornoAutomatico(backendPublicUrl)) {
             body.notification_url = `${backendPublicUrl}/api/pagamentos/webhook/mercado-pago`;
         }
-        const resposta = await fetch("https://api.mercadopago.com/checkout/preferences", {
-            method: "POST",
-            headers: {
-                Authorization: `Bearer ${token}`,
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(body),
-        });
-        const preferencia = await resposta.json().catch(() => null);
-        if (!resposta.ok) {
-            const causa = Array.isArray(preferencia?.cause) && preferencia.cause.length
-                ? ` ${preferencia.cause.map((item) => item.description ?? item.message).filter(Boolean).join(" ")}`
-                : "";
-            return res.status(502).json({
-                error: `${preferencia?.message ?? "Nao foi possivel criar a preferencia de pagamento."}${causa}`.trim(),
+        const clientePreferencia = (0, mercado_pago_1.criarPreferenciaMercadoPago)(token);
+        if (!clientePreferencia) {
+            return res.status(409).json({
+                error: "Nao foi possivel inicializar o SDK do Mercado Pago.",
             });
         }
+        const preferencia = await clientePreferencia.create({ body }).catch((error) => {
+            const causa = Array.isArray(error?.cause) && error.cause.length
+                ? ` ${error.cause.map((item) => item.description ?? item.message).filter(Boolean).join(" ")}`
+                : "";
+            throw new Error(`${error?.message ?? "Nao foi possivel criar a preferencia de pagamento."}${causa}`.trim());
+        });
         const checkoutUrl = obterCheckoutUrlMercadoPago(preferencia, token);
         if (!checkoutUrl) {
             return res.status(502).json({
