@@ -158,6 +158,7 @@ exports.marketplaceRouter.post("/mercado-pago/conectar", auth_1.requireAuth, asy
         authorizationUrl.searchParams.set("response_type", "code");
         authorizationUrl.searchParams.set("platform_id", "mp");
         authorizationUrl.searchParams.set("redirect_uri", configuracao.redirectUri);
+        authorizationUrl.searchParams.set("scope", "read write offline_access");
         authorizationUrl.searchParams.set("state", state);
         return res.status(201).json({
             authorization_url: authorizationUrl.toString(),
