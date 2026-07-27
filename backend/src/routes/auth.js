@@ -31,8 +31,28 @@ function obterMensagemErroAutenticacao(message) {
     }
     return message;
 }
+function obterEmailsAdministradores() {
+    return String(process.env.APPONO_ADMIN_EMAILS ?? "")
+        .split(",")
+        .map((email) => email.trim().toLowerCase())
+        .filter(Boolean);
+}
+function usuarioEhAdministrador(user) {
+    const email = String(user?.email ?? "").toLowerCase();
+    return Boolean(email && obterEmailsAdministradores().includes(email));
+}
 async function obterPerfil(accessToken, userId) {
     const supabase = (0, supabase_1.createUserSupabaseClient)(accessToken);
+    const { data: usuarioAtual } = await supabase_1.supabaseAuth.auth.getUser(accessToken);
+    if (usuarioEhAdministrador(usuarioAtual?.user)) {
+        return {
+            tipo: "admin",
+            perfil: {
+                nome: "Administracao Appono",
+                email: usuarioAtual.user.email,
+            },
+        };
+    }
     const { data: cliente, error: clienteError } = await supabase
         .from("clientes")
         .select("*")

@@ -1,6 +1,9 @@
 import { supabase } from "./supabase";
 const authTokensKey = "appono:auth";
 export function getDashboardPath(tipo) {
+    if (tipo === "admin") {
+        return "/admin/financeiro";
+    }
     return tipo === "restaurante" ? "/restaurante/dashboard" : "/cliente/dashboard";
 }
 export function getAccessToken() {
@@ -91,7 +94,11 @@ export async function persistAuthResponse(response) {
         salvarTokensAutenticacao(response.session);
     }
     if (response.tipo && response.perfil) {
-        const sessionType = response.tipo === "restaurante" ? "restaurant" : "client";
+        const sessionType = response.tipo === "admin"
+            ? "admin"
+            : response.tipo === "restaurante"
+                ? "restaurant"
+                : "client";
         localStorage.setItem("appono:session", JSON.stringify({
             type: sessionType,
             name: response.perfil.nome,

@@ -4,6 +4,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.paymentsRouter = void 0;
 
 const express_1 = require("express");
+const crypto = require("crypto");
 const supabase_1 = require("../lib/supabase");
 const auth_1 = require("../middleware/auth");
 const mercado_pago_1 = require("../services/pagamentos/mercado-pago");
@@ -23,12 +24,28 @@ function obterBackendPublicUrl() {
         .replace(/\/$/, "");
 }
 
+function obterWebhookSecretMercadoPago() {
+    return process.env.MERCADO_PAGO_WEBHOOK_SECRET?.trim() ?? "";
+}
+
 function urlPermiteRetornoAutomatico(url) {
     return /^https:\/\//i.test(url);
 }
 
 function tokenMercadoPagoEhTeste(token) {
     return /^TEST-/i.test(String(token ?? ""));
+}
+
+function mercadoPagoProducaoPermitida() {
+    return String(process.env.MERCADO_PAGO_PERMITIR_PRODUCAO ?? "false").toLowerCase() === "true";
+}
+
+function obterModoRepasseMercadoPago() {
+    return String(process.env.MERCADO_PAGO_MODO_REPASSE ?? "SIMULADO").trim().toUpperCase();
+}
+
+function marketplaceRealAtivo() {
+    return ["MARKETPLACE_REAL", "REAL", "PRODUCAO"].includes(obterModoRepasseMercadoPago());
 }
 
 function obterCheckoutUrlMercadoPago(preferencia, token) {
@@ -71,6 +88,56 @@ function obterStatusPedidoPorPagamento(statusPagamento) {
     return null;
 }
 
+function obterPercentualComissaoAppono() {
+    const percentual = Number(process.env.MERCADO_PAGO_MARKETPLACE_FEE_PERCENTUAL ?? process.env.MERCADO_PAGO_MARKETPLACE_FEE ?? 13);
+    return Number.isFinite(percentual) && percentual >= 0 ? percentual : 13;
+}
+
+function arredondarMoeda(valor) {
+    return Math.round(Number(valor ?? 0) * 100) / 100;
+}
+
+function calcularResumoFinanceiro(valorTotal, conexaoRestaurante) {
+    const percentualComissao = obterPercentualComissaoAppono();
+    const valorPedido = arredondarMoeda(valorTotal);
+    const usaMarketplaceReal = marketplaceRealAtivo() && conexaoRestaurante;
+    const valorComissao = arredondarMoeda(valorPedido * (percentualComissao / 100));
+    return {
+        tipo_fluxo_pagamento: usaMarketplaceReal ? "MARKETPLACE_RESTAURANTE" : "SIMULADO_APPONO",
+        percentual_comissao_app: percentualComissao,
+        valor_comissao_app: valorComissao,
+        valor_restaurante: arredondarMoeda(valorPedido - valorComissao),
+        mercado_pago_restaurante_user_id: usaMarketplaceReal ? conexaoRestaurante?.mercado_pago_user_id ?? null : null,
+        status_repasse: "AGUARDANDO_PAGAMENTO",
+    };
+}
+
+function statusPagamentoEhMaisForte(statusAtual, novoStatus) {
+    const prioridade = {
+        PENDENTE: 1,
+        RECUSADO: 2,
+        APROVADO: 3,
+    };
+    return (prioridade[statusAtual] ?? 0) > (prioridade[novoStatus] ?? 0);
+}
+
+function obterProximoStatusRepasse(statusAtual, novoStatus, tipoFluxoPagamento) {
+    const usaRepasse = ["MARKETPLACE_RESTAURANTE", "SIMULADO_APPONO"].includes(tipoFluxoPagamento);
+    if (!usaRepasse) {
+        return "NAO_APLICAVEL";
+    }
+    if (["LIBERADO_PARA_REPASSE", "REPASSADO", "ESTORNADO"].includes(statusAtual)) {
+        return statusAtual;
+    }
+    if (novoStatus === "APROVADO") {
+        return "AGUARDANDO_ENTREGA";
+    }
+    if (novoStatus === "RECUSADO") {
+        return "ESTORNADO";
+    }
+    return statusAtual ?? "AGUARDANDO_PAGAMENTO";
+}
+
 async function obterClienteAtual(supabase, userId) {
     const { data: cliente, error } = await supabase
         .from("clientes")
@@ -81,6 +148,41 @@ async function obterClienteAtual(supabase, userId) {
         throw new Error(error.message);
     }
     return cliente;
+}
+
+async function obterConexaoMercadoPagoRestaurante(restauranteId) {
+    if (!supabase_1.supabaseAdmin || !restauranteId) {
+        return null;
+    }
+    const { data, error } = await supabase_1.supabaseAdmin
+        .from("mercado_pago_conexoes_restaurante")
+        .select("id_restaurante, mercado_pago_user_id, access_token, status, live_mode, expires_at")
+        .eq("id_restaurante", restauranteId)
+        .eq("status", "CONECTADO")
+        .maybeSingle();
+    if (error) {
+        throw new Error(error.message);
+    }
+    if (!data?.access_token) {
+        return null;
+    }
+    return data;
+}
+
+async function obterTokenPagamentoPorPedido(pedidoId) {
+    if (!marketplaceRealAtivo() || !supabase_1.supabaseAdmin || !pedidoId) {
+        return null;
+    }
+    const { data: pedido } = await supabase_1.supabaseAdmin
+        .from("pedidos")
+        .select("id_restaurante")
+        .eq("id_pedido", pedidoId)
+        .maybeSingle();
+    if (!pedido?.id_restaurante) {
+        return null;
+    }
+    const conexao = await obterConexaoMercadoPagoRestaurante(pedido.id_restaurante);
+    return conexao?.access_token ?? null;
 }
 
 async function obterPedidoDoCliente(supabase, pedidoId, userId) {
@@ -123,32 +225,47 @@ async function salvarPagamento(dados) {
     }
     const { data: existente, error: buscaError } = await supabase_1.supabaseAdmin
         .from("pagamentos")
-        .select("id_pagamento")
+        .select("*")
         .eq("referencia_externa", dados.referencia_externa)
         .maybeSingle();
     if (buscaError) {
         throw new Error(buscaError.message);
     }
     const agora = new Date().toISOString();
+    const tipoFluxoPagamento = dados.tipo_fluxo_pagamento ?? existente?.tipo_fluxo_pagamento ?? "DIRETO_APPONO";
+    const statusPagamento = statusPagamentoEhMaisForte(existente?.status_pagamento, dados.status_pagamento)
+        ? existente.status_pagamento
+        : dados.status_pagamento;
+    const statusRepasse = obterProximoStatusRepasse(
+        existente?.status_repasse ?? dados.status_repasse,
+        statusPagamento,
+        tipoFluxoPagamento,
+    );
     const payload = {
         id_pedido: dados.id_pedido ?? null,
         id_reserva: dados.id_reserva ?? null,
         valor: dados.valor_pago,
         valor_pago: dados.valor_pago,
-        status_pagamento: dados.status_pagamento,
+        status_pagamento: statusPagamento,
         gateway_pagamento: "mercado_pago",
         provedor: "mercado_pago",
         referencia_externa: dados.referencia_externa,
-        mercado_pago_preference_id: dados.mercado_pago_preference_id ?? null,
-        mercado_pago_payment_id: dados.mercado_pago_payment_id ?? null,
-        id_transacao_gateway: dados.mercado_pago_payment_id ?? null,
-        checkout_url: dados.checkout_url ?? null,
+        mercado_pago_preference_id: dados.mercado_pago_preference_id ?? existente?.mercado_pago_preference_id ?? null,
+        mercado_pago_payment_id: dados.mercado_pago_payment_id ?? existente?.mercado_pago_payment_id ?? null,
+        id_transacao_gateway: dados.mercado_pago_payment_id ?? existente?.id_transacao_gateway ?? null,
+        checkout_url: dados.checkout_url ?? existente?.checkout_url ?? null,
+        tipo_fluxo_pagamento: tipoFluxoPagamento,
+        percentual_comissao_app: dados.percentual_comissao_app ?? existente?.percentual_comissao_app ?? null,
+        valor_comissao_app: dados.valor_comissao_app ?? existente?.valor_comissao_app ?? null,
+        valor_restaurante: dados.valor_restaurante ?? existente?.valor_restaurante ?? null,
+        mercado_pago_restaurante_user_id: dados.mercado_pago_restaurante_user_id ?? existente?.mercado_pago_restaurante_user_id ?? null,
+        status_repasse: statusRepasse,
         atualizado_em: agora,
         updated_at: agora,
     };
-    if (dados.status_pagamento === "APROVADO") {
-        payload.data_pagamento = agora;
-        payload.data_aprovacao = agora;
+    if (statusPagamento === "APROVADO") {
+        payload.data_pagamento = existente?.data_pagamento ?? agora;
+        payload.data_aprovacao = existente?.data_aprovacao ?? agora;
     }
     const operacao = existente
         ? supabase_1.supabaseAdmin.from("pagamentos").update(payload).eq("id_pagamento", existente.id_pagamento)
@@ -207,6 +324,25 @@ async function obterPagamentoExistentePorReferencia(referencia) {
     return data;
 }
 
+async function registrarEventoFinanceiro(dados) {
+    if (!supabase_1.supabaseAdmin) {
+        return;
+    }
+    const { error } = await supabase_1.supabaseAdmin
+        .from("eventos_financeiros")
+        .insert({
+            id_pagamento: dados.id_pagamento ?? null,
+            id_pedido: dados.id_pedido ?? null,
+            id_reserva: dados.id_reserva ?? null,
+            tipo_evento: dados.tipo_evento,
+            descricao: dados.descricao,
+            valor: dados.valor ?? null,
+        });
+    if (error) {
+        console.warn("Falha ao registrar evento financeiro:", error.message);
+    }
+}
+
 async function aplicarStatusRetornoPedido(pedido, referencia, query) {
     const pagamentoExistente = await obterPagamentoExistentePorReferencia(referencia);
     const statusRetorno = obterStatusRetornoMercadoPago(query);
@@ -214,6 +350,14 @@ async function aplicarStatusRetornoPedido(pedido, referencia, query) {
         return null;
     }
     const statusMapeado = (0, mercado_pago_1.mapearStatusMercadoPago)(statusRetorno);
+    const resumoFinanceiro = {
+        tipo_fluxo_pagamento: pagamentoExistente.tipo_fluxo_pagamento,
+        percentual_comissao_app: pagamentoExistente.percentual_comissao_app,
+        valor_comissao_app: pagamentoExistente.valor_comissao_app,
+        valor_restaurante: pagamentoExistente.valor_restaurante,
+        mercado_pago_restaurante_user_id: pagamentoExistente.mercado_pago_restaurante_user_id,
+        status_repasse: pagamentoExistente.status_repasse,
+    };
     const pagamento = await salvarPagamento({
         id_pedido: pedido.id_pedido,
         id_reserva: pedido.id_reserva,
@@ -223,6 +367,15 @@ async function aplicarStatusRetornoPedido(pedido, referencia, query) {
         mercado_pago_payment_id: obterPaymentIdRetornoMercadoPago(query),
         mercado_pago_preference_id: obterPreferenceIdRetornoMercadoPago(query) ?? pagamentoExistente.mercado_pago_preference_id,
         checkout_url: pagamentoExistente.checkout_url,
+        ...resumoFinanceiro,
+    });
+    await registrarEventoFinanceiro({
+        id_pagamento: pagamento.id_pagamento,
+        id_pedido: pedido.id_pedido,
+        id_reserva: pedido.id_reserva,
+        tipo_evento: `PAGAMENTO_${statusMapeado.pagamento}`,
+        descricao: `Pagamento ${statusMapeado.pagamento.toLowerCase()} pelo retorno do Mercado Pago.`,
+        valor: Number(pedido.valor_total ?? pagamentoExistente.valor_pago ?? pagamentoExistente.valor ?? 0),
     });
     const pedidoAtualizado = await atualizarPedidoPorPagamento(
         pedido.id_pedido,
@@ -261,6 +414,15 @@ async function aplicarPagamentoMercadoPago(pagamentoMercadoPago, fallbackReferen
             status_pagamento: statusMapeado.pagamento,
             referencia_externa: referencia,
             mercado_pago_payment_id: pagamentoId,
+            ...(await obterResumoFinanceiroPagamentoExistente(referencia)),
+        });
+        await registrarEventoFinanceiro({
+            id_pagamento: pagamento.id_pagamento,
+            id_pedido: pedido.id_pedido,
+            id_reserva: pedido.id_reserva,
+            tipo_evento: `PAGAMENTO_${statusMapeado.pagamento}`,
+            descricao: `Pagamento ${statusMapeado.pagamento.toLowerCase()} conciliado pelo Mercado Pago.`,
+            valor: valorPago || Number(pedido.valor_total ?? 0),
         });
         const pedidoAtualizado = await atualizarPedidoPorPagamento(
             pedido.id_pedido,
@@ -296,13 +458,78 @@ async function aplicarPagamentoMercadoPago(pagamentoMercadoPago, fallbackReferen
     };
 }
 
+async function obterResumoFinanceiroPagamentoExistente(referencia) {
+    const pagamentoExistente = await obterPagamentoExistentePorReferencia(referencia);
+    if (!pagamentoExistente) {
+        return {};
+    }
+    return {
+        tipo_fluxo_pagamento: pagamentoExistente.tipo_fluxo_pagamento,
+        percentual_comissao_app: pagamentoExistente.percentual_comissao_app,
+        valor_comissao_app: pagamentoExistente.valor_comissao_app,
+        valor_restaurante: pagamentoExistente.valor_restaurante,
+        mercado_pago_restaurante_user_id: pagamentoExistente.mercado_pago_restaurante_user_id,
+        status_repasse: pagamentoExistente.status_repasse,
+    };
+}
+
+function obterMercadoPagoUserIdNotificacao(req) {
+    return obterPrimeiroValorQuery(req.body?.user_id ?? req.query.user_id);
+}
+
+function obterValorAssinatura(xSignature, chave) {
+    return String(xSignature ?? "")
+        .split(",")
+        .map((parte) => parte.trim().split("="))
+        .find(([nome]) => nome === chave)?.[1];
+}
+
+function validarAssinaturaWebhookMercadoPago(req, paymentId) {
+    const secret = obterWebhookSecretMercadoPago();
+    if (!secret) {
+        return true;
+    }
+    const xSignature = req.headers["x-signature"];
+    const xRequestId = req.headers["x-request-id"];
+    const ts = obterValorAssinatura(xSignature, "ts");
+    const assinaturaRecebida = obterValorAssinatura(xSignature, "v1");
+    if (!xRequestId || !ts || !assinaturaRecebida) {
+        return false;
+    }
+    const manifest = `id:${paymentId};request-id:${xRequestId};ts:${ts};`;
+    const assinaturaCalculada = crypto
+        .createHmac("sha256", secret)
+        .update(manifest)
+        .digest("hex");
+    if (!/^[a-f0-9]+$/i.test(assinaturaRecebida) || assinaturaCalculada.length !== assinaturaRecebida.length) {
+        return false;
+    }
+    return crypto.timingSafeEqual(
+        Buffer.from(assinaturaCalculada, "hex"),
+        Buffer.from(assinaturaRecebida, "hex"),
+    );
+}
+
 exports.paymentsRouter.post("/webhook/mercado-pago", async (req, res) => {
     const paymentId = obterPrimeiroValorQuery(req.query["data.id"] ?? req.query.id ?? req.body?.data?.id ?? req.body?.id);
     if (!paymentId) {
         return res.status(200).json({ received: true });
     }
+    if (!validarAssinaturaWebhookMercadoPago(req, paymentId)) {
+        return res.status(401).json({ received: false });
+    }
     try {
-        const pagamentoMercadoPago = await (0, mercado_pago_1.consultarPagamentoMercadoPago)(paymentId);
+        let pagamentoMercadoPago = await (0, mercado_pago_1.consultarPagamentoMercadoPago)(paymentId);
+        const mercadoPagoUserId = obterMercadoPagoUserIdNotificacao(req);
+        if (!pagamentoMercadoPago?.status && mercadoPagoUserId && supabase_1.supabaseAdmin) {
+            const { data: conexao } = await supabase_1.supabaseAdmin
+                .from("mercado_pago_conexoes_restaurante")
+                .select("access_token")
+                .eq("mercado_pago_user_id", String(mercadoPagoUserId))
+                .eq("status", "CONECTADO")
+                .maybeSingle();
+            pagamentoMercadoPago = await (0, mercado_pago_1.consultarPagamentoMercadoPago)(paymentId, conexao?.access_token);
+        }
         await aplicarPagamentoMercadoPago(pagamentoMercadoPago);
         return res.status(200).json({ received: true });
     }
@@ -319,8 +546,8 @@ exports.paymentsRouter.post("/pedido/:id/preferencia", async (req, res) => {
     if (!Number.isInteger(pedidoId) || pedidoId <= 0) {
         return res.status(400).json({ error: "Pedido invalido." });
     }
-    const token = (0, mercado_pago_1.obterAccessTokenMercadoPago)();
-    if (!token) {
+    const tokenPadrao = (0, mercado_pago_1.obterAccessTokenMercadoPago)();
+    if (!tokenPadrao) {
         return res.status(409).json({
             error: "MERCADO_PAGO_ACCESS_TOKEN ainda nao esta configurado no backend.",
         });
@@ -337,7 +564,35 @@ exports.paymentsRouter.post("/pedido/:id/preferencia", async (req, res) => {
         if (Number(pedido.valor_total ?? 0) <= 0) {
             return res.status(400).json({ error: "Valor do pedido invalido." });
         }
+        const conexaoRestaurante = await obterConexaoMercadoPagoRestaurante(pedido.id_restaurante);
+        if (marketplaceRealAtivo() && conexaoRestaurante?.live_mode && !mercadoPagoProducaoPermitida()) {
+            return res.status(409).json({
+                error: "A conta Mercado Pago do restaurante foi conectada em modo producao. Para testes sem transacao real, desconecte e conecte uma conta de teste, ou habilite producao explicitamente no backend.",
+            });
+        }
+        const token = marketplaceRealAtivo() && conexaoRestaurante?.access_token ? conexaoRestaurante.access_token : tokenPadrao;
+        const resumoFinanceiro = calcularResumoFinanceiro(pedido.valor_total, conexaoRestaurante);
         const referencia = `pedido:${pedido.id_pedido}`;
+        const pagamentoExistente = await obterPagamentoExistentePorReferencia(referencia);
+        if (pagamentoExistente?.status_pagamento === "PENDENTE" &&
+            pagamentoExistente.mercado_pago_preference_id &&
+            pagamentoExistente.checkout_url) {
+            return res.status(200).json({
+                pedido,
+                pagamento: pagamentoExistente,
+                checkout_url: pagamentoExistente.checkout_url,
+                return_url: `${obterFrontendOrigin()}/cliente/pagamentos/retorno?pedido=${pedido.id_pedido}`,
+                auto_return: null,
+                preference_id: pagamentoExistente.mercado_pago_preference_id,
+                financeiro: {
+                    tipo_fluxo_pagamento: pagamentoExistente.tipo_fluxo_pagamento,
+                    percentual_comissao_app: pagamentoExistente.percentual_comissao_app,
+                    valor_comissao_app: pagamentoExistente.valor_comissao_app,
+                    valor_restaurante: pagamentoExistente.valor_restaurante,
+                    status_repasse: pagamentoExistente.status_repasse,
+                },
+            });
+        }
         const frontendOrigin = obterFrontendOrigin();
         const backUrl = `${frontendOrigin}/cliente/pagamentos/retorno?pedido=${pedido.id_pedido}`;
         const body = {
@@ -366,8 +621,15 @@ exports.paymentsRouter.post("/pedido/:id/preferencia", async (req, res) => {
                 reserva_id: pedido.id_reserva,
                 cliente_id: cliente.id_cliente,
                 restaurante_id: pedido.id_restaurante,
+                tipo_fluxo_pagamento: resumoFinanceiro.tipo_fluxo_pagamento,
+                percentual_comissao_app: resumoFinanceiro.percentual_comissao_app,
+                valor_comissao_app: resumoFinanceiro.valor_comissao_app,
+                valor_restaurante: resumoFinanceiro.valor_restaurante,
             },
         };
+        if (marketplaceRealAtivo() && resumoFinanceiro.tipo_fluxo_pagamento === "MARKETPLACE_RESTAURANTE") {
+            body.marketplace_fee = resumoFinanceiro.valor_comissao_app ?? undefined;
+        }
         if (urlPermiteRetornoAutomatico(frontendOrigin)) {
             body.auto_return = "approved";
         }
@@ -401,6 +663,15 @@ exports.paymentsRouter.post("/pedido/:id/preferencia", async (req, res) => {
             referencia_externa: referencia,
             mercado_pago_preference_id: preferencia.id,
             checkout_url: checkoutUrl,
+            ...resumoFinanceiro,
+        });
+        await registrarEventoFinanceiro({
+            id_pagamento: pagamento.id_pagamento,
+            id_pedido: pedido.id_pedido,
+            id_reserva: pedido.id_reserva,
+            tipo_evento: "PAGAMENTO_CRIADO",
+            descricao: "Preferencia de pagamento criada no Mercado Pago.",
+            valor: Number(pedido.valor_total),
         });
         return res.status(201).json({
             pedido,
@@ -409,6 +680,7 @@ exports.paymentsRouter.post("/pedido/:id/preferencia", async (req, res) => {
             return_url: backUrl,
             auto_return: body.auto_return ?? null,
             preference_id: preferencia.id,
+            financeiro: resumoFinanceiro,
         });
     }
     catch (error) {
@@ -431,8 +703,15 @@ exports.paymentsRouter.get("/pedido/:id/status", async (req, res) => {
         }
         const paymentId = obterPaymentIdRetornoMercadoPago(req.query);
         const referencia = `pedido:${pedido.id_pedido}`;
-        let pagamentoMercadoPago = await (0, mercado_pago_1.consultarPagamentoMercadoPago)(paymentId);
+        const tokenPedido = await obterTokenPagamentoPorPedido(pedido.id_pedido);
+        let pagamentoMercadoPago = await (0, mercado_pago_1.consultarPagamentoMercadoPago)(paymentId, tokenPedido ?? undefined);
+        if (!pagamentoMercadoPago?.status && tokenPedido) {
+            pagamentoMercadoPago = await (0, mercado_pago_1.consultarPagamentoMercadoPago)(paymentId);
+        }
         if (!pagamentoMercadoPago?.status) {
+            pagamentoMercadoPago = await (0, mercado_pago_1.consultarPagamentoPorReferenciaMercadoPago)(referencia, tokenPedido ?? undefined);
+        }
+        if (!pagamentoMercadoPago?.status && tokenPedido) {
             pagamentoMercadoPago = await (0, mercado_pago_1.consultarPagamentoPorReferenciaMercadoPago)(referencia);
         }
         let pagamento = null;

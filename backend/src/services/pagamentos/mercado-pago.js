@@ -39,8 +39,8 @@ function mapearStatusMercadoPago(status) {
     return { pagamento: "PENDENTE", reserva: null };
 }
 
-async function consultarPagamentoMercadoPago(paymentId) {
-    const token = obterAccessTokenMercadoPago();
+async function consultarPagamentoMercadoPago(paymentId, accessToken = obterAccessTokenMercadoPago()) {
+    const token = accessToken?.trim?.() ?? "";
     if (!token || !paymentId) {
         return null;
     }
@@ -55,8 +55,8 @@ async function consultarPagamentoMercadoPago(paymentId) {
     return resposta.json();
 }
 
-async function consultarPagamentoPorReferenciaMercadoPago(referencia) {
-    const token = obterAccessTokenMercadoPago();
+async function consultarPagamentoPorReferenciaMercadoPago(referencia, accessToken = obterAccessTokenMercadoPago()) {
+    const token = accessToken?.trim?.() ?? "";
     if (!token || !referencia) {
         return null;
     }
