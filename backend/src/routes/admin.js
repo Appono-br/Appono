@@ -52,6 +52,66 @@ async function buscarPedidosPorPagamento(pagamentos) {
     return new Map((data ?? []).map((pedido) => [pedido.id_pedido, pedido]));
 }
 
+async function buscarEventosFinanceiros() {
+    const { data, error } = await supabase_1.supabaseAdmin
+        .from("eventos_financeiros")
+        .select("id_evento, id_pagamento, id_pedido, id_reserva, tipo_evento, descricao, valor, criado_em")
+        .order("criado_em", { ascending: false })
+        .limit(20);
+    if (error) {
+        console.warn("Falha ao consultar eventos financeiros:", error.message);
+        return [];
+    }
+    return data ?? [];
+}
+
+async function buscarRestaurantesOperacao(pagamentosComPedido) {
+    const { data: restaurantes, error } = await supabase_1.supabaseAdmin
+        .from("restaurantes")
+        .select("id_restaurante, nome, email, telefone, criado_em, mercado_pago_conexoes_restaurante(status, mercado_pago_user_id, live_mode, conectado_em, atualizado_em)")
+        .order("nome", { ascending: true });
+    if (error) {
+        console.warn("Falha ao consultar restaurantes no admin:", error.message);
+        return [];
+    }
+    const metricasPorRestaurante = new Map();
+    for (const pagamento of pagamentosComPedido ?? []) {
+        const restauranteId = pagamento.pedido?.id_restaurante;
+        if (!restauranteId) {
+            continue;
+        }
+        const atual = metricasPorRestaurante.get(restauranteId) ?? {
+            pedidos_pagos: 0,
+            valor_transacionado: 0,
+            valor_retido: 0,
+            valor_liberado: 0,
+        };
+        const foiCancelado = pagamento.status_repasse === "ESTORNADO" || pagamento.pedido?.status_pedido === "CANCELADO";
+        if (!foiCancelado) {
+            atual.pedidos_pagos += 1;
+            atual.valor_transacionado += Number(pagamento.valor_pago ?? pagamento.valor ?? 0);
+            if (pagamento.status_repasse === "AGUARDANDO_ENTREGA") {
+                atual.valor_retido += Number(pagamento.valor_restaurante ?? 0);
+            }
+            if (pagamento.status_repasse === "LIBERADO_PARA_REPASSE" || pagamento.status_repasse === "REPASSADO") {
+                atual.valor_liberado += Number(pagamento.valor_restaurante ?? 0);
+            }
+        }
+        metricasPorRestaurante.set(restauranteId, atual);
+    }
+    return (restaurantes ?? []).map((restaurante) => ({
+        ...restaurante,
+        conexao_mercado_pago: restaurante.mercado_pago_conexoes_restaurante?.[0] ?? null,
+        mercado_pago_conexoes_restaurante: undefined,
+        metricas: metricasPorRestaurante.get(restaurante.id_restaurante) ?? {
+            pedidos_pagos: 0,
+            valor_transacionado: 0,
+            valor_retido: 0,
+            valor_liberado: 0,
+        },
+    }));
+}
+
 exports.adminRouter.get("/financeiro/resumo", async (_req, res) => {
     if (!supabase_1.supabaseAdmin) {
         return res.status(409).json({ error: "SUPABASE_SECRET_KEY precisa estar configurada no backend." });
@@ -103,18 +163,38 @@ exports.adminRouter.get("/financeiro/resumo", async (_req, res) => {
             pedidos_retidos: 0,
             pedidos_liberados: 0,
         });
+        const [eventos, restaurantes] = await Promise.all([
+            buscarEventosFinanceiros(),
+            buscarRestaurantesOperacao(pagamentosComPedido),
+        ]);
+        const suporte = {
+            abertos: pagamentosComPedido.filter((pagamento) => pagamento.status_repasse === "AGUARDANDO_ENTREGA").length,
+            prioridade: "Operacao financeira",
+            descricao: "Acompanhamento administrativo de pagamentos, repasses e divergencias.",
+            itens: pagamentosComPedido
+                .filter((pagamento) => ["AGUARDANDO_ENTREGA", "ESTORNADO"].includes(pagamento.status_repasse) ||
+                    pagamento.pedido?.status_pedido === "CANCELADO")
+                .slice(0, 6)
+                .map((pagamento) => ({
+                id_pagamento: pagamento.id_pagamento,
+                id_pedido: pagamento.id_pedido,
+                restaurante: pagamento.pedido?.restaurantes?.nome ?? "Restaurante",
+                cliente: pagamento.pedido?.clientes?.nome ?? "Cliente",
+                status_repasse: pagamento.status_repasse,
+                status_pedido: pagamento.pedido?.status_pedido,
+                valor: pagamento.valor_restaurante ?? pagamento.valor_pago ?? pagamento.valor,
+            })),
+        };
         return res.json({
             resumo,
             pagamentos: pagamentosComPedido,
+            eventos,
+            restaurantes,
             politica_financeira: {
                 percentual_comissao_app: obterPercentualComissaoAppono(),
                 gatilho_repasse: "ENTREGA_DO_PEDIDO",
             },
-            suporte: {
-                abertos: 0,
-                prioridade: "Operacao financeira",
-                descricao: "Acompanhamento administrativo de pagamentos, repasses e divergencias.",
-            },
+            suporte,
         });
     }
     catch (error) {
