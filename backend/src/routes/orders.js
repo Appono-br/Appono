@@ -20,6 +20,69 @@ function obterStatusPedidoPorPagamento(statusPagamento) {
     return null;
 }
 
+function obterStatusRepassePorPedido(statusPedido) {
+    if (statusPedido === "ENTREGUE") {
+        return "LIBERADO_PARA_REPASSE";
+    }
+    if (statusPedido === "CANCELADO") {
+        return "ESTORNADO";
+    }
+    return null;
+}
+
+function obterProximoStatusRepasse(statusAtual, novoStatus) {
+    if (["REPASSADO", "ESTORNADO"].includes(statusAtual)) {
+        return statusAtual;
+    }
+    if (novoStatus === "LIBERADO_PARA_REPASSE") {
+        return ["LIBERADO_PARA_REPASSE", "REPASSADO"].includes(statusAtual) ? statusAtual : novoStatus;
+    }
+    return novoStatus;
+}
+
+function obterModoRepasseMercadoPago() {
+    return String(process.env.MERCADO_PAGO_MODO_REPASSE ?? "SIMULADO").trim().toUpperCase();
+}
+
+function marketplaceRealAtivo() {
+    return ["MARKETPLACE_REAL", "REAL", "PRODUCAO"].includes(obterModoRepasseMercadoPago());
+}
+
+async function registrarEventoFinanceiro(dados) {
+    if (!supabase_1.supabaseAdmin) {
+        return;
+    }
+    const { error } = await supabase_1.supabaseAdmin
+        .from("eventos_financeiros")
+        .insert({
+            id_pagamento: dados.id_pagamento ?? null,
+            id_pedido: dados.id_pedido ?? null,
+            id_reserva: dados.id_reserva ?? null,
+            tipo_evento: dados.tipo_evento,
+            descricao: dados.descricao,
+            valor: dados.valor ?? null,
+        });
+    if (error) {
+        console.warn("Falha ao registrar evento financeiro:", error.message);
+    }
+}
+
+async function obterTokenPagamentoPorPedido(pedido) {
+    if (!marketplaceRealAtivo() || !supabase_1.supabaseAdmin || !pedido?.id_restaurante) {
+        return null;
+    }
+    const { data, error } = await supabase_1.supabaseAdmin
+        .from("mercado_pago_conexoes_restaurante")
+        .select("access_token")
+        .eq("id_restaurante", pedido.id_restaurante)
+        .eq("status", "CONECTADO")
+        .maybeSingle();
+    if (error || !data?.access_token) {
+        return null;
+    }
+    return data.access_token;
+}
+
 async function conciliarPedidosPendentes(pedidos) {
     if (!supabase_1.supabaseAdmin || !(0, mercado_pago_1.obterAccessTokenMercadoPago)()) {
         return pedidos;
@@ -31,7 +94,11 @@ async function conciliarPedidosPendentes(pedidos) {
     const pedidosAtualizados = new Map();
     for (const pedido of pedidosPendentes) {
         const referencia = `pedido:${pedido.id_pedido}`;
-        const pagamentoMercadoPago = await (0, mercado_pago_1.consultarPagamentoPorReferenciaMercadoPago)(referencia);
+        const tokenPagamento = await obterTokenPagamentoPorPedido(pedido);
+        let pagamentoMercadoPago = await (0, mercado_pago_1.consultarPagamentoPorReferenciaMercadoPago)(referencia, tokenPagamento ?? undefined);
+        if (!pagamentoMercadoPago?.status && tokenPagamento) {
+            pagamentoMercadoPago = await (0, mercado_pago_1.consultarPagamentoPorReferenciaMercadoPago)(referencia);
+        }
         if (!pagamentoMercadoPago?.status) {
             continue;
         }
@@ -41,7 +108,7 @@ async function conciliarPedidosPendentes(pedidos) {
         const pagamentoId = String(pagamentoMercadoPago.id);
         const { data: pagamentoExistente } = await supabase_1.supabaseAdmin
             .from("pagamentos")
-            .select("id_pagamento, checkout_url, mercado_pago_preference_id")
+            .select("id_pagamento, checkout_url, mercado_pago_preference_id, tipo_fluxo_pagamento, percentual_comissao_app, valor_comissao_app, valor_restaurante, mercado_pago_restaurante_user_id, status_repasse")
             .eq("referencia_externa", referencia)
             .maybeSingle();
         const payloadPagamento = {
@@ -57,12 +124,21 @@ async function conciliarPedidosPendentes(pedidos) {
             id_transacao_gateway: pagamentoId,
             checkout_url: pagamentoExistente?.checkout_url ?? null,
             mercado_pago_preference_id: pagamentoExistente?.mercado_pago_preference_id ?? null,
+            tipo_fluxo_pagamento: pagamentoExistente?.tipo_fluxo_pagamento ?? "DIRETO_APPONO",
+            percentual_comissao_app: pagamentoExistente?.percentual_comissao_app ?? null,
+            valor_comissao_app: pagamentoExistente?.valor_comissao_app ?? null,
+            valor_restaurante: pagamentoExistente?.valor_restaurante ?? null,
+            mercado_pago_restaurante_user_id: pagamentoExistente?.mercado_pago_restaurante_user_id ?? null,
+            status_repasse: pagamentoExistente?.status_repasse ?? "NAO_APLICAVEL",
             atualizado_em: agora,
             updated_at: agora,
         };
         if (statusMapeado.pagamento === "APROVADO") {
             payloadPagamento.data_pagamento = agora;
             payloadPagamento.data_aprovacao = agora;
+            if (["MARKETPLACE_RESTAURANTE", "SIMULADO_APPONO"].includes(payloadPagamento.tipo_fluxo_pagamento)) {
+                payloadPagamento.status_repasse = "AGUARDANDO_ENTREGA";
+            }
         }
         const operacaoPagamento = pagamentoExistente
             ? supabase_1.supabaseAdmin.from("pagamentos").update(payloadPagamento).eq("id_pagamento", pagamentoExistente.id_pagamento)
@@ -236,6 +312,19 @@ exports.ordersRouter.patch("/:id/cancelar", async (req, res) => {
         if (error) {
             return res.status(400).json({ error: error.message });
         }
+        const { data: pagamentosCancelados } = await supabase_1.supabaseAdmin
+            .from("pagamentos")
+            .update({ status_repasse: "ESTORNADO", atualizado_em: new Date().toISOString(), updated_at: new Date().toISOString() })
+            .eq("id_pedido", orderId)
+            .in("tipo_fluxo_pagamento", ["MARKETPLACE_RESTAURANTE", "SIMULADO_APPONO"])
+            .select("id_pagamento, valor_restaurante");
+        await registrarEventoFinanceiro({
+            id_pagamento: pagamentosCancelados?.[0]?.id_pagamento,
+            id_pedido: orderId,
+            tipo_evento: "REPASSE_ESTORNADO",
+            descricao: "Repasse marcado como estornado apos cancelamento do pedido.",
+            valor: pagamentosCancelados?.[0]?.valor_restaurante ?? null,
+        });
         return res.json(data);
     }
     const { data, error } = await supabase.rpc("cancelar_pedido_proprio", {
@@ -279,6 +368,30 @@ exports.ordersRouter.patch("/:id/status", async (req, res) => {
         .single();
     if (error) {
         return res.status(400).json({ error: error.message });
+    }
+    const statusRepasse = obterStatusRepassePorPedido(status_pedido);
+    if (statusRepasse && supabase_1.supabaseAdmin) {
+        const { data: pagamentosAtuais } = await supabase_1.supabaseAdmin
+            .from("pagamentos")
+            .select("id_pagamento, status_repasse, valor_restaurante")
+            .eq("id_pedido", orderId)
+            .in("tipo_fluxo_pagamento", ["MARKETPLACE_RESTAURANTE", "SIMULADO_APPONO"]);
+        const proximoStatusRepasse = obterProximoStatusRepasse(pagamentosAtuais?.[0]?.status_repasse, statusRepasse);
+        const { data: pagamentosAfetados } = await supabase_1.supabaseAdmin
+            .from("pagamentos")
+            .update({ status_repasse: proximoStatusRepasse, atualizado_em: new Date().toISOString(), updated_at: new Date().toISOString() })
+            .eq("id_pedido", orderId)
+            .in("tipo_fluxo_pagamento", ["MARKETPLACE_RESTAURANTE", "SIMULADO_APPONO"])
+            .select("id_pagamento, valor_restaurante");
+        await registrarEventoFinanceiro({
+            id_pagamento: pagamentosAfetados?.[0]?.id_pagamento,
+            id_pedido: orderId,
+            tipo_evento: proximoStatusRepasse === "LIBERADO_PARA_REPASSE" ? "REPASSE_LIBERADO" : "REPASSE_ESTORNADO",
+            descricao: proximoStatusRepasse === "LIBERADO_PARA_REPASSE"
+                ? "Repasse liberado apos confirmacao de entrega do pedido."
+                : "Repasse estornado apos cancelamento do pedido.",
+            valor: pagamentosAfetados?.[0]?.valor_restaurante ?? null,
+        });
     }
     return res.json(data);
 });

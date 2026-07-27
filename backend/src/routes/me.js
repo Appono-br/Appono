@@ -30,6 +30,16 @@ function prepararPerfilParaResposta(perfil) {
         },
     };
 }
+function obterEmailsAdministradores() {
+    return String(process.env.APPONO_ADMIN_EMAILS ?? "")
+        .split(",")
+        .map((email) => email.trim().toLowerCase())
+        .filter(Boolean);
+}
+function usuarioEhAdministrador(user) {
+    const email = String(user?.email ?? "").toLowerCase();
+    return Boolean(email && obterEmailsAdministradores().includes(email));
+}
 async function obterPerfil(supabase, userId) {
     const { data: cliente, error: clienteError } = await supabase
         .from("clientes")
@@ -57,6 +67,15 @@ async function obterPerfil(supabase, userId) {
 exports.meRouter.get("/", auth_1.requireAuth, async (_req, res) => {
     const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
     try {
+        if (usuarioEhAdministrador(res.locals.user)) {
+            return res.json({
+                tipo: "admin",
+                perfil: {
+                    nome: "Administracao Appono",
+                    email: res.locals.user.email,
+                },
+            });
+        }
         const perfil = await obterPerfil(supabase, res.locals.user.id);
         return perfil
             ? res.json(prepararPerfilParaResposta(perfil))
