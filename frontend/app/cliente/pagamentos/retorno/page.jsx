@@ -6,6 +6,7 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { apiRequest } from "@/lib/api";
 import { BotaoVoltar } from "@/components/botao-voltar";
+import { textoStatusPagamento, textoStatusPedido, textoStatusReserva } from "@/lib/formatadores-status";
 
 function Icon({ type, className = "h-5 w-5" }) {
     const paths = {
@@ -139,17 +140,17 @@ function PagamentoRetornoContent() {
     }, [dados, tipoPagamento]);
 
     return (
-        <main className="flex min-h-screen flex-col bg-app-chantilly px-5 py-8 text-app-cafe-profundo">
+        <main className="flex min-h-screen flex-col bg-app-chantilly px-4 py-8 text-app-cafe-profundo sm:px-5">
             <div className="mx-auto flex w-full max-w-4xl flex-1 flex-col items-center justify-center">
                 <Image src="/brand/appono-mark.svg" alt="Appono" width={92} height={92} className="h-20 w-20" priority />
-                <section className="mt-8 w-full rounded-[18px] bg-app-creme-leve p-6 text-center shadow-sm ring-1 ring-app-baunilha-dourada/70 sm:p-10">
+                <section className="mt-8 w-full rounded-[18px] bg-app-creme-leve p-5 text-center shadow-sm ring-1 ring-app-baunilha-dourada/70 sm:p-10">
                     <div className={`mx-auto flex h-16 w-16 items-center justify-center rounded-full ${estado.className}`}>
                         <Icon type={estado.icon} className="h-7 w-7" />
                     </div>
                     <p className="mt-6 text-[10px] font-bold uppercase tracking-[0.22em] text-app-caramelo-torrado">
                         Mercado Pago
                     </p>
-                    <h1 className="mt-2 text-3xl font-bold sm:text-4xl">{mensagemVisivel || estado.title}</h1>
+                    <h1 className="mt-2 text-2xl font-bold sm:text-4xl">{mensagemVisivel || estado.title}</h1>
                     <p className="mx-auto mt-4 max-w-xl text-sm leading-6 text-app-mocha">{mensagemVisivel ? "Aguarde alguns instantes." : estado.description}</p>
                     {dados?.status_pagamento === "PENDENTE" ? (
                         <div className="mx-auto mt-6 max-w-xl rounded-[12px] bg-app-baunilha-dourada/35 p-4 text-left text-sm leading-6 text-app-mocha ring-1 ring-app-baunilha-dourada/70">
@@ -166,7 +167,7 @@ function PagamentoRetornoContent() {
                             </div>
                             <div>
                                 <p className="text-[10px] font-bold uppercase text-app-cinza">Status</p>
-                                <p className="mt-1 font-semibold">{dados.reserva.status_reserva}</p>
+                                <p className="mt-1 font-semibold">{textoStatusReserva(dados.reserva.status_reserva)}</p>
                             </div>
                             <div>
                                 <p className="text-[10px] font-bold uppercase text-app-cinza">Valor</p>
@@ -174,7 +175,7 @@ function PagamentoRetornoContent() {
                             </div>
                             <div>
                                 <p className="text-[10px] font-bold uppercase text-app-cinza">Pagamento</p>
-                                <p className="mt-1 font-semibold">{dados.status_pagamento ?? "PENDENTE"}</p>
+                                <p className="mt-1 font-semibold">{textoStatusPagamento(dados.status_pagamento)}</p>
                             </div>
                         </div>
                     ) : null}
@@ -186,7 +187,7 @@ function PagamentoRetornoContent() {
                             </div>
                             <div>
                                 <p className="text-[10px] font-bold uppercase text-app-cinza">Status</p>
-                                <p className="mt-1 font-semibold">{dados.pedido.status_pedido}</p>
+                                <p className="mt-1 font-semibold">{textoStatusPedido(dados.pedido.status_pedido)}</p>
                             </div>
                             <div>
                                 <p className="text-[10px] font-bold uppercase text-app-cinza">Valor</p>
@@ -194,7 +195,7 @@ function PagamentoRetornoContent() {
                             </div>
                             <div>
                                 <p className="text-[10px] font-bold uppercase text-app-cinza">Pagamento</p>
-                                <p className="mt-1 font-semibold">{dados.status_pagamento ?? "PENDENTE"}</p>
+                                <p className="mt-1 font-semibold">{textoStatusPagamento(dados.status_pagamento)}</p>
                             </div>
                         </div>
                     ) : null}

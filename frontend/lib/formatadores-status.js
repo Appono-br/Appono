@@ -51,6 +51,27 @@ export function textoStatusPedido(status) {
     return statusMap[status] ?? formatarCodigoSistema(status, "Pedido");
 }
 
+export function textoStatusReserva(status) {
+    const statusMap = {
+        PENDENTE: "Pendente",
+        CONFIRMADA: "Confirmada",
+        CANCELADA: "Cancelada",
+        CONCLUIDA: "Concluida",
+    };
+    return statusMap[status] ?? formatarCodigoSistema(status, "Reserva");
+}
+
+export function textoStatusPagamento(status) {
+    const statusMap = {
+        PENDENTE: "Pendente",
+        APROVADO: "Aprovado",
+        RECUSADO: "Recusado",
+        CANCELADO: "Cancelado",
+        NAO_APLICAVEL: "Nao aplicavel",
+    };
+    return statusMap[status] ?? formatarCodigoSistema(status, "Pagamento");
+}
+
 export function textoFluxoPagamento(fluxo) {
     const fluxos = {
         SIMULADO_APPONO: "Simulado pela Appono",

@@ -60,11 +60,17 @@ export function PainelNotificacoes({ modulo, voltarHref, dashboardHref }) {
     const [notificacoes, setNotificacoes] = useState([]);
     const [carregando, setCarregando] = useState(true);
     const [mensagem, setMensagem] = useState("");
+    const [tipoMensagem, setTipoMensagem] = useState("erro");
     const [filtroAtual, setFiltroAtual] = useState("todas");
     const [confirmacao, setConfirmacao] = useState(null);
     const [processandoConfirmacao, setProcessandoConfirmacao] = useState(false);
 
     const naoLidas = useMemo(() => notificacoes.filter((notificacao) => !notificacao.lida).length, [notificacoes]);
+
+    function exibirMensagem(texto, tipo = "sucesso") {
+        setMensagem(texto);
+        setTipoMensagem(tipo);
+    }
 
     async function carregarNotificacoes({ mostrarCarregando = true } = {}) {
         if (mostrarCarregando) {
@@ -75,9 +81,12 @@ export function PainelNotificacoes({ modulo, voltarHref, dashboardHref }) {
             const consulta = filtroAtual === "todas" ? "" : `?filtro=${filtroAtual}`;
             const resposta = await apiRequest(`/notificacoes${consulta}`);
             setNotificacoes(resposta ?? []);
+            if (mostrarCarregando) {
+                exibirMensagem("Notificacoes atualizadas.", "sucesso");
+            }
         }
         catch (error) {
-            setMensagem(error instanceof Error ? error.message : "Nao foi possivel carregar as notificacoes.");
+            exibirMensagem(error instanceof Error ? error.message : "Nao foi possivel carregar as notificacoes.", "erro");
         }
         finally {
             setCarregando(false);
@@ -95,7 +104,7 @@ export function PainelNotificacoes({ modulo, voltarHref, dashboardHref }) {
             })
             .catch((error) => {
                 if (ativo) {
-                    setMensagem(error instanceof Error ? error.message : "Nao foi possivel carregar as notificacoes.");
+                    exibirMensagem(error instanceof Error ? error.message : "Nao foi possivel carregar as notificacoes.", "erro");
                 }
             })
             .finally(() => {
@@ -125,9 +134,10 @@ export function PainelNotificacoes({ modulo, voltarHref, dashboardHref }) {
             const atualizada = await apiRequest(`/notificacoes/${id}/lida`, { method: "PATCH" });
             setNotificacoes((atuais) => atuais.map((notificacao) => notificacao.id_notificacao === id ? atualizada : notificacao));
             dispararAtualizacaoNotificacoes();
+            exibirMensagem("Notificacao marcada como lida.", "sucesso");
         }
         catch (error) {
-            setMensagem(error instanceof Error ? error.message : "Nao foi possivel atualizar a notificacao.");
+            exibirMensagem(error instanceof Error ? error.message : "Nao foi possivel atualizar a notificacao.", "erro");
         }
     }
 
@@ -140,9 +150,10 @@ export function PainelNotificacoes({ modulo, voltarHref, dashboardHref }) {
                 lida_em: notificacao.lida_em ?? new Date().toISOString(),
             })));
             dispararAtualizacaoNotificacoes();
+            exibirMensagem("Todas as notificacoes foram marcadas como lidas.", "sucesso");
         }
         catch (error) {
-            setMensagem(error instanceof Error ? error.message : "Nao foi possivel marcar as notificacoes como lidas.");
+            exibirMensagem(error instanceof Error ? error.message : "Nao foi possivel marcar as notificacoes como lidas.", "erro");
         }
     }
 
@@ -153,9 +164,10 @@ export function PainelNotificacoes({ modulo, voltarHref, dashboardHref }) {
                 body: JSON.stringify({ favoritada: !notificacao.favoritada }),
             });
             setNotificacoes((atuais) => atuais.map((item) => item.id_notificacao === notificacao.id_notificacao ? atualizada : item));
+            exibirMensagem(atualizada.favoritada ? "Notificacao adicionada aos favoritos." : "Notificacao removida dos favoritos.", "sucesso");
         }
         catch (error) {
-            setMensagem(error instanceof Error ? error.message : "Nao foi possivel favoritar a notificacao.");
+            exibirMensagem(error instanceof Error ? error.message : "Nao foi possivel favoritar a notificacao.", "erro");
         }
     }
 
@@ -188,16 +200,18 @@ export function PainelNotificacoes({ modulo, voltarHref, dashboardHref }) {
                 await apiRequest(`/notificacoes/${confirmacao.notificacao.id_notificacao}/apagar`, { method: "PATCH" });
                 setNotificacoes((atuais) => atuais.filter((item) => item.id_notificacao !== confirmacao.notificacao.id_notificacao));
                 dispararAtualizacaoNotificacoes();
+                exibirMensagem("Notificacao apagada da sua central.", "sucesso");
             }
             if (confirmacao.tipo === "limpar") {
                 await apiRequest("/notificacoes/limpar", { method: "PATCH" });
                 setNotificacoes((atuais) => atuais.filter((notificacao) => notificacao.favoritada));
                 dispararAtualizacaoNotificacoes();
+                exibirMensagem("Notificacoes nao favoritadas foram limpas.", "sucesso");
             }
             setConfirmacao(null);
         }
         catch (error) {
-            setMensagem(error instanceof Error ? error.message : "Nao foi possivel concluir a acao.");
+            exibirMensagem(error instanceof Error ? error.message : "Nao foi possivel concluir a acao.", "erro");
         }
         finally {
             setProcessandoConfirmacao(false);
@@ -212,12 +226,12 @@ export function PainelNotificacoes({ modulo, voltarHref, dashboardHref }) {
                 </BotaoVoltar>
 
                 <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_320px] lg:items-start">
-                    <div className="rounded-[28px] bg-app-creme-leve p-7 shadow-sm ring-1 ring-app-baunilha-dourada/60 sm:p-9">
+                    <div className="rounded-[22px] bg-app-creme-leve p-6 shadow-sm ring-1 ring-app-baunilha-dourada/60 sm:rounded-[28px] sm:p-9">
                         <Image src="/brand/appono-mark.svg" alt="Appono" width={76} height={76} className="h-14 w-14" priority />
                         <p className="mt-8 text-[10px] font-bold uppercase tracking-[0.22em] text-app-caramelo-torrado">
                             Central de notificacoes
                         </p>
-                        <h1 className="mt-3 text-4xl font-semibold leading-tight sm:text-5xl">
+                        <h1 className="mt-3 text-3xl font-semibold leading-tight sm:text-5xl">
                             Acompanhe o que muda na sua operacao
                         </h1>
                         <p className="mt-4 max-w-2xl text-sm leading-6 text-app-mocha sm:text-base">
@@ -239,12 +253,14 @@ export function PainelNotificacoes({ modulo, voltarHref, dashboardHref }) {
                 </div>
 
                 {mensagem ? (
-                    <p className="mt-6 rounded-[14px] bg-app-vermelho-erro/10 px-4 py-3 text-sm font-semibold text-app-vermelho-erro ring-1 ring-app-vermelho-erro/20">
+                    <p className={`mt-6 rounded-[14px] px-4 py-3 text-sm font-semibold ring-1 ${tipoMensagem === "sucesso"
+                        ? "bg-app-baunilha-dourada/25 text-app-cafe-profundo ring-app-baunilha-dourada/60"
+                        : "bg-app-vermelho-erro/10 text-app-vermelho-erro ring-app-vermelho-erro/20"}`}>
                         {mensagem}
                     </p>
                 ) : null}
 
-                <section className="mt-8 rounded-[28px] bg-app-creme-leve p-5 shadow-sm ring-1 ring-app-baunilha-dourada/60 sm:p-6">
+                <section className="mt-8 rounded-[22px] bg-app-creme-leve p-4 shadow-sm ring-1 ring-app-baunilha-dourada/60 sm:rounded-[28px] sm:p-6">
                     <div className="flex flex-col gap-3 border-b border-app-baunilha-dourada/55 pb-5 sm:flex-row sm:items-end sm:justify-between">
                         <div>
                             <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">Historico</p>
@@ -274,7 +290,7 @@ export function PainelNotificacoes({ modulo, voltarHref, dashboardHref }) {
                     ) : notificacoes.length ? (
                         <div className="mt-5 grid gap-4">
                             {notificacoes.map((notificacao) => (
-                                <article key={notificacao.id_notificacao} className={`rounded-[18px] border p-5 shadow-sm ${obterTomNotificacao(notificacao.tipo_evento)} ${notificacao.lida ? "opacity-75" : ""}`}>
+                                <article key={notificacao.id_notificacao} className={`overflow-hidden rounded-[18px] border p-4 shadow-sm sm:p-5 ${obterTomNotificacao(notificacao.tipo_evento)} ${notificacao.lida ? "opacity-75" : ""}`}>
                                     <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                                         <div>
                                             <div className="flex flex-wrap items-center gap-2">
@@ -296,7 +312,7 @@ export function PainelNotificacoes({ modulo, voltarHref, dashboardHref }) {
                                             <p className="mt-2 max-w-3xl text-sm leading-6 text-app-mocha">{notificacao.mensagem}</p>
                                             <p className="mt-3 text-xs text-app-cinza">{formatarDataHora(notificacao.criado_em)}</p>
                                         </div>
-                                        <div className="flex flex-wrap gap-2 sm:justify-end">
+                                        <div className="flex flex-wrap gap-2 sm:min-w-52 sm:justify-end">
                                             <button type="button" onClick={() => alternarFavorita(notificacao)} className={`inline-flex h-9 w-9 items-center justify-center rounded-full border transition ${notificacao.favoritada
                                                 ? "border-app-dourado-mel bg-app-dourado-mel text-app-cafe-profundo hover:bg-app-baunilha-dourada"
                                                 : "border-app-baunilha-dourada text-app-mocha hover:bg-app-baunilha-dourada hover:text-app-cafe-profundo"}`} aria-label={notificacao.favoritada ? "Remover dos favoritos" : "Favoritar notificacao"} title={notificacao.favoritada ? "Remover dos favoritos" : "Favoritar"}>

@@ -78,19 +78,19 @@ export default function PaginaPagamentoPedido({ params }) {
     const preferenceId = preferencia?.preference_id;
 
     return (
-        <main className="flex min-h-screen flex-col bg-app-chantilly px-5 py-8 text-app-cafe-profundo">
+        <main className="flex min-h-screen flex-col bg-app-chantilly px-4 py-8 text-app-cafe-profundo sm:px-5">
             <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col justify-center">
                 <BotaoVoltar href="/cliente/detalhes-pedido" className="text-sm font-bold text-app-caramelo-torrado transition hover:text-app-cafe-profundo">
                     Voltar aos detalhes do pedido
                 </BotaoVoltar>
 
-                <section className="mt-6 grid overflow-hidden rounded-[18px] bg-app-creme-leve shadow-sm ring-1 ring-app-baunilha-dourada/70 lg:grid-cols-[minmax(0,1fr)_430px]">
-                    <div className="p-6 sm:p-10">
+                <section className="mt-6 grid overflow-hidden rounded-[18px] bg-app-creme-leve shadow-sm ring-1 ring-app-baunilha-dourada/70 lg:grid-cols-[minmax(0,1fr)_minmax(360px,430px)]">
+                    <div className="min-w-0 p-5 sm:p-10">
                         <Image src="/brand/appono-mark.svg" alt="Appono" width={88} height={88} className="h-16 w-16" priority />
                         <p className="mt-8 text-[10px] font-bold uppercase tracking-[0.22em] text-app-caramelo-torrado">
                             Checkout Pro
                         </p>
-                        <h1 className="mt-2 text-3xl font-bold text-app-cafe-profundo sm:text-4xl">
+                        <h1 className="mt-2 text-3xl font-bold leading-tight text-app-cafe-profundo sm:text-4xl">
                             Finalize o pagamento do pedido antecipado
                         </h1>
                         <p className="mt-4 max-w-xl text-sm leading-6 text-app-mocha">
@@ -119,7 +119,7 @@ export default function PaginaPagamentoPedido({ params }) {
                         </div>
                     </div>
 
-                    <aside className="flex flex-col justify-center bg-app-cafe-profundo p-6 text-app-creme-leve sm:p-8">
+                    <aside className="min-w-0 bg-app-cafe-profundo p-5 text-app-creme-leve sm:p-8 lg:flex lg:flex-col lg:justify-center">
                         <div className="rounded-[18px] border border-app-baunilha-dourada/25 bg-app-creme-leve/8 p-5 shadow-sm">
                             <div className="flex items-start gap-4">
                                 <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[14px] bg-app-baunilha-dourada text-app-cafe-profundo">

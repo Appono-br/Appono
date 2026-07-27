@@ -340,11 +340,11 @@ export default function AdminFinanceiroPage() {
                             <strong className="text-lg font-semibold">Central administrativa</strong>
                         </div>
                     </div>
-                    <div className="flex flex-wrap items-center gap-3">
-                        <span className="rounded-full bg-app-cafe-profundo px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-app-creme-leve">
+                    <div className="grid gap-3 sm:flex sm:flex-wrap sm:items-center">
+                        <span className="rounded-full bg-app-cafe-profundo px-4 py-2 text-center text-xs font-bold uppercase tracking-[0.12em] text-app-creme-leve">
                             {admin?.nome ?? "Administracao"}
                         </span>
-                        <Link href="/admin/notificacoes" className="rounded-full border border-app-baunilha-dourada bg-app-chantilly px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:bg-app-baunilha-dourada">
+                        <Link href="/admin/notificacoes" className="rounded-full border border-app-baunilha-dourada bg-app-chantilly px-4 py-2 text-center text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:bg-app-baunilha-dourada">
                             Notificacoes
                         </Link>
                         <button type="button" onClick={sairParaHome} className="rounded-full border border-app-baunilha-dourada bg-app-chantilly px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:bg-app-baunilha-dourada">
@@ -358,7 +358,7 @@ export default function AdminFinanceiroPage() {
                 <div className="grid gap-8 lg:grid-cols-[1fr_380px] lg:items-start">
                     <div>
                         <p className="text-xs font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">Marketplace financeiro</p>
-                        <h1 className="mt-3 max-w-3xl text-4xl font-semibold leading-tight sm:text-5xl">
+                        <h1 className="mt-3 max-w-3xl text-3xl font-semibold leading-tight sm:text-5xl">
                             Retencao, comissao e repasses da Appono
                         </h1>
                         <p className="mt-4 max-w-3xl text-sm leading-6 text-app-mocha">
@@ -414,7 +414,7 @@ export default function AdminFinanceiroPage() {
                                 </button>
                             ))}
                         </div>
-                        <div className="flex flex-col gap-3 sm:flex-row">
+                        <div className="flex flex-col gap-3 sm:min-w-80 sm:flex-row">
                             <input value={busca} onChange={(event) => setBusca(event.target.value)} placeholder="Buscar no painel..." className="h-10 rounded-full bg-app-chantilly px-4 text-sm outline-none ring-1 ring-app-baunilha-dourada/70 transition focus:ring-2 focus:ring-app-caramelo-torrado" />
                             <button type="button" onClick={atualizarPainel} disabled={atualizando} className="h-10 rounded-full bg-app-caramelo-torrado px-5 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-app-mocha disabled:cursor-not-allowed disabled:opacity-60">
                                 {atualizando ? "Atualizando..." : "Atualizar"}
