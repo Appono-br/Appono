@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { apiRequest } from "@/lib/api";
+import { calcularTempoPreparoItens } from "@/lib/tempo-preparo";
 import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 
 const navItems = [
@@ -147,7 +148,7 @@ export default function OrderDetailsPage() {
 
     const itens = pedidoSelecionado?.itens_pedido ?? [];
     const quantidadeItens = itens.reduce((soma, item) => soma + Number(item.quantidade ?? 0), 0);
-    const tempoEstimado = itens.reduce((maior, item) => Math.max(maior, Number(item.produtos?.tempo_preparo_minutos ?? 0)), 0);
+    const tempoEstimado = calcularTempoPreparoItens(itens);
     const hasPedido = Boolean(pedidoSelecionado);
     const indiceEtapaAtual = obterIndiceEtapa(pedidoSelecionado?.status_pedido);
     const podeCancelarPedido = ["PENDENTE", "CONFIRMADO"].includes(pedidoSelecionado?.status_pedido);

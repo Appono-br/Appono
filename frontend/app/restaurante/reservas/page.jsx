@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { apiRequest } from "@/lib/api";
+import { calcularTempoPreparoItens } from "@/lib/tempo-preparo";
 import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 
 const navItems = [
@@ -368,7 +369,7 @@ export default function RestaurantReservationsPage() {
                                                         const acao = obterProximaAcaoPedido(pedido.status_pedido);
                                                         const pedidoCancelado = pedido.status_pedido === "CANCELADO";
                                                         const totalItensPedido = (pedido.itens_pedido ?? []).reduce((soma, item) => soma + Number(item.quantidade ?? 0), 0);
-                                                        const maiorTempoPedido = (pedido.itens_pedido ?? []).reduce((maior, item) => Math.max(maior, Number(item.produtos?.tempo_preparo_minutos ?? 0)), 0);
+                                                        const tempoEstimadoPedido = calcularTempoPreparoItens(pedido.itens_pedido ?? []);
 
                                                         return (
                                                             <div
@@ -394,7 +395,7 @@ export default function RestaurantReservationsPage() {
                                                                         {totalItensPedido} itens
                                                                     </span>
                                                                     <span className="rounded-[8px] bg-app-creme-leve px-3 py-2 ring-1 ring-app-baunilha-dourada/45">
-                                                                        Preparo estimado: {maiorTempoPedido || "--"} min
+                                                                        Preparo estimado: {tempoEstimadoPedido || "--"} min
                                                                     </span>
                                                                     <span className="rounded-[8px] bg-app-creme-leve px-3 py-2 ring-1 ring-app-baunilha-dourada/45">
                                                                         Entrega: {pedido.horario_entrega_previsto ? String(pedido.horario_entrega_previsto).slice(11, 16) : reserva.horario_inicio?.slice(0, 5)}

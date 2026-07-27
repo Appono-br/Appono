@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { apiRequest } from "@/lib/api";
+import { calcularTempoPreparoItens } from "@/lib/tempo-preparo";
 import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 
 function formatarMoeda(valor) {
@@ -104,12 +105,12 @@ export default function PaginaPedidoAntecipado({ params }) {
     const total = produtosSelecionados.reduce((soma, produto) => soma + Number(produto.preco) * produto.quantidade, 0);
     const consumoMinimo = Number(dados?.reserva?.valor_minimo_total ?? 0);
     const faltaParaMinimo = Math.max(0, consumoMinimo - total);
-    const maiorTempoPreparo = produtosSelecionados.reduce((maior, produto) => Math.max(maior, Number(produto.tempo_preparo_minutos ?? 30)), 0);
+    const tempoEstimadoPreparo = calcularTempoPreparoItens(produtosSelecionados);
     const pedidoAtivo = dados?.reserva.pedidos?.find((pedido) => ["PENDENTE", "CONFIRMADO", "EM_PREPARO", "PRONTO"].includes(pedido.status_pedido));
     const reservaConfirmada = dados?.reserva.status_reserva === "CONFIRMADA";
     const itensPedidoAtivo = pedidoAtivo?.itens_pedido ?? [];
     const totalItensPedidoAtivo = itensPedidoAtivo.reduce((soma, item) => soma + Number(item.quantidade ?? 0), 0);
-    const maiorTempoPedidoAtivo = itensPedidoAtivo.reduce((maior, item) => Math.max(maior, Number(item.produtos?.tempo_preparo_minutos ?? 0)), 0);
+    const tempoEstimadoPedidoAtivo = calcularTempoPreparoItens(itensPedidoAtivo);
 
     function alterarQuantidade(produtoId, diferenca) {
         setMensagem("");
@@ -277,7 +278,7 @@ export default function PaginaPedidoAntecipado({ params }) {
                                 </div>
                                 <div className="flex justify-between gap-4">
                                     <span className="text-app-mocha">Tempo estimado</span>
-                                    <strong>{maiorTempoPedidoAtivo || "--"} min</strong>
+                                    <strong>{tempoEstimadoPedidoAtivo || "--"} min</strong>
                                 </div>
                                 {pedidoAtivo.iniciar_preparo_em ? (
                                     <div className="flex justify-between gap-4">
@@ -435,7 +436,7 @@ export default function PaginaPedidoAntecipado({ params }) {
                                 </div>
                                 <div className="flex items-center justify-between text-sm">
                                     <span className="text-app-mocha">Tempo estimado</span>
-                                    <strong>{maiorTempoPreparo || 0} min</strong>
+                                    <strong>{tempoEstimadoPreparo || 0} min</strong>
                                 </div>
                                 <div className="flex items-center justify-between">
                                     <span className="font-bold">Total</span>
