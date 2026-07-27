@@ -1,6 +1,7 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
+import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 import { useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 const conversations = [];
@@ -95,7 +96,9 @@ export default function RestaurantConversationPage() {
               Chat
             </h1>
           </div>
-          <div className="w-16"/>
+          <div className="justify-self-end text-app-cafe-profundo">
+            <ItemHeaderNotificacoes href="/restaurante/notificacoes" />
+          </div>
         </div>
       </header>
 

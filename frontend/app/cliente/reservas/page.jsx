@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { apiRequest } from "@/lib/api";
+import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 const navItems = [
     { label: "Início", href: "/cliente/dashboard" },
     { label: "Detalhes do pedido", href: "/cliente/detalhes-pedido" },
@@ -232,9 +233,7 @@ export default function ReservationsPage() {
           </nav>
 
           <div className="flex items-center justify-self-end gap-3 text-app-cafe-profundo">
-            <button type="button" className="transition hover:text-app-caramelo-torrado" aria-label="Notificações">
-              <Icon type="bell"/>
-            </button>
+            <ItemHeaderNotificacoes href="/cliente/notificacoes" />
             <button type="button" className="transition hover:text-app-caramelo-torrado" aria-label="Sacola">
               <Icon type="bag"/>
             </button>

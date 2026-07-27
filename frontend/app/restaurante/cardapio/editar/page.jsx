@@ -7,6 +7,7 @@ import { useSearchParams } from "next/navigation";
 import { apiRequest } from "@/lib/api";
 import { enviarImagemCardapio, validarImagemCardapio } from "@/lib/imagem-cardapio";
 import { TelaCarregandoSessao, useSessaoLocal } from "@/lib/use-sessao-local";
+import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 
 const initialForm = {
     name: "",
@@ -220,7 +221,9 @@ function RestaurantMenuItemEditorContent() {
                         </Link>
                         <h1 className="text-lg font-bold uppercase tracking-[0.16em] sm:text-2xl">Menu</h1>
                     </div>
-                    <div />
+                    <div className="justify-self-end text-app-cafe-profundo">
+                        <ItemHeaderNotificacoes href="/restaurante/notificacoes" />
+                    </div>
                 </div>
             </header>
 

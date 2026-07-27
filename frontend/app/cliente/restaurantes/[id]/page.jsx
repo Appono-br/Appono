@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { apiRequest } from "@/lib/api";
+import { BotaoVoltar } from "@/components/botao-voltar";
 function formatarMoeda(valor) {
     return new Intl.NumberFormat("pt-BR", {
         style: "currency",
@@ -98,9 +99,9 @@ export default function PaginaRestaurante({ params, }) {
     }
     return (<main className="min-h-screen bg-app-chantilly px-5 py-8 text-app-cafe-profundo">
       <div className="mx-auto max-w-6xl">
-        <Link href="/cliente/dashboard" className="text-sm font-bold text-app-caramelo-torrado">
+        <BotaoVoltar href="/cliente/dashboard" className="text-sm font-bold text-app-caramelo-torrado transition hover:text-app-cafe-profundo">
           Voltar aos restaurantes
-        </Link>
+        </BotaoVoltar>
 
         <section className="mt-5 overflow-hidden rounded-[12px] bg-app-creme-leve shadow-sm ring-1 ring-app-baunilha-dourada">
           <div className="relative h-52 bg-app-baunilha-dourada/45 sm:h-64">

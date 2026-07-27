@@ -1,6 +1,7 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
+import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 import { useState } from "react";
 const navItems = [
     { label: "Home", href: "/restaurante/home" },
@@ -89,6 +90,7 @@ export default function RestaurantPerformancePage() {
               </Link>))}
           </nav>
 
+          <ItemHeaderNotificacoes href="/restaurante/notificacoes" />
           <button type="button" onClick={() => setMobileMenuOpen((current) => !current)} className="flex h-9 w-9 items-center justify-center justify-self-end rounded-[8px] border border-app-baunilha-dourada bg-app-chantilly text-app-cafe-profundo xl:hidden" aria-label="Abrir menu" aria-expanded={mobileMenuOpen} aria-controls="restaurant-performance-menu">
             <Icon type="menu"/>
           </button>

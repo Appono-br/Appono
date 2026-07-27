@@ -8,6 +8,7 @@ const crypto = require("crypto");
 const supabase_1 = require("../lib/supabase");
 const auth_1 = require("../middleware/auth");
 const mercado_pago_1 = require("../services/pagamentos/mercado-pago");
+const notificacoes_1 = require("../services/notificacoes");
 
 exports.paymentsRouter = (0, express_1.Router)();
 
@@ -381,6 +382,31 @@ async function aplicarStatusRetornoPedido(pedido, referencia, query) {
         pedido.id_pedido,
         obterStatusPedidoPorPagamento(statusMapeado.pagamento),
     );
+    if (statusMapeado.pagamento === "APROVADO" && pagamentoExistente.status_pagamento !== "APROVADO") {
+        await Promise.all([
+            (0, notificacoes_1.notificarCliente)(pedido.id_cliente, {
+                titulo: "Pagamento aprovado",
+                mensagem: "Seu pagamento foi aprovado e o restaurante ja pode acompanhar o pedido antecipado.",
+                tipo_evento: "PAGAMENTO_APROVADO",
+                link_destino: "/cliente/detalhes-pedido",
+                dados: { id_pedido: pedido.id_pedido, id_reserva: pedido.id_reserva },
+            }),
+            (0, notificacoes_1.notificarRestaurante)(pedido.id_restaurante, {
+                titulo: "Pedido pago",
+                mensagem: "Um pedido antecipado foi pago e esta pronto para acompanhamento operacional.",
+                tipo_evento: "PAGAMENTO_APROVADO",
+                link_destino: "/restaurante/reservas",
+                dados: { id_pedido: pedido.id_pedido, id_reserva: pedido.id_reserva },
+            }),
+            (0, notificacoes_1.notificarAdministradores)({
+                titulo: "Pagamento aprovado",
+                mensagem: `Pedido #${pedido.id_pedido} aprovado no Mercado Pago para conciliacao financeira.`,
+                tipo_evento: "PAGAMENTO_APROVADO",
+                link_destino: "/admin/financeiro",
+                dados: { id_pedido: pedido.id_pedido, id_reserva: pedido.id_reserva, id_pagamento: pagamento.id_pagamento },
+            }),
+        ]);
+    }
     return {
         pagamento,
         pedido: pedidoAtualizado ?? pedido,
@@ -401,12 +427,13 @@ async function aplicarPagamentoMercadoPago(pagamentoMercadoPago, fallbackReferen
     if (referenciaInfo.tipo === "pedido") {
         const { data: pedido, error: pedidoError } = await supabase_1.supabaseAdmin
             .from("pedidos")
-            .select("id_pedido, id_reserva, valor_total, status_pedido")
+            .select("id_pedido, id_cliente, id_restaurante, id_reserva, valor_total, status_pedido")
             .eq("id_pedido", referenciaInfo.id)
             .maybeSingle();
         if (pedidoError || !pedido) {
             throw new Error(pedidoError?.message ?? "Pedido nao encontrado para conciliacao.");
         }
+        const pagamentoExistente = await obterPagamentoExistentePorReferencia(referencia);
         const pagamento = await salvarPagamento({
             id_pedido: pedido.id_pedido,
             id_reserva: pedido.id_reserva,
@@ -428,6 +455,31 @@ async function aplicarPagamentoMercadoPago(pagamentoMercadoPago, fallbackReferen
             pedido.id_pedido,
             obterStatusPedidoPorPagamento(statusMapeado.pagamento),
         );
+        if (statusMapeado.pagamento === "APROVADO" && pagamentoExistente?.status_pagamento !== "APROVADO") {
+            await Promise.all([
+                (0, notificacoes_1.notificarCliente)(pedido.id_cliente, {
+                    titulo: "Pagamento aprovado",
+                    mensagem: "Seu pagamento foi aprovado e o pedido antecipado foi confirmado.",
+                    tipo_evento: "PAGAMENTO_APROVADO",
+                    link_destino: "/cliente/detalhes-pedido",
+                    dados: { id_pedido: pedido.id_pedido, id_reserva: pedido.id_reserva },
+                }),
+                (0, notificacoes_1.notificarRestaurante)(pedido.id_restaurante, {
+                    titulo: "Pedido pago",
+                    mensagem: "Um pedido antecipado foi pago e pode ser preparado conforme o horario da reserva.",
+                    tipo_evento: "PAGAMENTO_APROVADO",
+                    link_destino: "/restaurante/reservas",
+                    dados: { id_pedido: pedido.id_pedido, id_reserva: pedido.id_reserva },
+                }),
+                (0, notificacoes_1.notificarAdministradores)({
+                    titulo: "Pagamento aprovado",
+                    mensagem: `Pedido #${pedido.id_pedido} aprovado no Mercado Pago para conciliacao financeira.`,
+                    tipo_evento: "PAGAMENTO_APROVADO",
+                    link_destino: "/admin/financeiro",
+                    dados: { id_pedido: pedido.id_pedido, id_reserva: pedido.id_reserva, id_pagamento: pagamento.id_pagamento },
+                }),
+            ]);
+        }
         return {
             pagamento,
             pedido: pedidoAtualizado ?? pedido,

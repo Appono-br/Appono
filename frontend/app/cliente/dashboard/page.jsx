@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { apiRequest } from "@/lib/api";
+import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 const highlightedRestaurants = [];
 const specialties = [];
 const filters = [
@@ -141,13 +142,11 @@ export default function DashboardPage() {
           </nav>
 
           <div className="flex items-center justify-self-end gap-3 text-app-cafe-profundo">
-            <button type="button" className="transition hover:text-app-caramelo-torrado" aria-label="Notificações">
-              <Icon type="bell"/>
-            </button>
             <button type="button" className="transition hover:text-app-caramelo-torrado" aria-label="Sacola">
               <Icon type="bag"/>
             </button>
-            <button type="button" onClick={() => setMobileMenuOpen((current) => !current)} className="flex h-9 w-9 items-center justify-center rounded-[8px] border border-app-baunilha-dourada bg-app-creme-leve lg:hidden" aria-label="Abrir menu" aria-expanded={mobileMenuOpen} aria-controls="client-mobile-menu">
+            <ItemHeaderNotificacoes href="/cliente/notificacoes" />
+          <button type="button" onClick={() => setMobileMenuOpen((current) => !current)} className="flex h-9 w-9 items-center justify-center rounded-[8px] border border-app-baunilha-dourada bg-app-creme-leve lg:hidden" aria-label="Abrir menu" aria-expanded={mobileMenuOpen} aria-controls="client-mobile-menu">
               <Icon type="menu"/>
             </button>
           </div>

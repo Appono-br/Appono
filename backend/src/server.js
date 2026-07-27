@@ -16,6 +16,7 @@ const { menuRouter } = require("./routes/menu");
 const { paymentsRouter } = require("./routes/payments");
 const { marketplaceRouter } = require("./routes/marketplace");
 const { adminRouter } = require("./routes/admin");
+const { notificationsRouter } = require("./routes/notifications");
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -82,6 +83,7 @@ app.use("/api/cardapio", menuRouter);
 app.use("/api/pagamentos", paymentsRouter);
 app.use("/api/marketplace", marketplaceRouter);
 app.use("/api/admin", adminRouter);
+app.use("/api/notificacoes", notificationsRouter);
 
 if (require.main === module) {
     app.listen(PORT, () => {

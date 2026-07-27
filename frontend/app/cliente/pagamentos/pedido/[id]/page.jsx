@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { initMercadoPago, Wallet } from "@mercadopago/sdk-react";
 import { apiRequest } from "@/lib/api";
+import { BotaoVoltar } from "@/components/botao-voltar";
 
 const publicKey = process.env.NEXT_PUBLIC_MERCADO_PAGO_PUBLIC_KEY ?? "";
 
@@ -79,9 +80,9 @@ export default function PaginaPagamentoPedido({ params }) {
     return (
         <main className="flex min-h-screen flex-col bg-app-chantilly px-5 py-8 text-app-cafe-profundo">
             <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col justify-center">
-                <Link href="/cliente/detalhes-pedido" className="w-fit text-sm font-bold text-app-caramelo-torrado">
+                <BotaoVoltar href="/cliente/detalhes-pedido" className="text-sm font-bold text-app-caramelo-torrado transition hover:text-app-cafe-profundo">
                     Voltar aos detalhes do pedido
-                </Link>
+                </BotaoVoltar>
 
                 <section className="mt-6 grid overflow-hidden rounded-[18px] bg-app-creme-leve shadow-sm ring-1 ring-app-baunilha-dourada/70 lg:grid-cols-[minmax(0,1fr)_430px]">
                     <div className="p-6 sm:p-10">

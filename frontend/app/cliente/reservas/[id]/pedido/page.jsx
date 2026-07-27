@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { apiRequest } from "@/lib/api";
+import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 
 function formatarMoeda(valor) {
     return new Intl.NumberFormat("pt-BR", {
@@ -183,6 +184,9 @@ export default function PaginaPedidoAntecipado({ params }) {
                 </Link>
 
                 <header className="mt-6 overflow-hidden rounded-[14px] bg-app-cafe-profundo text-app-creme-leve shadow-sm ring-1 ring-app-baunilha-dourada/50">
+                    <div className="flex justify-end px-6 pt-5 text-app-creme-leve sm:px-8">
+                        <ItemHeaderNotificacoes href="/cliente/notificacoes" />
+                    </div>
                     <div className="grid gap-6 p-6 sm:p-8 lg:grid-cols-[1fr_auto] lg:items-end">
                         <div>
                             <p className="text-xs font-bold uppercase tracking-[0.22em] text-app-areia-quente">Pedido antecipado</p>

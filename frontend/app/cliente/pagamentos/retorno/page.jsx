@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { apiRequest } from "@/lib/api";
+import { BotaoVoltar } from "@/components/botao-voltar";
 
 function Icon({ type, className = "h-5 w-5" }) {
     const paths = {
@@ -211,9 +212,9 @@ function PagamentoRetornoContent() {
                         <button type="button" onClick={consultarStatus} disabled={consultando || (!reservaId && !pedidoId)} className="inline-flex h-11 items-center justify-center rounded-[8px] border border-app-baunilha-dourada px-6 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:bg-app-chantilly disabled:cursor-not-allowed disabled:opacity-55">
                             {consultando ? "Atualizando..." : "Atualizar status"}
                         </button>
-                        <Link href="/cliente/dashboard" className="inline-flex h-11 items-center justify-center rounded-[8px] border border-app-baunilha-dourada px-6 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:bg-app-chantilly">
+                        <BotaoVoltar href="/cliente/dashboard" className="h-11 justify-center rounded-[8px] border border-app-baunilha-dourada px-6 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:bg-app-chantilly">
                             Voltar ao inicio
-                        </Link>
+                        </BotaoVoltar>
                     </div>
                 </section>
             </div>

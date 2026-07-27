@@ -3,6 +3,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { apiRequest } from "@/lib/api";
+import { textoStatusPedido, textoStatusRepasse } from "@/lib/formatadores-status";
+import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 const navItems = [
     { label: "Home", href: "/restaurante/home" },
     { label: "Dashboard", href: "/restaurante/dashboard" },
@@ -69,30 +71,6 @@ function obterPrevisaoRepasse(repasse) {
     return "Apos confirmacao de entrega";
 }
 
-function obterTextoStatusPedido(status) {
-    const statusMap = {
-        PENDENTE: "Aguardando pagamento",
-        CONFIRMADO: "Confirmado",
-        EM_PREPARO: "Em preparo",
-        PRONTO: "Pronto",
-        ENTREGUE: "Entregue",
-        CANCELADO: "Cancelado",
-    };
-    return statusMap[status] ?? "Em acompanhamento";
-}
-
-function obterTextoStatusRepasse(status) {
-    const statusMap = {
-        AGUARDANDO_PAGAMENTO: "Aguardando pagamento",
-        AGUARDANDO_ENTREGA: "Aguardando entrega",
-        LIBERADO_PARA_REPASSE: "Liberado",
-        REPASSADO: "Repassado",
-        ESTORNADO: "Estornado",
-        NAO_APLICAVEL: "Nao aplicavel",
-    };
-    return statusMap[status] ?? "Pendente";
-}
-
 function FinanceCard({ label, value, featured = false, }) {
     return (<article className={`min-h-40 rounded-[8px] p-6 shadow-sm ${featured
             ? "bg-app-cafe-profundo text-app-creme-leve"
@@ -134,10 +112,10 @@ function RepassesTable({ repasses }) {
           </div>
           <span>{repasse.pedido?.clientes?.nome ?? "Cliente"}</span>
           <span>{formatarReserva(repasse.pedido?.reservas?.data_reserva, repasse.pedido?.reservas?.horario_inicio)}</span>
-          <span>{obterTextoStatusPedido(repasse.pedido?.status_pedido)}</span>
+          <span>{textoStatusPedido(repasse.pedido?.status_pedido)}</span>
           <div>
             <strong className="block text-app-caramelo-torrado">
-              {repasse.pedido?.status_pedido === "CANCELADO" ? "Sem repasse" : obterTextoStatusRepasse(repasse.status_repasse)}
+              {repasse.pedido?.status_pedido === "CANCELADO" ? "Sem repasse" : textoStatusRepasse(repasse.status_repasse)}
             </strong>
             <span className="text-xs text-app-cinza">{obterPrevisaoRepasse(repasse)}</span>
           </div>
@@ -271,6 +249,7 @@ export default function RestaurantFinancialReportPage() {
               </Link>))}
           </nav>
 
+          <ItemHeaderNotificacoes href="/restaurante/notificacoes" />
           <button type="button" onClick={() => setMobileMenuOpen((current) => !current)} className="flex h-9 w-9 items-center justify-center justify-self-end rounded-[8px] border border-app-baunilha-dourada bg-app-chantilly text-app-cafe-profundo xl:hidden" aria-label="Abrir menu" aria-expanded={mobileMenuOpen} aria-controls="restaurant-finance-menu">
             <Icon type="menu"/>
           </button>

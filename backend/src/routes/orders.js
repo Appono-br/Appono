@@ -5,6 +5,7 @@ const express_1 = require("express");
 const supabase_1 = require("../lib/supabase");
 const auth_1 = require("../middleware/auth");
 const mercado_pago_1 = require("../services/pagamentos/mercado-pago");
+const notificacoes_1 = require("../services/notificacoes");
 exports.ordersRouter = (0, express_1.Router)();
 exports.ordersRouter.use(auth_1.requireAuth);
 
@@ -254,6 +255,22 @@ exports.ordersRouter.post("/", async (req, res) => {
                             : error.message;
         return res.status(409).json({ error: mensagem });
     }
+    await Promise.all([
+        (0, notificacoes_1.notificarCliente)(data.id_cliente, {
+            titulo: "Pedido antecipado criado",
+            mensagem: "Seu pedido foi registrado e ficara vinculado a sua reserva.",
+            tipo_evento: "PEDIDO_CRIADO",
+            link_destino: "/cliente/detalhes-pedido",
+            dados: { id_pedido: data.id_pedido, id_reserva: data.id_reserva },
+        }),
+        (0, notificacoes_1.notificarRestaurante)(data.id_restaurante, {
+            titulo: "Novo pedido antecipado",
+            mensagem: "Um cliente registrou um pedido antecipado vinculado a uma reserva.",
+            tipo_evento: "PEDIDO_CRIADO",
+            link_destino: "/restaurante/reservas",
+            dados: { id_pedido: data.id_pedido, id_reserva: data.id_reserva },
+        }),
+    ]);
     return res.status(201).json(data);
 });
 exports.ordersRouter.patch("/:id/cancelar", async (req, res) => {
@@ -325,6 +342,29 @@ exports.ordersRouter.patch("/:id/cancelar", async (req, res) => {
             descricao: "Repasse marcado como estornado apos cancelamento do pedido.",
             valor: pagamentosCancelados?.[0]?.valor_restaurante ?? null,
         });
+        await Promise.all([
+            (0, notificacoes_1.notificarCliente)(data.id_cliente, {
+                titulo: "Pedido cancelado",
+                mensagem: "Seu pedido antecipado foi cancelado. Sua reserva continua ativa se ela ainda estiver confirmada.",
+                tipo_evento: "PEDIDO_CANCELADO",
+                link_destino: "/cliente/detalhes-pedido",
+                dados: { id_pedido: data.id_pedido, id_reserva: data.id_reserva },
+            }),
+            (0, notificacoes_1.notificarRestaurante)(data.id_restaurante, {
+                titulo: "Pedido antecipado cancelado",
+                mensagem: "Um pedido antecipado foi cancelado pelo cliente. A reserva permanece independente do pedido.",
+                tipo_evento: "PEDIDO_CANCELADO",
+                link_destino: "/restaurante/reservas",
+                dados: { id_pedido: data.id_pedido, id_reserva: data.id_reserva },
+            }),
+            (0, notificacoes_1.notificarAdministradores)({
+                titulo: "Pedido cancelado",
+                mensagem: `Pedido #${data.id_pedido} cancelado. O repasse foi marcado como estornado quando havia pagamento vinculado.`,
+                tipo_evento: "REPASSE_ESTORNADO",
+                link_destino: "/admin/financeiro",
+                dados: { id_pedido: data.id_pedido, id_reserva: data.id_reserva, id_pagamento: pagamentosCancelados?.[0]?.id_pagamento },
+            }),
+        ]);
         return res.json(data);
     }
     const { data, error } = await supabase.rpc("cancelar_pedido_proprio", {
@@ -338,6 +378,22 @@ exports.ordersRouter.patch("/:id/cancelar", async (req, res) => {
                 : error.message;
         return res.status(409).json({ error: mensagem });
     }
+    await Promise.all([
+        (0, notificacoes_1.notificarCliente)(data.id_cliente, {
+            titulo: "Pedido cancelado",
+            mensagem: "Seu pedido antecipado foi cancelado. Sua reserva continua ativa se ela ainda estiver confirmada.",
+            tipo_evento: "PEDIDO_CANCELADO",
+            link_destino: "/cliente/detalhes-pedido",
+            dados: { id_pedido: data.id_pedido, id_reserva: data.id_reserva },
+        }),
+        (0, notificacoes_1.notificarRestaurante)(data.id_restaurante, {
+            titulo: "Pedido antecipado cancelado",
+            mensagem: "Um pedido antecipado foi cancelado pelo cliente. A reserva permanece independente do pedido.",
+            tipo_evento: "PEDIDO_CANCELADO",
+            link_destino: "/restaurante/reservas",
+            dados: { id_pedido: data.id_pedido, id_reserva: data.id_reserva },
+        }),
+    ]);
     return res.json(data);
 });
 exports.ordersRouter.patch("/:id/status", async (req, res) => {
@@ -392,6 +448,22 @@ exports.ordersRouter.patch("/:id/status", async (req, res) => {
                 : "Repasse estornado apos cancelamento do pedido.",
             valor: pagamentosAfetados?.[0]?.valor_restaurante ?? null,
         });
+        await (0, notificacoes_1.notificarAdministradores)({
+            titulo: proximoStatusRepasse === "LIBERADO_PARA_REPASSE" ? "Repasse liberado" : "Repasse estornado",
+            mensagem: proximoStatusRepasse === "LIBERADO_PARA_REPASSE"
+                ? `Pedido #${orderId} foi entregue e ficou liberado para repasse ao restaurante.`
+                : `Pedido #${orderId} foi cancelado e o repasse foi marcado como estornado.`,
+            tipo_evento: proximoStatusRepasse === "LIBERADO_PARA_REPASSE" ? "REPASSE_LIBERADO" : "REPASSE_ESTORNADO",
+            link_destino: "/admin/financeiro",
+            dados: { id_pedido: orderId, id_reserva: data.id_reserva, id_pagamento: pagamentosAfetados?.[0]?.id_pagamento },
+        });
     }
+    await (0, notificacoes_1.notificarCliente)(data.id_cliente, {
+        titulo: "Status do pedido atualizado",
+        mensagem: `Seu pedido agora esta como: ${status_pedido.replaceAll("_", " ").toLowerCase()}.`,
+        tipo_evento: "STATUS_PEDIDO",
+        link_destino: "/cliente/detalhes-pedido",
+        dados: { id_pedido: data.id_pedido, id_reserva: data.id_reserva, status_pedido },
+    });
     return res.json(data);
 });
