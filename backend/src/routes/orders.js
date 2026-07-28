@@ -10,6 +10,7 @@ exports.ordersRouter = (0, express_1.Router)();
 exports.ordersRouter.use(auth_1.requireAuth);
 
 const LIMITE_UNIDADES_POR_ITEM = 10;
+const STATUS_HISTORICO_RESTAURANTE = ["ENTREGUE", "CANCELADO"];
 
 function obterStatusPedidoPorPagamento(statusPagamento) {
     if (statusPagamento === "APROVADO") {
@@ -209,6 +210,32 @@ exports.ordersRouter.get("/", async (_req, res) => {
         ...pedido,
         itens_pedido: (itens ?? []).filter((item) => item.id_pedido === pedido.id_pedido),
     })));
+});
+exports.ordersRouter.get("/historico/restaurante", async (_req, res) => {
+    const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
+    const { data: restaurante, error: restauranteError } = await supabase
+        .from("restaurantes")
+        .select("id_restaurante")
+        .eq("id_auth", res.locals.user.id)
+        .maybeSingle();
+    if (restauranteError) {
+        return res.status(400).json({ error: restauranteError.message });
+    }
+    if (!restaurante) {
+        return res.status(403).json({ error: "Apenas restaurantes podem consultar o historico de pedidos." });
+    }
+    const clienteBanco = supabase_1.supabaseAdmin ?? supabase;
+    const { data, error } = await clienteBanco
+        .from("pedidos")
+        .select("id_pedido, id_reserva, status_pedido, valor_total, data_pedido, horario_entrega_previsto, iniciar_preparo_em, ocultado_cozinha, ocultado_cozinha_em, observacoes, clientes(nome, telefone), reservas(data_reserva, horario_inicio, horario_fim, quantidade_pessoas, mesas(numero_mesa)), pagamentos(id_pagamento, valor_pago, status_pagamento, status_repasse, valor_restaurante, valor_comissao_app, data_pagamento), itens_pedido(quantidade, preco_unitario, observacoes, produtos(nome, descricao, imagem_url, tempo_preparo_minutos))")
+        .eq("id_restaurante", restaurante.id_restaurante)
+        .order("data_pedido", { ascending: false });
+    if (error) {
+        return res.status(400).json({ error: error.message });
+    }
+    const historico = (data ?? []).filter((pedido) => STATUS_HISTORICO_RESTAURANTE.includes(pedido.status_pedido) ||
+        pedido.ocultado_cozinha === true);
+    return res.json(historico);
 });
 exports.ordersRouter.post("/", async (req, res) => {
     const body = req.body;
