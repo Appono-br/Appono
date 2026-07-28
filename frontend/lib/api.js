@@ -1,31 +1,7 @@
 import { getAccessToken, obterTokensAutenticacao, salvarTokensAutenticacao } from "./session";
 import { supabase } from "./supabase";
 
-const API_URL_PADRAO_LOCAL = "http://localhost:3001/api";
-const API_URL_PRODUCAO = "https://appono-backend.vercel.app/api";
-
-function navegadorEstaEmAmbienteDeDesenvolvimento() {
-    if (typeof window === "undefined") {
-        return true;
-    }
-
-    return window.location.protocol === "http:" && window.location.port === "3000";
-}
-
-function obterApiUrl() {
-    const apiUrlConfigurada = process.env.NEXT_PUBLIC_API_URL ?? API_URL_PADRAO_LOCAL;
-    const usaApiLocal = apiUrlConfigurada.includes("localhost") || apiUrlConfigurada.includes("127.0.0.1");
-
-    if (usaApiLocal && navegadorEstaEmAmbienteDeDesenvolvimento() && typeof window !== "undefined") {
-        return `${window.location.protocol}//${window.location.hostname}:3001/api`;
-    }
-
-    if (usaApiLocal && !navegadorEstaEmAmbienteDeDesenvolvimento()) {
-        return API_URL_PRODUCAO;
-    }
-
-    return apiUrlConfigurada.replace(/\/$/, "");
-}
+const API_URL = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001/api").replace(/\/$/, "");
 
 async function renovarSessaoExpirada() {
     const tokens = obterTokensAutenticacao();
@@ -43,7 +19,7 @@ async function renovarSessaoExpirada() {
 }
 
 async function fazerRequisicao(path, options, accessToken) {
-    return fetch(`${obterApiUrl()}${path}`, {
+    return fetch(`${API_URL}${path}`, {
         ...options,
         headers: {
             "Content-Type": "application/json",
