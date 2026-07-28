@@ -24,10 +24,26 @@ const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN ?? "http://localhost:3000";
 const allowedOrigins = FRONTEND_ORIGIN.split(",")
     .map((origin) => origin.trim())
     .filter(Boolean);
+const allowVercelPreviews = String(process.env.CORS_ALLOW_VERCEL_PREVIEWS ?? "true").toLowerCase() !== "false";
+const vercelPreviewProjectHint = String(process.env.CORS_VERCEL_PROJECT_HINT ?? "appono").toLowerCase();
+
+function isVercelPreviewOrigin(origin) {
+    if (!allowVercelPreviews || !origin) {
+        return false;
+    }
+
+    try {
+        const host = new URL(origin).hostname.toLowerCase();
+        return host.endsWith(".vercel.app") && host.includes(vercelPreviewProjectHint);
+    }
+    catch {
+        return false;
+    }
+}
 
 app.use(cors({
     origin(origin, callback) {
-        if (!origin || allowedOrigins.includes("*") || allowedOrigins.includes(origin)) {
+        if (!origin || allowedOrigins.includes("*") || allowedOrigins.includes(origin) || isVercelPreviewOrigin(origin)) {
             return callback(null, true);
         }
 
