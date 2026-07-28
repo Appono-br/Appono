@@ -1,6 +1,7 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
+import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 import { useMemo, useState } from "react";
 const conversations = [];
 const navItems = [
@@ -10,6 +11,7 @@ const navItems = [
     { label: "Desempenho", href: "/restaurante/desempenho" },
     { label: "Relatorio financeiro", href: "/restaurante/financeiro" },
     { label: "Reservas", href: "/restaurante/reservas" },
+    { label: "Pedidos", href: "/restaurante/pedidos" },
     { label: "Mensagens", href: "/restaurante/mensagens" },
     { label: "Configuracoes", href: "/restaurante/configuracoes" },
 ];
@@ -26,6 +28,7 @@ function getStorage() {
 }
 function Icon({ type, className = "h-5 w-5", }) {
     const paths = {
+        bell: "M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0",
         "chevron-right": "m9 18 6-6-6-6",
         menu: "M4 7h16M4 12h16M4 17h16",
         message: "M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v8z",
@@ -87,21 +90,19 @@ export default function RestaurantMessagesPage() {
           </div>
 
           <nav className="hidden items-center justify-self-center gap-6 text-xs font-semibold text-app-cinza xl:flex">
-            {navItems.map((item, index) => (<Link key={item.label} href={item.href} className={index === 6
+            {navItems.map((item, index) => (<Link key={item.label} href={item.href} className={index === 7
                 ? "text-app-cafe-profundo"
                 : "transition hover:text-app-cafe-profundo"}>
                 {item.label}
               </Link>))}
           </nav>
 
-          <button type="button" onClick={() => setMobileMenuOpen((current) => !current)} className="flex h-9 w-9 items-center justify-center justify-self-end rounded-[8px] border border-app-baunilha-dourada bg-app-chantilly text-app-cafe-profundo xl:hidden" aria-label="Abrir menu" aria-expanded={mobileMenuOpen} aria-controls="restaurant-messages-menu">
-            <Icon type="menu"/>
-          </button>
+          <div className="flex items-center justify-end gap-3 justify-self-end"><ItemHeaderNotificacoes href="/restaurante/notificacoes"/><button type="button" onClick={() => setMobileMenuOpen((current) => !current)} className="flex h-9 w-9 items-center justify-center rounded-[8px] border border-app-baunilha-dourada bg-app-chantilly text-app-cafe-profundo xl:hidden" aria-label="Abrir menu" aria-expanded={mobileMenuOpen} aria-controls="restaurant-messages-menu"><Icon type="menu"/></button></div>
         </div>
 
         {mobileMenuOpen ? (<nav id="restaurant-messages-menu" className="border-t border-app-baunilha-dourada/55 bg-app-creme-leve px-5 py-3 xl:hidden">
             <div className="mx-auto grid max-w-7xl gap-2 text-xs font-semibold text-app-cinza">
-              {navItems.map((item, index) => (<Link key={item.label} href={item.href} onClick={() => setMobileMenuOpen(false)} className={index === 6
+              {navItems.map((item, index) => (<Link key={item.label} href={item.href} onClick={() => setMobileMenuOpen(false)} className={index === 7
                     ? "text-app-cafe-profundo"
                     : "transition hover:text-app-cafe-profundo"}>
                   {item.label}

@@ -1,6 +1,7 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
+import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 import { useEffect, useState } from "react";
 import { apiRequest } from "@/lib/api";
 import { TelaCarregandoSessao, useSessaoLocal } from "@/lib/use-sessao-local";
@@ -156,7 +157,7 @@ export default function RestaurantNotificationSettingsPage() {
               Configuracoes
             </h1>
           </div>
-          <Icon type="help" className="hidden h-5 w-5 justify-self-end text-app-mocha sm:block"/>
+          <ItemHeaderNotificacoes href="/restaurante/notificacoes"/>
         </div>
       </header>
 

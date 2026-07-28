@@ -4,6 +4,7 @@ exports.reservationsRouter = void 0;
 const express_1 = require("express");
 const supabase_1 = require("../lib/supabase");
 const auth_1 = require("../middleware/auth");
+const notificacoes_1 = require("../services/notificacoes");
 exports.reservationsRouter = (0, express_1.Router)();
 exports.reservationsRouter.use(auth_1.requireAuth);
 function ordenarPorExibicaoENome(a, b) {
@@ -54,7 +55,7 @@ exports.reservationsRouter.get("/", async (_req, res) => {
     }
     const { data: pedidos, error: pedidosError } = await supabase
         .from("pedidos")
-        .select("id_pedido, id_reserva, status_pedido, valor_total, horario_entrega_previsto, iniciar_preparo_em, observacoes, itens_pedido(quantidade, preco_unitario, observacoes, produtos(nome, descricao, imagem_url, tempo_preparo_minutos))")
+        .select("id_pedido, id_reserva, status_pedido, valor_total, horario_entrega_previsto, iniciar_preparo_em, ocultado_cozinha, ocultado_cozinha_em, observacoes, itens_pedido(quantidade, preco_unitario, observacoes, produtos(nome, descricao, imagem_url, tempo_preparo_minutos))")
         .in("id_reserva", idsReservas);
     if (pedidosError) {
         return res.json(reservas.map((reserva) => ({ ...reserva, pedidos: [] })));
@@ -119,6 +120,22 @@ exports.reservationsRouter.post("/", async (req, res) => {
             error: "A reserva foi criada, mas nao foi possivel confirma-la.",
         });
     }
+    await Promise.all([
+        (0, notificacoes_1.notificarCliente)(reservaConfirmada.id_cliente, {
+            titulo: "Reserva confirmada",
+            mensagem: "Sua reserva foi confirmada. Agora voce ja pode acompanhar ou antecipar seu pedido.",
+            tipo_evento: "RESERVA_CONFIRMADA",
+            link_destino: "/cliente/reservas",
+            dados: { id_reserva: reservaConfirmada.id_reserva },
+        }),
+        (0, notificacoes_1.notificarRestaurante)(reservaConfirmada.id_restaurante, {
+            titulo: "Nova reserva recebida",
+            mensagem: `Uma reserva para ${reservaConfirmada.quantidade_pessoas} pessoa(s) foi registrada na sua agenda.`,
+            tipo_evento: "NOVA_RESERVA",
+            link_destino: "/restaurante/reservas",
+            dados: { id_reserva: reservaConfirmada.id_reserva },
+        }),
+    ]);
     return res.status(201).json(reservaConfirmada);
 });
 exports.reservationsRouter.get("/:id/cardapio", async (req, res) => {
@@ -140,7 +157,7 @@ exports.reservationsRouter.get("/:id/cardapio", async (req, res) => {
     }
     const { data: pedidos } = await supabase
         .from("pedidos")
-        .select("id_pedido, id_reserva, status_pedido, valor_total, horario_entrega_previsto, iniciar_preparo_em, observacoes, itens_pedido(quantidade, preco_unitario, observacoes, produtos(nome, descricao, imagem_url, tempo_preparo_minutos))")
+        .select("id_pedido, id_reserva, status_pedido, valor_total, horario_entrega_previsto, iniciar_preparo_em, ocultado_cozinha, ocultado_cozinha_em, observacoes, itens_pedido(quantidade, preco_unitario, observacoes, produtos(nome, descricao, imagem_url, tempo_preparo_minutos))")
         .eq("id_reserva", reservationId);
     const { data: cardapios, error: cardapiosError } = await supabase
         .from("cardapios")
@@ -173,5 +190,21 @@ exports.reservationsRouter.patch("/:id/cancelar", async (req, res) => {
                 : error.message,
         });
     }
+    await Promise.all([
+        (0, notificacoes_1.notificarCliente)(data.id_cliente, {
+            titulo: "Reserva cancelada",
+            mensagem: "Sua reserva foi desmarcada. Caso queira, voce pode realizar uma nova reserva pelo modulo cliente.",
+            tipo_evento: "RESERVA_CANCELADA",
+            link_destino: "/cliente/reservas",
+            dados: { id_reserva: data.id_reserva },
+        }),
+        (0, notificacoes_1.notificarRestaurante)(data.id_restaurante, {
+            titulo: "Reserva desmarcada",
+            mensagem: "Uma reserva foi cancelada e saiu da agenda operacional do restaurante.",
+            tipo_evento: "RESERVA_CANCELADA",
+            link_destino: "/restaurante/reservas",
+            dados: { id_reserva: data.id_reserva },
+        }),
+    ]);
     return res.json(data);
 });

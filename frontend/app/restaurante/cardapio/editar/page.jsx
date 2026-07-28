@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { apiRequest } from "@/lib/api";
@@ -24,6 +25,7 @@ const categories = ["Entradas", "Pratos principais", "Sobremesas", "Bebidas"];
 
 function Icon({ type, className = "h-5 w-5" }) {
     const paths = {
+        bell: "M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0",
         "arrow-left": "M19 12H5M12 19l-7-7 7-7",
         check: "m5 12 4 4L19 6",
         "chevron-down": "m6 9 6 6 6-6",
@@ -220,7 +222,7 @@ function RestaurantMenuItemEditorContent() {
                         </Link>
                         <h1 className="text-lg font-bold uppercase tracking-[0.16em] sm:text-2xl">Menu</h1>
                     </div>
-                    <div />
+                    <ItemHeaderNotificacoes href="/restaurante/notificacoes"/>
                 </div>
             </header>
 

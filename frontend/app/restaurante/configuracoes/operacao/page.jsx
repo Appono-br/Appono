@@ -1,6 +1,7 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
+import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 import { useEffect, useState } from "react";
 import { apiRequest } from "@/lib/api";
 import { atualizarNomeSessao } from "@/lib/session";
@@ -23,6 +24,7 @@ const initialForm = {
 };
 function Icon({ type, className = "h-5 w-5", }) {
     const paths = {
+        bell: "M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0",
         "arrow-left": "M19 12H5M12 19l-7-7 7-7",
         "arrow-right": "M5 12h14M13 6l6 6-6 6",
         clock: "M12 7v5l3 2M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z",
@@ -136,7 +138,7 @@ export default function RestaurantOperationSettingsPage() {
               Configuracoes
             </h1>
           </div>
-          <Icon type="help" className="hidden h-5 w-5 justify-self-end text-app-mocha sm:block"/>
+          <ItemHeaderNotificacoes href="/restaurante/notificacoes"/>
         </div>
       </header>
 

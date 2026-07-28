@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { apiRequest } from "@/lib/api";
+import { calcularTempoPreparoItens } from "@/lib/tempo-preparo";
 
 function formatarMoeda(valor) {
     return new Intl.NumberFormat("pt-BR", {
@@ -103,12 +104,12 @@ export default function PaginaPedidoAntecipado({ params }) {
     const total = produtosSelecionados.reduce((soma, produto) => soma + Number(produto.preco) * produto.quantidade, 0);
     const consumoMinimo = Number(dados?.reserva?.valor_minimo_total ?? 0);
     const faltaParaMinimo = Math.max(0, consumoMinimo - total);
-    const maiorTempoPreparo = produtosSelecionados.reduce((maior, produto) => Math.max(maior, Number(produto.tempo_preparo_minutos ?? 30)), 0);
+    const maiorTempoPreparo = calcularTempoPreparoItens(produtosSelecionados);
     const pedidoAtivo = dados?.reserva.pedidos?.find((pedido) => ["PENDENTE", "CONFIRMADO", "EM_PREPARO", "PRONTO"].includes(pedido.status_pedido));
     const reservaConfirmada = dados?.reserva.status_reserva === "CONFIRMADA";
     const itensPedidoAtivo = pedidoAtivo?.itens_pedido ?? [];
     const totalItensPedidoAtivo = itensPedidoAtivo.reduce((soma, item) => soma + Number(item.quantidade ?? 0), 0);
-    const maiorTempoPedidoAtivo = itensPedidoAtivo.reduce((maior, item) => Math.max(maior, Number(item.produtos?.tempo_preparo_minutos ?? 0)), 0);
+    const maiorTempoPedidoAtivo = calcularTempoPreparoItens(itensPedidoAtivo);
 
     function alterarQuantidade(produtoId, diferenca) {
         setMensagem("");

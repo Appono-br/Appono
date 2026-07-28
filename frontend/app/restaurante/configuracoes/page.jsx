@@ -1,6 +1,7 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
+import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 import { useEffect, useState } from "react";
 import { SeletorTema } from "@/components/configuracoes/seletor-tema";
 import { apiRequest } from "@/lib/api";
@@ -28,6 +29,7 @@ const navItems = [
     { label: "Desempenho", href: "/restaurante/desempenho" },
     { label: "Relatorio financeiro", href: "/restaurante/financeiro" },
     { label: "Reservas", href: "/restaurante/reservas" },
+    { label: "Pedidos", href: "/restaurante/pedidos" },
     { label: "Mensagens", href: "/restaurante/mensagens" },
     { label: "Configuracoes", href: "/restaurante/configuracoes" },
 ];
@@ -192,21 +194,19 @@ export default function RestaurantSettingsPage() {
           </div>
 
           <nav className="hidden items-center justify-self-center gap-6 text-xs font-semibold text-app-cinza xl:flex">
-            {navItems.map((item, index) => (<Link key={item.label} href={item.href} className={index === 7
+            {navItems.map((item, index) => (<Link key={item.label} href={item.href} className={index === 8
                 ? "text-app-cafe-profundo"
                 : "transition hover:text-app-cafe-profundo"}>
                 {item.label}
               </Link>))}
           </nav>
 
-          <button type="button" onClick={() => setMobileMenuOpen((current) => !current)} className="flex h-9 w-9 items-center justify-center justify-self-end rounded-[8px] border border-app-baunilha-dourada bg-app-chantilly text-app-cafe-profundo xl:hidden" aria-label="Abrir menu" aria-expanded={mobileMenuOpen} aria-controls="restaurant-settings-menu">
-            <Icon type="menu"/>
-          </button>
+          <div className="flex items-center justify-end gap-3 justify-self-end"><ItemHeaderNotificacoes href="/restaurante/notificacoes"/><button type="button" onClick={() => setMobileMenuOpen((current) => !current)} className="flex h-9 w-9 items-center justify-center rounded-[8px] border border-app-baunilha-dourada bg-app-chantilly text-app-cafe-profundo xl:hidden" aria-label="Abrir menu" aria-expanded={mobileMenuOpen} aria-controls="restaurant-settings-menu"><Icon type="menu"/></button></div>
         </div>
 
         {mobileMenuOpen ? (<nav id="restaurant-settings-menu" className="border-t border-app-baunilha-dourada/55 bg-app-creme-leve px-5 py-3 xl:hidden">
             <div className="mx-auto grid max-w-7xl gap-2 text-xs font-semibold text-app-cinza">
-              {navItems.map((item, index) => (<Link key={item.label} href={item.href} onClick={() => setMobileMenuOpen(false)} className={index === 7
+              {navItems.map((item, index) => (<Link key={item.label} href={item.href} onClick={() => setMobileMenuOpen(false)} className={index === 8
                     ? "text-app-cafe-profundo"
                     : "transition hover:text-app-cafe-profundo"}>
                   {item.label}

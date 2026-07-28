@@ -1,6 +1,7 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
+import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 import { useEffect, useState } from "react";
 import { apiRequest } from "@/lib/api";
 import { TelaCarregandoSessao, useSessaoLocal } from "@/lib/use-sessao-local";
@@ -20,6 +21,7 @@ function separarEndereco(endereco) {
 }
 function Icon({ type, className = "h-5 w-5", }) {
     const paths = {
+        bell: "M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0",
         "arrow-left": "M19 12H5M12 19l-7-7 7-7",
         "chevron-down": "m6 9 6 6 6-6",
         help: "M9.1 9a3 3 0 1 1 4.9 2.3c-1 .6-1.5 1.1-1.5 2.2M12 17h.01M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z",
@@ -120,7 +122,7 @@ export default function RestaurantAddressSettingsPage() {
             </h1>
           </div>
           <div className="hidden items-center justify-self-end gap-3 text-right sm:flex">
-            <Icon type="help" className="h-5 w-5 text-app-mocha"/>
+            <ItemHeaderNotificacoes href="/restaurante/notificacoes"/>
             <div>
               <p className="text-xs font-semibold text-app-mocha">
                 Gestor de Restaurante
