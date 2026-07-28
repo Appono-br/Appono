@@ -53,6 +53,9 @@ function formatarHorario(horario) {
     return horario.slice(0, 5);
 }
 function obterStatusReserva(status) {
+    if (status === "PENDENTE") {
+        return { texto: "Pendente", classe: "bg-app-cafe-profundo text-app-creme-leve" };
+    }
     if (status === "CONFIRMADA") {
         return { texto: "Confirmada", classe: "bg-app-baunilha-dourada text-app-cafe-profundo" };
     }
@@ -60,6 +63,26 @@ function obterStatusReserva(status) {
         return { texto: "Cancelada", classe: "bg-app-vermelho-erro/10 text-app-vermelho-erro" };
     }
     return { texto: status.toLowerCase(), classe: "bg-app-creme-suave text-app-mocha" };
+}
+function obterStatusPedido(status) {
+    const statusMap = {
+        PENDENTE: "Pedido pendente",
+        CONFIRMADO: "Pedido confirmado",
+        EM_PREPARO: "Em preparo",
+        PRONTO: "Pronto para retirada",
+        ENTREGUE: "Entregue",
+        CANCELADO: "Pedido cancelado",
+    };
+    return statusMap[status] ?? status;
+}
+function formatarMoeda(valor) {
+    return new Intl.NumberFormat("pt-BR", {
+        style: "currency",
+        currency: "BRL",
+    }).format(Number(valor ?? 0));
+}
+function calcularSubtotalItem(item) {
+    return Number(item.subtotal ?? 0) || Number(item.preco_unitario ?? 0) * Number(item.quantidade ?? 0);
 }
 function getCalendarDays(month, year) {
     const firstDay = new Date(year, month, 1);
@@ -101,10 +124,10 @@ function EmptyReservationPanel() {
         <Icon type="plus" className="h-6 w-6"/>
       </div>
       <h2 className="mt-6 text-2xl font-semibold text-app-cafe-profundo">
-        Planeje sua próxima visita
+        Planeje sua proxima visita
       </h2>
       <p className="mt-4 max-w-lg text-sm leading-6 text-app-cinza sm:text-base">
-        Você ainda não possui reservas confirmadas neste período.
+        Voce ainda nao possui reservas em aberto neste periodo.
       </p>
       <Link href="/cliente/dashboard" className="mt-8 rounded-[8px] bg-app-dourado-mel px-6 py-3 text-xs font-bold uppercase tracking-wide text-white transition hover:bg-app-caramelo-torrado">
         Reservar agora
@@ -115,21 +138,24 @@ export default function ReservationsPage() {
     const today = new Date();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [reservations, setReservations] = useState([]);
+    const [reservaParaCancelar, setReservaParaCancelar] = useState(null);
+    const [cancelandoReserva, setCancelandoReserva] = useState(false);
     const [period, setPeriod] = useState({
         month: today.getMonth(),
         year: today.getFullYear(),
     });
     const calendarDays = useMemo(() => getCalendarDays(period.month, period.year), [period.month, period.year]);
     const reservationDates = useMemo(() => new Set(reservations
-        .filter((reservation) => ["PENDENTE", "CONFIRMADA"].includes(reservation.status))
+        .filter((reservation) => reservation.status === "CONFIRMADA")
         .map((reservation) => reservation.date)), [reservations]);
-    const reservasAtivas = useMemo(() => reservations.filter((reservation) => ["PENDENTE", "CONFIRMADA"].includes(reservation.status)), [reservations]);
+    const reservasConfirmadas = useMemo(() => reservations.filter((reservation) => reservation.status === "CONFIRMADA"), [reservations]);
     useEffect(() => {
         async function loadReservations() {
             try {
                 const data = await apiRequest("/reservas");
                 setReservations(data.map((reservation) => {
                     const activeOrder = reservation.pedidos?.find((order) => ["PENDENTE", "CONFIRMADO", "EM_PREPARO", "PRONTO"].includes(order.status_pedido));
+                    const canceledOrder = reservation.pedidos?.find((order) => order.status_pedido === "CANCELADO");
                     return {
                         id: String(reservation.id_reserva),
                         date: reservation.data_reserva,
@@ -143,6 +169,13 @@ export default function ReservationsPage() {
                                 id: activeOrder.id_pedido,
                                 status: activeOrder.status_pedido,
                                 total: Number(activeOrder.valor_total),
+                                itens: activeOrder.itens_pedido ?? [],
+                            }
+                            : undefined,
+                        canceledOrder: canceledOrder
+                            ? {
+                                id: canceledOrder.id_pedido,
+                                total: Number(canceledOrder.valor_total),
                             }
                             : undefined,
                     };
@@ -161,12 +194,17 @@ export default function ReservationsPage() {
         });
     }
     async function cancelarReserva(id) {
+        setCancelandoReserva(true);
         try {
             const atualizada = await apiRequest(`/reservas/${id}/cancelar`, { method: "PATCH" });
             setReservations((atuais) => atuais.map((reserva) => reserva.id === id ? { ...reserva, status: atualizada.status_reserva } : reserva));
+            setReservaParaCancelar(null);
         }
         catch {
             return;
+        }
+        finally {
+            setCancelandoReserva(false);
         }
     }
     async function excluirReservaDaLista(id) {
@@ -271,11 +309,11 @@ export default function ReservationsPage() {
             </div>
 
             <p className="mt-8 text-base leading-7 text-app-mocha">
-              Você possui{" "}
+              Voce possui{" "}
               <span className="font-bold text-app-caramelo-torrado">
-                {reservasAtivas.length}
+                {reservasConfirmadas.length}
               </span>{" "}
-              reservas confirmadas neste período.
+              reservas confirmadas neste periodo.
             </p>
           </aside>
 
@@ -313,23 +351,60 @@ export default function ReservationsPage() {
                           <span className="flex items-center gap-2">
                             <Icon type="wallet" className="h-4 w-4 text-app-caramelo-torrado"/>
                             Consumo minimo{" "}
-                            {new Intl.NumberFormat("pt-BR", {
-                    style: "currency",
-                    currency: "BRL",
-                }).format(reservation.minimumTotal)}
+                            {formatarMoeda(reservation.minimumTotal)}
                           </span>
                         </div>
+                        {reservation.activeOrder ? (<div className="mt-5 rounded-[10px] border border-app-caramelo-torrado/25 bg-app-creme-suave px-4 py-3">
+                            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                              <p className="text-xs font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">
+                                Pedido antecipado
+                              </p>
+                              <span className="w-fit rounded-full bg-app-cafe-profundo px-3 py-1 text-[11px] font-bold text-app-creme-leve">
+                                {obterStatusPedido(reservation.activeOrder.status)}
+                              </span>
+                            </div>
+                            <div className="mt-3 grid gap-2 text-sm text-app-mocha">
+                              {reservation.activeOrder.itens.slice(0, 3).map((item, indice) => (<p key={`${item.produtos?.nome ?? "item"}-${indice}`} className="flex items-center justify-between gap-3">
+                                  <span className="truncate">
+                                    {item.quantidade}x {item.produtos?.nome ?? "Item do cardapio"}
+                                  </span>
+                                  <strong className="shrink-0 text-app-cafe-profundo">
+                                    {formatarMoeda(calcularSubtotalItem(item))}
+                                  </strong>
+                                </p>))}
+                              {reservation.activeOrder.itens.length > 3 ? (<p className="text-xs font-semibold text-app-caramelo-torrado">
+                                  + {reservation.activeOrder.itens.length - 3} itens no pedido
+                                </p>) : null}
+                            </div>
+                            <div className="mt-3 flex items-center justify-between border-t border-app-baunilha-dourada/60 pt-3 text-sm">
+                              <span className="font-semibold text-app-mocha">Total do pedido</span>
+                              <strong className="text-app-cafe-profundo">
+                                {formatarMoeda(reservation.activeOrder.total)}
+                              </strong>
+                            </div>
+                          </div>) : null}
+                        {!reservation.activeOrder && reservation.canceledOrder ? (<div className="mt-5 rounded-[10px] border border-app-caramelo-torrado/25 bg-app-chantilly px-4 py-3">
+                            <p className="text-xs font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">
+                              Pedido cancelado
+                            </p>
+                            <p className="mt-2 text-sm leading-6 text-app-mocha">
+                              O pedido antecipado foi cancelado, mas sua reserva continua {obterStatusReserva(reservation.status).texto.toLowerCase()}.
+                            </p>
+                            <p className="mt-2 text-xs font-semibold text-app-cinza">
+                              Pedido #{reservation.canceledOrder.id} - {formatarMoeda(reservation.canceledOrder.total)}
+                            </p>
+                          </div>) : null}
                       </div>
 
                       <div className="flex flex-col items-center justify-center gap-4 border-t border-app-baunilha-dourada/60 bg-app-creme-suave/55 p-5 text-center sm:min-w-40 sm:border-l sm:border-t-0">
                         <span className={`rounded-full px-3 py-1 text-xs font-bold ${obterStatusReserva(reservation.status).classe}`}>
                           {obterStatusReserva(reservation.status).texto}
                         </span>
-                        {["PENDENTE", "CONFIRMADA"].includes(reservation.status) ? (<button type="button" onClick={() => cancelarReserva(reservation.id)} className="text-xs font-bold text-app-vermelho-erro transition hover:text-app-cafe-profundo">
+                        {["PENDENTE", "CONFIRMADA"].includes(reservation.status) ? (<button type="button" onClick={() => setReservaParaCancelar(reservation)} className="text-xs font-bold text-app-vermelho-erro transition hover:text-app-cafe-profundo">
                             Desmarcar reserva
                           </button>) : null}
                         {reservation.status === "CONFIRMADA" ? (<Link href={`/cliente/reservas/${reservation.id}/pedido`} className="rounded-[8px] bg-app-dourado-mel px-4 py-2 text-xs font-bold text-white transition hover:bg-app-caramelo-torrado">
-                            {reservation.activeOrder ? "Ver pedido antecipado" : "Escolher pedido antecipado"}
+                            {reservation.activeOrder ? "Acompanhar pedido" : "Escolher pedido"}
                           </Link>) : null}
                         {["CANCELADA", "RECUSADA"].includes(reservation.status) ? (<button type="button" onClick={() => excluirReservaDaLista(reservation.id)} className="text-xs font-bold text-app-cinza transition hover:text-app-vermelho-erro">
                             Excluir da lista
@@ -341,6 +416,37 @@ export default function ReservationsPage() {
           </section>
         </div>
       </section>
+
+      {reservaParaCancelar ? (<div className="fixed inset-0 z-50 flex items-center justify-center bg-app-cafe-profundo/70 px-5 backdrop-blur-sm">
+          <section className="w-full max-w-md rounded-[16px] bg-app-creme-leve p-6 text-app-cafe-profundo shadow-xl ring-1 ring-app-baunilha-dourada/70">
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">
+              Cancelamento de reserva
+            </p>
+            <h2 className="mt-3 text-2xl font-semibold">
+              Deseja desmarcar esta reserva?
+            </h2>
+            <p className="mt-3 text-sm leading-6 text-app-mocha">
+              Ao confirmar, a mesa e o horario reservados serao cancelados. O restaurante passara a ver esta reserva como cancelada.
+            </p>
+            {reservaParaCancelar.activeOrder ? (<p className="mt-3 rounded-[10px] bg-app-chantilly p-3 text-sm font-semibold leading-6 text-app-cafe-profundo ring-1 ring-app-baunilha-dourada/60">
+                Esta reserva possui pedido antecipado ativo. Se o preparo ainda nao tiver iniciado, o pedido tambem sera cancelado pelo sistema.
+              </p>) : null}
+            <div className="mt-6 rounded-[10px] bg-app-chantilly p-4 ring-1 ring-app-baunilha-dourada/60">
+              <p className="text-sm font-semibold">{reservaParaCancelar.restaurant}</p>
+              <p className="mt-1 text-xs text-app-cinza">
+                {formatarDataReserva(reservaParaCancelar.date).dia} {formatarDataReserva(reservaParaCancelar.date).mes} - {formatarHorario(reservaParaCancelar.time)} - {reservaParaCancelar.people} {reservaParaCancelar.people === 1 ? "pessoa" : "pessoas"}
+              </p>
+            </div>
+            <div className="mt-6 grid gap-3 sm:grid-cols-2">
+              <button type="button" onClick={() => setReservaParaCancelar(null)} disabled={cancelandoReserva} className="h-11 rounded-[8px] border border-app-baunilha-dourada px-4 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:bg-app-chantilly disabled:cursor-not-allowed disabled:text-app-cinza">
+                Manter reserva
+              </button>
+              <button type="button" onClick={() => cancelarReserva(reservaParaCancelar.id)} disabled={cancelandoReserva} className="h-11 rounded-[8px] bg-app-vermelho-erro px-4 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-app-cafe-profundo disabled:cursor-not-allowed disabled:bg-app-cinza/50">
+                {cancelandoReserva ? "Cancelando..." : "Confirmar cancelamento"}
+              </button>
+            </div>
+          </section>
+        </div>) : null}
 
       <footer className="border-t border-app-cacau-intenso/20 bg-app-cafe-profundo px-5 py-7 text-app-creme-leve">
         <div className="mx-auto flex max-w-7xl flex-col items-center gap-5 text-center sm:flex-row sm:justify-between">

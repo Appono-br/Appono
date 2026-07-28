@@ -1,7 +1,8 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { apiRequest } from "@/lib/api";
 import { TelaCarregandoSessao, useSessaoLocal } from "@/lib/use-sessao-local";
 const navItems = [
     { label: "Home", href: "/restaurante/home" },
@@ -60,9 +61,40 @@ function EmptyPanel({ title, description, dark = false, }) {
       </p>
     </div>);
 }
+function formatarMoeda(valor) {
+    return new Intl.NumberFormat("pt-BR", {
+        style: "currency",
+        currency: "BRL",
+    }).format(Number(valor ?? 0));
+}
+function obterStatusPedido(status) {
+    const statusMap = {
+        PENDENTE: "Pendente",
+        CONFIRMADO: "Confirmado",
+        EM_PREPARO: "Em preparo",
+        PRONTO: "Pronto",
+        ENTREGUE: "Entregue",
+        CANCELADO: "Cancelado",
+    };
+    return statusMap[status] ?? status;
+}
 export default function RestaurantDashboardPage() {
     const { sessao, sessaoCarregada } = useSessaoLocal();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [reservas, setReservas] = useState([]);
+    useEffect(() => {
+        if (sessao?.type !== "restaurant") {
+            return;
+        }
+        apiRequest("/reservas")
+            .then(setReservas)
+            .catch(() => setReservas([]));
+    }, [sessao?.type]);
+    const proximosPedidos = useMemo(() => reservas
+        .flatMap((reserva) => (reserva.pedidos ?? [])
+        .filter((pedido) => ["PENDENTE", "CONFIRMADO", "EM_PREPARO", "PRONTO"].includes(pedido.status_pedido))
+        .map((pedido) => ({ ...pedido, reserva })))
+        .slice(0, 3), [reservas]);
     if (!sessaoCarregada) {
         return <TelaCarregandoSessao />;
     }
@@ -157,12 +189,32 @@ export default function RestaurantDashboardPage() {
           </article>
 
           <article className="rounded-[8px] bg-app-cafe-profundo p-6 text-app-creme-leve shadow-sm sm:p-8">
-            <h2 className="text-2xl font-medium">Proximas Reservas</h2>
-            <div className="mt-8">
-              <EmptyPanel dark title="Nenhuma reserva agendada" description="A agenda do restaurante aparecera aqui."/>
+            <h2 className="text-2xl font-medium">Pedidos Antecipados</h2>
+            <div className="mt-8 grid gap-3">
+              {proximosPedidos.length ? proximosPedidos.map((pedido) => (<div key={pedido.id_pedido} className="rounded-[10px] bg-app-cacau-intenso/55 p-4 ring-1 ring-app-baunilha-dourada/20">
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <p className="text-xs font-bold uppercase text-app-baunilha-dourada">
+                          {pedido.reserva.data_reserva} - {pedido.reserva.horario_inicio}
+                        </p>
+                        <h3 className="mt-2 text-sm font-semibold text-app-creme-leve">
+                          {pedido.reserva.clientes?.nome ?? "Cliente"}
+                        </h3>
+                      </div>
+                      <span className="rounded-full bg-app-baunilha-dourada px-3 py-1 text-[11px] font-bold text-app-cafe-profundo">
+                        {obterStatusPedido(pedido.status_pedido)}
+                      </span>
+                    </div>
+                    <p className="mt-3 text-sm font-semibold text-app-creme-suave">
+                      {formatarMoeda(pedido.valor_total)}
+                    </p>
+                    <p className="mt-1 text-xs text-app-baunilha-dourada">
+                      {(pedido.itens_pedido ?? []).slice(0, 2).map((item) => `${item.quantidade}x ${item.produtos?.nome ?? "Item"}`).join(" | ")}
+                    </p>
+                  </div>)) : (<EmptyPanel dark title="Nenhum pedido antecipado" description="Quando o cliente pedir antes da reserva, o pedido aparecera aqui."/>)} 
             </div>
-            <Link href="#" className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-app-baunilha-dourada transition hover:text-app-chantilly">
-              Ver agenda completa
+            <Link href="/restaurante/reservas" className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-app-baunilha-dourada transition hover:text-app-chantilly">
+              Ver reservas completas
               <Icon type="arrow-right" className="h-4 w-4"/>
             </Link>
           </article>

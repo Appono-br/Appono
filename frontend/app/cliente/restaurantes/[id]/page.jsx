@@ -21,6 +21,7 @@ function adicionarDuasHoras(horario) {
 export default function PaginaRestaurante({ params, }) {
     const [restauranteId, setRestauranteId] = useState(null);
     const [restaurante, setRestaurante] = useState(null);
+    const [cardapios, setCardapios] = useState([]);
     const [data, setData] = useState(obterDataInicial);
     const [horario, setHorario] = useState("19:00");
     const [pessoas, setPessoas] = useState(2);
@@ -34,14 +35,33 @@ export default function PaginaRestaurante({ params, }) {
     useEffect(() => {
         if (!restauranteId)
             return;
-        apiRequest(`/restaurantes/${restauranteId}`)
-            .then((dados) => {
-            setRestaurante(dados);
+        Promise.all([
+            apiRequest(`/restaurantes/${restauranteId}`),
+            apiRequest(`/restaurantes/${restauranteId}/cardapio`),
+        ])
+            .then(([dadosRestaurante, dadosCardapio]) => {
+            setRestaurante(dadosRestaurante);
+            setCardapios(dadosCardapio ?? []);
             setMensagem("");
         })
             .catch((erro) => setMensagem(erro instanceof Error ? erro.message : "Nao foi possivel carregar o restaurante."));
     }, [restauranteId]);
     const valorTotal = useMemo(() => (restaurante?.valor_minimo_reserva_por_pessoa ?? 0) * pessoas, [pessoas, restaurante]);
+    const produtosPorCategoria = useMemo(() => {
+        return cardapios.flatMap((cardapio) => (cardapio.categorias ?? []).map((categoria) => ({
+            ...categoria,
+            produtos: categoria.produtos ?? [],
+        }))).filter((categoria) => categoria.produtos.length > 0);
+    }, [cardapios]);
+    const produtosDestaque = useMemo(() => {
+        return produtosPorCategoria
+            .flatMap((categoria) => categoria.produtos.map((produto) => ({
+                ...produto,
+                categoriaNome: categoria.nome,
+            })))
+            .filter((produto) => produto.destaque === true)
+            .slice(0, 3);
+    }, [produtosPorCategoria]);
     async function reservar(event) {
         event.preventDefault();
         if (!restaurante || !aceitouCondicao) {
@@ -95,9 +115,94 @@ export default function PaginaRestaurante({ params, }) {
 
         <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_0.72fr]">
           <section className="rounded-[12px] bg-app-creme-leve p-6 shadow-sm ring-1 ring-app-baunilha-dourada">
+            <h2 className="text-2xl font-semibold">Cardapio</h2>
+            {produtosPorCategoria.length ? (
+              <div className="mt-5 grid gap-7">
+                {produtosDestaque.length ? (
+                  <section className="rounded-[12px] bg-app-cafe-profundo p-4 text-app-creme-leve">
+                    <div className="flex flex-wrap items-end justify-between gap-3">
+                      <div>
+                        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-dourado-mel">Selecionados pelo restaurante</p>
+                        <h3 className="mt-1 text-xl font-bold">Destaques do cardapio</h3>
+                      </div>
+                      <span className="rounded-full bg-app-creme-leve/10 px-3 py-1 text-[10px] font-bold uppercase text-app-baunilha-dourada">
+                        {produtosDestaque.length} sugestoes
+                      </span>
+                    </div>
+                    <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                      {produtosDestaque.map((produto) => (
+                        <article key={`destaque-${produto.id_produto}`} className="overflow-hidden rounded-[10px] bg-app-creme-leve text-app-cafe-profundo ring-1 ring-app-baunilha-dourada/45">
+                          <div className="relative h-24 bg-app-baunilha-dourada/45">
+                            {produto.imagem_url ? (
+                              <Image src={produto.imagem_url} alt={produto.nome} fill className="object-cover"/>
+                            ) : (
+                              <span className="flex h-full items-center justify-center text-xs font-bold uppercase text-app-caramelo-torrado">
+                                Appono
+                              </span>
+                            )}
+                          </div>
+                          <div className="p-3">
+                            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">{produto.categoriaNome}</p>
+                            <h4 className="mt-1 line-clamp-2 text-sm font-bold">{produto.nome}</h4>
+                            <strong className="mt-2 block text-sm text-app-caramelo-torrado">{formatarMoeda(Number(produto.preco ?? 0))}</strong>
+                          </div>
+                        </article>
+                      ))}
+                    </div>
+                  </section>
+                ) : null}
+                {produtosPorCategoria.map((categoria) => (
+                  <div key={categoria.id_categoria}>
+                    <h3 className="text-xs font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">
+                      {categoria.nome}
+                    </h3>
+                    <div className="mt-3 grid gap-3">
+                      {categoria.produtos.map((produto) => (
+                        <article key={produto.id_produto} className="grid gap-4 rounded-[10px] bg-app-creme-suave p-3 ring-1 ring-app-baunilha-dourada/55 sm:grid-cols-[112px_1fr]">
+                          <div className="relative h-28 overflow-hidden rounded-[8px] bg-app-baunilha-dourada/45">
+                            {produto.imagem_url ? (
+                              <Image src={produto.imagem_url} alt={produto.nome} fill className="object-cover"/>
+                            ) : (
+                              <span className="flex h-full items-center justify-center text-xs font-bold uppercase text-app-caramelo-torrado">
+                                Appono
+                              </span>
+                            )}
+                          </div>
+                          <div>
+                            <div className="flex flex-wrap items-start justify-between gap-3">
+                              <div>
+                                <h4 className="text-lg font-bold text-app-cafe-profundo">{produto.nome}</h4>
+                                {produto.destaque ? (
+                                  <span className="mt-1 inline-flex rounded-full bg-app-cafe-profundo px-2.5 py-1 text-[10px] font-bold uppercase text-app-creme-leve">
+                                    Destaque
+                                  </span>
+                                ) : null}
+                              </div>
+                              <strong className="text-base text-app-caramelo-torrado">{formatarMoeda(Number(produto.preco ?? 0))}</strong>
+                            </div>
+                            {produto.descricao ? <p className="mt-2 text-sm leading-6 text-app-mocha">{produto.descricao}</p> : null}
+                            <p className="mt-2 text-xs font-semibold text-app-cinza">
+                              {produto.tempo_preparo_minutos ?? 30} min de preparo
+                            </p>
+                          </div>
+                        </article>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="mt-4 rounded-[10px] bg-app-creme-suave p-5 text-sm leading-6 text-app-mocha ring-1 ring-app-baunilha-dourada/50">
+                <p className="font-bold text-app-cafe-profundo">Cardapio em atualizacao</p>
+                <p className="mt-1">Este restaurante ainda nao publicou itens no cardapio. A reserva continua disponivel normalmente.</p>
+              </div>
+            )}
+          </section>
+
+          <section className="rounded-[12px] bg-app-creme-leve p-6 shadow-sm ring-1 ring-app-baunilha-dourada lg:row-start-2">
             <h2 className="text-2xl font-semibold">Sobre a experiencia</h2>
             <p className="mt-3 text-sm leading-6 text-app-mocha">
-              Reserve sua mesa para uma visita de duas horas. A reserva sera confirmada automaticamente quando houver uma mesa disponivel.
+              Reserve sua mesa para uma visita de duas horas. O consumo minimo orienta o valor do pedido antecipado e sera validado quando voce montar o cardapio da reserva.
             </p>
             <div className="mt-6 rounded-[8px] bg-app-creme-suave p-4">
               <p className="text-xs font-bold uppercase text-app-caramelo-torrado">Consumo minimo</p>
@@ -107,7 +212,7 @@ export default function PaginaRestaurante({ params, }) {
             </div>
           </section>
 
-          <form onSubmit={reservar} className="rounded-[12px] bg-app-creme-leve p-6 shadow-sm ring-1 ring-app-baunilha-dourada">
+          <form onSubmit={reservar} className="rounded-[12px] bg-app-creme-leve p-6 shadow-sm ring-1 ring-app-baunilha-dourada lg:row-span-2">
             <h2 className="text-xl font-semibold">Reservar mesa</h2>
             <div className="mt-5 grid gap-4 sm:grid-cols-2">
               <label className="grid gap-1 text-xs font-bold">Data<input type="date" min={obterDataInicial()} value={data} onChange={(e) => setData(e.target.value)} className="h-11 rounded-[8px] border border-app-baunilha-dourada bg-app-chantilly px-3 text-sm"/></label>
@@ -120,10 +225,10 @@ export default function PaginaRestaurante({ params, }) {
             </div>
             <label className="mt-4 flex gap-3 text-xs leading-5 text-app-mocha">
               <input type="checkbox" checked={aceitouCondicao} onChange={(e) => setAceitouCondicao(e.target.checked)}/>
-              Estou ciente de que este valor representa consumo minimo, nao uma cobranca antecipada.
+              Estou ciente de que este valor representa o consumo minimo esperado para o pedido antecipado.
             </label>
             <button type="submit" disabled={enviando} className="mt-5 h-11 w-full rounded-[8px] bg-app-dourado-mel text-xs font-bold uppercase text-white disabled:opacity-60">
-              {enviando ? "Reservando..." : "Confirmar reserva"}
+              {enviando ? "Confirmando reserva..." : "Confirmar reserva"}
             </button>
             {mensagem ? <p className="mt-3 text-sm font-semibold text-app-caramelo-torrado">{mensagem}</p> : null}
           </form>

@@ -1,21 +1,21 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f7f3ec;
-  --foreground: #2b1d16;
-  --app-cacau-intenso: #3b271d;
-  --app-caramelo-torrado: #8b5738;
-  --app-creme-suave: #ece8df;
-  --app-baunilha-dourada: #d7c7b4;
-  --app-cafe-profundo: #2b1d16;
-  --app-mocha: #65483a;
-  --app-dourado-mel: #b7653f;
-  --app-creme-leve: #f1ede5;
-  --app-areia-quente: #d69a4e;
-  --app-chantilly: #fffdf9;
-  --app-texto-escuro: #18110d;
-  --app-cinza: #6d6862;
-  --app-vermelho-erro: #a84d3c;
+  --background: #eadcc8;
+  --foreground: #241713;
+  --app-cacau-intenso: #241713;
+  --app-caramelo-torrado: #7f4325;
+  --app-creme-suave: #d8bf9d;
+  --app-baunilha-dourada: #947553;
+  --app-cafe-profundo: #241713;
+  --app-mocha: #4f382e;
+  --app-dourado-mel: #b35f32;
+  --app-creme-leve: #f7ead6;
+  --app-areia-quente: #bf7d3a;
+  --app-chantilly: #eadcc8;
+  --app-texto-escuro: #18100d;
+  --app-cinza: #5f534b;
+  --app-vermelho-erro: #b54837;
 }
 
 @theme inline {
@@ -40,8 +40,8 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #2b1d16;
-    --foreground: #f7f3ec;
+    --background: #15110f;
+    --foreground: #f3e8da;
   }
 }
 
@@ -56,39 +56,58 @@ html {
 }
 
 .area-autenticada {
-  --app-caramelo-torrado: #765039;
-  --app-creme-suave: #d8c9b7;
-  --app-baunilha-dourada: #bda68d;
-  --app-cafe-profundo: #2b201a;
-  --app-mocha: #624f43;
-  --app-dourado-mel: #aa6342;
-  --app-creme-leve: #e7dccd;
-  --app-areia-quente: #c38a52;
-  --app-chantilly: #f3ede4;
-  --app-cinza: #655d57;
+  --app-cacau-intenso: #241713;
+  --app-caramelo-torrado: #7f4325;
+  --app-creme-suave: #d8bf9d;
+  --app-baunilha-dourada: #947553;
+  --app-cafe-profundo: #241713;
+  --app-mocha: #4f382e;
+  --app-dourado-mel: #b35f32;
+  --app-creme-leve: #f7ead6;
+  --app-areia-quente: #bf7d3a;
+  --app-chantilly: #eadcc8;
+  --app-texto-escuro: #18100d;
+  --app-cinza: #5f534b;
+  --app-vermelho-erro: #b54837;
 }
 
 .area-autenticada.tema-escuro {
   color-scheme: dark;
-  --app-caramelo-torrado: #d3a078;
-  --app-creme-suave: #38332f;
-  --app-baunilha-dourada: #665c54;
-  --app-cafe-profundo: #f1e9df;
-  --app-mocha: #cbbdb1;
-  --app-dourado-mel: #c77b55;
-  --app-creme-leve: #292522;
-  --app-areia-quente: #d19a65;
-  --app-chantilly: #1b1917;
-  --app-cinza: #afa59d;
-  --app-vermelho-erro: #ee9785;
+  --app-cacau-intenso: #0f0b09;
+  --app-caramelo-torrado: #e0a174;
+  --app-creme-suave: #403329;
+  --app-baunilha-dourada: #9b8068;
+  --app-cafe-profundo: #f3e8da;
+  --app-mocha: #d9c7b5;
+  --app-dourado-mel: #d18452;
+  --app-creme-leve: #2b211b;
+  --app-areia-quente: #e0a05a;
+  --app-chantilly: #130f0d;
+  --app-texto-escuro: #fff7ec;
+  --app-cinza: #b4a79d;
+  --app-vermelho-erro: #ff9a86;
 }
 
 .area-autenticada.tema-escuro .bg-app-cafe-profundo {
-  background-color: #12100f;
+  background-color: #0f0b09;
 }
 
 .area-autenticada.tema-escuro .text-app-creme-leve {
-  color: #eee5da;
+  color: #fff7ec;
+}
+
+.area-autenticada.tema-escuro .bg-app-dourado-mel {
+  background-color: #d18452;
+}
+
+.area-autenticada.tema-escuro .hover\:bg-app-caramelo-torrado:hover {
+  background-color: #b86d42;
+}
+
+.area-autenticada.tema-escuro input,
+.area-autenticada.tema-escuro textarea,
+.area-autenticada.tema-escuro select {
+  color-scheme: dark;
 }
 
 .area-autenticada.tema-escuro img[src="/brand/appono-mark.svg"] {
@@ -106,8 +125,82 @@ html {
   border-bottom: 1px solid color-mix(in srgb, var(--app-baunilha-dourada) 58%, transparent);
   background: color-mix(in srgb, var(--app-creme-leve) 94%, transparent);
   color: var(--app-cafe-profundo);
-  box-shadow: 0 3px 14px rgb(36 23 17 / 7%);
+  box-shadow: 0 3px 14px rgb(36 23 17 / 9%);
   backdrop-filter: blur(12px);
+}
+
+.area-autenticada:not(.tema-escuro) .shadow-sm {
+  box-shadow: 0 12px 28px rgb(76 48 31 / 16%);
+}
+
+.area-autenticada:not(.tema-escuro) .bg-app-creme-leve {
+  background-color: #fff4e1;
+}
+
+.area-autenticada:not(.tema-escuro) .bg-app-chantilly {
+  background-color: #eadcc8;
+}
+
+.area-autenticada:not(.tema-escuro) .bg-app-creme-suave {
+  background-color: #d5b892;
+}
+
+.area-autenticada:not(.tema-escuro) .ring-app-baunilha-dourada,
+.area-autenticada:not(.tema-escuro) .ring-app-baunilha-dourada\/45,
+.area-autenticada:not(.tema-escuro) .ring-app-baunilha-dourada\/50,
+.area-autenticada:not(.tema-escuro) .ring-app-baunilha-dourada\/55,
+.area-autenticada:not(.tema-escuro) .ring-app-baunilha-dourada\/60 {
+  --tw-ring-color: rgb(148 117 83 / 0.58);
+}
+
+.area-autenticada:not(.tema-escuro) .border-app-baunilha-dourada,
+.area-autenticada:not(.tema-escuro) .border-app-baunilha-dourada\/50,
+.area-autenticada:not(.tema-escuro) .border-app-baunilha-dourada\/55,
+.area-autenticada:not(.tema-escuro) .border-app-baunilha-dourada\/60 {
+  border-color: rgb(148 117 83 / 0.62);
+}
+
+.area-autenticada:not(.tema-escuro) article,
+.area-autenticada:not(.tema-escuro) section[class*="bg-app-creme-leve"],
+.area-autenticada:not(.tema-escuro) div[class*="bg-app-creme-leve"] {
+  border-color: rgb(127 67 37 / 0.24);
+}
+
+.area-autenticada.tema-escuro .shadow-sm {
+  box-shadow: 0 12px 30px rgb(0 0 0 / 32%);
+}
+
+.area-autenticada.tema-escuro .bg-app-creme-leve {
+  background-color: #30251e;
+}
+
+.area-autenticada.tema-escuro .bg-app-chantilly {
+  background-color: #130f0d;
+}
+
+.area-autenticada.tema-escuro .bg-app-creme-suave {
+  background-color: #47382e;
+}
+
+.area-autenticada.tema-escuro .ring-app-baunilha-dourada,
+.area-autenticada.tema-escuro .ring-app-baunilha-dourada\/45,
+.area-autenticada.tema-escuro .ring-app-baunilha-dourada\/50,
+.area-autenticada.tema-escuro .ring-app-baunilha-dourada\/55,
+.area-autenticada.tema-escuro .ring-app-baunilha-dourada\/60 {
+  --tw-ring-color: rgb(155 128 104 / 0.62);
+}
+
+.area-autenticada.tema-escuro .border-app-baunilha-dourada,
+.area-autenticada.tema-escuro .border-app-baunilha-dourada\/50,
+.area-autenticada.tema-escuro .border-app-baunilha-dourada\/55,
+.area-autenticada.tema-escuro .border-app-baunilha-dourada\/60 {
+  border-color: rgb(155 128 104 / 0.64);
+}
+
+.area-autenticada.tema-escuro main > header {
+  border-bottom-color: color-mix(in srgb, var(--app-baunilha-dourada) 62%, transparent);
+  background: color-mix(in srgb, var(--app-creme-leve) 92%, transparent);
+  box-shadow: 0 3px 16px rgb(0 0 0 / 24%);
 }
 
 .area-autenticada main > header > div:first-child {

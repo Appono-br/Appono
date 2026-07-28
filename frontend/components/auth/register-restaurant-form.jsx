@@ -148,7 +148,11 @@ export function RegisterRestaurantForm() {
       await persistAuthResponse(response);
       if (response.session) {
         if (imagem) {
-          await enviarImagemRestaurante(imagem, response.session);
+          try {
+            await enviarImagemRestaurante(imagem, response.session);
+          } catch (error) {
+            console.warn("Nao foi possivel enviar a imagem do restaurante.", error);
+          }
         }
         window.location.href = getDashboardPath(response.tipo);
         return;
@@ -199,42 +203,42 @@ export function RegisterRestaurantForm() {
         </div>
 
         <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-end">
-  <div>
-    <h1 className="text-2xl font-bold text-app-cafe-profundo">
-      Torne-se um parceiro APPONO
-    </h1>
-    <p className="mt-1 text-sm leading-5 text-app-mocha">
-      {step === 1
-        ? "Informe os dados operacionais do estabelecimento."
-        : "Cadastre a conta juridica para receber os repasses da plataforma."}
-    </p>
-  </div>
+          <div>
+            <h1 className="text-2xl font-bold text-app-cafe-profundo">
+              Torne-se um parceiro APPONO
+            </h1>
+            <p className="mt-1 text-sm leading-5 text-app-mocha">
+              {step === 1
+                ? "Informe os dados operacionais do estabelecimento."
+                : "Cadastre a conta juridica para receber os repasses da plataforma."}
+            </p>
+          </div>
 
-  <div className="grid grid-cols-2 gap-1 rounded-full bg-app-creme-suave p-1 text-center text-[10px] font-bold uppercase tracking-[0.18em]">
-    <button
-      type="button"
-      onClick={() => setStep(1)}
-      className={`rounded-full px-4 py-2 transition ${
-        step === 1
-          ? "bg-app-cafe-profundo text-app-creme-leve shadow-sm"
-          : "text-app-caramelo-torrado hover:bg-app-baunilha-dourada/60"
-      }`}
-    >
-      Etapa 1
-    </button>
-    <button
-      type="button"
-      onClick={irParaEtapaBancaria}
-      className={`rounded-full px-4 py-2 transition ${
-        step === 2
-          ? "bg-app-cafe-profundo text-app-creme-leve shadow-sm"
-          : "text-app-caramelo-torrado hover:bg-app-baunilha-dourada/60"
-      }`}
-    >
-      Etapa 2
-    </button>
-  </div>
-</div>
+          <div className="grid grid-cols-2 gap-1 rounded-full bg-app-creme-suave p-1 text-center text-[10px] font-bold uppercase tracking-[0.18em]">
+            <button
+              type="button"
+              onClick={() => setStep(1)}
+              className={`rounded-full px-4 py-2 transition ${
+                step === 1
+                  ? "bg-app-cafe-profundo text-app-creme-leve shadow-sm"
+                  : "text-app-caramelo-torrado hover:bg-app-baunilha-dourada/60"
+              }`}
+            >
+              Etapa 1
+            </button>
+            <button
+              type="button"
+              onClick={irParaEtapaBancaria}
+              className={`rounded-full px-4 py-2 transition ${
+                step === 2
+                  ? "bg-app-cafe-profundo text-app-creme-leve shadow-sm"
+                  : "text-app-caramelo-torrado hover:bg-app-baunilha-dourada/60"
+              }`}
+            >
+              Etapa 2
+            </button>
+          </div>
+        </div>
 
         {step === 1 ? (
           <div className="mt-5 grid gap-2.5 sm:grid-cols-6 xl:grid-cols-12">

@@ -46,11 +46,28 @@ function EmptyState({ title, description, compact = false, }) {
       </p>
     </div>);
 }
+function formatarDataReserva(data) {
+    return new Date(`${data}T12:00:00`).toLocaleDateString("pt-BR", {
+        day: "2-digit",
+        month: "long",
+        weekday: "long",
+    });
+}
+function formatarHorario(horario) {
+    return horario?.slice(0, 5) ?? "--:--";
+}
+function formatarMoeda(valor) {
+    return new Intl.NumberFormat("pt-BR", {
+        style: "currency",
+        currency: "BRL",
+    }).format(Number(valor ?? 0));
+}
 export default function DashboardPage() {
     const [activeFilter, setActiveFilter] = useState(filters[0]);
     const [query, setQuery] = useState("");
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [restaurants, setRestaurants] = useState([]);
+    const [reservas, setReservas] = useState([]);
     const [message, setMessage] = useState("");
     useEffect(() => {
         async function loadRestaurants() {
@@ -73,6 +90,25 @@ export default function DashboardPage() {
         }
         loadRestaurants();
     }, []);
+    useEffect(() => {
+        async function loadReservations() {
+            try {
+                const data = await apiRequest("/reservas");
+                setReservas(data ?? []);
+            }
+            catch {
+                setReservas([]);
+            }
+        }
+        loadReservations();
+    }, []);
+    const proximaReserva = useMemo(() => {
+        const agora = new Date();
+        return reservas
+            .filter((reserva) => reserva.status_reserva === "CONFIRMADA")
+            .filter((reserva) => new Date(`${reserva.data_reserva}T${reserva.horario_inicio}`) >= agora)
+            .sort((a, b) => new Date(`${a.data_reserva}T${a.horario_inicio}`) - new Date(`${b.data_reserva}T${b.horario_inicio}`))[0];
+    }, [reservas]);
     const filteredRestaurants = useMemo(() => {
         return restaurants.filter((restaurant) => {
             const matchesFilter = activeFilter === "Todas Especialidades" ||
@@ -151,6 +187,37 @@ export default function DashboardPage() {
       </section>
 
       <section className="mx-auto max-w-7xl px-5 py-10">
+        <div className="mb-8 rounded-[12px] bg-app-cafe-profundo p-5 text-app-creme-leve shadow-sm ring-1 ring-app-baunilha-dourada/35 sm:p-6">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-baunilha-dourada">
+                Proxima reserva
+              </p>
+              {proximaReserva ? (<>
+                  <h2 className="mt-2 text-2xl font-semibold">
+                    {proximaReserva.restaurantes?.nome ?? "Restaurante"}
+                  </h2>
+                  <p className="mt-2 text-sm capitalize text-app-creme-suave">
+                    {formatarDataReserva(proximaReserva.data_reserva)} as {formatarHorario(proximaReserva.horario_inicio)}
+                  </p>
+                  <p className="mt-1 text-sm text-app-baunilha-dourada">
+                    {proximaReserva.quantidade_pessoas} pessoas | Consumo minimo {formatarMoeda(proximaReserva.valor_minimo_total)}
+                  </p>
+                </>) : (<>
+                  <h2 className="mt-2 text-2xl font-semibold">
+                    Nenhuma reserva ativa
+                  </h2>
+                  <p className="mt-2 text-sm text-app-creme-suave">
+                    Escolha um restaurante para agendar sua proxima experiencia.
+                  </p>
+                </>)}
+            </div>
+            <Link href="/cliente/reservas" className="inline-flex h-11 w-fit items-center justify-center rounded-[8px] bg-app-baunilha-dourada px-5 text-xs font-bold uppercase tracking-[0.14em] text-app-cafe-profundo transition hover:bg-app-dourado-mel hover:text-white">
+              Ver reservas
+            </Link>
+          </div>
+        </div>
+
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-[10px] font-bold uppercase text-app-caramelo-torrado">

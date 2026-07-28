@@ -1,6 +1,9 @@
 import { supabase } from "./supabase";
 const authTokensKey = "appono:auth";
 export function getDashboardPath(tipo) {
+    if (tipo === "admin") {
+        return "/admin/financeiro";
+    }
     return tipo === "restaurante" ? "/restaurante/dashboard" : "/cliente/dashboard";
 }
 export function getAccessToken() {
@@ -19,6 +22,16 @@ export function getAccessToken() {
         window.localStorage.removeItem(authTokensKey);
         return null;
     }
+}
+
+export function salvarTokensAutenticacao(session) {
+    if (typeof window === "undefined" || !session) {
+        return;
+    }
+    window.localStorage.setItem(authTokensKey, JSON.stringify({
+        accessToken: session.access_token,
+        refreshToken: session.refresh_token,
+    }));
 }
 export function clearAuthResponse() {
     if (typeof window === "undefined") {
@@ -78,13 +91,14 @@ export async function encerrarSessao() {
 }
 export async function persistAuthResponse(response) {
     if (response.session) {
-        localStorage.setItem(authTokensKey, JSON.stringify({
-            accessToken: response.session.access_token,
-            refreshToken: response.session.refresh_token,
-        }));
+        salvarTokensAutenticacao(response.session);
     }
     if (response.tipo && response.perfil) {
-        const sessionType = response.tipo === "restaurante" ? "restaurant" : "client";
+        const sessionType = response.tipo === "admin"
+            ? "admin"
+            : response.tipo === "restaurante"
+                ? "restaurant"
+                : "client";
         localStorage.setItem("appono:session", JSON.stringify({
             type: sessionType,
             name: response.perfil.nome,

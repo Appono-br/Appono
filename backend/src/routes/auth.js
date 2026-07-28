@@ -31,8 +31,28 @@ function obterMensagemErroAutenticacao(message) {
     }
     return message;
 }
+function obterEmailsAdministradores() {
+    return String(process.env.APPONO_ADMIN_EMAILS ?? "")
+        .split(",")
+        .map((email) => email.trim().toLowerCase())
+        .filter(Boolean);
+}
+function usuarioEhAdministrador(user) {
+    const email = String(user?.email ?? "").toLowerCase();
+    return Boolean(email && obterEmailsAdministradores().includes(email));
+}
 async function obterPerfil(accessToken, userId) {
     const supabase = (0, supabase_1.createUserSupabaseClient)(accessToken);
+    const { data: usuarioAtual } = await supabase_1.supabaseAuth.auth.getUser(accessToken);
+    if (usuarioEhAdministrador(usuarioAtual?.user)) {
+        return {
+            tipo: "admin",
+            perfil: {
+                nome: "Administracao Appono",
+                email: usuarioAtual.user.email,
+            },
+        };
+    }
     const { data: cliente, error: clienteError } = await supabase
         .from("clientes")
         .select("*")
@@ -195,20 +215,49 @@ exports.authRouter.post("/register/restaurant", async (req, res) => {
     if (missing) {
         return res.status(400).json({ error: missing });
     }
-    let validatedCnpj;
-    let validatedCep;
-    try {
-        [validatedCnpj, validatedCep] = await Promise.all([
-            (0, cnpj_1.consultarCnpjReceitaWs)(body.cnpj),
-            (0, cep_1.consultarCepViaCep)(body.cep),
-        ]);
+    const cnpj = (0, comum_1.somenteNumeros)(body.cnpj);
+    const cep = (0, comum_1.somenteNumeros)(body.cep);
+    if (!(0, cnpj_1.validarCnpj)(cnpj)) {
+        return res.status(400).json({ error: "Informe um CNPJ valido." });
     }
-    catch (error) {
-        return res.status(400).json({
-            error: error instanceof Error
-                ? error.message
-                : "Nao foi possivel validar os dados do restaurante.",
-        });
+    if (cep.length !== 8) {
+        return res.status(400).json({ error: "Informe um CEP valido com 8 digitos." });
+    }
+    let validatedCnpj = {
+        cnpj,
+        razaoSocial: body.legalName,
+        nomeFantasia: body.storeName,
+        situacao: "",
+    };
+    let validatedCep = {
+        cep,
+        rua: body.address,
+        bairro: body.neighborhood,
+        cidade: body.city,
+        estado: body.uf,
+    };
+    try {
+        validatedCnpj = await (0, cnpj_1.consultarCnpjReceitaWs)(body.cnpj);
+    }
+    catch {
+        validatedCnpj = {
+            cnpj,
+            razaoSocial: body.legalName,
+            nomeFantasia: body.storeName,
+            situacao: "",
+        };
+    }
+    try {
+        validatedCep = await (0, cep_1.consultarCepViaCep)(body.cep);
+    }
+    catch {
+        validatedCep = {
+            cep,
+            rua: body.address,
+            bairro: body.neighborhood,
+            cidade: body.city,
+            estado: body.uf,
+        };
     }
     if (validatedCnpj.situacao &&
         validatedCnpj.situacao.toUpperCase() !== "ATIVA") {
