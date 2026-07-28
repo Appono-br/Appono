@@ -41,9 +41,36 @@ function isVercelPreviewOrigin(origin) {
     }
 }
 
+function isLocalDevelopmentOrigin(origin) {
+    if (!origin) {
+        return false;
+    }
+
+    try {
+        const url = new URL(origin);
+        const host = url.hostname.toLowerCase();
+        const portaDev = url.protocol === "http:" && url.port === "3000";
+        const hostLocal =
+            host === "localhost" ||
+            host === "127.0.0.1" ||
+            host.startsWith("192.168.") ||
+            host.startsWith("10.") ||
+            /^172\.(1[6-9]|2\d|3[0-1])\./.test(host);
+
+        return portaDev && hostLocal;
+    }
+    catch {
+        return false;
+    }
+}
+
 app.use(cors({
     origin(origin, callback) {
-        if (!origin || allowedOrigins.includes("*") || allowedOrigins.includes(origin) || isVercelPreviewOrigin(origin)) {
+        if (!origin ||
+            allowedOrigins.includes("*") ||
+            allowedOrigins.includes(origin) ||
+            isLocalDevelopmentOrigin(origin) ||
+            isVercelPreviewOrigin(origin)) {
             return callback(null, true);
         }
 
