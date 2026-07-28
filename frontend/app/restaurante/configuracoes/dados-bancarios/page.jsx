@@ -1,9 +1,9 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
-import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 import { useEffect, useState } from "react";
 import { apiRequest } from "@/lib/api";
+import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 import { TelaCarregandoSessao, useSessaoLocal } from "@/lib/use-sessao-local";
 import { aplicarMascaraCnpj } from "@/lib/validacoes/cnpj";
 import { somenteNumeros } from "@/lib/validacoes/comum";
@@ -28,7 +28,6 @@ const initialBankSummary = {
 };
 function Icon({ type, className = "h-5 w-5", }) {
     const paths = {
-        bell: "M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0",
         "arrow-left": "M19 12H5M12 19l-7-7 7-7",
         bank: "M3 10h18L12 4 3 10z M5 10v8M9 10v8M15 10v8M19 10v8M3 20h18",
         card: "M4 7h16v10H4V7z M4 10h16M8 14h3",
@@ -170,7 +169,10 @@ export default function RestaurantBankSettingsPage() {
               Configuracoes
             </h1>
           </div>
-          <ItemHeaderNotificacoes href="/restaurante/notificacoes"/>
+          <div className="flex items-center justify-self-end gap-3 text-app-cafe-profundo">
+            <ItemHeaderNotificacoes href="/restaurante/notificacoes" />
+            <Icon type="help" className="hidden h-5 w-5 justify-self-end text-app-mocha sm:block"/>
+          </div>
         </div>
       </header>
 

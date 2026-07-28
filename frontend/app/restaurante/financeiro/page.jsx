@@ -1,9 +1,10 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
-import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 import { useEffect, useState } from "react";
 import { apiRequest } from "@/lib/api";
+import { textoStatusPedido, textoStatusRepasse } from "@/lib/formatadores-status";
+import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 const navItems = [
     { label: "Home", href: "/restaurante/home" },
     { label: "Dashboard", href: "/restaurante/dashboard" },
@@ -31,7 +32,6 @@ const periodos = [
 ];
 function Icon({ type, className = "h-5 w-5", }) {
     const paths = {
-        bell: "M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0",
         menu: "M4 7h16M4 12h16M4 17h16",
     };
     return (<svg aria-hidden="true" viewBox="0 0 24 24" className={className}>
@@ -71,30 +71,6 @@ function obterPrevisaoRepasse(repasse) {
         return "Sem repasse";
     }
     return "Apos confirmacao de entrega";
-}
-
-function obterTextoStatusPedido(status) {
-    const statusMap = {
-        PENDENTE: "Aguardando pagamento",
-        CONFIRMADO: "Confirmado",
-        EM_PREPARO: "Em preparo",
-        PRONTO: "Pronto",
-        ENTREGUE: "Entregue",
-        CANCELADO: "Cancelado",
-    };
-    return statusMap[status] ?? "Em acompanhamento";
-}
-
-function obterTextoStatusRepasse(status) {
-    const statusMap = {
-        AGUARDANDO_PAGAMENTO: "Aguardando pagamento",
-        AGUARDANDO_ENTREGA: "Aguardando entrega",
-        LIBERADO_PARA_REPASSE: "Liberado",
-        REPASSADO: "Repassado",
-        ESTORNADO: "Estornado",
-        NAO_APLICAVEL: "Nao aplicavel",
-    };
-    return statusMap[status] ?? "Pendente";
 }
 
 function FinanceCard({ label, value, featured = false, }) {
@@ -138,10 +114,10 @@ function RepassesTable({ repasses }) {
           </div>
           <span>{repasse.pedido?.clientes?.nome ?? "Cliente"}</span>
           <span>{formatarReserva(repasse.pedido?.reservas?.data_reserva, repasse.pedido?.reservas?.horario_inicio)}</span>
-          <span>{obterTextoStatusPedido(repasse.pedido?.status_pedido)}</span>
+          <span>{textoStatusPedido(repasse.pedido?.status_pedido)}</span>
           <div>
             <strong className="block text-app-caramelo-torrado">
-              {repasse.pedido?.status_pedido === "CANCELADO" ? "Sem repasse" : obterTextoStatusRepasse(repasse.status_repasse)}
+              {repasse.pedido?.status_pedido === "CANCELADO" ? "Sem repasse" : textoStatusRepasse(repasse.status_repasse)}
             </strong>
             <span className="text-xs text-app-cinza">{obterPrevisaoRepasse(repasse)}</span>
           </div>
@@ -268,19 +244,22 @@ export default function RestaurantFinancialReportPage() {
           </div>
 
           <nav className="hidden items-center justify-self-center gap-6 text-xs font-semibold text-app-cinza xl:flex">
-            {navItems.map((item, index) => (<Link key={item.label} href={item.href} className={index === 4
+            {navItems.map((item) => (<Link key={item.label} href={item.href} className={item.href === "/restaurante/financeiro"
                 ? "text-app-cafe-profundo"
                 : "transition hover:text-app-cafe-profundo"}>
                 {item.label}
               </Link>))}
           </nav>
 
-          <div className="flex items-center justify-end gap-3 justify-self-end"><ItemHeaderNotificacoes href="/restaurante/notificacoes"/><button type="button" onClick={() => setMobileMenuOpen((current) => !current)} className="flex h-9 w-9 items-center justify-center rounded-[8px] border border-app-baunilha-dourada bg-app-chantilly text-app-cafe-profundo xl:hidden" aria-label="Abrir menu" aria-expanded={mobileMenuOpen} aria-controls="restaurant-finance-menu"><Icon type="menu"/></button></div>
+          <ItemHeaderNotificacoes href="/restaurante/notificacoes" />
+          <button type="button" onClick={() => setMobileMenuOpen((current) => !current)} className="flex h-9 w-9 items-center justify-center justify-self-end rounded-[8px] border border-app-baunilha-dourada bg-app-chantilly text-app-cafe-profundo xl:hidden" aria-label="Abrir menu" aria-expanded={mobileMenuOpen} aria-controls="restaurant-finance-menu">
+            <Icon type="menu"/>
+          </button>
         </div>
 
         {mobileMenuOpen ? (<nav id="restaurant-finance-menu" className="border-t border-app-baunilha-dourada/55 bg-app-creme-leve px-5 py-3 xl:hidden">
             <div className="mx-auto grid max-w-7xl gap-2 text-xs font-semibold text-app-cinza">
-              {navItems.map((item, index) => (<Link key={item.label} href={item.href} onClick={() => setMobileMenuOpen(false)} className={index === 4
+              {navItems.map((item) => (<Link key={item.label} href={item.href} onClick={() => setMobileMenuOpen(false)} className={item.href === "/restaurante/financeiro"
                     ? "text-app-cafe-profundo"
                     : "transition hover:text-app-cafe-profundo"}>
                   {item.label}
@@ -313,7 +292,7 @@ export default function RestaurantFinancialReportPage() {
         </div>
 
         <section className="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-          {financeCards.map((card, index) => (<FinanceCard key={card.label} label={card.label} value={resumoFinanceiro[card.key]} featured={index === 0}/>))}
+          {financeCards.map((card, index) => (<FinanceCard key={card.label} label={card.label} value={resumoFinanceiro[card.key]} featured={index === 1}/>))}
         </section>
 
         <section className="mt-10 rounded-[8px] bg-app-creme-leve p-6 shadow-sm ring-1 ring-app-baunilha-dourada/60 sm:p-8">

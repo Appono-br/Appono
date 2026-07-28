@@ -46,6 +46,33 @@ app.get("/", (req, res) => {
 app.get('/api/health', (req, res) => {
     res.json({ status: 'Server is running' });
 });
+
+app.get("/api/health/config", (req, res) => {
+    const adminEmails = String(process.env.APPONO_ADMIN_EMAILS ?? "")
+        .split(",")
+        .map((email) => email.trim())
+        .filter(Boolean);
+    res.json({
+        status: "Config check",
+        supabase: {
+            url: Boolean(process.env.SUPABASE_URL),
+            publishableKey: Boolean(process.env.SUPABASE_PUBLISHABLE_KEY),
+            secretKey: Boolean(process.env.SUPABASE_SECRET_KEY),
+        },
+        mercadoPago: {
+            accessToken: Boolean(process.env.MERCADO_PAGO_ACCESS_TOKEN),
+            publicReturnUrl: Boolean(process.env.FRONTEND_PUBLIC_URL),
+            backendPublicUrl: Boolean(process.env.BACKEND_PUBLIC_URL),
+            webhookSecret: Boolean(process.env.MERCADO_PAGO_WEBHOOK_SECRET),
+            modoRepasse: process.env.MERCADO_PAGO_MODO_REPASSE ?? "SIMULADO",
+            producaoPermitida: String(process.env.MERCADO_PAGO_PERMITIR_PRODUCAO ?? "false").toLowerCase() === "true",
+        },
+        admin: {
+            configurado: adminEmails.length > 0,
+            quantidadeEmails: adminEmails.length,
+        },
+    });
+});
 app.use("/api/auth", authRouter);
 app.use("/api/me", meRouter);
 app.use("/api/restaurantes", restaurantsRouter);

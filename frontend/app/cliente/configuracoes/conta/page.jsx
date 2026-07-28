@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { apiRequest } from "@/lib/api";
+import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 import { atualizarNomeSessao } from "@/lib/session";
 import { TelaCarregandoSessao, useSessaoLocal } from "@/lib/use-sessao-local";
 import { aplicarMascaraCpf } from "@/lib/validacoes/cpf";
@@ -92,7 +93,9 @@ export default function AccountSettingsPage() {
               Configurações
             </h1>
           </div>
-          <div className="w-14"/>
+          <div className="justify-self-end text-app-cafe-profundo">
+            <ItemHeaderNotificacoes href="/cliente/notificacoes" />
+          </div>
         </div>
       </header>
 

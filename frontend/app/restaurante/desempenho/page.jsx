@@ -23,7 +23,6 @@ const scoreCategories = [
 ];
 function Icon({ type, className = "h-5 w-5", }) {
     const paths = {
-        bell: "M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0",
         alert: "M12 9v5M12 18h.01M10.3 3.9 2.1 17a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z",
         menu: "M4 7h16M4 12h16M4 17h16",
         smile: "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01",
@@ -86,19 +85,22 @@ export default function RestaurantPerformancePage() {
           </div>
 
           <nav className="hidden items-center justify-self-center gap-6 text-xs font-semibold text-app-cinza xl:flex">
-            {navItems.map((item, index) => (<Link key={item.label} href={item.href} className={index === 3
+            {navItems.map((item) => (<Link key={item.label} href={item.href} className={item.href === "/restaurante/desempenho"
                 ? "text-app-cafe-profundo"
                 : "transition hover:text-app-cafe-profundo"}>
                 {item.label}
               </Link>))}
           </nav>
 
-          <div className="flex items-center justify-end gap-3 justify-self-end"><ItemHeaderNotificacoes href="/restaurante/notificacoes"/><button type="button" onClick={() => setMobileMenuOpen((current) => !current)} className="flex h-9 w-9 items-center justify-center rounded-[8px] border border-app-baunilha-dourada bg-app-chantilly text-app-cafe-profundo xl:hidden" aria-label="Abrir menu" aria-expanded={mobileMenuOpen} aria-controls="restaurant-performance-menu"><Icon type="menu"/></button></div>
+          <ItemHeaderNotificacoes href="/restaurante/notificacoes" />
+          <button type="button" onClick={() => setMobileMenuOpen((current) => !current)} className="flex h-9 w-9 items-center justify-center justify-self-end rounded-[8px] border border-app-baunilha-dourada bg-app-chantilly text-app-cafe-profundo xl:hidden" aria-label="Abrir menu" aria-expanded={mobileMenuOpen} aria-controls="restaurant-performance-menu">
+            <Icon type="menu"/>
+          </button>
         </div>
 
         {mobileMenuOpen ? (<nav id="restaurant-performance-menu" className="border-t border-app-baunilha-dourada/55 bg-app-creme-leve px-5 py-3 xl:hidden">
             <div className="mx-auto grid max-w-7xl gap-2 text-xs font-semibold text-app-cinza">
-              {navItems.map((item, index) => (<Link key={item.label} href={item.href} onClick={() => setMobileMenuOpen(false)} className={index === 3
+              {navItems.map((item) => (<Link key={item.label} href={item.href} onClick={() => setMobileMenuOpen(false)} className={item.href === "/restaurante/desempenho"
                     ? "text-app-cafe-profundo"
                     : "transition hover:text-app-cafe-profundo"}>
                   {item.label}

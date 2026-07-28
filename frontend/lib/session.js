@@ -4,7 +4,7 @@ export function getDashboardPath(tipo) {
     if (tipo === "admin") {
         return "/admin/financeiro";
     }
-    return tipo === "restaurante" ? "/restaurante/dashboard" : "/cliente/dashboard";
+    return tipo === "restaurante" ? "/restaurante/home" : "/cliente/dashboard";
 }
 export function getAccessToken() {
     if (typeof window === "undefined") {

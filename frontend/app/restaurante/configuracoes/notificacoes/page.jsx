@@ -1,9 +1,9 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
-import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 import { useEffect, useState } from "react";
 import { apiRequest } from "@/lib/api";
+import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 import { TelaCarregandoSessao, useSessaoLocal } from "@/lib/use-sessao-local";
 import { aplicarMascaraTelefone } from "@/lib/validacoes/telefone";
 const initialRules = [
@@ -157,7 +157,10 @@ export default function RestaurantNotificationSettingsPage() {
               Configuracoes
             </h1>
           </div>
-          <ItemHeaderNotificacoes href="/restaurante/notificacoes"/>
+          <div className="flex items-center justify-self-end gap-3 text-app-cafe-profundo">
+            <ItemHeaderNotificacoes href="/restaurante/notificacoes" />
+            <Icon type="help" className="hidden h-5 w-5 justify-self-end text-app-mocha sm:block"/>
+          </div>
         </div>
       </header>
 

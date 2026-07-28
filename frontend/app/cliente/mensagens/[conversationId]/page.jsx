@@ -1,6 +1,7 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
+import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 const messages = [];
 function Icon({ type, className = "h-5 w-5", }) {
     const paths = {
@@ -31,7 +32,9 @@ export default function ConversationPage() {
               Chat
             </h1>
           </div>
-          <div className="w-16"/>
+          <div className="justify-self-end text-app-cafe-profundo">
+            <ItemHeaderNotificacoes href="/cliente/notificacoes" />
+          </div>
         </div>
       </header>
 

@@ -23,7 +23,6 @@ function getStorage() {
 }
 function Icon({ type, className = "h-5 w-5", }) {
     const paths = {
-        bell: "M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0",
         "arrow-left": "M19 12H5M12 19l-7-7 7-7",
         file: "M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2v6h6",
         image: "M4 5h16v14H4V5z M8 13l2.5-2.5L14 14l2-2 4 4M8 9h.01",
@@ -97,7 +96,9 @@ export default function RestaurantConversationPage() {
               Chat
             </h1>
           </div>
-          <ItemHeaderNotificacoes href="/restaurante/notificacoes"/>
+          <div className="justify-self-end text-app-cafe-profundo">
+            <ItemHeaderNotificacoes href="/restaurante/notificacoes" />
+          </div>
         </div>
       </header>
 
@@ -116,7 +117,6 @@ export default function RestaurantConversationPage() {
             </div>
           </div>
           <div className="flex items-center gap-3 text-app-baunilha-dourada">
-            <ItemHeaderNotificacoes href="/restaurante/notificacoes"/>
             <button type="button" aria-label="Ligar" className="transition hover:text-app-chantilly">
               <Icon type="phone"/>
             </button>
