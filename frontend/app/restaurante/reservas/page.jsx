@@ -207,11 +207,11 @@ export default function RestaurantReservationsPage() {
                     </div>
 
                     <nav className="hidden items-center justify-self-center gap-6 text-xs font-semibold text-app-cinza xl:flex">
-                        {navItems.map((item, index) => (
+                        {navItems.map((item) => (
                             <Link
                                 key={item.label}
                                 href={item.href}
-                                className={index === 5 ? "text-app-cafe-profundo" : "transition hover:text-app-cafe-profundo"}
+                                className={item.href === "/restaurante/reservas" ? "text-app-cafe-profundo" : "transition hover:text-app-cafe-profundo"}
                             >
                                 {item.label}
                             </Link>
@@ -243,12 +243,12 @@ export default function RestaurantReservationsPage() {
                 {mobileMenuOpen ? (
                     <nav id="restaurant-reservations-menu" className="border-t border-app-baunilha-dourada/55 bg-app-creme-leve px-5 py-3 xl:hidden">
                         <div className="mx-auto grid max-w-7xl gap-2 text-xs font-semibold text-app-cinza">
-                            {navItems.map((item, index) => (
+                            {navItems.map((item) => (
                                 <Link
                                     key={item.label}
                                     href={item.href}
                                     onClick={() => setMobileMenuOpen(false)}
-                                    className={index === 5 ? "text-app-cafe-profundo" : "transition hover:text-app-cafe-profundo"}
+                                    className={item.href === "/restaurante/reservas" ? "text-app-cafe-profundo" : "transition hover:text-app-cafe-profundo"}
                                 >
                                     {item.label}
                                 </Link>
