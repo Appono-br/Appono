@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { apiRequest } from "@/lib/api";
 import { calcularTempoPreparoItens } from "@/lib/tempo-preparo";
-import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 
 const navItems = [
     { label: "Inicio", href: "/cliente/dashboard" },
@@ -202,7 +201,9 @@ export default function OrderDetailsPage() {
                     </nav>
 
                     <div className="flex items-center justify-self-end gap-3 text-app-cafe-profundo">
-            <ItemHeaderNotificacoes href="/cliente/notificacoes" />
+                        <button type="button" className="transition hover:text-app-caramelo-torrado" aria-label="Notificacoes">
+                            <Icon type="bell" />
+                        </button>
                         <button type="button" className="transition hover:text-app-caramelo-torrado" aria-label="Sacola">
                             <Icon type="bag" />
                         </button>

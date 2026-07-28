@@ -45,6 +45,23 @@ function obterModoRepasseMercadoPago() {
     return String(process.env.MERCADO_PAGO_MODO_REPASSE ?? "SIMULADO").trim().toUpperCase();
 }
 
+function obterDataHoraLocal(valor) {
+    if (!valor) {
+        return null;
+    }
+    const normalizado = String(valor).replace(" ", "T");
+    const temTimezone = /(?:Z|[+-]\d{2}:?\d{2})$/.test(normalizado);
+    const data = new Date(temTimezone ? normalizado : `${normalizado}-03:00`);
+    return Number.isNaN(data.getTime()) ? null : data;
+}
+
+function formatarHorario(valor) {
+    if (!valor) {
+        return "--:--";
+    }
+    return String(valor).slice(11, 16);
+}
+
 function marketplaceRealAtivo() {
     return ["MARKETPLACE_REAL", "REAL", "PRODUCAO"].includes(obterModoRepasseMercadoPago());
 }
@@ -267,7 +284,7 @@ exports.ordersRouter.post("/", async (req, res) => {
             titulo: "Novo pedido antecipado",
             mensagem: "Um cliente registrou um pedido antecipado vinculado a uma reserva.",
             tipo_evento: "PEDIDO_CRIADO",
-            link_destino: "/restaurante/reservas",
+            link_destino: "/restaurante/pedidos",
             dados: { id_pedido: data.id_pedido, id_reserva: data.id_reserva },
         }),
     ]);
@@ -354,7 +371,7 @@ exports.ordersRouter.patch("/:id/cancelar", async (req, res) => {
                 titulo: "Pedido antecipado cancelado",
                 mensagem: "Um pedido antecipado foi cancelado pelo cliente. A reserva permanece independente do pedido.",
                 tipo_evento: "PEDIDO_CANCELADO",
-                link_destino: "/restaurante/reservas",
+                link_destino: "/restaurante/pedidos",
                 dados: { id_pedido: data.id_pedido, id_reserva: data.id_reserva },
             }),
             (0, notificacoes_1.notificarAdministradores)({
@@ -390,7 +407,7 @@ exports.ordersRouter.patch("/:id/cancelar", async (req, res) => {
             titulo: "Pedido antecipado cancelado",
             mensagem: "Um pedido antecipado foi cancelado pelo cliente. A reserva permanece independente do pedido.",
             tipo_evento: "PEDIDO_CANCELADO",
-            link_destino: "/restaurante/reservas",
+            link_destino: "/restaurante/pedidos",
             dados: { id_pedido: data.id_pedido, id_reserva: data.id_reserva },
         }),
     ]);
@@ -414,6 +431,26 @@ exports.ordersRouter.patch("/:id/status", async (req, res) => {
     }
     if (!restaurante) {
         return res.status(403).json({ error: "Apenas o restaurante pode atualizar o status do pedido." });
+    }
+    const { data: pedidoAtual, error: pedidoAtualError } = await supabase
+        .from("pedidos")
+        .select("id_pedido, id_restaurante, status_pedido, iniciar_preparo_em")
+        .eq("id_pedido", orderId)
+        .eq("id_restaurante", restaurante.id_restaurante)
+        .maybeSingle();
+    if (pedidoAtualError) {
+        return res.status(400).json({ error: pedidoAtualError.message });
+    }
+    if (!pedidoAtual) {
+        return res.status(404).json({ error: "Pedido nao encontrado." });
+    }
+    if (status_pedido === "EM_PREPARO") {
+        const liberadoEm = obterDataHoraLocal(pedidoAtual.iniciar_preparo_em);
+        if (liberadoEm && liberadoEm.getTime() > Date.now()) {
+            return res.status(409).json({
+                error: `O preparo deste pedido so fica liberado as ${formatarHorario(pedidoAtual.iniciar_preparo_em)}.`,
+            });
+        }
     }
     const { data, error } = await supabase
         .from("pedidos")
@@ -465,5 +502,55 @@ exports.ordersRouter.patch("/:id/status", async (req, res) => {
         link_destino: "/cliente/detalhes-pedido",
         dados: { id_pedido: data.id_pedido, id_reserva: data.id_reserva, status_pedido },
     });
+    return res.json(data);
+});
+exports.ordersRouter.patch("/:id/ocultar-cozinha", async (req, res) => {
+    const orderId = Number(req.params.id);
+    const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
+    if (!Number.isFinite(orderId)) {
+        return res.status(400).json({ error: "Pedido invalido." });
+    }
+    const { data: restaurante, error: restauranteError } = await supabase
+        .from("restaurantes")
+        .select("id_restaurante")
+        .eq("id_auth", res.locals.user.id)
+        .maybeSingle();
+    if (restauranteError) {
+        return res.status(400).json({ error: restauranteError.message });
+    }
+    if (!restaurante) {
+        return res.status(403).json({ error: "Apenas o restaurante pode remover pedidos da cozinha." });
+    }
+    const { data: pedido, error: pedidoError } = await supabase
+        .from("pedidos")
+        .select("id_pedido, id_restaurante, status_pedido")
+        .eq("id_pedido", orderId)
+        .eq("id_restaurante", restaurante.id_restaurante)
+        .maybeSingle();
+    if (pedidoError) {
+        return res.status(400).json({ error: pedidoError.message });
+    }
+    if (!pedido) {
+        return res.status(404).json({ error: "Pedido nao encontrado." });
+    }
+    if (!["PRONTO", "ENTREGUE", "CANCELADO"].includes(pedido.status_pedido)) {
+        return res.status(409).json({
+            error: "Marque o pedido como pronto, entregue ou cancelado antes de remove-lo da cozinha.",
+        });
+    }
+    const clienteBanco = supabase_1.supabaseAdmin ?? supabase;
+    const { data, error } = await clienteBanco
+        .from("pedidos")
+        .update({
+            ocultado_cozinha: true,
+            ocultado_cozinha_em: new Date().toISOString(),
+        })
+        .eq("id_pedido", orderId)
+        .eq("id_restaurante", restaurante.id_restaurante)
+        .select("id_pedido, status_pedido, ocultado_cozinha, ocultado_cozinha_em")
+        .single();
+    if (error) {
+        return res.status(400).json({ error: error.message });
+    }
     return res.json(data);
 });

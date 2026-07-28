@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { apiRequest } from "@/lib/api";
 import { calcularTempoPreparoItens } from "@/lib/tempo-preparo";
-import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 
 function formatarMoeda(valor) {
     return new Intl.NumberFormat("pt-BR", {
@@ -105,12 +104,12 @@ export default function PaginaPedidoAntecipado({ params }) {
     const total = produtosSelecionados.reduce((soma, produto) => soma + Number(produto.preco) * produto.quantidade, 0);
     const consumoMinimo = Number(dados?.reserva?.valor_minimo_total ?? 0);
     const faltaParaMinimo = Math.max(0, consumoMinimo - total);
-    const tempoEstimadoPreparo = calcularTempoPreparoItens(produtosSelecionados);
+    const maiorTempoPreparo = calcularTempoPreparoItens(produtosSelecionados);
     const pedidoAtivo = dados?.reserva.pedidos?.find((pedido) => ["PENDENTE", "CONFIRMADO", "EM_PREPARO", "PRONTO"].includes(pedido.status_pedido));
     const reservaConfirmada = dados?.reserva.status_reserva === "CONFIRMADA";
     const itensPedidoAtivo = pedidoAtivo?.itens_pedido ?? [];
     const totalItensPedidoAtivo = itensPedidoAtivo.reduce((soma, item) => soma + Number(item.quantidade ?? 0), 0);
-    const tempoEstimadoPedidoAtivo = calcularTempoPreparoItens(itensPedidoAtivo);
+    const maiorTempoPedidoAtivo = calcularTempoPreparoItens(itensPedidoAtivo);
 
     function alterarQuantidade(produtoId, diferenca) {
         setMensagem("");
@@ -185,9 +184,6 @@ export default function PaginaPedidoAntecipado({ params }) {
                 </Link>
 
                 <header className="mt-6 overflow-hidden rounded-[14px] bg-app-cafe-profundo text-app-creme-leve shadow-sm ring-1 ring-app-baunilha-dourada/50">
-                    <div className="flex justify-end px-6 pt-5 text-app-creme-leve sm:px-8">
-                        <ItemHeaderNotificacoes href="/cliente/notificacoes" />
-                    </div>
                     <div className="grid gap-6 p-6 sm:p-8 lg:grid-cols-[1fr_auto] lg:items-end">
                         <div>
                             <p className="text-xs font-bold uppercase tracking-[0.22em] text-app-areia-quente">Pedido antecipado</p>
@@ -278,7 +274,7 @@ export default function PaginaPedidoAntecipado({ params }) {
                                 </div>
                                 <div className="flex justify-between gap-4">
                                     <span className="text-app-mocha">Tempo estimado</span>
-                                    <strong>{tempoEstimadoPedidoAtivo || "--"} min</strong>
+                                    <strong>{maiorTempoPedidoAtivo || "--"} min</strong>
                                 </div>
                                 {pedidoAtivo.iniciar_preparo_em ? (
                                     <div className="flex justify-between gap-4">
@@ -436,7 +432,7 @@ export default function PaginaPedidoAntecipado({ params }) {
                                 </div>
                                 <div className="flex items-center justify-between text-sm">
                                     <span className="text-app-mocha">Tempo estimado</span>
-                                    <strong>{tempoEstimadoPreparo || 0} min</strong>
+                                    <strong>{maiorTempoPreparo || 0} min</strong>
                                 </div>
                                 <div className="flex items-center justify-between">
                                     <span className="font-bold">Total</span>

@@ -2,10 +2,10 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 import { useEffect, useMemo, useState } from "react";
 import { apiRequest } from "@/lib/api";
-import { calcularTempoPreparoItens } from "@/lib/tempo-preparo";
-import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
+import { calcularTempoPreparoItens, formatarHorarioPreparo, preparoEstaLiberado } from "@/lib/tempo-preparo";
 
 const navItems = [
     { label: "Home", href: "/restaurante/home" },
@@ -14,6 +14,7 @@ const navItems = [
     { label: "Desempenho", href: "/restaurante/desempenho" },
     { label: "Relatorio financeiro", href: "/restaurante/financeiro" },
     { label: "Reservas", href: "/restaurante/reservas" },
+    { label: "Pedidos", href: "/restaurante/pedidos" },
     { label: "Mensagens", href: "/restaurante/mensagens" },
     { label: "Configuracoes", href: "/restaurante/configuracoes" },
 ];
@@ -28,6 +29,7 @@ const filtrosPedido = [
 
 function Icon({ type, className = "h-5 w-5" }) {
     const paths = {
+        bell: "M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0",
         filter: "M4 7h16M7 12h10M10 17h4",
         menu: "M4 7h16M4 12h16M4 17h16",
         plus: "M12 5v14M5 12h14",
@@ -93,34 +95,6 @@ function obterStatusReserva(status) {
     return statusMap[status] ?? status;
 }
 
-function obterProximaAcaoPedido(status) {
-    if (status === "CONFIRMADO") {
-        return {
-            texto: "Iniciar preparo",
-            status: "EM_PREPARO",
-            classe: "bg-app-dourado-mel hover:bg-app-caramelo-torrado",
-        };
-    }
-
-    if (status === "EM_PREPARO") {
-        return {
-            texto: "Marcar como pronto",
-            status: "PRONTO",
-            classe: "bg-app-cafe-profundo hover:bg-app-cacau-intenso",
-        };
-    }
-
-    if (status === "PRONTO") {
-        return {
-            texto: "Marcar como entregue",
-            status: "ENTREGUE",
-            classe: "bg-app-dourado-mel hover:bg-app-caramelo-torrado",
-        };
-    }
-
-    return null;
-}
-
 export default function RestaurantReservationsPage() {
     const [session] = useState(() => {
         if (typeof window === "undefined") {
@@ -180,26 +154,6 @@ export default function RestaurantReservationsPage() {
         }
     }
 
-    async function atualizarStatusPedido(idPedido, statusPedido) {
-        try {
-            const atualizado = await apiRequest(`/pedidos/${idPedido}/status`, {
-                method: "PATCH",
-                body: JSON.stringify({ status_pedido: statusPedido }),
-            });
-
-            setReservas((atuais) =>
-                atuais.map((reserva) => ({
-                    ...reserva,
-                    pedidos: reserva.pedidos?.map((pedido) =>
-                        pedido.id_pedido === idPedido ? { ...pedido, ...atualizado } : pedido,
-                    ),
-                })),
-            );
-            setMensagem("Status do pedido atualizado.");
-        } catch (erro) {
-            setMensagem(erro instanceof Error ? erro.message : "Nao foi possivel atualizar o pedido.");
-        }
-    }
     const reservasFiltradas = useMemo(() => {
         if (filtroPedido === "TODOS") {
             return reservas;
@@ -264,8 +218,15 @@ export default function RestaurantReservationsPage() {
                         ))}
                     </nav>
 
-                    <div className="flex items-center justify-self-end gap-3 text-app-cafe-profundo">
-                        <ItemHeaderNotificacoes href="/restaurante/notificacoes" />
+                    <div className="flex items-center justify-end gap-3 justify-self-end">
+                        <Link
+                            href="/restaurante/notificacoes"
+                            className="flex h-9 w-9 items-center justify-center rounded-[8px] text-app-cafe-profundo transition hover:bg-app-chantilly hover:text-app-caramelo-torrado"
+                            aria-label="Notificacoes"
+                        >
+                            <Icon type="bell" />
+                        </Link>
+
                         <button
                             type="button"
                             onClick={() => setMobileMenuOpen((current) => !current)}
@@ -366,10 +327,11 @@ export default function RestaurantReservationsPage() {
                                             {reserva.pedidos?.length ? (
                                                 <div className="mt-5 grid gap-4">
                                                     {reserva.pedidos.map((pedido) => {
-                                                        const acao = obterProximaAcaoPedido(pedido.status_pedido);
                                                         const pedidoCancelado = pedido.status_pedido === "CANCELADO";
                                                         const totalItensPedido = (pedido.itens_pedido ?? []).reduce((soma, item) => soma + Number(item.quantidade ?? 0), 0);
                                                         const tempoEstimadoPedido = calcularTempoPreparoItens(pedido.itens_pedido ?? []);
+                                                        const preparoLiberado = preparoEstaLiberado(pedido.iniciar_preparo_em);
+                                                        const inicioPreparo = formatarHorarioPreparo(pedido.iniciar_preparo_em);
 
                                                         return (
                                                             <div
@@ -402,8 +364,10 @@ export default function RestaurantReservationsPage() {
                                                                     </span>
                                                                 </div>
                                                                 {pedido.iniciar_preparo_em ? (
-                                                                    <p className="mt-3 rounded-[8px] bg-app-cafe-profundo px-3 py-2 text-xs font-semibold text-app-creme-leve">
-                                                                        Sugestao: iniciar preparo as {String(pedido.iniciar_preparo_em).slice(11, 16)} para o pedido estar pronto no horario da reserva.
+                                                                    <p className={`mt-3 rounded-[8px] px-3 py-2 text-xs font-semibold ${preparoLiberado ? "bg-app-dourado-mel text-white" : "bg-app-cafe-profundo text-app-creme-leve"}`}>
+                                                                        {preparoLiberado
+                                                                            ? "Preparo liberado agora."
+                                                                            : `Preparo bloqueado ate ${inicioPreparo}. O pedido deve ser iniciado nesse horario para ficar pronto perto da reserva.`}
                                                                     </p>
                                                                 ) : null}
 
@@ -442,14 +406,13 @@ export default function RestaurantReservationsPage() {
                                                                     </p>
                                                                 ) : null}
 
-                                                                {acao ? (
-                                                                    <button
-                                                                        type="button"
-                                                                        onClick={() => atualizarStatusPedido(pedido.id_pedido, acao.status)}
-                                                                        className={`mt-4 rounded-[8px] px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-white transition ${acao.classe}`}
+                                                                {!pedidoCancelado ? (
+                                                                    <Link
+                                                                        href="/restaurante/pedidos"
+                                                                        className="mt-4 inline-flex rounded-[8px] bg-app-cafe-profundo px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-app-cacau-intenso"
                                                                     >
-                                                                        {acao.texto}
-                                                                    </button>
+                                                                        Ver na cozinha
+                                                                    </Link>
                                                                 ) : null}
                                                             </div>
                                                         );

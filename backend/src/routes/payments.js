@@ -395,7 +395,7 @@ async function aplicarStatusRetornoPedido(pedido, referencia, query) {
                 titulo: "Pedido pago",
                 mensagem: "Um pedido antecipado foi pago e esta pronto para acompanhamento operacional.",
                 tipo_evento: "PAGAMENTO_APROVADO",
-                link_destino: "/restaurante/reservas",
+                link_destino: "/restaurante/pedidos",
                 dados: { id_pedido: pedido.id_pedido, id_reserva: pedido.id_reserva },
             }),
             (0, notificacoes_1.notificarAdministradores)({
@@ -433,7 +433,6 @@ async function aplicarPagamentoMercadoPago(pagamentoMercadoPago, fallbackReferen
         if (pedidoError || !pedido) {
             throw new Error(pedidoError?.message ?? "Pedido nao encontrado para conciliacao.");
         }
-        const pagamentoExistente = await obterPagamentoExistentePorReferencia(referencia);
         const pagamento = await salvarPagamento({
             id_pedido: pedido.id_pedido,
             id_reserva: pedido.id_reserva,
@@ -468,7 +467,7 @@ async function aplicarPagamentoMercadoPago(pagamentoMercadoPago, fallbackReferen
                     titulo: "Pedido pago",
                     mensagem: "Um pedido antecipado foi pago e pode ser preparado conforme o horario da reserva.",
                     tipo_evento: "PAGAMENTO_APROVADO",
-                    link_destino: "/restaurante/reservas",
+                    link_destino: "/restaurante/pedidos",
                     dados: { id_pedido: pedido.id_pedido, id_reserva: pedido.id_reserva },
                 }),
                 (0, notificacoes_1.notificarAdministradores)({

@@ -55,7 +55,7 @@ exports.reservationsRouter.get("/", async (_req, res) => {
     }
     const { data: pedidos, error: pedidosError } = await supabase
         .from("pedidos")
-        .select("id_pedido, id_reserva, status_pedido, valor_total, horario_entrega_previsto, iniciar_preparo_em, observacoes, itens_pedido(quantidade, preco_unitario, observacoes, produtos(nome, descricao, imagem_url, tempo_preparo_minutos))")
+        .select("id_pedido, id_reserva, status_pedido, valor_total, horario_entrega_previsto, iniciar_preparo_em, ocultado_cozinha, ocultado_cozinha_em, observacoes, itens_pedido(quantidade, preco_unitario, observacoes, produtos(nome, descricao, imagem_url, tempo_preparo_minutos))")
         .in("id_reserva", idsReservas);
     if (pedidosError) {
         return res.json(reservas.map((reserva) => ({ ...reserva, pedidos: [] })));
@@ -157,7 +157,7 @@ exports.reservationsRouter.get("/:id/cardapio", async (req, res) => {
     }
     const { data: pedidos } = await supabase
         .from("pedidos")
-        .select("id_pedido, id_reserva, status_pedido, valor_total, horario_entrega_previsto, iniciar_preparo_em, observacoes, itens_pedido(quantidade, preco_unitario, observacoes, produtos(nome, descricao, imagem_url, tempo_preparo_minutos))")
+        .select("id_pedido, id_reserva, status_pedido, valor_total, horario_entrega_previsto, iniciar_preparo_em, ocultado_cozinha, ocultado_cozinha_em, observacoes, itens_pedido(quantidade, preco_unitario, observacoes, produtos(nome, descricao, imagem_url, tempo_preparo_minutos))")
         .eq("id_reserva", reservationId);
     const { data: cardapios, error: cardapiosError } = await supabase
         .from("cardapios")
