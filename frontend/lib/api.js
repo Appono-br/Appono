@@ -1,7 +1,27 @@
 import { getAccessToken, obterTokensAutenticacao, salvarTokensAutenticacao } from "./session";
 import { supabase } from "./supabase";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001/api";
+const API_URL_PADRAO_LOCAL = "http://localhost:3001/api";
+const API_URL_PRODUCAO = "https://appono-backend.vercel.app/api";
+
+function navegadorEstaEmAmbienteLocal() {
+    if (typeof window === "undefined") {
+        return true;
+    }
+
+    return ["localhost", "127.0.0.1"].includes(window.location.hostname);
+}
+
+function obterApiUrl() {
+    const apiUrlConfigurada = process.env.NEXT_PUBLIC_API_URL ?? API_URL_PADRAO_LOCAL;
+    const usaApiLocal = apiUrlConfigurada.includes("localhost") || apiUrlConfigurada.includes("127.0.0.1");
+
+    if (usaApiLocal && !navegadorEstaEmAmbienteLocal()) {
+        return API_URL_PRODUCAO;
+    }
+
+    return apiUrlConfigurada.replace(/\/$/, "");
+}
 
 async function renovarSessaoExpirada() {
     const tokens = obterTokensAutenticacao();
@@ -19,7 +39,7 @@ async function renovarSessaoExpirada() {
 }
 
 async function fazerRequisicao(path, options, accessToken) {
-    return fetch(`${API_URL}${path}`, {
+    return fetch(`${obterApiUrl()}${path}`, {
         ...options,
         headers: {
             "Content-Type": "application/json",
