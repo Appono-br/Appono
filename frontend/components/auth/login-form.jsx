@@ -17,9 +17,10 @@ export function LoginForm() {
         setIsSubmitting(true);
         setMessage("");
         try {
+            const email = identifier.trim();
             const auth = await apiRequest("/auth/login", {
                 method: "POST",
-                body: JSON.stringify({ email: identifier, password }),
+                body: JSON.stringify({ email, password }),
             });
             await persistAuthResponse({ session: auth.session });
             const profile = await apiRequest("/me");

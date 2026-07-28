@@ -100,7 +100,8 @@ exports.authRouter.post("/login", async (req, res) => {
             error: "O acesso esta temporariamente indisponivel. Tente novamente mais tarde.",
         });
     }
-    const { email, password } = req.body;
+    const email = typeof req.body.email === "string" ? req.body.email.trim().toLowerCase() : "";
+    const { password } = req.body;
     if (!email || !password) {
         return res.status(400).json({ error: "Informe e-mail e senha." });
     }
@@ -109,10 +110,11 @@ exports.authRouter.post("/login", async (req, res) => {
         password,
     });
     if (error || !data.session) {
+        const mensagemErro = String(error?.message ?? "").toLowerCase();
         return res.status(401).json({
-            error: error?.message.toLowerCase().includes("email not confirmed")
+            error: mensagemErro.includes("email not confirmed")
                 ? "Confirme seu e-mail antes de entrar."
-                : "Credenciais invalidas.",
+                : "E-mail ou senha incorretos. Confira os dados cadastrados e tente novamente.",
         });
     }
     const profile = await obterPerfil(data.session.access_token, data.user.id);

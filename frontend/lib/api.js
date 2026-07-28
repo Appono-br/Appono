@@ -1,7 +1,7 @@
 import { getAccessToken, obterTokensAutenticacao, salvarTokensAutenticacao } from "./session";
 import { supabase } from "./supabase";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001/api";
+const API_URL = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001/api").replace(/\/$/, "");
 
 async function renovarSessaoExpirada() {
     const tokens = obterTokensAutenticacao();
