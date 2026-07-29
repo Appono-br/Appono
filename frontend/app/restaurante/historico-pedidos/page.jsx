@@ -133,6 +133,15 @@ function escaparCsv(valor) {
     return `"${texto.replaceAll('"', '""')}"`;
 }
 
+function escaparHtml(valor) {
+    return String(valor ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+}
+
 function gerarCsvHistorico(pedidos) {
     const linhas = [
         ["Pedido", "Cliente", "Data", "Horario", "Status", "Itens", "Valor total", "Valor pago", "Repasse"].map(escaparCsv).join(";"),
@@ -160,19 +169,20 @@ function montarHtmlComanda(pedido) {
     const linhasItens = itens.map((item) => `
         <tr>
             <td>
-                <strong>${item.quantidade}x ${item.produtos?.nome ?? "Item"}</strong>
-                ${item.observacoes ? `<small>Obs.: ${item.observacoes}</small>` : ""}
+                <strong>${escaparHtml(item.quantidade)}x ${escaparHtml(item.produtos?.nome ?? "Item")}</strong>
+                ${item.observacoes ? `<small>Obs.: ${escaparHtml(item.observacoes)}</small>` : ""}
             </td>
-            <td>${formatarMoeda(calcularSubtotalItem(item))}</td>
+            <td>${escaparHtml(formatarMoeda(calcularSubtotalItem(item)))}</td>
         </tr>
     `).join("");
+    const fallbackItens = "<tr><td>Sem itens detalhados</td><td>-</td></tr>";
 
     return `
         <!doctype html>
         <html lang="pt-BR">
             <head>
                 <meta charset="utf-8" />
-                <title>Comanda Pedido #${pedido.id_pedido}</title>
+                <title>Comanda Pedido #${escaparHtml(pedido.id_pedido)}</title>
                 <style>
                     * { box-sizing: border-box; }
                     body {
@@ -250,26 +260,26 @@ function montarHtmlComanda(pedido) {
             </head>
             <body>
                 <section class="comanda">
-                    <h1>Pedido #${pedido.id_pedido}</h1>
-                    <h2>${pedido.clientes?.nome ?? "Cliente"}</h2>
+                    <h1>Pedido #${escaparHtml(pedido.id_pedido)}</h1>
+                    <h2>${escaparHtml(pedido.clientes?.nome ?? "Cliente")}</h2>
                     <div class="meta">
-                        <div><strong>Status:</strong> ${textoStatusPedido(pedido.status_pedido)}</div>
-                        <div><strong>Data:</strong> ${formatarData(pedido.reservas?.data_reserva)}</div>
-                        <div><strong>Horario:</strong> ${pedido.reservas?.horario_inicio?.slice(0, 5) ?? "--:--"}</div>
-                        <div><strong>Mesa:</strong> ${pedido.reservas?.mesas?.numero_mesa ?? "-"}</div>
-                        <div><strong>Pessoas:</strong> ${pedido.reservas?.quantidade_pessoas ?? "-"}</div>
+                        <div><strong>Status:</strong> ${escaparHtml(textoStatusPedido(pedido.status_pedido))}</div>
+                        <div><strong>Data:</strong> ${escaparHtml(formatarData(pedido.reservas?.data_reserva))}</div>
+                        <div><strong>Horario:</strong> ${escaparHtml(pedido.reservas?.horario_inicio?.slice(0, 5) ?? "--:--")}</div>
+                        <div><strong>Mesa:</strong> ${escaparHtml(pedido.reservas?.mesas?.numero_mesa ?? "-")}</div>
+                        <div><strong>Pessoas:</strong> ${escaparHtml(pedido.reservas?.quantidade_pessoas ?? "-")}</div>
                     </div>
                     <table>
                         <tbody>
-                            ${linhasItens || "<tr><td>Sem itens detalhados</td><td>-</td></tr>"}
+                            ${linhasItens || fallbackItens}
                         </tbody>
                     </table>
                     <div class="total">
                         <span>Total</span>
-                        <span>${formatarMoeda(pagamento?.valor_pago ?? pedido.valor_total ?? 0)}</span>
+                        <span>${escaparHtml(formatarMoeda(pagamento?.valor_pago ?? pedido.valor_total ?? 0))}</span>
                     </div>
-                    ${pedido.observacoes ? `<div class="rodape"><strong>Obs. pedido:</strong> ${pedido.observacoes}</div>` : ""}
-                    <div class="rodape">Impresso pela Appono em ${new Date().toLocaleString("pt-BR")}</div>
+                    ${pedido.observacoes ? `<div class="rodape"><strong>Obs. pedido:</strong> ${escaparHtml(pedido.observacoes)}</div>` : ""}
+                    <div class="rodape">Impresso pela Appono em ${escaparHtml(new Date().toLocaleString("pt-BR"))}</div>
                 </section>
                 <script>
                     window.onload = function() {
