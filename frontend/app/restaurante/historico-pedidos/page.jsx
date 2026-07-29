@@ -154,6 +154,133 @@ function gerarCsvHistorico(pedidos) {
     return linhas.join("\n");
 }
 
+function montarHtmlComanda(pedido) {
+    const itens = pedido.itens_pedido ?? [];
+    const pagamento = obterPagamentoPrincipal(pedido);
+    const linhasItens = itens.map((item) => `
+        <tr>
+            <td>
+                <strong>${item.quantidade}x ${item.produtos?.nome ?? "Item"}</strong>
+                ${item.observacoes ? `<small>Obs.: ${item.observacoes}</small>` : ""}
+            </td>
+            <td>${formatarMoeda(calcularSubtotalItem(item))}</td>
+        </tr>
+    `).join("");
+
+    return `
+        <!doctype html>
+        <html lang="pt-BR">
+            <head>
+                <meta charset="utf-8" />
+                <title>Comanda Pedido #${pedido.id_pedido}</title>
+                <style>
+                    * { box-sizing: border-box; }
+                    body {
+                        margin: 0;
+                        padding: 24px;
+                        color: #24130c;
+                        font-family: Arial, Helvetica, sans-serif;
+                        background: #fff;
+                    }
+                    .comanda {
+                        width: 320px;
+                        margin: 0 auto;
+                        border: 1px solid #24130c;
+                        padding: 18px;
+                    }
+                    h1 {
+                        margin: 0;
+                        font-size: 24px;
+                        text-transform: uppercase;
+                    }
+                    h2 {
+                        margin: 6px 0 0;
+                        font-size: 15px;
+                        font-weight: 700;
+                    }
+                    .meta {
+                        margin-top: 14px;
+                        padding: 10px 0;
+                        border-top: 1px dashed #24130c;
+                        border-bottom: 1px dashed #24130c;
+                        font-size: 13px;
+                        line-height: 1.55;
+                    }
+                    table {
+                        width: 100%;
+                        margin-top: 14px;
+                        border-collapse: collapse;
+                    }
+                    td {
+                        vertical-align: top;
+                        border-bottom: 1px solid #e5d3bd;
+                        padding: 9px 0;
+                        font-size: 13px;
+                    }
+                    td:last-child {
+                        width: 76px;
+                        text-align: right;
+                        font-weight: 700;
+                    }
+                    small {
+                        display: block;
+                        margin-top: 4px;
+                        color: #6b5749;
+                        font-size: 11px;
+                    }
+                    .total {
+                        margin-top: 14px;
+                        display: flex;
+                        justify-content: space-between;
+                        font-size: 16px;
+                        font-weight: 800;
+                    }
+                    .rodape {
+                        margin-top: 14px;
+                        border-top: 1px dashed #24130c;
+                        padding-top: 10px;
+                        font-size: 11px;
+                        color: #6b5749;
+                    }
+                    @media print {
+                        body { padding: 0; }
+                        .comanda { border: 0; width: 100%; }
+                    }
+                </style>
+            </head>
+            <body>
+                <section class="comanda">
+                    <h1>Pedido #${pedido.id_pedido}</h1>
+                    <h2>${pedido.clientes?.nome ?? "Cliente"}</h2>
+                    <div class="meta">
+                        <div><strong>Status:</strong> ${textoStatusPedido(pedido.status_pedido)}</div>
+                        <div><strong>Data:</strong> ${formatarData(pedido.reservas?.data_reserva)}</div>
+                        <div><strong>Horario:</strong> ${pedido.reservas?.horario_inicio?.slice(0, 5) ?? "--:--"}</div>
+                        <div><strong>Mesa:</strong> ${pedido.reservas?.mesas?.numero_mesa ?? "-"}</div>
+                        <div><strong>Pessoas:</strong> ${pedido.reservas?.quantidade_pessoas ?? "-"}</div>
+                    </div>
+                    <table>
+                        <tbody>
+                            ${linhasItens || "<tr><td>Sem itens detalhados</td><td>-</td></tr>"}
+                        </tbody>
+                    </table>
+                    <div class="total">
+                        <span>Total</span>
+                        <span>${formatarMoeda(pagamento?.valor_pago ?? pedido.valor_total ?? 0)}</span>
+                    </div>
+                    ${pedido.observacoes ? `<div class="rodape"><strong>Obs. pedido:</strong> ${pedido.observacoes}</div>` : ""}
+                    <div class="rodape">Impresso pela Appono em ${new Date().toLocaleString("pt-BR")}</div>
+                </section>
+                <script>
+                    window.onload = function() {
+                        window.print();
+                    };
+                </script>
+            </body>
+        </html>
+    `;
+}
+
 function EmptyPanel() {
     return (
         <div className="flex min-h-72 flex-col items-center justify-center rounded-[16px] bg-app-creme-leve px-6 py-10 text-center ring-1 ring-app-baunilha-dourada/70">
@@ -241,6 +368,18 @@ export default function RestaurantOrderHistoryPage() {
         URL.revokeObjectURL(url);
     }
 
+    function imprimirPedido(pedido) {
+        const janela = window.open("", "_blank", "width=420,height=680");
+        if (!janela) {
+            setMensagem("Nao foi possivel abrir a janela de impressao. Verifique o bloqueador de pop-ups.");
+            return;
+        }
+
+        janela.document.open();
+        janela.document.write(montarHtmlComanda(pedido));
+        janela.document.close();
+    }
+
     if (!sessaoCarregada) {
         return <TelaCarregandoSessao />;
     }
@@ -312,10 +451,6 @@ export default function RestaurantOrderHistoryPage() {
                             <Icon type="download" className="h-4 w-4" />
                             CSV
                         </button>
-                        <button type="button" onClick={() => window.print()} className="inline-flex h-10 items-center justify-center gap-2 rounded-[10px] border border-app-baunilha-dourada bg-app-creme-leve px-4 text-[11px] font-bold uppercase tracking-[0.12em] text-app-cafe-profundo transition hover:border-app-caramelo-torrado hover:bg-app-baunilha-dourada">
-                            <Icon type="print" className="h-4 w-4" />
-                            Imprimir
-                        </button>
                         <Link href="/restaurante/pedidos" className="inline-flex h-10 items-center justify-center rounded-[10px] bg-app-cafe-profundo px-4 text-[11px] font-bold uppercase tracking-[0.12em] text-app-creme-leve transition hover:bg-app-caramelo-torrado">
                             Cozinha
                         </Link>
@@ -381,18 +516,24 @@ export default function RestaurantOrderHistoryPage() {
 
                                                 <h2 className="mt-2 truncate text-xl font-semibold text-app-cafe-profundo">{pedido.clientes?.nome ?? "Cliente"}</h2>
                                                 <p className="mt-1 text-sm text-app-cinza">
-                                                    {formatarData(pedido.reservas?.data_reserva)} · {pedido.reservas?.horario_inicio?.slice(0, 5) ?? "--:--"} · Mesa {pedido.reservas?.mesas?.numero_mesa ?? "-"} · {pedido.reservas?.quantidade_pessoas ?? "-"} pessoas
+                                                    {formatarData(pedido.reservas?.data_reserva)} - {pedido.reservas?.horario_inicio?.slice(0, 5) ?? "--:--"} - Mesa {pedido.reservas?.mesas?.numero_mesa ?? "-"} - {pedido.reservas?.quantidade_pessoas ?? "-"} pessoas
                                                 </p>
                                                 <p className="mt-2 truncate text-sm text-app-mocha">{obterItensResumo(pedido)}</p>
                                             </div>
 
                                             <div className="grid gap-2 text-left lg:min-w-72 lg:text-right">
                                                 <strong className="text-2xl font-semibold text-app-cafe-profundo">{formatarMoeda(pedido.valor_total)}</strong>
-                                                <span className="text-xs text-app-cinza">Pago {formatarMoeda(pagamento?.valor_pago ?? 0)} · {textoStatusRepasse(pagamento?.status_repasse ?? "NAO_APLICAVEL")}</span>
-                                                <button type="button" onClick={() => alternarPedidoAberto(pedido.id_pedido)} className="inline-flex h-9 items-center justify-center gap-2 rounded-[10px] border border-app-baunilha-dourada bg-app-chantilly px-3 text-[11px] font-bold uppercase tracking-[0.12em] text-app-cafe-profundo transition hover:border-app-caramelo-torrado hover:bg-app-baunilha-dourada lg:justify-self-end">
-                                                    {pedidosAbertos.includes(pedido.id_pedido) ? "Ocultar itens" : `Ver ${totalItens} itens`}
-                                                    <Icon type="chevron" className={`h-4 w-4 transition ${pedidosAbertos.includes(pedido.id_pedido) ? "rotate-180" : ""}`} />
-                                                </button>
+                                                <span className="text-xs text-app-cinza">Pago {formatarMoeda(pagamento?.valor_pago ?? 0)} - {textoStatusRepasse(pagamento?.status_repasse ?? "NAO_APLICAVEL")}</span>
+                                                <div className="flex flex-wrap gap-2 lg:justify-end">
+                                                    <button type="button" onClick={() => imprimirPedido(pedido)} className="inline-flex h-9 items-center justify-center gap-2 rounded-[10px] bg-app-cafe-profundo px-3 text-[11px] font-bold uppercase tracking-[0.12em] text-app-creme-leve transition hover:bg-app-caramelo-torrado">
+                                                        <Icon type="print" className="h-4 w-4" />
+                                                        Comanda
+                                                    </button>
+                                                    <button type="button" onClick={() => alternarPedidoAberto(pedido.id_pedido)} className="inline-flex h-9 items-center justify-center gap-2 rounded-[10px] border border-app-baunilha-dourada bg-app-chantilly px-3 text-[11px] font-bold uppercase tracking-[0.12em] text-app-cafe-profundo transition hover:border-app-caramelo-torrado hover:bg-app-baunilha-dourada">
+                                                        {pedidosAbertos.includes(pedido.id_pedido) ? "Ocultar itens" : `Ver ${totalItens} itens`}
+                                                        <Icon type="chevron" className={`h-4 w-4 transition ${pedidosAbertos.includes(pedido.id_pedido) ? "rotate-180" : ""}`} />
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
 
