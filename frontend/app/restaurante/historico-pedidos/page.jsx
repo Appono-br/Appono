@@ -28,6 +28,13 @@ const filtros = [
     { label: "Removidos da cozinha", value: "REMOVIDOS" },
 ];
 
+const filtrosPeriodo = [
+    { label: "Todo periodo", value: "TODOS" },
+    { label: "Hoje", value: "HOJE" },
+    { label: "7 dias", value: "7_DIAS" },
+    { label: "30 dias", value: "30_DIAS" },
+];
+
 function Icon({ type, className = "h-5 w-5" }) {
     const paths = {
         menu: "M4 7h16M4 12h16M4 17h16",
@@ -35,6 +42,9 @@ function Icon({ type, className = "h-5 w-5" }) {
         search: "m21 21-4.3-4.3M10.8 18a7.2 7.2 0 1 1 0-14.4 7.2 7.2 0 0 1 0 14.4Z",
         calendar: "M7 3v4M17 3v4M4 9h16M6 5h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z",
         money: "M4 7h16v10H4V7z M7 10h.01M17 14h.01M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z",
+        download: "M12 3v11m0 0 4-4m-4 4-4-4M5 17v2a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-2",
+        print: "M7 8V4h10v4M7 17H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2M7 14h10v7H7v-7Z",
+        chevron: "m8 10 4 4 4-4",
     };
 
     return (
@@ -59,6 +69,34 @@ function formatarData(data) {
     return new Date(`${data}T12:00:00`).toLocaleDateString("pt-BR");
 }
 
+function obterDataPedido(pedido) {
+    const data = pedido.reservas?.data_reserva ?? pedido.data_pedido?.slice(0, 10);
+    return data ? new Date(`${data}T12:00:00`) : null;
+}
+
+function pedidoPassaPeriodo(pedido, periodo) {
+    if (periodo === "TODOS") {
+        return true;
+    }
+
+    const dataPedido = obterDataPedido(pedido);
+    if (!dataPedido) {
+        return false;
+    }
+
+    const hoje = new Date();
+    hoje.setHours(12, 0, 0, 0);
+
+    if (periodo === "HOJE") {
+        return dataPedido.toDateString() === hoje.toDateString();
+    }
+
+    const dias = periodo === "7_DIAS" ? 7 : 30;
+    const dataLimite = new Date(hoje);
+    dataLimite.setDate(hoje.getDate() - dias + 1);
+    return dataPedido >= dataLimite && dataPedido <= hoje;
+}
+
 function calcularSubtotalItem(item) {
     return Number(item.subtotal ?? 0) || Number(item.preco_unitario ?? 0) * Number(item.quantidade ?? 0);
 }
@@ -77,6 +115,180 @@ function obterClasseStatus(status) {
     }
 
     return "bg-app-cafe-profundo text-app-creme-leve ring-app-cafe-profundo";
+}
+
+function obterItensResumo(pedido) {
+    const itens = pedido.itens_pedido ?? [];
+    if (!itens.length) {
+        return "Sem itens detalhados";
+    }
+
+    const principais = itens.slice(0, 2).map((item) => `${item.quantidade}x ${item.produtos?.nome ?? "Item"}`);
+    const restantes = itens.length > 2 ? ` +${itens.length - 2}` : "";
+    return `${principais.join(", ")}${restantes}`;
+}
+
+function escaparCsv(valor) {
+    const texto = String(valor ?? "");
+    return `"${texto.replaceAll('"', '""')}"`;
+}
+
+function escaparHtml(valor) {
+    return String(valor ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+}
+
+function gerarCsvHistorico(pedidos) {
+    const linhas = [
+        ["Pedido", "Cliente", "Data", "Horario", "Status", "Itens", "Valor total", "Valor pago", "Repasse"].map(escaparCsv).join(";"),
+        ...pedidos.map((pedido) => {
+            const pagamento = obterPagamentoPrincipal(pedido);
+            return [
+                pedido.id_pedido,
+                pedido.clientes?.nome ?? "Cliente",
+                formatarData(pedido.reservas?.data_reserva),
+                pedido.reservas?.horario_inicio?.slice(0, 5) ?? "--:--",
+                textoStatusPedido(pedido.status_pedido),
+                obterItensResumo(pedido),
+                Number(pedido.valor_total ?? 0).toFixed(2).replace(".", ","),
+                Number(pagamento?.valor_pago ?? 0).toFixed(2).replace(".", ","),
+                textoStatusRepasse(pagamento?.status_repasse ?? "NAO_APLICAVEL"),
+            ].map(escaparCsv).join(";");
+        }),
+    ];
+    return linhas.join("\n");
+}
+
+function montarHtmlComanda(pedido) {
+    const itens = pedido.itens_pedido ?? [];
+    const pagamento = obterPagamentoPrincipal(pedido);
+    const linhasItens = itens.map((item) => `
+        <tr>
+            <td>
+                <strong>${escaparHtml(item.quantidade)}x ${escaparHtml(item.produtos?.nome ?? "Item")}</strong>
+                ${item.observacoes ? `<small>Obs.: ${escaparHtml(item.observacoes)}</small>` : ""}
+            </td>
+            <td>${escaparHtml(formatarMoeda(calcularSubtotalItem(item)))}</td>
+        </tr>
+    `).join("");
+    const fallbackItens = "<tr><td>Sem itens detalhados</td><td>-</td></tr>";
+
+    return `
+        <!doctype html>
+        <html lang="pt-BR">
+            <head>
+                <meta charset="utf-8" />
+                <title>Comanda Pedido #${escaparHtml(pedido.id_pedido)}</title>
+                <style>
+                    * { box-sizing: border-box; }
+                    body {
+                        margin: 0;
+                        padding: 24px;
+                        color: #24130c;
+                        font-family: Arial, Helvetica, sans-serif;
+                        background: #fff;
+                    }
+                    .comanda {
+                        width: 320px;
+                        margin: 0 auto;
+                        border: 1px solid #24130c;
+                        padding: 18px;
+                    }
+                    h1 {
+                        margin: 0;
+                        font-size: 24px;
+                        text-transform: uppercase;
+                    }
+                    h2 {
+                        margin: 6px 0 0;
+                        font-size: 15px;
+                        font-weight: 700;
+                    }
+                    .meta {
+                        margin-top: 14px;
+                        padding: 10px 0;
+                        border-top: 1px dashed #24130c;
+                        border-bottom: 1px dashed #24130c;
+                        font-size: 13px;
+                        line-height: 1.55;
+                    }
+                    table {
+                        width: 100%;
+                        margin-top: 14px;
+                        border-collapse: collapse;
+                    }
+                    td {
+                        vertical-align: top;
+                        border-bottom: 1px solid #e5d3bd;
+                        padding: 9px 0;
+                        font-size: 13px;
+                    }
+                    td:last-child {
+                        width: 76px;
+                        text-align: right;
+                        font-weight: 700;
+                    }
+                    small {
+                        display: block;
+                        margin-top: 4px;
+                        color: #6b5749;
+                        font-size: 11px;
+                    }
+                    .total {
+                        margin-top: 14px;
+                        display: flex;
+                        justify-content: space-between;
+                        font-size: 16px;
+                        font-weight: 800;
+                    }
+                    .rodape {
+                        margin-top: 14px;
+                        border-top: 1px dashed #24130c;
+                        padding-top: 10px;
+                        font-size: 11px;
+                        color: #6b5749;
+                    }
+                    @media print {
+                        body { padding: 0; }
+                        .comanda { border: 0; width: 100%; }
+                    }
+                </style>
+            </head>
+            <body>
+                <section class="comanda">
+                    <h1>Pedido #${escaparHtml(pedido.id_pedido)}</h1>
+                    <h2>${escaparHtml(pedido.clientes?.nome ?? "Cliente")}</h2>
+                    <div class="meta">
+                        <div><strong>Status:</strong> ${escaparHtml(textoStatusPedido(pedido.status_pedido))}</div>
+                        <div><strong>Data:</strong> ${escaparHtml(formatarData(pedido.reservas?.data_reserva))}</div>
+                        <div><strong>Horario:</strong> ${escaparHtml(pedido.reservas?.horario_inicio?.slice(0, 5) ?? "--:--")}</div>
+                        <div><strong>Mesa:</strong> ${escaparHtml(pedido.reservas?.mesas?.numero_mesa ?? "-")}</div>
+                        <div><strong>Pessoas:</strong> ${escaparHtml(pedido.reservas?.quantidade_pessoas ?? "-")}</div>
+                    </div>
+                    <table>
+                        <tbody>
+                            ${linhasItens || fallbackItens}
+                        </tbody>
+                    </table>
+                    <div class="total">
+                        <span>Total</span>
+                        <span>${escaparHtml(formatarMoeda(pagamento?.valor_pago ?? pedido.valor_total ?? 0))}</span>
+                    </div>
+                    ${pedido.observacoes ? `<div class="rodape"><strong>Obs. pedido:</strong> ${escaparHtml(pedido.observacoes)}</div>` : ""}
+                    <div class="rodape">Impresso pela Appono em ${escaparHtml(new Date().toLocaleString("pt-BR"))}</div>
+                </section>
+                <script>
+                    window.onload = function() {
+                        window.print();
+                    };
+                </script>
+            </body>
+        </html>
+    `;
 }
 
 function EmptyPanel() {
@@ -98,7 +310,9 @@ export default function RestaurantOrderHistoryPage() {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [pedidos, setPedidos] = useState([]);
     const [filtro, setFiltro] = useState("TODOS");
+    const [periodo, setPeriodo] = useState("TODOS");
     const [busca, setBusca] = useState("");
+    const [pedidosAbertos, setPedidosAbertos] = useState([]);
     const [mensagem, setMensagem] = useState("Carregando historico de pedidos...");
 
     useEffect(() => {
@@ -120,6 +334,7 @@ export default function RestaurantOrderHistoryPage() {
             const passaFiltro = filtro === "TODOS" ||
                 pedido.status_pedido === filtro ||
                 (filtro === "REMOVIDOS" && pedido.ocultado_cozinha === true);
+            const passaPeriodo = pedidoPassaPeriodo(pedido, periodo);
             const textoBusca = [
                 pedido.id_pedido,
                 pedido.clientes?.nome,
@@ -131,12 +346,12 @@ export default function RestaurantOrderHistoryPage() {
                 .filter(Boolean)
                 .join(" ")
                 .toLowerCase();
-            return passaFiltro && (!termo || textoBusca.includes(termo));
+            return passaFiltro && passaPeriodo && (!termo || textoBusca.includes(termo));
         });
-    }, [busca, filtro, pedidos]);
+    }, [busca, filtro, pedidos, periodo]);
 
     const resumo = useMemo(() => {
-        return pedidos.reduce((acc, pedido) => {
+        return pedidosFiltrados.reduce((acc, pedido) => {
             const pagamento = obterPagamentoPrincipal(pedido);
             acc.total += 1;
             acc.entregues += pedido.status_pedido === "ENTREGUE" ? 1 : 0;
@@ -144,7 +359,36 @@ export default function RestaurantOrderHistoryPage() {
             acc.valor += pedido.status_pedido === "CANCELADO" ? 0 : Number(pagamento?.valor_pago ?? pedido.valor_total ?? 0);
             return acc;
         }, { total: 0, entregues: 0, cancelados: 0, valor: 0 });
-    }, [pedidos]);
+    }, [pedidosFiltrados]);
+
+    function alternarPedidoAberto(pedidoId) {
+        setPedidosAbertos((atuais) => atuais.includes(pedidoId)
+            ? atuais.filter((id) => id !== pedidoId)
+            : [...atuais, pedidoId]);
+    }
+
+    function exportarCsv() {
+        const csv = gerarCsvHistorico(pedidosFiltrados);
+        const blob = new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `historico-pedidos-appono-${new Date().toISOString().slice(0, 10)}.csv`;
+        link.click();
+        URL.revokeObjectURL(url);
+    }
+
+    function imprimirPedido(pedido) {
+        const janela = window.open("", "_blank", "width=420,height=680");
+        if (!janela) {
+            setMensagem("Nao foi possivel abrir a janela de impressao. Verifique o bloqueador de pop-ups.");
+            return;
+        }
+
+        janela.document.open();
+        janela.document.write(montarHtmlComanda(pedido));
+        janela.document.close();
+    }
 
     if (!sessaoCarregada) {
         return <TelaCarregandoSessao />;
@@ -212,26 +456,32 @@ export default function RestaurantOrderHistoryPage() {
                         </p>
                     </div>
 
-                    <Link href="/restaurante/pedidos" className="inline-flex h-11 items-center justify-center rounded-[10px] bg-app-cafe-profundo px-5 text-xs font-bold uppercase tracking-[0.14em] text-app-creme-leve transition hover:bg-app-caramelo-torrado">
-                        Voltar para cozinha
-                    </Link>
+                    <div className="flex flex-wrap gap-2">
+                        <button type="button" onClick={exportarCsv} disabled={!pedidosFiltrados.length} className="inline-flex h-10 items-center justify-center gap-2 rounded-[10px] border border-app-baunilha-dourada bg-app-creme-leve px-4 text-[11px] font-bold uppercase tracking-[0.12em] text-app-cafe-profundo transition hover:border-app-caramelo-torrado hover:bg-app-baunilha-dourada disabled:cursor-not-allowed disabled:opacity-50">
+                            <Icon type="download" className="h-4 w-4" />
+                            CSV
+                        </button>
+                        <Link href="/restaurante/pedidos" className="inline-flex h-10 items-center justify-center rounded-[10px] bg-app-cafe-profundo px-4 text-[11px] font-bold uppercase tracking-[0.12em] text-app-creme-leve transition hover:bg-app-caramelo-torrado">
+                            Cozinha
+                        </Link>
+                    </div>
                 </div>
 
-                <section className="mt-8 grid gap-4 md:grid-cols-4">
+                <section className="mt-8 grid gap-3 md:grid-cols-4">
                     {[
-                        ["Total no historico", resumo.total],
+                        ["Pedidos", resumo.total],
                         ["Entregues", resumo.entregues],
                         ["Cancelados", resumo.cancelados],
-                        ["Valor valido", formatarMoeda(resumo.valor)],
+                        ["Vendas validas", formatarMoeda(resumo.valor)],
                     ].map(([label, value], index) => (
-                        <article key={label} className={`rounded-[14px] p-5 shadow-sm ring-1 ring-app-baunilha-dourada/45 ${index === 3 ? "bg-app-cafe-profundo text-app-creme-leve" : "bg-app-creme-leve text-app-cafe-profundo"}`}>
+                        <article key={label} className={`rounded-[12px] px-4 py-3 ring-1 ring-app-baunilha-dourada/55 ${index === 3 ? "bg-app-cafe-profundo text-app-creme-leve" : "bg-app-creme-leve text-app-cafe-profundo"}`}>
                             <p className={`text-[10px] font-bold uppercase tracking-[0.18em] ${index === 3 ? "text-app-baunilha-dourada" : "text-app-cinza"}`}>{label}</p>
-                            <strong className="mt-4 block text-3xl font-semibold">{value}</strong>
+                            <strong className="mt-2 block text-xl font-semibold">{value}</strong>
                         </article>
                     ))}
                 </section>
 
-                <section className="mt-8 rounded-[16px] bg-app-creme-leve p-5 ring-1 ring-app-baunilha-dourada/65">
+                <section className="mt-6 rounded-[14px] bg-app-creme-leve p-4 ring-1 ring-app-baunilha-dourada/65">
                     <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-center">
                         <label className="flex h-11 items-center gap-3 rounded-[10px] bg-app-chantilly px-4 text-sm text-app-cinza ring-1 ring-app-baunilha-dourada/60">
                             <Icon type="search" className="h-4 w-4" />
@@ -246,6 +496,14 @@ export default function RestaurantOrderHistoryPage() {
                             ))}
                         </div>
                     </div>
+
+                    <div className="mt-3 flex flex-wrap gap-2 border-t border-app-baunilha-dourada/55 pt-3">
+                        {filtrosPeriodo.map((item) => (
+                            <button key={item.value} type="button" onClick={() => setPeriodo(item.value)} className={`h-8 rounded-full border px-3 text-[10px] font-bold uppercase tracking-[0.12em] transition ${periodo === item.value ? "border-app-cafe-profundo bg-app-cafe-profundo text-app-creme-leve" : "border-app-baunilha-dourada bg-app-chantilly text-app-cinza hover:border-app-caramelo-torrado hover:text-app-cafe-profundo"}`}>
+                                {item.label}
+                            </button>
+                        ))}
+                    </div>
                 </section>
 
                 {mensagem ? <p className="mt-6 text-sm font-semibold text-app-caramelo-torrado">{mensagem}</p> : null}
@@ -257,33 +515,43 @@ export default function RestaurantOrderHistoryPage() {
                                 const pagamento = obterPagamentoPrincipal(pedido);
                                 const totalItens = (pedido.itens_pedido ?? []).reduce((soma, item) => soma + Number(item.quantidade ?? 0), 0);
                                 return (
-                                    <article key={pedido.id_pedido} className="overflow-hidden rounded-[18px] bg-app-creme-leve shadow-sm ring-1 ring-app-baunilha-dourada/70">
-                                        <div className="grid lg:grid-cols-[1fr_320px]">
-                                            <div className="p-5 sm:p-6">
-                                                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                                                    <div>
-                                                        <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-app-caramelo-torrado">Pedido #{pedido.id_pedido}</p>
-                                                        <h2 className="mt-2 text-2xl font-semibold text-app-cafe-profundo">{pedido.clientes?.nome ?? "Cliente"}</h2>
-                                                        <p className="mt-2 text-sm text-app-cinza">
-                                                            {formatarData(pedido.reservas?.data_reserva)} das {pedido.reservas?.horario_inicio?.slice(0, 5) ?? "--:--"} ate {pedido.reservas?.horario_fim?.slice(0, 5) ?? "--:--"}
-                                                        </p>
-                                                    </div>
-                                                    <span className={`w-fit rounded-full px-3 py-1 text-xs font-bold ring-1 ${obterClasseStatus(pedido.status_pedido)}`}>{textoStatusPedido(pedido.status_pedido)}</span>
+                                    <article key={pedido.id_pedido} className="rounded-[14px] bg-app-creme-leve p-4 shadow-sm ring-1 ring-app-baunilha-dourada/70 sm:p-5">
+                                        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                                            <div className="min-w-0 flex-1">
+                                                <div className="flex flex-wrap items-center gap-2">
+                                                    <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">#{pedido.id_pedido}</span>
+                                                    <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ring-1 ${obterClasseStatus(pedido.status_pedido)}`}>{textoStatusPedido(pedido.status_pedido)}</span>
+                                                    {pedido.ocultado_cozinha ? <span className="rounded-full bg-app-chantilly px-2.5 py-1 text-[11px] font-bold text-app-cinza ring-1 ring-app-baunilha-dourada/60">Removido</span> : null}
                                                 </div>
 
-                                                <div className="mt-5 grid gap-3 text-sm text-app-mocha sm:grid-cols-4">
-                                                    <span className="rounded-[10px] bg-app-chantilly px-3 py-3 ring-1 ring-app-baunilha-dourada/45">
-                                                        <Icon type="calendar" className="mr-1 inline h-4 w-4" />
-                                                        Mesa {pedido.reservas?.mesas?.numero_mesa ?? "-"}
-                                                    </span>
-                                                    <span className="rounded-[10px] bg-app-chantilly px-3 py-3 ring-1 ring-app-baunilha-dourada/45">{pedido.reservas?.quantidade_pessoas ?? "-"} pessoas</span>
-                                                    <span className="rounded-[10px] bg-app-chantilly px-3 py-3 ring-1 ring-app-baunilha-dourada/45">{totalItens} itens</span>
-                                                    <span className="rounded-[10px] bg-app-chantilly px-3 py-3 ring-1 ring-app-baunilha-dourada/45">{pedido.ocultado_cozinha ? "Removido da cozinha" : "Historico ativo"}</span>
-                                                </div>
+                                                <h2 className="mt-2 truncate text-xl font-semibold text-app-cafe-profundo">{pedido.clientes?.nome ?? "Cliente"}</h2>
+                                                <p className="mt-1 text-sm text-app-cinza">
+                                                    {formatarData(pedido.reservas?.data_reserva)} - {pedido.reservas?.horario_inicio?.slice(0, 5) ?? "--:--"} - Mesa {pedido.reservas?.mesas?.numero_mesa ?? "-"} - {pedido.reservas?.quantidade_pessoas ?? "-"} pessoas
+                                                </p>
+                                                <p className="mt-2 truncate text-sm text-app-mocha">{obterItensResumo(pedido)}</p>
+                                            </div>
 
-                                                <div className="mt-5 grid gap-3">
+                                            <div className="grid gap-2 text-left lg:min-w-72 lg:text-right">
+                                                <strong className="text-2xl font-semibold text-app-cafe-profundo">{formatarMoeda(pedido.valor_total)}</strong>
+                                                <span className="text-xs text-app-cinza">Pago {formatarMoeda(pagamento?.valor_pago ?? 0)} - {textoStatusRepasse(pagamento?.status_repasse ?? "NAO_APLICAVEL")}</span>
+                                                <div className="flex flex-wrap gap-2 lg:justify-end">
+                                                    <button type="button" onClick={() => imprimirPedido(pedido)} className="inline-flex h-9 items-center justify-center gap-2 rounded-[10px] bg-app-cafe-profundo px-3 text-[11px] font-bold uppercase tracking-[0.12em] text-app-creme-leve transition hover:bg-app-caramelo-torrado">
+                                                        <Icon type="print" className="h-4 w-4" />
+                                                        Comanda
+                                                    </button>
+                                                    <button type="button" onClick={() => alternarPedidoAberto(pedido.id_pedido)} className="inline-flex h-9 items-center justify-center gap-2 rounded-[10px] border border-app-baunilha-dourada bg-app-chantilly px-3 text-[11px] font-bold uppercase tracking-[0.12em] text-app-cafe-profundo transition hover:border-app-caramelo-torrado hover:bg-app-baunilha-dourada">
+                                                        {pedidosAbertos.includes(pedido.id_pedido) ? "Ocultar itens" : `Ver ${totalItens} itens`}
+                                                        <Icon type="chevron" className={`h-4 w-4 transition ${pedidosAbertos.includes(pedido.id_pedido) ? "rotate-180" : ""}`} />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {pedidosAbertos.includes(pedido.id_pedido) ? (
+                                            <div className="mt-4 border-t border-app-baunilha-dourada/60 pt-4">
+                                                <div className="grid gap-2">
                                                     {(pedido.itens_pedido ?? []).map((item, indice) => (
-                                                        <div key={`${pedido.id_pedido}-${item.produtos?.nome ?? indice}`} className="flex items-start justify-between gap-4 rounded-[10px] bg-app-chantilly px-4 py-3 text-sm text-app-mocha ring-1 ring-app-baunilha-dourada/45">
+                                                        <div key={`${pedido.id_pedido}-${item.produtos?.nome ?? indice}`} className="flex items-start justify-between gap-4 rounded-[10px] bg-app-chantilly px-3 py-2 text-sm text-app-mocha ring-1 ring-app-baunilha-dourada/45">
                                                             <div className="min-w-0">
                                                                 <p className="font-semibold text-app-cafe-profundo">{item.quantidade}x {item.produtos?.nome ?? "Item"}</p>
                                                                 {item.observacoes ? <p className="mt-1 text-xs text-app-cinza">Obs.: {item.observacoes}</p> : null}
@@ -292,21 +560,13 @@ export default function RestaurantOrderHistoryPage() {
                                                         </div>
                                                     ))}
                                                 </div>
-                                            </div>
-
-                                            <aside className="flex flex-col justify-between bg-app-cafe-profundo p-5 text-app-creme-leve sm:p-6">
-                                                <div>
-                                                    <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-app-baunilha-dourada">Resumo financeiro</p>
-                                                    <p className="mt-3 text-3xl font-semibold">{formatarMoeda(pedido.valor_total)}</p>
-                                                    <div className="mt-5 grid gap-2 text-sm text-app-creme-suave">
-                                                        <span className="flex items-center gap-2"><Icon type="money" className="h-4 w-4" /> Pago: {formatarMoeda(pagamento?.valor_pago ?? 0)}</span>
-                                                        <span>Liquido: {formatarMoeda(pagamento?.valor_restaurante ?? 0)}</span>
-                                                        <span>Comissao: {formatarMoeda(pagamento?.valor_comissao_app ?? 0)}</span>
-                                                        <span>Repasse: {textoStatusRepasse(pagamento?.status_repasse ?? "NAO_APLICAVEL")}</span>
-                                                    </div>
+                                                <div className="mt-3 grid gap-2 rounded-[10px] bg-app-cafe-profundo px-3 py-3 text-xs text-app-creme-suave sm:grid-cols-3">
+                                                    <span>Liquido: <strong className="text-app-creme-leve">{formatarMoeda(pagamento?.valor_restaurante ?? 0)}</strong></span>
+                                                    <span>Comissao: <strong className="text-app-creme-leve">{formatarMoeda(pagamento?.valor_comissao_app ?? 0)}</strong></span>
+                                                    <span>Data pagamento: <strong className="text-app-creme-leve">{pagamento?.data_pagamento ? new Date(pagamento.data_pagamento).toLocaleDateString("pt-BR") : "Nao informado"}</strong></span>
                                                 </div>
-                                            </aside>
-                                        </div>
+                                            </div>
+                                        ) : null}
                                     </article>
                                 );
                             })}
