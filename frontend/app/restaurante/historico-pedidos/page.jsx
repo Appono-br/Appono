@@ -299,7 +299,7 @@ function EmptyPanel() {
             </div>
             <h3 className="mt-5 text-2xl font-semibold">Nenhum pedido no historico</h3>
             <p className="mt-3 max-w-md text-sm leading-6 text-app-cinza">
-                Pedidos entregues, cancelados ou removidos da cozinha aparecem aqui para consulta operacional e financeira.
+                Pedidos entregues, cancelados ou removidos da cozinha aparecem aqui para consulta operacional.
             </p>
         </div>
     );
@@ -352,13 +352,11 @@ export default function RestaurantOrderHistoryPage() {
 
     const resumo = useMemo(() => {
         return pedidosFiltrados.reduce((acc, pedido) => {
-            const pagamento = obterPagamentoPrincipal(pedido);
             acc.total += 1;
             acc.entregues += pedido.status_pedido === "ENTREGUE" ? 1 : 0;
             acc.cancelados += pedido.status_pedido === "CANCELADO" ? 1 : 0;
-            acc.valor += pedido.status_pedido === "CANCELADO" ? 0 : Number(pagamento?.valor_pago ?? pedido.valor_total ?? 0);
             return acc;
-        }, { total: 0, entregues: 0, cancelados: 0, valor: 0 });
+        }, { total: 0, entregues: 0, cancelados: 0 });
     }, [pedidosFiltrados]);
 
     function alternarPedidoAberto(pedidoId) {
@@ -467,15 +465,14 @@ export default function RestaurantOrderHistoryPage() {
                     </div>
                 </div>
 
-                <section className="mt-8 grid gap-3 md:grid-cols-4">
+                <section className="mt-8 grid gap-3 md:grid-cols-3">
                     {[
                         ["Pedidos", resumo.total],
                         ["Entregues", resumo.entregues],
                         ["Cancelados", resumo.cancelados],
-                        ["Vendas validas", formatarMoeda(resumo.valor)],
-                    ].map(([label, value], index) => (
-                        <article key={label} className={`rounded-[12px] px-4 py-3 ring-1 ring-app-baunilha-dourada/55 ${index === 3 ? "bg-app-cafe-profundo text-app-creme-leve" : "bg-app-creme-leve text-app-cafe-profundo"}`}>
-                            <p className={`text-[10px] font-bold uppercase tracking-[0.18em] ${index === 3 ? "text-app-baunilha-dourada" : "text-app-cinza"}`}>{label}</p>
+                    ].map(([label, value]) => (
+                        <article key={label} className="rounded-[12px] bg-app-creme-leve px-4 py-3 text-app-cafe-profundo ring-1 ring-app-baunilha-dourada/55">
+                            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-cinza">{label}</p>
                             <strong className="mt-2 block text-xl font-semibold">{value}</strong>
                         </article>
                     ))}
