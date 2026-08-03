@@ -103,6 +103,12 @@ function organizarCardapios(cardapios) {
             .filter((categoria) => categoria.produtos.length > 0),
     }));
 }
+function obterDataLocalSaoPaulo() {
+    return new Date(new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
+}
+function obterDataHoraLocal(data, horario) {
+    return new Date(`${data}T${String(horario ?? "").slice(0, 8)}`);
+}
 
 exports.reservationsRouter.get("/", async (_req, res) => {
     const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
@@ -126,7 +132,8 @@ exports.reservationsRouter.get("/", async (_req, res) => {
     if (!idsReservas.length) {
         return res.json(reservas);
     }
-    const { data: pedidos, error: pedidosError } = await supabase
+    const clientePedidos = supabase_1.supabaseAdmin ?? supabase;
+    const { data: pedidos, error: pedidosError } = await clientePedidos
         .from("pedidos")
         .select("id_pedido, id_reserva, status_pedido, valor_total, horario_entrega_previsto, iniciar_preparo_em, ocultado_cozinha, ocultado_cozinha_em, observacoes, itens_pedido(quantidade, preco_unitario, observacoes, produtos(nome, descricao, imagem_url, tempo_preparo_minutos))")
         .in("id_reserva", idsReservas);
@@ -135,8 +142,7 @@ exports.reservationsRouter.get("/", async (_req, res) => {
     }
     return res.json(reservas.map((reserva) => ({
         ...reserva,
-        pedidos: (pedidos ?? []).filter((pedido) => pedido.id_reserva === reserva.id_reserva &&
-            (cliente || pedido.status_pedido !== "PENDENTE")),
+        pedidos: (pedidos ?? []).filter((pedido) => pedido.id_reserva === reserva.id_reserva),
     })));
 });
 exports.reservationsRouter.patch("/:id/ocultar", async (req, res) => {
@@ -310,6 +316,156 @@ exports.reservationsRouter.get("/:id/cardapio", async (req, res) => {
         return res.status(400).json({ error: cardapiosError.message });
     }
     return res.json({ reserva: { ...reserva, pedidos: pedidos ?? [] }, cardapios: organizarCardapios(cardapios) });
+});
+exports.reservationsRouter.patch("/:id/check-in", async (req, res) => {
+    const reservationId = Number(req.params.id);
+    const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
+    if (!Number.isFinite(reservationId)) {
+        return res.status(400).json({ error: "Reserva invalida." });
+    }
+    const { data: restaurante, error: restauranteError } = await supabase
+        .from("restaurantes")
+        .select("id_restaurante")
+        .eq("id_auth", res.locals.user.id)
+        .maybeSingle();
+    if (restauranteError) {
+        return res.status(400).json({ error: restauranteError.message });
+    }
+    if (!restaurante) {
+        return res.status(403).json({ error: "Apenas restaurantes podem registrar check-in." });
+    }
+    const clienteBanco = supabase_1.supabaseAdmin ?? supabase;
+    const { data: reserva, error: reservaError } = await clienteBanco
+        .from("reservas")
+        .select("id_reserva, id_cliente, id_restaurante, status_reserva, data_reserva, horario_inicio, clientes(nome)")
+        .eq("id_reserva", reservationId)
+        .eq("id_restaurante", restaurante.id_restaurante)
+        .maybeSingle();
+    if (reservaError) {
+        return res.status(400).json({ error: reservaError.message });
+    }
+    if (!reserva) {
+        return res.status(404).json({ error: "Reserva nao encontrada para este restaurante." });
+    }
+    if (reserva.status_reserva === "CHECK_IN") {
+        return res.json(reserva);
+    }
+    if (reserva.status_reserva !== "CONFIRMADA") {
+        return res.status(409).json({ error: "Apenas reservas confirmadas podem receber check-in." });
+    }
+    const dataHoraReserva = obterDataHoraLocal(reserva.data_reserva, reserva.horario_inicio);
+    const inicioJanelaCheckIn = new Date(dataHoraReserva.getTime() - 15 * 60 * 1000);
+    if (obterDataLocalSaoPaulo() < inicioJanelaCheckIn) {
+        return res.status(409).json({
+            error: "O check-in so pode ser registrado a partir de 15 minutos antes do horario da reserva.",
+        });
+    }
+    const { data, error } = await clienteBanco
+        .from("reservas")
+        .update({ status_reserva: "CHECK_IN" })
+        .eq("id_reserva", reservationId)
+        .eq("id_restaurante", restaurante.id_restaurante)
+        .eq("status_reserva", "CONFIRMADA")
+        .select("*, restaurantes(nome, endereco), clientes(nome, telefone), mesas(numero_mesa, capacidade)")
+        .single();
+    if (error) {
+        return res.status(400).json({ error: error.message });
+    }
+    await Promise.all([
+        (0, notificacoes_1.notificarCliente)(data.id_cliente, {
+            titulo: "Check-in realizado",
+            mensagem: "Seu check-in foi registrado pelo restaurante. Boa experiencia!",
+            tipo_evento: "RESERVA_CHECK_IN",
+            link_destino: "/cliente/reservas",
+            dados: { id_reserva: data.id_reserva },
+        }),
+        (0, notificacoes_1.notificarRestaurante)(data.id_restaurante, {
+            titulo: "Check-in registrado",
+            mensagem: `A reserva de ${data.clientes?.nome ?? "um cliente"} entrou em atendimento.`,
+            tipo_evento: "RESERVA_CHECK_IN",
+            link_destino: "/restaurante/reservas",
+            dados: { id_reserva: data.id_reserva },
+        }),
+    ]);
+    return res.json(data);
+});
+exports.reservationsRouter.patch("/:id/concluir", async (req, res) => {
+    const reservationId = Number(req.params.id);
+    const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
+    if (!Number.isFinite(reservationId)) {
+        return res.status(400).json({ error: "Reserva invalida." });
+    }
+    const { data: restaurante, error: restauranteError } = await supabase
+        .from("restaurantes")
+        .select("id_restaurante")
+        .eq("id_auth", res.locals.user.id)
+        .maybeSingle();
+    if (restauranteError) {
+        return res.status(400).json({ error: restauranteError.message });
+    }
+    if (!restaurante) {
+        return res.status(403).json({ error: "Apenas restaurantes podem finalizar reservas." });
+    }
+    const clienteBanco = supabase_1.supabaseAdmin ?? supabase;
+    const { data: reserva, error: reservaError } = await clienteBanco
+        .from("reservas")
+        .select("id_reserva, id_cliente, id_restaurante, status_reserva, clientes(nome)")
+        .eq("id_reserva", reservationId)
+        .eq("id_restaurante", restaurante.id_restaurante)
+        .maybeSingle();
+    if (reservaError) {
+        return res.status(400).json({ error: reservaError.message });
+    }
+    if (!reserva) {
+        return res.status(404).json({ error: "Reserva nao encontrada para este restaurante." });
+    }
+    if (reserva.status_reserva === "CONCLUIDA") {
+        return res.json(reserva);
+    }
+    if (reserva.status_reserva !== "CHECK_IN") {
+        return res.status(409).json({ error: "Apenas reservas com check-in realizado podem ser finalizadas." });
+    }
+    const { data: pedidosAbertos, error: pedidosError } = await clienteBanco
+        .from("pedidos")
+        .select("id_pedido, status_pedido")
+        .eq("id_reserva", reservationId)
+        .not("status_pedido", "in", "(ENTREGUE,CANCELADO)");
+    if (pedidosError) {
+        return res.status(400).json({ error: pedidosError.message });
+    }
+    if ((pedidosAbertos ?? []).length) {
+        return res.status(409).json({
+            error: "Finalize ou cancele os pedidos vinculados antes de concluir a reserva.",
+        });
+    }
+    const { data, error } = await clienteBanco
+        .from("reservas")
+        .update({ status_reserva: "CONCLUIDA" })
+        .eq("id_reserva", reservationId)
+        .eq("id_restaurante", restaurante.id_restaurante)
+        .eq("status_reserva", "CHECK_IN")
+        .select("*, restaurantes(nome, endereco), clientes(nome, telefone), mesas(numero_mesa, capacidade)")
+        .single();
+    if (error) {
+        return res.status(400).json({ error: error.message });
+    }
+    await Promise.all([
+        (0, notificacoes_1.notificarCliente)(data.id_cliente, {
+            titulo: "Reserva finalizada",
+            mensagem: "Seu atendimento foi finalizado pelo restaurante. Obrigado por usar a Appono.",
+            tipo_evento: "RESERVA_CONCLUIDA",
+            link_destino: "/cliente/reservas",
+            dados: { id_reserva: data.id_reserva },
+        }),
+        (0, notificacoes_1.notificarRestaurante)(data.id_restaurante, {
+            titulo: "Reserva finalizada",
+            mensagem: `A reserva de ${data.clientes?.nome ?? "um cliente"} foi concluida.`,
+            tipo_evento: "RESERVA_CONCLUIDA",
+            link_destino: "/restaurante/reservas",
+            dados: { id_reserva: data.id_reserva },
+        }),
+    ]);
+    return res.json(data);
 });
 exports.reservationsRouter.patch("/:id/cancelar", async (req, res) => {
     const reservationId = Number(req.params.id);

@@ -106,7 +106,7 @@ export default function DashboardPage() {
     const proximaReserva = useMemo(() => {
         const agora = new Date();
         return reservas
-            .filter((reserva) => reserva.status_reserva === "CONFIRMADA")
+            .filter((reserva) => ["CONFIRMADA", "CHECK_IN"].includes(reserva.status_reserva))
             .filter((reserva) => new Date(`${reserva.data_reserva}T${reserva.horario_inicio}`) >= agora)
             .sort((a, b) => new Date(`${a.data_reserva}T${a.horario_inicio}`) - new Date(`${b.data_reserva}T${b.horario_inicio}`))[0];
     }, [reservas]);

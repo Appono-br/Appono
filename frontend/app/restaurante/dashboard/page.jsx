@@ -12,7 +12,7 @@ const navItems = [
     { label: "Desempenho", href: "/restaurante/desempenho" },
     { label: "Relatorio financeiro", href: "/restaurante/financeiro" },
     { label: "Reservas", href: "/restaurante/reservas" },
-    { label: "Pedidos", href: "/restaurante/pedidos" },
+    { label: "Cozinha", href: "/restaurante/pedidos" },
     { label: "Historico", href: "/restaurante/historico-pedidos" },
     { label: "Mensagens", href: "/restaurante/mensagens" },
     { label: "Configuracoes", href: "/restaurante/configuracoes" },
@@ -195,7 +195,7 @@ export default function RestaurantDashboardPage() {
           </article>
 
           <article className="rounded-[8px] bg-app-cafe-profundo p-6 text-app-creme-leve shadow-sm sm:p-8">
-            <h2 className="text-2xl font-medium">Pedidos Antecipados</h2>
+            <h2 className="text-2xl font-medium">Cozinha</h2>
             <div className="mt-8 grid gap-3">
               {proximosPedidos.length ? proximosPedidos.map((pedido) => (<div key={pedido.id_pedido} className="rounded-[10px] bg-app-cacau-intenso/55 p-4 ring-1 ring-app-baunilha-dourada/20">
                     <div className="flex items-start justify-between gap-4">

@@ -196,7 +196,7 @@ exports.restaurantsRouter.get("/:id/disponibilidade", async (req, res) => {
             .select("id_reserva, id_mesa, horario_inicio, horario_fim, status_reserva")
             .eq("id_restaurante", restaurantId)
             .eq("data_reserva", dataReserva)
-            .in("status_reserva", ["PENDENTE", "CONFIRMADA"]),
+            .in("status_reserva", ["PENDENTE", "CONFIRMADA", "CHECK_IN"]),
     ]);
     if (mesasError || reservasError) {
         return res.status(400).json({ error: mesasError?.message ?? reservasError?.message });

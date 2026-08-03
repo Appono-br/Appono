@@ -13,6 +13,8 @@ export function textoTipoEvento(tipo) {
         NOVA_RESERVA: "Nova reserva",
         RESERVA_CONFIRMADA: "Reserva confirmada",
         RESERVA_CANCELADA: "Reserva cancelada",
+        RESERVA_CHECK_IN: "Check-in realizado",
+        RESERVA_CONCLUIDA: "Reserva finalizada",
         PEDIDO_CRIADO: "Pedido criado",
         PEDIDO_CANCELADO: "Pedido cancelado",
         STATUS_PEDIDO: "Status do pedido",
@@ -55,6 +57,7 @@ export function textoStatusReserva(status) {
     const statusMap = {
         PENDENTE: "Pendente",
         CONFIRMADA: "Confirmada",
+        CHECK_IN: "Check-in realizado",
         CANCELADA: "Cancelada",
         CONCLUIDA: "Concluida",
     };

@@ -60,6 +60,12 @@ function obterStatusReserva(status) {
     if (status === "CONFIRMADA") {
         return { texto: "Confirmada", classe: "bg-app-baunilha-dourada text-app-cafe-profundo" };
     }
+    if (status === "CHECK_IN") {
+        return { texto: "Check-in realizado", classe: "bg-app-cafe-profundo text-app-creme-leve" };
+    }
+    if (status === "CONCLUIDA") {
+        return { texto: "Atendimento finalizado", classe: "bg-app-creme-suave text-app-mocha" };
+    }
     if (status === "CANCELADA") {
         return { texto: "Cancelada", classe: "bg-app-vermelho-erro/10 text-app-vermelho-erro" };
     }
@@ -89,6 +95,12 @@ function reservaJaIniciou(reservation) {
     return new Date(`${reservation.date}T${reservation.time}`) <= new Date();
 }
 function obterDescricaoFluxoReserva(reservation) {
+    if (reservation.status === "CHECK_IN") {
+        return "Check-in registrado pelo restaurante. Sua experiencia esta em atendimento.";
+    }
+    if (reservation.status === "CONCLUIDA") {
+        return "Atendimento finalizado. Esta reserva permanece disponivel no historico.";
+    }
     if (reservaJaIniciou(reservation)) {
         return "Esta reserva ja passou do horario de inicio. O pedido antecipado nao pode mais ser adicionado.";
     }
@@ -165,9 +177,9 @@ export default function ReservationsPage() {
     });
     const calendarDays = useMemo(() => getCalendarDays(period.month, period.year), [period.month, period.year]);
     const reservationDates = useMemo(() => new Set(reservations
-        .filter((reservation) => reservation.status === "CONFIRMADA")
+        .filter((reservation) => ["CONFIRMADA", "CHECK_IN"].includes(reservation.status))
         .map((reservation) => reservation.date)), [reservations]);
-    const reservasConfirmadas = useMemo(() => reservations.filter((reservation) => reservation.status === "CONFIRMADA"), [reservations]);
+    const reservasConfirmadas = useMemo(() => reservations.filter((reservation) => ["CONFIRMADA", "CHECK_IN"].includes(reservation.status)), [reservations]);
     useEffect(() => {
         async function loadReservations() {
             try {

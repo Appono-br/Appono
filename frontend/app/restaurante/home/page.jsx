@@ -20,7 +20,7 @@ const navItems = [
     { label: "Desempenho", href: "/restaurante/desempenho" },
     { label: "Relatorio financeiro", href: "/restaurante/financeiro" },
     { label: "Reservas", href: "/restaurante/reservas" },
-    { label: "Pedidos", href: "/restaurante/pedidos" },
+    { label: "Cozinha", href: "/restaurante/pedidos" },
     { label: "Historico", href: "/restaurante/historico-pedidos" },
     { label: "Mensagens", href: "/restaurante/mensagens" },
     { label: "Configuracoes", href: "/restaurante/configuracoes" },

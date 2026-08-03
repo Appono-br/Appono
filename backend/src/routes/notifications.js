@@ -11,7 +11,7 @@ exports.notificationsRouter = (0, express_1.Router)();
 exports.notificationsRouter.use(auth_1.requireAuth);
 
 const filtrosEventos = {
-    reservas: ["NOVA_RESERVA", "RESERVA_CONFIRMADA", "RESERVA_CANCELADA"],
+    reservas: ["NOVA_RESERVA", "RESERVA_CONFIRMADA", "RESERVA_CANCELADA", "RESERVA_CHECK_IN", "RESERVA_CONCLUIDA"],
     pedidos: ["PEDIDO_CRIADO", "PEDIDO_CANCELADO", "STATUS_PEDIDO"],
     pagamentos: ["PAGAMENTO_APROVADO", "REPASSE_LIBERADO", "REPASSE_ESTORNADO"],
     cancelamentos: ["RESERVA_CANCELADA", "PEDIDO_CANCELADO", "REPASSE_ESTORNADO"],

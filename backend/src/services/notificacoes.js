@@ -6,6 +6,8 @@ const mapaEventosPreferenciasRestaurante = {
     NOVA_RESERVA: "newReservation",
     RESERVA_CONFIRMADA: "newReservation",
     RESERVA_CANCELADA: "reservationChange",
+    RESERVA_CHECK_IN: "reservationChange",
+    RESERVA_CONCLUIDA: "reservationChange",
     PEDIDO_CRIADO: "orderAhead",
     PEDIDO_CANCELADO: "orderAhead",
     STATUS_PEDIDO: "orderAhead",

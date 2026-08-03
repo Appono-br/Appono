@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 import { useEffect, useMemo, useState } from "react";
 import { apiRequest } from "@/lib/api";
-import { calcularTempoPreparoItens, formatarHorarioPreparo, preparoEstaLiberado } from "@/lib/tempo-preparo";
+import { calcularTempoPreparoItens, formatarHorarioPreparo } from "@/lib/tempo-preparo";
 
 const navItems = [
     { label: "Home", href: "/restaurante/home" },
@@ -14,7 +14,7 @@ const navItems = [
     { label: "Desempenho", href: "/restaurante/desempenho" },
     { label: "Relatorio financeiro", href: "/restaurante/financeiro" },
     { label: "Reservas", href: "/restaurante/reservas" },
-    { label: "Pedidos", href: "/restaurante/pedidos" },
+    { label: "Cozinha", href: "/restaurante/pedidos" },
     { label: "Historico", href: "/restaurante/historico-pedidos" },
     { label: "Mensagens", href: "/restaurante/mensagens" },
     { label: "Configuracoes", href: "/restaurante/configuracoes" },
@@ -25,6 +25,7 @@ const filtrosPedido = [
     { label: "Pedido aguardando pagamento", value: "PEDIDO_PENDENTE" },
     { label: "Pedido pago", value: "PEDIDO_PAGO" },
     { label: "Em atendimento", value: "EM_ATENDIMENTO" },
+    { label: "Finalizadas", value: "CONCLUIDA" },
     { label: "Cancelados", value: "CANCELADO" },
 ];
 
@@ -69,9 +70,6 @@ function formatarMoeda(valor) {
         currency: "BRL",
     }).format(Number(valor ?? 0));
 }
-function calcularSubtotalItem(item) {
-    return Number(item.subtotal ?? 0) || Number(item.preco_unitario ?? 0) * Number(item.quantidade ?? 0);
-}
 
 function obterStatusPedido(status) {
     const statusMap = {
@@ -90,19 +88,35 @@ function obterStatusReserva(status) {
     const statusMap = {
         PENDENTE: "Pendente",
         CONFIRMADA: "Confirmada",
+        CHECK_IN: "Check-in realizado",
         CANCELADA: "Cancelada",
         RECUSADA: "Recusada",
+        CONCLUIDA: "Finalizada",
     };
     return statusMap[status] ?? status;
 }
 function obterPedidosAtivos(reserva) {
     return (reserva.pedidos ?? []).filter((pedido) => pedido.status_pedido !== "CANCELADO");
 }
+function podeFinalizarReserva(reserva) {
+    return obterPedidosAtivos(reserva).every((pedido) => pedido.status_pedido === "ENTREGUE");
+}
 function reservaTemPedidoPago(reserva) {
     return obterPedidosAtivos(reserva).some((pedido) => ["CONFIRMADO", "EM_PREPARO", "PRONTO", "ENTREGUE"].includes(pedido.status_pedido));
 }
 function reservaEstaEmAtendimento(reserva) {
-    return obterPedidosAtivos(reserva).some((pedido) => ["EM_PREPARO", "PRONTO"].includes(pedido.status_pedido));
+    return reserva.status_reserva === "CHECK_IN" || obterPedidosAtivos(reserva).some((pedido) => ["EM_PREPARO", "PRONTO"].includes(pedido.status_pedido));
+}
+function obterJanelaCheckIn(reserva) {
+    const dataHoraReserva = new Date(`${reserva.data_reserva}T${reserva.horario_inicio}`);
+    const inicioJanela = new Date(dataHoraReserva.getTime() - 15 * 60 * 1000);
+    return {
+        liberado: new Date() >= inicioJanela,
+        horario: inicioJanela.toLocaleTimeString("pt-BR", {
+            hour: "2-digit",
+            minute: "2-digit",
+        }),
+    };
 }
 
 export default function RestaurantReservationsPage() {
@@ -119,6 +133,8 @@ export default function RestaurantReservationsPage() {
     const [filtroPedido, setFiltroPedido] = useState("TODOS");
     const [reservaParaCancelar, setReservaParaCancelar] = useState(null);
     const [cancelandoReserva, setCancelandoReserva] = useState(false);
+    const [registrandoCheckIn, setRegistrandoCheckIn] = useState(null);
+    const [finalizandoReserva, setFinalizandoReserva] = useState(null);
     const [mensagem, setMensagem] = useState("");
     const isRestaurant = session?.type === "restaurant";
 
@@ -154,6 +170,44 @@ export default function RestaurantReservationsPage() {
         }
     }
 
+    async function registrarCheckIn(id) {
+        setRegistrandoCheckIn(id);
+        try {
+            const atualizada = await apiRequest(`/reservas/${id}/check-in`, {
+                method: "PATCH",
+            });
+
+            setReservas((atuais) =>
+                atuais.map((reserva) => (reserva.id_reserva === id ? { ...reserva, ...atualizada, pedidos: reserva.pedidos } : reserva)),
+            );
+            setMensagem("Check-in registrado. A reserva entrou em atendimento.");
+        } catch (erro) {
+            setMensagem(erro instanceof Error ? erro.message : "Nao foi possivel registrar o check-in.");
+        }
+        finally {
+            setRegistrandoCheckIn(null);
+        }
+    }
+
+    async function finalizarReserva(id) {
+        setFinalizandoReserva(id);
+        try {
+            const atualizada = await apiRequest(`/reservas/${id}/concluir`, {
+                method: "PATCH",
+            });
+
+            setReservas((atuais) =>
+                atuais.map((reserva) => (reserva.id_reserva === id ? { ...reserva, ...atualizada, pedidos: reserva.pedidos } : reserva)),
+            );
+            setMensagem("Reserva finalizada com sucesso.");
+        } catch (erro) {
+            setMensagem(erro instanceof Error ? erro.message : "Nao foi possivel finalizar a reserva.");
+        }
+        finally {
+            setFinalizandoReserva(null);
+        }
+    }
+
     async function excluirReservaDaLista(id) {
         try {
             await apiRequest(`/reservas/${id}/ocultar`, { method: "PATCH" });
@@ -169,7 +223,7 @@ export default function RestaurantReservationsPage() {
             return reservas;
         }
         if (filtroPedido === "SOMENTE_RESERVA") {
-            return reservas.filter((reserva) => !obterPedidosAtivos(reserva).length && reserva.status_reserva === "CONFIRMADA");
+            return reservas.filter((reserva) => !obterPedidosAtivos(reserva).length && ["CONFIRMADA", "CHECK_IN"].includes(reserva.status_reserva));
         }
         if (filtroPedido === "PEDIDO_PENDENTE") {
             return reservas.filter((reserva) => obterPedidosAtivos(reserva).some((pedido) => pedido.status_pedido === "PENDENTE"));
@@ -179,6 +233,9 @@ export default function RestaurantReservationsPage() {
         }
         if (filtroPedido === "EM_ATENDIMENTO") {
             return reservas.filter(reservaEstaEmAtendimento);
+        }
+        if (filtroPedido === "CONCLUIDA") {
+            return reservas.filter((reserva) => reserva.status_reserva === "CONCLUIDA");
         }
         if (filtroPedido === "CANCELADO") {
             return reservas.filter((reserva) => reserva.status_reserva === "CANCELADA" || (reserva.pedidos ?? []).some((pedido) => pedido.status_pedido === "CANCELADO"));
@@ -321,11 +378,14 @@ export default function RestaurantReservationsPage() {
 
                     {reservasFiltradas.length ? (
                         <div className="grid gap-4">
-                            {reservasFiltradas.map((reserva) => (
-                                <article
-                                    key={reserva.id_reserva}
-                                    className="rounded-[12px] bg-app-creme-leve p-5 shadow-sm ring-1 ring-app-baunilha-dourada/70"
-                                >
+                            {reservasFiltradas.map((reserva) => {
+                                const janelaCheckIn = obterJanelaCheckIn(reserva);
+
+                                return (
+                                    <article
+                                        key={reserva.id_reserva}
+                                        className="rounded-[12px] bg-app-creme-leve p-5 shadow-sm ring-1 ring-app-baunilha-dourada/70"
+                                    >
                                     <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
                                         <div className="min-w-0 flex-1">
                                             <p className="text-xs font-bold uppercase text-app-caramelo-torrado">
@@ -352,9 +412,7 @@ export default function RestaurantReservationsPage() {
                                                 <div className="mt-5 grid gap-4">
                                                     {reserva.pedidos.map((pedido) => {
                                                         const pedidoCancelado = pedido.status_pedido === "CANCELADO";
-                                                        const totalItensPedido = (pedido.itens_pedido ?? []).reduce((soma, item) => soma + Number(item.quantidade ?? 0), 0);
                                                         const tempoEstimadoPedido = calcularTempoPreparoItens(pedido.itens_pedido ?? []);
-                                                        const preparoLiberado = preparoEstaLiberado(pedido.iniciar_preparo_em);
                                                         const inicioPreparo = formatarHorarioPreparo(pedido.iniciar_preparo_em);
 
                                                         return (
@@ -367,8 +425,8 @@ export default function RestaurantReservationsPage() {
                                                                         <p className="text-xs font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">
                                                                             Pedido antecipado #{pedido.id_pedido}
                                                                         </p>
-                                                                        <p className="mt-2 text-lg font-semibold text-app-cafe-profundo">
-                                                                            {formatarMoeda(pedido.valor_total)}
+                                                                        <p className="mt-2 max-w-xl text-sm leading-6 text-app-cinza">
+                                                                            Resumo operacional. Os itens e observacoes do preparo ficam centralizados na cozinha.
                                                                         </p>
                                                                     </div>
                                                                     <span className={`w-fit rounded-full px-3 py-1 text-xs font-bold ${pedidoCancelado ? "bg-app-vermelho-erro/10 text-app-vermelho-erro ring-1 ring-app-vermelho-erro/30" : "bg-app-cafe-profundo text-app-creme-leve"}`}>
@@ -378,55 +436,24 @@ export default function RestaurantReservationsPage() {
 
                                                                 <div className="mt-4 grid gap-2 text-xs font-semibold text-app-mocha sm:grid-cols-3">
                                                                     <span className="rounded-[8px] bg-app-creme-leve px-3 py-2 ring-1 ring-app-baunilha-dourada/45">
-                                                                        {totalItensPedido} itens
+                                                                        Pedido vinculado
                                                                     </span>
                                                                     <span className="rounded-[8px] bg-app-creme-leve px-3 py-2 ring-1 ring-app-baunilha-dourada/45">
                                                                         Preparo estimado: {tempoEstimadoPedido || "--"} min
                                                                     </span>
                                                                     <span className="rounded-[8px] bg-app-creme-leve px-3 py-2 ring-1 ring-app-baunilha-dourada/45">
-                                                                        Entrega: {pedido.horario_entrega_previsto ? String(pedido.horario_entrega_previsto).slice(11, 16) : reserva.horario_inicio?.slice(0, 5)}
+                                                                        Total: {formatarMoeda(pedido.valor_total)}
                                                                     </span>
                                                                 </div>
                                                                 {pedido.iniciar_preparo_em ? (
-                                                                    <p className={`mt-3 rounded-[8px] px-3 py-2 text-xs font-semibold ${preparoLiberado ? "bg-app-dourado-mel text-white" : "bg-app-cafe-profundo text-app-creme-leve"}`}>
-                                                                        {preparoLiberado
-                                                                            ? "Preparo liberado agora."
-                                                                            : `Preparo bloqueado ate ${inicioPreparo}. O pedido deve ser iniciado nesse horario para ficar pronto perto da reserva.`}
+                                                                    <p className="mt-3 rounded-[8px] bg-app-creme-leve px-3 py-2 text-xs font-semibold text-app-mocha ring-1 ring-app-baunilha-dourada/45">
+                                                                        Preparo previsto a partir de {inicioPreparo}. Detalhes do pedido ficam na cozinha.
                                                                     </p>
                                                                 ) : null}
 
                                                                 {pedidoCancelado ? (
                                                                     <p className="mt-4 rounded-[8px] bg-app-chantilly px-3 py-2 text-xs font-semibold text-app-vermelho-erro ring-1 ring-app-vermelho-erro/20">
                                                                         Pedido cancelado pelo cliente. A reserva permanece registrada separadamente.
-                                                                    </p>
-                                                                ) : null}
-
-                                                                <div className="mt-4 grid gap-3">
-                                                                    {pedido.itens_pedido?.map((item, indice) => (
-                                                                        <div
-                                                                            key={`${item.produtos?.nome ?? "item"}-${indice}`}
-                                                                            className="flex items-start justify-between gap-4 rounded-[8px] bg-app-creme-leve px-3 py-2 text-sm text-app-mocha"
-                                                                        >
-                                                                            <div className="min-w-0">
-                                                                                <p className="font-semibold text-app-cafe-profundo">
-                                                                                    {item.quantidade}x {item.produtos?.nome ?? "Item"}
-                                                                                </p>
-                                                                                {item.observacoes ? (
-                                                                                    <p className="mt-1 text-xs text-app-cinza">
-                                                                                        Obs.: {item.observacoes}
-                                                                                    </p>
-                                                                                ) : null}
-                                                                            </div>
-                                                                            <strong className="shrink-0 text-app-cafe-profundo">
-                                                                                {formatarMoeda(calcularSubtotalItem(item))}
-                                                                            </strong>
-                                                                        </div>
-                                                                    ))}
-                                                                </div>
-
-                                                                {pedido.observacoes ? (
-                                                                    <p className="mt-3 rounded-[8px] bg-app-creme-suave px-3 py-2 text-xs text-app-mocha">
-                                                                        Observacao do cliente: {pedido.observacoes}
                                                                     </p>
                                                                 ) : null}
 
@@ -450,6 +477,42 @@ export default function RestaurantReservationsPage() {
                                         </div>
 
                                         <div className="flex shrink-0 flex-wrap gap-2 lg:flex-col lg:items-end">
+                                            {reserva.status_reserva === "CONFIRMADA" ? (
+                                                <div className="grid gap-1 text-right">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => registrarCheckIn(reserva.id_reserva)}
+                                                        disabled={!janelaCheckIn.liberado || registrandoCheckIn === reserva.id_reserva}
+                                                        className="h-9 rounded-[8px] bg-app-cafe-profundo px-3 text-xs font-bold text-white transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:bg-app-cinza/50"
+                                                    >
+                                                        {registrandoCheckIn === reserva.id_reserva ? "Registrando..." : "Registrar check-in"}
+                                                    </button>
+                                                    {!janelaCheckIn.liberado ? (
+                                                        <span className="text-[11px] font-semibold text-app-cinza">
+                                                            Libera as {janelaCheckIn.horario}
+                                                        </span>
+                                                    ) : null}
+                                                </div>
+                                            ) : null}
+
+                                            {reserva.status_reserva === "CHECK_IN" ? (
+                                                <div className="grid gap-1 text-right">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => finalizarReserva(reserva.id_reserva)}
+                                                        disabled={!podeFinalizarReserva(reserva) || finalizandoReserva === reserva.id_reserva}
+                                                        className="h-9 rounded-[8px] bg-app-dourado-mel px-3 text-xs font-bold text-white transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:bg-app-cinza/50"
+                                                    >
+                                                        {finalizandoReserva === reserva.id_reserva ? "Finalizando..." : "Finalizar atendimento"}
+                                                    </button>
+                                                    {!podeFinalizarReserva(reserva) ? (
+                                                        <span className="max-w-44 text-[11px] font-semibold text-app-cinza">
+                                                            Entregue ou cancele os pedidos antes de finalizar.
+                                                        </span>
+                                                    ) : null}
+                                                </div>
+                                            ) : null}
+
                                             {["PENDENTE", "CONFIRMADA"].includes(reserva.status_reserva) ? (
                                                 <button
                                                     type="button"
@@ -460,7 +523,7 @@ export default function RestaurantReservationsPage() {
                                                 </button>
                                             ) : null}
 
-                                            {["CANCELADA", "RECUSADA"].includes(reserva.status_reserva) ? (
+                                            {["CANCELADA", "RECUSADA", "CONCLUIDA"].includes(reserva.status_reserva) ? (
                                                 <button
                                                     type="button"
                                                     onClick={() => excluirReservaDaLista(reserva.id_reserva)}
@@ -472,7 +535,8 @@ export default function RestaurantReservationsPage() {
                                         </div>
                                     </div>
                                 </article>
-                            ))}
+                                );
+                            })}
                         </div>
                     ) : (
                         <EmptyPanel

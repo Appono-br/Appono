@@ -14,7 +14,7 @@ const navItems = [
     { label: "Desempenho", href: "/restaurante/desempenho" },
     { label: "Relatorio financeiro", href: "/restaurante/financeiro" },
     { label: "Reservas", href: "/restaurante/reservas" },
-    { label: "Pedidos", href: "/restaurante/pedidos" },
+    { label: "Cozinha", href: "/restaurante/pedidos" },
     { label: "Historico", href: "/restaurante/historico-pedidos" },
     { label: "Mensagens", href: "/restaurante/mensagens" },
     { label: "Configuracoes", href: "/restaurante/configuracoes" },
@@ -167,6 +167,7 @@ export default function RestaurantOrdersPage() {
         return reservas.flatMap((reserva) =>
             (reserva.pedidos ?? [])
                 .filter((pedido) => pedido.ocultado_cozinha !== true)
+                .filter((pedido) => pedido.status_pedido !== "PENDENTE")
                 .map((pedido) => ({
                     ...pedido,
                     reserva,
@@ -332,10 +333,10 @@ export default function RestaurantOrdersPage() {
                             Cozinha Appono
                         </p>
                         <h1 className="mt-2 text-4xl font-medium leading-tight text-app-cafe-profundo sm:text-5xl">
-                            Pedidos antecipados
+                            Cozinha
                         </h1>
                         <p className="mt-4 max-w-2xl text-sm leading-6 text-app-cinza sm:text-base">
-                            Acompanhe apenas pedidos pagos e liberados para operacao. Pedidos aguardando pagamento permanecem fora da cozinha ate a confirmacao.
+                            Acompanhe os pedidos pagos, os horarios de preparo e as entregas vinculadas as reservas.
                         </p>
                     </div>
 
