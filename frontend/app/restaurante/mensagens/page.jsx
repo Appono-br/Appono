@@ -170,8 +170,8 @@ export default function RestaurantMessagesPage() {
                 Nenhuma conversa recebida
               </h2>
               <p className="mt-2 max-w-md text-sm leading-6 text-app-cinza">
-                Quando o backend estiver conectado, as interacoes reais com
-                clientes aparecerao aqui por prioridade e status.
+                As interacoes com clientes aparecerao aqui por prioridade e
+                status.
               </p>
             </div>)}
         </section>

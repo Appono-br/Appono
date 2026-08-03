@@ -10,7 +10,7 @@ const emptyConversation = {
     customer: "Conversa indisponivel",
     initials: "--",
     online: false,
-    segment: "Aguardando backend",
+    segment: "Aguardando atendimento",
     reservation: { date: "--", time: "--", people: "--" },
     preferences: [],
     messages: [],
@@ -163,8 +163,8 @@ export default function RestaurantConversationPage() {
                   Historico indisponivel
                 </h2>
                 <p className="mt-2 max-w-md text-sm leading-6 text-app-cinza">
-                  As mensagens reais desta conversa serao exibidas quando o
-                  backend do chat estiver conectado.
+                  As mensagens desta conversa serao exibidas assim que houver
+                  interacoes registradas.
                 </p>
               </div>)}
           </div>

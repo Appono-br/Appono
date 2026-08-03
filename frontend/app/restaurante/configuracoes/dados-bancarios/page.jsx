@@ -334,7 +334,7 @@ export default function RestaurantBankSettingsPage() {
               </h3>
               <div className="mt-5 rounded-[8px] bg-app-chantilly p-5">
                 <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-cinza">
-                  Nenhum backend conectado
+                  Integracao financeira pendente
                 </p>
                 <p className="mt-2 text-sm leading-6 text-app-mocha">
                   O historico de repasses aparecera aqui quando a integracao

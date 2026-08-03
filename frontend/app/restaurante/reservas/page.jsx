@@ -21,10 +21,10 @@ const navItems = [
 ];
 const filtrosPedido = [
     { label: "Todos", value: "TODOS" },
-    { label: "Com pedido", value: "COM_PEDIDO" },
-    { label: "Confirmados", value: "CONFIRMADO" },
-    { label: "Em preparo", value: "EM_PREPARO" },
-    { label: "Prontos", value: "PRONTO" },
+    { label: "Somente reserva", value: "SOMENTE_RESERVA" },
+    { label: "Pedido aguardando pagamento", value: "PEDIDO_PENDENTE" },
+    { label: "Pedido pago", value: "PEDIDO_PAGO" },
+    { label: "Em atendimento", value: "EM_ATENDIMENTO" },
     { label: "Cancelados", value: "CANCELADO" },
 ];
 
@@ -95,6 +95,15 @@ function obterStatusReserva(status) {
     };
     return statusMap[status] ?? status;
 }
+function obterPedidosAtivos(reserva) {
+    return (reserva.pedidos ?? []).filter((pedido) => pedido.status_pedido !== "CANCELADO");
+}
+function reservaTemPedidoPago(reserva) {
+    return obterPedidosAtivos(reserva).some((pedido) => ["CONFIRMADO", "EM_PREPARO", "PRONTO", "ENTREGUE"].includes(pedido.status_pedido));
+}
+function reservaEstaEmAtendimento(reserva) {
+    return obterPedidosAtivos(reserva).some((pedido) => ["EM_PREPARO", "PRONTO"].includes(pedido.status_pedido));
+}
 
 export default function RestaurantReservationsPage() {
     const [session] = useState(() => {
@@ -159,10 +168,22 @@ export default function RestaurantReservationsPage() {
         if (filtroPedido === "TODOS") {
             return reservas;
         }
-        if (filtroPedido === "COM_PEDIDO") {
-            return reservas.filter((reserva) => (reserva.pedidos ?? []).length > 0);
+        if (filtroPedido === "SOMENTE_RESERVA") {
+            return reservas.filter((reserva) => !obterPedidosAtivos(reserva).length && reserva.status_reserva === "CONFIRMADA");
         }
-        return reservas.filter((reserva) => (reserva.pedidos ?? []).some((pedido) => pedido.status_pedido === filtroPedido));
+        if (filtroPedido === "PEDIDO_PENDENTE") {
+            return reservas.filter((reserva) => obterPedidosAtivos(reserva).some((pedido) => pedido.status_pedido === "PENDENTE"));
+        }
+        if (filtroPedido === "PEDIDO_PAGO") {
+            return reservas.filter(reservaTemPedidoPago);
+        }
+        if (filtroPedido === "EM_ATENDIMENTO") {
+            return reservas.filter(reservaEstaEmAtendimento);
+        }
+        if (filtroPedido === "CANCELADO") {
+            return reservas.filter((reserva) => reserva.status_reserva === "CANCELADA" || (reserva.pedidos ?? []).some((pedido) => pedido.status_pedido === "CANCELADO"));
+        }
+        return reservas;
     }, [filtroPedido, reservas]);
 
     if (!isRestaurant) {
@@ -268,9 +289,6 @@ export default function RestaurantReservationsPage() {
                         <h1 className="mt-2 text-4xl font-medium leading-tight text-app-cafe-profundo sm:text-5xl">
                             Agendamentos do Dia
                         </h1>
-                        <p className="mt-4 max-w-2xl text-sm leading-6 text-app-cinza sm:text-base">
-                            Gerencie as experiencias gastronomicas planejadas para hoje.
-                        </p>
                     </div>
 
                     <div className="flex flex-wrap gap-2">
@@ -324,6 +342,11 @@ export default function RestaurantReservationsPage() {
                                             <span className="mt-4 inline-flex rounded-full bg-app-creme-suave px-3 py-1 text-xs font-bold uppercase text-app-cafe-profundo ring-1 ring-app-baunilha-dourada/70">
                                                 Reserva {obterStatusReserva(reserva.status_reserva)}
                                             </span>
+                                            {!obterPedidosAtivos(reserva).length && reserva.status_reserva === "CONFIRMADA" ? (
+                                                <span className="ml-2 mt-4 inline-flex rounded-full bg-app-chantilly px-3 py-1 text-xs font-bold uppercase text-app-mocha ring-1 ring-app-baunilha-dourada/70">
+                                                    Somente reserva
+                                                </span>
+                                            ) : null}
 
                                             {reserva.pedidos?.length ? (
                                                 <div className="mt-5 grid gap-4">
@@ -421,7 +444,7 @@ export default function RestaurantReservationsPage() {
                                                 </div>
                                             ) : (
                                                 <div className="mt-5 rounded-[10px] border border-dashed border-app-caramelo-torrado/30 bg-app-chantilly px-4 py-3 text-sm text-app-cinza">
-                                                    Esta reserva ainda nao possui pedido antecipado.
+                                                    Reserva simples: recepcao acompanha mesa e chegada do cliente. Nao ha preparo para a cozinha.
                                                 </div>
                                             )}
                                         </div>
@@ -454,7 +477,7 @@ export default function RestaurantReservationsPage() {
                     ) : (
                         <EmptyPanel
                             title="Nenhum agendamento neste filtro"
-                            description="Altere o filtro para visualizar outros status de pedidos e reservas."
+                            description="Altere o filtro para visualizar outros agendamentos."
                             className="min-h-[310px] bg-app-chantilly"
                         />
                     )}

@@ -7,6 +7,79 @@ const auth_1 = require("../middleware/auth");
 const notificacoes_1 = require("../services/notificacoes");
 exports.reservationsRouter = (0, express_1.Router)();
 exports.reservationsRouter.use(auth_1.requireAuth);
+const LIMITE_UNIDADES_POR_ITEM = 10;
+
+function normalizarItensPedido(itens = []) {
+    const itensRecebidos = itens.map((item) => ({
+        id_produto: Number(item.id_produto),
+        quantidade: Number(item.quantidade),
+        observacoes: typeof item.observacoes === "string" ? item.observacoes.trim().slice(0, 180) : null,
+    }));
+    const itemInvalido = itensRecebidos.some((item) => !Number.isInteger(item.id_produto) ||
+        item.id_produto <= 0 ||
+        !Number.isInteger(item.quantidade) ||
+        item.quantidade <= 0);
+    if (itemInvalido) {
+        throw new Error(`Cada item do pedido deve ter entre 1 e ${LIMITE_UNIDADES_POR_ITEM} unidades.`);
+    }
+    const itensAgrupados = new Map();
+    for (const item of itensRecebidos) {
+        const atual = itensAgrupados.get(item.id_produto) ?? {
+            id_produto: item.id_produto,
+            quantidade: 0,
+            observacoes: [],
+        };
+        atual.quantidade += item.quantidade;
+        if (item.observacoes) {
+            atual.observacoes.push(item.observacoes);
+        }
+        itensAgrupados.set(item.id_produto, atual);
+    }
+    const itensNormalizados = Array.from(itensAgrupados.values()).map((item) => ({
+        id_produto: item.id_produto,
+        quantidade: item.quantidade,
+        observacoes: item.observacoes.join("; ") || null,
+    }));
+    if (itensNormalizados.some((item) => item.quantidade > LIMITE_UNIDADES_POR_ITEM)) {
+        throw new Error(`Cada item do pedido deve ter no maximo ${LIMITE_UNIDADES_POR_ITEM} unidades.`);
+    }
+    return itensNormalizados;
+}
+
+function mapearErroReservaPedido(mensagem) {
+    if (mensagem.includes("Nao ha mesa disponivel")) {
+        return "Nao ha mesa disponivel para este horario e quantidade de pessoas.";
+    }
+    if (mensagem.includes("Cliente ja possui reserva ativa neste horario")) {
+        return "Voce ja possui uma reserva ativa nesse dia e horario.";
+    }
+    if (mensagem.includes("ainda nao configurou horarios")) {
+        return "Este restaurante ainda nao configurou horarios de funcionamento para receber reservas.";
+    }
+    if (mensagem.includes("fechado nesta data")) {
+        return "Este restaurante esta fechado na data escolhida.";
+    }
+    if (mensagem.includes("antecedencia minima")) {
+        return "Este horario nao respeita a antecedencia minima configurada pelo restaurante.";
+    }
+    if (mensagem.includes("fora do funcionamento")) {
+        return "Este horario esta fora do funcionamento do restaurante.";
+    }
+    if (mensagem.includes("ja possui um pedido ativo")) {
+        return "Esta reserva ja possui um pedido antecipado ativo.";
+    }
+    if (mensagem.includes("produtos sao invalidos") || mensagem.includes("indisponiveis")) {
+        return "Um ou mais itens do cardapio ficaram indisponiveis. Atualize a pagina e escolha novamente.";
+    }
+    if (mensagem.includes("reserva iniciada")) {
+        return "Nao e possivel criar pedido para uma reserva que ja iniciou.";
+    }
+    if (mensagem.includes("consumo minimo")) {
+        return "O pedido precisa atingir o consumo minimo da reserva.";
+    }
+    return mensagem;
+}
+
 function ordenarPorExibicaoENome(a, b) {
     const ordemA = Number(a.ordem_exibicao ?? 0);
     const ordemB = Number(b.ordem_exibicao ?? 0);
@@ -101,11 +174,7 @@ exports.reservationsRouter.post("/", async (req, res) => {
         observacoes_cliente: body.observacoes ?? null,
     });
     if (error) {
-        const mensagem = error.message.includes("Nao ha mesa disponivel")
-            ? "Nao ha mesa disponivel para este horario e quantidade de pessoas."
-            : error.message.includes("Cliente ja possui reserva ativa neste horario")
-                ? "Voce ja possui uma reserva ativa nesse dia e horario."
-                : error.message;
+        const mensagem = mapearErroReservaPedido(error.message);
         return res.status(409).json({ error: mensagem });
     }
     const clienteAtualizacao = supabase_1.supabaseAdmin ?? supabase;
@@ -137,6 +206,74 @@ exports.reservationsRouter.post("/", async (req, res) => {
         }),
     ]);
     return res.status(201).json(reservaConfirmada);
+});
+exports.reservationsRouter.post("/com-pedido", async (req, res) => {
+    const body = req.body;
+    const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
+    if (!body.id_restaurante ||
+        !body.data_reserva ||
+        !body.horario_inicio ||
+        !body.horario_fim ||
+        !body.quantidade_pessoas ||
+        !body.itens?.length) {
+        return res.status(400).json({ error: "Dados da reserva com pedido incompletos." });
+    }
+    let itensNormalizados;
+    try {
+        itensNormalizados = normalizarItensPedido(body.itens);
+    }
+    catch (erro) {
+        return res.status(400).json({ error: erro instanceof Error ? erro.message : "Itens do pedido invalidos." });
+    }
+    const { data, error } = await supabase.rpc("criar_reserva_com_pedido_antecipado", {
+        restaurante_id: body.id_restaurante,
+        data_escolhida: body.data_reserva,
+        inicio: body.horario_inicio,
+        fim: body.horario_fim,
+        pessoas: body.quantidade_pessoas,
+        observacoes_reserva: body.observacoes_reserva ?? null,
+        itens: itensNormalizados,
+        observacoes_pedido: body.observacoes_pedido ?? null,
+    });
+    if (error) {
+        return res.status(409).json({ error: mapearErroReservaPedido(error.message) });
+    }
+    const reservaCriada = data?.reserva;
+    const pedidoCriado = data?.pedido;
+    if (!reservaCriada?.id_reserva || !pedidoCriado?.id_pedido) {
+        return res.status(400).json({ error: "A reserva e o pedido foram processados, mas a resposta veio incompleta." });
+    }
+    await Promise.all([
+        (0, notificacoes_1.notificarCliente)(reservaCriada.id_cliente, {
+            titulo: "Reserva confirmada",
+            mensagem: "Sua reserva foi confirmada e o pedido antecipado foi vinculado para pagamento.",
+            tipo_evento: "RESERVA_CONFIRMADA",
+            link_destino: "/cliente/reservas",
+            dados: { id_reserva: reservaCriada.id_reserva, id_pedido: pedidoCriado.id_pedido },
+        }),
+        (0, notificacoes_1.notificarRestaurante)(reservaCriada.id_restaurante, {
+            titulo: "Nova reserva com pedido",
+            mensagem: "Uma reserva foi registrada com pedido antecipado vinculado.",
+            tipo_evento: "NOVA_RESERVA",
+            link_destino: "/restaurante/reservas",
+            dados: { id_reserva: reservaCriada.id_reserva, id_pedido: pedidoCriado.id_pedido },
+        }),
+        (0, notificacoes_1.notificarCliente)(pedidoCriado.id_cliente, {
+            titulo: "Pedido antecipado criado",
+            mensagem: "Seu pedido foi registrado e ficara vinculado a sua reserva apos o pagamento.",
+            tipo_evento: "PEDIDO_CRIADO",
+            link_destino: "/cliente/detalhes-pedido",
+            dados: { id_pedido: pedidoCriado.id_pedido, id_reserva: reservaCriada.id_reserva },
+        }),
+        (0, notificacoes_1.notificarRestaurante)(pedidoCriado.id_restaurante, {
+            titulo: "Novo pedido antecipado",
+            mensagem: "Um cliente registrou um pedido antecipado vinculado a uma reserva.",
+            tipo_evento: "PEDIDO_CRIADO",
+            link_destino: "/restaurante/pedidos",
+            dados: { id_pedido: pedidoCriado.id_pedido, id_reserva: reservaCriada.id_reserva },
+        }),
+    ]);
+    return res.status(201).json({ reserva: reservaCriada, pedido: pedidoCriado });
 });
 exports.reservationsRouter.get("/:id/cardapio", async (req, res) => {
     const reservationId = Number(req.params.id);

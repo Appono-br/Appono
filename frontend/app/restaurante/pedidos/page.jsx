@@ -335,7 +335,7 @@ export default function RestaurantOrdersPage() {
                             Pedidos antecipados
                         </h1>
                         <p className="mt-4 max-w-2xl text-sm leading-6 text-app-cinza sm:text-base">
-                            Acompanhe o que deve ser preparado para cada reserva, no horario certo e com os detalhes do cliente.
+                            Acompanhe apenas pedidos pagos e liberados para operacao. Pedidos aguardando pagamento permanecem fora da cozinha ate a confirmacao.
                         </p>
                     </div>
 
@@ -508,7 +508,7 @@ export default function RestaurantOrdersPage() {
                     ) : (
                         <EmptyPanel
                             title="Nenhum pedido neste filtro"
-                            description="Quando o cliente fizer um pedido antecipado, ele aparecera aqui para a cozinha acompanhar o preparo."
+                            description="Quando o cliente pagar um pedido antecipado, ele aparecera aqui para a cozinha acompanhar o preparo no horario correto."
                         />
                     )}
                 </section>

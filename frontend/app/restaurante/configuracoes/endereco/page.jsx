@@ -238,7 +238,7 @@ export default function RestaurantAddressSettingsPage() {
             </p>
             <p className="mt-3 text-sm leading-6 text-app-mocha">
               A posicao exata do marcador sera ajustada quando o servico de mapa
-              estiver conectado ao backend.
+              estiver disponivel.
             </p>
           </div>
         </aside>

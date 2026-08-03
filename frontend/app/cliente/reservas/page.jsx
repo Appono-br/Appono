@@ -67,7 +67,7 @@ function obterStatusReserva(status) {
 }
 function obterStatusPedido(status) {
     const statusMap = {
-        PENDENTE: "Pedido pendente",
+        PENDENTE: "Aguardando pagamento",
         CONFIRMADO: "Pedido confirmado",
         EM_PREPARO: "Em preparo",
         PRONTO: "Pronto para retirada",
@@ -84,6 +84,24 @@ function formatarMoeda(valor) {
 }
 function calcularSubtotalItem(item) {
     return Number(item.subtotal ?? 0) || Number(item.preco_unitario ?? 0) * Number(item.quantidade ?? 0);
+}
+function reservaJaIniciou(reservation) {
+    return new Date(`${reservation.date}T${reservation.time}`) <= new Date();
+}
+function obterDescricaoFluxoReserva(reservation) {
+    if (reservaJaIniciou(reservation)) {
+        return "Esta reserva ja passou do horario de inicio. O pedido antecipado nao pode mais ser adicionado.";
+    }
+    if (reservation.activeOrder?.status === "PENDENTE") {
+        return "Reserva confirmada. O pedido antecipado ainda aguarda pagamento para ser enviado a cozinha.";
+    }
+    if (reservation.activeOrder) {
+        return "Reserva com pedido antecipado vinculado. Acompanhe o status do preparo pelos detalhes do pedido.";
+    }
+    if (reservation.status === "CONFIRMADA") {
+        return "Reserva simples confirmada. Voce ainda pode adicionar um pedido antecipado para reduzir sua espera.";
+    }
+    return "Acompanhe aqui o status da sua reserva.";
 }
 function getCalendarDays(month, year) {
     const firstDay = new Date(year, month, 1);
@@ -338,6 +356,9 @@ export default function ReservationsPage() {
                         <h2 className="truncate text-xl font-semibold text-app-cafe-profundo">
                           {reservation.restaurant}
                         </h2>
+                        <p className="mt-2 text-sm leading-6 text-app-cinza">
+                          {obterDescricaoFluxoReserva(reservation)}
+                        </p>
                         <div className="mt-4 flex flex-wrap gap-x-5 gap-y-3 text-sm text-app-mocha">
                           <span className="flex items-center gap-2">
                             <Icon type="clock" className="h-4 w-4 text-app-caramelo-torrado"/>
@@ -402,8 +423,14 @@ export default function ReservationsPage() {
                         {["PENDENTE", "CONFIRMADA"].includes(reservation.status) ? (<button type="button" onClick={() => setReservaParaCancelar(reservation)} className="text-xs font-bold text-app-vermelho-erro transition hover:text-app-cafe-profundo">
                             Desmarcar reserva
                           </button>) : null}
-                        {reservation.status === "CONFIRMADA" ? (<Link href={`/cliente/reservas/${reservation.id}/pedido`} className="rounded-[8px] bg-app-dourado-mel px-4 py-2 text-xs font-bold text-white transition hover:bg-app-caramelo-torrado">
-                            {reservation.activeOrder ? "Acompanhar pedido" : "Escolher pedido"}
+                        {reservation.status === "CONFIRMADA" && reservation.activeOrder?.status === "PENDENTE" ? (<Link href={`/cliente/pagamentos/pedido/${reservation.activeOrder.id}`} className="rounded-[8px] bg-app-dourado-mel px-4 py-2 text-xs font-bold text-white transition hover:bg-app-caramelo-torrado">
+                            Pagar pedido
+                          </Link>) : null}
+                        {reservation.status === "CONFIRMADA" && reservation.activeOrder && reservation.activeOrder.status !== "PENDENTE" ? (<Link href="/cliente/detalhes-pedido" className="rounded-[8px] bg-app-dourado-mel px-4 py-2 text-xs font-bold text-white transition hover:bg-app-caramelo-torrado">
+                            Acompanhar pedido
+                          </Link>) : null}
+                        {reservation.status === "CONFIRMADA" && !reservation.activeOrder && !reservaJaIniciou(reservation) ? (<Link href={`/cliente/reservas/${reservation.id}/pedido`} className="rounded-[8px] bg-app-dourado-mel px-4 py-2 text-xs font-bold text-white transition hover:bg-app-caramelo-torrado">
+                            Adicionar pedido antecipado
                           </Link>) : null}
                         {["CANCELADA", "RECUSADA"].includes(reservation.status) ? (<button type="button" onClick={() => excluirReservaDaLista(reservation.id)} className="text-xs font-bold text-app-cinza transition hover:text-app-vermelho-erro">
                             Excluir da lista
