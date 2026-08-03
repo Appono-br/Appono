@@ -415,7 +415,9 @@ export default function AdminFinanceiroPage() {
                             ))}
                         </div>
                         <div className="flex flex-col gap-3 sm:min-w-80 sm:flex-row">
-                            <input value={busca} onChange={(event) => setBusca(event.target.value)} placeholder="Buscar no painel..." className="h-10 rounded-full bg-app-chantilly px-4 text-sm outline-none ring-1 ring-app-baunilha-dourada/70 transition focus:ring-2 focus:ring-app-caramelo-torrado" />
+                            <label className="campo-busca-app flex h-10 items-center rounded-full border border-app-baunilha-dourada/70 bg-app-chantilly px-4 transition">
+                                <input value={busca} onChange={(event) => setBusca(event.target.value)} placeholder="Buscar no painel..." className="input-busca-app h-full min-w-0 flex-1 bg-transparent text-sm text-app-cafe-profundo placeholder:text-app-cinza/60" />
+                            </label>
                             <button type="button" onClick={atualizarPainel} disabled={atualizando} className="h-10 rounded-full bg-app-caramelo-torrado px-5 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-app-mocha disabled:cursor-not-allowed disabled:opacity-60">
                                 {atualizando ? "Atualizando..." : "Atualizar"}
                             </button>

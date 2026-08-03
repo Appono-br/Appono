@@ -199,6 +199,26 @@ html {
   border-radius: 0.9rem;
 }
 
+.area-autenticada .campo-busca-app {
+  box-shadow: none;
+}
+
+.area-autenticada .campo-busca-app:focus-within {
+  border-color: var(--app-caramelo-torrado);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--app-caramelo-torrado) 28%, transparent);
+}
+
+.area-autenticada .campo-busca-app .input-busca-app,
+.area-autenticada .campo-busca-app .input-busca-app:focus,
+.area-autenticada .campo-busca-app .input-busca-app:focus-visible {
+  appearance: none;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  outline: 0 !important;
+  padding: 0 !important;
+}
+
 .area-autenticada:not(.tema-escuro) .shadow-sm {
   box-shadow: 0 14px 34px rgb(76 48 31 / 16%);
 }

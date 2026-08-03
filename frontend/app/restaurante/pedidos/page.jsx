@@ -22,7 +22,7 @@ const navItems = [
 
 const filtrosPedido = [
     { label: "Todos", value: "TODOS" },
-    { label: "Aguardando cozinha", value: "CONFIRMADO" },
+    { label: "A fazer", value: "CONFIRMADO" },
     { label: "Em preparo", value: "EM_PREPARO" },
     { label: "Prontos", value: "PRONTO" },
     { label: "Entregues", value: "ENTREGUE" },
@@ -62,6 +62,12 @@ function formatarMoeda(valor) {
 
 function calcularSubtotalItem(item) {
     return Number(item.subtotal ?? 0) || Number(item.preco_unitario ?? 0) * Number(item.quantidade ?? 0);
+}
+function formatarHoraPrevista(valor, fallback) {
+    if (valor) {
+        return String(valor).slice(11, 16);
+    }
+    return fallback?.slice(0, 5) ?? "--";
 }
 
 function obterStatusPedido(status) {
@@ -327,12 +333,12 @@ export default function RestaurantOrdersPage() {
             </header>
 
             <section className="mx-auto w-full max-w-7xl flex-1 px-5 py-10 sm:py-14">
-                <div className="grid gap-6 border-t border-app-baunilha-dourada/60 pt-10 lg:grid-cols-[1fr_auto] lg:items-end">
+                <div className="border-t border-app-baunilha-dourada/60 pt-10">
                     <div>
                         <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-app-caramelo-torrado">
                             Cozinha Appono
                         </p>
-                        <h1 className="mt-2 text-4xl font-medium leading-tight text-app-cafe-profundo sm:text-5xl">
+                        <h1 className="mt-2 whitespace-nowrap text-3xl font-medium leading-tight text-app-cafe-profundo sm:text-4xl lg:text-5xl">
                             Cozinha
                         </h1>
                         <p className="mt-4 max-w-2xl text-sm leading-6 text-app-cinza sm:text-base">
@@ -340,13 +346,13 @@ export default function RestaurantOrdersPage() {
                         </p>
                     </div>
 
-                    <div className="flex flex-wrap gap-2">
+                    <div className="mt-6 flex gap-2 overflow-x-auto pb-2">
                         {filtrosPedido.map((filtro) => (
                             <button
                                 key={filtro.value}
                                 type="button"
                                 onClick={() => setFiltroPedido(filtro.value)}
-                                className={`inline-flex h-10 items-center justify-center rounded-[8px] border px-4 text-[11px] font-bold uppercase tracking-[0.12em] transition ${filtroPedido === filtro.value
+                                className={`inline-flex h-10 shrink-0 items-center justify-center rounded-[8px] border px-4 text-[11px] font-bold uppercase tracking-[0.12em] transition ${filtroPedido === filtro.value
                                     ? "border-app-caramelo-torrado bg-app-caramelo-torrado text-app-chantilly"
                                     : "border-app-baunilha-dourada bg-app-creme-leve text-app-mocha hover:border-app-caramelo-torrado hover:bg-app-baunilha-dourada"}`}
                             >
@@ -383,49 +389,62 @@ export default function RestaurantOrdersPage() {
                                 return (
                                     <article
                                         key={pedido.id_pedido}
-                                        className="overflow-hidden rounded-[18px] bg-app-creme-leve shadow-sm ring-1 ring-app-baunilha-dourada/70"
+                                        className="overflow-hidden rounded-[14px] bg-app-creme-leve shadow-sm ring-1 ring-app-baunilha-dourada/75"
                                     >
-                                        <div className="grid gap-0 lg:grid-cols-[1fr_320px]">
-                                            <div className="p-5 sm:p-6">
-                                                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                                        <div className="grid lg:grid-cols-[220px_minmax(0,1fr)_250px]">
+                                            <div className="flex items-center justify-between gap-4 border-b border-app-baunilha-dourada/55 bg-app-chantilly px-5 py-4 lg:flex-col lg:items-start lg:justify-center lg:border-b-0 lg:border-r">
+                                                <div>
+                                                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">
+                                                        Pedido
+                                                    </p>
+                                                    <p className="mt-1 text-2xl font-semibold text-app-cafe-profundo">
+                                                        #{pedido.id_pedido}
+                                                    </p>
+                                                </div>
+                                                <span className={`w-full whitespace-nowrap rounded-full px-3 py-1 text-center text-[11px] font-bold uppercase tracking-[0.08em] ring-1 sm:w-fit lg:w-full ${obterClasseStatus(pedido.status_pedido)}`}>
+                                                    {obterStatusPedido(pedido.status_pedido)}
+                                                </span>
+                                            </div>
+
+                                            <div className="min-w-0 px-5 py-5">
+                                                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                                                     <div>
                                                         <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-app-caramelo-torrado">
-                                                            Pedido antecipado #{pedido.id_pedido}
+                                                            Reserva vinculada
                                                         </p>
-                                                        <h3 className="mt-2 text-2xl font-semibold text-app-cafe-profundo">
+                                                        <h3 className="mt-2 text-xl font-semibold text-app-cafe-profundo">
                                                             {reserva.clientes?.nome ?? "Cliente"}
                                                         </h3>
-                                                        <p className="mt-2 text-sm text-app-cinza">
-                                                            Reserva em {reserva.data_reserva} das {reserva.horario_inicio} ate {reserva.horario_fim}
-                                                        </p>
                                                     </div>
-                                                    <span className={`w-fit rounded-full px-3 py-1 text-xs font-bold ring-1 ${obterClasseStatus(pedido.status_pedido)}`}>
-                                                        {obterStatusPedido(pedido.status_pedido)}
-                                                    </span>
+                                                    <strong className="text-xl text-app-cafe-profundo">
+                                                        {formatarMoeda(pedido.valor_total)}
+                                                    </strong>
                                                 </div>
 
                                                 <div className="mt-5 grid gap-3 text-sm text-app-mocha sm:grid-cols-4">
-                                                    <span className="rounded-[10px] bg-app-chantilly px-3 py-3 ring-1 ring-app-baunilha-dourada/45">
-                                                        <Icon type="user" className="mr-1 inline h-4 w-4" />
-                                                        {reserva.quantidade_pessoas} pessoas
-                                                    </span>
-                                                    <span className="rounded-[10px] bg-app-chantilly px-3 py-3 ring-1 ring-app-baunilha-dourada/45">
-                                                        Mesa {reserva.mesas?.numero_mesa ?? "-"}
-                                                    </span>
-                                                    <span className="rounded-[10px] bg-app-chantilly px-3 py-3 ring-1 ring-app-baunilha-dourada/45">
-                                                        {totalItensPedido} itens
-                                                    </span>
-                                                    <span className="rounded-[10px] bg-app-chantilly px-3 py-3 ring-1 ring-app-baunilha-dourada/45">
-                                                        <Icon type="clock" className="mr-1 inline h-4 w-4" />
-                                                        {tempoEstimadoPedido || "--"} min
-                                                    </span>
+                                                    <div className="rounded-[10px] bg-app-chantilly px-3 py-3 ring-1 ring-app-baunilha-dourada/45">
+                                                        <span className="block text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">Reserva</span>
+                                                        <strong className="mt-1 block text-app-cafe-profundo">{reserva.data_reserva} as {reserva.horario_inicio?.slice(0, 5)}</strong>
+                                                    </div>
+                                                    <div className="rounded-[10px] bg-app-chantilly px-3 py-3 ring-1 ring-app-baunilha-dourada/45">
+                                                        <span className="block text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">Mesa</span>
+                                                        <strong className="mt-1 block text-app-cafe-profundo">{reserva.mesas?.numero_mesa ?? "-"}</strong>
+                                                    </div>
+                                                    <div className="rounded-[10px] bg-app-chantilly px-3 py-3 ring-1 ring-app-baunilha-dourada/45">
+                                                        <span className="block text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">Pessoas</span>
+                                                        <strong className="mt-1 block text-app-cafe-profundo">{reserva.quantidade_pessoas}</strong>
+                                                    </div>
+                                                    <div className="rounded-[10px] bg-app-chantilly px-3 py-3 ring-1 ring-app-baunilha-dourada/45">
+                                                        <span className="block text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">Preparo</span>
+                                                        <strong className="mt-1 block text-app-cafe-profundo">{tempoEstimadoPedido || "--"} min</strong>
+                                                    </div>
                                                 </div>
 
                                                 {pedido.iniciar_preparo_em ? (
-                                                    <p className={`mt-4 rounded-[10px] px-4 py-3 text-sm font-semibold ${preparoLiberado ? "bg-app-dourado-mel/20 text-app-cafe-profundo ring-1 ring-app-dourado-mel/40" : "bg-app-cafe-profundo text-app-creme-leve"}`}>
+                                                    <p className={`mt-4 rounded-[10px] px-4 py-3 text-sm font-semibold ring-1 ${preparoLiberado ? "bg-app-dourado-mel/20 text-app-cafe-profundo ring-app-dourado-mel/40" : "bg-app-cafe-profundo text-app-creme-leve ring-app-cafe-profundo"}`}>
                                                         {preparoLiberado
                                                             ? "Preparo liberado. A cozinha ja pode iniciar este pedido."
-                                                            : `A cozinha deve iniciar este pedido as ${inicioPreparo}. Antes disso, o preparo fica bloqueado para preservar a qualidade da entrega.`}
+                                                            : `Iniciar preparo as ${inicioPreparo}.`}
                                                     </p>
                                                 ) : null}
 
@@ -459,17 +478,21 @@ export default function RestaurantOrdersPage() {
                                                 ) : null}
                                             </div>
 
-                                            <aside className="flex flex-col justify-between bg-app-cafe-profundo p-5 text-app-creme-leve sm:p-6">
+                                            <aside className="flex flex-col justify-between border-t border-app-baunilha-dourada/55 bg-app-chantilly px-5 py-4 text-app-cafe-profundo lg:border-l lg:border-t-0">
                                                 <div>
-                                                    <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-app-baunilha-dourada">
-                                                        Controle do pedido
+                                                    <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-app-caramelo-torrado">
+                                                        Entrega
                                                     </p>
-                                                    <p className="mt-3 text-3xl font-semibold">
-                                                        {formatarMoeda(pedido.valor_total)}
+                                                    <p className="mt-2 text-2xl font-semibold">
+                                                        {formatarHoraPrevista(pedido.horario_entrega_previsto, reserva.horario_inicio)}
                                                     </p>
-                                                    <div className="mt-5 grid gap-2 text-sm text-app-creme-suave">
-                                                        <span>Inicio: {inicioPreparo}</span>
-                                                        <span>Entrega prevista: {pedido.horario_entrega_previsto ? String(pedido.horario_entrega_previsto).slice(11, 16) : reserva.horario_inicio?.slice(0, 5)}</span>
+                                                    <div className="mt-4 grid gap-2 text-sm text-app-mocha">
+                                                        <span className="rounded-[8px] bg-app-creme-leve px-3 py-2 ring-1 ring-app-baunilha-dourada/45">
+                                                            Inicio: {inicioPreparo}
+                                                        </span>
+                                                        <span className="rounded-[8px] bg-app-creme-leve px-3 py-2 ring-1 ring-app-baunilha-dourada/45">
+                                                            {totalItensPedido} item(ns)
+                                                        </span>
                                                     </div>
                                                 </div>
 
@@ -479,12 +502,12 @@ export default function RestaurantOrdersPage() {
                                                             type="button"
                                                             disabled={acaoBloqueada}
                                                             onClick={() => atualizarStatusPedido(pedido.id_pedido, acao.status)}
-                                                            className={`h-12 rounded-[10px] px-4 text-xs font-bold uppercase tracking-[0.14em] text-white transition disabled:cursor-not-allowed disabled:bg-app-cinza/45 disabled:text-app-creme-suave ${acao.classe}`}
+                                                            className={`h-11 rounded-[9px] px-4 text-xs font-bold uppercase tracking-[0.14em] text-white transition disabled:cursor-not-allowed disabled:bg-app-cinza/45 disabled:text-app-creme-suave ${acao.classe}`}
                                                         >
                                                             {acaoBloqueada ? `Liberado as ${inicioPreparo}` : acao.texto}
                                                         </button>
                                                     ) : (
-                                                        <p className="rounded-[10px] bg-app-cacau-intenso/60 px-4 py-3 text-sm font-semibold text-app-creme-suave">
+                                                        <p className="rounded-[10px] bg-app-creme-leve px-4 py-3 text-sm font-semibold text-app-cinza ring-1 ring-app-baunilha-dourada/45">
                                                             Nenhuma acao pendente para este pedido.
                                                         </p>
                                                     )}
@@ -493,7 +516,7 @@ export default function RestaurantOrdersPage() {
                                                         <button
                                                             type="button"
                                                             onClick={() => setPedidoParaRemover(pedido)}
-                                                            className="inline-flex h-11 items-center justify-center gap-2 rounded-[10px] border border-app-baunilha-dourada/45 px-4 text-xs font-bold uppercase tracking-[0.14em] text-app-creme-leve transition hover:-translate-y-0.5 hover:border-app-caramelo-torrado hover:bg-app-caramelo-torrado hover:text-white hover:shadow-md focus:outline-none focus:ring-2 focus:ring-app-baunilha-dourada/70"
+                                                            className="inline-flex h-11 items-center justify-center gap-2 rounded-[9px] border border-app-baunilha-dourada px-4 text-xs font-bold uppercase tracking-[0.14em] text-app-cafe-profundo transition hover:-translate-y-0.5 hover:border-app-caramelo-torrado hover:bg-app-caramelo-torrado hover:text-white hover:shadow-md focus:outline-none focus:ring-2 focus:ring-app-baunilha-dourada/70"
                                                         >
                                                             <Icon type="trash" className="h-4 w-4" />
                                                             Remover da cozinha

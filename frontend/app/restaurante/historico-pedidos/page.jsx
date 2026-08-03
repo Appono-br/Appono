@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 import { useEffect, useMemo, useState } from "react";
 import { apiRequest } from "@/lib/api";
-import { textoStatusPedido, textoStatusRepasse } from "@/lib/formatadores-status";
+import { textoStatusPedido, textoStatusRepasse, textoStatusReserva } from "@/lib/formatadores-status";
 import { TelaCarregandoSessao, useSessaoLocal } from "@/lib/use-sessao-local";
 
 const navItems = [
@@ -26,6 +26,14 @@ const filtros = [
     { label: "Entregues", value: "ENTREGUE" },
     { label: "Cancelados", value: "CANCELADO" },
     { label: "Removidos da cozinha", value: "REMOVIDOS" },
+];
+
+const filtrosReserva = [
+    { label: "Todas", value: "TODOS" },
+    { label: "Finalizadas", value: "CONCLUIDA" },
+    { label: "Canceladas", value: "CANCELADA" },
+    { label: "Com pedido", value: "COM_PEDIDO" },
+    { label: "Somente reserva", value: "SOMENTE_RESERVA" },
 ];
 
 const filtrosPeriodo = [
@@ -74,6 +82,10 @@ function obterDataPedido(pedido) {
     return data ? new Date(`${data}T12:00:00`) : null;
 }
 
+function obterDataReserva(reserva) {
+    return reserva.data_reserva ? new Date(`${reserva.data_reserva}T12:00:00`) : null;
+}
+
 function pedidoPassaPeriodo(pedido, periodo) {
     if (periodo === "TODOS") {
         return true;
@@ -97,6 +109,29 @@ function pedidoPassaPeriodo(pedido, periodo) {
     return dataPedido >= dataLimite && dataPedido <= hoje;
 }
 
+function reservaPassaPeriodo(reserva, periodo) {
+    if (periodo === "TODOS") {
+        return true;
+    }
+
+    const dataReserva = obterDataReserva(reserva);
+    if (!dataReserva) {
+        return false;
+    }
+
+    const hoje = new Date();
+    hoje.setHours(12, 0, 0, 0);
+
+    if (periodo === "HOJE") {
+        return dataReserva.toDateString() === hoje.toDateString();
+    }
+
+    const dias = periodo === "7_DIAS" ? 7 : 30;
+    const dataLimite = new Date(hoje);
+    dataLimite.setDate(hoje.getDate() - dias + 1);
+    return dataReserva >= dataLimite && dataReserva <= hoje;
+}
+
 function calcularSubtotalItem(item) {
     return Number(item.subtotal ?? 0) || Number(item.preco_unitario ?? 0) * Number(item.quantidade ?? 0);
 }
@@ -115,6 +150,26 @@ function obterClasseStatus(status) {
     }
 
     return "bg-app-cafe-profundo text-app-creme-leve ring-app-cafe-profundo";
+}
+
+function obterClasseStatusReserva(status) {
+    if (status === "CANCELADA" || status === "RECUSADA") {
+        return "bg-app-vermelho-erro/10 text-app-vermelho-erro ring-app-vermelho-erro/30";
+    }
+
+    if (status === "CONCLUIDA") {
+        return "bg-app-cafe-profundo text-app-creme-leve ring-app-cafe-profundo";
+    }
+
+    if (status === "CHECK_IN") {
+        return "bg-app-dourado-mel/15 text-app-cafe-profundo ring-app-dourado-mel/40";
+    }
+
+    return "bg-app-creme-suave text-app-cafe-profundo ring-app-baunilha-dourada/70";
+}
+
+function obterPedidosAtivos(reserva) {
+    return (reserva.pedidos ?? []).filter((pedido) => pedido.status_pedido !== "CANCELADO");
 }
 
 function obterItensResumo(pedido) {
@@ -157,6 +212,26 @@ function gerarCsvHistorico(pedidos) {
                 Number(pedido.valor_total ?? 0).toFixed(2).replace(".", ","),
                 Number(pagamento?.valor_pago ?? 0).toFixed(2).replace(".", ","),
                 textoStatusRepasse(pagamento?.status_repasse ?? "NAO_APLICAVEL"),
+            ].map(escaparCsv).join(";");
+        }),
+    ];
+    return linhas.join("\n");
+}
+
+function gerarCsvReservas(reservas) {
+    const linhas = [
+        ["Reserva", "Cliente", "Data", "Horario", "Mesa", "Pessoas", "Status", "Tipo"].map(escaparCsv).join(";"),
+        ...reservas.map((reserva) => {
+            const pedidosAtivos = obterPedidosAtivos(reserva);
+            return [
+                reserva.id_reserva,
+                reserva.clientes?.nome ?? "Cliente",
+                formatarData(reserva.data_reserva),
+                reserva.horario_inicio?.slice(0, 5) ?? "--:--",
+                reserva.mesas?.numero_mesa ?? "-",
+                reserva.quantidade_pessoas ?? "-",
+                textoStatusReserva(reserva.status_reserva),
+                pedidosAtivos.length ? "Com pedido antecipado" : "Somente reserva",
             ].map(escaparCsv).join(";");
         }),
     ];
@@ -308,21 +383,28 @@ function EmptyPanel() {
 export default function RestaurantOrderHistoryPage() {
     const { sessao, sessaoCarregada } = useSessaoLocal();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [abaAtiva, setAbaAtiva] = useState("PEDIDOS");
     const [pedidos, setPedidos] = useState([]);
+    const [reservas, setReservas] = useState([]);
     const [filtro, setFiltro] = useState("TODOS");
+    const [filtroReserva, setFiltroReserva] = useState("TODOS");
     const [periodo, setPeriodo] = useState("TODOS");
     const [busca, setBusca] = useState("");
     const [pedidosAbertos, setPedidosAbertos] = useState([]);
-    const [mensagem, setMensagem] = useState("Carregando historico de pedidos...");
+    const [mensagem, setMensagem] = useState("Carregando historico operacional...");
 
     useEffect(() => {
         if (!sessaoCarregada || sessao?.type !== "restaurant") {
             return;
         }
 
-        apiRequest("/pedidos/historico/restaurante")
-            .then((resposta) => {
-                setPedidos(resposta ?? []);
+        Promise.all([
+            apiRequest("/pedidos/historico/restaurante"),
+            apiRequest("/reservas"),
+        ])
+            .then(([respostaPedidos, respostaReservas]) => {
+                setPedidos(respostaPedidos ?? []);
+                setReservas(respostaReservas ?? []);
                 setMensagem("");
             })
             .catch((erro) => setMensagem(erro instanceof Error ? erro.message : "Nao foi possivel carregar o historico."));
@@ -350,14 +432,47 @@ export default function RestaurantOrderHistoryPage() {
         });
     }, [busca, filtro, pedidos, periodo]);
 
+    const reservasFiltradas = useMemo(() => {
+        const termo = busca.trim().toLowerCase();
+        return reservas.filter((reserva) => {
+            const pedidosAtivos = obterPedidosAtivos(reserva);
+            const passaFiltro = filtroReserva === "TODOS" ||
+                reserva.status_reserva === filtroReserva ||
+                (filtroReserva === "COM_PEDIDO" && pedidosAtivos.length > 0) ||
+                (filtroReserva === "SOMENTE_RESERVA" && pedidosAtivos.length === 0);
+            const passaPeriodo = reservaPassaPeriodo(reserva, periodo);
+            const textoBusca = [
+                reserva.id_reserva,
+                reserva.clientes?.nome,
+                reserva.clientes?.telefone,
+                reserva.data_reserva,
+                reserva.status_reserva,
+                reserva.mesas?.numero_mesa,
+                ...pedidosAtivos.map((pedido) => pedido.id_pedido),
+            ]
+                .filter(Boolean)
+                .join(" ")
+                .toLowerCase();
+            return passaFiltro && passaPeriodo && (!termo || textoBusca.includes(termo));
+        });
+    }, [busca, filtroReserva, periodo, reservas]);
+
     const resumo = useMemo(() => {
-        return pedidosFiltrados.reduce((acc, pedido) => {
+        const resumoPedidos = pedidosFiltrados.reduce((acc, pedido) => {
             acc.total += 1;
             acc.entregues += pedido.status_pedido === "ENTREGUE" ? 1 : 0;
             acc.cancelados += pedido.status_pedido === "CANCELADO" ? 1 : 0;
             return acc;
         }, { total: 0, entregues: 0, cancelados: 0 });
-    }, [pedidosFiltrados]);
+        const resumoReservas = reservasFiltradas.reduce((acc, reserva) => {
+            acc.total += 1;
+            acc.concluidas += reserva.status_reserva === "CONCLUIDA" ? 1 : 0;
+            acc.canceladas += reserva.status_reserva === "CANCELADA" ? 1 : 0;
+            return acc;
+        }, { total: 0, concluidas: 0, canceladas: 0 });
+
+        return { pedidos: resumoPedidos, reservas: resumoReservas };
+    }, [pedidosFiltrados, reservasFiltradas]);
 
     function alternarPedidoAberto(pedidoId) {
         setPedidosAbertos((atuais) => atuais.includes(pedidoId)
@@ -366,12 +481,14 @@ export default function RestaurantOrderHistoryPage() {
     }
 
     function exportarCsv() {
-        const csv = gerarCsvHistorico(pedidosFiltrados);
+        const csv = abaAtiva === "PEDIDOS"
+            ? gerarCsvHistorico(pedidosFiltrados)
+            : gerarCsvReservas(reservasFiltradas);
         const blob = new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8;" });
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.href = url;
-        link.download = `historico-pedidos-appono-${new Date().toISOString().slice(0, 10)}.csv`;
+        link.download = `historico-${abaAtiva.toLowerCase()}-appono-${new Date().toISOString().slice(0, 10)}.csv`;
         link.click();
         URL.revokeObjectURL(url);
     }
@@ -448,49 +565,71 @@ export default function RestaurantOrderHistoryPage() {
                 <div className="grid gap-6 border-t border-app-baunilha-dourada/60 pt-10 lg:grid-cols-[1fr_auto] lg:items-end">
                     <div>
                         <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-app-caramelo-torrado">Historico operacional</p>
-                        <h1 className="mt-2 text-4xl font-medium leading-tight text-app-cafe-profundo sm:text-5xl">Historico de pedidos</h1>
+                        <h1 className="mt-2 text-4xl font-medium leading-tight text-app-cafe-profundo sm:text-5xl">Historico</h1>
                         <p className="mt-4 max-w-2xl text-sm leading-6 text-app-cinza sm:text-base">
-                            Consulte pedidos entregues, cancelados e removidos da fila da cozinha sem perder rastreabilidade.
+                            Consulte pedidos e reservas em um unico lugar, separando cozinha e recepcao sem perder rastreabilidade.
                         </p>
                     </div>
 
                     <div className="flex flex-wrap gap-2">
-                        <button type="button" onClick={exportarCsv} disabled={!pedidosFiltrados.length} className="inline-flex h-10 items-center justify-center gap-2 rounded-[10px] border border-app-baunilha-dourada bg-app-creme-leve px-4 text-[11px] font-bold uppercase tracking-[0.12em] text-app-cafe-profundo transition hover:border-app-caramelo-torrado hover:bg-app-baunilha-dourada disabled:cursor-not-allowed disabled:opacity-50">
+                        <button type="button" onClick={exportarCsv} disabled={abaAtiva === "PEDIDOS" ? !pedidosFiltrados.length : !reservasFiltradas.length} className="inline-flex h-10 items-center justify-center gap-2 rounded-[10px] border border-app-baunilha-dourada bg-app-creme-leve px-4 text-[11px] font-bold uppercase tracking-[0.12em] text-app-cafe-profundo transition hover:border-app-caramelo-torrado hover:bg-app-baunilha-dourada disabled:cursor-not-allowed disabled:opacity-50">
                             <Icon type="download" className="h-4 w-4" />
                             CSV
                         </button>
-                        <Link href="/restaurante/pedidos" className="inline-flex h-10 items-center justify-center rounded-[10px] bg-app-cafe-profundo px-4 text-[11px] font-bold uppercase tracking-[0.12em] text-app-creme-leve transition hover:bg-app-caramelo-torrado">
-                            Cozinha
+                        <Link href={abaAtiva === "PEDIDOS" ? "/restaurante/pedidos" : "/restaurante/reservas"} className="inline-flex h-10 items-center justify-center rounded-[10px] bg-app-cafe-profundo px-4 text-[11px] font-bold uppercase tracking-[0.12em] text-app-creme-leve transition hover:bg-app-caramelo-torrado">
+                            {abaAtiva === "PEDIDOS" ? "Cozinha" : "Reservas"}
                         </Link>
                     </div>
                 </div>
 
-                <section className="mt-8 grid gap-3 md:grid-cols-3">
-                    {[
-                        ["Pedidos", resumo.total],
-                        ["Entregues", resumo.entregues],
-                        ["Cancelados", resumo.cancelados],
-                    ].map(([label, value]) => (
-                        <article key={label} className="rounded-[12px] bg-app-creme-leve px-4 py-3 text-app-cafe-profundo ring-1 ring-app-baunilha-dourada/55">
-                            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-cinza">{label}</p>
-                            <strong className="mt-2 block text-xl font-semibold">{value}</strong>
-                        </article>
-                    ))}
+                <section className="mt-8 rounded-[14px] bg-app-creme-leve p-2 ring-1 ring-app-baunilha-dourada/65">
+                    <div className="grid gap-2 sm:grid-cols-2">
+                        <button type="button" onClick={() => setAbaAtiva("PEDIDOS")} className={`rounded-[11px] px-4 py-3 text-left transition ${abaAtiva === "PEDIDOS" ? "bg-app-cafe-profundo text-app-creme-leve shadow-sm" : "text-app-cafe-profundo hover:bg-app-chantilly"}`}>
+                            <span className="block text-[10px] font-bold uppercase tracking-[0.2em] opacity-80">Cozinha</span>
+                            <strong className="mt-1 block text-lg">Pedidos</strong>
+                        </button>
+                        <button type="button" onClick={() => setAbaAtiva("RESERVAS")} className={`rounded-[11px] px-4 py-3 text-left transition ${abaAtiva === "RESERVAS" ? "bg-app-cafe-profundo text-app-creme-leve shadow-sm" : "text-app-cafe-profundo hover:bg-app-chantilly"}`}>
+                            <span className="block text-[10px] font-bold uppercase tracking-[0.2em] opacity-80">Recepcao</span>
+                            <strong className="mt-1 block text-lg">Reservas</strong>
+                        </button>
+                    </div>
+                </section>
+
+                <section className="mt-6 grid gap-3 md:grid-cols-3">
+                    {(abaAtiva === "PEDIDOS"
+                        ? [
+                            ["Pedidos", resumo.pedidos.total],
+                            ["Entregues", resumo.pedidos.entregues],
+                            ["Cancelados", resumo.pedidos.cancelados],
+                        ]
+                        : [
+                            ["Reservas", resumo.reservas.total],
+                            ["Finalizadas", resumo.reservas.concluidas],
+                            ["Canceladas", resumo.reservas.canceladas],
+                        ]).map(([label, value]) => (
+                            <article key={label} className="rounded-[12px] bg-app-creme-leve px-4 py-3 text-app-cafe-profundo ring-1 ring-app-baunilha-dourada/55">
+                                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-cinza">{label}</p>
+                                <strong className="mt-2 block text-xl font-semibold">{value}</strong>
+                            </article>
+                        ))}
                 </section>
 
                 <section className="mt-6 rounded-[14px] bg-app-creme-leve p-4 ring-1 ring-app-baunilha-dourada/65">
                     <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-center">
-                        <label className="flex h-11 items-center gap-3 rounded-[10px] bg-app-chantilly px-4 text-sm text-app-cinza ring-1 ring-app-baunilha-dourada/60">
+                        <label className="campo-busca-app flex h-11 items-center gap-3 rounded-[10px] border border-app-baunilha-dourada/60 bg-app-chantilly px-4 text-sm text-app-cinza transition">
                             <Icon type="search" className="h-4 w-4" />
-                            <input value={busca} onChange={(event) => setBusca(event.target.value)} placeholder="Buscar por cliente, pedido, data ou item..." className="h-full min-w-0 flex-1 bg-transparent text-app-cafe-profundo outline-none placeholder:text-app-cinza/60" />
+                            <input value={busca} onChange={(event) => setBusca(event.target.value)} placeholder={abaAtiva === "PEDIDOS" ? "Buscar por cliente, pedido, data ou item..." : "Buscar por cliente, reserva, data ou mesa..."} className="input-busca-app h-full min-w-0 flex-1 bg-transparent text-app-cafe-profundo placeholder:text-app-cinza/60" />
                         </label>
 
                         <div className="flex flex-wrap gap-2">
-                            {filtros.map((item) => (
-                                <button key={item.value} type="button" onClick={() => setFiltro(item.value)} className={`h-10 rounded-[8px] border px-4 text-[11px] font-bold uppercase tracking-[0.12em] transition ${filtro === item.value ? "border-app-caramelo-torrado bg-app-caramelo-torrado text-app-chantilly" : "border-app-baunilha-dourada bg-app-creme-leve text-app-mocha hover:border-app-caramelo-torrado hover:bg-app-baunilha-dourada"}`}>
-                                    {item.label}
-                                </button>
-                            ))}
+                            {(abaAtiva === "PEDIDOS" ? filtros : filtrosReserva).map((item) => {
+                                const ativo = abaAtiva === "PEDIDOS" ? filtro === item.value : filtroReserva === item.value;
+                                return (
+                                    <button key={item.value} type="button" onClick={() => abaAtiva === "PEDIDOS" ? setFiltro(item.value) : setFiltroReserva(item.value)} className={`h-10 rounded-[8px] border px-4 text-[11px] font-bold uppercase tracking-[0.12em] transition ${ativo ? "border-app-caramelo-torrado bg-app-caramelo-torrado text-app-chantilly" : "border-app-baunilha-dourada bg-app-creme-leve text-app-mocha hover:border-app-caramelo-torrado hover:bg-app-baunilha-dourada"}`}>
+                                        {item.label}
+                                    </button>
+                                );
+                            })}
                         </div>
                     </div>
 
@@ -506,70 +645,114 @@ export default function RestaurantOrderHistoryPage() {
                 {mensagem ? <p className="mt-6 text-sm font-semibold text-app-caramelo-torrado">{mensagem}</p> : null}
 
                 <section className="mt-8">
-                    {pedidosFiltrados.length ? (
-                        <div className="grid gap-5">
-                            {pedidosFiltrados.map((pedido) => {
-                                const pagamento = obterPagamentoPrincipal(pedido);
-                                const totalItens = (pedido.itens_pedido ?? []).reduce((soma, item) => soma + Number(item.quantidade ?? 0), 0);
-                                return (
-                                    <article key={pedido.id_pedido} className="rounded-[14px] bg-app-creme-leve p-4 shadow-sm ring-1 ring-app-baunilha-dourada/70 sm:p-5">
-                                        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                                            <div className="min-w-0 flex-1">
-                                                <div className="flex flex-wrap items-center gap-2">
-                                                    <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">#{pedido.id_pedido}</span>
-                                                    <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ring-1 ${obterClasseStatus(pedido.status_pedido)}`}>{textoStatusPedido(pedido.status_pedido)}</span>
-                                                    {pedido.ocultado_cozinha ? <span className="rounded-full bg-app-chantilly px-2.5 py-1 text-[11px] font-bold text-app-cinza ring-1 ring-app-baunilha-dourada/60">Removido</span> : null}
+                    {abaAtiva === "PEDIDOS" ? (
+                        pedidosFiltrados.length ? (
+                            <div className="grid gap-5">
+                                {pedidosFiltrados.map((pedido) => {
+                                    const pagamento = obterPagamentoPrincipal(pedido);
+                                    const totalItens = (pedido.itens_pedido ?? []).reduce((soma, item) => soma + Number(item.quantidade ?? 0), 0);
+                                    return (
+                                        <article key={pedido.id_pedido} className="rounded-[14px] bg-app-creme-leve p-4 shadow-sm ring-1 ring-app-baunilha-dourada/70 sm:p-5">
+                                            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                                                <div className="min-w-0 flex-1">
+                                                    <div className="flex flex-wrap items-center gap-2">
+                                                        <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">Pedido #{pedido.id_pedido}</span>
+                                                        <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ring-1 ${obterClasseStatus(pedido.status_pedido)}`}>{textoStatusPedido(pedido.status_pedido)}</span>
+                                                        {pedido.ocultado_cozinha ? <span className="rounded-full bg-app-chantilly px-2.5 py-1 text-[11px] font-bold text-app-cinza ring-1 ring-app-baunilha-dourada/60">Removido</span> : null}
+                                                    </div>
+
+                                                    <h2 className="mt-2 truncate text-xl font-semibold text-app-cafe-profundo">{pedido.clientes?.nome ?? "Cliente"}</h2>
+                                                    <p className="mt-1 text-sm text-app-cinza">
+                                                        {formatarData(pedido.reservas?.data_reserva)} - {pedido.reservas?.horario_inicio?.slice(0, 5) ?? "--:--"} - Mesa {pedido.reservas?.mesas?.numero_mesa ?? "-"} - {pedido.reservas?.quantidade_pessoas ?? "-"} pessoas
+                                                    </p>
+                                                    <p className="mt-2 truncate text-sm text-app-mocha">{obterItensResumo(pedido)}</p>
                                                 </div>
 
-                                                <h2 className="mt-2 truncate text-xl font-semibold text-app-cafe-profundo">{pedido.clientes?.nome ?? "Cliente"}</h2>
-                                                <p className="mt-1 text-sm text-app-cinza">
-                                                    {formatarData(pedido.reservas?.data_reserva)} - {pedido.reservas?.horario_inicio?.slice(0, 5) ?? "--:--"} - Mesa {pedido.reservas?.mesas?.numero_mesa ?? "-"} - {pedido.reservas?.quantidade_pessoas ?? "-"} pessoas
-                                                </p>
-                                                <p className="mt-2 truncate text-sm text-app-mocha">{obterItensResumo(pedido)}</p>
+                                                <div className="grid gap-2 text-left lg:min-w-72 lg:text-right">
+                                                    <strong className="text-2xl font-semibold text-app-cafe-profundo">{formatarMoeda(pedido.valor_total)}</strong>
+                                                    <span className="text-xs text-app-cinza">Pago {formatarMoeda(pagamento?.valor_pago ?? 0)} - {textoStatusRepasse(pagamento?.status_repasse ?? "NAO_APLICAVEL")}</span>
+                                                    <div className="flex flex-wrap gap-2 lg:justify-end">
+                                                        <button type="button" onClick={() => imprimirPedido(pedido)} className="inline-flex h-9 items-center justify-center gap-2 rounded-[10px] bg-app-cafe-profundo px-3 text-[11px] font-bold uppercase tracking-[0.12em] text-app-creme-leve transition hover:bg-app-caramelo-torrado">
+                                                            <Icon type="print" className="h-4 w-4" />
+                                                            Comanda
+                                                        </button>
+                                                        <button type="button" onClick={() => alternarPedidoAberto(pedido.id_pedido)} className="inline-flex h-9 items-center justify-center gap-2 rounded-[10px] border border-app-baunilha-dourada bg-app-chantilly px-3 text-[11px] font-bold uppercase tracking-[0.12em] text-app-cafe-profundo transition hover:border-app-caramelo-torrado hover:bg-app-baunilha-dourada">
+                                                            {pedidosAbertos.includes(pedido.id_pedido) ? "Ocultar itens" : `Ver ${totalItens} itens`}
+                                                            <Icon type="chevron" className={`h-4 w-4 transition ${pedidosAbertos.includes(pedido.id_pedido) ? "rotate-180" : ""}`} />
+                                                        </button>
+                                                    </div>
+                                                </div>
                                             </div>
 
-                                            <div className="grid gap-2 text-left lg:min-w-72 lg:text-right">
-                                                <strong className="text-2xl font-semibold text-app-cafe-profundo">{formatarMoeda(pedido.valor_total)}</strong>
-                                                <span className="text-xs text-app-cinza">Pago {formatarMoeda(pagamento?.valor_pago ?? 0)} - {textoStatusRepasse(pagamento?.status_repasse ?? "NAO_APLICAVEL")}</span>
-                                                <div className="flex flex-wrap gap-2 lg:justify-end">
-                                                    <button type="button" onClick={() => imprimirPedido(pedido)} className="inline-flex h-9 items-center justify-center gap-2 rounded-[10px] bg-app-cafe-profundo px-3 text-[11px] font-bold uppercase tracking-[0.12em] text-app-creme-leve transition hover:bg-app-caramelo-torrado">
-                                                        <Icon type="print" className="h-4 w-4" />
-                                                        Comanda
-                                                    </button>
-                                                    <button type="button" onClick={() => alternarPedidoAberto(pedido.id_pedido)} className="inline-flex h-9 items-center justify-center gap-2 rounded-[10px] border border-app-baunilha-dourada bg-app-chantilly px-3 text-[11px] font-bold uppercase tracking-[0.12em] text-app-cafe-profundo transition hover:border-app-caramelo-torrado hover:bg-app-baunilha-dourada">
-                                                        {pedidosAbertos.includes(pedido.id_pedido) ? "Ocultar itens" : `Ver ${totalItens} itens`}
-                                                        <Icon type="chevron" className={`h-4 w-4 transition ${pedidosAbertos.includes(pedido.id_pedido) ? "rotate-180" : ""}`} />
-                                                    </button>
+                                            {pedidosAbertos.includes(pedido.id_pedido) ? (
+                                                <div className="mt-4 border-t border-app-baunilha-dourada/60 pt-4">
+                                                    <div className="grid gap-2">
+                                                        {(pedido.itens_pedido ?? []).map((item, indice) => (
+                                                            <div key={`${pedido.id_pedido}-${item.produtos?.nome ?? indice}`} className="flex items-start justify-between gap-4 rounded-[10px] bg-app-chantilly px-3 py-2 text-sm text-app-mocha ring-1 ring-app-baunilha-dourada/45">
+                                                                <div className="min-w-0">
+                                                                    <p className="font-semibold text-app-cafe-profundo">{item.quantidade}x {item.produtos?.nome ?? "Item"}</p>
+                                                                    {item.observacoes ? <p className="mt-1 text-xs text-app-cinza">Obs.: {item.observacoes}</p> : null}
+                                                                </div>
+                                                                <strong className="shrink-0 text-app-cafe-profundo">{formatarMoeda(calcularSubtotalItem(item))}</strong>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                    <div className="mt-3 grid gap-2 rounded-[10px] bg-app-cafe-profundo px-3 py-3 text-xs text-app-creme-suave sm:grid-cols-3">
+                                                        <span>Liquido: <strong className="text-app-creme-leve">{formatarMoeda(pagamento?.valor_restaurante ?? 0)}</strong></span>
+                                                        <span>Comissao: <strong className="text-app-creme-leve">{formatarMoeda(pagamento?.valor_comissao_app ?? 0)}</strong></span>
+                                                        <span>Data pagamento: <strong className="text-app-creme-leve">{pagamento?.data_pagamento ? new Date(pagamento.data_pagamento).toLocaleDateString("pt-BR") : "Nao informado"}</strong></span>
+                                                    </div>
                                                 </div>
+                                            ) : null}
+                                        </article>
+                                    );
+                                })}
+                            </div>
+                        ) : (
+                            <EmptyPanel />
+                        )
+                    ) : reservasFiltradas.length ? (
+                        <div className="grid gap-4">
+                            {reservasFiltradas.map((reserva) => {
+                                const pedidosAtivos = obterPedidosAtivos(reserva);
+                                const pedidoPrincipal = pedidosAtivos[0];
+                                return (
+                                    <article key={reserva.id_reserva} className="rounded-[14px] bg-app-creme-leve p-4 shadow-sm ring-1 ring-app-baunilha-dourada/70 sm:p-5">
+                                        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                                            <div className="min-w-0">
+                                                <div className="flex flex-wrap items-center gap-2">
+                                                    <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">Reserva #{reserva.id_reserva}</span>
+                                                    <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ring-1 ${obterClasseStatusReserva(reserva.status_reserva)}`}>{textoStatusReserva(reserva.status_reserva)}</span>
+                                                    <span className="rounded-full bg-app-chantilly px-2.5 py-1 text-[11px] font-bold text-app-cinza ring-1 ring-app-baunilha-dourada/60">
+                                                        {pedidosAtivos.length ? "Com pedido" : "Somente reserva"}
+                                                    </span>
+                                                </div>
+                                                <h2 className="mt-2 truncate text-xl font-semibold text-app-cafe-profundo">{reserva.clientes?.nome ?? "Cliente"}</h2>
+                                                <p className="mt-1 text-sm text-app-cinza">
+                                                    {formatarData(reserva.data_reserva)} - {reserva.horario_inicio?.slice(0, 5) ?? "--:--"} ate {reserva.horario_fim?.slice(0, 5) ?? "--:--"} - Mesa {reserva.mesas?.numero_mesa ?? "-"}
+                                                </p>
+                                            </div>
+
+                                            <div className="grid gap-2 text-sm text-app-mocha lg:min-w-72 lg:text-right">
+                                                <strong className="text-lg text-app-cafe-profundo">{reserva.quantidade_pessoas} pessoa(s)</strong>
+                                                <span>Consumo minimo {formatarMoeda(reserva.valor_minimo_total)}</span>
+                                                {pedidoPrincipal ? <span>Pedido #{pedidoPrincipal.id_pedido} - {textoStatusPedido(pedidoPrincipal.status_pedido)}</span> : <span>Sem pedido antecipado</span>}
                                             </div>
                                         </div>
-
-                                        {pedidosAbertos.includes(pedido.id_pedido) ? (
-                                            <div className="mt-4 border-t border-app-baunilha-dourada/60 pt-4">
-                                                <div className="grid gap-2">
-                                                    {(pedido.itens_pedido ?? []).map((item, indice) => (
-                                                        <div key={`${pedido.id_pedido}-${item.produtos?.nome ?? indice}`} className="flex items-start justify-between gap-4 rounded-[10px] bg-app-chantilly px-3 py-2 text-sm text-app-mocha ring-1 ring-app-baunilha-dourada/45">
-                                                            <div className="min-w-0">
-                                                                <p className="font-semibold text-app-cafe-profundo">{item.quantidade}x {item.produtos?.nome ?? "Item"}</p>
-                                                                {item.observacoes ? <p className="mt-1 text-xs text-app-cinza">Obs.: {item.observacoes}</p> : null}
-                                                            </div>
-                                                            <strong className="shrink-0 text-app-cafe-profundo">{formatarMoeda(calcularSubtotalItem(item))}</strong>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                                <div className="mt-3 grid gap-2 rounded-[10px] bg-app-cafe-profundo px-3 py-3 text-xs text-app-creme-suave sm:grid-cols-3">
-                                                    <span>Liquido: <strong className="text-app-creme-leve">{formatarMoeda(pagamento?.valor_restaurante ?? 0)}</strong></span>
-                                                    <span>Comissao: <strong className="text-app-creme-leve">{formatarMoeda(pagamento?.valor_comissao_app ?? 0)}</strong></span>
-                                                    <span>Data pagamento: <strong className="text-app-creme-leve">{pagamento?.data_pagamento ? new Date(pagamento.data_pagamento).toLocaleDateString("pt-BR") : "Nao informado"}</strong></span>
-                                                </div>
-                                            </div>
-                                        ) : null}
                                     </article>
                                 );
                             })}
                         </div>
                     ) : (
-                        <EmptyPanel />
+                        <div className="flex min-h-72 flex-col items-center justify-center rounded-[16px] bg-app-creme-leve px-6 py-10 text-center ring-1 ring-app-baunilha-dourada/70">
+                            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-app-cafe-profundo text-app-creme-leve">
+                                <Icon type="calendar" />
+                            </div>
+                            <h3 className="mt-5 text-2xl font-semibold">Nenhuma reserva no historico</h3>
+                            <p className="mt-3 max-w-md text-sm leading-6 text-app-cinza">
+                                Reservas finalizadas, canceladas e demais registros aparecem aqui para consulta da recepcao.
+                            </p>
+                        </div>
                     )}
                 </section>
             </section>

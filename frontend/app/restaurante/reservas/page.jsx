@@ -5,7 +5,6 @@ import Link from "next/link";
 import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 import { useEffect, useMemo, useState } from "react";
 import { apiRequest } from "@/lib/api";
-import { calcularTempoPreparoItens, formatarHorarioPreparo } from "@/lib/tempo-preparo";
 
 const navItems = [
     { label: "Home", href: "/restaurante/home" },
@@ -95,8 +94,23 @@ function obterStatusReserva(status) {
     };
     return statusMap[status] ?? status;
 }
+function obterClasseStatusReserva(status) {
+    if (status === "CANCELADA" || status === "RECUSADA") {
+        return "bg-app-vermelho-erro/10 text-app-vermelho-erro ring-app-vermelho-erro/25";
+    }
+    if (status === "CHECK_IN") {
+        return "bg-app-dourado-mel/20 text-app-cafe-profundo ring-app-dourado-mel/40";
+    }
+    if (status === "CONCLUIDA") {
+        return "bg-app-cafe-profundo text-app-creme-leve ring-app-cafe-profundo";
+    }
+    return "bg-app-creme-suave text-app-cafe-profundo ring-app-baunilha-dourada/70";
+}
 function obterPedidosAtivos(reserva) {
     return (reserva.pedidos ?? []).filter((pedido) => pedido.status_pedido !== "CANCELADO");
+}
+function obterPedidoPrincipal(reserva) {
+    return obterPedidosAtivos(reserva)[0] ?? null;
 }
 function podeFinalizarReserva(reserva) {
     return obterPedidosAtivos(reserva).every((pedido) => pedido.status_pedido === "ENTREGUE");
@@ -338,23 +352,23 @@ export default function RestaurantReservationsPage() {
             </header>
 
             <section className="mx-auto w-full max-w-7xl flex-1 px-5 py-10 sm:py-14">
-                <div className="grid gap-6 border-t border-app-baunilha-dourada/60 pt-10 lg:grid-cols-[1fr_auto] lg:items-end">
+                <div className="border-t border-app-baunilha-dourada/60 pt-10">
                     <div>
                         <p className="text-[10px] font-bold uppercase text-app-caramelo-torrado">
                             Reservas
                         </p>
-                        <h1 className="mt-2 text-4xl font-medium leading-tight text-app-cafe-profundo sm:text-5xl">
+                        <h1 className="mt-2 whitespace-nowrap text-3xl font-medium leading-tight text-app-cafe-profundo sm:text-4xl lg:text-5xl">
                             Agendamentos do Dia
                         </h1>
                     </div>
 
-                    <div className="flex flex-wrap gap-2">
+                    <div className="mt-6 flex gap-2 overflow-x-auto pb-2">
                         {filtrosPedido.map((filtro) => (
                             <button
                                 key={filtro.value}
                                 type="button"
                                 onClick={() => setFiltroPedido(filtro.value)}
-                                className={`inline-flex h-10 items-center justify-center rounded-[8px] border px-4 text-[11px] font-bold uppercase tracking-[0.12em] transition ${filtroPedido === filtro.value
+                                className={`inline-flex h-10 shrink-0 items-center justify-center rounded-[8px] border px-4 text-[11px] font-bold uppercase tracking-[0.12em] transition ${filtroPedido === filtro.value
                                     ? "border-app-caramelo-torrado bg-app-caramelo-torrado text-app-chantilly"
                                     : "border-app-baunilha-dourada bg-app-creme-leve text-app-mocha hover:border-app-caramelo-torrado hover:bg-app-baunilha-dourada"}`}
                             >
@@ -380,105 +394,89 @@ export default function RestaurantReservationsPage() {
                         <div className="grid gap-4">
                             {reservasFiltradas.map((reserva) => {
                                 const janelaCheckIn = obterJanelaCheckIn(reserva);
+                                const pedidoPrincipal = obterPedidoPrincipal(reserva);
+                                const totalPedidosAtivos = obterPedidosAtivos(reserva).length;
 
                                 return (
                                     <article
                                         key={reserva.id_reserva}
-                                        className="rounded-[12px] bg-app-creme-leve p-5 shadow-sm ring-1 ring-app-baunilha-dourada/70"
+                                        className="overflow-hidden rounded-[14px] bg-app-creme-leve shadow-sm ring-1 ring-app-baunilha-dourada/75"
                                     >
-                                    <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-                                        <div className="min-w-0 flex-1">
-                                            <p className="text-xs font-bold uppercase text-app-caramelo-torrado">
-                                                {reserva.data_reserva} - {reserva.horario_inicio} ate {reserva.horario_fim}
-                                            </p>
-                                            <h3 className="mt-2 text-lg font-semibold">
-                                                {reserva.clientes?.nome ?? "Cliente"}
-                                            </h3>
-                                            <div className="mt-3 grid gap-2 text-sm text-app-mocha sm:grid-cols-3">
-                                                <span>{reserva.quantidade_pessoas} pessoas</span>
-                                                <span>Mesa {reserva.mesas?.numero_mesa ?? "-"}</span>
-                                                <span>Consumo minimo: {formatarMoeda(reserva.valor_minimo_total)}</span>
+                                    <div className="grid lg:grid-cols-[140px_1fr_220px]">
+                                        <div className="flex items-center gap-4 border-b border-app-baunilha-dourada/55 bg-app-chantilly px-5 py-4 lg:flex-col lg:items-start lg:justify-center lg:border-b-0 lg:border-r">
+                                            <div>
+                                                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">
+                                                    Data
+                                                </p>
+                                                <p className="mt-1 text-lg font-semibold text-app-cafe-profundo">
+                                                    {reserva.data_reserva}
+                                                </p>
                                             </div>
-                                            <span className="mt-4 inline-flex rounded-full bg-app-creme-suave px-3 py-1 text-xs font-bold uppercase text-app-cafe-profundo ring-1 ring-app-baunilha-dourada/70">
-                                                Reserva {obterStatusReserva(reserva.status_reserva)}
-                                            </span>
-                                            {!obterPedidosAtivos(reserva).length && reserva.status_reserva === "CONFIRMADA" ? (
-                                                <span className="ml-2 mt-4 inline-flex rounded-full bg-app-chantilly px-3 py-1 text-xs font-bold uppercase text-app-mocha ring-1 ring-app-baunilha-dourada/70">
-                                                    Somente reserva
-                                                </span>
-                                            ) : null}
-
-                                            {reserva.pedidos?.length ? (
-                                                <div className="mt-5 grid gap-4">
-                                                    {reserva.pedidos.map((pedido) => {
-                                                        const pedidoCancelado = pedido.status_pedido === "CANCELADO";
-                                                        const tempoEstimadoPedido = calcularTempoPreparoItens(pedido.itens_pedido ?? []);
-                                                        const inicioPreparo = formatarHorarioPreparo(pedido.iniciar_preparo_em);
-
-                                                        return (
-                                                            <div
-                                                                key={pedido.id_pedido}
-                                                                className={`rounded-[12px] p-4 ring-1 ${pedidoCancelado ? "bg-app-creme-suave ring-app-vermelho-erro/30" : "bg-app-chantilly ring-app-baunilha-dourada/70"}`}
-                                                            >
-                                                                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                                                                    <div>
-                                                                        <p className="text-xs font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">
-                                                                            Pedido antecipado #{pedido.id_pedido}
-                                                                        </p>
-                                                                        <p className="mt-2 max-w-xl text-sm leading-6 text-app-cinza">
-                                                                            Resumo operacional. Os itens e observacoes do preparo ficam centralizados na cozinha.
-                                                                        </p>
-                                                                    </div>
-                                                                    <span className={`w-fit rounded-full px-3 py-1 text-xs font-bold ${pedidoCancelado ? "bg-app-vermelho-erro/10 text-app-vermelho-erro ring-1 ring-app-vermelho-erro/30" : "bg-app-cafe-profundo text-app-creme-leve"}`}>
-                                                                        {obterStatusPedido(pedido.status_pedido)}
-                                                                    </span>
-                                                                </div>
-
-                                                                <div className="mt-4 grid gap-2 text-xs font-semibold text-app-mocha sm:grid-cols-3">
-                                                                    <span className="rounded-[8px] bg-app-creme-leve px-3 py-2 ring-1 ring-app-baunilha-dourada/45">
-                                                                        Pedido vinculado
-                                                                    </span>
-                                                                    <span className="rounded-[8px] bg-app-creme-leve px-3 py-2 ring-1 ring-app-baunilha-dourada/45">
-                                                                        Preparo estimado: {tempoEstimadoPedido || "--"} min
-                                                                    </span>
-                                                                    <span className="rounded-[8px] bg-app-creme-leve px-3 py-2 ring-1 ring-app-baunilha-dourada/45">
-                                                                        Total: {formatarMoeda(pedido.valor_total)}
-                                                                    </span>
-                                                                </div>
-                                                                {pedido.iniciar_preparo_em ? (
-                                                                    <p className="mt-3 rounded-[8px] bg-app-creme-leve px-3 py-2 text-xs font-semibold text-app-mocha ring-1 ring-app-baunilha-dourada/45">
-                                                                        Preparo previsto a partir de {inicioPreparo}. Detalhes do pedido ficam na cozinha.
-                                                                    </p>
-                                                                ) : null}
-
-                                                                {pedidoCancelado ? (
-                                                                    <p className="mt-4 rounded-[8px] bg-app-chantilly px-3 py-2 text-xs font-semibold text-app-vermelho-erro ring-1 ring-app-vermelho-erro/20">
-                                                                        Pedido cancelado pelo cliente. A reserva permanece registrada separadamente.
-                                                                    </p>
-                                                                ) : null}
-
-                                                                {!pedidoCancelado ? (
-                                                                    <Link
-                                                                        href="/restaurante/pedidos"
-                                                                        className="mt-4 inline-flex rounded-[8px] bg-app-cafe-profundo px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-app-cacau-intenso"
-                                                                    >
-                                                                        Ver na cozinha
-                                                                    </Link>
-                                                                ) : null}
-                                                            </div>
-                                                        );
-                                                    })}
-                                                </div>
-                                            ) : (
-                                                <div className="mt-5 rounded-[10px] border border-dashed border-app-caramelo-torrado/30 bg-app-chantilly px-4 py-3 text-sm text-app-cinza">
-                                                    Reserva simples: recepcao acompanha mesa e chegada do cliente. Nao ha preparo para a cozinha.
-                                                </div>
-                                            )}
+                                            <div>
+                                                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">
+                                                    Horario
+                                                </p>
+                                                <p className="mt-1 text-lg font-semibold text-app-cafe-profundo">
+                                                    {reserva.horario_inicio}
+                                                </p>
+                                            </div>
                                         </div>
 
-                                        <div className="flex shrink-0 flex-wrap gap-2 lg:flex-col lg:items-end">
+                                        <div className="min-w-0 px-5 py-5">
+                                            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                                                <div>
+                                                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">
+                                                        Reserva #{reserva.id_reserva}
+                                                    </p>
+                                                    <h3 className="mt-2 text-xl font-semibold text-app-cafe-profundo">
+                                                        {reserva.clientes?.nome ?? "Cliente"}
+                                                    </h3>
+                                                </div>
+                                                <span className={`w-fit rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-[0.08em] ring-1 ${obterClasseStatusReserva(reserva.status_reserva)}`}>
+                                                    {obterStatusReserva(reserva.status_reserva)}
+                                                </span>
+                                            </div>
+
+                                            <div className="mt-5 grid gap-3 text-sm text-app-mocha sm:grid-cols-3">
+                                                <div className="rounded-[10px] bg-app-chantilly px-4 py-3 ring-1 ring-app-baunilha-dourada/55">
+                                                    <span className="block text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">Pessoas</span>
+                                                    <strong className="mt-1 block text-app-cafe-profundo">{reserva.quantidade_pessoas}</strong>
+                                                </div>
+                                                <div className="rounded-[10px] bg-app-chantilly px-4 py-3 ring-1 ring-app-baunilha-dourada/55">
+                                                    <span className="block text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">Mesa</span>
+                                                    <strong className="mt-1 block text-app-cafe-profundo">{reserva.mesas?.numero_mesa ?? "-"}</strong>
+                                                </div>
+                                                <div className="rounded-[10px] bg-app-chantilly px-4 py-3 ring-1 ring-app-baunilha-dourada/55">
+                                                    <span className="block text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">Consumo minimo</span>
+                                                    <strong className="mt-1 block text-app-cafe-profundo">{formatarMoeda(reserva.valor_minimo_total)}</strong>
+                                                </div>
+                                            </div>
+
+                                            <div className="mt-4 flex flex-col gap-3 rounded-[10px] border border-app-baunilha-dourada/60 bg-app-chantilly px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                                                <div>
+                                                    <p className="text-sm font-semibold text-app-cafe-profundo">
+                                                        {pedidoPrincipal ? `Pedido antecipado #${pedidoPrincipal.id_pedido}` : "Reserva simples"}
+                                                    </p>
+                                                    <p className="mt-1 text-xs text-app-cinza">
+                                                        {pedidoPrincipal
+                                                            ? `${obterStatusPedido(pedidoPrincipal.status_pedido)}${totalPedidosAtivos > 1 ? ` + ${totalPedidosAtivos - 1} pedido(s)` : ""}`
+                                                            : "Sem pedido vinculado para a cozinha."}
+                                                    </p>
+                                                </div>
+                                                {pedidoPrincipal ? (
+                                                    <Link
+                                                        href="/restaurante/pedidos"
+                                                        className="inline-flex h-9 items-center justify-center rounded-[8px] bg-app-cafe-profundo px-4 text-[11px] font-bold uppercase tracking-[0.12em] text-app-creme-leve transition hover:bg-app-caramelo-torrado"
+                                                    >
+                                                        Ver na cozinha
+                                                    </Link>
+                                                ) : null}
+                                            </div>
+                                        </div>
+
+                                        <div className="flex shrink-0 flex-wrap gap-2 border-t border-app-baunilha-dourada/55 bg-app-chantilly px-5 py-4 lg:flex-col lg:items-stretch lg:justify-center lg:border-l lg:border-t-0">
                                             {reserva.status_reserva === "CONFIRMADA" ? (
-                                                <div className="grid gap-1 text-right">
+                                                <div className="grid gap-1">
                                                     <button
                                                         type="button"
                                                         onClick={() => registrarCheckIn(reserva.id_reserva)}
@@ -488,7 +486,7 @@ export default function RestaurantReservationsPage() {
                                                         {registrandoCheckIn === reserva.id_reserva ? "Registrando..." : "Registrar check-in"}
                                                     </button>
                                                     {!janelaCheckIn.liberado ? (
-                                                        <span className="text-[11px] font-semibold text-app-cinza">
+                                                        <span className="text-center text-[11px] font-semibold text-app-cinza lg:text-left">
                                                             Libera as {janelaCheckIn.horario}
                                                         </span>
                                                     ) : null}
@@ -496,7 +494,7 @@ export default function RestaurantReservationsPage() {
                                             ) : null}
 
                                             {reserva.status_reserva === "CHECK_IN" ? (
-                                                <div className="grid gap-1 text-right">
+                                                <div className="grid gap-1">
                                                     <button
                                                         type="button"
                                                         onClick={() => finalizarReserva(reserva.id_reserva)}
@@ -506,7 +504,7 @@ export default function RestaurantReservationsPage() {
                                                         {finalizandoReserva === reserva.id_reserva ? "Finalizando..." : "Finalizar atendimento"}
                                                     </button>
                                                     {!podeFinalizarReserva(reserva) ? (
-                                                        <span className="max-w-44 text-[11px] font-semibold text-app-cinza">
+                                                        <span className="text-[11px] font-semibold text-app-cinza">
                                                             Entregue ou cancele os pedidos antes de finalizar.
                                                         </span>
                                                     ) : null}
