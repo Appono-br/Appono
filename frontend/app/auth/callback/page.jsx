@@ -38,8 +38,19 @@ export default function AuthCallbackPage() {
                 if (!session) {
                     throw new Error("Nao foi possivel recuperar a sessao confirmada.");
                 }
+                await persistAuthResponse({ session });
                 setMessage("Buscando seu perfil...");
-                const profile = await apiRequest("/me");
+                let profile;
+                try {
+                    profile = await apiRequest("/me");
+                }
+                catch (error) {
+                    throw new Error(error instanceof Error && error.message.includes("Perfil")
+                        ? "Conta Google autenticada, mas ainda sem perfil Appono. Cadastre-se como cliente ou restaurante antes de usar este acesso."
+                        : error instanceof Error
+                            ? error.message
+                            : "Nao foi possivel carregar seu perfil Appono.");
+                }
                 await persistAuthResponse({ ...profile, session });
                 window.location.replace(getDashboardPath(profile.tipo));
             }

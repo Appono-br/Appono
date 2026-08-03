@@ -14,6 +14,14 @@ function obterUrlRecuperacaoSenha() {
   return `${window.location.origin}/recuperar-senha`;
 }
 
+function obterUrlCallbackAutenticacao() {
+  const urlConfigurada = process.env.NEXT_PUBLIC_AUTH_CALLBACK_URL?.trim();
+  if (urlConfigurada) {
+    return urlConfigurada;
+  }
+  return `${window.location.origin}/auth/callback`;
+}
+
 export function LoginForm() {
   const [identifier, setIdentifier] = useState("");
   const [recoveryEmail, setRecoveryEmail] = useState("");
@@ -25,6 +33,7 @@ export function LoginForm() {
   const [message, setMessage] = useState("");
   const [recoveryMessage, setRecoveryMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
   const [isSendingRecovery, setIsSendingRecovery] = useState(false);
 
   async function submitLogin(event) {
@@ -79,6 +88,32 @@ export function LoginForm() {
       );
     } finally {
       setIsSendingRecovery(false);
+    }
+  }
+
+  async function entrarComGoogle() {
+    setIsGoogleSubmitting(true);
+    setMessage("");
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: obterUrlCallbackAutenticacao(),
+          queryParams: {
+            prompt: "select_account",
+          },
+        },
+      });
+      if (error) {
+        throw error;
+      }
+    } catch (error) {
+      setIsGoogleSubmitting(false);
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : "Nao foi possivel iniciar o login com Google."
+      );
     }
   }
 
@@ -229,7 +264,8 @@ export function LoginForm() {
 
           <button
             type="button"
-            onClick={() => setMessage("Login com Google indisponivel no momento.")}
+            onClick={entrarComGoogle}
+            disabled={isGoogleSubmitting}
             className="mt-3 flex h-10 w-full items-center justify-center gap-2 rounded-full border border-[#dadce0] bg-white text-xs font-bold uppercase tracking-wide text-[#3c4043] transition hover:-translate-y-0.5 hover:border-[#c8d3e2] hover:bg-[#f8fafd] focus:outline-none focus:ring-4 focus:ring-[#4285f4]/15"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 48 48">
@@ -238,7 +274,7 @@ export function LoginForm() {
               <path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238A11.91 11.91 0 0124 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"/>
               <path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 01-4.087 5.571l.003-.002 6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"/>
             </svg>
-            Google
+            {isGoogleSubmitting ? "Redirecionando..." : "Google"}
           </button>
 
           <p className="mt-3 text-center text-[9px] uppercase leading-4 tracking-[0.12em] text-app-cinza">
