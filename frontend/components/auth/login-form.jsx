@@ -4,15 +4,28 @@ import Link from "next/link";
 import { useState } from "react";
 import { apiRequest } from "@/lib/api";
 import { getDashboardPath, persistAuthResponse } from "@/lib/session";
+import { supabase } from "@/lib/supabase";
+
+function obterUrlRecuperacaoSenha() {
+  const urlConfigurada = process.env.NEXT_PUBLIC_PASSWORD_RECOVERY_REDIRECT_URL?.trim();
+  if (urlConfigurada) {
+    return urlConfigurada;
+  }
+  return `${window.location.origin}/recuperar-senha`;
+}
 
 export function LoginForm() {
   const [identifier, setIdentifier] = useState("");
+  const [recoveryEmail, setRecoveryEmail] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [registerDialog, setRegisterDialog] = useState(false);
+  const [recoveryDialog, setRecoveryDialog] = useState(false);
   const [message, setMessage] = useState("");
+  const [recoveryMessage, setRecoveryMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSendingRecovery, setIsSendingRecovery] = useState(false);
 
   async function submitLogin(event) {
     event.preventDefault();
@@ -40,9 +53,38 @@ export function LoginForm() {
     }
   }
 
+  async function submitPasswordRecovery(event) {
+    event.preventDefault();
+    const email = recoveryEmail.trim().toLowerCase();
+    if (!email) {
+      setRecoveryMessage("Informe o e-mail cadastrado na Appono.");
+      return;
+    }
+    setIsSendingRecovery(true);
+    setRecoveryMessage("");
+    try {
+      const redirectTo = obterUrlRecuperacaoSenha();
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo,
+      });
+      if (error) {
+        throw error;
+      }
+      setRecoveryMessage("Enviamos um link para redefinir sua senha. Confira sua caixa de entrada e spam.");
+    } catch (error) {
+      setRecoveryMessage(
+        error instanceof Error
+          ? error.message
+          : "Nao foi possivel enviar o e-mail de recuperacao."
+      );
+    } finally {
+      setIsSendingRecovery(false);
+    }
+  }
+
   return (
-    <div className="flex min-h-0 flex-1 overflow-hidden bg-app-chantilly text-app-cafe-profundo">
-      <section className="flex min-h-0 w-full flex-col justify-center bg-app-creme-leve px-4 py-3 sm:px-8">
+    <div className="flex flex-1 bg-app-chantilly text-app-cafe-profundo">
+      <section className="flex w-full flex-col justify-center bg-app-creme-leve px-4 py-5 sm:px-8 sm:py-8">
         <div className="mx-auto w-full max-w-md rounded-2xl bg-app-chantilly px-5 py-5 shadow-2xl ring-1 ring-app-baunilha-dourada sm:px-7">
           <div className="mb-3 flex justify-center">
             <Image
@@ -133,7 +175,11 @@ export function LoginForm() {
               </label>
               <button
                 type="button"
-                onClick={() => setMessage("Recuperacao de senha indisponivel no momento.")}
+                onClick={() => {
+                  setRecoveryEmail(identifier);
+                  setRecoveryMessage("");
+                  setRecoveryDialog(true);
+                }}
                 className="w-fit text-app-caramelo-torrado transition hover:text-app-cafe-profundo"
               >
                 Esqueceu a senha?
@@ -278,6 +324,85 @@ export function LoginForm() {
                 </span>
               </Link>
             </div>
+          </section>
+        </div>
+      ) : null}
+
+      {recoveryDialog ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-app-cafe-profundo/70 px-5 backdrop-blur-sm"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Recuperacao de senha"
+        >
+          <section className="w-full max-w-md rounded-2xl bg-app-chantilly p-6 shadow-2xl ring-1 ring-app-baunilha-dourada sm:p-8">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.24em] text-app-caramelo-torrado">
+                  Recuperar senha
+                </p>
+                <h2 className="mt-2 text-2xl font-bold text-app-cafe-profundo">
+                  Enviar link de acesso
+                </h2>
+              </div>
+              <button
+                type="button"
+                onClick={() => setRecoveryDialog(false)}
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-app-baunilha-dourada text-app-cafe-profundo transition hover:bg-app-creme-suave"
+                aria-label="Fechar recuperacao de senha"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
+
+            <p className="mt-3 text-sm leading-6 text-app-mocha">
+              Informe o e-mail cadastrado. A Appono enviara um link seguro para voce criar uma nova senha.
+            </p>
+
+            <form onSubmit={submitPasswordRecovery} className="mt-5 space-y-4">
+              <label className="flex flex-col gap-1.5">
+                <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-app-mocha">
+                  E-mail da conta
+                </span>
+                <input
+                  type="email"
+                  value={recoveryEmail}
+                  onChange={(event) => {
+                    setRecoveryEmail(event.target.value);
+                    setRecoveryMessage("");
+                  }}
+                  placeholder="nome@exemplo.com"
+                  required
+                  className="h-11 rounded-xl bg-app-creme-suave px-3 text-sm outline-none ring-1 ring-app-baunilha-dourada transition placeholder:text-app-cinza/50 hover:ring-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel"
+                />
+              </label>
+
+              {recoveryMessage ? (
+                <p className="rounded-lg bg-app-creme-suave px-3 py-2 text-sm font-semibold leading-5 text-app-caramelo-torrado">
+                  {recoveryMessage}
+                </p>
+              ) : null}
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <button
+                  type="button"
+                  onClick={() => setRecoveryDialog(false)}
+                  className="h-11 rounded-full border border-app-baunilha-dourada text-xs font-bold uppercase tracking-wide text-app-cafe-profundo transition hover:bg-app-creme-suave"
+                >
+                  Voltar
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSendingRecovery}
+                  className="h-11 rounded-full bg-app-dourado-mel px-5 text-xs font-bold uppercase tracking-wide text-white shadow-md transition hover:-translate-y-0.5 hover:bg-app-caramelo-torrado hover:shadow-lg disabled:cursor-not-allowed disabled:translate-y-0 disabled:opacity-70 disabled:shadow-none"
+                >
+                  {isSendingRecovery ? "Enviando..." : "Enviar link"}
+                </button>
+              </div>
+            </form>
           </section>
         </div>
       ) : null}
