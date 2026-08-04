@@ -2,17 +2,19 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
-import { useState } from "react";
-const dailySummary = [
-    { label: "Reservas hoje" },
-    { label: "Mesas reservadas" },
-];
-const monthlyPerformance = [
-    { label: "Total de pedidos" },
-    { label: "Ticket medio" },
-    { label: "Avaliacao app" },
-    { label: "Novos clientes" },
-];
+import { useEffect, useMemo, useState } from "react";
+import { apiRequest } from "@/lib/api";
+import {
+    calcularItensVendidos,
+    calcularTicketMedio,
+    formatarMoedaResumo,
+    obterClientesUnicos,
+    obterPedidosDasReservas,
+    obterPedidosNoPeriodo,
+    obterReservasHoje,
+    obterReservasNoPeriodo,
+} from "@/lib/restaurante-metricas";
+import { TelaCarregandoSessao, useSessaoLocal } from "@/lib/use-sessao-local";
 const navItems = [
     { label: "Home", href: "/restaurante/home" },
     { label: "Dashboard", href: "/restaurante/dashboard" },
@@ -37,7 +39,7 @@ function Icon({ type, className = "h-5 w-5", }) {
 function MetricValue({ metric }) {
     return (<div>
       <div className="flex items-end gap-3">
-        <strong className="text-4xl font-medium leading-none text-app-cafe-profundo sm:text-5xl">
+        <strong className="text-3xl font-medium leading-none text-app-cafe-profundo sm:text-4xl">
           {metric.value ?? "--"}
         </strong>
         {metric.suffix ? (<span className="pb-2 text-sm font-bold text-green-700">
@@ -53,28 +55,66 @@ function MetricValue({ metric }) {
     </div>);
 }
 function PerformanceCard({ metric, index }) {
-    return (<article className={`min-h-44 rounded-[8px] bg-app-creme-leve px-6 py-7 shadow-sm ring-1 ring-app-baunilha-dourada/60 transition hover:-translate-y-0.5 hover:bg-app-chantilly ${index % 2 === 0
+    return (<article className={`rounded-[8px] bg-app-creme-leve px-5 py-5 shadow-sm ring-1 ring-app-baunilha-dourada/60 transition hover:-translate-y-0.5 hover:bg-app-chantilly ${index % 2 === 0
             ? "border-l-4 border-app-caramelo-torrado"
             : "border-l-4 border-app-cinza/35"}`}>
       <p className="text-xs font-bold uppercase tracking-[0.18em] text-app-cinza">
         {metric.label}
       </p>
-      <div className="mt-8">
+      <div className="mt-5">
         <MetricValue metric={metric}/>
       </div>
     </article>);
 }
 export default function RestaurantHomePage() {
-    const [session] = useState(() => {
-        if (typeof window === "undefined") {
-            return null;
-        }
-        const storedSession = window.localStorage.getItem("appono:session");
-        return storedSession ? JSON.parse(storedSession) : null;
-    });
+    const { sessao, sessaoCarregada } = useSessaoLocal();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-    const isRestaurant = session?.type === "restaurant";
-    if (!isRestaurant) {
+    const [reservas, setReservas] = useState([]);
+    const [historicoPedidos, setHistoricoPedidos] = useState([]);
+    const [financeiro, setFinanceiro] = useState(null);
+    useEffect(() => {
+        if (sessao?.type !== "restaurant") {
+            return;
+        }
+        Promise.all([
+            apiRequest("/reservas"),
+            apiRequest("/pedidos/historico/restaurante"),
+            apiRequest("/marketplace/financeiro/resumo?periodo=30d"),
+        ])
+            .then(([reservasResposta, historicoResposta, financeiroResposta]) => {
+            setReservas(reservasResposta ?? []);
+            setHistoricoPedidos(historicoResposta ?? []);
+            setFinanceiro(financeiroResposta ?? null);
+        })
+            .catch(() => {
+            setReservas([]);
+            setHistoricoPedidos([]);
+            setFinanceiro(null);
+        });
+    }, [sessao?.type]);
+    const metricas = useMemo(() => {
+        const reservasHoje = obterReservasHoje(reservas);
+        const reservas30Dias = obterReservasNoPeriodo(reservas, 30);
+        const pedidos = [...obterPedidosDasReservas(reservas), ...historicoPedidos];
+        const pedidos30Dias = obterPedidosNoPeriodo(pedidos, 30);
+        return {
+            resumoDiario: [
+                { label: "Reservas hoje", value: reservasHoje.length },
+                { label: "Pessoas esperadas", value: reservasHoje.reduce((soma, reserva) => soma + Number(reserva.quantidade_pessoas ?? 0), 0) },
+            ],
+            desempenhoMensal: [
+                { label: "Pedidos no periodo", value: pedidos30Dias.length },
+                { label: "Ticket medio", value: formatarMoedaResumo(calcularTicketMedio(pedidos30Dias)) },
+                { label: "Pedidos pagos", value: financeiro?.resumo?.quantidade_pagamentos ?? 0 },
+                { label: "Clientes atendidos", value: obterClientesUnicos(reservas30Dias, pedidos30Dias) },
+            ],
+            itensVendidos: calcularItensVendidos(pedidos30Dias),
+        };
+    }, [financeiro, historicoPedidos, reservas]);
+    if (!sessaoCarregada) {
+        return <TelaCarregandoSessao />;
+    }
+    if (sessao?.type !== "restaurant") {
         return (<main className="flex min-h-screen items-center justify-center bg-app-chantilly px-5 text-app-cafe-profundo">
         <section className="w-full max-w-lg rounded-[8px] bg-app-creme-leve p-8 text-center shadow-sm ring-1 ring-app-baunilha-dourada">
           <Image src="/brand/appono-mark.svg" alt="Appono" width={88} height={88} className="mx-auto h-20 w-20" priority/>
@@ -132,22 +172,22 @@ export default function RestaurantHomePage() {
           </h1>
         </div>
 
-        <section className="mt-8 max-w-4xl rounded-[8px] bg-app-creme-leve px-6 py-8 shadow-sm ring-1 ring-app-baunilha-dourada/60 sm:px-8">
+        <section className="mt-8 max-w-4xl rounded-[8px] bg-app-creme-leve px-5 py-6 shadow-sm ring-1 ring-app-baunilha-dourada/60 sm:px-6">
           <h2 className="text-2xl font-medium text-app-cafe-profundo">
             Resumo Diario
           </h2>
 
-          <div className="mt-8 grid gap-8 sm:grid-cols-2">
-            {dailySummary.map((metric) => (<MetricValue key={metric.label} metric={metric}/>))}
+          <div className="mt-6 grid gap-6 sm:grid-cols-2">
+            {metricas.resumoDiario.map((metric) => (<MetricValue key={metric.label} metric={metric}/>))}
           </div>
 
-          <Link href="#" className="mt-12 inline-flex items-center gap-1 text-sm font-bold text-app-caramelo-torrado transition hover:text-app-cafe-profundo">
-            Gerenciar Sala
+          <Link href="/restaurante/reservas" className="mt-8 inline-flex items-center gap-1 text-sm font-bold text-app-caramelo-torrado transition hover:text-app-cafe-profundo">
+            Gerenciar reservas
             <Icon type="chevron-right" className="h-4 w-4"/>
           </Link>
         </section>
 
-        <section className="mt-16">
+        <section className="mt-12">
           <p className="text-[10px] font-bold uppercase text-app-caramelo-torrado">
             Operacao
           </p>
@@ -155,9 +195,12 @@ export default function RestaurantHomePage() {
             Desempenho Mensal
           </h2>
 
-          <div className="mt-8 grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
-            {monthlyPerformance.map((metric, index) => (<PerformanceCard key={metric.label} metric={metric} index={index}/>))}
+          <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {metricas.desempenhoMensal.map((metric, index) => (<PerformanceCard key={metric.label} metric={metric} index={index}/>))}
           </div>
+          <p className="mt-5 text-sm font-semibold text-app-mocha">
+            {metricas.itensVendidos} itens vendidos em pedidos validos no periodo.
+          </p>
         </section>
       </section>
 
