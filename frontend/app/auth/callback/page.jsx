@@ -45,11 +45,16 @@ export default function AuthCallbackPage() {
                     profile = await apiRequest("/me");
                 }
                 catch (error) {
-                    throw new Error(error instanceof Error && error.message.includes("Perfil")
-                        ? "Conta Google autenticada, mas ainda sem perfil Appono. Cadastre-se como cliente ou restaurante antes de usar este acesso."
-                        : error instanceof Error
-                            ? error.message
-                            : "Nao foi possivel carregar seu perfil Appono.");
+                    if (error instanceof Error && error.message.includes("Perfil")) {
+                        setMessage("Conta Google autenticada. Complete seu perfil Appono para continuar.");
+                        window.setTimeout(() => {
+                            window.location.replace("/completar-perfil");
+                        }, 1200);
+                        return;
+                    }
+                    throw new Error(error instanceof Error
+                        ? error.message
+                        : "Nao foi possivel carregar seu perfil Appono.");
                 }
                 await persistAuthResponse({ ...profile, session });
                 window.location.replace(getDashboardPath(profile.tipo));

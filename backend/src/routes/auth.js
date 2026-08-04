@@ -7,6 +7,7 @@ const cep_1 = require("../services/validacoes/cep");
 const cnpj_1 = require("../services/validacoes/cnpj");
 const comum_1 = require("../services/validacoes/comum");
 const cpf_1 = require("../services/validacoes/cpf");
+const auth_1 = require("../middleware/auth");
 exports.authRouter = (0, express_1.Router)();
 const frontendOrigin = (process.env.FRONTEND_ORIGIN ?? "http://localhost:3000").replace(/\/$/, "");
 function verificarCamposObrigatorios(body, fields) {
@@ -77,6 +78,121 @@ async function obterPerfil(accessToken, userId) {
     }
     return null;
 }
+async function obterPerfilDoUsuarioAutenticado(res) {
+    return obterPerfil(res.locals.accessToken, res.locals.user.id);
+}
+async function criarPerfilClienteGoogle(res, body) {
+    if (!supabase_1.supabaseAdmin) {
+        throw new Error("Cadastro com Google indisponivel agora.");
+    }
+    const email = String(res.locals.user.email ?? body.email ?? "").trim().toLowerCase();
+    const cpf = (0, comum_1.somenteNumeros)(body.cpf);
+    const { data: cliente, error } = await supabase_1.supabaseAdmin
+        .from("clientes")
+        .insert({
+        id_auth: res.locals.user.id,
+        nome: body.name,
+        cpf,
+        telefone: body.phone,
+        email,
+        dt_nasc: body.birthDate,
+    })
+        .select("*")
+        .single();
+    if (error) {
+        throw new Error(error.message);
+    }
+    return { tipo: "cliente", perfil: cliente };
+}
+async function criarPerfilRestauranteGoogle(res, body) {
+    if (!supabase_1.supabaseAdmin) {
+        throw new Error("Cadastro com Google indisponivel agora.");
+    }
+    const cnpj = (0, comum_1.somenteNumeros)(body.cnpj);
+    const cep = (0, comum_1.somenteNumeros)(body.cep);
+    let validatedCnpj = {
+        cnpj,
+        razaoSocial: body.legalName,
+        nomeFantasia: body.storeName,
+        situacao: "",
+    };
+    let validatedCep = {
+        cep,
+        rua: body.address,
+        bairro: body.neighborhood,
+        cidade: body.city,
+        estado: body.uf,
+    };
+    try {
+        validatedCnpj = await (0, cnpj_1.consultarCnpjReceitaWs)(body.cnpj);
+    }
+    catch {
+        validatedCnpj = {
+            cnpj,
+            razaoSocial: body.legalName,
+            nomeFantasia: body.storeName,
+            situacao: "",
+        };
+    }
+    try {
+        validatedCep = await (0, cep_1.consultarCepViaCep)(body.cep);
+    }
+    catch {
+        validatedCep = {
+            cep,
+            rua: body.address,
+            bairro: body.neighborhood,
+            cidade: body.city,
+            estado: body.uf,
+        };
+    }
+    if (validatedCnpj.situacao &&
+        validatedCnpj.situacao.toUpperCase() !== "ATIVA") {
+        const erro = new Error(`O CNPJ informado esta com situacao ${validatedCnpj.situacao}.`);
+        erro.statusCode = 400;
+        throw erro;
+    }
+    const validatedAddressBody = {
+        ...body,
+        address: validatedCep.rua || body.address,
+        neighborhood: validatedCep.bairro || body.neighborhood,
+        city: validatedCep.cidade || body.city,
+        uf: validatedCep.estado || body.uf,
+    };
+    const { data: restaurante, error } = await supabase_1.supabaseAdmin
+        .from("restaurantes")
+        .insert({
+        id_auth: res.locals.user.id,
+        nome: body.storeName,
+        razao_social: body.legalName,
+        cnpj: validatedCnpj.cnpj,
+        telefone: body.phone,
+        email: String(res.locals.user.email ?? body.email ?? "").trim().toLowerCase(),
+        cep: validatedCep.cep,
+        endereco: montarEndereco(validatedAddressBody.address, validatedAddressBody.number, validatedAddressBody.complement, validatedAddressBody.neighborhood, validatedAddressBody.city, validatedAddressBody.uf),
+        horario_funcionamento: "A definir",
+    })
+        .select("*")
+        .single();
+    if (error) {
+        throw new Error(error.message);
+    }
+    const quantidadeMesas = Math.max(Number.parseInt(String(body.tables), 10) || 0, 0);
+    if (quantidadeMesas > 0) {
+        const mesas = Array.from({ length: quantidadeMesas }, (_, index) => ({
+            id_restaurante: restaurante.id_restaurante,
+            numero_mesa: index + 1,
+            capacidade: 4,
+        }));
+        const { error: mesasError } = await supabase_1.supabaseAdmin
+            .from("mesas")
+            .insert(mesas);
+        if (mesasError) {
+            throw new Error(mesasError.message);
+        }
+    }
+    return { tipo: "restaurante", perfil: restaurante };
+}
 async function confirmarEEntrarComUsuarioCriado(userId, email, password) {
     if (!supabase_1.supabaseAdmin) {
         return null;
@@ -126,6 +242,90 @@ exports.authRouter.post("/login", async (req, res) => {
         user: data.user,
         session: data.session,
     });
+});
+exports.authRouter.post("/google/client", auth_1.requireAuth, async (req, res) => {
+    if (!(0, supabase_1.isSupabaseConfigured)()) {
+        return res.status(503).json({
+            error: "O cadastro esta temporariamente indisponivel. Tente novamente mais tarde.",
+        });
+    }
+    const body = req.body;
+    const missing = verificarCamposObrigatorios(body, [
+        "name",
+        "birthDate",
+        "cpf",
+        "phone",
+    ]);
+    if (missing) {
+        return res.status(400).json({ error: missing });
+    }
+    if (!res.locals.user.email) {
+        return res.status(400).json({ error: "A conta Google precisa possuir e-mail." });
+    }
+    if (!(0, cpf_1.validarCpf)(body.cpf)) {
+        return res.status(400).json({ error: "Informe um CPF valido." });
+    }
+    try {
+        const perfilExistente = await obterPerfilDoUsuarioAutenticado(res);
+        if (perfilExistente) {
+            return res.status(409).json({ error: "Esta conta Google ja possui perfil Appono." });
+        }
+        const profile = await criarPerfilClienteGoogle(res, body);
+        return res.status(201).json({ ...profile, user: res.locals.user });
+    }
+    catch (error) {
+        return res.status(error.statusCode ?? 400).json({
+            error: error instanceof Error ? error.message : "Nao foi possivel completar seu cadastro.",
+        });
+    }
+});
+exports.authRouter.post("/google/restaurant", auth_1.requireAuth, async (req, res) => {
+    if (!(0, supabase_1.isSupabaseConfigured)()) {
+        return res.status(503).json({
+            error: "O cadastro esta temporariamente indisponivel. Tente novamente mais tarde.",
+        });
+    }
+    const body = req.body;
+    const missing = verificarCamposObrigatorios(body, [
+        "storeName",
+        "legalName",
+        "phone",
+        "cnpj",
+        "cep",
+        "address",
+        "neighborhood",
+        "city",
+        "uf",
+        "number",
+        "tables",
+    ]);
+    if (missing) {
+        return res.status(400).json({ error: missing });
+    }
+    if (!res.locals.user.email) {
+        return res.status(400).json({ error: "A conta Google precisa possuir e-mail." });
+    }
+    const cnpj = (0, comum_1.somenteNumeros)(body.cnpj);
+    const cep = (0, comum_1.somenteNumeros)(body.cep);
+    if (!(0, cnpj_1.validarCnpj)(cnpj)) {
+        return res.status(400).json({ error: "Informe um CNPJ valido." });
+    }
+    if (cep.length !== 8) {
+        return res.status(400).json({ error: "Informe um CEP valido com 8 digitos." });
+    }
+    try {
+        const perfilExistente = await obterPerfilDoUsuarioAutenticado(res);
+        if (perfilExistente) {
+            return res.status(409).json({ error: "Esta conta Google ja possui perfil Appono." });
+        }
+        const profile = await criarPerfilRestauranteGoogle(res, body);
+        return res.status(201).json({ ...profile, user: res.locals.user });
+    }
+    catch (error) {
+        return res.status(error.statusCode ?? 400).json({
+            error: error instanceof Error ? error.message : "Nao foi possivel completar o cadastro do restaurante.",
+        });
+    }
 });
 exports.authRouter.post("/register/client", async (req, res) => {
     if (!(0, supabase_1.isSupabaseConfigured)()) {

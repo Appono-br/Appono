@@ -1,10 +1,11 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FormField } from "@/components/auth/form-field";
 import { apiRequest } from "@/lib/api";
 import { getDashboardPath, persistAuthResponse } from "@/lib/session";
+import { supabase } from "@/lib/supabase";
 import { aplicarMascaraCep, cepEstaCompleto } from "@/lib/validacoes/cep";
 import { aplicarMascaraCnpj, cnpjEstaCompleto } from "@/lib/validacoes/cnpj";
 import { somenteNumeros } from "@/lib/validacoes/comum";
@@ -40,13 +41,32 @@ const initialForm = {
   password: "",
 };
 
-export function RegisterRestaurantForm() {
+export function RegisterRestaurantForm({ googleFlow = false }) {
   const [form, setForm] = useState(initialForm);
   const [step, setStep] = useState(1);
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imagem, setImagem] = useState(null);
   const [imagemPreview, setImagemPreview] = useState("");
+  const [googleSession, setGoogleSession] = useState(null);
+  const isGoogleFlow = googleFlow;
+
+  useEffect(() => {
+    if (!isGoogleFlow) {
+      return;
+    }
+    supabase.auth.getSession().then(({ data }) => {
+      if (!data.session) {
+        setMessage("Entre com Google novamente para completar o cadastro.");
+        return;
+      }
+      setGoogleSession(data.session);
+      setForm((current) => ({
+        ...current,
+        email: data.session.user.email ?? current.email,
+      }));
+    });
+  }, [isGoogleFlow]);
 
   function atualizarCampo(field, value) {
     setForm((current) => ({ ...current, [field]: value }));
@@ -67,7 +87,7 @@ export function RegisterRestaurantForm() {
         form.uf &&
         form.number &&
         form.tables &&
-        form.password
+        (isGoogleFlow || form.password)
     );
   }
 
@@ -141,15 +161,16 @@ export function RegisterRestaurantForm() {
     setIsSubmitting(true);
     setMessage("");
     try {
-      const response = await apiRequest("/auth/register/restaurant", {
+      const response = await apiRequest(isGoogleFlow ? "/auth/google/restaurant" : "/auth/register/restaurant", {
         method: "POST",
         body: JSON.stringify(form),
       });
-      await persistAuthResponse(response);
-      if (response.session) {
+      const session = response.session ?? googleSession;
+      await persistAuthResponse({ ...response, session });
+      if (session) {
         if (imagem) {
           try {
-            await enviarImagemRestaurante(imagem, response.session);
+            await enviarImagemRestaurante(imagem, session);
           } catch (error) {
             console.warn("Nao foi possivel enviar a imagem do restaurante.", error);
           }
@@ -265,6 +286,7 @@ export function RegisterRestaurantForm() {
               onChange={(event) => atualizarCampo("email", event.target.value)}
               placeholder="contato@restaurante.com"
               required
+              disabled={isGoogleFlow}
               className="sm:col-span-3 xl:col-span-3"
             />
             <FormField
@@ -357,16 +379,18 @@ export function RegisterRestaurantForm() {
               required
               className="sm:col-span-3 xl:col-span-2"
             />
-            <FormField
-              label="Senha"
-              type="password"
-              value={form.password}
-              onChange={(event) => atualizarCampo("password", event.target.value)}
-              placeholder="Digite aqui"
-              required
-              minLength={6}
-              className="sm:col-span-3 xl:col-span-2"
-            />
+            {!isGoogleFlow ? (
+              <FormField
+                label="Senha"
+                type="password"
+                value={form.password}
+                onChange={(event) => atualizarCampo("password", event.target.value)}
+                placeholder="Digite aqui"
+                required
+                minLength={6}
+                className="sm:col-span-3 xl:col-span-2"
+              />
+            ) : null}
             <label className="grid gap-2 rounded-xl border border-dashed border-app-caramelo-torrado/50 bg-app-creme-suave p-4 transition hover:border-app-caramelo-torrado sm:col-span-6 xl:col-span-4">
               <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-app-cafe-profundo">
                 Imagem do restaurante
