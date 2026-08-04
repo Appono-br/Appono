@@ -1,20 +1,9 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { apiRequest } from "@/lib/api";
 import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
-import {
-    calcularTempoMedioPreparo,
-    calcularTicketMedio,
-    formatarMoedaResumo,
-    montarSerieReservas,
-    obterClientesUnicos,
-    obterPedidosAtivos,
-    obterPedidosDasReservas,
-    obterPedidosNoPeriodo,
-    obterReservasHoje,
-} from "@/lib/restaurante-metricas";
 import { TelaCarregandoSessao, useSessaoLocal } from "@/lib/use-sessao-local";
 const navItems = [
     { label: "Home", href: "/restaurante/home" },
@@ -84,57 +73,36 @@ function obterStatusPedido(status) {
     };
     return statusMap[status] ?? status;
 }
+const resumoInicial = {
+    metricas: [],
+    serieReservas: [],
+    proximosPedidos: [],
+    produtoDestaque: null,
+    tempoMedioPreparo: null,
+    pedidosAtivosCozinha: 0,
+};
 export default function RestaurantDashboardPage() {
     const { sessao, sessaoCarregada } = useSessaoLocal();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-    const [reservas, setReservas] = useState([]);
-    const [historicoPedidos, setHistoricoPedidos] = useState([]);
-    const [cardapios, setCardapios] = useState([]);
+    const [resumo, setResumo] = useState(resumoInicial);
     useEffect(() => {
         if (sessao?.type !== "restaurant") {
             return;
         }
-        Promise.all([
-            apiRequest("/reservas"),
-            apiRequest("/pedidos/historico/restaurante"),
-            apiRequest("/cardapio"),
-        ])
-            .then(([reservasResposta, historicoResposta, cardapioResposta]) => {
-            setReservas(reservasResposta ?? []);
-            setHistoricoPedidos(historicoResposta ?? []);
-            setCardapios(cardapioResposta?.cardapios ?? []);
+        apiRequest("/restaurante/dashboard/resumo")
+            .then((resposta) => {
+            setResumo({ ...resumoInicial, ...(resposta ?? {}) });
         })
             .catch(() => {
-            setReservas([]);
-            setHistoricoPedidos([]);
-            setCardapios([]);
+            setResumo(resumoInicial);
         });
     }, [sessao?.type]);
-    const todosPedidos = useMemo(() => [...obterPedidosDasReservas(reservas), ...historicoPedidos], [historicoPedidos, reservas]);
-    const proximosPedidos = useMemo(() => reservas
-        .flatMap((reserva) => (reserva.pedidos ?? [])
-        .filter((pedido) => ["PENDENTE", "CONFIRMADO", "EM_PREPARO", "PRONTO"].includes(pedido.status_pedido))
-        .map((pedido) => ({ ...pedido, reserva })))
-        .slice(0, 3), [reservas]);
-    const metricas = useMemo(() => {
-        const pedidos30Dias = obterPedidosNoPeriodo(todosPedidos, 30);
-        const reservasHoje = obterReservasHoje(reservas);
-        return [
-            { label: "Pedidos ativos", icon: "orders", value: obterPedidosAtivos(todosPedidos).length },
-            { label: "Reservas hoje", icon: "seat", value: reservasHoje.length, highlighted: true },
-            { label: "Ticket medio", icon: "money", value: formatarMoedaResumo(calcularTicketMedio(pedidos30Dias)) },
-            { label: "Clientes no periodo", icon: "user", value: obterClientesUnicos(reservas, pedidos30Dias) },
-        ];
-    }, [reservas, todosPedidos]);
-    const serieReservas = useMemo(() => montarSerieReservas(reservas, 7), [reservas]);
+    const metricas = resumo.metricas;
+    const serieReservas = resumo.serieReservas;
+    const proximosPedidos = resumo.proximosPedidos;
     const maiorValorSerie = Math.max(...serieReservas.map((ponto) => ponto.valor), 1);
-    const produtoDestaque = useMemo(() => {
-        return cardapios
-            .flatMap((cardapio) => cardapio.categorias ?? [])
-            .flatMap((categoria) => categoria.produtos ?? [])
-            .find((produto) => produto.destaque);
-    }, [cardapios]);
-    const tempoMedioPreparo = calcularTempoMedioPreparo(todosPedidos);
+    const produtoDestaque = resumo.produtoDestaque;
+    const tempoMedioPreparo = resumo.tempoMedioPreparo;
     if (!sessaoCarregada) {
         return <TelaCarregandoSessao />;
     }
@@ -290,7 +258,7 @@ export default function RestaurantDashboardPage() {
             <div className="mt-8 grid gap-6">
               {[
                 { label: "Tempo medio estimado", value: tempoMedioPreparo ? `${tempoMedioPreparo} min` : "--" },
-                { label: "Pedidos ativos na cozinha", value: obterPedidosAtivos(todosPedidos).length },
+                { label: "Pedidos ativos na cozinha", value: resumo.pedidosAtivosCozinha ?? 0 },
               ].map((item) => (<div key={item.label}>
                     <div className="flex items-center justify-between gap-4 text-sm text-app-cinza">
                       <span>{item.label}</span>

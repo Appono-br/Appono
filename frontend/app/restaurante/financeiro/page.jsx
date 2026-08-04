@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { apiRequest } from "@/lib/api";
 import { textoStatusPedido, textoStatusRepasse } from "@/lib/formatadores-status";
+import { TelaCarregandoSessao, useSessaoLocal } from "@/lib/use-sessao-local";
 import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 const navItems = [
     { label: "Home", href: "/restaurante/home" },
@@ -24,22 +25,17 @@ const financeCards = [
         description: "Total aprovado no Mercado Pago, sem pedidos cancelados.",
     },
     {
-        label: "Previsto para restaurante",
-        key: "valor_restaurante",
-        description: "Valor liquido estimado apos a taxa da plataforma.",
+        label: "Liquido recebido",
+        key: "valor_liquido_recebido",
+        description: "Valor do restaurante em pedidos pagos e nao cancelados.",
     },
     {
         label: "Retido ate entrega",
         key: "valor_a_receber",
         description: "Pedidos pagos que ainda aguardam conclusao.",
     },
-    {
-        label: "Liberado para repasse",
-        key: "valor_liberado",
-        description: "Pedidos entregues e prontos para repasse.",
-    },
 ];
-const tableHeaders = ["Pedido", "Cliente", "Reserva", "Pedido", "Repasse", "Valor previsto"];
+const tableHeaders = ["Pedido", "Cliente", "Reserva", "Pedido", "Repasse", "Valor liquido"];
 const periodos = [
     { label: "Hoje", value: "hoje" },
     { label: "7 dias", value: "7d" },
@@ -158,14 +154,14 @@ function obterTextoStatusMercadoPago(status) {
     return statusMap[status] ?? "Nao conectado";
 }
 export default function RestaurantFinancialReportPage() {
-    const [session, setSession] = useState(null);
-    const [sessaoCarregada, setSessaoCarregada] = useState(false);
+    const { sessao: session, sessaoCarregada } = useSessaoLocal();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [conexaoMercadoPago, setConexaoMercadoPago] = useState(null);
     const [resumoFinanceiro, setResumoFinanceiro] = useState({
         valor_bruto: 0,
         valor_comissao_app: 0,
         valor_restaurante: 0,
+        valor_liquido_recebido: 0,
         quantidade_pagamentos: 0,
         quantidade_liberados: 0,
         valor_a_receber: 0,
@@ -180,24 +176,6 @@ export default function RestaurantFinancialReportPage() {
         gatilho_repasse: "ENTREGA_DO_PEDIDO",
     });
     const isRestaurant = session?.type === "restaurant";
-
-    useEffect(() => {
-        apiRequest("/me")
-            .then((resposta) => {
-                const sessionType = resposta.tipo === "restaurante" ? "restaurant" : "client";
-                const sessaoAtualizada = {
-                    type: sessionType,
-                    name: resposta.perfil?.nome ?? "Perfil Appono",
-                };
-                window.localStorage.setItem("appono:session", JSON.stringify(sessaoAtualizada));
-                setSession(sessaoAtualizada);
-            })
-            .catch((error) => {
-                setSession(null);
-                setMensagemMercadoPago(error instanceof Error ? error.message : "Entre novamente para conectar o Mercado Pago.");
-            })
-            .finally(() => setSessaoCarregada(true));
-    }, []);
 
     useEffect(() => {
         if (!sessaoCarregada) {
@@ -228,15 +206,7 @@ export default function RestaurantFinancialReportPage() {
     }, [isRestaurant, sessaoCarregada, periodoAtivo]);
 
     if (!sessaoCarregada) {
-        return (<main className="flex min-h-screen items-center justify-center bg-app-chantilly px-5 text-app-cafe-profundo">
-        <section className="w-full max-w-lg rounded-[8px] bg-app-creme-leve p-8 text-center shadow-sm ring-1 ring-app-baunilha-dourada">
-          <Image src="/brand/appono-mark.svg" alt="Appono" width={88} height={88} className="mx-auto h-20 w-20" priority/>
-          <h1 className="mt-6 text-3xl font-semibold">Validando sessao</h1>
-          <p className="mt-3 text-sm leading-6 text-app-cinza">
-            Estamos conferindo se esta conta pertence a um restaurante.
-          </p>
-        </section>
-      </main>);
+        return <TelaCarregandoSessao />;
     }
     if (!isRestaurant) {
         return (<main className="flex min-h-screen items-center justify-center bg-app-chantilly px-5 text-app-cafe-profundo">
@@ -307,7 +277,7 @@ export default function RestaurantFinancialReportPage() {
           </div>
         </div>
 
-        <section className="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+        <section className="mt-10 grid gap-5 md:grid-cols-3">
           {financeCards.map((card, index) => (<FinanceCard key={card.label} label={card.label} value={resumoFinanceiro[card.key]} description={card.description} featured={index === 1}/>))}
         </section>
 
@@ -395,6 +365,9 @@ export default function RestaurantFinancialReportPage() {
             <div className="mt-6 grid gap-3 text-sm leading-6 text-app-mocha">
               <p>
                 <strong className="text-app-cafe-profundo">Pedidos pagos:</strong> mostra o total aprovado pelos clientes no periodo selecionado.
+              </p>
+              <p>
+                <strong className="text-app-cafe-profundo">Liquido recebido:</strong> mostra a parte do restaurante sobre pedidos pagos e validos, mesmo antes da liberacao do repasse.
               </p>
               <p>
                 <strong className="text-app-cafe-profundo">Retido ate entrega:</strong> valor ainda protegido pela Appono enquanto o pedido nao foi entregue.
