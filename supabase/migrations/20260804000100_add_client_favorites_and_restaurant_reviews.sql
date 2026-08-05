@@ -45,6 +45,7 @@ grant select on table public.avaliacoes_restaurante to anon;
 grant usage, select on sequence public.restaurantes_favoritos_id_favorito_seq to authenticated;
 grant usage, select on sequence public.avaliacoes_restaurante_id_avaliacao_seq to authenticated;
 
+drop policy if exists "Cliente gerencia seus restaurantes favoritos" on public.restaurantes_favoritos;
 create policy "Cliente gerencia seus restaurantes favoritos"
 on public.restaurantes_favoritos for all to authenticated
 using (id_cliente in (
@@ -54,10 +55,12 @@ with check (id_cliente in (
   select c.id_cliente from public.clientes c where c.id_auth = (select auth.uid())
 ));
 
+drop policy if exists "Leitura publica de avaliacoes" on public.avaliacoes_restaurante;
 create policy "Leitura publica de avaliacoes"
 on public.avaliacoes_restaurante for select to anon, authenticated
 using (true);
 
+drop policy if exists "Cliente gerencia suas avaliacoes" on public.avaliacoes_restaurante;
 create policy "Cliente gerencia suas avaliacoes"
 on public.avaliacoes_restaurante for all to authenticated
 using (id_cliente in (
