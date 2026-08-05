@@ -122,7 +122,7 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
       return;
     }
     try {
-      const company = await apiRequest(`/validacoes/cnpj/${somenteNumeros(form.cnpj)}`);
+      const company = await apiRequest(`/validacoes/cnpj/${somenteNumeros(form.cnpj)}`, { auth: false });
       setForm((current) => ({
         ...current,
         legalName: company.razaoSocial || current.legalName,
@@ -138,7 +138,7 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
       return;
     }
     try {
-      const address = await apiRequest(`/validacoes/cep/${somenteNumeros(form.cep)}`);
+      const address = await apiRequest(`/validacoes/cep/${somenteNumeros(form.cep)}`, { auth: false });
       setForm((current) => ({
         ...current,
         address: address.rua || current.address,
@@ -163,6 +163,7 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
     try {
       const response = await apiRequest(isGoogleFlow ? "/auth/google/restaurant" : "/auth/register/restaurant", {
         method: "POST",
+        auth: isGoogleFlow,
         body: JSON.stringify(form),
       });
       const session = response.session ?? googleSession;

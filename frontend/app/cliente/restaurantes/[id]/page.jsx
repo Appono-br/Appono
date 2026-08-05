@@ -45,12 +45,13 @@ function Icon({ type, className = "h-5 w-5" }) {
     minus: "M5 12h14",
     plus: "M12 5v14M5 12h14",
     receipt: "M7 3h10v18l-2-1-2 1-2-1-2 1-2-1V3z M9 8h6M9 12h6M9 16h4",
+    star: "m12 3 2.7 5.48 6.05.88-4.38 4.27 1.03 6.02L12 16.82l-5.4 2.83 1.03-6.02-4.38-4.27 6.05-.88L12 3Z",
     utensils: "M7 3v8M4 3v8M10 3v8M4 11h6M7 11v10M17 3v18M14 3h3a3 3 0 0 1 3 3v5a3 3 0 0 1-3 3h-3",
   };
 
   return (
     <svg aria-hidden="true" viewBox="0 0 24 24" className={className}>
-      <path d={paths[type]} fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" />
+      <path d={paths[type]} fill={type === "star" ? "currentColor" : "none"} stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" />
     </svg>
   );
 }
@@ -79,6 +80,32 @@ function obterLinhasHorarioFuncionamento(horarioFuncionamento) {
     .split("|")
     .map((linha) => linha.trim())
     .filter(Boolean);
+}
+
+function formatarDataAvaliacao(data) {
+  if (!data) {
+    return "";
+  }
+  return new Date(data).toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+}
+
+function EstrelasNota({ nota, className = "" }) {
+  const notaNumerica = Number(nota ?? 0);
+  return (
+    <span className={`inline-flex items-center gap-0.5 ${className}`} aria-label={`Nota ${notaNumerica} de 5`}>
+      {[1, 2, 3, 4, 5].map((estrela) => (
+        <Icon
+          key={estrela}
+          type="star"
+          className={`h-3.5 w-3.5 ${estrela <= Math.round(notaNumerica) ? "text-app-dourado-mel" : "text-app-baunilha-dourada"}`}
+        />
+      ))}
+    </span>
+  );
 }
 
 export default function PaginaRestaurante({ params }) {
@@ -160,6 +187,9 @@ export default function PaginaRestaurante({ params }) {
   const horarioFimSelecionado = slotSelecionado?.horario_fim ?? (horarioSelecionado ? adicionarDuasHoras(horarioSelecionado) : "");
   const operacaoConfigurada = disponibilidade.operacao_configurada === true;
   const resumoCardapio = `${produtos.length} ${produtos.length === 1 ? "item" : "itens"} publicados`;
+  const avaliacaoMedia = Number(restaurante?.avaliacao_media ?? 0);
+  const totalAvaliacoes = Number(restaurante?.total_avaliacoes ?? 0);
+  const avaliacoesRecentes = restaurante?.avaliacoes_recentes ?? [];
   const menorTempoCardapio = produtos.length
     ? Math.min(...produtos.map((produto) => Number(produto.tempo_preparo_minutos ?? 30)))
     : 0;
@@ -321,6 +351,10 @@ export default function PaginaRestaurante({ params }) {
                       A partir de {menorTempoCardapio} min
                     </span>
                   ) : null}
+                  <span className="inline-flex items-center gap-2 rounded-full bg-app-creme-suave px-3 py-1 text-xs font-bold text-app-mocha">
+                    {totalAvaliacoes ? <EstrelasNota nota={avaliacaoMedia} /> : <Icon type="star" className="h-3.5 w-3.5 text-app-dourado-mel" />}
+                    {totalAvaliacoes ? `${avaliacaoMedia.toFixed(1)} (${totalAvaliacoes})` : "Novo na Appono"}
+                  </span>
                 </div>
               </div>
 
@@ -342,6 +376,40 @@ export default function PaginaRestaurante({ params }) {
 
         <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
           <section className="grid gap-6">
+            <section className="rounded-[18px] bg-app-creme-leve p-5 shadow-sm ring-1 ring-app-baunilha-dourada sm:p-6">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">Avaliações</p>
+                  <h2 className="mt-1 text-2xl font-bold">Experiências de clientes</h2>
+                </div>
+                <div className="flex w-fit items-center gap-2 rounded-full bg-app-chantilly px-4 py-2 text-sm font-bold text-app-cafe-profundo ring-1 ring-app-baunilha-dourada/60">
+                  {totalAvaliacoes ? <EstrelasNota nota={avaliacaoMedia} /> : <Icon type="star" className="h-4 w-4 text-app-dourado-mel" />}
+                  {totalAvaliacoes ? `${avaliacaoMedia.toFixed(1)} de 5` : "Sem avaliações"}
+                </div>
+              </div>
+              {avaliacoesRecentes.length ? (
+                <div className="mt-5 grid gap-3 md:grid-cols-2">
+                  {avaliacoesRecentes.map((avaliacao) => (
+                    <article key={avaliacao.id_avaliacao} className="rounded-[12px] bg-app-chantilly p-4 ring-1 ring-app-baunilha-dourada/60">
+                      <div className="flex items-center justify-between gap-3">
+                        <strong className="truncate text-sm text-app-cafe-profundo">{avaliacao.clientes?.nome ?? "Cliente Appono"}</strong>
+                        <span className="inline-flex items-center gap-2 rounded-full bg-app-creme-suave px-2.5 py-1 text-xs font-bold text-app-caramelo-torrado">
+                          <EstrelasNota nota={avaliacao.nota} />
+                          {avaliacao.nota}/5
+                        </span>
+                      </div>
+                      <p className="mt-3 text-sm leading-6 text-app-mocha">{avaliacao.comentario}</p>
+                      <p className="mt-3 text-xs text-app-cinza">{formatarDataAvaliacao(avaliacao.created_at)}</p>
+                    </article>
+                  ))}
+                </div>
+              ) : (
+                <p className="mt-4 rounded-[12px] bg-app-chantilly p-4 text-sm leading-6 text-app-mocha ring-1 ring-app-baunilha-dourada/60">
+                  As avaliações aparecerão aqui depois que os clientes concluírem reservas ou pedidos.
+                </p>
+              )}
+            </section>
+
             {produtosDestaque.length ? (
               <section className="rounded-[18px] bg-app-cafe-profundo p-5 text-app-creme-leve shadow-sm ring-1 ring-app-baunilha-dourada/50 sm:p-6">
                 <div className="flex flex-wrap items-end justify-between gap-3">

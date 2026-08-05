@@ -44,7 +44,8 @@ function usuarioEhAdministrador(user) {
 }
 async function obterPerfil(accessToken, userId) {
     const supabase = (0, supabase_1.createUserSupabaseClient)(accessToken);
-    const { data: usuarioAtual } = await supabase_1.supabaseAuth.auth.getUser(accessToken);
+    const clienteAutenticacao = supabase_1.supabaseAdmin ?? supabase_1.supabaseAuth;
+    const { data: usuarioAtual } = await clienteAutenticacao.auth.getUser(accessToken);
     if (usuarioEhAdministrador(usuarioAtual?.user)) {
         return {
             tipo: "admin",

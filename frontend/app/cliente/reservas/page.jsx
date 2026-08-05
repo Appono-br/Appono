@@ -36,10 +36,11 @@ function Icon({ type, className = "h-5 w-5", }) {
         people: "M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2M9.5 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z M22 21v-2a4 4 0 0 0-3-3.9",
         menu: "M4 7h16M4 12h16M4 17h16",
         plus: "M12 5v14M5 12h14",
+        star: "m12 3 2.7 5.48 6.05.88-4.38 4.27 1.03 6.02L12 16.82l-5.4 2.83 1.03-6.02-4.38-4.27 6.05-.88L12 3Z",
         wallet: "M4 7h16v12H4V7z M4 7l12-3v3M15 12h5",
     };
     return (<svg aria-hidden="true" viewBox="0 0 24 24" className={className}>
-      <path d={paths[type]} fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8"/>
+      <path d={paths[type]} fill={type === "star" ? "currentColor" : "none"} stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8"/>
     </svg>);
 }
 function formatarDataReserva(data) {
@@ -171,6 +172,11 @@ export default function ReservationsPage() {
     const [reservations, setReservations] = useState([]);
     const [reservaParaCancelar, setReservaParaCancelar] = useState(null);
     const [cancelandoReserva, setCancelandoReserva] = useState(false);
+    const [reservaParaAvaliar, setReservaParaAvaliar] = useState(null);
+    const [notaAvaliacao, setNotaAvaliacao] = useState(5);
+    const [comentarioAvaliacao, setComentarioAvaliacao] = useState("");
+    const [avaliando, setAvaliando] = useState(false);
+    const [mensagemAvaliacao, setMensagemAvaliacao] = useState("");
     const [period, setPeriod] = useState({
         month: today.getMonth(),
         year: today.getFullYear(),
@@ -189,12 +195,14 @@ export default function ReservationsPage() {
                     const canceledOrder = reservation.pedidos?.find((order) => order.status_pedido === "CANCELADO");
                     return {
                         id: String(reservation.id_reserva),
+                        restaurantId: reservation.id_restaurante,
                         date: reservation.data_reserva,
                         time: reservation.horario_inicio,
                         status: reservation.status_reserva,
                         restaurant: reservation.restaurantes?.nome ?? "Restaurante",
                         people: reservation.quantidade_pessoas,
                         minimumTotal: reservation.valor_minimo_total,
+                        avaliacao: reservation.avaliacao_restaurante ?? null,
                         activeOrder: activeOrder
                             ? {
                                 id: activeOrder.id_pedido,
@@ -245,6 +253,49 @@ export default function ReservationsPage() {
         }
         catch {
             return;
+        }
+    }
+    async function abrirAvaliacao(reservation) {
+        setReservaParaAvaliar(reservation);
+        setNotaAvaliacao(5);
+        setComentarioAvaliacao("");
+        setMensagemAvaliacao("");
+        try {
+            const avaliacao = await apiRequest(`/restaurantes/${reservation.restaurantId}/minha-avaliacao`);
+            if (avaliacao) {
+                setNotaAvaliacao(Number(avaliacao.nota ?? 5));
+                setComentarioAvaliacao(avaliacao.comentario ?? "");
+            }
+        }
+        catch {
+            return;
+        }
+    }
+    async function enviarAvaliacao() {
+        if (!reservaParaAvaliar) {
+            return;
+        }
+        setAvaliando(true);
+        setMensagemAvaliacao("");
+        try {
+            const resposta = await apiRequest(`/restaurantes/${reservaParaAvaliar.restaurantId}/avaliacoes`, {
+                method: "POST",
+                body: JSON.stringify({
+                    nota: notaAvaliacao,
+                    comentario: comentarioAvaliacao.trim() || null,
+                }),
+            });
+            setMensagemAvaliacao("Avaliação registrada com sucesso.");
+            setReservations((atuais) => atuais.map((reserva) => reserva.restaurantId === reservaParaAvaliar.restaurantId
+                ? { ...reserva, avaliacao: resposta.avaliacao ?? { nota: notaAvaliacao, comentario: comentarioAvaliacao.trim() || null } }
+                : reserva));
+            setTimeout(() => setReservaParaAvaliar(null), 700);
+        }
+        catch (error) {
+            setMensagemAvaliacao(error instanceof Error ? error.message : "Não foi possível registrar a avaliação.");
+        }
+        finally {
+            setAvaliando(false);
         }
     }
     return (<main className="flex min-h-screen flex-col bg-app-chantilly text-app-cafe-profundo">
@@ -432,6 +483,10 @@ export default function ReservationsPage() {
                         <span className={`rounded-full px-3 py-1 text-xs font-bold ${obterStatusReserva(reservation.status).classe}`}>
                           {obterStatusReserva(reservation.status).texto}
                         </span>
+                        {reservation.status === "CONCLUIDA" ? (<button type="button" onClick={() => abrirAvaliacao(reservation)} className={`inline-flex items-center gap-2 rounded-[8px] border px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] transition ${reservation.avaliacao ? "border-app-dourado-mel bg-app-creme-suave text-app-cafe-profundo" : "border-app-baunilha-dourada text-app-caramelo-torrado hover:bg-app-baunilha-dourada hover:text-app-cafe-profundo"}`}>
+                            <Icon type="star" className="h-4 w-4"/>
+                            {reservation.avaliacao ? `Avaliado: ${reservation.avaliacao.nota}/5` : "Avaliar"}
+                          </button>) : null}
                         {["PENDENTE", "CONFIRMADA"].includes(reservation.status) ? (<button type="button" onClick={() => setReservaParaCancelar(reservation)} className="text-xs font-bold text-app-vermelho-erro transition hover:text-app-cafe-profundo">
                             Desmarcar reserva
                           </button>) : null}
@@ -444,7 +499,7 @@ export default function ReservationsPage() {
                         {reservation.status === "CONFIRMADA" && !reservation.activeOrder && !reservaJaIniciou(reservation) ? (<Link href={`/cliente/reservas/${reservation.id}/pedido`} className="rounded-[8px] bg-app-dourado-mel px-4 py-2 text-xs font-bold text-white transition hover:bg-app-caramelo-torrado">
                             Adicionar pedido antecipado
                           </Link>) : null}
-                        {["CANCELADA", "RECUSADA"].includes(reservation.status) ? (<button type="button" onClick={() => excluirReservaDaLista(reservation.id)} className="text-xs font-bold text-app-cinza transition hover:text-app-vermelho-erro">
+                        {["CANCELADA", "RECUSADA", "CONCLUIDA"].includes(reservation.status) ? (<button type="button" onClick={() => excluirReservaDaLista(reservation.id)} className="text-xs font-bold text-app-cinza transition hover:text-app-vermelho-erro">
                             Excluir da lista
                           </button>) : null}
                       </div>
@@ -454,6 +509,43 @@ export default function ReservationsPage() {
           </section>
         </div>
       </section>
+
+      {reservaParaAvaliar ? (<div className="fixed inset-0 z-50 flex items-center justify-center bg-app-cafe-profundo/70 px-5 backdrop-blur-sm">
+          <section className="w-full max-w-md rounded-[16px] bg-app-creme-leve p-6 text-app-cafe-profundo shadow-xl ring-1 ring-app-baunilha-dourada/70">
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">
+              Avaliação da experiência
+            </p>
+            <h2 className="mt-3 text-2xl font-semibold">
+              Como foi no {reservaParaAvaliar.restaurant}?
+            </h2>
+            <p className="mt-3 text-sm leading-6 text-app-mocha">
+              Sua avaliação ajuda outros clientes e melhora a visibilidade dos restaurantes mais bem avaliados na Appono.
+            </p>
+            <div className="mt-6 rounded-[12px] bg-app-chantilly p-4 ring-1 ring-app-baunilha-dourada/60">
+              <p className="text-xs font-bold uppercase tracking-[0.16em] text-app-cinza">Nota</p>
+              <div className="mt-3 flex gap-2">
+                {[1, 2, 3, 4, 5].map((nota) => (<button key={nota} type="button" onClick={() => setNotaAvaliacao(nota)} className={`flex h-10 w-10 items-center justify-center rounded-full border bg-app-creme-leve transition ${nota <= notaAvaliacao ? "border-app-dourado-mel text-app-dourado-mel shadow-sm" : "border-app-baunilha-dourada text-app-mocha hover:border-app-dourado-mel hover:text-app-dourado-mel"}`} aria-label={`${nota} estrela${nota > 1 ? "s" : ""}`}>
+                    <Icon type="star" className="h-5 w-5"/>
+                  </button>))}
+              </div>
+              <label className="mt-5 grid gap-2 text-xs font-bold uppercase tracking-[0.12em] text-app-cinza">
+                Comentário opcional
+                <textarea value={comentarioAvaliacao} onChange={(event) => setComentarioAvaliacao(event.target.value.slice(0, 280))} placeholder="Conte brevemente como foi sua experiência..." className="min-h-24 rounded-[10px] border border-app-baunilha-dourada bg-app-creme-leve p-3 text-sm font-normal normal-case text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20"/>
+              </label>
+            </div>
+            {mensagemAvaliacao ? (<p className="mt-4 rounded-[10px] bg-app-chantilly p-3 text-sm font-semibold text-app-caramelo-torrado ring-1 ring-app-baunilha-dourada/60">
+                {mensagemAvaliacao}
+              </p>) : null}
+            <div className="mt-6 grid gap-3 sm:grid-cols-2">
+              <button type="button" onClick={() => setReservaParaAvaliar(null)} disabled={avaliando} className="h-11 rounded-[8px] border border-app-baunilha-dourada px-4 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:bg-app-chantilly disabled:cursor-not-allowed disabled:text-app-cinza">
+                Agora não
+              </button>
+              <button type="button" onClick={enviarAvaliacao} disabled={avaliando} className="h-11 rounded-[8px] bg-app-dourado-mel px-4 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-60">
+                {avaliando ? "Salvando..." : "Salvar avaliação"}
+              </button>
+            </div>
+          </section>
+        </div>) : null}
 
       {reservaParaCancelar ? (<div className="fixed inset-0 z-50 flex items-center justify-center bg-app-cafe-profundo/70 px-5 backdrop-blur-sm">
           <section className="w-full max-w-md rounded-[16px] bg-app-creme-leve p-6 text-app-cafe-profundo shadow-xl ring-1 ring-app-baunilha-dourada/70">

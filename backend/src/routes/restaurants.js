@@ -3,9 +3,34 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.restaurantsRouter = void 0;
 const express_1 = require("express");
 const supabase_1 = require("../lib/supabase");
+const auth_1 = require("../middleware/auth");
 exports.restaurantsRouter = (0, express_1.Router)();
 function obterClienteLeituraPublica() {
     return supabase_1.supabaseAdmin ?? supabase_1.supabaseAuth;
+}
+async function obterUsuarioOpcional(req) {
+    const authorization = req.headers.authorization;
+    if (!authorization?.startsWith("Bearer ")) {
+        return null;
+    }
+    const accessToken = authorization.slice(7);
+    const clienteAutenticacao = supabase_1.supabaseAdmin ?? supabase_1.supabaseAuth;
+    const { data: { user } } = await clienteAutenticacao.auth.getUser(accessToken);
+    return user ?? null;
+}
+async function obterClientePorUsuario(userId) {
+    if (!userId) {
+        return null;
+    }
+    const { data, error } = await obterClienteLeituraPublica()
+        .from("clientes")
+        .select("id_cliente")
+        .eq("id_auth", userId)
+        .maybeSingle();
+    if (error) {
+        throw new Error(error.message);
+    }
+    return data ?? null;
 }
 function ordenarPorExibicaoENome(a, b) {
     const ordemA = Number(a.ordem_exibicao ?? 0);
@@ -29,6 +54,101 @@ function organizarCardapiosPublicos(cardapios) {
             }))
             .filter((categoria) => categoria.produtos.length > 0),
     }));
+}
+function normalizarBusca(valor) {
+    return String(valor ?? "")
+        .trim()
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+}
+function restauranteCorrespondeBusca(restaurante, termo) {
+    if (!termo) {
+        return true;
+    }
+    return [
+        restaurante.nome,
+        restaurante.razao_social,
+        restaurante.endereco,
+        restaurante.cep,
+        restaurante.horario_funcionamento,
+    ].map(normalizarBusca).join(" ").includes(termo);
+}
+async function obterProdutosCorrespondentes(termo) {
+    if (!termo) {
+        return new Map();
+    }
+    const { data, error } = await obterClienteLeituraPublica()
+        .from("produtos")
+        .select("id_restaurante, nome, descricao")
+        .eq("disponivel", true)
+        .eq("arquivado", false);
+    if (error) {
+        return new Map();
+    }
+    return (data ?? []).reduce((mapa, produto) => {
+        const conteudo = [produto.nome, produto.descricao].map(normalizarBusca).join(" ");
+        if (!conteudo.includes(termo)) {
+            return mapa;
+        }
+        const atuais = mapa.get(produto.id_restaurante) ?? [];
+        atuais.push({ nome: produto.nome, descricao: produto.descricao });
+        mapa.set(produto.id_restaurante, atuais.slice(0, 3));
+        return mapa;
+    }, new Map());
+}
+async function obterMetricasRestaurantes(idsRestaurantes, idCliente) {
+    const ids = [...new Set((idsRestaurantes ?? []).filter(Boolean))];
+    const metricas = new Map(ids.map((id) => [id, {
+        avaliacao_media: null,
+        total_avaliacoes: 0,
+        total_favoritos: 0,
+        favorito_cliente: false,
+    }]));
+    if (!ids.length) {
+        return metricas;
+    }
+    const cliente = obterClienteLeituraPublica();
+    const [avaliacoesResposta, favoritosResposta, favoritosClienteResposta] = await Promise.all([
+        cliente.from("avaliacoes_restaurante").select("id_restaurante, nota").in("id_restaurante", ids),
+        cliente.from("restaurantes_favoritos").select("id_restaurante").in("id_restaurante", ids),
+        idCliente
+            ? cliente.from("restaurantes_favoritos").select("id_restaurante").eq("id_cliente", idCliente).in("id_restaurante", ids)
+            : Promise.resolve({ data: [], error: null }),
+    ]);
+    if (!avaliacoesResposta.error) {
+        const agrupadas = new Map();
+        for (const avaliacao of avaliacoesResposta.data ?? []) {
+            const atual = agrupadas.get(avaliacao.id_restaurante) ?? { soma: 0, total: 0 };
+            atual.soma += Number(avaliacao.nota ?? 0);
+            atual.total += 1;
+            agrupadas.set(avaliacao.id_restaurante, atual);
+        }
+        for (const [id, dados] of agrupadas.entries()) {
+            const metrica = metricas.get(id);
+            if (metrica) {
+                metrica.avaliacao_media = Number((dados.soma / dados.total).toFixed(1));
+                metrica.total_avaliacoes = dados.total;
+            }
+        }
+    }
+    if (!favoritosResposta.error) {
+        for (const favorito of favoritosResposta.data ?? []) {
+            const metrica = metricas.get(favorito.id_restaurante);
+            if (metrica) {
+                metrica.total_favoritos += 1;
+            }
+        }
+    }
+    if (!favoritosClienteResposta.error) {
+        for (const favorito of favoritosClienteResposta.data ?? []) {
+            const metrica = metricas.get(favorito.id_restaurante);
+            if (metrica) {
+                metrica.favorito_cliente = true;
+            }
+        }
+    }
+    return metricas;
 }
 
 const diasSemanaOperacao = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
@@ -157,16 +277,36 @@ function montarHorariosOperacionais({ restaurante, dataReserva, pessoas, tempoPr
         motivo: horarios.length ? null : "Nao ha turnos validos nesta data.",
     };
 }
-exports.restaurantsRouter.get("/", async (_req, res) => {
-    const { data, error } = await obterClienteLeituraPublica()
-        .from("restaurantes")
-        .select("id_restaurante, nome, telefone, email, cep, endereco, horario_funcionamento, logo_url")
-        .eq("ativo", true)
-        .order("nome");
-    if (error) {
-        return res.status(400).json({ error: error.message });
+exports.restaurantsRouter.get("/", async (req, res) => {
+    try {
+        const termoBusca = normalizarBusca(req.query.q);
+        const usuario = await obterUsuarioOpcional(req);
+        const cliente = await obterClientePorUsuario(usuario?.id);
+        const [restaurantesResposta, produtosCorrespondentes] = await Promise.all([
+            obterClienteLeituraPublica()
+                .from("restaurantes")
+                .select("id_restaurante, nome, razao_social, telefone, email, cep, endereco, horario_funcionamento, logo_url, valor_minimo_reserva_por_pessoa")
+                .eq("ativo", true)
+                .order("nome"),
+            obterProdutosCorrespondentes(termoBusca),
+        ]);
+        if (restaurantesResposta.error) {
+            return res.status(400).json({ error: restaurantesResposta.error.message });
+        }
+        const restaurantesFiltrados = (restaurantesResposta.data ?? []).filter((restaurante) => restauranteCorrespondeBusca(restaurante, termoBusca) ||
+            produtosCorrespondentes.has(restaurante.id_restaurante));
+        const metricas = await obterMetricasRestaurantes(restaurantesFiltrados.map((restaurante) => restaurante.id_restaurante), cliente?.id_cliente);
+        return res.json(restaurantesFiltrados.map((restaurante) => ({
+            ...restaurante,
+            produtos_encontrados: produtosCorrespondentes.get(restaurante.id_restaurante) ?? [],
+            ...(metricas.get(restaurante.id_restaurante) ?? {}),
+        })));
     }
-    return res.json(data);
+    catch (error) {
+        return res.status(400).json({
+            error: error instanceof Error ? error.message : "Não foi possível listar restaurantes.",
+        });
+    }
 });
 exports.restaurantsRouter.get("/:id/disponibilidade", async (req, res) => {
     const restaurantId = Number(req.params.id);
@@ -215,16 +355,161 @@ exports.restaurantsRouter.get("/:id", async (req, res) => {
     if (!Number.isFinite(restaurantId)) {
         return res.status(400).json({ error: "Restaurante invalido." });
     }
-    const { data, error } = await obterClienteLeituraPublica()
-        .from("restaurantes")
-        .select("id_restaurante, nome, telefone, email, endereco, horario_funcionamento, logo_url, valor_minimo_reserva_por_pessoa, configuracao_operacao")
-        .eq("id_restaurante", restaurantId)
-        .eq("ativo", true)
-        .single();
-    if (error) {
-        return res.status(404).json({ error: "Restaurante nao encontrado." });
+    try {
+        const usuario = await obterUsuarioOpcional(req);
+        const cliente = await obterClientePorUsuario(usuario?.id);
+        const [{ data, error }, metricas, { data: avaliacoes }] = await Promise.all([
+            obterClienteLeituraPublica()
+                .from("restaurantes")
+                .select("id_restaurante, nome, telefone, email, endereco, horario_funcionamento, logo_url, valor_minimo_reserva_por_pessoa, configuracao_operacao")
+                .eq("id_restaurante", restaurantId)
+                .eq("ativo", true)
+                .single(),
+            obterMetricasRestaurantes([restaurantId], cliente?.id_cliente),
+            obterClienteLeituraPublica()
+                .from("avaliacoes_restaurante")
+                .select("id_avaliacao, nota, comentario, created_at, clientes(nome)")
+                .eq("id_restaurante", restaurantId)
+                .order("created_at", { ascending: false })
+                .limit(4),
+        ]);
+        if (error) {
+            return res.status(404).json({ error: "Restaurante nao encontrado." });
+        }
+        return res.json({
+            ...data,
+            ...(metricas.get(restaurantId) ?? {}),
+            avaliacoes_recentes: (avaliacoes ?? []).filter((avaliacao) => avaliacao.comentario),
+        });
     }
-    return res.json(data);
+    catch (error) {
+        return res.status(400).json({
+            error: error instanceof Error ? error.message : "Não foi possível carregar o restaurante.",
+        });
+    }
+});
+exports.restaurantsRouter.patch("/:id/favorito", auth_1.requireAuth, async (req, res) => {
+    const restaurantId = Number(req.params.id);
+    const favorito = Boolean(req.body?.favorito);
+    if (!Number.isFinite(restaurantId)) {
+        return res.status(400).json({ error: "Restaurante inválido." });
+    }
+    try {
+        if (!res.locals.user?.id) {
+            return res.status(403).json({ error: "Apenas clientes podem favoritar restaurantes." });
+        }
+        const cliente = await obterClientePorUsuario(res.locals.user?.id);
+        if (!cliente) {
+            return res.status(403).json({ error: "Cliente não encontrado." });
+        }
+        const banco = obterClienteLeituraPublica();
+        if (favorito) {
+            const { error } = await banco
+                .from("restaurantes_favoritos")
+                .upsert({ id_cliente: cliente.id_cliente, id_restaurante: restaurantId }, { onConflict: "id_cliente,id_restaurante" });
+            if (error) {
+                throw new Error(error.message);
+            }
+        }
+        else {
+            const { error } = await banco
+                .from("restaurantes_favoritos")
+                .delete()
+                .eq("id_cliente", cliente.id_cliente)
+                .eq("id_restaurante", restaurantId);
+            if (error) {
+                throw new Error(error.message);
+            }
+        }
+        const metricas = await obterMetricasRestaurantes([restaurantId], cliente.id_cliente);
+        return res.json({ id_restaurante: restaurantId, ...(metricas.get(restaurantId) ?? {}) });
+    }
+    catch (error) {
+        return res.status(400).json({
+            error: error instanceof Error ? error.message : "Não foi possível atualizar favorito.",
+        });
+    }
+});
+exports.restaurantsRouter.get("/:id/minha-avaliacao", auth_1.requireAuth, async (req, res) => {
+    const restaurantId = Number(req.params.id);
+    if (!Number.isFinite(restaurantId)) {
+        return res.status(400).json({ error: "Restaurante inválido." });
+    }
+    try {
+        if (!res.locals.user?.id) {
+            return res.status(403).json({ error: "Apenas clientes podem consultar avaliações próprias." });
+        }
+        const cliente = await obterClientePorUsuario(res.locals.user?.id);
+        if (!cliente) {
+            return res.status(403).json({ error: "Cliente não encontrado." });
+        }
+        const { data, error } = await obterClienteLeituraPublica()
+            .from("avaliacoes_restaurante")
+            .select("*")
+            .eq("id_cliente", cliente.id_cliente)
+            .eq("id_restaurante", restaurantId)
+            .maybeSingle();
+        if (error) {
+            throw new Error(error.message);
+        }
+        return res.json(data);
+    }
+    catch (error) {
+        return res.status(400).json({
+            error: error instanceof Error ? error.message : "Não foi possível carregar a avaliação.",
+        });
+    }
+});
+exports.restaurantsRouter.post("/:id/avaliacoes", auth_1.requireAuth, async (req, res) => {
+    const restaurantId = Number(req.params.id);
+    const nota = Number(req.body?.nota);
+    const comentario = String(req.body?.comentario ?? "").trim() || null;
+    if (!Number.isFinite(restaurantId) || !Number.isInteger(nota) || nota < 1 || nota > 5) {
+        return res.status(400).json({ error: "Informe uma nota de 1 a 5." });
+    }
+    try {
+        if (!res.locals.user?.id) {
+            return res.status(403).json({ error: "Apenas clientes podem avaliar restaurantes." });
+        }
+        const cliente = await obterClientePorUsuario(res.locals.user?.id);
+        if (!cliente) {
+            return res.status(403).json({ error: "Cliente não encontrado." });
+        }
+        const banco = obterClienteLeituraPublica();
+        const [reservaResposta, pedidoResposta] = await Promise.all([
+            banco.from("reservas").select("id_reserva").eq("id_cliente", cliente.id_cliente).eq("id_restaurante", restaurantId).eq("status_reserva", "CONCLUIDA").limit(1),
+            banco.from("pedidos").select("id_pedido").eq("id_cliente", cliente.id_cliente).eq("id_restaurante", restaurantId).eq("status_pedido", "ENTREGUE").limit(1),
+        ]);
+        const reserva = reservaResposta.data?.[0] ?? null;
+        const pedido = pedidoResposta.data?.[0] ?? null;
+        if (!reserva && !pedido) {
+            return res.status(403).json({
+                error: "Finalize uma reserva ou receba um pedido antes de avaliar este restaurante.",
+            });
+        }
+        const { data, error } = await banco
+            .from("avaliacoes_restaurante")
+            .upsert({
+                id_cliente: cliente.id_cliente,
+                id_restaurante: restaurantId,
+                id_reserva: reserva?.id_reserva ?? null,
+                id_pedido: pedido?.id_pedido ?? null,
+                nota,
+                comentario,
+            }, { onConflict: "id_cliente,id_restaurante" })
+            .select("*")
+            .single();
+        if (error) {
+            throw new Error(error.message);
+        }
+        const metricas = await obterMetricasRestaurantes([restaurantId], cliente.id_cliente);
+        return res.json({ avaliacao: data, ...(metricas.get(restaurantId) ?? {}) });
+    }
+    catch (error) {
+        return res.status(400).json({
+            error: error instanceof Error ? error.message : "Não foi possível registrar a avaliação.",
+        });
+    }
 });
 exports.restaurantsRouter.get("/:id/cardapio", async (req, res) => {
     const restaurantId = Number(req.params.id);

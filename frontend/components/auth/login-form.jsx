@@ -1,9 +1,9 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { apiRequest } from "@/lib/api";
-import { getDashboardPath, persistAuthResponse } from "@/lib/session";
+import { clearAuthResponse, getDashboardPath, persistAuthResponse } from "@/lib/session";
 import { supabase } from "@/lib/supabase";
 
 function obterUrlRecuperacaoSenha() {
@@ -36,14 +36,20 @@ export function LoginForm() {
   const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
   const [isSendingRecovery, setIsSendingRecovery] = useState(false);
 
+  useEffect(() => {
+    clearAuthResponse();
+  }, []);
+
   async function submitLogin(event) {
     event.preventDefault();
     setIsSubmitting(true);
     setMessage("");
     try {
+      clearAuthResponse();
       const email = identifier.trim();
       const auth = await apiRequest("/auth/login", {
         method: "POST",
+        auth: false,
         body: JSON.stringify({ email, password }),
       });
       await persistAuthResponse({ session: auth.session });

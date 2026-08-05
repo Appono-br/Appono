@@ -60,6 +60,7 @@ export function RegisterClientForm({ googleFlow = false }) {
     try {
       const response = await apiRequest(isGoogleFlow ? "/auth/google/client" : "/auth/register/client", {
         method: "POST",
+        auth: isGoogleFlow,
         body: JSON.stringify(form),
       });
       await persistAuthResponse({ ...response, session: response.session ?? googleSession });
@@ -142,7 +143,7 @@ export function RegisterClientForm({ googleFlow = false }) {
                 return;
               }
               try {
-                await apiRequest(`/validacoes/cpf/${somenteNumeros(form.cpf)}`);
+                await apiRequest(`/validacoes/cpf/${somenteNumeros(form.cpf)}`, { auth: false });
               } catch (error) {
                 setMessage(error instanceof Error ? error.message : "CPF invalido.");
               }

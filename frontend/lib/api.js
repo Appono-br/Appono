@@ -22,16 +22,39 @@ function limparCacheGet() {
 async function renovarSessaoExpirada() {
     const tokens = obterTokensAutenticacao();
     if (!tokens?.refreshToken) {
+        const { data } = await supabase.auth.getSession();
+        if (data.session) {
+            salvarTokensAutenticacao(data.session);
+            return data.session.access_token;
+        }
         return null;
     }
     const { data, error } = await supabase.auth.refreshSession({
         refresh_token: tokens.refreshToken,
     });
     if (error || !data.session) {
+        const { data: sessaoAtual } = await supabase.auth.getSession();
+        if (sessaoAtual.session) {
+            salvarTokensAutenticacao(sessaoAtual.session);
+            return sessaoAtual.session.access_token;
+        }
         return null;
     }
     salvarTokensAutenticacao(data.session);
     return data.session.access_token;
+}
+
+async function obterAccessTokenSincronizado() {
+    const tokenSalvo = getAccessToken();
+    if (tokenSalvo) {
+        return tokenSalvo;
+    }
+    const { data } = await supabase.auth.getSession();
+    if (data.session?.access_token) {
+        salvarTokensAutenticacao(data.session);
+        return data.session.access_token;
+    }
+    return null;
 }
 
 async function fazerRequisicao(path, options, accessToken) {
@@ -46,10 +69,10 @@ async function fazerRequisicao(path, options, accessToken) {
 }
 
 export async function apiRequest(path, options = {}) {
-    const { cacheTtlMs = TEMPO_CACHE_GET_MS, forceRefresh = false, ...fetchOptions } = options;
+    const { cacheTtlMs = TEMPO_CACHE_GET_MS, forceRefresh = false, auth = true, ...fetchOptions } = options;
     const metodo = obterMetodo(fetchOptions);
     const podeUsarCache = metodo === "GET" && cacheTtlMs > 0;
-    let accessToken = getAccessToken();
+    let accessToken = auth ? await obterAccessTokenSincronizado() : null;
     const chaveCache = obterChaveCache(path, fetchOptions, accessToken);
     if (podeUsarCache && !forceRefresh) {
         const cache = cacheGet.get(chaveCache);
@@ -71,7 +94,7 @@ export async function apiRequest(path, options = {}) {
         }
         let body = await response.json().catch(() => null);
         const tokenInvalido = response.status === 401 && String(body?.error ?? "").toLowerCase().includes("token");
-        if (tokenInvalido) {
+        if (auth && tokenInvalido) {
             accessToken = await renovarSessaoExpirada();
             if (accessToken) {
                 response = await fazerRequisicao(path, fetchOptions, accessToken);

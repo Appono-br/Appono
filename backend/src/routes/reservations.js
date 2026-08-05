@@ -129,8 +129,22 @@ exports.reservationsRouter.get("/", async (_req, res) => {
     }
     const reservas = data ?? [];
     const idsReservas = reservas.map((reserva) => reserva.id_reserva);
+    const idsRestaurantes = [...new Set(reservas.map((reserva) => reserva.id_restaurante).filter(Boolean))];
+    let avaliacoesPorRestaurante = new Map();
+    if (cliente && idsRestaurantes.length) {
+        const clienteAvaliacoes = supabase_1.supabaseAdmin ?? supabase;
+        const { data: avaliacoes } = await clienteAvaliacoes
+            .from("avaliacoes_restaurante")
+            .select("id_avaliacao, id_restaurante, nota, comentario, created_at")
+            .eq("id_cliente", cliente.id_cliente)
+            .in("id_restaurante", idsRestaurantes);
+        avaliacoesPorRestaurante = new Map((avaliacoes ?? []).map((avaliacao) => [avaliacao.id_restaurante, avaliacao]));
+    }
     if (!idsReservas.length) {
-        return res.json(reservas);
+        return res.json(reservas.map((reserva) => ({
+            ...reserva,
+            avaliacao_restaurante: avaliacoesPorRestaurante.get(reserva.id_restaurante) ?? null,
+        })));
     }
     const clientePedidos = supabase_1.supabaseAdmin ?? supabase;
     const { data: pedidos, error: pedidosError } = await clientePedidos
@@ -142,6 +156,7 @@ exports.reservationsRouter.get("/", async (_req, res) => {
     }
     return res.json(reservas.map((reserva) => ({
         ...reserva,
+        avaliacao_restaurante: avaliacoesPorRestaurante.get(reserva.id_restaurante) ?? null,
         pedidos: (pedidos ?? []).filter((pedido) => pedido.id_reserva === reserva.id_reserva),
     })));
 });
@@ -155,9 +170,53 @@ exports.reservationsRouter.patch("/:id/ocultar", async (req, res) => {
         reserva_id: reservationId,
     });
     if (error) {
-        return res.status(409).json({
-            error: "Apenas reservas canceladas podem ser excluidas da lista.",
-        });
+        if (!supabase_1.supabaseAdmin) {
+            return res.status(409).json({
+                error: "Apenas reservas canceladas ou finalizadas podem ser excluidas da lista.",
+            });
+        }
+        const { data: cliente } = await supabase_1.supabaseAdmin
+            .from("clientes")
+            .select("id_cliente")
+            .eq("id_auth", res.locals.user.id)
+            .maybeSingle();
+        const { data: restaurante } = await supabase_1.supabaseAdmin
+            .from("restaurantes")
+            .select("id_restaurante")
+            .eq("id_auth", res.locals.user.id)
+            .maybeSingle();
+        const statusOcultaveis = ["CANCELADA", "RECUSADA", "CONCLUIDA"];
+        let consulta;
+        if (cliente) {
+            consulta = supabase_1.supabaseAdmin
+                .from("reservas")
+                .update({ ocultada_cliente: true })
+                .eq("id_reserva", reservationId)
+                .eq("id_cliente", cliente.id_cliente)
+                .in("status_reserva", statusOcultaveis)
+                .select("*")
+                .single();
+        }
+        else if (restaurante) {
+            consulta = supabase_1.supabaseAdmin
+                .from("reservas")
+                .update({ ocultada_restaurante: true })
+                .eq("id_reserva", reservationId)
+                .eq("id_restaurante", restaurante.id_restaurante)
+                .in("status_reserva", statusOcultaveis)
+                .select("*")
+                .single();
+        }
+        else {
+            return res.status(403).json({ error: "Perfil nao encontrado para excluir a reserva da lista." });
+        }
+        const { data: reservaOcultada, error: fallbackError } = await consulta;
+        if (fallbackError || !reservaOcultada) {
+            return res.status(409).json({
+                error: "Apenas reservas canceladas ou finalizadas podem ser excluidas da lista.",
+            });
+        }
+        return res.json(reservaOcultada);
     }
     return res.json(data);
 });

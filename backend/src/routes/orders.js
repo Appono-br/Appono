@@ -186,6 +186,11 @@ async function conciliarPedidosPendentes(pedidos) {
 
 exports.ordersRouter.get("/", async (_req, res) => {
     const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
+    const { data: cliente } = await supabase
+        .from("clientes")
+        .select("id_cliente")
+        .eq("id_auth", res.locals.user.id)
+        .maybeSingle();
     const { data, error } = await supabase
         .from("pedidos")
         .select("*, restaurantes(nome), reservas(data_reserva, horario_inicio)")
@@ -195,8 +200,22 @@ exports.ordersRouter.get("/", async (_req, res) => {
     }
     const pedidos = await conciliarPedidosPendentes(data ?? []);
     const idsPedidos = pedidos.map((pedido) => pedido.id_pedido);
+    const idsRestaurantes = [...new Set(pedidos.map((pedido) => pedido.id_restaurante).filter(Boolean))];
+    let avaliacoesPorRestaurante = new Map();
+    if (cliente && idsRestaurantes.length) {
+        const clienteAvaliacoes = supabase_1.supabaseAdmin ?? supabase;
+        const { data: avaliacoes } = await clienteAvaliacoes
+            .from("avaliacoes_restaurante")
+            .select("id_avaliacao, id_restaurante, nota, comentario, created_at")
+            .eq("id_cliente", cliente.id_cliente)
+            .in("id_restaurante", idsRestaurantes);
+        avaliacoesPorRestaurante = new Map((avaliacoes ?? []).map((avaliacao) => [avaliacao.id_restaurante, avaliacao]));
+    }
     if (!idsPedidos.length) {
-        return res.json(pedidos);
+        return res.json(pedidos.map((pedido) => ({
+            ...pedido,
+            avaliacao_restaurante: avaliacoesPorRestaurante.get(pedido.id_restaurante) ?? null,
+        })));
     }
     const clienteItens = supabase_1.supabaseAdmin ?? supabase;
     const { data: itens, error: itensError } = await clienteItens
@@ -208,6 +227,7 @@ exports.ordersRouter.get("/", async (_req, res) => {
     }
     return res.json(pedidos.map((pedido) => ({
         ...pedido,
+        avaliacao_restaurante: avaliacoesPorRestaurante.get(pedido.id_restaurante) ?? null,
         itens_pedido: (itens ?? []).filter((item) => item.id_pedido === pedido.id_pedido),
     })));
 });
