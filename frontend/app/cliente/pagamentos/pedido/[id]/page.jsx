@@ -3,11 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { initMercadoPago, Wallet } from "@mercadopago/sdk-react";
 import { apiRequest } from "@/lib/api";
 import { BotaoVoltar } from "@/components/botao-voltar";
-
-const publicKey = process.env.NEXT_PUBLIC_MERCADO_PAGO_PUBLIC_KEY ?? "";
 
 function formatarMoeda(valor) {
     return new Intl.NumberFormat("pt-BR", {
@@ -45,18 +42,10 @@ export default function PaginaPagamentoPedido({ params }) {
     const [pedidoId, setPedidoId] = useState(null);
     const [preferencia, setPreferencia] = useState(null);
     const [mensagem, setMensagem] = useState("Preparando checkout seguro...");
-    const mensagemPublicKey = publicKey ? "" : "NEXT_PUBLIC_MERCADO_PAGO_PUBLIC_KEY precisa estar configurada no frontend.";
 
     useEffect(() => {
         params.then(({ id }) => setPedidoId(Number(id)));
     }, [params]);
-
-    useEffect(() => {
-        if (!publicKey) {
-            return;
-        }
-        initMercadoPago(publicKey, { locale: "pt-BR" });
-    }, []);
 
     useEffect(() => {
         if (!pedidoId) {
@@ -76,6 +65,7 @@ export default function PaginaPagamentoPedido({ params }) {
 
     const pedido = preferencia?.pedido;
     const preferenceId = preferencia?.preference_id;
+    const checkoutUrl = preferencia?.checkout_url;
 
     return (
         <main className="flex min-h-screen flex-col bg-app-chantilly px-4 py-8 text-app-cafe-profundo sm:px-5">
@@ -147,15 +137,23 @@ export default function PaginaPagamentoPedido({ params }) {
                             </div>
 
                             <div className="mt-6 rounded-[12px] bg-app-creme-leve p-3 text-app-cafe-profundo ring-1 ring-app-baunilha-dourada/35">
-                                <div className="mx-auto w-full max-w-[340px] rounded-[8px]">
-                                    {publicKey && preferenceId ? (
-                                        <Wallet initialization={{ preferenceId }} customization={{ texts: { valueProp: "security_safety" } }} />
-                                    ) : (
-                                        <p className="text-center text-sm font-semibold text-app-caramelo-torrado">
-                                            {mensagemPublicKey || mensagem || "Carregando botao de pagamento..."}
-                                        </p>
-                                    )}
-                                </div>
+                                {checkoutUrl ? (
+                                    <a
+                                        href={checkoutUrl}
+                                        className="flex h-12 w-full items-center justify-center rounded-[10px] bg-[#ffe600] px-4 text-sm font-black uppercase tracking-[0.08em] text-[#03264c] shadow-sm transition hover:brightness-95"
+                                    >
+                                        Pagar com Mercado Pago
+                                    </a>
+                                ) : (
+                                    <p className="text-center text-sm font-semibold text-app-caramelo-torrado">
+                                        {mensagem || "Carregando botao de pagamento..."}
+                                    </p>
+                                )}
+                                {preferenceId ? (
+                                    <p className="mt-3 text-center text-[11px] font-semibold text-app-mocha">
+                                        Checkout Pro seguro, processado pelo Mercado Pago.
+                                    </p>
+                                ) : null}
                             </div>
 
                             <div className="mt-5 grid gap-2 text-xs text-app-creme-suave">
@@ -170,9 +168,9 @@ export default function PaginaPagamentoPedido({ params }) {
                             </div>
                         </div>
 
-                        {(mensagemPublicKey || mensagem) && preferenceId ? (
+                        {mensagem && preferenceId ? (
                             <p className="mt-4 rounded-[8px] bg-app-creme-leve/10 p-3 text-sm text-app-creme-suave">
-                                {mensagemPublicKey || mensagem}
+                                {mensagem}
                             </p>
                         ) : null}
                     </aside>
