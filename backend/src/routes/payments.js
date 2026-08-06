@@ -433,6 +433,17 @@ async function aplicarPagamentoMercadoPago(pagamentoMercadoPago, fallbackReferen
         if (pedidoError || !pedido) {
             throw new Error(pedidoError?.message ?? "Pedido nao encontrado para conciliacao.");
         }
+        const pagamentoExistente = await obterPagamentoExistentePorReferencia(referencia);
+        const resumoFinanceiro = pagamentoExistente
+            ? {
+                tipo_fluxo_pagamento: pagamentoExistente.tipo_fluxo_pagamento,
+                percentual_comissao_app: pagamentoExistente.percentual_comissao_app,
+                valor_comissao_app: pagamentoExistente.valor_comissao_app,
+                valor_restaurante: pagamentoExistente.valor_restaurante,
+                mercado_pago_restaurante_user_id: pagamentoExistente.mercado_pago_restaurante_user_id,
+                status_repasse: pagamentoExistente.status_repasse,
+            }
+            : {};
         const pagamento = await salvarPagamento({
             id_pedido: pedido.id_pedido,
             id_reserva: pedido.id_reserva,
@@ -440,7 +451,7 @@ async function aplicarPagamentoMercadoPago(pagamentoMercadoPago, fallbackReferen
             status_pagamento: statusMapeado.pagamento,
             referencia_externa: referencia,
             mercado_pago_payment_id: pagamentoId,
-            ...(await obterResumoFinanceiroPagamentoExistente(referencia)),
+            ...resumoFinanceiro,
         });
         await registrarEventoFinanceiro({
             id_pagamento: pagamento.id_pagamento,
