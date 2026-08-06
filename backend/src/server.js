@@ -23,10 +23,28 @@ const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN ?? "http://localhost:3000";
 const allowedOrigins = FRONTEND_ORIGIN.split(",")
     .map((origin) => origin.trim())
     .filter(Boolean);
+const allowedPreviewHosts = (process.env.FRONTEND_PREVIEW_HOSTS ?? "vercel.app")
+    .split(",")
+    .map((host) => host.trim().toLowerCase())
+    .filter(Boolean);
+
+function origemPermitida(origin) {
+    if (!origin || allowedOrigins.includes("*") || allowedOrigins.includes(origin)) {
+        return true;
+    }
+
+    try {
+        const url = new URL(origin);
+        const hostname = url.hostname.toLowerCase();
+        return url.protocol === "https:" && allowedPreviewHosts.some((host) => hostname === host || hostname.endsWith(`.${host}`));
+    } catch {
+        return false;
+    }
+}
 
 app.use(cors({
     origin(origin, callback) {
-        if (!origin || allowedOrigins.includes("*") || allowedOrigins.includes(origin)) {
+        if (origemPermitida(origin)) {
             return callback(null, true);
         }
 
