@@ -1,10 +1,11 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FormField } from "@/components/auth/form-field";
 import { apiRequest } from "@/lib/api";
 import { getDashboardPath, persistAuthResponse } from "@/lib/session";
+import { supabase } from "@/lib/supabase";
 import { aplicarMascaraCep, cepEstaCompleto } from "@/lib/validacoes/cep";
 import { aplicarMascaraCnpj, cnpjEstaCompleto } from "@/lib/validacoes/cnpj";
 import { somenteNumeros } from "@/lib/validacoes/comum";
@@ -40,13 +41,32 @@ const initialForm = {
   password: "",
 };
 
-export function RegisterRestaurantForm() {
+export function RegisterRestaurantForm({ googleFlow = false }) {
   const [form, setForm] = useState(initialForm);
   const [step, setStep] = useState(1);
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imagem, setImagem] = useState(null);
   const [imagemPreview, setImagemPreview] = useState("");
+  const [googleSession, setGoogleSession] = useState(null);
+  const isGoogleFlow = googleFlow;
+
+  useEffect(() => {
+    if (!isGoogleFlow) {
+      return;
+    }
+    supabase.auth.getSession().then(({ data }) => {
+      if (!data.session) {
+        setMessage("Entre com Google novamente para completar o cadastro.");
+        return;
+      }
+      setGoogleSession(data.session);
+      setForm((current) => ({
+        ...current,
+        email: data.session.user.email ?? current.email,
+      }));
+    });
+  }, [isGoogleFlow]);
 
   function atualizarCampo(field, value) {
     setForm((current) => ({ ...current, [field]: value }));
@@ -67,7 +87,7 @@ export function RegisterRestaurantForm() {
         form.uf &&
         form.number &&
         form.tables &&
-        form.password
+        (isGoogleFlow || form.password)
     );
   }
 
@@ -102,7 +122,7 @@ export function RegisterRestaurantForm() {
       return;
     }
     try {
-      const company = await apiRequest(`/validacoes/cnpj/${somenteNumeros(form.cnpj)}`);
+      const company = await apiRequest(`/validacoes/cnpj/${somenteNumeros(form.cnpj)}`, { auth: false });
       setForm((current) => ({
         ...current,
         legalName: company.razaoSocial || current.legalName,
@@ -118,7 +138,7 @@ export function RegisterRestaurantForm() {
       return;
     }
     try {
-      const address = await apiRequest(`/validacoes/cep/${somenteNumeros(form.cep)}`);
+      const address = await apiRequest(`/validacoes/cep/${somenteNumeros(form.cep)}`, { auth: false });
       setForm((current) => ({
         ...current,
         address: address.rua || current.address,
@@ -141,15 +161,17 @@ export function RegisterRestaurantForm() {
     setIsSubmitting(true);
     setMessage("");
     try {
-      const response = await apiRequest("/auth/register/restaurant", {
+      const response = await apiRequest(isGoogleFlow ? "/auth/google/restaurant" : "/auth/register/restaurant", {
         method: "POST",
+        auth: isGoogleFlow,
         body: JSON.stringify(form),
       });
-      await persistAuthResponse(response);
-      if (response.session) {
+      const session = response.session ?? googleSession;
+      await persistAuthResponse({ ...response, session });
+      if (session) {
         if (imagem) {
           try {
-            await enviarImagemRestaurante(imagem, response.session);
+            await enviarImagemRestaurante(imagem, session);
           } catch (error) {
             console.warn("Nao foi possivel enviar a imagem do restaurante.", error);
           }
@@ -203,42 +225,42 @@ export function RegisterRestaurantForm() {
         </div>
 
         <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-end">
-          <div>
-            <h1 className="text-2xl font-bold text-app-cafe-profundo">
-              Torne-se um parceiro APPONO
-            </h1>
-            <p className="mt-1 text-sm leading-5 text-app-mocha">
-              {step === 1
-                ? "Informe os dados operacionais do estabelecimento."
-                : "Cadastre a conta juridica para receber os repasses da plataforma."}
-            </p>
-          </div>
+  <div>
+    <h1 className="text-2xl font-bold text-app-cafe-profundo">
+      Torne-se um parceiro APPONO
+    </h1>
+    <p className="mt-1 text-sm leading-5 text-app-mocha">
+      {step === 1
+        ? "Informe os dados operacionais do estabelecimento."
+        : "Cadastre a conta juridica para receber os repasses da plataforma."}
+    </p>
+  </div>
 
-          <div className="grid grid-cols-2 gap-1 rounded-full bg-app-creme-suave p-1 text-center text-[10px] font-bold uppercase tracking-[0.18em]">
-            <button
-              type="button"
-              onClick={() => setStep(1)}
-              className={`rounded-full px-4 py-2 transition ${
-                step === 1
-                  ? "bg-app-cafe-profundo text-app-creme-leve shadow-sm"
-                  : "text-app-caramelo-torrado hover:bg-app-baunilha-dourada/60"
-              }`}
-            >
-              Etapa 1
-            </button>
-            <button
-              type="button"
-              onClick={irParaEtapaBancaria}
-              className={`rounded-full px-4 py-2 transition ${
-                step === 2
-                  ? "bg-app-cafe-profundo text-app-creme-leve shadow-sm"
-                  : "text-app-caramelo-torrado hover:bg-app-baunilha-dourada/60"
-              }`}
-            >
-              Etapa 2
-            </button>
-          </div>
-        </div>
+  <div className="grid grid-cols-2 gap-1 rounded-full bg-app-creme-suave p-1 text-center text-[10px] font-bold uppercase tracking-[0.18em]">
+    <button
+      type="button"
+      onClick={() => setStep(1)}
+      className={`rounded-full px-4 py-2 transition ${
+        step === 1
+          ? "bg-app-cafe-profundo text-app-creme-leve shadow-sm"
+          : "text-app-caramelo-torrado hover:bg-app-baunilha-dourada/60"
+      }`}
+    >
+      Etapa 1
+    </button>
+    <button
+      type="button"
+      onClick={irParaEtapaBancaria}
+      className={`rounded-full px-4 py-2 transition ${
+        step === 2
+          ? "bg-app-cafe-profundo text-app-creme-leve shadow-sm"
+          : "text-app-caramelo-torrado hover:bg-app-baunilha-dourada/60"
+      }`}
+    >
+      Etapa 2
+    </button>
+  </div>
+</div>
 
         {step === 1 ? (
           <div className="mt-5 grid gap-2.5 sm:grid-cols-6 xl:grid-cols-12">
@@ -265,6 +287,7 @@ export function RegisterRestaurantForm() {
               onChange={(event) => atualizarCampo("email", event.target.value)}
               placeholder="contato@restaurante.com"
               required
+              disabled={isGoogleFlow}
               className="sm:col-span-3 xl:col-span-3"
             />
             <FormField
@@ -357,16 +380,18 @@ export function RegisterRestaurantForm() {
               required
               className="sm:col-span-3 xl:col-span-2"
             />
-            <FormField
-              label="Senha"
-              type="password"
-              value={form.password}
-              onChange={(event) => atualizarCampo("password", event.target.value)}
-              placeholder="Digite aqui"
-              required
-              minLength={6}
-              className="sm:col-span-3 xl:col-span-2"
-            />
+            {!isGoogleFlow ? (
+              <FormField
+                label="Senha"
+                type="password"
+                value={form.password}
+                onChange={(event) => atualizarCampo("password", event.target.value)}
+                placeholder="Digite aqui"
+                required
+                minLength={6}
+                className="sm:col-span-3 xl:col-span-2"
+              />
+            ) : null}
             <label className="grid gap-2 rounded-xl border border-dashed border-app-caramelo-torrado/50 bg-app-creme-suave p-4 transition hover:border-app-caramelo-torrado sm:col-span-6 xl:col-span-4">
               <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-app-cafe-profundo">
                 Imagem do restaurante

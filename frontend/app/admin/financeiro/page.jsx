@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { apiRequest } from "@/lib/api";
+import { textoFluxoPagamento, textoStatusPedido, textoStatusRepasse, textoTipoEvento } from "@/lib/formatadores-status";
 import { encerrarSessao } from "@/lib/session";
 
 const cardsResumo = [
@@ -70,42 +71,6 @@ function formatarReserva(data, horario) {
     }
     const dataFormatada = new Date(`${data}T12:00:00`).toLocaleDateString("pt-BR");
     return horario ? `${dataFormatada} as ${String(horario).slice(0, 5)}` : dataFormatada;
-}
-
-function textoStatusRepasse(status) {
-    const statusMap = {
-        AGUARDANDO_PAGAMENTO: "Aguardando pagamento",
-        AGUARDANDO_ENTREGA: "Retido ate entrega",
-        LIBERADO_PARA_REPASSE: "Liberado para repasse",
-        REPASSADO: "Repassado",
-        ESTORNADO: "Estornado",
-        NAO_APLICAVEL: "Nao aplicavel",
-    };
-    return statusMap[status] ?? "Em acompanhamento";
-}
-
-function textoStatusPedido(status) {
-    const statusMap = {
-        PENDENTE: "Aguardando pagamento",
-        CONFIRMADO: "Confirmado",
-        EM_PREPARO: "Em preparo",
-        PRONTO: "Pronto",
-        ENTREGUE: "Entregue",
-        CANCELADO: "Cancelado",
-    };
-    return statusMap[status] ?? "Pedido";
-}
-
-function textoEvento(tipo) {
-    const eventoMap = {
-        PAGAMENTO_CRIADO: "Pagamento criado",
-        PAGAMENTO_APROVADO: "Pagamento aprovado",
-        PAGAMENTO_PENDENTE: "Pagamento pendente",
-        PAGAMENTO_RECUSADO: "Pagamento recusado",
-        REPASSE_LIBERADO: "Repasse liberado",
-        REPASSE_ESTORNADO: "Repasse estornado",
-    };
-    return eventoMap[tipo] ?? String(tipo ?? "Evento financeiro").replaceAll("_", " ");
 }
 
 function textoConexaoMercadoPago(conexao) {
@@ -375,10 +340,13 @@ export default function AdminFinanceiroPage() {
                             <strong className="text-lg font-semibold">Central administrativa</strong>
                         </div>
                     </div>
-                    <div className="flex flex-wrap items-center gap-3">
-                        <span className="rounded-full bg-app-cafe-profundo px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-app-creme-leve">
+                    <div className="grid gap-3 sm:flex sm:flex-wrap sm:items-center">
+                        <span className="rounded-full bg-app-cafe-profundo px-4 py-2 text-center text-xs font-bold uppercase tracking-[0.12em] text-app-creme-leve">
                             {admin?.nome ?? "Administracao"}
                         </span>
+                        <Link href="/admin/notificacoes" className="rounded-full border border-app-baunilha-dourada bg-app-chantilly px-4 py-2 text-center text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:bg-app-baunilha-dourada">
+                            Notificacoes
+                        </Link>
                         <button type="button" onClick={sairParaHome} className="rounded-full border border-app-baunilha-dourada bg-app-chantilly px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:bg-app-baunilha-dourada">
                             Sair para home
                         </button>
@@ -390,7 +358,7 @@ export default function AdminFinanceiroPage() {
                 <div className="grid gap-8 lg:grid-cols-[1fr_380px] lg:items-start">
                     <div>
                         <p className="text-xs font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">Marketplace financeiro</p>
-                        <h1 className="mt-3 max-w-3xl text-4xl font-semibold leading-tight sm:text-5xl">
+                        <h1 className="mt-3 max-w-3xl text-3xl font-semibold leading-tight sm:text-5xl">
                             Retencao, comissao e repasses da Appono
                         </h1>
                         <p className="mt-4 max-w-3xl text-sm leading-6 text-app-mocha">
@@ -446,8 +414,10 @@ export default function AdminFinanceiroPage() {
                                 </button>
                             ))}
                         </div>
-                        <div className="flex flex-col gap-3 sm:flex-row">
-                            <input value={busca} onChange={(event) => setBusca(event.target.value)} placeholder="Buscar no painel..." className="h-10 rounded-full bg-app-chantilly px-4 text-sm outline-none ring-1 ring-app-baunilha-dourada/70 transition focus:ring-2 focus:ring-app-caramelo-torrado" />
+                        <div className="flex flex-col gap-3 sm:min-w-80 sm:flex-row">
+                            <label className="campo-busca-app flex h-10 items-center rounded-full border border-app-baunilha-dourada/70 bg-app-chantilly px-4 transition">
+                                <input value={busca} onChange={(event) => setBusca(event.target.value)} placeholder="Buscar no painel..." className="input-busca-app h-full min-w-0 flex-1 bg-transparent text-sm text-app-cafe-profundo placeholder:text-app-cinza/60" />
+                            </label>
                             <button type="button" onClick={atualizarPainel} disabled={atualizando} className="h-10 rounded-full bg-app-caramelo-torrado px-5 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-app-mocha disabled:cursor-not-allowed disabled:opacity-60">
                                 {atualizando ? "Atualizando..." : "Atualizar"}
                             </button>
@@ -488,7 +458,7 @@ export default function AdminFinanceiroPage() {
                                         <span>{formatarReserva(pagamento.pedido?.reservas?.data_reserva, pagamento.pedido?.reservas?.horario_inicio)}</span>
                                         <div>
                                             <strong className="block text-app-caramelo-torrado">{textoStatusRepasse(pagamento.status_repasse)}</strong>
-                                            <span className="text-xs text-app-cinza">Fluxo {pagamento.tipo_fluxo_pagamento ?? "Appono"}</span>
+                                            <span className="text-xs text-app-cinza">Fluxo {textoFluxoPagamento(pagamento.tipo_fluxo_pagamento)}</span>
                                         </div>
                                         <div>
                                             <strong className="block text-app-cafe-profundo">{formatarMoeda(pagamento.valor_pago ?? pagamento.valor)}</strong>
@@ -514,7 +484,7 @@ export default function AdminFinanceiroPage() {
                             {eventosRecentes.length ? eventosRecentes.map((evento) => (
                                 <div key={evento.id_evento} className="rounded-[12px] bg-app-chantilly p-4 ring-1 ring-app-baunilha-dourada/55">
                                     <div className="flex items-start justify-between gap-3">
-                                        <strong className="text-sm text-app-cafe-profundo">{textoEvento(evento.tipo_evento)}</strong>
+                                        <strong className="text-sm text-app-cafe-profundo">{textoTipoEvento(evento.tipo_evento)}</strong>
                                         <span className="text-xs text-app-cinza">{formatarDataHora(evento.criado_em)}</span>
                                     </div>
                                     <p className="mt-2 text-xs leading-5 text-app-mocha">{evento.descricao ?? "Evento registrado na operacao financeira."}</p>

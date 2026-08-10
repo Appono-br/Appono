@@ -3,6 +3,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { apiRequest } from "@/lib/api";
+import { textoStatusPedido, textoStatusRepasse } from "@/lib/formatadores-status";
+import { TelaCarregandoSessao, useSessaoLocal } from "@/lib/use-sessao-local";
+import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 const navItems = [
     { label: "Home", href: "/restaurante/home" },
     { label: "Dashboard", href: "/restaurante/dashboard" },
@@ -10,16 +13,29 @@ const navItems = [
     { label: "Desempenho", href: "/restaurante/desempenho" },
     { label: "Relatorio financeiro", href: "/restaurante/financeiro" },
     { label: "Reservas", href: "/restaurante/reservas" },
+    { label: "Cozinha", href: "/restaurante/pedidos" },
+    { label: "Historico", href: "/restaurante/historico-pedidos" },
     { label: "Mensagens", href: "/restaurante/mensagens" },
     { label: "Configuracoes", href: "/restaurante/configuracoes" },
 ];
 const financeCards = [
-    { label: "Vendas validas", key: "valor_bruto" },
-    { label: "Liquido restaurante", key: "valor_restaurante" },
-    { label: "A receber", key: "valor_a_receber" },
-    { label: "Liberado", key: "valor_liberado" },
+    {
+        label: "Pedidos pagos",
+        key: "valor_bruto",
+        description: "Total aprovado no Mercado Pago, sem pedidos cancelados.",
+    },
+    {
+        label: "Liquido recebido",
+        key: "valor_liquido_recebido",
+        description: "Valor do restaurante em pedidos pagos e nao cancelados.",
+    },
+    {
+        label: "Retido ate entrega",
+        key: "valor_a_receber",
+        description: "Pedidos pagos que ainda aguardam conclusao.",
+    },
 ];
-const tableHeaders = ["Pedido", "Cliente", "Reserva", "Status", "Financeiro", "Liquido"];
+const tableHeaders = ["Pedido", "Cliente", "Reserva", "Pedido", "Repasse", "Valor liquido"];
 const periodos = [
     { label: "Hoje", value: "hoje" },
     { label: "7 dias", value: "7d" },
@@ -69,41 +85,17 @@ function obterPrevisaoRepasse(repasse) {
     return "Apos confirmacao de entrega";
 }
 
-function obterTextoStatusPedido(status) {
-    const statusMap = {
-        PENDENTE: "Aguardando pagamento",
-        CONFIRMADO: "Confirmado",
-        EM_PREPARO: "Em preparo",
-        PRONTO: "Pronto",
-        ENTREGUE: "Entregue",
-        CANCELADO: "Cancelado",
-    };
-    return statusMap[status] ?? "Em acompanhamento";
-}
-
-function obterTextoStatusRepasse(status) {
-    const statusMap = {
-        AGUARDANDO_PAGAMENTO: "Aguardando pagamento",
-        AGUARDANDO_ENTREGA: "Aguardando entrega",
-        LIBERADO_PARA_REPASSE: "Liberado",
-        REPASSADO: "Repassado",
-        ESTORNADO: "Estornado",
-        NAO_APLICAVEL: "Nao aplicavel",
-    };
-    return statusMap[status] ?? "Pendente";
-}
-
-function FinanceCard({ label, value, featured = false, }) {
-    return (<article className={`min-h-40 rounded-[8px] p-6 shadow-sm ${featured
+function FinanceCard({ label, value, description, featured = false, }) {
+    return (<article className={`min-h-40 rounded-[8px] p-5 shadow-sm ${featured
             ? "bg-app-cafe-profundo text-app-creme-leve"
             : "bg-app-chantilly text-app-cafe-profundo ring-1 ring-app-baunilha-dourada/45"}`}>
       <p className={`text-xs font-bold uppercase tracking-[0.18em] ${featured ? "text-app-baunilha-dourada" : "text-app-cinza"}`}>
         {label}
       </p>
-      <strong className="mt-7 block text-3xl font-medium">{formatarMoeda(value)}</strong>
-      <div className={`mt-7 h-2 max-w-56 rounded-full ${featured ? "bg-app-mocha" : "bg-app-baunilha-dourada/45"}`}>
-        <div className="h-2 w-0 rounded-full bg-app-caramelo-torrado"/>
-      </div>
+      <strong className="mt-5 block text-2xl font-semibold sm:text-3xl">{formatarMoeda(value)}</strong>
+      <p className={`mt-4 text-xs leading-5 ${featured ? "text-app-creme-suave" : "text-app-cinza"}`}>
+        {description}
+      </p>
     </article>);
 }
 function RepassesTable({ repasses }) {
@@ -134,10 +126,10 @@ function RepassesTable({ repasses }) {
           </div>
           <span>{repasse.pedido?.clientes?.nome ?? "Cliente"}</span>
           <span>{formatarReserva(repasse.pedido?.reservas?.data_reserva, repasse.pedido?.reservas?.horario_inicio)}</span>
-          <span>{obterTextoStatusPedido(repasse.pedido?.status_pedido)}</span>
+          <span>{textoStatusPedido(repasse.pedido?.status_pedido)}</span>
           <div>
             <strong className="block text-app-caramelo-torrado">
-              {repasse.pedido?.status_pedido === "CANCELADO" ? "Sem repasse" : obterTextoStatusRepasse(repasse.status_repasse)}
+              {repasse.pedido?.status_pedido === "CANCELADO" ? "Sem repasse" : textoStatusRepasse(repasse.status_repasse)}
             </strong>
             <span className="text-xs text-app-cinza">{obterPrevisaoRepasse(repasse)}</span>
           </div>
@@ -162,14 +154,14 @@ function obterTextoStatusMercadoPago(status) {
     return statusMap[status] ?? "Nao conectado";
 }
 export default function RestaurantFinancialReportPage() {
-    const [session, setSession] = useState(null);
-    const [sessaoCarregada, setSessaoCarregada] = useState(false);
+    const { sessao: session, sessaoCarregada } = useSessaoLocal();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [conexaoMercadoPago, setConexaoMercadoPago] = useState(null);
     const [resumoFinanceiro, setResumoFinanceiro] = useState({
         valor_bruto: 0,
         valor_comissao_app: 0,
         valor_restaurante: 0,
+        valor_liquido_recebido: 0,
         quantidade_pagamentos: 0,
         quantidade_liberados: 0,
         valor_a_receber: 0,
@@ -184,24 +176,6 @@ export default function RestaurantFinancialReportPage() {
         gatilho_repasse: "ENTREGA_DO_PEDIDO",
     });
     const isRestaurant = session?.type === "restaurant";
-
-    useEffect(() => {
-        apiRequest("/me")
-            .then((resposta) => {
-                const sessionType = resposta.tipo === "restaurante" ? "restaurant" : "client";
-                const sessaoAtualizada = {
-                    type: sessionType,
-                    name: resposta.perfil?.nome ?? "Perfil Appono",
-                };
-                window.localStorage.setItem("appono:session", JSON.stringify(sessaoAtualizada));
-                setSession(sessaoAtualizada);
-            })
-            .catch((error) => {
-                setSession(null);
-                setMensagemMercadoPago(error instanceof Error ? error.message : "Entre novamente para conectar o Mercado Pago.");
-            })
-            .finally(() => setSessaoCarregada(true));
-    }, []);
 
     useEffect(() => {
         if (!sessaoCarregada) {
@@ -232,15 +206,7 @@ export default function RestaurantFinancialReportPage() {
     }, [isRestaurant, sessaoCarregada, periodoAtivo]);
 
     if (!sessaoCarregada) {
-        return (<main className="flex min-h-screen items-center justify-center bg-app-chantilly px-5 text-app-cafe-profundo">
-        <section className="w-full max-w-lg rounded-[8px] bg-app-creme-leve p-8 text-center shadow-sm ring-1 ring-app-baunilha-dourada">
-          <Image src="/brand/appono-mark.svg" alt="Appono" width={88} height={88} className="mx-auto h-20 w-20" priority/>
-          <h1 className="mt-6 text-3xl font-semibold">Validando sessao</h1>
-          <p className="mt-3 text-sm leading-6 text-app-cinza">
-            Estamos conferindo se esta conta pertence a um restaurante.
-          </p>
-        </section>
-      </main>);
+        return <TelaCarregandoSessao />;
     }
     if (!isRestaurant) {
         return (<main className="flex min-h-screen items-center justify-center bg-app-chantilly px-5 text-app-cafe-profundo">
@@ -264,13 +230,14 @@ export default function RestaurantFinancialReportPage() {
           </div>
 
           <nav className="hidden items-center justify-self-center gap-6 text-xs font-semibold text-app-cinza xl:flex">
-            {navItems.map((item, index) => (<Link key={item.label} href={item.href} className={index === 4
+            {navItems.map((item) => (<Link key={item.label} href={item.href} className={item.href === "/restaurante/financeiro"
                 ? "text-app-cafe-profundo"
                 : "transition hover:text-app-cafe-profundo"}>
                 {item.label}
               </Link>))}
           </nav>
 
+          <ItemHeaderNotificacoes href="/restaurante/notificacoes" />
           <button type="button" onClick={() => setMobileMenuOpen((current) => !current)} className="flex h-9 w-9 items-center justify-center justify-self-end rounded-[8px] border border-app-baunilha-dourada bg-app-chantilly text-app-cafe-profundo xl:hidden" aria-label="Abrir menu" aria-expanded={mobileMenuOpen} aria-controls="restaurant-finance-menu">
             <Icon type="menu"/>
           </button>
@@ -278,7 +245,7 @@ export default function RestaurantFinancialReportPage() {
 
         {mobileMenuOpen ? (<nav id="restaurant-finance-menu" className="border-t border-app-baunilha-dourada/55 bg-app-creme-leve px-5 py-3 xl:hidden">
             <div className="mx-auto grid max-w-7xl gap-2 text-xs font-semibold text-app-cinza">
-              {navItems.map((item, index) => (<Link key={item.label} href={item.href} onClick={() => setMobileMenuOpen(false)} className={index === 4
+              {navItems.map((item) => (<Link key={item.label} href={item.href} onClick={() => setMobileMenuOpen(false)} className={item.href === "/restaurante/financeiro"
                     ? "text-app-cafe-profundo"
                     : "transition hover:text-app-cafe-profundo"}>
                   {item.label}
@@ -297,7 +264,7 @@ export default function RestaurantFinancialReportPage() {
               Relatorio Financeiro
             </h1>
             <p className="mt-4 max-w-2xl text-sm leading-6 text-app-cinza sm:text-base">
-              Veja vendas validas, repasses e saude financeira da operacao. Pedidos cancelados nao entram no total de vendas.
+              Acompanhe apenas pedidos pagos e nao cancelados. A Appono retem o valor ate a entrega e libera o repasse conforme o status do pedido.
             </p>
           </div>
 
@@ -310,21 +277,21 @@ export default function RestaurantFinancialReportPage() {
           </div>
         </div>
 
-        <section className="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-          {financeCards.map((card, index) => (<FinanceCard key={card.label} label={card.label} value={resumoFinanceiro[card.key]} featured={index === 0}/>))}
+        <section className="mt-10 grid gap-5 md:grid-cols-3">
+          {financeCards.map((card, index) => (<FinanceCard key={card.label} label={card.label} value={resumoFinanceiro[card.key]} description={card.description} featured={index === 1}/>))}
         </section>
 
-        <section className="mt-10 rounded-[8px] bg-app-creme-leve p-6 shadow-sm ring-1 ring-app-baunilha-dourada/60 sm:p-8">
+        <section className="mt-8 rounded-[8px] bg-app-creme-leve p-6 shadow-sm ring-1 ring-app-baunilha-dourada/60 sm:p-8">
           <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-center">
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">
                 Marketplace Mercado Pago
               </p>
               <h2 className="mt-2 text-2xl font-medium text-app-cafe-profundo">
-                Conta de recebimento configurada
+                Conta de recebimento
               </h2>
               <p className="mt-3 max-w-2xl text-sm leading-6 text-app-mocha">
-                Acompanhe os recebimentos vinculados aos pedidos e o valor liquido previsto para repasse.
+                Esta conta recebe os repasses dos pedidos entregues. Pedidos pendentes, em preparo ou cancelados ficam separados para evitar dupla interpretacao.
               </p>
             </div>
             <div className="rounded-[8px] bg-app-chantilly p-5 text-sm ring-1 ring-app-baunilha-dourada/45 lg:min-w-80">
@@ -359,13 +326,16 @@ export default function RestaurantFinancialReportPage() {
           <RepassesTable repasses={repasses} />
         </section>
 
-        <section className="mt-8 grid gap-8 lg:grid-cols-2">
+        <section className="mt-8 grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
           <article className="rounded-[8px] bg-app-creme-leve p-6 shadow-sm ring-1 ring-app-baunilha-dourada/60 sm:p-8">
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-app-cinza">
               Politica comercial
             </p>
+            <h2 className="mt-3 text-2xl font-medium text-app-cafe-profundo">
+              Taxa da Appono
+            </h2>
             <p className="mt-3 text-sm leading-6 text-app-mocha">
-              A Appono aplica uma taxa de plataforma sobre pedidos pagos. O detalhamento contabil e a conciliacao ficam na administracao da Appono.
+              A taxa e aplicada somente sobre pedidos pagos e validos. Cancelamentos nao entram nos indicadores de venda nem no valor previsto para repasse.
             </p>
             <div className="mt-6 grid gap-5">
               <div className="flex items-center justify-between gap-5 text-sm">
@@ -386,15 +356,26 @@ export default function RestaurantFinancialReportPage() {
           </article>
 
           <article className="rounded-[8px] bg-app-creme-suave p-6 shadow-sm ring-1 ring-app-baunilha-dourada/60 sm:p-8">
-            <h2 className="text-2xl font-medium italic text-app-cafe-profundo">
-              Crescimento Mensal
-            </h2>
-            <div className="mt-8 flex min-h-44 items-end gap-4 rounded-[8px] border border-dashed border-app-caramelo-torrado/25 bg-app-creme-leve px-5 py-6">
-              {Array.from({ length: 5 }).map((_, index) => (<div key={index} className="h-16 flex-1 rounded-t-[8px] bg-app-baunilha-dourada/45"/>))}
-            </div>
-            <p className="mt-5 text-sm leading-6 text-app-cinza">
-              O crescimento mensal aparecera neste painel.
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-app-cinza">
+              Leitura dos valores
             </p>
+            <h2 className="mt-3 text-2xl font-medium text-app-cafe-profundo">
+              Como interpretar o relatorio
+            </h2>
+            <div className="mt-6 grid gap-3 text-sm leading-6 text-app-mocha">
+              <p>
+                <strong className="text-app-cafe-profundo">Pedidos pagos:</strong> mostra o total aprovado pelos clientes no periodo selecionado.
+              </p>
+              <p>
+                <strong className="text-app-cafe-profundo">Liquido recebido:</strong> mostra a parte do restaurante sobre pedidos pagos e validos, mesmo antes da liberacao do repasse.
+              </p>
+              <p>
+                <strong className="text-app-cafe-profundo">Retido ate entrega:</strong> valor ainda protegido pela Appono enquanto o pedido nao foi entregue.
+              </p>
+              <p>
+                <strong className="text-app-cafe-profundo">Liberado para repasse:</strong> valor de pedidos entregues, ja disponivel para conciliacao.
+              </p>
+            </div>
           </article>
         </section>
       </section>

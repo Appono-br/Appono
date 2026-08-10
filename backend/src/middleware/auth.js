@@ -8,7 +8,8 @@ async function requireAuth(req, res, next) {
         return res.status(401).json({ error: "Não autenticado" });
     }
     const accessToken = authorization.slice(7);
-    const { data: { user }, error, } = await supabase_1.supabaseAuth.auth.getUser(accessToken);
+    const clienteAutenticacao = supabase_1.supabaseAdmin ?? supabase_1.supabaseAuth;
+    const { data: { user }, error, } = await clienteAutenticacao.auth.getUser(accessToken);
     if (error || !user) {
         return res.status(401).json({ error: "Token inválido" });
     }

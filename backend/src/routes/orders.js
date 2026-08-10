@@ -5,10 +5,12 @@ const express_1 = require("express");
 const supabase_1 = require("../lib/supabase");
 const auth_1 = require("../middleware/auth");
 const mercado_pago_1 = require("../services/pagamentos/mercado-pago");
+const notificacoes_1 = require("../services/notificacoes");
 exports.ordersRouter = (0, express_1.Router)();
 exports.ordersRouter.use(auth_1.requireAuth);
 
 const LIMITE_UNIDADES_POR_ITEM = 10;
+const STATUS_HISTORICO_RESTAURANTE = ["ENTREGUE", "CANCELADO"];
 
 function obterStatusPedidoPorPagamento(statusPagamento) {
     if (statusPagamento === "APROVADO") {
@@ -42,6 +44,23 @@ function obterProximoStatusRepasse(statusAtual, novoStatus) {
 
 function obterModoRepasseMercadoPago() {
     return String(process.env.MERCADO_PAGO_MODO_REPASSE ?? "SIMULADO").trim().toUpperCase();
+}
+
+function obterDataHoraLocal(valor) {
+    if (!valor) {
+        return null;
+    }
+    const normalizado = String(valor).replace(" ", "T");
+    const temTimezone = /(?:Z|[+-]\d{2}:?\d{2})$/.test(normalizado);
+    const data = new Date(temTimezone ? normalizado : `${normalizado}-03:00`);
+    return Number.isNaN(data.getTime()) ? null : data;
+}
+
+function formatarHorario(valor) {
+    if (!valor) {
+        return "--:--";
+    }
+    return String(valor).slice(11, 16);
 }
 
 function marketplaceRealAtivo() {
@@ -167,6 +186,11 @@ async function conciliarPedidosPendentes(pedidos) {
 
 exports.ordersRouter.get("/", async (_req, res) => {
     const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
+    const { data: cliente } = await supabase
+        .from("clientes")
+        .select("id_cliente")
+        .eq("id_auth", res.locals.user.id)
+        .maybeSingle();
     const { data, error } = await supabase
         .from("pedidos")
         .select("*, restaurantes(nome), reservas(data_reserva, horario_inicio)")
@@ -176,8 +200,22 @@ exports.ordersRouter.get("/", async (_req, res) => {
     }
     const pedidos = await conciliarPedidosPendentes(data ?? []);
     const idsPedidos = pedidos.map((pedido) => pedido.id_pedido);
+    const idsRestaurantes = [...new Set(pedidos.map((pedido) => pedido.id_restaurante).filter(Boolean))];
+    let avaliacoesPorRestaurante = new Map();
+    if (cliente && idsRestaurantes.length) {
+        const clienteAvaliacoes = supabase_1.supabaseAdmin ?? supabase;
+        const { data: avaliacoes } = await clienteAvaliacoes
+            .from("avaliacoes_restaurante")
+            .select("id_avaliacao, id_restaurante, nota, comentario, created_at")
+            .eq("id_cliente", cliente.id_cliente)
+            .in("id_restaurante", idsRestaurantes);
+        avaliacoesPorRestaurante = new Map((avaliacoes ?? []).map((avaliacao) => [avaliacao.id_restaurante, avaliacao]));
+    }
     if (!idsPedidos.length) {
-        return res.json(pedidos);
+        return res.json(pedidos.map((pedido) => ({
+            ...pedido,
+            avaliacao_restaurante: avaliacoesPorRestaurante.get(pedido.id_restaurante) ?? null,
+        })));
     }
     const clienteItens = supabase_1.supabaseAdmin ?? supabase;
     const { data: itens, error: itensError } = await clienteItens
@@ -189,8 +227,35 @@ exports.ordersRouter.get("/", async (_req, res) => {
     }
     return res.json(pedidos.map((pedido) => ({
         ...pedido,
+        avaliacao_restaurante: avaliacoesPorRestaurante.get(pedido.id_restaurante) ?? null,
         itens_pedido: (itens ?? []).filter((item) => item.id_pedido === pedido.id_pedido),
     })));
+});
+exports.ordersRouter.get("/historico/restaurante", async (_req, res) => {
+    const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
+    const { data: restaurante, error: restauranteError } = await supabase
+        .from("restaurantes")
+        .select("id_restaurante")
+        .eq("id_auth", res.locals.user.id)
+        .maybeSingle();
+    if (restauranteError) {
+        return res.status(400).json({ error: restauranteError.message });
+    }
+    if (!restaurante) {
+        return res.status(403).json({ error: "Apenas restaurantes podem consultar o historico de pedidos." });
+    }
+    const clienteBanco = supabase_1.supabaseAdmin ?? supabase;
+    const { data, error } = await clienteBanco
+        .from("pedidos")
+        .select("id_pedido, id_reserva, status_pedido, valor_total, data_pedido, horario_entrega_previsto, iniciar_preparo_em, ocultado_cozinha, ocultado_cozinha_em, observacoes, clientes(nome, telefone), reservas(data_reserva, horario_inicio, horario_fim, quantidade_pessoas, mesas(numero_mesa)), pagamentos(id_pagamento, valor_pago, status_pagamento, status_repasse, valor_restaurante, valor_comissao_app, data_pagamento), itens_pedido(quantidade, preco_unitario, observacoes, produtos(nome, descricao, imagem_url, tempo_preparo_minutos))")
+        .eq("id_restaurante", restaurante.id_restaurante)
+        .order("data_pedido", { ascending: false });
+    if (error) {
+        return res.status(400).json({ error: error.message });
+    }
+    const historico = (data ?? []).filter((pedido) => STATUS_HISTORICO_RESTAURANTE.includes(pedido.status_pedido) ||
+        pedido.ocultado_cozinha === true);
+    return res.json(historico);
 });
 exports.ordersRouter.post("/", async (req, res) => {
     const body = req.body;
@@ -254,6 +319,22 @@ exports.ordersRouter.post("/", async (req, res) => {
                             : error.message;
         return res.status(409).json({ error: mensagem });
     }
+    await Promise.all([
+        (0, notificacoes_1.notificarCliente)(data.id_cliente, {
+            titulo: "Pedido antecipado criado",
+            mensagem: "Seu pedido foi registrado e ficara vinculado a sua reserva.",
+            tipo_evento: "PEDIDO_CRIADO",
+            link_destino: "/cliente/detalhes-pedido",
+            dados: { id_pedido: data.id_pedido, id_reserva: data.id_reserva },
+        }),
+        (0, notificacoes_1.notificarRestaurante)(data.id_restaurante, {
+            titulo: "Novo pedido antecipado",
+            mensagem: "Um cliente registrou um pedido antecipado vinculado a uma reserva.",
+            tipo_evento: "PEDIDO_CRIADO",
+            link_destino: "/restaurante/pedidos",
+            dados: { id_pedido: data.id_pedido, id_reserva: data.id_reserva },
+        }),
+    ]);
     return res.status(201).json(data);
 });
 exports.ordersRouter.patch("/:id/cancelar", async (req, res) => {
@@ -325,6 +406,29 @@ exports.ordersRouter.patch("/:id/cancelar", async (req, res) => {
             descricao: "Repasse marcado como estornado apos cancelamento do pedido.",
             valor: pagamentosCancelados?.[0]?.valor_restaurante ?? null,
         });
+        await Promise.all([
+            (0, notificacoes_1.notificarCliente)(data.id_cliente, {
+                titulo: "Pedido cancelado",
+                mensagem: "Seu pedido antecipado foi cancelado. Sua reserva continua ativa se ela ainda estiver confirmada.",
+                tipo_evento: "PEDIDO_CANCELADO",
+                link_destino: "/cliente/detalhes-pedido",
+                dados: { id_pedido: data.id_pedido, id_reserva: data.id_reserva },
+            }),
+            (0, notificacoes_1.notificarRestaurante)(data.id_restaurante, {
+                titulo: "Pedido antecipado cancelado",
+                mensagem: "Um pedido antecipado foi cancelado pelo cliente. A reserva permanece independente do pedido.",
+                tipo_evento: "PEDIDO_CANCELADO",
+                link_destino: "/restaurante/pedidos",
+                dados: { id_pedido: data.id_pedido, id_reserva: data.id_reserva },
+            }),
+            (0, notificacoes_1.notificarAdministradores)({
+                titulo: "Pedido cancelado",
+                mensagem: `Pedido #${data.id_pedido} cancelado. O repasse foi marcado como estornado quando havia pagamento vinculado.`,
+                tipo_evento: "REPASSE_ESTORNADO",
+                link_destino: "/admin/financeiro",
+                dados: { id_pedido: data.id_pedido, id_reserva: data.id_reserva, id_pagamento: pagamentosCancelados?.[0]?.id_pagamento },
+            }),
+        ]);
         return res.json(data);
     }
     const { data, error } = await supabase.rpc("cancelar_pedido_proprio", {
@@ -338,6 +442,22 @@ exports.ordersRouter.patch("/:id/cancelar", async (req, res) => {
                 : error.message;
         return res.status(409).json({ error: mensagem });
     }
+    await Promise.all([
+        (0, notificacoes_1.notificarCliente)(data.id_cliente, {
+            titulo: "Pedido cancelado",
+            mensagem: "Seu pedido antecipado foi cancelado. Sua reserva continua ativa se ela ainda estiver confirmada.",
+            tipo_evento: "PEDIDO_CANCELADO",
+            link_destino: "/cliente/detalhes-pedido",
+            dados: { id_pedido: data.id_pedido, id_reserva: data.id_reserva },
+        }),
+        (0, notificacoes_1.notificarRestaurante)(data.id_restaurante, {
+            titulo: "Pedido antecipado cancelado",
+            mensagem: "Um pedido antecipado foi cancelado pelo cliente. A reserva permanece independente do pedido.",
+            tipo_evento: "PEDIDO_CANCELADO",
+            link_destino: "/restaurante/pedidos",
+            dados: { id_pedido: data.id_pedido, id_reserva: data.id_reserva },
+        }),
+    ]);
     return res.json(data);
 });
 exports.ordersRouter.patch("/:id/status", async (req, res) => {
@@ -358,6 +478,26 @@ exports.ordersRouter.patch("/:id/status", async (req, res) => {
     }
     if (!restaurante) {
         return res.status(403).json({ error: "Apenas o restaurante pode atualizar o status do pedido." });
+    }
+    const { data: pedidoAtual, error: pedidoAtualError } = await supabase
+        .from("pedidos")
+        .select("id_pedido, id_restaurante, status_pedido, iniciar_preparo_em")
+        .eq("id_pedido", orderId)
+        .eq("id_restaurante", restaurante.id_restaurante)
+        .maybeSingle();
+    if (pedidoAtualError) {
+        return res.status(400).json({ error: pedidoAtualError.message });
+    }
+    if (!pedidoAtual) {
+        return res.status(404).json({ error: "Pedido nao encontrado." });
+    }
+    if (status_pedido === "EM_PREPARO") {
+        const liberadoEm = obterDataHoraLocal(pedidoAtual.iniciar_preparo_em);
+        if (liberadoEm && liberadoEm.getTime() > Date.now()) {
+            return res.status(409).json({
+                error: `O preparo deste pedido so fica liberado as ${formatarHorario(pedidoAtual.iniciar_preparo_em)}.`,
+            });
+        }
     }
     const { data, error } = await supabase
         .from("pedidos")
@@ -392,6 +532,72 @@ exports.ordersRouter.patch("/:id/status", async (req, res) => {
                 : "Repasse estornado apos cancelamento do pedido.",
             valor: pagamentosAfetados?.[0]?.valor_restaurante ?? null,
         });
+        await (0, notificacoes_1.notificarAdministradores)({
+            titulo: proximoStatusRepasse === "LIBERADO_PARA_REPASSE" ? "Repasse liberado" : "Repasse estornado",
+            mensagem: proximoStatusRepasse === "LIBERADO_PARA_REPASSE"
+                ? `Pedido #${orderId} foi entregue e ficou liberado para repasse ao restaurante.`
+                : `Pedido #${orderId} foi cancelado e o repasse foi marcado como estornado.`,
+            tipo_evento: proximoStatusRepasse === "LIBERADO_PARA_REPASSE" ? "REPASSE_LIBERADO" : "REPASSE_ESTORNADO",
+            link_destino: "/admin/financeiro",
+            dados: { id_pedido: orderId, id_reserva: data.id_reserva, id_pagamento: pagamentosAfetados?.[0]?.id_pagamento },
+        });
+    }
+    await (0, notificacoes_1.notificarCliente)(data.id_cliente, {
+        titulo: "Status do pedido atualizado",
+        mensagem: `Seu pedido agora esta como: ${status_pedido.replaceAll("_", " ").toLowerCase()}.`,
+        tipo_evento: "STATUS_PEDIDO",
+        link_destino: "/cliente/detalhes-pedido",
+        dados: { id_pedido: data.id_pedido, id_reserva: data.id_reserva, status_pedido },
+    });
+    return res.json(data);
+});
+exports.ordersRouter.patch("/:id/ocultar-cozinha", async (req, res) => {
+    const orderId = Number(req.params.id);
+    const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
+    if (!Number.isFinite(orderId)) {
+        return res.status(400).json({ error: "Pedido invalido." });
+    }
+    const { data: restaurante, error: restauranteError } = await supabase
+        .from("restaurantes")
+        .select("id_restaurante")
+        .eq("id_auth", res.locals.user.id)
+        .maybeSingle();
+    if (restauranteError) {
+        return res.status(400).json({ error: restauranteError.message });
+    }
+    if (!restaurante) {
+        return res.status(403).json({ error: "Apenas o restaurante pode remover pedidos da cozinha." });
+    }
+    const { data: pedido, error: pedidoError } = await supabase
+        .from("pedidos")
+        .select("id_pedido, id_restaurante, status_pedido")
+        .eq("id_pedido", orderId)
+        .eq("id_restaurante", restaurante.id_restaurante)
+        .maybeSingle();
+    if (pedidoError) {
+        return res.status(400).json({ error: pedidoError.message });
+    }
+    if (!pedido) {
+        return res.status(404).json({ error: "Pedido nao encontrado." });
+    }
+    if (!["PRONTO", "ENTREGUE", "CANCELADO"].includes(pedido.status_pedido)) {
+        return res.status(409).json({
+            error: "Marque o pedido como pronto, entregue ou cancelado antes de remove-lo da cozinha.",
+        });
+    }
+    const clienteBanco = supabase_1.supabaseAdmin ?? supabase;
+    const { data, error } = await clienteBanco
+        .from("pedidos")
+        .update({
+            ocultado_cozinha: true,
+            ocultado_cozinha_em: new Date().toISOString(),
+        })
+        .eq("id_pedido", orderId)
+        .eq("id_restaurante", restaurante.id_restaurante)
+        .select("id_pedido, status_pedido, ocultado_cozinha, ocultado_cozinha_em")
+        .single();
+    if (error) {
+        return res.status(400).json({ error: error.message });
     }
     return res.json(data);
 });

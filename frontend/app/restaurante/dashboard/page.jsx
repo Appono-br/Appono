@@ -1,8 +1,9 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { apiRequest } from "@/lib/api";
+import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 import { TelaCarregandoSessao, useSessaoLocal } from "@/lib/use-sessao-local";
 const navItems = [
     { label: "Home", href: "/restaurante/home" },
@@ -11,14 +12,10 @@ const navItems = [
     { label: "Desempenho", href: "/restaurante/desempenho" },
     { label: "Relatorio financeiro", href: "/restaurante/financeiro" },
     { label: "Reservas", href: "/restaurante/reservas" },
+    { label: "Cozinha", href: "/restaurante/pedidos" },
+    { label: "Historico", href: "/restaurante/historico-pedidos" },
     { label: "Mensagens", href: "/restaurante/mensagens" },
     { label: "Configuracoes", href: "/restaurante/configuracoes" },
-];
-const overviewMetrics = [
-    { label: "Pedidos hoje", icon: "orders" },
-    { label: "Mesas reservadas", icon: "seat", highlighted: true },
-    { label: "Ticket medio", icon: "money" },
-    { label: "Novos clientes", icon: "user" },
 ];
 function Icon({ type, className = "h-5 w-5", }) {
     const paths = {
@@ -34,7 +31,7 @@ function Icon({ type, className = "h-5 w-5", }) {
     </svg>);
 }
 function MetricCard({ metric }) {
-    return (<article className={`min-h-44 rounded-[8px] p-7 shadow-sm ring-1 ring-app-baunilha-dourada/45 ${metric.highlighted ? "bg-app-creme-suave" : "bg-app-chantilly"}`}>
+    return (<article className={`rounded-[8px] p-5 shadow-sm ring-1 ring-app-baunilha-dourada/45 ${metric.highlighted ? "bg-app-creme-suave" : "bg-app-chantilly"}`}>
       <div className="flex items-start justify-between gap-4">
         <p className="text-xs font-bold uppercase tracking-[0.18em] text-app-mocha">
           {metric.label}
@@ -42,17 +39,15 @@ function MetricCard({ metric }) {
         <Icon type={metric.icon} className="h-6 w-6 text-app-caramelo-torrado"/>
       </div>
 
-      <strong className="mt-12 block text-4xl font-medium text-app-cafe-profundo">
+      <strong className="mt-7 block text-3xl font-medium text-app-cafe-profundo">
         {metric.value ?? "--"}
       </strong>
 
-      {metric.helper ? (<p className="mt-2 text-sm text-app-mocha">{metric.helper}</p>) : (<div className="mt-4 h-2 w-full max-w-48 rounded-full bg-app-baunilha-dourada/45">
-          <div className="h-2 w-0 rounded-full bg-app-caramelo-torrado"/>
-        </div>)}
+      {metric.helper ? (<p className="mt-2 text-sm text-app-mocha">{metric.helper}</p>) : null}
     </article>);
 }
 function EmptyPanel({ title, description, dark = false, }) {
-    return (<div className={`flex min-h-52 flex-col justify-center rounded-[8px] border border-dashed px-6 py-8 ${dark
+    return (<div className={`flex min-h-40 flex-col justify-center rounded-[8px] border border-dashed px-5 py-6 ${dark
             ? "border-app-baunilha-dourada/25 bg-app-cafe-profundo text-app-creme-leve"
             : "border-app-caramelo-torrado/30 bg-app-creme-leve text-app-cafe-profundo"}`}>
       <h3 className="text-xl font-semibold">{title}</h3>
@@ -78,23 +73,36 @@ function obterStatusPedido(status) {
     };
     return statusMap[status] ?? status;
 }
+const resumoInicial = {
+    metricas: [],
+    serieReservas: [],
+    proximosPedidos: [],
+    produtoDestaque: null,
+    tempoMedioPreparo: null,
+    pedidosAtivosCozinha: 0,
+};
 export default function RestaurantDashboardPage() {
     const { sessao, sessaoCarregada } = useSessaoLocal();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-    const [reservas, setReservas] = useState([]);
+    const [resumo, setResumo] = useState(resumoInicial);
     useEffect(() => {
         if (sessao?.type !== "restaurant") {
             return;
         }
-        apiRequest("/reservas")
-            .then(setReservas)
-            .catch(() => setReservas([]));
+        apiRequest("/restaurante/dashboard/resumo")
+            .then((resposta) => {
+            setResumo({ ...resumoInicial, ...(resposta ?? {}) });
+        })
+            .catch(() => {
+            setResumo(resumoInicial);
+        });
     }, [sessao?.type]);
-    const proximosPedidos = useMemo(() => reservas
-        .flatMap((reserva) => (reserva.pedidos ?? [])
-        .filter((pedido) => ["PENDENTE", "CONFIRMADO", "EM_PREPARO", "PRONTO"].includes(pedido.status_pedido))
-        .map((pedido) => ({ ...pedido, reserva })))
-        .slice(0, 3), [reservas]);
+    const metricas = resumo.metricas;
+    const serieReservas = resumo.serieReservas;
+    const proximosPedidos = resumo.proximosPedidos;
+    const maiorValorSerie = Math.max(...serieReservas.map((ponto) => ponto.valor), 1);
+    const produtoDestaque = resumo.produtoDestaque;
+    const tempoMedioPreparo = resumo.tempoMedioPreparo;
     if (!sessaoCarregada) {
         return <TelaCarregandoSessao />;
     }
@@ -120,21 +128,24 @@ export default function RestaurantDashboardPage() {
           </div>
 
           <nav className="hidden items-center justify-self-center gap-6 text-xs font-semibold text-app-cinza xl:flex">
-            {navItems.map((item, index) => (<Link key={item.label} href={item.href} className={index === 1
+            {navItems.map((item) => (<Link key={item.label} href={item.href} className={item.href === "/restaurante/dashboard"
                 ? "text-app-cafe-profundo"
                 : "transition hover:text-app-cafe-profundo"}>
                 {item.label}
               </Link>))}
           </nav>
 
-          <button type="button" onClick={() => setMobileMenuOpen((current) => !current)} className="flex h-9 w-9 items-center justify-center justify-self-end rounded-[8px] border border-app-baunilha-dourada bg-app-chantilly text-app-cafe-profundo xl:hidden" aria-label="Abrir menu" aria-expanded={mobileMenuOpen} aria-controls="restaurant-dashboard-menu">
-            <Icon type="menu"/>
-          </button>
+          <div className="flex items-center justify-self-end gap-3 text-app-cafe-profundo">
+            <ItemHeaderNotificacoes href="/restaurante/notificacoes" />
+          <button type="button" onClick={() => setMobileMenuOpen((current) => !current)} className="flex h-9 w-9 items-center justify-center rounded-[8px] border border-app-baunilha-dourada bg-app-chantilly text-app-cafe-profundo xl:hidden" aria-label="Abrir menu" aria-expanded={mobileMenuOpen} aria-controls="restaurant-dashboard-menu">
+              <Icon type="menu"/>
+            </button>
+          </div>
         </div>
 
         {mobileMenuOpen ? (<nav id="restaurant-dashboard-menu" className="border-t border-app-baunilha-dourada/55 bg-app-creme-leve px-5 py-3 xl:hidden">
             <div className="mx-auto grid max-w-7xl gap-2 text-xs font-semibold text-app-cinza">
-              {navItems.map((item, index) => (<Link key={item.label} href={item.href} onClick={() => setMobileMenuOpen(false)} className={index === 1
+              {navItems.map((item) => (<Link key={item.label} href={item.href} onClick={() => setMobileMenuOpen(false)} className={item.href === "/restaurante/dashboard"
                     ? "text-app-cafe-profundo"
                     : "transition hover:text-app-cafe-profundo"}>
                   {item.label}
@@ -156,40 +167,42 @@ export default function RestaurantDashboardPage() {
           </p>
         </div>
 
-        <section className="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-          {overviewMetrics.map((metric) => (<MetricCard key={metric.label} metric={metric}/>))}
+        <section className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {metricas.map((metric) => (<MetricCard key={metric.label} metric={metric}/>))}
         </section>
 
-        <section className="mt-8 grid gap-8 lg:grid-cols-[1fr_0.52fr]">
-          <article className="rounded-[8px] bg-app-chantilly p-6 shadow-sm ring-1 ring-app-baunilha-dourada/45 sm:p-8">
+        <section className="mt-6 grid gap-6 lg:grid-cols-[1fr_0.52fr]">
+          <article className="rounded-[8px] bg-app-chantilly p-5 shadow-sm ring-1 ring-app-baunilha-dourada/45 sm:p-6">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div>
                 <h2 className="text-2xl font-medium text-app-cafe-profundo">
-                  Performance Mensal
+                  Reservas recentes
                 </h2>
                 <p className="mt-2 text-sm text-app-cinza">
-                  Volume de vendas e reservas dos ultimos 30 dias.
+                  Volume real de reservas dos ultimos 7 dias.
                 </p>
               </div>
               <div className="flex gap-4 text-xs font-semibold text-app-mocha">
                 <span className="flex items-center gap-2">
                   <span className="h-3 w-3 rounded-full bg-app-cafe-profundo"/>
-                  Receita
-                </span>
-                <span className="flex items-center gap-2">
-                  <span className="h-3 w-3 rounded-full bg-app-caramelo-torrado"/>
                   Reservas
                 </span>
               </div>
             </div>
 
-            <div className="mt-10 flex min-h-[280px] items-end gap-3 rounded-[8px] border border-dashed border-app-caramelo-torrado/25 bg-app-creme-leve px-5 py-6 sm:gap-5">
-              {Array.from({ length: 7 }).map((_, index) => (<div key={index} className="h-20 flex-1 rounded-t-[8px] bg-app-baunilha-dourada/45"/>))}
+            <div className="mt-8 flex min-h-[220px] items-end gap-3 rounded-[8px] bg-app-creme-leve px-4 py-5 sm:gap-5">
+              {serieReservas.map((ponto) => (
+                <div key={ponto.data} className="flex flex-1 flex-col items-center gap-2">
+                  <span className="text-xs font-bold text-app-cafe-profundo">{ponto.valor}</span>
+                  <div className="w-full rounded-t-[8px] bg-app-caramelo-torrado" style={{ height: `${Math.max(12, (ponto.valor / maiorValorSerie) * 180)}px` }} />
+                  <span className="text-[10px] font-semibold text-app-cinza">{ponto.label}</span>
+                </div>
+              ))}
             </div>
           </article>
 
-          <article className="rounded-[8px] bg-app-cafe-profundo p-6 text-app-creme-leve shadow-sm sm:p-8">
-            <h2 className="text-2xl font-medium">Pedidos Antecipados</h2>
+          <article className="rounded-[8px] bg-app-cafe-profundo p-5 text-app-creme-leve shadow-sm sm:p-6">
+            <h2 className="text-2xl font-medium">Cozinha</h2>
             <div className="mt-8 grid gap-3">
               {proximosPedidos.length ? proximosPedidos.map((pedido) => (<div key={pedido.id_pedido} className="rounded-[10px] bg-app-cacau-intenso/55 p-4 ring-1 ring-app-baunilha-dourada/20">
                     <div className="flex items-start justify-between gap-4">
@@ -213,32 +226,43 @@ export default function RestaurantDashboardPage() {
                     </p>
                   </div>)) : (<EmptyPanel dark title="Nenhum pedido antecipado" description="Quando o cliente pedir antes da reserva, o pedido aparecera aqui."/>)} 
             </div>
-            <Link href="/restaurante/reservas" className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-app-baunilha-dourada transition hover:text-app-chantilly">
-              Ver reservas completas
+            <Link href="/restaurante/pedidos" className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-app-baunilha-dourada transition hover:text-app-chantilly">
+              Ver cozinha
               <Icon type="arrow-right" className="h-4 w-4"/>
             </Link>
           </article>
         </section>
 
-        <section className="mt-8 grid gap-8 lg:grid-cols-[0.95fr_1fr]">
-          <article className="rounded-[8px] bg-app-creme-leve p-6 shadow-sm ring-1 ring-app-baunilha-dourada/60 sm:p-8">
+        <section className="mt-6 grid gap-6 lg:grid-cols-[0.95fr_1fr]">
+          <article className="rounded-[8px] bg-app-creme-leve p-5 shadow-sm ring-1 ring-app-baunilha-dourada/60 sm:p-6">
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">
               Destaque do cardapio
             </p>
             <div className="mt-5">
-              <EmptyPanel title="Nenhum item em destaque" description="Selecione um item para destacar no cardapio."/>
+              {produtoDestaque ? (
+                <div className="rounded-[10px] bg-app-chantilly p-5 ring-1 ring-app-baunilha-dourada/50">
+                  <h3 className="text-xl font-semibold text-app-cafe-profundo">{produtoDestaque.nome}</h3>
+                  <p className="mt-2 text-sm leading-6 text-app-cinza">{produtoDestaque.descricao ?? "Item destacado no cardapio."}</p>
+                  <strong className="mt-4 block text-app-caramelo-torrado">{formatarMoeda(produtoDestaque.preco)}</strong>
+                </div>
+              ) : (
+                <EmptyPanel title="Nenhum item em destaque" description="Selecione um item para destacar no cardapio."/>
+              )}
             </div>
           </article>
 
-          <article className="rounded-[8px] bg-app-creme-leve p-6 shadow-sm ring-1 ring-app-baunilha-dourada/60 sm:p-8">
+          <article className="rounded-[8px] bg-app-creme-leve p-5 shadow-sm ring-1 ring-app-baunilha-dourada/60 sm:p-6">
             <h2 className="text-2xl font-medium text-app-cafe-profundo">
               Eficiencia da Cozinha
             </h2>
             <div className="mt-8 grid gap-6">
-              {["Tempo medio de preparo", "Satisfacao do cliente"].map((label) => (<div key={label}>
+              {[
+                { label: "Tempo medio estimado", value: tempoMedioPreparo ? `${tempoMedioPreparo} min` : "--" },
+                { label: "Pedidos ativos na cozinha", value: resumo.pedidosAtivosCozinha ?? 0 },
+              ].map((item) => (<div key={item.label}>
                     <div className="flex items-center justify-between gap-4 text-sm text-app-cinza">
-                      <span>{label}</span>
-                      <span className="font-bold text-app-cafe-profundo">--</span>
+                      <span>{item.label}</span>
+                      <span className="font-bold text-app-cafe-profundo">{item.value}</span>
                     </div>
                     <div className="mt-3 h-2 rounded-full bg-app-baunilha-dourada/45">
                       <div className="h-2 w-0 rounded-full bg-app-caramelo-torrado"/>

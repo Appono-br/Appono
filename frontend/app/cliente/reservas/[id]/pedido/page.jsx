@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { apiRequest } from "@/lib/api";
+import { calcularTempoPreparoItens } from "@/lib/tempo-preparo";
 
 function formatarMoeda(valor) {
     return new Intl.NumberFormat("pt-BR", {
@@ -29,6 +30,13 @@ const statusPedido = {
     ENTREGUE: "Entregue",
     CANCELADO: "Cancelado",
 };
+
+function reservaJaIniciou(reserva) {
+    if (!reserva?.data_reserva || !reserva?.horario_inicio) {
+        return false;
+    }
+    return new Date(`${reserva.data_reserva}T${reserva.horario_inicio}`) <= new Date();
+}
 
 function Icon({ type, className = "h-5 w-5" }) {
     const paths = {
@@ -103,12 +111,13 @@ export default function PaginaPedidoAntecipado({ params }) {
     const total = produtosSelecionados.reduce((soma, produto) => soma + Number(produto.preco) * produto.quantidade, 0);
     const consumoMinimo = Number(dados?.reserva?.valor_minimo_total ?? 0);
     const faltaParaMinimo = Math.max(0, consumoMinimo - total);
-    const maiorTempoPreparo = produtosSelecionados.reduce((maior, produto) => Math.max(maior, Number(produto.tempo_preparo_minutos ?? 30)), 0);
+    const maiorTempoPreparo = calcularTempoPreparoItens(produtosSelecionados);
     const pedidoAtivo = dados?.reserva.pedidos?.find((pedido) => ["PENDENTE", "CONFIRMADO", "EM_PREPARO", "PRONTO"].includes(pedido.status_pedido));
     const reservaConfirmada = dados?.reserva.status_reserva === "CONFIRMADA";
+    const reservaIniciada = reservaJaIniciou(dados?.reserva);
     const itensPedidoAtivo = pedidoAtivo?.itens_pedido ?? [];
     const totalItensPedidoAtivo = itensPedidoAtivo.reduce((soma, item) => soma + Number(item.quantidade ?? 0), 0);
-    const maiorTempoPedidoAtivo = itensPedidoAtivo.reduce((maior, item) => Math.max(maior, Number(item.produtos?.tempo_preparo_minutos ?? 0)), 0);
+    const maiorTempoPedidoAtivo = calcularTempoPreparoItens(itensPedidoAtivo);
 
     function alterarQuantidade(produtoId, diferenca) {
         setMensagem("");
@@ -135,6 +144,10 @@ export default function PaginaPedidoAntecipado({ params }) {
         }
         if (!reservaConfirmada) {
             setMensagem("O pedido antecipado so pode ser criado para uma reserva confirmada.");
+            return;
+        }
+        if (reservaIniciada) {
+            setMensagem("Nao e possivel adicionar pedido antecipado porque a reserva ja iniciou.");
             return;
         }
         const itens = produtosSelecionados.map((produto) => ({
@@ -444,12 +457,17 @@ export default function PaginaPedidoAntecipado({ params }) {
                                     O pedido antecipado fica disponivel apenas para reservas confirmadas.
                                 </p>
                             ) : null}
+                            {reservaIniciada ? (
+                                <p className="mt-5 rounded-[8px] bg-app-creme-suave p-3 text-sm font-semibold text-app-caramelo-torrado">
+                                    Esta reserva ja iniciou. Para preservar a operacao do restaurante, nao e mais possivel adicionar pedido antecipado.
+                                </p>
+                            ) : null}
                             {faltaParaMinimo > 0 && total > 0 ? (
                                 <p className="mt-5 rounded-[8px] bg-app-creme-suave p-3 text-sm font-semibold text-app-caramelo-torrado">
                                     Faltam {formatarMoeda(faltaParaMinimo)} para atingir o consumo minimo da reserva.
                                 </p>
                             ) : null}
-                            <button type="button" onClick={criarPedido} disabled={enviando || total <= 0 || !reservaConfirmada || faltaParaMinimo > 0} className="mt-5 h-12 w-full rounded-[8px] bg-app-dourado-mel text-xs font-bold uppercase tracking-wide text-white transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-50">
+                            <button type="button" onClick={criarPedido} disabled={enviando || total <= 0 || !reservaConfirmada || reservaIniciada || faltaParaMinimo > 0} className="mt-5 h-12 w-full rounded-[8px] bg-app-dourado-mel text-xs font-bold uppercase tracking-wide text-white transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-50">
                                 {enviando ? "Preparando pagamento..." : "Pagar pedido antecipado"}
                             </button>
                             {mensagem ? <p className="mt-3 text-sm font-semibold text-app-caramelo-torrado">{mensagem}</p> : null}

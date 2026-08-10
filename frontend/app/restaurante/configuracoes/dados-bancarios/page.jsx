@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { apiRequest } from "@/lib/api";
+import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 import { TelaCarregandoSessao, useSessaoLocal } from "@/lib/use-sessao-local";
 import { aplicarMascaraCnpj } from "@/lib/validacoes/cnpj";
 import { somenteNumeros } from "@/lib/validacoes/comum";
@@ -168,7 +169,10 @@ export default function RestaurantBankSettingsPage() {
               Configuracoes
             </h1>
           </div>
-          <Icon type="help" className="hidden h-5 w-5 justify-self-end text-app-mocha sm:block"/>
+          <div className="flex items-center justify-self-end gap-3 text-app-cafe-profundo">
+            <ItemHeaderNotificacoes href="/restaurante/notificacoes" />
+            <Icon type="help" className="hidden h-5 w-5 justify-self-end text-app-mocha sm:block"/>
+          </div>
         </div>
       </header>
 
@@ -330,7 +334,7 @@ export default function RestaurantBankSettingsPage() {
               </h3>
               <div className="mt-5 rounded-[8px] bg-app-chantilly p-5">
                 <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-cinza">
-                  Nenhum backend conectado
+                  Integracao financeira pendente
                 </p>
                 <p className="mt-2 text-sm leading-6 text-app-mocha">
                   O historico de repasses aparecera aqui quando a integracao

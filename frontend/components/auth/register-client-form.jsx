@@ -1,10 +1,11 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FormField } from "@/components/auth/form-field";
 import { apiRequest } from "@/lib/api";
 import { getDashboardPath, persistAuthResponse } from "@/lib/session";
+import { supabase } from "@/lib/supabase";
 import { somenteNumeros } from "@/lib/validacoes/comum";
 import { aplicarMascaraCpf, cpfEstaCompleto } from "@/lib/validacoes/cpf";
 import { aplicarMascaraTelefone } from "@/lib/validacoes/telefone";
@@ -18,10 +19,30 @@ const initialForm = {
   password: "",
 };
 
-export function RegisterClientForm() {
+export function RegisterClientForm({ googleFlow = false }) {
   const [form, setForm] = useState(initialForm);
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [googleSession, setGoogleSession] = useState(null);
+  const isGoogleFlow = googleFlow;
+
+  useEffect(() => {
+    if (!isGoogleFlow) {
+      return;
+    }
+    supabase.auth.getSession().then(({ data }) => {
+      if (!data.session) {
+        setMessage("Entre com Google novamente para completar o cadastro.");
+        return;
+      }
+      setGoogleSession(data.session);
+      setForm((current) => ({
+        ...current,
+        email: data.session.user.email ?? current.email,
+        name: current.name || data.session.user.user_metadata?.full_name || "",
+      }));
+    });
+  }, [isGoogleFlow]);
 
   function atualizarCampo(field, value) {
     setForm((current) => ({ ...current, [field]: value }));
@@ -37,12 +58,13 @@ export function RegisterClientForm() {
     setIsSubmitting(true);
     setMessage("");
     try {
-      const response = await apiRequest("/auth/register/client", {
+      const response = await apiRequest(isGoogleFlow ? "/auth/google/client" : "/auth/register/client", {
         method: "POST",
+        auth: isGoogleFlow,
         body: JSON.stringify(form),
       });
-      await persistAuthResponse(response);
-      if (response.session) {
+      await persistAuthResponse({ ...response, session: response.session ?? googleSession });
+      if (response.session || googleSession) {
         window.location.href = getDashboardPath(response.tipo);
         return;
       }
@@ -121,7 +143,7 @@ export function RegisterClientForm() {
                 return;
               }
               try {
-                await apiRequest(`/validacoes/cpf/${somenteNumeros(form.cpf)}`);
+                await apiRequest(`/validacoes/cpf/${somenteNumeros(form.cpf)}`, { auth: false });
               } catch (error) {
                 setMessage(error instanceof Error ? error.message : "CPF invalido.");
               }
@@ -138,6 +160,7 @@ export function RegisterClientForm() {
             onChange={(event) => atualizarCampo("email", event.target.value)}
             placeholder="maria@exemplo.com"
             required
+            disabled={isGoogleFlow}
             className="sm:col-span-2"
           />
           <FormField
@@ -150,16 +173,18 @@ export function RegisterClientForm() {
             required
             className="sm:col-span-2"
           />
-          <FormField
-            label="Senha"
-            type="password"
-            value={form.password}
-            onChange={(event) => atualizarCampo("password", event.target.value)}
-            placeholder="********"
-            required
-            minLength={6}
-            className="sm:col-span-2"
-          />
+          {!isGoogleFlow ? (
+            <FormField
+              label="Senha"
+              type="password"
+              value={form.password}
+              onChange={(event) => atualizarCampo("password", event.target.value)}
+              placeholder="********"
+              required
+              minLength={6}
+              className="sm:col-span-2"
+            />
+          ) : null}
         </div>
 
         <div className="mt-5 flex flex-col-reverse gap-3 border-t border-app-baunilha-dourada pt-4 sm:flex-row sm:items-center sm:justify-between">

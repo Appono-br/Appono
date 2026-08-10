@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { apiRequest } from "@/lib/api";
+import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 import { TelaCarregandoSessao, useSessaoLocal } from "@/lib/use-sessao-local";
 import { aplicarMascaraCep } from "@/lib/validacoes/cep";
 const initialForm = {
@@ -120,6 +121,7 @@ export default function RestaurantAddressSettingsPage() {
             </h1>
           </div>
           <div className="hidden items-center justify-self-end gap-3 text-right sm:flex">
+            <ItemHeaderNotificacoes href="/restaurante/notificacoes" />
             <Icon type="help" className="h-5 w-5 text-app-mocha"/>
             <div>
               <p className="text-xs font-semibold text-app-mocha">
@@ -236,7 +238,7 @@ export default function RestaurantAddressSettingsPage() {
             </p>
             <p className="mt-3 text-sm leading-6 text-app-mocha">
               A posicao exata do marcador sera ajustada quando o servico de mapa
-              estiver conectado ao backend.
+              estiver disponivel.
             </p>
           </div>
         </aside>

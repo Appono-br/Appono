@@ -3,10 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { initMercadoPago, Wallet } from "@mercadopago/sdk-react";
 import { apiRequest } from "@/lib/api";
-
-const publicKey = process.env.NEXT_PUBLIC_MERCADO_PAGO_PUBLIC_KEY ?? "";
+import { BotaoVoltar } from "@/components/botao-voltar";
 
 function formatarMoeda(valor) {
     return new Intl.NumberFormat("pt-BR", {
@@ -44,18 +42,10 @@ export default function PaginaPagamentoPedido({ params }) {
     const [pedidoId, setPedidoId] = useState(null);
     const [preferencia, setPreferencia] = useState(null);
     const [mensagem, setMensagem] = useState("Preparando checkout seguro...");
-    const mensagemPublicKey = publicKey ? "" : "NEXT_PUBLIC_MERCADO_PAGO_PUBLIC_KEY precisa estar configurada no frontend.";
 
     useEffect(() => {
         params.then(({ id }) => setPedidoId(Number(id)));
     }, [params]);
-
-    useEffect(() => {
-        if (!publicKey) {
-            return;
-        }
-        initMercadoPago(publicKey, { locale: "pt-BR" });
-    }, []);
 
     useEffect(() => {
         if (!pedidoId) {
@@ -75,21 +65,22 @@ export default function PaginaPagamentoPedido({ params }) {
 
     const pedido = preferencia?.pedido;
     const preferenceId = preferencia?.preference_id;
+    const checkoutUrl = preferencia?.checkout_url;
 
     return (
-        <main className="flex min-h-screen flex-col bg-app-chantilly px-5 py-8 text-app-cafe-profundo">
+        <main className="flex min-h-screen flex-col bg-app-chantilly px-4 py-8 text-app-cafe-profundo sm:px-5">
             <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col justify-center">
-                <Link href="/cliente/detalhes-pedido" className="w-fit text-sm font-bold text-app-caramelo-torrado">
+                <BotaoVoltar href="/cliente/detalhes-pedido" className="text-sm font-bold text-app-caramelo-torrado transition hover:text-app-cafe-profundo">
                     Voltar aos detalhes do pedido
-                </Link>
+                </BotaoVoltar>
 
-                <section className="mt-6 grid overflow-hidden rounded-[18px] bg-app-creme-leve shadow-sm ring-1 ring-app-baunilha-dourada/70 lg:grid-cols-[minmax(0,1fr)_430px]">
-                    <div className="p-6 sm:p-10">
+                <section className="mt-6 grid overflow-hidden rounded-[18px] bg-app-creme-leve shadow-sm ring-1 ring-app-baunilha-dourada/70 lg:grid-cols-[minmax(0,1fr)_minmax(360px,430px)]">
+                    <div className="min-w-0 p-5 sm:p-10">
                         <Image src="/brand/appono-mark.svg" alt="Appono" width={88} height={88} className="h-16 w-16" priority />
                         <p className="mt-8 text-[10px] font-bold uppercase tracking-[0.22em] text-app-caramelo-torrado">
                             Checkout Pro
                         </p>
-                        <h1 className="mt-2 text-3xl font-bold text-app-cafe-profundo sm:text-4xl">
+                        <h1 className="mt-2 text-3xl font-bold leading-tight text-app-cafe-profundo sm:text-4xl">
                             Finalize o pagamento do pedido antecipado
                         </h1>
                         <p className="mt-4 max-w-xl text-sm leading-6 text-app-mocha">
@@ -118,7 +109,7 @@ export default function PaginaPagamentoPedido({ params }) {
                         </div>
                     </div>
 
-                    <aside className="flex flex-col justify-center bg-app-cafe-profundo p-6 text-app-creme-leve sm:p-8">
+                    <aside className="min-w-0 bg-app-cafe-profundo p-5 text-app-creme-leve sm:p-8 lg:flex lg:flex-col lg:justify-center">
                         <div className="rounded-[18px] border border-app-baunilha-dourada/25 bg-app-creme-leve/8 p-5 shadow-sm">
                             <div className="flex items-start gap-4">
                                 <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[14px] bg-app-baunilha-dourada text-app-cafe-profundo">
@@ -146,15 +137,23 @@ export default function PaginaPagamentoPedido({ params }) {
                             </div>
 
                             <div className="mt-6 rounded-[12px] bg-app-creme-leve p-3 text-app-cafe-profundo ring-1 ring-app-baunilha-dourada/35">
-                                <div className="mx-auto w-full max-w-[340px] rounded-[8px]">
-                                    {publicKey && preferenceId ? (
-                                        <Wallet initialization={{ preferenceId }} customization={{ texts: { valueProp: "security_safety" } }} />
-                                    ) : (
-                                        <p className="text-center text-sm font-semibold text-app-caramelo-torrado">
-                                            {mensagemPublicKey || mensagem || "Carregando botao de pagamento..."}
-                                        </p>
-                                    )}
-                                </div>
+                                {checkoutUrl ? (
+                                    <a
+                                        href={checkoutUrl}
+                                        className="flex h-12 w-full items-center justify-center rounded-[10px] bg-[#ffe600] px-4 text-sm font-black uppercase tracking-[0.08em] text-[#03264c] shadow-sm transition hover:brightness-95"
+                                    >
+                                        Pagar com Mercado Pago
+                                    </a>
+                                ) : (
+                                    <p className="text-center text-sm font-semibold text-app-caramelo-torrado">
+                                        {mensagem || "Carregando botao de pagamento..."}
+                                    </p>
+                                )}
+                                {preferenceId ? (
+                                    <p className="mt-3 text-center text-[11px] font-semibold text-app-mocha">
+                                        Checkout Pro seguro, processado pelo Mercado Pago.
+                                    </p>
+                                ) : null}
                             </div>
 
                             <div className="mt-5 grid gap-2 text-xs text-app-creme-suave">
@@ -169,9 +168,9 @@ export default function PaginaPagamentoPedido({ params }) {
                             </div>
                         </div>
 
-                        {(mensagemPublicKey || mensagem) && preferenceId ? (
+                        {mensagem && preferenceId ? (
                             <p className="mt-4 rounded-[8px] bg-app-creme-leve/10 p-3 text-sm text-app-creme-suave">
-                                {mensagemPublicKey || mensagem}
+                                {mensagem}
                             </p>
                         ) : null}
                     </aside>

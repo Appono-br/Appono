@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { apiRequest } from "@/lib/api";
+import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 import { TelaCarregandoSessao, useSessaoLocal } from "@/lib/use-sessao-local";
 
 const navItems = [
@@ -13,6 +14,8 @@ const navItems = [
     { label: "Desempenho", href: "/restaurante/desempenho" },
     { label: "Relatorio financeiro", href: "/restaurante/financeiro" },
     { label: "Reservas", href: "/restaurante/reservas" },
+    { label: "Cozinha", href: "/restaurante/pedidos" },
+    { label: "Historico", href: "/restaurante/historico-pedidos" },
     { label: "Mensagens", href: "/restaurante/mensagens" },
     { label: "Configuracoes", href: "/restaurante/configuracoes" },
 ];
@@ -24,6 +27,7 @@ function Icon({ type, className = "h-5 w-5" }) {
         menu: "M4 7h16M4 12h16M4 17h16",
         pencil: "M16.5 4.5l3 3L8 19H5v-3L16.5 4.5z",
         plus: "M12 5v14M5 12h14",
+        search: "m21 21-4.35-4.35M11 18a7 7 0 1 1 0-14 7 7 0 0 1 0 14z",
         star: "m12 3 2.7 5.5 6.1.9-4.4 4.3 1 6-5.4-2.9-5.4 2.9 1-6-4.4-4.3 6.1-.9L12 3z",
         trash: "M4 7h16M10 11v6M14 11v6M6 7l1 14h10l1-14M9 7V5h6v2",
         utensils: "M7 3v8M4 3v8M10 3v8M4 11h6M7 11v10M17 3v18M14 3h3a3 3 0 0 1 3 3v5a3 3 0 0 1-3 3h-3",
@@ -265,14 +269,15 @@ export default function RestaurantMenuManagementPage() {
                     </div>
 
                     <nav className="hidden items-center justify-self-center gap-6 text-xs font-semibold text-app-cinza xl:flex">
-                        {navItems.map((item, index) => (
-                            <Link key={item.label} href={item.href} className={index === 2 ? "text-app-cafe-profundo" : "transition hover:text-app-cafe-profundo"}>
+                        {navItems.map((item) => (
+                            <Link key={item.label} href={item.href} className={item.href === "/restaurante/cardapio" ? "text-app-cafe-profundo" : "transition hover:text-app-cafe-profundo"}>
                                 {item.label}
                             </Link>
                         ))}
                     </nav>
 
-                    <button type="button" onClick={() => setMobileMenuOpen((current) => !current)} className="flex h-9 w-9 items-center justify-center justify-self-end rounded-[8px] border border-app-baunilha-dourada bg-app-chantilly text-app-cafe-profundo xl:hidden" aria-label="Abrir menu">
+                    <ItemHeaderNotificacoes href="/restaurante/notificacoes" />
+          <button type="button" onClick={() => setMobileMenuOpen((current) => !current)} className="flex h-9 w-9 items-center justify-center justify-self-end rounded-[8px] border border-app-baunilha-dourada bg-app-chantilly text-app-cafe-profundo xl:hidden" aria-label="Abrir menu">
                         <Icon type="menu" />
                     </button>
                 </div>
@@ -280,8 +285,8 @@ export default function RestaurantMenuManagementPage() {
                 {mobileMenuOpen ? (
                     <nav className="border-t border-app-baunilha-dourada/55 bg-app-creme-leve px-5 py-3 xl:hidden">
                         <div className="mx-auto grid max-w-7xl gap-2 text-xs font-semibold text-app-cinza">
-                            {navItems.map((item, index) => (
-                                <Link key={item.label} href={item.href} onClick={() => setMobileMenuOpen(false)} className={index === 2 ? "text-app-cafe-profundo" : "transition hover:text-app-cafe-profundo"}>
+                            {navItems.map((item) => (
+                                <Link key={item.label} href={item.href} onClick={() => setMobileMenuOpen(false)} className={item.href === "/restaurante/cardapio" ? "text-app-cafe-profundo" : "transition hover:text-app-cafe-profundo"}>
                                     {item.label}
                                 </Link>
                             ))}
@@ -377,7 +382,10 @@ export default function RestaurantMenuManagementPage() {
                 </section>
 
                 <section className="mt-8 grid gap-3 rounded-[12px] bg-app-creme-leve p-5 shadow-sm ring-1 ring-app-baunilha-dourada/55 md:grid-cols-[1fr_auto] md:items-center">
-                    <input value={busca} onChange={(event) => setBusca(event.target.value)} placeholder="Buscar por item, descricao ou categoria" className="h-11 rounded-[8px] border border-app-baunilha-dourada bg-app-chantilly px-3 text-sm outline-none focus:border-app-caramelo-torrado"/>
+                    <label className="campo-busca-app flex h-11 items-center gap-3 rounded-[8px] border border-app-baunilha-dourada bg-app-chantilly px-3 text-app-mocha transition">
+                        <Icon type="search" className="h-4 w-4 shrink-0" />
+                        <input value={busca} onChange={(event) => setBusca(event.target.value)} placeholder="Buscar por item, descricao ou categoria" className="input-busca-app h-full min-w-0 flex-1 bg-transparent text-sm text-app-cafe-profundo placeholder:text-app-cinza/60"/>
+                    </label>
                     <select value={filtro} onChange={(event) => setFiltro(event.target.value)} className="h-11 rounded-[8px] border border-app-baunilha-dourada bg-app-chantilly px-3 text-sm font-semibold text-app-mocha outline-none focus:border-app-caramelo-torrado">
                         <option value="todos">Todos os itens</option>
                         <option value="disponiveis">Disponiveis</option>

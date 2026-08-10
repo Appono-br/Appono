@@ -1,6 +1,7 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
+import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 import { useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 const conversations = [];
@@ -9,7 +10,7 @@ const emptyConversation = {
     customer: "Conversa indisponivel",
     initials: "--",
     online: false,
-    segment: "Aguardando backend",
+    segment: "Aguardando atendimento",
     reservation: { date: "--", time: "--", people: "--" },
     preferences: [],
     messages: [],
@@ -95,7 +96,9 @@ export default function RestaurantConversationPage() {
               Chat
             </h1>
           </div>
-          <div className="w-16"/>
+          <div className="justify-self-end text-app-cafe-profundo">
+            <ItemHeaderNotificacoes href="/restaurante/notificacoes" />
+          </div>
         </div>
       </header>
 
@@ -160,8 +163,8 @@ export default function RestaurantConversationPage() {
                   Historico indisponivel
                 </h2>
                 <p className="mt-2 max-w-md text-sm leading-6 text-app-cinza">
-                  As mensagens reais desta conversa serao exibidas quando o
-                  backend do chat estiver conectado.
+                  As mensagens desta conversa serao exibidas assim que houver
+                  interacoes registradas.
                 </p>
               </div>)}
           </div>

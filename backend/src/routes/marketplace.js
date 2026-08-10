@@ -181,6 +181,7 @@ exports.marketplaceRouter.get("/financeiro/resumo", auth_1.requireAuth, async (r
                     valor_bruto: 0,
                     valor_comissao_app: 0,
                     valor_restaurante: 0,
+                    valor_liquido_recebido: 0,
                     valor_a_receber: 0,
                     valor_liberado: 0,
                     valor_estornado: 0,
@@ -236,12 +237,14 @@ exports.marketplaceRouter.get("/financeiro/resumo", auth_1.requireAuth, async (r
             valor_bruto: 0,
             valor_comissao_app: 0,
             valor_restaurante: 0,
+            valor_liquido_recebido: 0,
             valor_a_receber: 0,
             valor_liberado: 0,
             valor_estornado: 0,
             quantidade_pagamentos: 0,
             quantidade_liberados: 0,
         });
+        resumo.valor_liquido_recebido = resumo.valor_restaurante;
         const repasses = pagamentosValidos.map((pagamento) => ({
             ...pagamento,
             pedido: pedidosPorId.get(pagamento.id_pedido) ?? null,

@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { apiRequest } from "@/lib/api";
+import { calcularTempoPreparoItens } from "@/lib/tempo-preparo";
 
 const navItems = [
     { label: "Inicio", href: "/cliente/dashboard" },
@@ -33,13 +34,14 @@ function Icon({ type, className = "h-5 w-5" }) {
         menu: "M4 7h16M4 12h16M4 17h16",
         receipt: "M6 3h12v18l-2-1.2-2 1.2-2-1.2-2 1.2-2-1.2L6 21V3z M9 8h6M9 12h6M9 16h4",
         shield: "M12 21s7-3.2 7-9.8V5l-7-3-7 3v6.2C5 17.8 12 21 12 21z M9.5 12l1.7 1.7 3.8-4",
+        star: "m12 3 2.7 5.48 6.05.88-4.38 4.27 1.03 6.02L12 16.82l-5.4 2.83 1.03-6.02-4.38-4.27 6.05-.88L12 3Z",
         utensils: "M7 3v8M4 3v8M10 3v8M4 11h6M7 11v10M17 3v18M14 3h3a3 3 0 0 1 3 3v5a3 3 0 0 1-3 3h-3",
         users: "M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2M9.5 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8",
     };
 
     return (
         <svg aria-hidden="true" viewBox="0 0 24 24" className={className}>
-            <path d={paths[type]} fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" />
+            <path d={paths[type]} fill={type === "star" ? "currentColor" : "none"} stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" />
         </svg>
     );
 }
@@ -123,6 +125,11 @@ export default function OrderDetailsPage() {
     const [cancelando, setCancelando] = useState(false);
     const [pagando, setPagando] = useState(false);
     const [modalCancelamentoAberto, setModalCancelamentoAberto] = useState(false);
+    const [pedidoParaAvaliar, setPedidoParaAvaliar] = useState(null);
+    const [notaAvaliacao, setNotaAvaliacao] = useState(5);
+    const [comentarioAvaliacao, setComentarioAvaliacao] = useState("");
+    const [avaliando, setAvaliando] = useState(false);
+    const [mensagemAvaliacao, setMensagemAvaliacao] = useState("");
 
     useEffect(() => {
         apiRequest("/pedidos")
@@ -146,7 +153,7 @@ export default function OrderDetailsPage() {
 
     const itens = pedidoSelecionado?.itens_pedido ?? [];
     const quantidadeItens = itens.reduce((soma, item) => soma + Number(item.quantidade ?? 0), 0);
-    const tempoEstimado = itens.reduce((maior, item) => Math.max(maior, Number(item.produtos?.tempo_preparo_minutos ?? 0)), 0);
+    const tempoEstimado = calcularTempoPreparoItens(itens);
     const hasPedido = Boolean(pedidoSelecionado);
     const indiceEtapaAtual = obterIndiceEtapa(pedidoSelecionado?.status_pedido);
     const podeCancelarPedido = ["PENDENTE", "CONFIRMADO"].includes(pedidoSelecionado?.status_pedido);
@@ -181,6 +188,51 @@ export default function OrderDetailsPage() {
         setPagando(true);
         setMensagem("");
         window.location.assign(`/cliente/pagamentos/pedido/${pedidoSelecionado.id_pedido}`);
+    }
+
+    async function abrirAvaliacaoPedido(pedido) {
+        setPedidoParaAvaliar(pedido);
+        setNotaAvaliacao(5);
+        setComentarioAvaliacao("");
+        setMensagemAvaliacao("");
+        try {
+            const avaliacao = await apiRequest(`/restaurantes/${pedido.id_restaurante}/minha-avaliacao`);
+            if (avaliacao) {
+                setNotaAvaliacao(Number(avaliacao.nota ?? 5));
+                setComentarioAvaliacao(avaliacao.comentario ?? "");
+            }
+        }
+        catch {
+            return;
+        }
+    }
+
+    async function enviarAvaliacaoPedido() {
+        if (!pedidoParaAvaliar) {
+            return;
+        }
+        setAvaliando(true);
+        setMensagemAvaliacao("");
+        try {
+            const resposta = await apiRequest(`/restaurantes/${pedidoParaAvaliar.id_restaurante}/avaliacoes`, {
+                method: "POST",
+                body: JSON.stringify({
+                    nota: notaAvaliacao,
+                    comentario: comentarioAvaliacao.trim() || null,
+                }),
+            });
+            setPedidos((atuais) => atuais.map((pedido) => pedido.id_restaurante === pedidoParaAvaliar.id_restaurante
+                ? { ...pedido, avaliacao_restaurante: resposta.avaliacao ?? { nota: notaAvaliacao, comentario: comentarioAvaliacao.trim() || null } }
+                : pedido));
+            setMensagemAvaliacao("Avaliação registrada com sucesso.");
+            setTimeout(() => setPedidoParaAvaliar(null), 700);
+        }
+        catch (error) {
+            setMensagemAvaliacao(error instanceof Error ? error.message : "Não foi possível registrar a avaliação.");
+        }
+        finally {
+            setAvaliando(false);
+        }
     }
 
     return (
@@ -270,6 +322,12 @@ export default function OrderDetailsPage() {
                                                 <span className="rounded-full bg-app-creme-suave px-3 py-1 text-xs font-bold text-app-mocha ring-1 ring-app-baunilha-dourada/60">
                                                     {obterStatusPedido(pedido.status_pedido)}
                                                 </span>
+                                                {pedido.status_pedido === "ENTREGUE" ? (
+                                                    <button type="button" onClick={() => abrirAvaliacaoPedido(pedido)} className={`mt-2 inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-bold transition ${pedido.avaliacao_restaurante ? "border-app-dourado-mel bg-app-creme-suave text-app-cafe-profundo" : "border-app-baunilha-dourada text-app-caramelo-torrado hover:bg-app-baunilha-dourada hover:text-app-cafe-profundo"}`}>
+                                                        <Icon type="star" className="h-3.5 w-3.5" />
+                                                        {pedido.avaliacao_restaurante ? `Avaliado: ${pedido.avaliacao_restaurante.nota}/5` : "Avaliar"}
+                                                    </button>
+                                                ) : null}
                                                 <p className="mt-2 text-sm font-bold text-app-cafe-profundo">
                                                     {formatarMoeda(pedido.valor_total)}
                                                 </p>
@@ -534,6 +592,12 @@ export default function OrderDetailsPage() {
                                             <p className="mt-3 text-sm font-bold text-app-cafe-profundo">
                                                 {formatarMoeda(pedido.valor_total)}
                                             </p>
+                                            {pedido.status_pedido === "ENTREGUE" ? (
+                                                <button type="button" onClick={() => abrirAvaliacaoPedido(pedido)} className={`mt-3 inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-bold transition ${pedido.avaliacao_restaurante ? "border-app-dourado-mel bg-app-creme-suave text-app-cafe-profundo" : "border-app-baunilha-dourada text-app-caramelo-torrado hover:bg-app-baunilha-dourada hover:text-app-cafe-profundo"}`}>
+                                                    <Icon type="star" className="h-3.5 w-3.5" />
+                                                    {pedido.avaliacao_restaurante ? `Avaliado: ${pedido.avaliacao_restaurante.nota}/5` : "Avaliar restaurante"}
+                                                </button>
+                                            ) : null}
                                         </article>
                                     ))}
                                 </div>
@@ -590,6 +654,49 @@ export default function OrderDetailsPage() {
                     ) : null}
                 </>
             )}
+
+            {pedidoParaAvaliar ? (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-app-cafe-profundo/70 px-5 backdrop-blur-sm">
+                    <section className="w-full max-w-md rounded-[16px] bg-app-creme-leve p-6 text-app-cafe-profundo shadow-xl ring-1 ring-app-baunilha-dourada/70">
+                        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">
+                            Avaliação do pedido
+                        </p>
+                        <h2 className="mt-3 text-2xl font-semibold">
+                            Como foi no {pedidoParaAvaliar.restaurantes?.nome ?? "restaurante"}?
+                        </h2>
+                        <p className="mt-3 text-sm leading-6 text-app-mocha">
+                            Avalie sua experiência depois do pedido entregue. A nota ajuda outros clientes e melhora a leitura de qualidade da Appono.
+                        </p>
+                        <div className="mt-6 rounded-[12px] bg-app-chantilly p-4 ring-1 ring-app-baunilha-dourada/60">
+                            <p className="text-xs font-bold uppercase tracking-[0.16em] text-app-cinza">Nota</p>
+                            <div className="mt-3 flex gap-2">
+                                {[1, 2, 3, 4, 5].map((nota) => (
+                                    <button key={nota} type="button" onClick={() => setNotaAvaliacao(nota)} className={`flex h-10 w-10 items-center justify-center rounded-full border bg-app-creme-leve transition ${nota <= notaAvaliacao ? "border-app-dourado-mel text-app-dourado-mel shadow-sm" : "border-app-baunilha-dourada text-app-mocha hover:border-app-dourado-mel hover:text-app-dourado-mel"}`} aria-label={`${nota} estrela${nota > 1 ? "s" : ""}`}>
+                                        <Icon type="star" className="h-5 w-5" />
+                                    </button>
+                                ))}
+                            </div>
+                            <label className="mt-5 grid gap-2 text-xs font-bold uppercase tracking-[0.12em] text-app-cinza">
+                                Comentário opcional
+                                <textarea value={comentarioAvaliacao} onChange={(event) => setComentarioAvaliacao(event.target.value.slice(0, 280))} placeholder="Conte brevemente como foi sua experiência..." className="min-h-24 rounded-[10px] border border-app-baunilha-dourada bg-app-creme-leve p-3 text-sm font-normal normal-case text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20" />
+                            </label>
+                        </div>
+                        {mensagemAvaliacao ? (
+                            <p className="mt-4 rounded-[10px] bg-app-chantilly p-3 text-sm font-semibold text-app-caramelo-torrado ring-1 ring-app-baunilha-dourada/60">
+                                {mensagemAvaliacao}
+                            </p>
+                        ) : null}
+                        <div className="mt-6 grid gap-3 sm:grid-cols-2">
+                            <button type="button" onClick={() => setPedidoParaAvaliar(null)} disabled={avaliando} className="h-11 rounded-[8px] border border-app-baunilha-dourada px-4 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:bg-app-chantilly disabled:cursor-not-allowed disabled:text-app-cinza">
+                                Agora não
+                            </button>
+                            <button type="button" onClick={enviarAvaliacaoPedido} disabled={avaliando} className="h-11 rounded-[8px] bg-app-dourado-mel px-4 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-60">
+                                {avaliando ? "Salvando..." : "Salvar avaliação"}
+                            </button>
+                        </div>
+                    </section>
+                </div>
+            ) : null}
 
             <footer className="border-t border-app-cacau-intenso/20 bg-app-cafe-profundo px-5 py-7 text-app-creme-leve">
                 <div className="mx-auto flex max-w-7xl flex-col items-center gap-5 text-center sm:flex-row sm:justify-between">
