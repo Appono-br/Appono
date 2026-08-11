@@ -358,7 +358,7 @@ exports.restaurantsRouter.get("/:id", async (req, res) => {
     try {
         const usuario = await obterUsuarioOpcional(req);
         const cliente = await obterClientePorUsuario(usuario?.id);
-        const [{ data, error }, metricas, { data: avaliacoes }] = await Promise.all([
+        const [{ data, error }, metricas, { data: avaliacoes }, conexaoResposta] = await Promise.all([
             obterClienteLeituraPublica()
                 .from("restaurantes")
                 .select("id_restaurante, nome, telefone, email, endereco, horario_funcionamento, logo_url, valor_minimo_reserva_por_pessoa, configuracao_operacao")
@@ -372,6 +372,15 @@ exports.restaurantsRouter.get("/:id", async (req, res) => {
                 .eq("id_restaurante", restaurantId)
                 .order("created_at", { ascending: false })
                 .limit(4),
+            supabase_1.supabaseAdmin
+                ? supabase_1.supabaseAdmin
+                    .from("mercado_pago_conexoes_restaurante")
+                    .select("id_conexao")
+                    .eq("id_restaurante", restaurantId)
+                    .eq("status", "CONECTADO")
+                    .not("access_token", "is", null)
+                    .maybeSingle()
+                : Promise.resolve({ data: null }),
         ]);
         if (error) {
             return res.status(404).json({ error: "Restaurante nao encontrado." });
@@ -379,6 +388,7 @@ exports.restaurantsRouter.get("/:id", async (req, res) => {
         return res.json({
             ...data,
             ...(metricas.get(restaurantId) ?? {}),
+            pedidos_antecipados_habilitados: !["MARKETPLACE_REAL", "REAL", "PRODUCAO"].includes(String(process.env.MERCADO_PAGO_MODO_REPASSE ?? "SIMULADO").trim().toUpperCase()) || Boolean(conexaoResposta.data),
             avaliacoes_recentes: (avaliacoes ?? []).filter((avaliacao) => avaliacao.comentario),
         });
     }

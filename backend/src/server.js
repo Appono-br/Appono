@@ -130,6 +130,18 @@ app.use("/api/admin", adminRouter);
 app.use("/api/notificacoes", notificationsRouter);
 app.use("/api/restaurante", restaurantDashboardRouter);
 
+app.use((error, _req, res, _next) => {
+    const mensagem = String(error?.message ?? "");
+    const erroDeConexao = /fetch failed|unable to verify|certificate|econnreset|enotfound/i.test(mensagem);
+    if (erroDeConexao) {
+        return res.status(503).json({
+            error: "Nao foi possivel acessar um servico externo. Verifique a conexao e tente novamente.",
+        });
+    }
+    console.error("Erro nao tratado na API:", mensagem || error);
+    return res.status(500).json({ error: "Nao foi possivel concluir a operacao agora." });
+});
+
 if (require.main === module) {
     app.listen(PORT, () => {
         console.log(`Server is running on port ${PORT}`);

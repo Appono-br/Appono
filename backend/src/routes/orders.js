@@ -12,6 +12,27 @@ exports.ordersRouter.use(auth_1.requireAuth);
 const LIMITE_UNIDADES_POR_ITEM = 10;
 const STATUS_HISTORICO_RESTAURANTE = ["ENTREGUE", "CANCELADO"];
 
+async function restaurantePodeReceberPedidoPago(restauranteId) {
+    const modoRepasse = String(process.env.MERCADO_PAGO_MODO_REPASSE ?? "SIMULADO").trim().toUpperCase();
+    if (!["MARKETPLACE_REAL", "REAL", "PRODUCAO"].includes(modoRepasse)) {
+        return true;
+    }
+    if (!supabase_1.supabaseAdmin || !restauranteId) {
+        return false;
+    }
+    const { data, error } = await supabase_1.supabaseAdmin
+        .from("mercado_pago_conexoes_restaurante")
+        .select("id_conexao")
+        .eq("id_restaurante", restauranteId)
+        .eq("status", "CONECTADO")
+        .not("access_token", "is", null)
+        .maybeSingle();
+    if (error) {
+        throw new Error(error.message);
+    }
+    return Boolean(data);
+}
+
 function obterStatusPedidoPorPagamento(statusPagamento) {
     if (statusPagamento === "APROVADO") {
         return "CONFIRMADO";
@@ -298,6 +319,19 @@ exports.ordersRouter.post("/", async (req, res) => {
     if (itensNormalizados.some((item) => item.quantidade > LIMITE_UNIDADES_POR_ITEM)) {
         return res.status(400).json({
             error: `Cada item do pedido deve ter no maximo ${LIMITE_UNIDADES_POR_ITEM} unidades.`,
+        });
+    }
+    const { data: reserva, error: reservaError } = await supabase
+        .from("reservas")
+        .select("id_restaurante")
+        .eq("id_reserva", body.id_reserva)
+        .maybeSingle();
+    if (reservaError || !reserva) {
+        return res.status(404).json({ error: "Reserva nao encontrada para criar o pedido." });
+    }
+    if (!(await restaurantePodeReceberPedidoPago(reserva.id_restaurante))) {
+        return res.status(409).json({
+            error: "Este restaurante ainda nao conectou uma conta Mercado Pago e nao pode receber pedidos antecipados pagos.",
         });
     }
     const { data, error } = await supabase.rpc("criar_pedido_antecipado", {

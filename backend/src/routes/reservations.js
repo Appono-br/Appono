@@ -9,6 +9,27 @@ exports.reservationsRouter = (0, express_1.Router)();
 exports.reservationsRouter.use(auth_1.requireAuth);
 const LIMITE_UNIDADES_POR_ITEM = 10;
 
+async function restaurantePodeReceberPedidoPago(restauranteId) {
+    const modoRepasse = String(process.env.MERCADO_PAGO_MODO_REPASSE ?? "SIMULADO").trim().toUpperCase();
+    if (!["MARKETPLACE_REAL", "REAL", "PRODUCAO"].includes(modoRepasse)) {
+        return true;
+    }
+    if (!supabase_1.supabaseAdmin || !restauranteId) {
+        return false;
+    }
+    const { data, error } = await supabase_1.supabaseAdmin
+        .from("mercado_pago_conexoes_restaurante")
+        .select("id_conexao")
+        .eq("id_restaurante", restauranteId)
+        .eq("status", "CONECTADO")
+        .not("access_token", "is", null)
+        .maybeSingle();
+    if (error) {
+        throw new Error(error.message);
+    }
+    return Boolean(data);
+}
+
 function normalizarItensPedido(itens = []) {
     const itensRecebidos = itens.map((item) => ({
         id_produto: Number(item.id_produto),
@@ -282,6 +303,11 @@ exports.reservationsRouter.post("/com-pedido", async (req, res) => {
         !body.quantidade_pessoas ||
         !body.itens?.length) {
         return res.status(400).json({ error: "Dados da reserva com pedido incompletos." });
+    }
+    if (!(await restaurantePodeReceberPedidoPago(Number(body.id_restaurante)))) {
+        return res.status(409).json({
+            error: "Este restaurante ainda nao conectou uma conta Mercado Pago e nao pode receber pedidos antecipados pagos.",
+        });
     }
     let itensNormalizados;
     try {

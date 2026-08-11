@@ -608,12 +608,6 @@ exports.paymentsRouter.post("/pedido/:id/preferencia", async (req, res) => {
     if (!Number.isInteger(pedidoId) || pedidoId <= 0) {
         return res.status(400).json({ error: "Pedido invalido." });
     }
-    const tokenPadrao = (0, mercado_pago_1.obterAccessTokenMercadoPago)();
-    if (!tokenPadrao) {
-        return res.status(409).json({
-            error: "MERCADO_PAGO_ACCESS_TOKEN ainda nao esta configurado no backend.",
-        });
-    }
     const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
     try {
         const { cliente, pedido } = await obterPedidoDoCliente(supabase, pedidoId, res.locals.user.id);
@@ -627,12 +621,24 @@ exports.paymentsRouter.post("/pedido/:id/preferencia", async (req, res) => {
             return res.status(400).json({ error: "Valor do pedido invalido." });
         }
         const conexaoRestaurante = await obterConexaoMercadoPagoRestaurante(pedido.id_restaurante);
-        if (marketplaceRealAtivo() && conexaoRestaurante?.live_mode && !mercadoPagoProducaoPermitida()) {
+        if (marketplaceRealAtivo() && !conexaoRestaurante) {
+            return res.status(409).json({
+                error: "O restaurante ainda nao conectou uma conta Mercado Pago para receber este pagamento.",
+            });
+        }
+        if (conexaoRestaurante?.live_mode && !mercadoPagoProducaoPermitida()) {
             return res.status(409).json({
                 error: "A conta Mercado Pago do restaurante foi conectada em modo producao. Para testes sem transacao real, desconecte e conecte uma conta de teste, ou habilite producao explicitamente no backend.",
             });
         }
-        const token = marketplaceRealAtivo() && conexaoRestaurante?.access_token ? conexaoRestaurante.access_token : tokenPadrao;
+        const token = marketplaceRealAtivo()
+            ? conexaoRestaurante.access_token
+            : (0, mercado_pago_1.obterAccessTokenMercadoPago)();
+        if (!token) {
+            return res.status(409).json({
+                error: "MERCADO_PAGO_ACCESS_TOKEN ainda nao esta configurado no backend.",
+            });
+        }
         const resumoFinanceiro = calcularResumoFinanceiro(pedido.valor_total, conexaoRestaurante);
         const referencia = `pedido:${pedido.id_pedido}`;
         const pagamentoExistente = await obterPagamentoExistentePorReferencia(referencia);

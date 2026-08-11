@@ -69,8 +69,8 @@ export default function PaymentSettingsPage() {
     }
     function submitForm(event) {
         event.preventDefault();
-        window.localStorage.setItem("appono:paymentDraft", JSON.stringify(form));
-        setMessage("Método de pagamento salvo neste navegador.");
+        window.localStorage.removeItem("appono:paymentDraft");
+        setMessage("Os meios de pagamento sao escolhidos diretamente no checkout seguro do Mercado Pago.");
     }
     return (<main className="flex min-h-screen flex-col bg-app-chantilly text-app-cafe-profundo">
       <header className="border-b border-app-baunilha-dourada/50 bg-app-creme-suave">

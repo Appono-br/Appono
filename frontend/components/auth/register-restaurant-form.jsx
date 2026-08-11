@@ -9,11 +9,6 @@ import { supabase } from "@/lib/supabase";
 import { aplicarMascaraCep, cepEstaCompleto } from "@/lib/validacoes/cep";
 import { aplicarMascaraCnpj, cnpjEstaCompleto } from "@/lib/validacoes/cnpj";
 import { somenteNumeros } from "@/lib/validacoes/comum";
-import {
-  aplicarMascaraAgencia,
-  aplicarMascaraCodigoBanco,
-  aplicarMascaraConta,
-} from "@/lib/validacoes/dados-bancarios";
 import { aplicarMascaraTelefone } from "@/lib/validacoes/telefone";
 import {
   enviarImagemRestaurante,
@@ -34,16 +29,11 @@ const initialForm = {
   number: "",
   complement: "",
   tables: "",
-  bankCode: "",
-  agency: "",
-  checkingAccount: "",
-  pixKey: "",
   password: "",
 };
 
 export function RegisterRestaurantForm({ googleFlow = false }) {
   const [form, setForm] = useState(initialForm);
-  const [step, setStep] = useState(1);
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imagem, setImagem] = useState(null);
@@ -108,15 +98,6 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
     setMessage("");
   }
 
-  function irParaEtapaBancaria() {
-    if (!dadosRestauranteEstaoPreenchidos()) {
-      setMessage("Preencha os dados do restaurante antes de continuar.");
-      return;
-    }
-    setStep(2);
-    setMessage("");
-  }
-
   async function validarCnpj() {
     if (!cnpjEstaCompleto(form.cnpj)) {
       return;
@@ -154,7 +135,6 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
 
   async function criarRestaurante() {
     if (!dadosRestauranteEstaoPreenchidos()) {
-      setStep(1);
       setMessage("Preencha os dados do restaurante antes de finalizar.");
       return;
     }
@@ -228,38 +208,10 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
           Torne-se um parceiro APPONO
         </h1>
         <p className="mt-1 text-sm leading-5 text-app-mocha">
-          {step === 1
-            ? "Informe os dados operacionais do estabelecimento."
-            : "Cadastre a conta juridica para receber os repasses da plataforma."}
+          Informe os dados operacionais do estabelecimento. A conta Mercado Pago
+          podera ser conectada depois, nas configuracoes.
         </p>
-
-        <div className="mt-4 grid grid-cols-2 gap-1 rounded-full bg-app-creme-suave p-1 text-center text-sm font-bold uppercase tracking-[0.1em]">
-          <button
-            type="button"
-            onClick={() => setStep(1)}
-            className={`rounded-full px-4 py-2.5 transition ${
-              step === 1
-                ? "bg-app-cafe-profundo text-app-creme-leve shadow-sm"
-                : "text-app-caramelo-torrado hover:bg-app-baunilha-dourada/60"
-            }`}
-          >
-            Etapa 1
-          </button>
-          <button
-            type="button"
-            onClick={irParaEtapaBancaria}
-            className={`rounded-full px-4 py-2.5 transition ${
-              step === 2
-                ? "bg-app-cafe-profundo text-app-creme-leve shadow-sm"
-                : "text-app-caramelo-torrado hover:bg-app-baunilha-dourada/60"
-            }`}
-          >
-            Etapa 2
-          </button>
-        </div>
-
-        {step === 1 ? (
-          <div className="mt-5 grid gap-3 sm:grid-cols-2">
+        <div className="mt-5 grid gap-3 sm:grid-cols-2">
             <FormField
               label="Nome da loja"
               value={form.storeName}
@@ -421,67 +373,13 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
                 className="hidden"
               />
             </label>
-          </div>
-        ) : (
-          <div className="mt-5 grid gap-3 sm:grid-cols-2">
-            <FormField
-              label="Codigo do banco"
-              value={form.bankCode}
-              onChange={(event) => atualizarCampo("bankCode", aplicarMascaraCodigoBanco(event.target.value))}
-              placeholder="Ex: 260, 001"
-              inputMode="numeric"
-              maxLength={3}
-            />
-            <FormField
-              label="Agencia"
-              value={form.agency}
-              onChange={(event) => atualizarCampo("agency", aplicarMascaraAgencia(event.target.value))}
-              placeholder="Ex: 0001"
-              inputMode="numeric"
-              maxLength={5}
-            />
-            <FormField
-              label="Conta corrente com digito"
-              value={form.checkingAccount}
-              onChange={(event) => atualizarCampo("checkingAccount", aplicarMascaraConta(event.target.value))}
-              placeholder="Ex: 12345-6"
-              inputMode="numeric"
-              maxLength={22}
-              className="sm:col-span-2"
-            />
-            <FormField
-              label="Chave Pix vinculada a conta"
-              value={form.pixKey}
-              onChange={(event) => atualizarCampo("pixKey", event.target.value)}
-              placeholder="Opcional"
-              className="sm:col-span-2"
-            />
-            <div className="rounded-xl border border-app-baunilha-dourada bg-app-creme-suave px-4 py-3 text-xs leading-5 text-app-mocha sm:col-span-2">
-              Os dados bancarios sao opcionais neste MVP. Quando informados, devem
-              pertencer ao mesmo CNPJ da etapa 1. Conta: ate 20 numeros e digito
-              opcional apos hifen.
-            </div>
-          </div>
-        )}
+        </div>
 
         <div className="mt-5 flex flex-col-reverse gap-3 border-t border-app-baunilha-dourada pt-4 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-[10px] leading-4 text-app-cinza">
             Ao finalizar, voce concorda com nossos Termos e Politica de Privacidade.
           </p>
-          {step === 1 ? (
-            <button
-              type="button"
-              onClick={irParaEtapaBancaria}
-              className="flex h-10 w-full items-center justify-center gap-2 rounded-full bg-app-dourado-mel px-6 text-xs font-bold uppercase tracking-wide text-white shadow-md transition hover:-translate-y-0.5 hover:bg-app-caramelo-torrado hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-app-dourado-mel/25 sm:w-auto"
-            >
-              Continuar
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="5" y1="12" x2="19" y2="12" />
-                <polyline points="12 5 19 12 12 19" />
-              </svg>
-            </button>
-          ) : (
-            <button
+          <button
               type="button"
               onClick={criarRestaurante}
               disabled={isSubmitting}
@@ -498,8 +396,7 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
               ) : (
                 "Criar conta"
               )}
-            </button>
-          )}
+          </button>
         </div>
 
         <div className="mt-3 flex flex-col gap-2 text-sm text-app-cinza sm:flex-row sm:items-center sm:justify-between">

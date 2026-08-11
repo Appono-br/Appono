@@ -216,6 +216,10 @@ export default function PaginaRestaurante({ params }) {
   }, [data, pessoas, restaurante, restauranteId, temPedidoAntecipado, tempoEstimado]);
 
   function alterarQuantidade(produtoId, diferenca) {
+    if (diferenca > 0 && !restaurante?.pedidos_antecipados_habilitados) {
+      setMensagem("Este restaurante ainda nao habilitou pedidos antecipados pelo Mercado Pago. A reserva simples continua disponivel.");
+      return;
+    }
     setMensagem("");
     setQuantidades((atuais) => {
       const proximaQuantidade = Math.min(LIMITE_UNIDADES_POR_ITEM, Math.max(0, (atuais[produtoId] ?? 0) + diferenca));
@@ -486,7 +490,7 @@ export default function PaginaRestaurante({ params }) {
                               <Icon type="minus" className="h-4 w-4" />
                             </button>
                             <span className="min-w-8 text-center text-lg font-bold">{quantidade}</span>
-                            <button type="button" onClick={() => alterarQuantidade(produto.id_produto, 1)} disabled={quantidade >= LIMITE_UNIDADES_POR_ITEM} className="flex h-10 w-10 items-center justify-center rounded-full bg-app-dourado-mel text-white transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-45">
+                            <button type="button" onClick={() => alterarQuantidade(produto.id_produto, 1)} disabled={quantidade >= LIMITE_UNIDADES_POR_ITEM || !restaurante.pedidos_antecipados_habilitados} className="flex h-10 w-10 items-center justify-center rounded-full bg-app-dourado-mel text-white transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-45">
                               <Icon type="plus" className="h-4 w-4" />
                             </button>
                           </div>

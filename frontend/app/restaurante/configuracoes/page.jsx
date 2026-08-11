@@ -48,9 +48,9 @@ const settingsItems = [
         href: "/restaurante/configuracoes/seguranca",
     },
     {
-        label: "Dados bancarios",
+        label: "Mercado Pago",
         icon: "card",
-        href: "/restaurante/configuracoes/dados-bancarios",
+        href: "/restaurante/financeiro",
     },
     {
         label: "Operacao & logistica",
