@@ -195,8 +195,8 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
   }
 
   return (
-    <div className="mx-auto w-full max-w-6xl">
-      <div className="rounded-2xl bg-app-chantilly px-6 py-7 shadow-2xl ring-1 ring-app-baunilha-dourada sm:px-9">
+    <div className="mx-auto w-full max-w-xl">
+      <div className="rounded-2xl bg-app-chantilly px-6 py-7 shadow-2xl sm:px-9">
         <div className="mb-4 flex justify-center">
           <Image
             src="/brand/appono-mark.svg"
@@ -224,53 +224,49 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
           </p>
         </div>
 
-        <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-end">
-  <div>
-    <h1 className="text-2xl font-bold text-app-cafe-profundo">
-      Torne-se um parceiro APPONO
-    </h1>
-    <p className="mt-1 text-sm leading-5 text-app-mocha">
-      {step === 1
-        ? "Informe os dados operacionais do estabelecimento."
-        : "Cadastre a conta juridica para receber os repasses da plataforma."}
-    </p>
-  </div>
+        <h1 className="text-2xl font-bold text-app-cafe-profundo">
+          Torne-se um parceiro APPONO
+        </h1>
+        <p className="mt-1 text-sm leading-5 text-app-mocha">
+          {step === 1
+            ? "Informe os dados operacionais do estabelecimento."
+            : "Cadastre a conta juridica para receber os repasses da plataforma."}
+        </p>
 
-  <div className="grid grid-cols-2 gap-1 rounded-full bg-app-creme-suave p-1 text-center text-[10px] font-bold uppercase tracking-[0.18em]">
-    <button
-      type="button"
-      onClick={() => setStep(1)}
-      className={`rounded-full px-4 py-2 transition ${
-        step === 1
-          ? "bg-app-cafe-profundo text-app-creme-leve shadow-sm"
-          : "text-app-caramelo-torrado hover:bg-app-baunilha-dourada/60"
-      }`}
-    >
-      Etapa 1
-    </button>
-    <button
-      type="button"
-      onClick={irParaEtapaBancaria}
-      className={`rounded-full px-4 py-2 transition ${
-        step === 2
-          ? "bg-app-cafe-profundo text-app-creme-leve shadow-sm"
-          : "text-app-caramelo-torrado hover:bg-app-baunilha-dourada/60"
-      }`}
-    >
-      Etapa 2
-    </button>
-  </div>
-</div>
+        <div className="mt-4 grid grid-cols-2 gap-1 rounded-full bg-app-creme-suave p-1 text-center text-sm font-bold uppercase tracking-[0.1em]">
+          <button
+            type="button"
+            onClick={() => setStep(1)}
+            className={`rounded-full px-4 py-2.5 transition ${
+              step === 1
+                ? "bg-app-cafe-profundo text-app-creme-leve shadow-sm"
+                : "text-app-caramelo-torrado hover:bg-app-baunilha-dourada/60"
+            }`}
+          >
+            Etapa 1
+          </button>
+          <button
+            type="button"
+            onClick={irParaEtapaBancaria}
+            className={`rounded-full px-4 py-2.5 transition ${
+              step === 2
+                ? "bg-app-cafe-profundo text-app-creme-leve shadow-sm"
+                : "text-app-caramelo-torrado hover:bg-app-baunilha-dourada/60"
+            }`}
+          >
+            Etapa 2
+          </button>
+        </div>
 
         {step === 1 ? (
-          <div className="mt-5 grid gap-2.5 sm:grid-cols-6 xl:grid-cols-12">
+          <div className="mt-5 grid gap-3 sm:grid-cols-2">
             <FormField
               label="Nome da loja"
               value={form.storeName}
               onChange={(event) => atualizarCampo("storeName", event.target.value)}
               placeholder="Nome que aparecera para os clientes"
               required
-              className="sm:col-span-6 xl:col-span-4"
+              className="sm:col-span-2"
             />
             <FormField
               label="Razao social"
@@ -278,7 +274,7 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
               onChange={(event) => atualizarCampo("legalName", event.target.value)}
               placeholder="Ex: Terra Artisan Gastronomia LTDA"
               required
-              className="sm:col-span-6 xl:col-span-4"
+              className="sm:col-span-2"
             />
             <FormField
               label="E-mail"
@@ -288,7 +284,7 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
               placeholder="contato@restaurante.com"
               required
               disabled={isGoogleFlow}
-              className="sm:col-span-3 xl:col-span-3"
+              className="sm:col-span-2"
             />
             <FormField
               label="Telefone"
@@ -298,7 +294,7 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
               inputMode="tel"
               maxLength={15}
               required
-              className="sm:col-span-3 xl:col-span-2"
+              className="sm:col-span-2"
             />
             <FormField
               label="CNPJ"
@@ -309,7 +305,7 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
               inputMode="numeric"
               maxLength={18}
               required
-              className="sm:col-span-3 xl:col-span-3"
+              className="sm:col-span-2"
             />
             <FormField
               label="CEP"
@@ -320,7 +316,7 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
               inputMode="numeric"
               maxLength={9}
               required
-              className="sm:col-span-2 xl:col-span-2"
+              className="sm:col-span-2"
             />
             <FormField
               label="Endereco"
@@ -328,7 +324,7 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
               onChange={(event) => atualizarCampo("address", event.target.value)}
               placeholder="Rua, Avenida, etc."
               required
-              className="sm:col-span-4 xl:col-span-4"
+              className="sm:col-span-2"
             />
             <FormField
               label="Bairro"
@@ -336,7 +332,6 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
               onChange={(event) => atualizarCampo("neighborhood", event.target.value)}
               placeholder="Ex: Jardins"
               required
-              className="sm:col-span-2 xl:col-span-2"
             />
             <FormField
               label="Cidade"
@@ -344,7 +339,6 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
               onChange={(event) => atualizarCampo("city", event.target.value)}
               placeholder="Ex: Sao Paulo"
               required
-              className="sm:col-span-2 xl:col-span-3"
             />
             <FormField
               label="UF"
@@ -353,7 +347,6 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
               placeholder="Ex: SP"
               required
               maxLength={2}
-              className="sm:col-span-2 xl:col-span-1"
             />
             <FormField
               label="Numero"
@@ -361,14 +354,13 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
               onChange={(event) => atualizarCampo("number", event.target.value)}
               placeholder="Ex: 123"
               required
-              className="sm:col-span-3 xl:col-span-2"
             />
             <FormField
               label="Complemento"
               value={form.complement}
               onChange={(event) => atualizarCampo("complement", event.target.value)}
               placeholder="Sala, Bloco, etc."
-              className="sm:col-span-3 xl:col-span-3"
+              className="sm:col-span-2"
             />
             <FormField
               label="Numero de mesas"
@@ -378,7 +370,7 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
               onChange={(event) => atualizarCampo("tables", event.target.value)}
               placeholder="Ex: 12"
               required
-              className="sm:col-span-3 xl:col-span-2"
+              className="sm:col-span-2"
             />
             {!isGoogleFlow ? (
               <FormField
@@ -389,32 +381,49 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
                 placeholder="Digite aqui"
                 required
                 minLength={6}
-                className="sm:col-span-3 xl:col-span-2"
+                className="sm:col-span-2"
               />
             ) : null}
-            <label className="grid gap-2 rounded-xl border border-dashed border-app-caramelo-torrado/50 bg-app-creme-suave p-4 transition hover:border-app-caramelo-torrado sm:col-span-6 xl:col-span-4">
-              <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-app-cafe-profundo">
+            <label className="group grid gap-3 rounded-xl border-2 border-dashed border-app-caramelo-torrado/40 bg-app-creme-suave p-5 text-center transition hover:border-app-dourado-mel hover:bg-app-baunilha-dourada/30 sm:col-span-2">
+              <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-app-cafe-profundo">
                 Imagem do restaurante
               </span>
-              <span className="flex items-center gap-3">
-                <span
-                  className="h-12 w-12 shrink-0 rounded-lg bg-app-baunilha-dourada bg-cover bg-center ring-1 ring-app-caramelo-torrado/20"
+              <div className="flex flex-col items-center gap-3">
+                <div
+                  className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full bg-app-baunilha-dourada bg-cover bg-center ring-2 ring-app-caramelo-torrado/20 transition group-hover:ring-app-dourado-mel"
                   style={imagemPreview ? { backgroundImage: `url("${imagemPreview}")` } : undefined}
-                />
+                >
+                  {!imagemPreview ? (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-app-caramelo-torrado/60">
+                      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                      <circle cx="12" cy="13" r="4" />
+                    </svg>
+                  ) : null}
+                </div>
                 <span className="text-xs leading-5 text-app-mocha">
-                  Selecione JPG, PNG ou WebP de ate 5 MB. Esta imagem aparecera para os clientes.
+                  Selecione JPG, PNG ou WebP de ate 5 MB.
+                  <br />
+                  Esta imagem aparecera para os clientes.
                 </span>
-              </span>
+                <span className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-app-caramelo-torrado px-4 py-2 text-xs font-bold text-white transition hover:bg-app-cafe-profundo">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="17 8 12 3 7 8" />
+                    <line x1="12" y1="3" x2="12" y2="15" />
+                  </svg>
+                  Escolher arquivo
+                </span>
+              </div>
               <input
                 type="file"
                 accept="image/jpeg,image/png,image/webp"
                 onChange={(event) => selecionarImagem(event.target.files?.[0])}
-                className="text-xs text-app-mocha file:mr-3 file:rounded-full file:border-0 file:bg-app-caramelo-torrado file:px-3 file:py-2 file:text-xs file:font-bold file:text-white file:transition hover:file:bg-app-cafe-profundo"
+                className="hidden"
               />
             </label>
           </div>
         ) : (
-          <div className="mt-5 grid gap-3 sm:grid-cols-6">
+          <div className="mt-5 grid gap-3 sm:grid-cols-2">
             <FormField
               label="Codigo do banco"
               value={form.bankCode}
@@ -422,7 +431,6 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
               placeholder="Ex: 260, 001"
               inputMode="numeric"
               maxLength={3}
-              className="sm:col-span-2"
             />
             <FormField
               label="Agencia"
@@ -431,7 +439,6 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
               placeholder="Ex: 0001"
               inputMode="numeric"
               maxLength={5}
-              className="sm:col-span-2"
             />
             <FormField
               label="Conta corrente com digito"
@@ -447,9 +454,9 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
               value={form.pixKey}
               onChange={(event) => atualizarCampo("pixKey", event.target.value)}
               placeholder="Opcional"
-              className="sm:col-span-6"
+              className="sm:col-span-2"
             />
-            <div className="rounded-xl border border-app-baunilha-dourada bg-app-creme-suave px-4 py-3 text-xs leading-5 text-app-mocha sm:col-span-6">
+            <div className="rounded-xl border border-app-baunilha-dourada bg-app-creme-suave px-4 py-3 text-xs leading-5 text-app-mocha sm:col-span-2">
               Os dados bancarios sao opcionais neste MVP. Quando informados, devem
               pertencer ao mesmo CNPJ da etapa 1. Conta: ate 20 numeros e digito
               opcional apos hifen.

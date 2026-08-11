@@ -83,7 +83,7 @@ export function RegisterClientForm({ googleFlow = false }) {
 
   return (
     <form onSubmit={enviarFormulario} className="mx-auto w-full max-w-xl">
-      <div className="rounded-2xl bg-app-chantilly px-6 py-7 shadow-2xl ring-1 ring-app-baunilha-dourada sm:px-9">
+      <div className="rounded-2xl bg-app-chantilly px-6 py-7 shadow-2xl sm:px-9">
         <div className="mb-4 flex justify-center">
           <Image
             src="/brand/appono-mark.svg"
