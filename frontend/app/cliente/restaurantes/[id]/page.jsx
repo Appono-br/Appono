@@ -250,13 +250,14 @@ export default function PaginaRestaurante({ params, }) {
             </div>
           </section>
 
-          <section className="rounded-[12px] bg-app-creme-leve p-6 shadow-sm ring-1 ring-app-baunilha-dourada">
-            <h2 className="text-2xl font-semibold">Avaliações</h2>
-            <p className="mt-3 text-sm leading-6 text-app-mocha">Avaliações verificadas são publicadas somente depois que um pedido é entregue. O formulário fica no detalhe do pedido, separado da reserva.</p>
-            {(restaurante.avaliacoes_recentes ?? []).length ? <div className="mt-5 grid gap-3">{restaurante.avaliacoes_recentes.map((avaliacao) => <article key={avaliacao.id_avaliacao} className="rounded-[12px] bg-app-chantilly p-5 ring-1 ring-app-baunilha-dourada/60"><div className="flex flex-wrap items-center justify-between gap-3"><p className="text-lg tracking-[0.12em] text-app-dourado-mel" aria-label={`${avaliacao.nota} de 5 estrelas`}>{"★".repeat(avaliacao.nota)}<span className="text-app-baunilha-dourada">{"★".repeat(5 - avaliacao.nota)}</span></p><span className="text-xs font-semibold text-app-cinza">Pedido verificado</span></div><p className="mt-3 text-sm leading-6 text-app-mocha">{avaliacao.comentario || "O cliente avaliou sem adicionar comentário."}</p><p className="mt-3 text-xs font-bold text-app-cafe-profundo">{avaliacao.clientes?.nome ?? "Cliente Appono"}</p></article>)}</div> : <div className="mt-5 rounded-[10px] bg-app-chantilly p-5 text-sm text-app-cinza ring-1 ring-app-baunilha-dourada/60">Este restaurante ainda não recebeu avaliações verificadas.</div>}
+          <div className="grid content-start gap-6 lg:col-start-2 lg:row-start-1 lg:row-span-2">
+          <section className="h-fit self-start rounded-[12px] bg-app-creme-leve p-4 shadow-sm ring-1 ring-app-baunilha-dourada">
+            <div className="flex items-center justify-between gap-3"><h2 className="text-xl font-semibold">Avaliações</h2><span className="text-xs font-bold text-app-caramelo-torrado">{restaurante.total_avaliacoes ?? 0} verificadas</span></div>
+            <p className="mt-2 text-xs leading-5 text-app-mocha">Publicadas somente após a entrega do pedido.</p>
+            {(restaurante.avaliacoes_recentes ?? []).length ? <div className="mt-3 grid gap-2">{restaurante.avaliacoes_recentes.slice(0, 2).map((avaliacao) => <article key={avaliacao.id_avaliacao} className="rounded-[10px] bg-app-chantilly p-3 ring-1 ring-app-baunilha-dourada/60"><div className="flex flex-wrap items-center justify-between gap-2"><p className="text-sm tracking-[0.08em] text-app-dourado-mel" aria-label={`${avaliacao.nota} de 5 estrelas`}>{"★".repeat(avaliacao.nota)}<span className="text-app-baunilha-dourada">{"★".repeat(5 - avaliacao.nota)}</span></p><span className="text-[10px] font-semibold text-app-cinza">Pedido verificado</span></div><p className="mt-2 line-clamp-2 text-xs leading-5 text-app-mocha">{avaliacao.comentario || "Avaliação sem comentário."}</p><p className="mt-2 text-[11px] font-bold text-app-cafe-profundo">{avaliacao.clientes?.nome ?? "Cliente Appono"}</p></article>)}</div> : <div className="mt-3 rounded-[10px] bg-app-chantilly p-3 text-xs text-app-cinza ring-1 ring-app-baunilha-dourada/60">Ainda não há avaliações verificadas.</div>}
           </section>
 
-          <form onSubmit={reservar} className="rounded-[12px] bg-app-creme-leve p-6 shadow-sm ring-1 ring-app-baunilha-dourada lg:row-span-2">
+          <form onSubmit={reservar} className="rounded-[12px] bg-app-creme-leve p-6 shadow-sm ring-1 ring-app-baunilha-dourada">
             <h2 className="text-xl font-semibold">Reservar mesa</h2>
             <div className="mt-5 grid gap-4 sm:grid-cols-2">
               <label className="grid gap-1 text-xs font-bold">Data<input type="date" min={obterDataInicial()} value={data} onChange={(e) => setData(e.target.value)} className="h-11 rounded-[8px] border border-app-baunilha-dourada bg-app-chantilly px-3 text-sm"/></label>
@@ -282,6 +283,7 @@ export default function PaginaRestaurante({ params, }) {
             </button>
             {mensagem ? <p className="mt-3 text-sm font-semibold text-app-caramelo-torrado">{mensagem}</p> : null}
           </form>
+          </div>
         </div>
       </div>
     </main>);
