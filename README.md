@@ -4,7 +4,7 @@ Plataforma gastronômica para descoberta de restaurantes, reserva de mesas, pedi
 
 ## Estado do projeto
 
-O projeto está em estágio de MVP funcional avançado. Cadastro, autenticação, restaurantes, cardápio, reservas, pedidos, notificações e fluxo Mercado Pago estão implementados. Chat, avaliações e favoritos ainda são módulos parciais ou simulados.
+O projeto está em estágio de MVP funcional avançado. Cadastro, autenticação, restaurantes, cardápio, reservas, pedidos, notificações, favoritos, avaliações e fluxo Mercado Pago estão implementados. Chat permanece parcial ou simulado.
 
 ## Arquitetura
 
@@ -62,6 +62,8 @@ npm run dev
 
 Frontend: `http://localhost:3000`. Backend: `http://localhost:3001`. Saúde: `GET /api/health`.
 
+Os scripts do backend iniciam o Node com `--use-system-ca`, necessário em redes Windows que inspecionam TLS. Mantenha `SUPABASE_ALLOW_INSECURE_TLS=false`; não desative a validação de certificados.
+
 ## Banco e migrations
 
 As migrations ficam em `supabase/migrations`. Para um projeto vinculado pelo Supabase CLI:
@@ -98,6 +100,21 @@ Cobertura atual:
 - Conflitos de horários de reservas.
 - Sanitização de dados sensíveis em logs.
 
+## Favoritos e avaliações
+
+Endpoints disponíveis:
+
+- `GET /api/restaurantes`: inclui média, quantidade de avaliações, total de favoritos e favorito do cliente autenticado.
+- `GET /api/restaurantes/:id`: inclui métricas e avaliações recentes.
+- `PATCH /api/restaurantes/:id/favorito`: adiciona ou remove favorito; somente cliente.
+- `GET /api/restaurantes/:id/minha-avaliacao`: consulta a avaliação do cliente.
+- `POST /api/restaurantes/:id/avaliacoes`: cria ou atualiza avaliação após reserva concluída ou pedido entregue.
+- `GET /api/restaurantes/me/avaliacoes`: lista avaliações recebidas pelo restaurante autenticado.
+
+As escritas usam o token do usuário e respeitam RLS; não utilizam `supabaseAdmin` para ignorar autorização.
+
+No frontend, o dashboard persiste favoritos, `/cliente/favoritos` reúne a seleção do cliente, a página pública do restaurante permite avaliar uma experiência elegível e `/restaurante/desempenho` apresenta média, volume e comentários reais.
+
 Testes de concorrência real, RLS entre usuários e webhooks completos precisam de um Supabase exclusivo de testes. Não devem criar dados artificiais no banco com dados reais.
 
 ## Prontidão
@@ -115,7 +132,7 @@ Testes de concorrência real, RLS entre usuários e webhooks completos precisam 
 
 ### Não bloqueia evolução dos módulos
 
-- Chat, favoritos e avaliações.
+- Chat.
 - Melhorias visuais e skeletons.
 - Paginação adicional enquanto o volume permanece baixo.
 - Refatoração gradual dos arquivos grandes.
