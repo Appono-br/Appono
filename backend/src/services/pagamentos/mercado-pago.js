@@ -33,7 +33,10 @@ function mapearStatusMercadoPago(status) {
     if (["pending", "in_process", "authorized"].includes(statusNormalizado)) {
         return { pagamento: "PENDENTE", reserva: null };
     }
-    if (["rejected", "cancelled", "canceled", "refunded", "charged_back"].includes(statusNormalizado)) {
+    if (["refunded", "charged_back"].includes(statusNormalizado)) {
+        return { pagamento: "ESTORNADO", reserva: "CANCELADA" };
+    }
+    if (["rejected", "cancelled", "canceled"].includes(statusNormalizado)) {
         return { pagamento: "RECUSADO", reserva: "CANCELADA" };
     }
     return { pagamento: "PENDENTE", reserva: null };
@@ -75,6 +78,18 @@ async function consultarPagamentoPorReferenciaMercadoPago(referencia, accessToke
     const resultado = await resposta.json().catch(() => null);
     return resultado?.results?.[0] ?? null;
 }
+async function estornarPagamentoMercadoPago(paymentId, accessToken = obterAccessTokenMercadoPago()) {
+    const token = accessToken?.trim?.() ?? "";
+    if (!token || !paymentId) throw new Error("Pagamento sem credenciais para estorno.");
+    const resposta = await fetch(`${MERCADO_PAGO_API}/v1/payments/${encodeURIComponent(paymentId)}/refunds`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json", "X-Idempotency-Key": `appono-refund-${paymentId}` },
+        body: "{}",
+    });
+    const body = await resposta.json().catch(() => null);
+    if (!resposta.ok) throw new Error(body?.message ?? "Mercado Pago recusou o estorno.");
+    return body;
+}
 
 module.exports = {
     consultarPagamentoMercadoPago,
@@ -82,6 +97,7 @@ module.exports = {
     criarClienteMercadoPago,
     criarPagamentoMercadoPago,
     criarPreferenciaMercadoPago,
+    estornarPagamentoMercadoPago,
     mapearStatusMercadoPago,
     obterAccessTokenMercadoPago,
 };

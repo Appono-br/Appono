@@ -104,7 +104,7 @@ function sanitizarConexao(conexao) {
     };
 }
 
-exports.marketplaceRouter.get("/mercado-pago/status", auth_1.requireAuth, async (_req, res) => {
+exports.marketplaceRouter.get("/mercado-pago/status", auth_1.requireAuth, (0, auth_1.requireRole)("restaurante"), async (_req, res) => {
     if (!supabase_1.supabaseAdmin) {
         return res.status(409).json({ error: "SUPABASE_SECRET_KEY precisa estar configurada no backend." });
     }
@@ -155,7 +155,7 @@ function obterPercentualComissaoAppono() {
     return Number.isFinite(percentual) && percentual >= 0 ? percentual : 13;
 }
 
-exports.marketplaceRouter.get("/financeiro/resumo", auth_1.requireAuth, async (req, res) => {
+exports.marketplaceRouter.get("/financeiro/resumo", auth_1.requireAuth, (0, auth_1.requireRole)("restaurante"), async (req, res) => {
     if (!supabase_1.supabaseAdmin) {
         return res.status(409).json({ error: "SUPABASE_SECRET_KEY precisa estar configurada no backend." });
     }
@@ -264,7 +264,7 @@ exports.marketplaceRouter.get("/financeiro/resumo", auth_1.requireAuth, async (r
     }
 });
 
-exports.marketplaceRouter.post("/mercado-pago/conectar", auth_1.requireAuth, async (_req, res) => {
+exports.marketplaceRouter.post("/mercado-pago/conectar", auth_1.requireAuth, (0, auth_1.requireRole)("restaurante"), async (_req, res) => {
     if (!supabase_1.supabaseAdmin) {
         return res.status(409).json({ error: "SUPABASE_SECRET_KEY precisa estar configurada no backend." });
     }
@@ -306,7 +306,7 @@ exports.marketplaceRouter.post("/mercado-pago/conectar", auth_1.requireAuth, asy
     }
 });
 
-exports.marketplaceRouter.post("/mercado-pago/desconectar", auth_1.requireAuth, async (_req, res) => {
+exports.marketplaceRouter.post("/mercado-pago/desconectar", auth_1.requireAuth, (0, auth_1.requireRole)("restaurante"), async (_req, res) => {
     if (!supabase_1.supabaseAdmin) {
         return res.status(409).json({ error: "SUPABASE_SECRET_KEY precisa estar configurada no backend." });
     }

@@ -18,6 +18,7 @@ const { marketplaceRouter } = require("./routes/marketplace");
 const { adminRouter } = require("./routes/admin");
 const { notificationsRouter } = require("./routes/notifications");
 const { restaurantDashboardRouter } = require("./routes/restaurant-dashboard");
+const { requestContext } = require("./middleware/observability");
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -79,6 +80,7 @@ app.use(cors({
     },
 }));
 app.use(express.json());
+app.use(requestContext);
 
 app.get("/", (req, res) => {
     res.json({

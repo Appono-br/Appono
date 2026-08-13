@@ -80,7 +80,7 @@ function PagamentoRetornoContent() {
                 }
                 setDados(resposta);
                 setMensagem("");
-                const pagamentoFinalizado = ["APROVADO", "RECUSADO", "NAO_APLICAVEL"].includes(resposta.status_pagamento);
+                const pagamentoFinalizado = ["APROVADO", "RECUSADO", "ESTORNADO", "NAO_APLICAVEL"].includes(resposta.status_pagamento);
                 if (!pagamentoFinalizado && tentativa < 5) {
                     temporizador = window.setTimeout(() => consultarAutomaticamente(tentativa + 1), 3000);
                 }
@@ -119,7 +119,7 @@ function PagamentoRetornoContent() {
                 className: "bg-app-cafe-profundo text-app-creme-leve",
             };
         }
-        if (status === "RECUSADO") {
+        if (["RECUSADO", "ESTORNADO"].includes(status)) {
             return {
                 icon: "x",
                 title: "Pagamento nao aprovado",
@@ -202,7 +202,7 @@ function PagamentoRetornoContent() {
 
                     <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
                         {pedidoId ? (
-                            <Link href="/cliente/detalhes-pedido" className="inline-flex h-11 items-center justify-center rounded-[8px] bg-app-dourado-mel px-6 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-app-caramelo-torrado">
+                            <Link href={`/cliente/pedidos/${pedidoId}`} className="inline-flex h-11 items-center justify-center rounded-[8px] bg-app-dourado-mel px-6 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-app-caramelo-torrado">
                                 Ver detalhes do pedido
                             </Link>
                         ) : (

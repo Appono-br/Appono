@@ -9,6 +9,8 @@ const supabase_1 = require("../lib/supabase");
 const auth_1 = require("../middleware/auth");
 const mercado_pago_1 = require("../services/pagamentos/mercado-pago");
 const notificacoes_1 = require("../services/notificacoes");
+const { log } = require("../middleware/observability");
+const { calculateSplit, nextTransferStatus, strongestPaymentStatus } = require("../domain/payment-state");
 
 exports.paymentsRouter = (0, express_1.Router)();
 
@@ -83,7 +85,7 @@ function obterStatusPedidoPorPagamento(statusPagamento) {
     if (statusPagamento === "APROVADO") {
         return "CONFIRMADO";
     }
-    if (statusPagamento === "RECUSADO") {
+    if (["RECUSADO", "ESTORNADO"].includes(statusPagamento)) {
         return "CANCELADO";
     }
     return null;
@@ -100,43 +102,24 @@ function arredondarMoeda(valor) {
 
 function calcularResumoFinanceiro(valorTotal, conexaoRestaurante) {
     const percentualComissao = obterPercentualComissaoAppono();
-    const valorPedido = arredondarMoeda(valorTotal);
+    const { gross: valorPedido, fee: valorComissao, restaurant: valorRestaurante } = calculateSplit(valorTotal, percentualComissao);
     const usaMarketplaceReal = marketplaceRealAtivo() && conexaoRestaurante;
-    const valorComissao = arredondarMoeda(valorPedido * (percentualComissao / 100));
     return {
         tipo_fluxo_pagamento: usaMarketplaceReal ? "MARKETPLACE_RESTAURANTE" : "SIMULADO_APPONO",
         percentual_comissao_app: percentualComissao,
         valor_comissao_app: valorComissao,
-        valor_restaurante: arredondarMoeda(valorPedido - valorComissao),
+        valor_restaurante: valorRestaurante,
         mercado_pago_restaurante_user_id: usaMarketplaceReal ? conexaoRestaurante?.mercado_pago_user_id ?? null : null,
         status_repasse: "AGUARDANDO_PAGAMENTO",
     };
 }
 
 function statusPagamentoEhMaisForte(statusAtual, novoStatus) {
-    const prioridade = {
-        PENDENTE: 1,
-        RECUSADO: 2,
-        APROVADO: 3,
-    };
-    return (prioridade[statusAtual] ?? 0) > (prioridade[novoStatus] ?? 0);
+    return strongestPaymentStatus(statusAtual, novoStatus) === statusAtual && statusAtual !== novoStatus;
 }
 
 function obterProximoStatusRepasse(statusAtual, novoStatus, tipoFluxoPagamento) {
-    const usaRepasse = ["MARKETPLACE_RESTAURANTE", "SIMULADO_APPONO"].includes(tipoFluxoPagamento);
-    if (!usaRepasse) {
-        return "NAO_APLICAVEL";
-    }
-    if (["LIBERADO_PARA_REPASSE", "REPASSADO", "ESTORNADO"].includes(statusAtual)) {
-        return statusAtual;
-    }
-    if (novoStatus === "APROVADO") {
-        return "AGUARDANDO_ENTREGA";
-    }
-    if (novoStatus === "RECUSADO") {
-        return "ESTORNADO";
-    }
-    return statusAtual ?? "AGUARDANDO_PAGAMENTO";
+    return nextTransferStatus(statusAtual, novoStatus, tipoFluxoPagamento);
 }
 
 async function obterClienteAtual(supabase, userId) {
@@ -388,7 +371,7 @@ async function aplicarStatusRetornoPedido(pedido, referencia, query) {
                 titulo: "Pagamento aprovado",
                 mensagem: "Seu pagamento foi aprovado e o restaurante ja pode acompanhar o pedido antecipado.",
                 tipo_evento: "PAGAMENTO_APROVADO",
-                link_destino: "/cliente/detalhes-pedido",
+                link_destino: `/cliente/pedidos/${pedido.id_pedido}`,
                 dados: { id_pedido: pedido.id_pedido, id_reserva: pedido.id_reserva },
             }),
             (0, notificacoes_1.notificarRestaurante)(pedido.id_restaurante, {
@@ -425,6 +408,7 @@ async function aplicarPagamentoMercadoPago(pagamentoMercadoPago, fallbackReferen
     const pagamentoId = String(pagamentoMercadoPago.id);
 
     if (referenciaInfo.tipo === "pedido") {
+        const pagamentoExistente = await obterPagamentoExistentePorReferencia(referencia);
         const { data: pedido, error: pedidoError } = await supabase_1.supabaseAdmin
             .from("pedidos")
             .select("id_pedido, id_cliente, id_restaurante, id_reserva, valor_total, status_pedido")
@@ -471,7 +455,7 @@ async function aplicarPagamentoMercadoPago(pagamentoMercadoPago, fallbackReferen
                     titulo: "Pagamento aprovado",
                     mensagem: "Seu pagamento foi aprovado e o pedido antecipado foi confirmado.",
                     tipo_evento: "PAGAMENTO_APROVADO",
-                    link_destino: "/cliente/detalhes-pedido",
+                    link_destino: `/cliente/pedidos/${pedido.id_pedido}`,
                     dados: { id_pedido: pedido.id_pedido, id_reserva: pedido.id_reserva },
                 }),
                 (0, notificacoes_1.notificarRestaurante)(pedido.id_restaurante, {
@@ -578,7 +562,15 @@ exports.paymentsRouter.post("/webhook/mercado-pago", async (req, res) => {
         return res.status(200).json({ received: true });
     }
     if (!validarAssinaturaWebhookMercadoPago(req, paymentId)) {
+        log("warn", "mercado_pago_webhook_invalid_signature", { request_id: req.requestId, payment_id: paymentId });
         return res.status(401).json({ received: false });
+    }
+    const notificationId = String(req.headers["x-request-id"] ?? crypto.createHash("sha256").update(JSON.stringify(req.body ?? {})).digest("hex"));
+    const webhookKey = `payment:${paymentId}:notification:${notificationId}`;
+    if (supabase_1.supabaseAdmin) {
+        const { data: adquirido, error: claimError } = await supabase_1.supabaseAdmin.rpc("reclamar_webhook_mercado_pago", { chave: webhookKey, pagamento: String(paymentId), requisicao: req.requestId });
+        if (claimError) log("error", "mercado_pago_webhook_claim_failed", { request_id: req.requestId, payment_id: paymentId, error: claimError.message });
+        else if (!adquirido) return res.status(200).json({ received: true, duplicate: true });
     }
     try {
         let pagamentoMercadoPago = await (0, mercado_pago_1.consultarPagamentoMercadoPago)(paymentId);
@@ -593,15 +585,19 @@ exports.paymentsRouter.post("/webhook/mercado-pago", async (req, res) => {
             pagamentoMercadoPago = await (0, mercado_pago_1.consultarPagamentoMercadoPago)(paymentId, conexao?.access_token);
         }
         await aplicarPagamentoMercadoPago(pagamentoMercadoPago);
+        if (supabase_1.supabaseAdmin) await supabase_1.supabaseAdmin.from("webhooks_mercado_pago").update({ status: "PROCESSADO", processado_em: new Date().toISOString() }).eq("chave_idempotencia", webhookKey);
         return res.status(200).json({ received: true });
     }
     catch (error) {
-        console.warn("Falha ao conciliar webhook Mercado Pago:", error instanceof Error ? error.message : error);
+        const message = error instanceof Error ? error.message : String(error);
+        if (supabase_1.supabaseAdmin) await supabase_1.supabaseAdmin.from("webhooks_mercado_pago").update({ status: "ERRO", erro: message.slice(0, 500) }).eq("chave_idempotencia", webhookKey);
+        log("error", "mercado_pago_webhook_failed", { request_id: req.requestId, payment_id: paymentId, error: message });
         return res.status(200).json({ received: true });
     }
 });
 
 exports.paymentsRouter.use(auth_1.requireAuth);
+exports.paymentsRouter.use((0, auth_1.requireRole)("cliente"));
 
 exports.paymentsRouter.post("/pedido/:id/preferencia", async (req, res) => {
     const pedidoId = Number(req.params.id);

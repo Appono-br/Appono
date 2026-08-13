@@ -6,6 +6,7 @@ const supabase_1 = require("../lib/supabase");
 const auth_1 = require("../middleware/auth");
 const mercado_pago_1 = require("../services/pagamentos/mercado-pago");
 const notificacoes_1 = require("../services/notificacoes");
+const { canTransitionOrder } = require("../domain/order-state");
 exports.ordersRouter = (0, express_1.Router)();
 exports.ordersRouter.use(auth_1.requireAuth);
 
@@ -219,7 +220,8 @@ exports.ordersRouter.get("/", async (_req, res) => {
     if (error) {
         return res.status(400).json({ error: error.message });
     }
-    const pedidos = await conciliarPedidosPendentes(data ?? []);
+    // Listagens sao somente leitura. A conciliacao ocorre pelo webhook ou pela rota de status.
+    const pedidos = data ?? [];
     const idsPedidos = pedidos.map((pedido) => pedido.id_pedido);
     const idsRestaurantes = [...new Set(pedidos.map((pedido) => pedido.id_restaurante).filter(Boolean))];
     let avaliacoesPorRestaurante = new Map();
@@ -252,6 +254,17 @@ exports.ordersRouter.get("/", async (_req, res) => {
         itens_pedido: (itens ?? []).filter((item) => item.id_pedido === pedido.id_pedido),
     })));
 });
+exports.ordersRouter.get("/:id", async (req, res) => {
+    const orderId = Number(req.params.id);
+    if (!Number.isInteger(orderId) || orderId <= 0) return res.status(400).json({ error: "Pedido invalido." });
+    const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
+    const { data, error } = await supabase.from("pedidos")
+        .select("*, restaurantes(nome, endereco), reservas(data_reserva, horario_inicio, horario_fim, quantidade_pessoas), itens_pedido(quantidade, preco_unitario, observacoes, produtos(nome, descricao, imagem_url, tempo_preparo_minutos), item_adicional(*, adicionais(nome)))")
+        .eq("id_pedido", orderId).maybeSingle();
+    if (error) return res.status(400).json({ error: error.message });
+    if (!data) return res.status(404).json({ error: "Pedido nao encontrado." });
+    return res.json(data);
+});
 exports.ordersRouter.get("/historico/restaurante", async (_req, res) => {
     const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
     const { data: restaurante, error: restauranteError } = await supabase
@@ -278,7 +291,7 @@ exports.ordersRouter.get("/historico/restaurante", async (_req, res) => {
         pedido.ocultado_cozinha === true);
     return res.json(historico);
 });
-exports.ordersRouter.post("/", async (req, res) => {
+exports.ordersRouter.post("/", (0, auth_1.requireRole)("cliente"), async (req, res) => {
     const body = req.body;
     const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
     if (!body.id_reserva || !body.itens?.length) {
@@ -358,7 +371,7 @@ exports.ordersRouter.post("/", async (req, res) => {
             titulo: "Pedido antecipado criado",
             mensagem: "Seu pedido foi registrado e ficara vinculado a sua reserva.",
             tipo_evento: "PEDIDO_CRIADO",
-            link_destino: "/cliente/detalhes-pedido",
+            link_destino: `/cliente/pedidos/${data.id_pedido}`,
             dados: { id_pedido: data.id_pedido, id_reserva: data.id_reserva },
         }),
         (0, notificacoes_1.notificarRestaurante)(data.id_restaurante, {
@@ -371,7 +384,7 @@ exports.ordersRouter.post("/", async (req, res) => {
     ]);
     return res.status(201).json(data);
 });
-exports.ordersRouter.patch("/:id/cancelar", async (req, res) => {
+exports.ordersRouter.patch("/:id/cancelar", (0, auth_1.requireRole)("cliente"), async (req, res) => {
     const orderId = Number(req.params.id);
     const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
     if (!Number.isFinite(orderId)) {
@@ -390,7 +403,7 @@ exports.ordersRouter.patch("/:id/cancelar", async (req, res) => {
     }
     const { data: pedido, error: pedidoError } = await supabase
         .from("pedidos")
-        .select("id_pedido, id_cliente, status_pedido, reservas(data_reserva, horario_inicio)")
+        .select("id_pedido, id_cliente, id_restaurante, status_pedido, reservas(data_reserva, horario_inicio)")
         .eq("id_pedido", orderId)
         .eq("id_cliente", cliente.id_cliente)
         .maybeSingle();
@@ -417,6 +430,17 @@ exports.ordersRouter.patch("/:id/cancelar", async (req, res) => {
         }
     }
     if (supabase_1.supabaseAdmin) {
+        const { data: pagamentoAprovado } = await supabase_1.supabaseAdmin.from("pagamentos")
+            .select("id_pagamento, mercado_pago_payment_id, status_pagamento")
+            .eq("id_pedido", orderId).eq("status_pagamento", "APROVADO").maybeSingle();
+        if (pagamentoAprovado?.mercado_pago_payment_id) {
+            const token = (await obterTokenPagamentoPorPedido(pedido)) ?? (0, mercado_pago_1.obterAccessTokenMercadoPago)();
+            try {
+                await (0, mercado_pago_1.estornarPagamentoMercadoPago)(pagamentoAprovado.mercado_pago_payment_id, token);
+            } catch (error) {
+                return res.status(502).json({ error: `O pedido nao foi cancelado porque o estorno falhou: ${error instanceof Error ? error.message : "erro desconhecido"}` });
+            }
+        }
         const { data, error } = await supabase_1.supabaseAdmin
             .from("pedidos")
             .update({ status_pedido: "CANCELADO" })
@@ -445,7 +469,7 @@ exports.ordersRouter.patch("/:id/cancelar", async (req, res) => {
                 titulo: "Pedido cancelado",
                 mensagem: "Seu pedido antecipado foi cancelado. Sua reserva continua ativa se ela ainda estiver confirmada.",
                 tipo_evento: "PEDIDO_CANCELADO",
-                link_destino: "/cliente/detalhes-pedido",
+                link_destino: `/cliente/pedidos/${data.id_pedido}`,
                 dados: { id_pedido: data.id_pedido, id_reserva: data.id_reserva },
             }),
             (0, notificacoes_1.notificarRestaurante)(data.id_restaurante, {
@@ -481,7 +505,7 @@ exports.ordersRouter.patch("/:id/cancelar", async (req, res) => {
             titulo: "Pedido cancelado",
             mensagem: "Seu pedido antecipado foi cancelado. Sua reserva continua ativa se ela ainda estiver confirmada.",
             tipo_evento: "PEDIDO_CANCELADO",
-            link_destino: "/cliente/detalhes-pedido",
+            link_destino: `/cliente/pedidos/${data.id_pedido}`,
             dados: { id_pedido: data.id_pedido, id_reserva: data.id_reserva },
         }),
         (0, notificacoes_1.notificarRestaurante)(data.id_restaurante, {
@@ -494,7 +518,7 @@ exports.ordersRouter.patch("/:id/cancelar", async (req, res) => {
     ]);
     return res.json(data);
 });
-exports.ordersRouter.patch("/:id/status", async (req, res) => {
+exports.ordersRouter.patch("/:id/status", (0, auth_1.requireRole)("restaurante"), async (req, res) => {
     const orderId = Number(req.params.id);
     const { status_pedido } = req.body;
     const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
@@ -524,6 +548,9 @@ exports.ordersRouter.patch("/:id/status", async (req, res) => {
     }
     if (!pedidoAtual) {
         return res.status(404).json({ error: "Pedido nao encontrado." });
+    }
+    if (!canTransitionOrder(pedidoAtual.status_pedido, status_pedido)) {
+        return res.status(409).json({ error: `Transicao de ${pedidoAtual.status_pedido} para ${status_pedido} nao permitida.` });
     }
     if (status_pedido === "EM_PREPARO") {
         const liberadoEm = obterDataHoraLocal(pedidoAtual.iniciar_preparo_em);
@@ -580,12 +607,12 @@ exports.ordersRouter.patch("/:id/status", async (req, res) => {
         titulo: "Status do pedido atualizado",
         mensagem: `Seu pedido agora esta como: ${status_pedido.replaceAll("_", " ").toLowerCase()}.`,
         tipo_evento: "STATUS_PEDIDO",
-        link_destino: "/cliente/detalhes-pedido",
+        link_destino: `/cliente/pedidos/${data.id_pedido}`,
         dados: { id_pedido: data.id_pedido, id_reserva: data.id_reserva, status_pedido },
     });
     return res.json(data);
 });
-exports.ordersRouter.patch("/:id/ocultar-cozinha", async (req, res) => {
+exports.ordersRouter.patch("/:id/ocultar-cozinha", (0, auth_1.requireRole)("restaurante"), async (req, res) => {
     const orderId = Number(req.params.id);
     const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
     if (!Number.isFinite(orderId)) {

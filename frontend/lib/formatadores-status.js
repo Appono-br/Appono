@@ -69,6 +69,7 @@ export function textoStatusPagamento(status) {
         PENDENTE: "Pendente",
         APROVADO: "Aprovado",
         RECUSADO: "Recusado",
+        ESTORNADO: "Estornado",
         CANCELADO: "Cancelado",
         NAO_APLICAVEL: "Nao aplicavel",
     };

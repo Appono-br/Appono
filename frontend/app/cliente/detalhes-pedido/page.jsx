@@ -331,6 +331,7 @@ export default function OrderDetailsPage() {
                                                 <p className="mt-2 text-sm font-bold text-app-cafe-profundo">
                                                     {formatarMoeda(pedido.valor_total)}
                                                 </p>
+                                                <Link href={`/cliente/pedidos/${pedido.id_pedido}`} className="mt-2 inline-block text-xs font-bold text-app-caramelo-torrado underline">Ver detalhes</Link>
                                             </div>
                                         </article>
                                     ))}
@@ -598,6 +599,7 @@ export default function OrderDetailsPage() {
                                                     {pedido.avaliacao_restaurante ? `Avaliado: ${pedido.avaliacao_restaurante.nota}/5` : "Avaliar restaurante"}
                                                 </button>
                                             ) : null}
+                                            <Link href={`/cliente/pedidos/${pedido.id_pedido}`} className="mt-2 inline-block text-xs font-bold text-app-caramelo-torrado underline">Ver detalhes</Link>
                                         </article>
                                     ))}
                                 </div>

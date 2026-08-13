@@ -241,7 +241,7 @@ exports.reservationsRouter.patch("/:id/ocultar", async (req, res) => {
     }
     return res.json(data);
 });
-exports.reservationsRouter.post("/", async (req, res) => {
+exports.reservationsRouter.post("/", (0, auth_1.requireRole)("cliente"), async (req, res) => {
     const body = req.body;
     const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
     if (!body.id_restaurante ||
@@ -552,7 +552,7 @@ exports.reservationsRouter.patch("/:id/concluir", async (req, res) => {
     ]);
     return res.json(data);
 });
-exports.reservationsRouter.patch("/:id/cancelar", async (req, res) => {
+exports.reservationsRouter.patch("/:id/cancelar", (0, auth_1.requireRole)("cliente"), async (req, res) => {
     const reservationId = Number(req.params.id);
     const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
     if (!Number.isFinite(reservationId)) {
