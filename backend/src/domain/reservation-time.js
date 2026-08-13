@@ -8,4 +8,14 @@ function isReservationNoShow(reservation, now = new Date()) {
     const end = new Date(`${reservation.data_reserva}T${String(reservation.horario_fim).slice(0, 8)}-03:00`);
     return !Number.isNaN(end.getTime()) && now.getTime() >= end.getTime();
 }
-module.exports = { intervalsOverlap, isReservationInputValid, isReservationNoShow };
+function restaurantCancellationEligibility(reservation, orderStatuses = [], now = new Date()) {
+    if (!["PENDENTE", "CONFIRMADA"].includes(reservation?.status_reserva)) return { allowed: false, reason: "STATUS_INVALIDO" };
+    const start = reservation?.data_reserva && reservation?.horario_inicio
+        ? new Date(`${reservation.data_reserva}T${String(reservation.horario_inicio).slice(0, 8)}-03:00`)
+        : null;
+    if (!start || Number.isNaN(start.getTime())) return { allowed: false, reason: "HORARIO_INVALIDO" };
+    if (now.getTime() >= start.getTime()) return { allowed: false, reason: "RESERVA_INICIADA" };
+    if (orderStatuses.some((status) => ["EM_PREPARO", "PRONTO", "ENTREGUE"].includes(status))) return { allowed: false, reason: "PEDIDO_EM_ANDAMENTO" };
+    return { allowed: true };
+}
+module.exports = { intervalsOverlap, isReservationInputValid, isReservationNoShow, restaurantCancellationEligibility };

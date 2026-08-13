@@ -86,6 +86,11 @@ O webhook usa assinatura quando o segredo está configurado, controle de idempot
 
 Pedidos pendentes somente podem iniciar ou reutilizar um checkout enquanto a reserva estiver confirmada e antes do horário marcado. Ao vencer o prazo, o pedido e o pagamento pendentes são encerrados e o evento fica registrado na auditoria. Na conciliação, o backend compara `date_approved` do Mercado Pago — ou `date_created` como fallback controlado — com o horário da reserva; o horário de chegada do webhook não interfere na decisão. Uma aprovação efetivamente tardia solicita estorno real com chave idempotente, e webhooks repetidos não solicitam um segundo estorno.
 
+Pagamento aprovado e check-in são estados independentes: o pagamento confirma o pedido, enquanto o check-in registra a presença e só é liberado 15 minutos antes da reserva. O restaurante pode desmarcar uma reserva antes do início; se houver pagamento aprovado, `PATCH /api/reservas/:id/cancelar-restaurante` realiza o estorno real antes de cancelar a reserva e o pedido. Falha no estorno impede o cancelamento.
+
+Quando `MERCADO_PAGO_PERMITIR_PRODUCAO=false`, o backend entrega exclusivamente `sandbox_init_point`; nunca utiliza `init_point`, independentemente do prefixo da credencial. Pagamentos reais legados exigem uma credencial de produção com permissão de pagamentos para serem estornados, ou estorno manual pelo painel Mercado Pago.
+Após um estorno manual, uma nova tentativa de cancelamento consulta o gateway, reconhece o estado `refunded` e sincroniza reserva, pedido e pagamento sem solicitar outro estorno.
+
 ## Pedidos do cliente
 
 `GET /api/pedidos?page=1&limit=12` retorna uma listagem resumida e paginada no formato `{ items, pagination }`; `GET /api/pedidos/:id` carrega relacionamentos e itens somente para o pedido aberto. A tela de pedidos direciona cada registro para `/cliente/pedidos/:id`, onde ficam pagamento, cancelamento e acesso à avaliação. Rotas estáticas, como `/api/pedidos/historico/restaurante`, são declaradas antes da rota dinâmica por ID.

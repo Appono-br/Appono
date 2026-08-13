@@ -84,10 +84,15 @@ async function estornarPagamentoMercadoPago(paymentId, accessToken = obterAccess
     const resposta = await fetch(`${MERCADO_PAGO_API}/v1/payments/${encodeURIComponent(paymentId)}/refunds`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json", "X-Idempotency-Key": `appono-refund-${paymentId}` },
-        body: "{}",
     });
     const body = await resposta.json().catch(() => null);
-    if (!resposta.ok) throw new Error(body?.message ?? "Mercado Pago recusou o estorno.");
+    if (!resposta.ok) {
+        const message = String(body?.message ?? "");
+        if (resposta.status === 401 && /live credentials/i.test(message)) {
+            throw new Error("A credencial Mercado Pago atual consulta o pagamento, mas nao possui permissao para estornar pagamentos reais. Gere uma credencial de producao com escopo de pagamentos ou estorne esta venda pelo painel do Mercado Pago.");
+        }
+        throw new Error(message || "Mercado Pago recusou o estorno.");
+    }
     return body;
 }
 

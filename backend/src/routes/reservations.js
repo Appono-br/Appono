@@ -6,6 +6,8 @@ const supabase_1 = require("../lib/supabase");
 const auth_1 = require("../middleware/auth");
 const notificacoes_1 = require("../services/notificacoes");
 const { sincronizarReservasNaoComparecidas } = require("../services/reservas/expiracao");
+const { refundApprovedPayments } = require("../services/pagamentos/refund");
+const { restaurantCancellationEligibility } = require("../domain/reservation-time");
 exports.reservationsRouter = (0, express_1.Router)();
 exports.reservationsRouter.use(auth_1.requireAuth);
 const LIMITE_UNIDADES_POR_ITEM = 10;
@@ -593,4 +595,46 @@ exports.reservationsRouter.patch("/:id/cancelar", (0, auth_1.requireRole)("clien
         }),
     ]);
     return res.json(data);
+});
+
+exports.reservationsRouter.patch("/:id/cancelar-restaurante", (0, auth_1.requireRole)("restaurante"), async (req, res) => {
+    await sincronizarReservasNaoComparecidas().catch(() => null);
+    const reservationId = Number(req.params.id);
+    if (!Number.isInteger(reservationId) || reservationId <= 0 || !supabase_1.supabaseAdmin) return res.status(400).json({ error: "Reserva invalida." });
+    try {
+        const { data: restaurante } = await supabase_1.supabaseAdmin.from("restaurantes").select("id_restaurante").eq("id_auth", res.locals.user.id).maybeSingle();
+        if (!restaurante) return res.status(403).json({ error: "Perfil de restaurante nao encontrado." });
+        const { data: reserva } = await supabase_1.supabaseAdmin.from("reservas")
+            .select("id_reserva, id_cliente, id_restaurante, status_reserva, data_reserva, horario_inicio")
+            .eq("id_reserva", reservationId).eq("id_restaurante", restaurante.id_restaurante).maybeSingle();
+        if (!reserva) return res.status(404).json({ error: "Reserva nao encontrada para este restaurante." });
+        const { data: pedidos, error: ordersError } = await supabase_1.supabaseAdmin.from("pedidos").select("id_pedido, status_pedido").eq("id_reserva", reservationId);
+        if (ordersError) throw new Error(ordersError.message);
+        const elegibilidade = restaurantCancellationEligibility(reserva, (pedidos ?? []).map((pedido) => pedido.status_pedido), new Date());
+        if (!elegibilidade.allowed) return res.status(409).json({ error: elegibilidade.reason === "PEDIDO_EM_ANDAMENTO" ? "A reserva nao pode ser desmarcada depois que o preparo ou atendimento comecou." : elegibilidade.reason === "RESERVA_INICIADA" ? "A reserva nao pode ser desmarcada depois do horario de inicio." : "Esta reserva nao pode mais ser desmarcada." });
+        const idsPedidos = (pedidos ?? []).map((pedido) => pedido.id_pedido);
+        let pagamentos = [];
+        if (idsPedidos.length) {
+            const result = await supabase_1.supabaseAdmin.from("pagamentos").select("id_pagamento, id_pedido, status_pagamento, mercado_pago_payment_id, valor_pago").in("id_pedido", idsPedidos);
+            if (result.error) throw new Error(result.error.message);
+            pagamentos = result.data ?? [];
+        }
+        const estornos = await refundApprovedPayments(pagamentos, restaurante.id_restaurante);
+        const { data: atualizada, error: updateError } = await supabase_1.supabaseAdmin.from("reservas")
+            .update({ status_reserva: "CANCELADA" }).eq("id_reserva", reservationId).eq("id_restaurante", restaurante.id_restaurante)
+            .in("status_reserva", ["PENDENTE", "CONFIRMADA"]).select("*").single();
+        if (updateError) throw new Error(updateError.message);
+        for (const { payment } of estornos) {
+            const agora = new Date().toISOString();
+            await supabase_1.supabaseAdmin.from("pagamentos").update({ status_pagamento: "ESTORNADO", status_repasse: "ESTORNADO", atualizado_em: agora, updated_at: agora }).eq("id_pagamento", payment.id_pagamento);
+            await supabase_1.supabaseAdmin.from("eventos_financeiros").insert({ id_pagamento: payment.id_pagamento, id_pedido: payment.id_pedido, id_reserva: reservationId, tipo_evento: "PAGAMENTO_ESTORNADO_RESTAURANTE", descricao: "Pagamento estornado apos cancelamento da reserva pelo restaurante.", valor: payment.valor_pago, origem: "RESTAURANTE" });
+        }
+        await Promise.all([
+            (0, notificacoes_1.notificarCliente)(atualizada.id_cliente, { titulo: "Reserva cancelada pelo restaurante", mensagem: estornos.length ? "O restaurante cancelou a reserva e o pagamento foi estornado pelo Mercado Pago." : "O restaurante cancelou sua reserva.", tipo_evento: "RESERVA_CANCELADA", link_destino: "/cliente/reservas", dados: { id_reserva: reservationId } }),
+            (0, notificacoes_1.notificarRestaurante)(atualizada.id_restaurante, { titulo: "Reserva cancelada", mensagem: estornos.length ? "Reserva cancelada e pagamento estornado." : "Reserva cancelada com sucesso.", tipo_evento: "RESERVA_CANCELADA", link_destino: "/restaurante/reservas", dados: { id_reserva: reservationId } }),
+        ]);
+        return res.json({ ...atualizada, estornos: estornos.length });
+    } catch (error) {
+        return res.status(502).json({ error: `A reserva nao foi cancelada: ${error instanceof Error ? error.message : "erro desconhecido"}` });
+    }
 });

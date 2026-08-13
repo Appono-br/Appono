@@ -173,7 +173,7 @@ export default function RestaurantReservationsPage() {
     async function cancelarReserva(id) {
         setCancelandoReserva(true);
         try {
-            const atualizada = await apiRequest(`/reservas/${id}/cancelar`, {
+            const atualizada = await apiRequest(`/reservas/${id}/cancelar-restaurante`, {
                 method: "PATCH",
             });
 
@@ -565,11 +565,11 @@ export default function RestaurantReservationsPage() {
                             Deseja desmarcar esta reserva?
                         </h2>
                         <p className="mt-3 text-sm leading-6 text-app-mocha">
-                            Ao confirmar, esta reserva sera marcada como cancelada para o cliente e sairá do fluxo ativo de atendimento.
+                            Ao confirmar, a reserva será cancelada para o cliente. Se houver pagamento aprovado, o Mercado Pago fará o estorno antes do cancelamento.
                         </p>
                         {reservaParaCancelar.pedidos?.some((pedido) => ["PENDENTE", "CONFIRMADO"].includes(pedido.status_pedido)) ? (
                             <p className="mt-3 rounded-[10px] bg-app-chantilly p-3 text-sm font-semibold leading-6 text-app-cafe-profundo ring-1 ring-app-baunilha-dourada/60">
-                                Existe pedido antecipado vinculado. Se ele ainda nao entrou em preparo, o sistema tambem marcara o pedido como cancelado.
+                                Existe pedido antecipado vinculado. Se estiver pago, o cancelamento só será concluído após o estorno; se estiver pendente, ele será cancelado.
                             </p>
                         ) : null}
                         <div className="mt-6 rounded-[10px] bg-app-chantilly p-4 ring-1 ring-app-baunilha-dourada/60">

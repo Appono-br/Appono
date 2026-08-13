@@ -11,7 +11,8 @@ function productionAllowed() { return String(process.env.MERCADO_PAGO_PERMITIR_P
 function transferMode() { return String(process.env.MERCADO_PAGO_MODO_REPASSE ?? "SIMULADO").trim().toUpperCase(); }
 function isRealMarketplace() { return ["MARKETPLACE_REAL", "REAL", "PRODUCAO"].includes(transferMode()); }
 function checkoutUrl(preference, token) {
-    return isTestToken(token) ? preference.sandbox_init_point ?? preference.init_point : preference.init_point ?? preference.sandbox_init_point;
+    if (!productionAllowed()) return preference.sandbox_init_point ?? null;
+    return isTestToken(token) ? preference.sandbox_init_point ?? null : preference.init_point ?? null;
 }
 
 module.exports = { backendPublicUrl, checkoutUrl, frontendOrigin, isHttpsUrl, isRealMarketplace, productionAllowed, transferMode, webhookSecret };
