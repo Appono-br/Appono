@@ -158,22 +158,8 @@ exports.reservationsRouter.get("/", async (_req, res) => {
     }
     const reservas = data ?? [];
     const idsReservas = reservas.map((reserva) => reserva.id_reserva);
-    const idsRestaurantes = [...new Set(reservas.map((reserva) => reserva.id_restaurante).filter(Boolean))];
-    let avaliacoesPorRestaurante = new Map();
-    if (cliente && idsRestaurantes.length) {
-        const clienteAvaliacoes = supabase_1.supabaseAdmin ?? supabase;
-        const { data: avaliacoes } = await clienteAvaliacoes
-            .from("avaliacoes_restaurante")
-            .select("id_avaliacao, id_restaurante, nota, comentario, created_at")
-            .eq("id_cliente", cliente.id_cliente)
-            .in("id_restaurante", idsRestaurantes);
-        avaliacoesPorRestaurante = new Map((avaliacoes ?? []).map((avaliacao) => [avaliacao.id_restaurante, avaliacao]));
-    }
     if (!idsReservas.length) {
-        return res.json(reservas.map((reserva) => ({
-            ...reserva,
-            avaliacao_restaurante: avaliacoesPorRestaurante.get(reserva.id_restaurante) ?? null,
-        })));
+        return res.json(reservas);
     }
     const clientePedidos = supabase_1.supabaseAdmin ?? supabase;
     const { data: pedidos, error: pedidosError } = await clientePedidos
@@ -185,7 +171,6 @@ exports.reservationsRouter.get("/", async (_req, res) => {
     }
     return res.json(reservas.map((reserva) => ({
         ...reserva,
-        avaliacao_restaurante: avaliacoesPorRestaurante.get(reserva.id_restaurante) ?? null,
         pedidos: (pedidos ?? []).filter((pedido) => pedido.id_reserva === reserva.id_reserva),
     })));
 });

@@ -1,7 +1,9 @@
 "use strict";
 const { supabaseAdmin } = require("../../lib/supabase");
 const { isRealMarketplace } = require("./config");
+const { productionAllowed } = require("./config");
 const { consultarPagamentoMercadoPago, estornarPagamentoMercadoPago, obterAccessTokenMercadoPago } = require("./mercado-pago");
+const { testGatewayRefundEligibility } = require("../../domain/refund-state");
 
 async function paymentTokenForRestaurant(restaurantId) {
     if (!isRealMarketplace()) return obterAccessTokenMercadoPago();
@@ -20,6 +22,11 @@ async function refundApprovedPayments(payments, restaurantId) {
     for (const payment of approved) {
         if (!payment.mercado_pago_payment_id) throw new Error(`Pagamento ${payment.id_pagamento} sem identificador para estorno.`);
         const gatewayPayment = await consultarPagamentoMercadoPago(payment.mercado_pago_payment_id, token);
+        const gatewayEligibility = testGatewayRefundEligibility(gatewayPayment, productionAllowed());
+        if (!gatewayEligibility.allowed && gatewayEligibility.code === "PAGAMENTO_REAL_BLOQUEADO") {
+            throw new Error(`Pagamento ${payment.id_pagamento} e real e nao pode ser estornado pelo fluxo de testes.`);
+        }
+        if (!gatewayEligibility.allowed) throw new Error(`Pagamento ${payment.id_pagamento} nao foi confirmado pelo Mercado Pago.`);
         if (["refunded", "charged_back"].includes(String(gatewayPayment?.status ?? "").toLowerCase())) {
             refunds.push({ payment, gatewayRefund: null, alreadyRefunded: true });
             continue;

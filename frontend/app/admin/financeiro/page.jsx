@@ -358,6 +358,9 @@ export default function AdminFinanceiroPage() {
                 <div className="grid gap-8 lg:grid-cols-[1fr_380px] lg:items-start">
                     <div>
                         <p className="text-xs font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">Marketplace financeiro</p>
+                        <Link href="/admin/reembolsos" className="mt-4 inline-flex rounded-full border border-app-caramelo-torrado px-5 py-2 text-xs font-bold uppercase tracking-[0.12em] text-app-caramelo-torrado">
+                            Analisar reembolsos
+                        </Link>
                         <h1 className="mt-3 max-w-3xl text-3xl font-semibold leading-tight sm:text-5xl">
                             Retencao, comissao e repasses da Appono
                         </h1>

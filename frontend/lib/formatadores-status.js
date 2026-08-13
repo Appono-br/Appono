@@ -24,6 +24,9 @@ export function textoTipoEvento(tipo) {
         PAGAMENTO_RECUSADO: "Pagamento recusado",
         REPASSE_LIBERADO: "Repasse liberado",
         REPASSE_ESTORNADO: "Repasse estornado",
+        REEMBOLSO_SOLICITADO: "Reembolso solicitado",
+        REEMBOLSO_CONCLUIDO: "Reembolso concluido",
+        REEMBOLSO_RECUSADO: "Reembolso recusado",
         INFORMATIVO: "Informativo",
     };
     return eventos[tipo] ?? formatarCodigoSistema(tipo, "Notificacao");
@@ -39,6 +42,18 @@ export function textoStatusRepasse(status) {
         NAO_APLICAVEL: "Nao aplicavel",
     };
     return statusMap[status] ?? formatarCodigoSistema(status, "Em acompanhamento");
+}
+
+export function textoStatusReembolso(status) {
+    const statusMap = {
+        SOLICITADO: "Solicitado",
+        EM_ANALISE: "Em analise",
+        APROVADO: "Aprovado",
+        RECUSADO: "Recusado",
+        CONCLUIDO: "Concluido (simulado)",
+        CANCELADO: "Cancelado pelo cliente",
+    };
+    return statusMap[status] ?? formatarCodigoSistema(status, "Reembolso");
 }
 
 export function textoStatusPedido(status) {

@@ -8,6 +8,7 @@ const mercado_pago_1 = require("../services/pagamentos/mercado-pago");
 const notificacoes_1 = require("../services/notificacoes");
 const { canTransitionOrder } = require("../domain/order-state");
 const { paginationMeta, parsePagination } = require("../domain/pagination");
+const { orderReviewEligibility } = require("../domain/review-state");
 exports.ordersRouter = (0, express_1.Router)();
 exports.ordersRouter.use(auth_1.requireAuth);
 
@@ -245,6 +246,42 @@ exports.ordersRouter.get("/historico/restaurante", async (_req, res) => {
     const historico = (data ?? []).filter((pedido) => STATUS_HISTORICO_RESTAURANTE.includes(pedido.status_pedido) ||
         pedido.ocultado_cozinha === true);
     return res.json(historico);
+});
+exports.ordersRouter.get("/:id/avaliacao", (0, auth_1.requireRole)("cliente"), async (req, res) => {
+    const orderId = Number(req.params.id);
+    if (!Number.isInteger(orderId) || orderId <= 0) return res.status(400).json({ error: "Pedido invalido." });
+    const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
+    const { data: pedido, error: pedidoError } = await supabase.from("pedidos")
+        .select("id_pedido, id_cliente, id_restaurante, status_pedido, restaurantes(nome)")
+        .eq("id_pedido", orderId).eq("id_cliente", res.locals.profileId).maybeSingle();
+    if (pedidoError) return res.status(400).json({ error: pedidoError.message });
+    if (!pedido) return res.status(404).json({ error: "Pedido nao encontrado para este cliente." });
+    const { data: avaliacao, error } = await supabase.from("avaliacoes_restaurante").select("*").eq("id_pedido", orderId).maybeSingle();
+    if (error) return res.status(400).json({ error: error.message });
+    return res.json({ pedido, avaliacao: avaliacao ?? null, elegivel: orderReviewEligibility(pedido).allowed });
+});
+exports.ordersRouter.post("/:id/avaliacao", (0, auth_1.requireRole)("cliente"), async (req, res) => {
+    const orderId = Number(req.params.id);
+    const nota = Number(req.body?.nota);
+    const comentario = String(req.body?.comentario ?? "").trim() || null;
+    if (!Number.isInteger(orderId) || orderId <= 0 || !Number.isInteger(nota) || nota < 1 || nota > 5) return res.status(400).json({ error: "Informe uma nota de 1 a 5." });
+    if (comentario && comentario.length > 1000) return res.status(400).json({ error: "O comentario deve ter no maximo 1000 caracteres." });
+    const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
+    const { data: pedido, error: pedidoError } = await supabase.from("pedidos")
+        .select("id_pedido, id_cliente, id_restaurante, id_reserva, status_pedido")
+        .eq("id_pedido", orderId).eq("id_cliente", res.locals.profileId).maybeSingle();
+    if (pedidoError) return res.status(400).json({ error: pedidoError.message });
+    if (!pedido) return res.status(404).json({ error: "Pedido nao encontrado para este cliente." });
+    if (!orderReviewEligibility(pedido).allowed) return res.status(409).json({ error: "A avaliacao fica disponivel somente depois que o pedido for entregue." });
+    const { data: existente, error: buscaError } = await supabase.from("avaliacoes_restaurante").select("id_avaliacao").eq("id_pedido", orderId).maybeSingle();
+    if (buscaError) return res.status(400).json({ error: buscaError.message });
+    const payload = { id_cliente: pedido.id_cliente, id_restaurante: pedido.id_restaurante, id_reserva: pedido.id_reserva, id_pedido: pedido.id_pedido, nota, comentario };
+    const operacao = existente
+        ? supabase.from("avaliacoes_restaurante").update(payload).eq("id_avaliacao", existente.id_avaliacao)
+        : supabase.from("avaliacoes_restaurante").insert(payload);
+    const { data, error } = await operacao.select("*").single();
+    if (error) return res.status(400).json({ error: error.message });
+    return res.json(data);
 });
 exports.ordersRouter.get("/:id", async (req, res) => {
     const orderId = Number(req.params.id);

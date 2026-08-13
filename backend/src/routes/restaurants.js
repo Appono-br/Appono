@@ -131,37 +131,6 @@ exports.restaurantsRouter.patch("/:id/favorito", auth_1.requireAuth, (0, auth_1.
     const metricas = await obterMetricas([restaurantId], res.locals.profileId);
     return res.json({ id_restaurante: restaurantId, ...metricas.get(restaurantId) });
 });
-exports.restaurantsRouter.get("/:id/minha-avaliacao", auth_1.requireAuth, (0, auth_1.requireRole)("cliente"), async (req, res) => {
-    const restaurantId = Number(req.params.id);
-    if (!Number.isInteger(restaurantId) || restaurantId <= 0) return res.status(400).json({ error: "Restaurante invalido." });
-    const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
-    const { data, error } = await supabase.from("avaliacoes_restaurante").select("*")
-        .eq("id_cliente", res.locals.profileId).eq("id_restaurante", restaurantId).maybeSingle();
-    if (error) return res.status(400).json({ error: error.message });
-    return res.json(data);
-});
-exports.restaurantsRouter.post("/:id/avaliacoes", auth_1.requireAuth, (0, auth_1.requireRole)("cliente"), async (req, res) => {
-    const restaurantId = Number(req.params.id);
-    const nota = Number(req.body?.nota);
-    const comentario = String(req.body?.comentario ?? "").trim() || null;
-    if (!Number.isInteger(restaurantId) || restaurantId <= 0 || !Number.isInteger(nota) || nota < 1 || nota > 5) return res.status(400).json({ error: "Informe uma nota de 1 a 5." });
-    if (comentario && comentario.length > 1000) return res.status(400).json({ error: "O comentario deve ter no maximo 1000 caracteres." });
-    const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
-    const [reservas, pedidos] = await Promise.all([
-        supabase.from("reservas").select("id_reserva").eq("id_cliente", res.locals.profileId).eq("id_restaurante", restaurantId).eq("status_reserva", "CONCLUIDA").order("data_reserva", { ascending: false }).limit(1),
-        supabase.from("pedidos").select("id_pedido").eq("id_cliente", res.locals.profileId).eq("id_restaurante", restaurantId).eq("status_pedido", "ENTREGUE").order("data_pedido", { ascending: false }).limit(1),
-    ]);
-    const reserva = reservas.data?.[0];
-    const pedido = pedidos.data?.[0];
-    if (!reserva && !pedido) return res.status(403).json({ error: "Finalize uma reserva ou receba um pedido antes de avaliar este restaurante." });
-    const { data, error } = await supabase.from("avaliacoes_restaurante").upsert({
-        id_cliente: res.locals.profileId, id_restaurante: restaurantId,
-        id_reserva: reserva?.id_reserva ?? null, id_pedido: pedido?.id_pedido ?? null, nota, comentario,
-    }, { onConflict: "id_cliente,id_restaurante" }).select("*").single();
-    if (error) return res.status(400).json({ error: error.message });
-    const metricas = await obterMetricas([restaurantId], res.locals.profileId);
-    return res.json({ avaliacao: data, ...metricas.get(restaurantId) });
-});
 exports.restaurantsRouter.get("/:id/cardapio", async (req, res) => {
     const restaurantId = Number(req.params.id);
     if (!Number.isFinite(restaurantId)) {

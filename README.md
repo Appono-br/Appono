@@ -91,9 +91,28 @@ Pagamento aprovado e check-in são estados independentes: o pagamento confirma o
 Quando `MERCADO_PAGO_PERMITIR_PRODUCAO=false`, o backend entrega exclusivamente `sandbox_init_point`; nunca utiliza `init_point`, independentemente do prefixo da credencial. Pagamentos reais legados exigem uma credencial de produção com permissão de pagamentos para serem estornados, ou estorno manual pelo painel Mercado Pago.
 Após um estorno manual, uma nova tentativa de cancelamento consulta o gateway, reconhece o estado `refunded` e sincroniza reserva, pedido e pagamento sem solicitar outro estorno.
 
+## Reembolsos no ambiente atual
+
+O módulo inicial de reembolsos foi preparado para `MERCADO_PAGO_MODO_REPASSE=SIMULADO` e `MERCADO_PAGO_PERMITIR_PRODUCAO=false`. Nesse arranjo, o pagamento é estornado no ambiente de testes do Mercado Pago, enquanto a comissão e o repasse da Appono continuam simulados. O backend consulta `live_mode` e bloqueia a operação se identificar um pagamento real.
+
+Fluxo disponível:
+
+- O cliente solicita o valor total no detalhe de um pedido pago e informa o motivo.
+- Restaurante ou administrador consulta e analisa a solicitação.
+- A aprovação envia um estorno idempotente ao Mercado Pago de teste.
+- Somente depois da confirmação do gateway, pagamento e repasse passam para `ESTORNADO` e o reembolso para `CONCLUIDO`.
+- Recusas exigem justificativa; solicitações recusadas ou canceladas podem ser refeitas.
+- Eventos financeiros e notificações registram solicitação, recusa e conclusão.
+
+Rotas principais: `POST /api/reembolsos`, `GET /api/reembolsos/pedido/:id`, `GET /api/reembolsos/restaurante`, `GET /api/reembolsos/admin` e `PATCH /api/reembolsos/:id/analisar`.
+
+A migration `20260815000100_create_simulated_refunds.sql` cria a tabela, as políticas de leitura, a unicidade de reembolso ativo e a conclusão transacional. Ela deve ser aplicada antes de testar as telas `/restaurante/reembolsos` e `/admin/reembolsos`.
+
 ## Pedidos do cliente
 
 `GET /api/pedidos?page=1&limit=12` retorna uma listagem resumida e paginada no formato `{ items, pagination }`; `GET /api/pedidos/:id` carrega relacionamentos e itens somente para o pedido aberto. A tela de pedidos direciona cada registro para `/cliente/pedidos/:id`, onde ficam pagamento, cancelamento e acesso à avaliação. Rotas estáticas, como `/api/pedidos/historico/restaurante`, são declaradas antes da rota dinâmica por ID.
+
+Na página do restaurante, o cliente pode selecionar quantidades diretamente no cardápio. Sem itens, `POST /api/reservas` cria somente a reserva; com itens e o consumo mínimo atingido, `POST /api/reservas/com-pedido` cria reserva e pedido antecipado na mesma transação e direciona ao checkout do pedido.
 
 ## Organização e manutenção
 
@@ -113,6 +132,7 @@ Cobertura atual:
 - Comissão e valor do restaurante.
 - Eventos financeiros fora de ordem.
 - Estorno e chargeback.
+- Elegibilidade, duplicidade e bloqueio de pagamento real no fluxo de reembolso de teste.
 - Elegibilidade e vencimento do pagamento conforme a reserva.
 - Paginação e limites de listagem.
 - Matriz de perfis e propriedade de recursos.
@@ -126,13 +146,13 @@ Endpoints disponíveis:
 - `GET /api/restaurantes`: inclui média, quantidade de avaliações, total de favoritos e favorito do cliente autenticado.
 - `GET /api/restaurantes/:id`: inclui métricas e avaliações recentes.
 - `PATCH /api/restaurantes/:id/favorito`: adiciona ou remove favorito; somente cliente.
-- `GET /api/restaurantes/:id/minha-avaliacao`: consulta a avaliação do cliente.
-- `POST /api/restaurantes/:id/avaliacoes`: cria ou atualiza avaliação após reserva concluída ou pedido entregue.
+- `GET /api/pedidos/:id/avaliacao`: consulta a avaliação vinculada ao pedido do cliente.
+- `POST /api/pedidos/:id/avaliacao`: cria ou atualiza a avaliação somente depois da entrega do pedido.
 - `GET /api/restaurantes/me/avaliacoes`: lista avaliações recebidas pelo restaurante autenticado.
 
 As escritas usam o token do usuário e respeitam RLS; não utilizam `supabaseAdmin` para ignorar autorização.
 
-No frontend, o dashboard persiste favoritos, `/cliente/favoritos` reúne a seleção do cliente, a página pública do restaurante permite avaliar uma experiência elegível e `/restaurante/desempenho` apresenta média, volume e comentários reais.
+No frontend, o dashboard persiste favoritos, `/cliente/favoritos` reúne a seleção do cliente, a página pública do restaurante exibe avaliações verificadas sem misturar o formulário com reserva e cardápio, `/cliente/pedidos/:id/avaliar` publica a avaliação pós-entrega e `/restaurante/desempenho` apresenta média, volume e comentários reais.
 
 Testes de concorrência real, RLS entre usuários e webhooks completos precisam de um Supabase exclusivo de testes. Não devem criar dados artificiais no banco com dados reais.
 
