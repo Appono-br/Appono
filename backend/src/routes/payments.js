@@ -13,6 +13,7 @@ const { log } = require("../middleware/observability");
 const { calculateSplit, nextTransferStatus, strongestPaymentStatus } = require("../domain/payment-state");
 const { lateApprovalDecision, paymentEligibility } = require("../domain/payment-eligibility");
 const paymentConfig = require("../services/pagamentos/config");
+const { sincronizarReservasNaoComparecidas } = require("../services/reservas/expiracao");
 
 exports.paymentsRouter = (0, express_1.Router)();
 
@@ -555,6 +556,7 @@ exports.paymentsRouter.post("/pedido/:id/preferencia", async (req, res) => {
     }
     const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
     try {
+        await sincronizarReservasNaoComparecidas();
         const { cliente, pedido } = await obterPedidoDoCliente(supabase, pedidoId, res.locals.user.id);
         if (!cliente || !pedido) {
             return res.status(404).json({ error: "Pedido nao encontrado para este cliente." });

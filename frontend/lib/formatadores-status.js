@@ -60,6 +60,7 @@ export function textoStatusReserva(status) {
         CHECK_IN: "Check-in realizado",
         CANCELADA: "Cancelada",
         CONCLUIDA: "Concluida",
+        NAO_COMPARECEU: "Não compareceu",
     };
     return statusMap[status] ?? formatarCodigoSistema(status, "Reserva");
 }

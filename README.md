@@ -74,6 +74,8 @@ npx supabase db push
 
 A migration `20260813000100_financial_webhook_idempotency.sql` cria o controle de webhooks, amplia a auditoria e torna eventos financeiros imutáveis. Em 13/08/2026, uma verificação somente leitura confirmou que ela já está aplicada no Supabase configurado localmente.
 
+A migration `20260814000100_expire_no_show_reservations.sql` adiciona `NAO_COMPARECEU` e a transição atômica de reservas confirmadas cujo horário final terminou sem check-in. Ela também cancela pedidos pendentes, recusa pagamentos ainda pendentes e registra auditoria. Esta migration precisa ser aplicada antes de executar a versão correspondente do backend.
+
 Aplicar migrations primeiro em testes, depois em homologação e por último em produção. Fazer backup e validar restauração antes de alterações críticas.
 
 ## Segurança de pagamentos

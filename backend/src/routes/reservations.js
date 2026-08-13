@@ -5,6 +5,7 @@ const express_1 = require("express");
 const supabase_1 = require("../lib/supabase");
 const auth_1 = require("../middleware/auth");
 const notificacoes_1 = require("../services/notificacoes");
+const { sincronizarReservasNaoComparecidas } = require("../services/reservas/expiracao");
 exports.reservationsRouter = (0, express_1.Router)();
 exports.reservationsRouter.use(auth_1.requireAuth);
 const LIMITE_UNIDADES_POR_ITEM = 10;
@@ -132,6 +133,11 @@ function obterDataHoraLocal(data, horario) {
 }
 
 exports.reservationsRouter.get("/", async (_req, res) => {
+    try {
+        await sincronizarReservasNaoComparecidas();
+    } catch (error) {
+        return res.status(503).json({ error: error instanceof Error ? error.message : "Nao foi possivel atualizar as reservas vencidas." });
+    }
     const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
     const { data: cliente } = await supabase
         .from("clientes")
@@ -206,7 +212,7 @@ exports.reservationsRouter.patch("/:id/ocultar", async (req, res) => {
             .select("id_restaurante")
             .eq("id_auth", res.locals.user.id)
             .maybeSingle();
-        const statusOcultaveis = ["CANCELADA", "RECUSADA", "CONCLUIDA"];
+        const statusOcultaveis = ["CANCELADA", "RECUSADA", "CONCLUIDA", "NAO_COMPARECEU"];
         let consulta;
         if (cliente) {
             consulta = supabase_1.supabaseAdmin
@@ -403,6 +409,7 @@ exports.reservationsRouter.get("/:id/cardapio", async (req, res) => {
     return res.json({ reserva: { ...reserva, pedidos: pedidos ?? [] }, cardapios: organizarCardapios(cardapios) });
 });
 exports.reservationsRouter.patch("/:id/check-in", async (req, res) => {
+    await sincronizarReservasNaoComparecidas().catch(() => null);
     const reservationId = Number(req.params.id);
     const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
     if (!Number.isFinite(reservationId)) {
@@ -553,6 +560,7 @@ exports.reservationsRouter.patch("/:id/concluir", async (req, res) => {
     return res.json(data);
 });
 exports.reservationsRouter.patch("/:id/cancelar", (0, auth_1.requireRole)("cliente"), async (req, res) => {
+    await sincronizarReservasNaoComparecidas().catch(() => null);
     const reservationId = Number(req.params.id);
     const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
     if (!Number.isFinite(reservationId)) {

@@ -25,6 +25,7 @@ const filtrosPedido = [
     { label: "Pedido pago", value: "PEDIDO_PAGO" },
     { label: "Em atendimento", value: "EM_ATENDIMENTO" },
     { label: "Finalizadas", value: "CONCLUIDA" },
+    { label: "Não compareceu", value: "NAO_COMPARECEU" },
     { label: "Cancelados", value: "CANCELADO" },
 ];
 
@@ -91,11 +92,12 @@ function obterStatusReserva(status) {
         CANCELADA: "Cancelada",
         RECUSADA: "Recusada",
         CONCLUIDA: "Finalizada",
+        NAO_COMPARECEU: "Não compareceu",
     };
     return statusMap[status] ?? status;
 }
 function obterClasseStatusReserva(status) {
-    if (status === "CANCELADA" || status === "RECUSADA") {
+    if (["CANCELADA", "RECUSADA", "NAO_COMPARECEU"].includes(status)) {
         return "bg-app-vermelho-erro/10 text-app-vermelho-erro ring-app-vermelho-erro/25";
     }
     if (status === "CHECK_IN") {
@@ -131,6 +133,10 @@ function obterJanelaCheckIn(reserva) {
             minute: "2-digit",
         }),
     };
+}
+function reservaJaTerminou(reserva) {
+    const fim = new Date(`${reserva.data_reserva}T${reserva.horario_fim}`);
+    return !Number.isNaN(fim.getTime()) && new Date() >= fim;
 }
 
 export default function RestaurantReservationsPage() {
@@ -250,6 +256,9 @@ export default function RestaurantReservationsPage() {
         }
         if (filtroPedido === "CONCLUIDA") {
             return reservas.filter((reserva) => reserva.status_reserva === "CONCLUIDA");
+        }
+        if (filtroPedido === "NAO_COMPARECEU") {
+            return reservas.filter((reserva) => reserva.status_reserva === "NAO_COMPARECEU");
         }
         if (filtroPedido === "CANCELADO") {
             return reservas.filter((reserva) => reserva.status_reserva === "CANCELADA" || (reserva.pedidos ?? []).some((pedido) => pedido.status_pedido === "CANCELADO"));
@@ -475,7 +484,7 @@ export default function RestaurantReservationsPage() {
                                         </div>
 
                                         <div className="flex shrink-0 flex-wrap gap-2 border-t border-app-baunilha-dourada/55 bg-app-chantilly px-5 py-4 lg:flex-col lg:items-stretch lg:justify-center lg:border-l lg:border-t-0">
-                                            {reserva.status_reserva === "CONFIRMADA" ? (
+                                            {reserva.status_reserva === "CONFIRMADA" && !reservaJaTerminou(reserva) ? (
                                                 <div className="grid gap-1">
                                                     <button
                                                         type="button"
@@ -511,7 +520,7 @@ export default function RestaurantReservationsPage() {
                                                 </div>
                                             ) : null}
 
-                                            {["PENDENTE", "CONFIRMADA"].includes(reserva.status_reserva) ? (
+                                            {["PENDENTE", "CONFIRMADA"].includes(reserva.status_reserva) && !reservaJaTerminou(reserva) ? (
                                                 <button
                                                     type="button"
                                                     onClick={() => setReservaParaCancelar(reserva)}
@@ -521,7 +530,7 @@ export default function RestaurantReservationsPage() {
                                                 </button>
                                             ) : null}
 
-                                            {["CANCELADA", "RECUSADA", "CONCLUIDA"].includes(reserva.status_reserva) ? (
+                                            {["CANCELADA", "RECUSADA", "CONCLUIDA", "NAO_COMPARECEU"].includes(reserva.status_reserva) ? (
                                                 <button
                                                     type="button"
                                                     onClick={() => excluirReservaDaLista(reserva.id_reserva)}

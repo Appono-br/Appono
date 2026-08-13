@@ -71,6 +71,9 @@ function obterStatusReserva(status) {
     if (status === "CANCELADA") {
         return { texto: "Cancelada", classe: "bg-app-vermelho-erro/10 text-app-vermelho-erro" };
     }
+    if (status === "NAO_COMPARECEU") {
+        return { texto: "Não compareceu", classe: "bg-app-vermelho-erro/10 text-app-vermelho-erro" };
+    }
     return { texto: status.toLowerCase(), classe: "bg-app-creme-suave text-app-mocha" };
 }
 function obterStatusPedido(status) {
@@ -102,6 +105,9 @@ function obterDescricaoFluxoReserva(reservation) {
     }
     if (reservation.status === "CONCLUIDA") {
         return "Atendimento finalizado. Esta reserva permanece disponivel no historico.";
+    }
+    if (reservation.status === "NAO_COMPARECEU") {
+        return "O horário da reserva terminou sem check-in. A reserva e pedidos pendentes foram encerrados.";
     }
     if (reservaJaIniciou(reservation)) {
         return "Esta reserva ja passou do horario de inicio. O pedido antecipado nao pode mais ser adicionado.";
@@ -488,7 +494,7 @@ export default function ReservationsPage() {
                             <Icon type="star" className="h-4 w-4"/>
                             {reservation.avaliacao ? `Avaliado: ${reservation.avaliacao.nota}/5` : "Avaliar"}
                           </button>) : null}
-                        {["PENDENTE", "CONFIRMADA"].includes(reservation.status) ? (<button type="button" onClick={() => setReservaParaCancelar(reservation)} className="text-xs font-bold text-app-vermelho-erro transition hover:text-app-cafe-profundo">
+                        {["PENDENTE", "CONFIRMADA"].includes(reservation.status) && !reservaJaIniciou(reservation) ? (<button type="button" onClick={() => setReservaParaCancelar(reservation)} className="text-xs font-bold text-app-vermelho-erro transition hover:text-app-cafe-profundo">
                             Desmarcar reserva
                           </button>) : null}
                         {reservation.activeOrder?.status === "PENDENTE" && reservaAceitaPagamento(reservation) ? (<Link href={`/cliente/pagamentos/pedido/${reservation.activeOrder.id}`} className="rounded-[8px] bg-app-dourado-mel px-4 py-2 text-xs font-bold text-white transition hover:bg-app-caramelo-torrado">
@@ -500,7 +506,7 @@ export default function ReservationsPage() {
                         {reservation.status === "CONFIRMADA" && !reservation.activeOrder && !reservaJaIniciou(reservation) ? (<Link href={`/cliente/reservas/${reservation.id}/pedido`} className="rounded-[8px] bg-app-dourado-mel px-4 py-2 text-xs font-bold text-white transition hover:bg-app-caramelo-torrado">
                             Adicionar pedido antecipado
                           </Link>) : null}
-                        {["CANCELADA", "RECUSADA", "CONCLUIDA"].includes(reservation.status) ? (<button type="button" onClick={() => excluirReservaDaLista(reservation.id)} className="text-xs font-bold text-app-cinza transition hover:text-app-vermelho-erro">
+                        {["CANCELADA", "RECUSADA", "CONCLUIDA", "NAO_COMPARECEU"].includes(reservation.status) ? (<button type="button" onClick={() => excluirReservaDaLista(reservation.id)} className="text-xs font-bold text-app-cinza transition hover:text-app-vermelho-erro">
                             Excluir da lista
                           </button>) : null}
                       </div>
