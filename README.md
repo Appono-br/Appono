@@ -82,7 +82,7 @@ A Appono não coleta nem armazena número completo de cartão, validade ou CVV. 
 
 O webhook usa assinatura quando o segredo está configurado, controle de idempotência e trilha de processamento. Eventos atrasados não regridem pagamento aprovado; estorno e chargeback prevalecem como estados terminais.
 
-Pedidos pendentes somente podem iniciar ou reutilizar um checkout enquanto a reserva estiver confirmada e antes do horário marcado. Ao vencer o prazo, o pedido e o pagamento pendentes são encerrados e o evento fica registrado na auditoria. Se o gateway comunicar uma aprovação tardia, o backend solicita estorno real antes de manter o pedido cancelado.
+Pedidos pendentes somente podem iniciar ou reutilizar um checkout enquanto a reserva estiver confirmada e antes do horário marcado. Ao vencer o prazo, o pedido e o pagamento pendentes são encerrados e o evento fica registrado na auditoria. Na conciliação, o backend compara `date_approved` do Mercado Pago — ou `date_created` como fallback controlado — com o horário da reserva; o horário de chegada do webhook não interfere na decisão. Uma aprovação efetivamente tardia solicita estorno real com chave idempotente, e webhooks repetidos não solicitam um segundo estorno.
 
 ## Pedidos do cliente
 

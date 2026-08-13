@@ -11,7 +11,7 @@ const mercado_pago_1 = require("../services/pagamentos/mercado-pago");
 const notificacoes_1 = require("../services/notificacoes");
 const { log } = require("../middleware/observability");
 const { calculateSplit, nextTransferStatus, strongestPaymentStatus } = require("../domain/payment-state");
-const { paymentEligibility } = require("../domain/payment-eligibility");
+const { lateApprovalDecision, paymentEligibility } = require("../domain/payment-eligibility");
 const paymentConfig = require("../services/pagamentos/config");
 
 exports.paymentsRouter = (0, express_1.Router)();
@@ -364,12 +364,16 @@ async function aplicarPagamentoMercadoPago(pagamentoMercadoPago, fallbackReferen
                 status_repasse: pagamentoExistente.status_repasse,
             }
             : {};
-        let statusPagamentoFinal = statusMapeado.pagamento;
-        const elegibilidade = paymentEligibility(pedido.reservas);
-        if (statusPagamentoFinal === "APROVADO" && !elegibilidade.allowed) {
+        const decisaoAprovacao = lateApprovalDecision({
+            gatewayStatus: statusMapeado.pagamento,
+            existingStatus: pagamentoExistente?.status_pagamento,
+            reservation: pedido.reservas,
+            payment: pagamentoMercadoPago,
+        });
+        const statusPagamentoFinal = decisaoAprovacao.finalStatus;
+        if (decisaoAprovacao.shouldRefund) {
             const token = await obterTokenPagamentoPorPedido(pedido.id_pedido) ?? (0, mercado_pago_1.obterAccessTokenMercadoPago)();
             await (0, mercado_pago_1.estornarPagamentoMercadoPago)(pagamentoId, token);
-            statusPagamentoFinal = "ESTORNADO";
         }
         const pagamento = await salvarPagamento({
             id_pedido: pedido.id_pedido,
@@ -385,8 +389,8 @@ async function aplicarPagamentoMercadoPago(pagamentoMercadoPago, fallbackReferen
             id_pedido: pedido.id_pedido,
             id_reserva: pedido.id_reserva,
             tipo_evento: `PAGAMENTO_${statusPagamentoFinal}`,
-            descricao: statusPagamentoFinal === "ESTORNADO" && statusMapeado.pagamento === "APROVADO"
-                ? "Pagamento aprovado depois do prazo e estornado automaticamente."
+            descricao: decisaoAprovacao.shouldRefund
+                ? `Pagamento aprovado sem elegibilidade (${decisaoAprovacao.reason}) e estornado automaticamente.`
                 : `Pagamento ${statusPagamentoFinal.toLowerCase()} conciliado pelo Mercado Pago.`,
             valor: valorPago || Number(pedido.valor_total ?? 0),
         });

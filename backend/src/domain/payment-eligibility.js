@@ -20,4 +20,52 @@ function paymentEligibility(reservation, now = new Date()) {
     return { allowed: true, code: "PAGAMENTO_DISPONIVEL", deadline };
 }
 
-module.exports = { paymentEligibility, reservationDateTime };
+function gatewayPaymentDate(payment) {
+    const candidates = [
+        ["date_approved", payment?.date_approved],
+        ["date_created", payment?.date_created],
+    ];
+    for (const [source, value] of candidates) {
+        if (!value) continue;
+        const date = new Date(value);
+        if (!Number.isNaN(date.getTime())) return { date, source };
+    }
+    return null;
+}
+
+function lateApprovalDecision({ gatewayStatus, existingStatus, reservation, payment }) {
+    if (gatewayStatus !== "APROVADO") return { finalStatus: gatewayStatus, shouldRefund: false };
+    if (existingStatus === "ESTORNADO") return { finalStatus: "ESTORNADO", shouldRefund: false, reason: "JA_ESTORNADO" };
+    const paymentDate = gatewayPaymentDate(payment);
+    if (!paymentDate) {
+        const error = new Error("O Mercado Pago nao informou uma data valida para a aprovacao.");
+        error.code = "DATA_APROVACAO_AUSENTE";
+        throw error;
+    }
+    const deadline = reservationDateTime(reservation);
+    if (!deadline) {
+        const error = new Error("A reserva nao possui horario valido para conciliar o pagamento.");
+        error.code = "HORARIO_RESERVA_INVALIDO";
+        throw error;
+    }
+    const inactive = ["CANCELADA", "RECUSADA"].includes(reservation?.status_reserva);
+    if (inactive || paymentDate.date.getTime() >= deadline.getTime()) {
+        return {
+            finalStatus: "ESTORNADO",
+            shouldRefund: true,
+            reason: inactive ? "RESERVA_INATIVA" : "APROVACAO_FORA_DO_PRAZO",
+            paymentDate: paymentDate.date,
+            paymentDateSource: paymentDate.source,
+            deadline,
+        };
+    }
+    return {
+        finalStatus: "APROVADO",
+        shouldRefund: false,
+        paymentDate: paymentDate.date,
+        paymentDateSource: paymentDate.source,
+        deadline,
+    };
+}
+
+module.exports = { gatewayPaymentDate, lateApprovalDecision, paymentEligibility, reservationDateTime };
