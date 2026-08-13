@@ -82,6 +82,16 @@ A Appono não coleta nem armazena número completo de cartão, validade ou CVV. 
 
 O webhook usa assinatura quando o segredo está configurado, controle de idempotência e trilha de processamento. Eventos atrasados não regridem pagamento aprovado; estorno e chargeback prevalecem como estados terminais.
 
+Pedidos pendentes somente podem iniciar ou reutilizar um checkout enquanto a reserva estiver confirmada e antes do horário marcado. Ao vencer o prazo, o pedido e o pagamento pendentes são encerrados e o evento fica registrado na auditoria. Se o gateway comunicar uma aprovação tardia, o backend solicita estorno real antes de manter o pedido cancelado.
+
+## Pedidos do cliente
+
+`GET /api/pedidos?page=1&limit=12` retorna uma listagem resumida e paginada no formato `{ items, pagination }`; `GET /api/pedidos/:id` carrega relacionamentos e itens somente para o pedido aberto. A tela de pedidos direciona cada registro para `/cliente/pedidos/:id`, onde ficam pagamento, cancelamento e acesso à avaliação. Rotas estáticas, como `/api/pedidos/historico/restaurante`, são declaradas antes da rota dinâmica por ID.
+
+## Organização e manutenção
+
+O projeto permanece integralmente em JavaScript e Node.js. Regras puras ficam em `backend/src/domain`, configuração e integração financeira em `backend/src/services/pagamentos`, e rotas Express coordenam HTTP, autorização e serviços. No frontend, listagens usam paginação, abortam requisições antigas e carregam detalhes por ID para reduzir consultas, payload e acoplamento entre telas.
+
 ## Testes e qualidade
 
 ```powershell
@@ -96,6 +106,8 @@ Cobertura atual:
 - Comissão e valor do restaurante.
 - Eventos financeiros fora de ordem.
 - Estorno e chargeback.
+- Elegibilidade e vencimento do pagamento conforme a reserva.
+- Paginação e limites de listagem.
 - Matriz de perfis e propriedade de recursos.
 - Conflitos de horários de reservas.
 - Sanitização de dados sensíveis em logs.

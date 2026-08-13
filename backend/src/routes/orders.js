@@ -7,6 +7,7 @@ const auth_1 = require("../middleware/auth");
 const mercado_pago_1 = require("../services/pagamentos/mercado-pago");
 const notificacoes_1 = require("../services/notificacoes");
 const { canTransitionOrder } = require("../domain/order-state");
+const { paginationMeta, parsePagination } = require("../domain/pagination");
 exports.ordersRouter = (0, express_1.Router)();
 exports.ordersRouter.use(auth_1.requireAuth);
 
@@ -206,64 +207,18 @@ async function conciliarPedidosPendentes(pedidos) {
         : pedido);
 }
 
-exports.ordersRouter.get("/", async (_req, res) => {
+exports.ordersRouter.get("/", async (req, res) => {
     const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
-    const { data: cliente } = await supabase
-        .from("clientes")
-        .select("id_cliente")
-        .eq("id_auth", res.locals.user.id)
-        .maybeSingle();
-    const { data, error } = await supabase
+    const { page, limit, from, to } = parsePagination(req.query);
+    const { data, error, count } = await supabase
         .from("pedidos")
-        .select("*, restaurantes(nome), reservas(data_reserva, horario_inicio)")
-        .order("data_pedido", { ascending: false });
+        .select("id_pedido, id_restaurante, id_reserva, status_pedido, valor_total, data_pedido, restaurantes(nome), reservas(data_reserva, horario_inicio, status_reserva)", { count: "exact" })
+        .order("data_pedido", { ascending: false })
+        .range(from, to);
     if (error) {
         return res.status(400).json({ error: error.message });
     }
-    // Listagens sao somente leitura. A conciliacao ocorre pelo webhook ou pela rota de status.
-    const pedidos = data ?? [];
-    const idsPedidos = pedidos.map((pedido) => pedido.id_pedido);
-    const idsRestaurantes = [...new Set(pedidos.map((pedido) => pedido.id_restaurante).filter(Boolean))];
-    let avaliacoesPorRestaurante = new Map();
-    if (cliente && idsRestaurantes.length) {
-        const clienteAvaliacoes = supabase_1.supabaseAdmin ?? supabase;
-        const { data: avaliacoes } = await clienteAvaliacoes
-            .from("avaliacoes_restaurante")
-            .select("id_avaliacao, id_restaurante, nota, comentario, created_at")
-            .eq("id_cliente", cliente.id_cliente)
-            .in("id_restaurante", idsRestaurantes);
-        avaliacoesPorRestaurante = new Map((avaliacoes ?? []).map((avaliacao) => [avaliacao.id_restaurante, avaliacao]));
-    }
-    if (!idsPedidos.length) {
-        return res.json(pedidos.map((pedido) => ({
-            ...pedido,
-            avaliacao_restaurante: avaliacoesPorRestaurante.get(pedido.id_restaurante) ?? null,
-        })));
-    }
-    const clienteItens = supabase_1.supabaseAdmin ?? supabase;
-    const { data: itens, error: itensError } = await clienteItens
-        .from("itens_pedido")
-        .select("id_pedido, quantidade, preco_unitario, observacoes, produtos(nome, descricao, imagem_url, tempo_preparo_minutos), item_adicional(*, adicionais(nome))")
-        .in("id_pedido", idsPedidos);
-    if (itensError) {
-        return res.json(pedidos.map((pedido) => ({ ...pedido, itens_pedido: [] })));
-    }
-    return res.json(pedidos.map((pedido) => ({
-        ...pedido,
-        avaliacao_restaurante: avaliacoesPorRestaurante.get(pedido.id_restaurante) ?? null,
-        itens_pedido: (itens ?? []).filter((item) => item.id_pedido === pedido.id_pedido),
-    })));
-});
-exports.ordersRouter.get("/:id", async (req, res) => {
-    const orderId = Number(req.params.id);
-    if (!Number.isInteger(orderId) || orderId <= 0) return res.status(400).json({ error: "Pedido invalido." });
-    const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
-    const { data, error } = await supabase.from("pedidos")
-        .select("*, restaurantes(nome, endereco), reservas(data_reserva, horario_inicio, horario_fim, quantidade_pessoas), itens_pedido(quantidade, preco_unitario, observacoes, produtos(nome, descricao, imagem_url, tempo_preparo_minutos), item_adicional(*, adicionais(nome)))")
-        .eq("id_pedido", orderId).maybeSingle();
-    if (error) return res.status(400).json({ error: error.message });
-    if (!data) return res.status(404).json({ error: "Pedido nao encontrado." });
-    return res.json(data);
+    return res.json({ items: data ?? [], pagination: paginationMeta(count, page, limit) });
 });
 exports.ordersRouter.get("/historico/restaurante", async (_req, res) => {
     const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
@@ -290,6 +245,17 @@ exports.ordersRouter.get("/historico/restaurante", async (_req, res) => {
     const historico = (data ?? []).filter((pedido) => STATUS_HISTORICO_RESTAURANTE.includes(pedido.status_pedido) ||
         pedido.ocultado_cozinha === true);
     return res.json(historico);
+});
+exports.ordersRouter.get("/:id", async (req, res) => {
+    const orderId = Number(req.params.id);
+    if (!Number.isInteger(orderId) || orderId <= 0) return res.status(400).json({ error: "Pedido invalido." });
+    const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
+    const { data, error } = await supabase.from("pedidos")
+        .select("*, restaurantes(nome, endereco), reservas(data_reserva, horario_inicio, horario_fim, quantidade_pessoas, status_reserva), itens_pedido(quantidade, preco_unitario, observacoes, produtos(nome, descricao, imagem_url, tempo_preparo_minutos), item_adicional(*, adicionais(nome)))")
+        .eq("id_pedido", orderId).maybeSingle();
+    if (error) return res.status(400).json({ error: error.message });
+    if (!data) return res.status(404).json({ error: "Pedido nao encontrado." });
+    return res.json(data);
 });
 exports.ordersRouter.post("/", (0, auth_1.requireRole)("cliente"), async (req, res) => {
     const body = req.body;

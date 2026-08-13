@@ -84,7 +84,8 @@ export async function apiRequest(path, options = {}) {
         try {
             response = await fazerRequisicao(path, fetchOptions, accessToken);
         }
-        catch {
+        catch (error) {
+            if (error?.name === "AbortError") throw error;
             throw new Error("Nao conseguimos acessar o servico agora. Tente novamente em alguns instantes.");
         }
         let body = await response.json().catch(() => null);
