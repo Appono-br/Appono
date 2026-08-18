@@ -25,12 +25,27 @@ function obterMensagemErroAutenticacao(message) {
         return "Erro ao criar usuario.";
     }
     const normalizedMessage = message.toLowerCase();
+    if (normalizedMessage.includes("fetch failed") ||
+        normalizedMessage.includes("unable to verify") ||
+        normalizedMessage.includes("certificate") ||
+        normalizedMessage.includes("network")) {
+        return "Nao foi possivel acessar o servico de autenticacao. Verifique a conexao e tente novamente.";
+    }
     if (normalizedMessage.includes("email rate limit exceeded") ||
         normalizedMessage.includes("rate limit") ||
         normalizedMessage.includes("limite de envio")) {
         return "Limite temporario de envio de e-mails atingido. Aguarde alguns minutos ou tente novamente mais tarde.";
     }
     return message;
+}
+function erroAutenticacaoEhInfraestrutura(error) {
+    const mensagem = String(error?.message ?? error ?? "").toLowerCase();
+    return mensagem.includes("fetch failed") ||
+        mensagem.includes("unable to verify") ||
+        mensagem.includes("certificate") ||
+        mensagem.includes("network") ||
+        mensagem.includes("econnreset") ||
+        mensagem.includes("enotfound");
 }
 function obterEmailsAdministradores() {
     return String(process.env.APPONO_ADMIN_EMAILS ?? "")
@@ -43,7 +58,7 @@ function usuarioEhAdministrador(user) {
     return Boolean(email && obterEmailsAdministradores().includes(email));
 }
 async function obterPerfil(accessToken, userId) {
-    const supabase = (0, supabase_1.createUserSupabaseClient)(accessToken);
+    const supabase = supabase_1.supabaseAdmin ?? (0, supabase_1.createUserSupabaseClient)(accessToken);
     const clienteAutenticacao = supabase_1.supabaseAdmin ?? supabase_1.supabaseAuth;
     const { data: usuarioAtual } = await clienteAutenticacao.auth.getUser(accessToken);
     if (usuarioEhAdministrador(usuarioAtual?.user)) {
@@ -227,6 +242,11 @@ exports.authRouter.post("/login", async (req, res) => {
         password,
     });
     if (error || !data.session) {
+        if (erroAutenticacaoEhInfraestrutura(error)) {
+            return res.status(503).json({
+                error: "Nao foi possivel acessar o servico de autenticacao. Verifique a conexao e tente novamente.",
+            });
+        }
         const mensagemErro = String(error?.message ?? "").toLowerCase();
         return res.status(401).json({
             error: mensagemErro.includes("email not confirmed")
@@ -368,7 +388,8 @@ exports.authRouter.post("/register/client", async (req, res) => {
         },
     });
     if (authError || !authData.user) {
-        return res.status(400).json({ error: obterMensagemErroAutenticacao(authError?.message) });
+        const status = erroAutenticacaoEhInfraestrutura(authError) ? 503 : 400;
+        return res.status(status).json({ error: obterMensagemErroAutenticacao(authError?.message) });
     }
     if (!authData.session) {
         const confirmedAuthData = await confirmarEEntrarComUsuarioCriado(authData.user.id, body.email, body.password);
@@ -497,7 +518,8 @@ exports.authRouter.post("/register/restaurant", async (req, res) => {
         },
     });
     if (authError || !authData.user) {
-        return res.status(400).json({ error: obterMensagemErroAutenticacao(authError?.message) });
+        const status = erroAutenticacaoEhInfraestrutura(authError) ? 503 : 400;
+        return res.status(status).json({ error: obterMensagemErroAutenticacao(authError?.message) });
     }
     if (!authData.session) {
         const confirmedAuthData = await confirmarEEntrarComUsuarioCriado(authData.user.id, body.email, body.password);

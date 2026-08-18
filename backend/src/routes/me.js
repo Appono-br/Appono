@@ -65,7 +65,7 @@ async function obterPerfil(supabase, userId) {
         : null;
 }
 exports.meRouter.get("/", auth_1.requireAuth, async (_req, res) => {
-    const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
+    const supabase = supabase_1.supabaseAdmin ?? (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
     try {
         if (usuarioEhAdministrador(res.locals.user)) {
             return res.json({
@@ -88,7 +88,7 @@ exports.meRouter.get("/", auth_1.requireAuth, async (_req, res) => {
     }
 });
 exports.meRouter.patch("/", auth_1.requireAuth, async (req, res) => {
-    const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
+    const supabase = supabase_1.supabaseAdmin ?? (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
     const perfilAtual = await obterPerfil(supabase, res.locals.user.id);
     if (!perfilAtual) {
         return res.status(404).json({ error: "Perfil nao encontrado." });
@@ -147,7 +147,7 @@ exports.meRouter.patch("/", auth_1.requireAuth, async (req, res) => {
     });
 });
 exports.meRouter.patch("/dados-bancarios", auth_1.requireAuth, async (req, res) => {
-    const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
+    const supabase = supabase_1.supabaseAdmin ?? (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
     const perfilAtual = await obterPerfil(supabase, res.locals.user.id);
     if (!perfilAtual || perfilAtual.tipo !== "restaurante") {
         return res.status(403).json({ error: "Apenas restaurantes podem alterar dados bancarios." });
