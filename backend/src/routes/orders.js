@@ -5,6 +5,7 @@ const express_1 = require("express");
 const supabase_1 = require("../lib/supabase");
 const auth_1 = require("../middleware/auth");
 const mercado_pago_1 = require("../services/pagamentos/mercado-pago");
+const paymentConfig = require("../services/pagamentos/config");
 const notificacoes_1 = require("../services/notificacoes");
 const { canTransitionOrder } = require("../domain/order-state");
 const { paginationMeta, parsePagination } = require("../domain/pagination");
@@ -16,8 +17,7 @@ const LIMITE_UNIDADES_POR_ITEM = 10;
 const STATUS_HISTORICO_RESTAURANTE = ["ENTREGUE", "CANCELADO"];
 
 async function restaurantePodeReceberPedidoPago(restauranteId) {
-    const modoRepasse = String(process.env.MERCADO_PAGO_MODO_REPASSE ?? "SIMULADO").trim().toUpperCase();
-    if (!["MARKETPLACE_REAL", "REAL", "PRODUCAO"].includes(modoRepasse)) {
+    if (!paymentConfig.isRealMarketplace()) {
         return true;
     }
     if (!supabase_1.supabaseAdmin || !restauranteId) {
@@ -42,6 +42,16 @@ function obterStatusPedidoPorPagamento(statusPagamento) {
     }
     if (statusPagamento === "RECUSADO") {
         return "CANCELADO";
+    }
+    return null;
+}
+
+function obterStatusReservaPorPagamento(statusPagamento) {
+    if (statusPagamento === "APROVADO") {
+        return "CONFIRMADA";
+    }
+    if (["RECUSADO", "ESTORNADO"].includes(statusPagamento)) {
+        return "CANCELADA";
     }
     return null;
 }
@@ -88,7 +98,7 @@ function formatarHorario(valor) {
 }
 
 function marketplaceRealAtivo() {
-    return ["MARKETPLACE_REAL", "REAL", "PRODUCAO"].includes(obterModoRepasseMercadoPago());
+    return paymentConfig.isRealMarketplace();
 }
 
 async function registrarEventoFinanceiro(dados) {
@@ -141,6 +151,19 @@ async function conciliarPedidosPendentes(pedidos) {
         let pagamentoMercadoPago = await (0, mercado_pago_1.consultarPagamentoPorReferenciaMercadoPago)(referencia, tokenPagamento ?? undefined);
         if (!pagamentoMercadoPago?.status && tokenPagamento) {
             pagamentoMercadoPago = await (0, mercado_pago_1.consultarPagamentoPorReferenciaMercadoPago)(referencia);
+        }
+        if (!pagamentoMercadoPago?.status) {
+            const { data: pagamentoLocal } = await supabase_1.supabaseAdmin
+                .from("pagamentos")
+                .select("mercado_pago_preference_id")
+                .eq("referencia_externa", referencia)
+                .maybeSingle();
+            if (pagamentoLocal?.mercado_pago_preference_id) {
+                pagamentoMercadoPago = await (0, mercado_pago_1.consultarPagamentoPorPreferenciaMercadoPago)(pagamentoLocal.mercado_pago_preference_id, tokenPagamento ?? undefined);
+            }
+            if (!pagamentoMercadoPago?.status && pagamentoLocal?.mercado_pago_preference_id && tokenPagamento) {
+                pagamentoMercadoPago = await (0, mercado_pago_1.consultarPagamentoPorPreferenciaMercadoPago)(pagamentoLocal.mercado_pago_preference_id);
+            }
         }
         if (!pagamentoMercadoPago?.status) {
             continue;
@@ -198,6 +221,13 @@ async function conciliarPedidosPendentes(pedidos) {
             .single();
         if (!pedidoError && pedidoAtualizado) {
             pedidosAtualizados.set(pedido.id_pedido, pedidoAtualizado);
+        }
+        const statusReserva = obterStatusReservaPorPagamento(statusMapeado.pagamento);
+        if (statusReserva && pedido.id_reserva) {
+            await supabase_1.supabaseAdmin
+                .from("reservas")
+                .update({ status_reserva: statusReserva })
+                .eq("id_reserva", pedido.id_reserva);
         }
     }
     if (!pedidosAtualizados.size) {

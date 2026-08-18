@@ -1,6 +1,7 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { apiRequest } from "@/lib/api";
 import { textoStatusPedido, textoStatusRepasse } from "@/lib/formatadores-status";
@@ -155,6 +156,7 @@ function obterTextoStatusMercadoPago(status) {
 }
 export default function RestaurantFinancialReportPage() {
     const { sessao: session, sessaoCarregada } = useSessaoLocal();
+    const searchParams = useSearchParams();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [conexaoMercadoPago, setConexaoMercadoPago] = useState(null);
     const [resumoFinanceiro, setResumoFinanceiro] = useState({
@@ -170,12 +172,79 @@ export default function RestaurantFinancialReportPage() {
     });
     const [repasses, setRepasses] = useState([]);
     const [mensagemMercadoPago, setMensagemMercadoPago] = useState("Carregando conexao Mercado Pago...");
+    const [acaoMercadoPago, setAcaoMercadoPago] = useState(false);
+    const [modalMercadoPago, setModalMercadoPago] = useState(null);
     const [periodoAtivo, setPeriodoAtivo] = useState("30d");
     const [politicaFinanceira, setPoliticaFinanceira] = useState({
         percentual_comissao_app: 13,
         gatilho_repasse: "ENTREGA_DO_PEDIDO",
     });
     const isRestaurant = session?.type === "restaurant";
+    const mercadoPagoConectado = conexaoMercadoPago?.status === "CONECTADO";
+
+    useEffect(() => {
+        const statusMercadoPago = searchParams.get("mercado_pago");
+        const detalheMercadoPago = searchParams.get("detalhe");
+        if (statusMercadoPago === "erro" && detalheMercadoPago === "conta-producao") {
+            setMensagemMercadoPago("A conta selecionada no Mercado Pago e de producao. Para testar sem transacao real, saia dessa conta no Mercado Pago e conecte uma conta vendedora de teste.");
+        }
+        else if (statusMercadoPago === "conectado") {
+            setMensagemMercadoPago("Conta Mercado Pago conectada com sucesso.");
+        }
+        else if (statusMercadoPago === "erro") {
+            setMensagemMercadoPago("Nao foi possivel concluir a conexao Mercado Pago. Tente novamente com a conta correta.");
+        }
+    }, [searchParams]);
+
+    async function carregarStatusMercadoPago() {
+        const resposta = await apiRequest("/marketplace/mercado-pago/status", { forceRefresh: true });
+        setConexaoMercadoPago(resposta.conexao);
+        setMensagemMercadoPago("");
+        return resposta;
+    }
+
+    async function confirmarAcaoMercadoPago() {
+        if (modalMercadoPago === "conectar") {
+            await conectarMercadoPagoOAuth();
+            return;
+        }
+        if (modalMercadoPago === "desconectar") {
+            await desconectarMercadoPago();
+        }
+    }
+
+    async function conectarMercadoPagoOAuth() {
+        setAcaoMercadoPago(true);
+        setMensagemMercadoPago("");
+        try {
+            const resposta = await apiRequest("/marketplace/mercado-pago/conectar", { method: "POST" });
+            if (!resposta.authorization_url) {
+                throw new Error("O Mercado Pago nao retornou a URL de autorizacao.");
+            }
+            window.location.assign(resposta.authorization_url);
+        }
+        catch (error) {
+            setMensagemMercadoPago(error instanceof Error ? error.message : "Nao foi possivel iniciar a conexao Mercado Pago.");
+            setAcaoMercadoPago(false);
+        }
+    }
+
+    async function desconectarMercadoPago() {
+        setAcaoMercadoPago(true);
+        setMensagemMercadoPago("");
+        try {
+            const resposta = await apiRequest("/marketplace/mercado-pago/desconectar", { method: "POST" });
+            setConexaoMercadoPago(resposta.conexao);
+            setMensagemMercadoPago("Conta Mercado Pago desconectada.");
+            setModalMercadoPago(null);
+        }
+        catch (error) {
+            setMensagemMercadoPago(error instanceof Error ? error.message : "Nao foi possivel desconectar a conta.");
+        }
+        finally {
+            setAcaoMercadoPago(false);
+        }
+    }
 
     useEffect(() => {
         if (!sessaoCarregada) {
@@ -184,11 +253,7 @@ export default function RestaurantFinancialReportPage() {
         if (!isRestaurant) {
             return;
         }
-        apiRequest("/marketplace/mercado-pago/status")
-            .then((resposta) => {
-                setConexaoMercadoPago(resposta.conexao);
-                setMensagemMercadoPago("");
-            })
+        carregarStatusMercadoPago()
             .catch((error) => {
                 setMensagemMercadoPago(error instanceof Error ? error.message : "Nao foi possivel consultar o Mercado Pago.");
             });
@@ -297,7 +362,7 @@ export default function RestaurantFinancialReportPage() {
                 Esta conta recebe os repasses dos pedidos entregues. Pedidos pendentes, em preparo ou cancelados ficam separados para evitar dupla interpretacao.
               </p>
             </div>
-            <div className="rounded-[8px] bg-app-chantilly p-5 text-sm ring-1 ring-app-baunilha-dourada/45 lg:min-w-80">
+            <div className="rounded-[8px] bg-app-chantilly p-5 text-sm ring-1 ring-app-baunilha-dourada/45 lg:min-w-96">
               <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-app-cinza">
                 Status da conexao
               </p>
@@ -314,9 +379,39 @@ export default function RestaurantFinancialReportPage() {
                   Conectado em {new Date(conexaoMercadoPago.conectado_em).toLocaleDateString("pt-BR")}
                 </p>
               ) : null}
+              {mercadoPagoConectado ? (
+                <button
+                  type="button"
+                  disabled={acaoMercadoPago}
+                  onClick={() => setModalMercadoPago("desconectar")}
+                  className="mt-5 inline-flex h-11 w-full items-center justify-center rounded-[8px] border border-app-caramelo-torrado px-5 text-xs font-bold uppercase tracking-[0.12em] text-app-caramelo-torrado transition hover:bg-app-caramelo-torrado hover:text-app-creme-leve disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {acaoMercadoPago ? "Desconectando..." : "Desconectar conta"}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  disabled={acaoMercadoPago}
+                  onClick={() => setModalMercadoPago("conectar")}
+                  className="mt-5 inline-flex h-11 w-full items-center justify-center rounded-[8px] bg-app-cafe-profundo px-5 text-xs font-bold uppercase tracking-[0.12em] text-app-creme-leve transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {acaoMercadoPago ? "Abrindo login..." : "Conectar Mercado Pago"}
+                </button>
+              )}
             </div>
           </div>
-          <div className="mt-6">
+          <div className="mt-6 grid gap-4">
+            <div className="rounded-[8px] bg-app-chantilly p-4 text-sm leading-6 text-app-mocha ring-1 ring-app-baunilha-dourada/45">
+              {mercadoPagoConectado ? (
+                <p>
+                  Sua conta Mercado Pago esta conectada. Para trocar de vendedor, desconecte a conta atual e conecte novamente pelo login do Mercado Pago.
+                </p>
+              ) : (
+                <p>
+                  Conecte a conta de recebimento do restaurante. A Appono abrira o login seguro do Mercado Pago para autorizacao.
+                </p>
+              )}
+            </div>
             {mensagemMercadoPago ? (
               <p className="text-sm font-semibold text-app-caramelo-torrado">
                 {mensagemMercadoPago}
@@ -402,5 +497,31 @@ export default function RestaurantFinancialReportPage() {
           </p>
         </div>
       </footer>
+
+      {modalMercadoPago ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-app-cafe-profundo/65 px-5 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="modal-mercado-pago-titulo">
+          <section className="w-full max-w-lg rounded-[14px] bg-app-creme-leve p-6 text-app-cafe-profundo shadow-2xl ring-1 ring-app-baunilha-dourada/70 sm:p-8">
+            <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-app-caramelo-torrado">
+              Mercado Pago
+            </p>
+            <h2 id="modal-mercado-pago-titulo" className="mt-3 text-2xl font-semibold">
+              {modalMercadoPago === "conectar" ? "Conectar conta Mercado Pago?" : "Desconectar conta Mercado Pago?"}
+            </h2>
+            <p className="mt-4 text-sm leading-6 text-app-mocha">
+              {modalMercadoPago === "conectar"
+                ? "A Appono vai abrir a tela segura do Mercado Pago para login e autorizacao. Se quiser usar outra conta, saia da conta atual do Mercado Pago ou use uma janela anonima antes de continuar."
+                : "Ao desconectar, este restaurante deixa de ter uma conta Mercado Pago vinculada para recebimento. Voce podera conectar novamente depois."}
+            </p>
+            <div className="mt-7 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+              <button type="button" disabled={acaoMercadoPago} onClick={() => setModalMercadoPago(null)} className="inline-flex h-11 items-center justify-center rounded-[8px] border border-app-baunilha-dourada px-5 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:bg-app-chantilly disabled:cursor-not-allowed disabled:opacity-60">
+                Cancelar
+              </button>
+              <button type="button" disabled={acaoMercadoPago} onClick={confirmarAcaoMercadoPago} className="inline-flex h-11 items-center justify-center rounded-[8px] bg-app-cafe-profundo px-5 text-xs font-bold uppercase tracking-[0.12em] text-app-creme-leve transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-60">
+                {acaoMercadoPago ? "Processando..." : modalMercadoPago === "conectar" ? "Continuar" : "Desconectar"}
+              </button>
+            </div>
+          </section>
+        </div>
+      ) : null}
     </main>);
 }

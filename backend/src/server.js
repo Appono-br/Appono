@@ -108,6 +108,10 @@ app.get("/api/health/config", (req, res) => {
         },
         mercadoPago: {
             accessToken: Boolean(process.env.MERCADO_PAGO_ACCESS_TOKEN),
+            testAccessToken: Boolean(process.env.MERCADO_PAGO_TEST_ACCESS_TOKEN),
+            tokenEfetivo: String(process.env.MERCADO_PAGO_PERMITIR_PRODUCAO ?? "false").toLowerCase() === "true"
+                ? "producao"
+                : (process.env.MERCADO_PAGO_TEST_ACCESS_TOKEN ? "teste" : "fallback"),
             publicReturnUrl: Boolean(process.env.FRONTEND_PUBLIC_URL),
             backendPublicUrl: Boolean(process.env.BACKEND_PUBLIC_URL),
             webhookSecret: Boolean(process.env.MERCADO_PAGO_WEBHOOK_SECRET),

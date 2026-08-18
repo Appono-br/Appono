@@ -9,8 +9,8 @@ function reservationDateTime(reservation) {
 
 function paymentEligibility(reservation, now = new Date()) {
     if (!reservation) return { allowed: false, code: "RESERVA_AUSENTE", message: "A reserva vinculada ao pedido nao foi encontrada." };
-    if (reservation.status_reserva !== "CONFIRMADA") {
-        return { allowed: false, code: "RESERVA_INATIVA", message: "O pagamento so esta disponivel para reservas confirmadas." };
+    if (!["PENDENTE", "CONFIRMADA"].includes(reservation.status_reserva)) {
+        return { allowed: false, code: "RESERVA_INATIVA", message: "O pagamento so esta disponivel para reservas aguardando pagamento ou confirmadas." };
     }
     const deadline = reservationDateTime(reservation);
     if (!deadline) return { allowed: false, code: "HORARIO_INVALIDO", message: "O horario da reserva e invalido." };
@@ -48,7 +48,7 @@ function lateApprovalDecision({ gatewayStatus, existingStatus, reservation, paym
         error.code = "HORARIO_RESERVA_INVALIDO";
         throw error;
     }
-    const inactive = ["CANCELADA", "RECUSADA"].includes(reservation?.status_reserva);
+    const inactive = ["CANCELADA", "RECUSADA", "NAO_COMPARECEU"].includes(reservation?.status_reserva);
     if (inactive || paymentDate.date.getTime() >= deadline.getTime()) {
         return {
             finalStatus: "ESTORNADO",

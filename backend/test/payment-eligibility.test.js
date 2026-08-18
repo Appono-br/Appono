@@ -9,6 +9,10 @@ test("permite pagamento antes do horario de reserva confirmada", () => {
     assert.equal(paymentEligibility(confirmada, new Date("2026-08-14T18:59:59-03:00")).allowed, true);
 });
 
+test("permite pagamento de reserva pendente vinculada a pedido antecipado", () => {
+    assert.equal(paymentEligibility({ ...confirmada, status_reserva: "PENDENTE" }, new Date("2026-08-14T18:30:00-03:00")).allowed, true);
+});
+
 test("bloqueia pagamento no horario ou depois da reserva", () => {
     assert.equal(paymentEligibility(confirmada, new Date("2026-08-14T19:00:00-03:00")).code, "RESERVA_VENCIDA");
     assert.equal(paymentEligibility(confirmada, new Date("2026-08-15T10:00:00-03:00")).allowed, false);

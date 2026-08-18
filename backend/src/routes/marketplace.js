@@ -32,6 +32,10 @@ function obterMercadoPagoClientSecret() {
     return (process.env.MERCADO_PAGO_CLIENT_SECRET ?? "").trim();
 }
 
+function mercadoPagoProducaoPermitida() {
+    return String(process.env.MERCADO_PAGO_PERMITIR_PRODUCAO ?? "false").trim().toLowerCase() === "true";
+}
+
 function obterRedirectUriMercadoPago() {
     const redirectConfigurado = (process.env.MERCADO_PAGO_REDIRECT_URI ?? "").trim();
     if (redirectConfigurado) {
@@ -366,6 +370,7 @@ exports.marketplaceRouter.get("/mercado-pago/callback", async (req, res) => {
         if (buscaError || !conexaoPendente) {
             throw new Error(buscaError?.message ?? "Conexao OAuth nao encontrada.");
         }
+        const usarTokenTeste = !mercadoPagoProducaoPermitida();
         const resposta = await fetch("https://api.mercadopago.com/oauth/token", {
             method: "POST",
             headers: {
@@ -378,11 +383,32 @@ exports.marketplaceRouter.get("/mercado-pago/callback", async (req, res) => {
                 client_secret: configuracao.clientSecret,
                 code,
                 redirect_uri: configuracao.redirectUri,
+                test_token: usarTokenTeste ? "true" : "false",
             }),
         });
         const token = await resposta.json().catch(() => null);
         if (!resposta.ok) {
             throw new Error(token?.message ?? "Nao foi possivel obter o token OAuth do Mercado Pago.");
+        }
+        if (usarTokenTeste && token?.live_mode === true) {
+            await supabase_1.supabaseAdmin
+                .from("mercado_pago_conexoes_restaurante")
+                .update({
+                status: "DESCONECTADO",
+                mercado_pago_user_id: null,
+                public_key: null,
+                access_token: null,
+                refresh_token: null,
+                token_type: null,
+                scope: null,
+                live_mode: null,
+                expires_at: null,
+                oauth_state: null,
+                conectado_em: null,
+                desconectado_em: new Date().toISOString(),
+            })
+                .eq("id_conexao", conexaoPendente.id_conexao);
+            return res.redirect(obterUrlRetornoFrontend("erro", "conta-producao"));
         }
         const expiresIn = Number(token.expires_in ?? 0);
         const expiresAt = expiresIn > 0 ? new Date(Date.now() + expiresIn * 1000).toISOString() : null;

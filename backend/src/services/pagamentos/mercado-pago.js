@@ -5,6 +5,11 @@ const { MercadoPagoConfig, Preference, Payment } = require("mercadopago");
 const MERCADO_PAGO_API = "https://api.mercadopago.com";
 
 function obterAccessTokenMercadoPago() {
+    const producaoPermitida = String(process.env.MERCADO_PAGO_PERMITIR_PRODUCAO ?? "false").toLowerCase() === "true";
+    const tokenTeste = process.env.MERCADO_PAGO_TEST_ACCESS_TOKEN?.trim();
+    if (!producaoPermitida && tokenTeste) {
+        return tokenTeste;
+    }
     return process.env.MERCADO_PAGO_ACCESS_TOKEN?.trim() ?? "";
 }
 
@@ -78,6 +83,62 @@ async function consultarPagamentoPorReferenciaMercadoPago(referencia, accessToke
     const resultado = await resposta.json().catch(() => null);
     return resultado?.results?.[0] ?? null;
 }
+
+function pagamentoDaOrdemMercadoPago(ordem) {
+    const pagamentos = Array.isArray(ordem?.payments) ? ordem.payments : [];
+    const pagamento = pagamentos.find((item) => String(item.status ?? "").toLowerCase() === "approved") ?? pagamentos[0];
+    if (!pagamento?.id) {
+        return null;
+    }
+    return {
+        id: pagamento.id,
+        status: pagamento.status,
+        status_detail: pagamento.status_detail,
+        external_reference: ordem.external_reference,
+        preference_id: ordem.preference_id,
+        transaction_amount: pagamento.transaction_amount ?? pagamento.total_paid_amount ?? ordem.total_amount,
+        date_approved: pagamento.date_approved,
+        date_created: pagamento.date_created ?? ordem.date_created,
+        live_mode: ordem.is_test === true ? false : undefined,
+    };
+}
+
+async function consultarPagamentoPorOrdemMercadoPago(merchantOrderId, accessToken = obterAccessTokenMercadoPago()) {
+    const token = accessToken?.trim?.() ?? "";
+    if (!token || !merchantOrderId) {
+        return null;
+    }
+    const resposta = await fetch(`${MERCADO_PAGO_API}/merchant_orders/${encodeURIComponent(merchantOrderId)}`, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    });
+    if (!resposta.ok) {
+        return null;
+    }
+    const ordem = await resposta.json().catch(() => null);
+    return pagamentoDaOrdemMercadoPago(ordem);
+}
+
+async function consultarPagamentoPorPreferenciaMercadoPago(preferenceId, accessToken = obterAccessTokenMercadoPago()) {
+    const token = accessToken?.trim?.() ?? "";
+    if (!token || !preferenceId) {
+        return null;
+    }
+    const url = new URL(`${MERCADO_PAGO_API}/merchant_orders/search`);
+    url.searchParams.set("preference_id", preferenceId);
+    const resposta = await fetch(url.toString(), {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    });
+    if (!resposta.ok) {
+        return null;
+    }
+    const resultado = await resposta.json().catch(() => null);
+    const ordem = resultado?.elements?.[0];
+    return pagamentoDaOrdemMercadoPago(ordem);
+}
 async function estornarPagamentoMercadoPago(paymentId, accessToken = obterAccessTokenMercadoPago()) {
     const token = accessToken?.trim?.() ?? "";
     if (!token || !paymentId) throw new Error("Pagamento sem credenciais para estorno.");
@@ -98,6 +159,8 @@ async function estornarPagamentoMercadoPago(paymentId, accessToken = obterAccess
 
 module.exports = {
     consultarPagamentoMercadoPago,
+    consultarPagamentoPorOrdemMercadoPago,
+    consultarPagamentoPorPreferenciaMercadoPago,
     consultarPagamentoPorReferenciaMercadoPago,
     criarClienteMercadoPago,
     criarPagamentoMercadoPago,

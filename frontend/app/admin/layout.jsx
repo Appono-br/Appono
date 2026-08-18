@@ -1,6 +1,7 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
+import { RotaProtegida } from "@/components/auth/rota-protegida";
 import { useTemaLocal } from "@/lib/use-tema-local";
 import { TelaCarregandoSessao } from "@/lib/use-sessao-local";
 
@@ -25,8 +26,10 @@ export default function LayoutAdmin({ children }) {
     }
 
     return (
-        <div className={`area-autenticada min-h-full ${tema === "escuro" ? "tema-escuro" : ""}`}>
-            {children}
-        </div>
+        <RotaProtegida perfisPermitidos={["admin"]}>
+            <div className={`area-autenticada min-h-full ${tema === "escuro" ? "tema-escuro" : ""}`}>
+                {children}
+            </div>
+        </RotaProtegida>
     );
 }

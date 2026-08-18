@@ -30,8 +30,11 @@ function formatarMoeda(valor) {
 
 function PagamentoRetornoContent() {
     const searchParams = useSearchParams();
-    const reservaId = searchParams.get("reserva");
-    const pedidoId = searchParams.get("pedido");
+    const referenciaExterna = searchParams.get("external_reference") ?? "";
+    const referenciaPedido = referenciaExterna.match(/^pedido:(\d+)$/)?.[1] ?? null;
+    const referenciaReserva = referenciaExterna.match(/^reserva:(\d+)$/)?.[1] ?? null;
+    const reservaId = searchParams.get("reserva") ?? referenciaReserva;
+    const pedidoId = searchParams.get("pedido") ?? referenciaPedido;
     const queryString = searchParams.toString();
     const endpointStatus = useMemo(() => {
         if (pedidoId) {
@@ -106,6 +109,7 @@ function PagamentoRetornoContent() {
     }, [endpointStatus]);
     const tipoPagamento = pedidoId ? "pedido" : "reserva";
     const mensagemVisivel = pedidoId || reservaId ? mensagem : "Pedido ou reserva nao informado no retorno do pagamento.";
+    const idPedidoDetalhe = pedidoId ?? dados?.pedido?.id_pedido ?? null;
 
     const estado = useMemo(() => {
         const status = dados?.status_pagamento;
@@ -201,8 +205,8 @@ function PagamentoRetornoContent() {
                     ) : null}
 
                     <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-                        {pedidoId ? (
-                            <Link href={`/cliente/pedidos/${pedidoId}`} className="inline-flex h-11 items-center justify-center rounded-[8px] bg-app-dourado-mel px-6 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-app-caramelo-torrado">
+                        {idPedidoDetalhe ? (
+                            <Link href={`/cliente/pedidos/${idPedidoDetalhe}`} className="inline-flex h-11 items-center justify-center rounded-[8px] bg-app-dourado-mel px-6 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-app-caramelo-torrado">
                                 Ver detalhes do pedido
                             </Link>
                         ) : (

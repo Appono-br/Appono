@@ -7,14 +7,14 @@ const auth_1 = require("../middleware/auth");
 const notificacoes_1 = require("../services/notificacoes");
 const { sincronizarReservasNaoComparecidas } = require("../services/reservas/expiracao");
 const { refundApprovedPayments } = require("../services/pagamentos/refund");
+const paymentConfig = require("../services/pagamentos/config");
 const { restaurantCancellationEligibility } = require("../domain/reservation-time");
 exports.reservationsRouter = (0, express_1.Router)();
 exports.reservationsRouter.use(auth_1.requireAuth);
 const LIMITE_UNIDADES_POR_ITEM = 10;
 
 async function restaurantePodeReceberPedidoPago(restauranteId) {
-    const modoRepasse = String(process.env.MERCADO_PAGO_MODO_REPASSE ?? "SIMULADO").trim().toUpperCase();
-    if (!["MARKETPLACE_REAL", "REAL", "PRODUCAO"].includes(modoRepasse)) {
+    if (!paymentConfig.isRealMarketplace()) {
         return true;
     }
     if (!supabase_1.supabaseAdmin || !restauranteId) {
@@ -329,16 +329,16 @@ exports.reservationsRouter.post("/com-pedido", async (req, res) => {
     }
     await Promise.all([
         (0, notificacoes_1.notificarCliente)(reservaCriada.id_cliente, {
-            titulo: "Reserva confirmada",
-            mensagem: "Sua reserva foi confirmada e o pedido antecipado foi vinculado para pagamento.",
-            tipo_evento: "RESERVA_CONFIRMADA",
-            link_destino: "/cliente/reservas",
+            titulo: "Reserva aguardando pagamento",
+            mensagem: "Sua reserva foi registrada e sera confirmada assim que o pagamento do pedido antecipado for aprovado.",
+            tipo_evento: "RESERVA_AGUARDANDO_PAGAMENTO",
+            link_destino: `/cliente/pagamentos/pedido/${pedidoCriado.id_pedido}`,
             dados: { id_reserva: reservaCriada.id_reserva, id_pedido: pedidoCriado.id_pedido },
         }),
         (0, notificacoes_1.notificarRestaurante)(reservaCriada.id_restaurante, {
-            titulo: "Nova reserva com pedido",
-            mensagem: "Uma reserva foi registrada com pedido antecipado vinculado.",
-            tipo_evento: "NOVA_RESERVA",
+            titulo: "Reserva aguardando pagamento",
+            mensagem: "Uma reserva com pedido antecipado foi iniciada e aparecera na operacao apos o pagamento.",
+            tipo_evento: "RESERVA_AGUARDANDO_PAGAMENTO",
             link_destino: "/restaurante/reservas",
             dados: { id_reserva: reservaCriada.id_reserva, id_pedido: pedidoCriado.id_pedido },
         }),
