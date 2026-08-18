@@ -57,6 +57,101 @@ function usuarioEhAdministrador(user) {
     const email = String(user?.email ?? "").toLowerCase();
     return Boolean(email && obterEmailsAdministradores().includes(email));
 }
+async function garantirPerfilClienteDoMetadata(user, profile) {
+    if (!supabase_1.supabaseAdmin) {
+        return null;
+    }
+    const cpf = (0, comum_1.somenteNumeros)(profile.cpf);
+    const { data: clienteExistente, error: clienteExistenteError } = await supabase_1.supabaseAdmin
+        .from("clientes")
+        .select("*")
+        .eq("id_auth", user.id)
+        .maybeSingle();
+    if (clienteExistenteError) {
+        throw new Error(clienteExistenteError.message);
+    }
+    if (clienteExistente) {
+        return { tipo: "cliente", perfil: clienteExistente };
+    }
+    const { data: cliente, error } = await supabase_1.supabaseAdmin
+        .from("clientes")
+        .insert({
+        id_auth: user.id,
+        nome: profile.nome,
+        cpf,
+        telefone: profile.telefone,
+        email: profile.email ?? user.email,
+        dt_nasc: profile.dt_nasc,
+    })
+        .select("*")
+        .single();
+    if (error) {
+        throw new Error(error.message);
+    }
+    return { tipo: "cliente", perfil: cliente };
+}
+async function garantirPerfilRestauranteDoMetadata(user, profile) {
+    if (!supabase_1.supabaseAdmin) {
+        return null;
+    }
+    const { data: restauranteExistente, error: restauranteExistenteError } = await supabase_1.supabaseAdmin
+        .from("restaurantes")
+        .select("*")
+        .eq("id_auth", user.id)
+        .maybeSingle();
+    if (restauranteExistenteError) {
+        throw new Error(restauranteExistenteError.message);
+    }
+    if (restauranteExistente) {
+        return { tipo: "restaurante", perfil: restauranteExistente };
+    }
+    const quantidadeMesas = Math.max(Number.parseInt(String(profile.quantidade_mesas), 10) || 0, 0);
+    const { data: restaurante, error } = await supabase_1.supabaseAdmin
+        .from("restaurantes")
+        .insert({
+        id_auth: user.id,
+        nome: profile.nome,
+        razao_social: profile.razao_social,
+        cnpj: (0, comum_1.somenteNumeros)(profile.cnpj),
+        telefone: profile.telefone,
+        email: profile.email ?? user.email,
+        cep: (0, comum_1.somenteNumeros)(profile.cep),
+        endereco: profile.endereco,
+        horario_funcionamento: profile.horario_funcionamento ?? "A definir",
+    })
+        .select("*")
+        .single();
+    if (error) {
+        throw new Error(error.message);
+    }
+    if (quantidadeMesas > 0) {
+        const mesas = Array.from({ length: quantidadeMesas }, (_, index) => ({
+            id_restaurante: restaurante.id_restaurante,
+            numero_mesa: index + 1,
+            capacidade: 4,
+        }));
+        const { error: mesasError } = await supabase_1.supabaseAdmin
+            .from("mesas")
+            .insert(mesas);
+        if (mesasError) {
+            throw new Error(mesasError.message);
+        }
+    }
+    return { tipo: "restaurante", perfil: restaurante };
+}
+async function garantirPerfilDoMetadata(user) {
+    const profile = user?.user_metadata?.appono_profile;
+    if (!profile?.tipo) {
+        return null;
+    }
+    if (profile.tipo === "cliente") {
+        return garantirPerfilClienteDoMetadata(user, profile);
+    }
+    if (profile.tipo === "restaurante") {
+        return garantirPerfilRestauranteDoMetadata(user, profile);
+    }
+    return null;
+}
 async function obterPerfil(accessToken, userId) {
     const supabase = supabase_1.supabaseAdmin ?? (0, supabase_1.createUserSupabaseClient)(accessToken);
     const clienteAutenticacao = supabase_1.supabaseAdmin ?? supabase_1.supabaseAuth;
@@ -92,7 +187,7 @@ async function obterPerfil(accessToken, userId) {
     if (restaurante) {
         return { tipo: "restaurante", perfil: restaurante };
     }
-    return null;
+    return garantirPerfilDoMetadata(usuarioAtual?.user);
 }
 async function obterPerfilDoUsuarioAutenticado(res) {
     return obterPerfil(res.locals.accessToken, res.locals.user.id);
