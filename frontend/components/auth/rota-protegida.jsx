@@ -1,43 +1,75 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { TelaCarregandoSessao, useSessaoLocal } from "@/lib/use-sessao-local";
-import { clearAuthResponse, getAccessToken } from "@/lib/session";
+import { apiRequest } from "@/lib/api";
+import { clearAuthResponse, getAccessToken, persistAuthResponse } from "@/lib/session";
 
-const destinoPorPerfil = {
-  client: "/cliente/dashboard",
-  restaurant: "/restaurante/home",
-  admin: "/admin/financeiro",
+const tipoSessaoPorPerfil = {
+  cliente: "client",
+  restaurante: "restaurant",
+  admin: "admin",
 };
 
-function obterUrlLogin() {
+function obterUrlLogin(motivo = "acesso") {
   const destinoAtual = `${window.location.pathname}${window.location.search}`;
-  return `/login?redirect=${encodeURIComponent(destinoAtual)}`;
+  return `/login?motivo=${motivo}&redirect=${encodeURIComponent(destinoAtual)}`;
 }
 
 export function RotaProtegida({ children, perfisPermitidos }) {
   const { sessao, sessaoCarregada } = useSessaoLocal();
-  const tipoPermitido = sessao ? perfisPermitidos.includes(sessao.type) : false;
+  const [acessoValidado, setAcessoValidado] = useState(false);
 
   useEffect(() => {
+    let cancelado = false;
+
+    async function validarAcesso() {
+      setAcessoValidado(false);
+
+      const token = getAccessToken();
+
+      if (!sessao || !token) {
+        clearAuthResponse();
+        window.location.replace(obterUrlLogin("sessao"));
+        return;
+      }
+
+      try {
+        const perfilAtual = await apiRequest("/me", {
+          cacheTtlMs: 0,
+          forceRefresh: true,
+        });
+        const tipoSessao = tipoSessaoPorPerfil[perfilAtual.tipo];
+
+        if (!tipoSessao || !perfisPermitidos.includes(tipoSessao)) {
+          clearAuthResponse();
+          window.location.replace(obterUrlLogin("perfil"));
+          return;
+        }
+
+        await persistAuthResponse(perfilAtual);
+
+        if (!cancelado) {
+          setAcessoValidado(true);
+        }
+      } catch {
+        clearAuthResponse();
+        window.location.replace(obterUrlLogin("token"));
+      }
+    }
+
     if (!sessaoCarregada) {
-      return;
+      return undefined;
     }
 
-    const token = getAccessToken();
+    validarAcesso();
 
-    if (!sessao || !token) {
-      clearAuthResponse();
-      window.location.replace(obterUrlLogin());
-      return;
-    }
+    return () => {
+      cancelado = true;
+    };
+  }, [sessao, sessaoCarregada, perfisPermitidos]);
 
-    if (!tipoPermitido) {
-      window.location.replace(destinoPorPerfil[sessao.type] ?? "/login");
-    }
-  }, [sessao, sessaoCarregada, tipoPermitido]);
-
-  if (!sessaoCarregada || !sessao || !tipoPermitido || !getAccessToken()) {
+  if (!sessaoCarregada || !acessoValidado) {
     return <TelaCarregandoSessao />;
   }
 
