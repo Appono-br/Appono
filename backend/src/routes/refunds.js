@@ -146,6 +146,8 @@ refundsRouter.patch("/:id/analisar", requireRole("restaurante", "admin"), async 
                 id_pagamento: refund.id_pagamento,
                 id_pedido: refund.id_pedido,
                 status_pagamento: refund.pagamentos?.status_pagamento,
+                status_repasse: refund.pagamentos?.status_repasse,
+                tipo_fluxo_pagamento: refund.pagamentos?.tipo_fluxo_pagamento,
                 mercado_pago_payment_id: refund.pagamentos?.mercado_pago_payment_id,
                 valor_pago: refund.valor_solicitado,
             }], refund.id_restaurante);

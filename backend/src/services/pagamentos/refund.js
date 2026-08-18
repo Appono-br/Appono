@@ -14,12 +14,22 @@ async function paymentTokenForRestaurant(restaurantId) {
     return data.access_token;
 }
 
+function shouldRefundViaGateway(payment) {
+    if (String(payment?.tipo_fluxo_pagamento ?? "").toUpperCase() === "SIMULADO_APPONO") return false;
+    return isRealMarketplace();
+}
+
 async function refundApprovedPayments(payments, restaurantId) {
     const approved = (payments ?? []).filter((payment) => payment.status_pagamento === "APROVADO");
     if (!approved.length) return [];
-    const token = await paymentTokenForRestaurant(restaurantId);
+    const needsGateway = approved.some((payment) => shouldRefundViaGateway(payment));
+    const token = needsGateway ? await paymentTokenForRestaurant(restaurantId) : null;
     const refunds = [];
     for (const payment of approved) {
+        if (!shouldRefundViaGateway(payment)) {
+            refunds.push({ payment, gatewayRefund: null, alreadyRefunded: false, simulated: true });
+            continue;
+        }
         if (!payment.mercado_pago_payment_id) throw new Error(`Pagamento ${payment.id_pagamento} sem identificador para estorno.`);
         const gatewayPayment = await consultarPagamentoMercadoPago(payment.mercado_pago_payment_id, token);
         const gatewayEligibility = testGatewayRefundEligibility(gatewayPayment, productionAllowed());
@@ -36,4 +46,4 @@ async function refundApprovedPayments(payments, restaurantId) {
     return refunds;
 }
 
-module.exports = { paymentTokenForRestaurant, refundApprovedPayments };
+module.exports = { paymentTokenForRestaurant, refundApprovedPayments, shouldRefundViaGateway };
