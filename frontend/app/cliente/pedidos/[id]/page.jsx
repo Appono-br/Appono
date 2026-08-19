@@ -49,8 +49,13 @@ export default function DetalhePedidoPorId({ params }) {
 
     useEffect(() => {
         const controller = new AbortController();
-        setCarregandoPedido(true);
-        setErro("");
+
+        queueMicrotask(() => {
+            if (!controller.signal.aborted) {
+                setCarregandoPedido(true);
+                setErro("");
+            }
+        });
 
         apiRequest(`/pedidos/${id}`, { signal: controller.signal, forceRefresh: true })
             .then((pedidoCarregado) => setPedido(pedidoCarregado))

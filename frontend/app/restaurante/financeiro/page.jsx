@@ -185,14 +185,18 @@ export default function RestaurantFinancialReportPage() {
     useEffect(() => {
         const statusMercadoPago = searchParams.get("mercado_pago");
         const detalheMercadoPago = searchParams.get("detalhe");
+        let mensagemRetorno = "";
         if (statusMercadoPago === "erro" && detalheMercadoPago === "conta-producao") {
-            setMensagemMercadoPago("A conta selecionada no Mercado Pago e de producao. Para testar sem transacao real, saia dessa conta no Mercado Pago e conecte uma conta vendedora de teste.");
+            mensagemRetorno = "A conta selecionada no Mercado Pago e de producao. Para testar sem transacao real, saia dessa conta no Mercado Pago e conecte uma conta vendedora de teste.";
         }
         else if (statusMercadoPago === "conectado") {
-            setMensagemMercadoPago("Conta Mercado Pago conectada com sucesso.");
+            mensagemRetorno = "Conta Mercado Pago conectada com sucesso.";
         }
         else if (statusMercadoPago === "erro") {
-            setMensagemMercadoPago("Nao foi possivel concluir a conexao Mercado Pago. Tente novamente com a conta correta.");
+            mensagemRetorno = "Nao foi possivel concluir a conexao Mercado Pago. Tente novamente com a conta correta.";
+        }
+        if (mensagemRetorno) {
+            queueMicrotask(() => setMensagemMercadoPago(mensagemRetorno));
         }
     }, [searchParams]);
 
@@ -253,21 +257,23 @@ export default function RestaurantFinancialReportPage() {
         if (!isRestaurant) {
             return;
         }
-        carregarStatusMercadoPago()
-            .catch((error) => {
-                setMensagemMercadoPago(error instanceof Error ? error.message : "Nao foi possivel consultar o Mercado Pago.");
-            });
-        apiRequest(`/marketplace/financeiro/resumo?periodo=${periodoAtivo}`)
-            .then((resposta) => {
-                setResumoFinanceiro(resposta.resumo);
-                setRepasses(resposta.repasses ?? []);
-                if (resposta.politica_financeira) {
-                    setPoliticaFinanceira(resposta.politica_financeira);
-                }
-            })
-            .catch((error) => {
-                setMensagemMercadoPago(error instanceof Error ? error.message : "Nao foi possivel consultar o financeiro.");
-            });
+        queueMicrotask(() => {
+            carregarStatusMercadoPago()
+                .catch((error) => {
+                    setMensagemMercadoPago(error instanceof Error ? error.message : "Nao foi possivel consultar o Mercado Pago.");
+                });
+            apiRequest(`/marketplace/financeiro/resumo?periodo=${periodoAtivo}`)
+                .then((resposta) => {
+                    setResumoFinanceiro(resposta.resumo);
+                    setRepasses(resposta.repasses ?? []);
+                    if (resposta.politica_financeira) {
+                        setPoliticaFinanceira(resposta.politica_financeira);
+                    }
+                })
+                .catch((error) => {
+                    setMensagemMercadoPago(error instanceof Error ? error.message : "Nao foi possivel consultar o financeiro.");
+                });
+        });
     }, [isRestaurant, sessaoCarregada, periodoAtivo]);
 
     if (!sessaoCarregada) {

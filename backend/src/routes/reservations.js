@@ -8,6 +8,7 @@ const notificacoes_1 = require("../services/notificacoes");
 const { sincronizarReservasNaoComparecidas } = require("../services/reservas/expiracao");
 const { refundApprovedPayments } = require("../services/pagamentos/refund");
 const paymentConfig = require("../services/pagamentos/config");
+const { ordenarPorHorarioReserva, reservaEstaNaFilaOperacional } = require("../domain/operational-queue");
 const { restaurantCancellationEligibility } = require("../domain/reservation-time");
 exports.reservationsRouter = (0, express_1.Router)();
 exports.reservationsRouter.use(auth_1.requireAuth);
@@ -134,7 +135,7 @@ function obterDataHoraLocal(data, horario) {
     return new Date(`${data}T${String(horario ?? "").slice(0, 8)}`);
 }
 
-exports.reservationsRouter.get("/", async (_req, res) => {
+exports.reservationsRouter.get("/", async (req, res) => {
     try {
         await sincronizarReservasNaoComparecidas();
     } catch (error) {
@@ -145,23 +146,41 @@ exports.reservationsRouter.get("/", async (_req, res) => {
         .from("clientes")
         .select("id_cliente")
         .maybeSingle();
+    const { data: restaurante, error: restauranteError } = cliente ? { data: null, error: null } : await supabase
+        .from("restaurantes")
+        .select("id_restaurante")
+        .eq("id_auth", res.locals.user.id)
+        .maybeSingle();
+    if (restauranteError) {
+        return res.status(400).json({ error: restauranteError.message });
+    }
+    if (!cliente && !restaurante) {
+        return res.status(403).json({ error: "Perfil nao encontrado para consultar reservas." });
+    }
+    const clienteBanco = cliente ? supabase : (supabase_1.supabaseAdmin ?? supabase);
     const colunaOcultacao = cliente ? "ocultada_cliente" : "ocultada_restaurante";
-    const consultaReservas = supabase
+    let consultaReservas = clienteBanco
         .from("reservas")
         .select("*, restaurantes(nome, endereco), clientes(nome, telefone), mesas(numero_mesa, capacidade)")
         .eq(colunaOcultacao, false)
         .order("data_reserva", { ascending: true })
         .order("horario_inicio", { ascending: true });
+    if (restaurante) {
+        consultaReservas = consultaReservas.eq("id_restaurante", restaurante.id_restaurante);
+    }
     const { data, error } = await consultaReservas;
     if (error) {
         return res.status(400).json({ error: error.message });
     }
-    const reservas = data ?? [];
+    const somenteFilaOperacional = !cliente && String(req.query?.fila ?? "").toLowerCase() === "operacional";
+    const reservas = somenteFilaOperacional
+        ? (data ?? []).filter((reserva) => reservaEstaNaFilaOperacional(reserva)).sort(ordenarPorHorarioReserva)
+        : data ?? [];
     const idsReservas = reservas.map((reserva) => reserva.id_reserva);
     if (!idsReservas.length) {
         return res.json(reservas);
     }
-    const clientePedidos = supabase_1.supabaseAdmin ?? supabase;
+    const clientePedidos = cliente ? (supabase_1.supabaseAdmin ?? supabase) : clienteBanco;
     const { data: pedidos, error: pedidosError } = await clientePedidos
         .from("pedidos")
         .select("id_pedido, id_reserva, status_pedido, valor_total, horario_entrega_previsto, iniciar_preparo_em, ocultado_cozinha, ocultado_cozinha_em, observacoes, itens_pedido(quantidade, preco_unitario, observacoes, produtos(nome, descricao, imagem_url, tempo_preparo_minutos))")

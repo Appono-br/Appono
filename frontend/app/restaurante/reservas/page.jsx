@@ -163,7 +163,7 @@ export default function RestaurantReservationsPage() {
             return;
         }
 
-        apiRequest("/reservas")
+        apiRequest("/reservas?fila=operacional")
             .then(setReservas)
             .catch((erro) =>
                 setMensagem(erro instanceof Error ? erro.message : "Nao foi possivel carregar as reservas."),

@@ -179,6 +179,8 @@ export default function PaginaRestaurante({ params }) {
   const menorTempoCardapio = produtos.length ? Math.min(...produtos.map((produto) => Number(produto.tempo_preparo_minutos ?? 30))) : 0;
   const linhasHorarioFuncionamento = obterLinhasHorarioFuncionamento(restaurante?.horario_funcionamento);
   const chaveHorariosDisponiveis = horariosDisponiveis.map((slot) => slot.horario).join("|");
+  const primeiroHorarioDisponivel = horariosDisponiveis[0]?.horario ?? "";
+  const horarioEstaDisponivel = horariosDisponiveis.some((slot) => slot.horario === horario);
 
   useEffect(() => {
     if (!restauranteId || !restaurante) return;
@@ -201,14 +203,16 @@ export default function PaginaRestaurante({ params }) {
   }, [data, pessoas, restaurante, restauranteId, temPedidoAntecipado, tempoEstimado]);
 
   useEffect(() => {
-    if (!horariosDisponiveis.length) {
-      if (horario) setHorario("");
+    if (!chaveHorariosDisponiveis) {
+      if (horario) {
+        queueMicrotask(() => setHorario(""));
+      }
       return;
     }
-    if (!horariosDisponiveis.some((slot) => slot.horario === horario)) {
-      setHorario(horariosDisponiveis[0].horario);
+    if (!horarioEstaDisponivel) {
+      queueMicrotask(() => setHorario(primeiroHorarioDisponivel));
     }
-  }, [chaveHorariosDisponiveis, horario]);
+  }, [chaveHorariosDisponiveis, horario, horarioEstaDisponivel, primeiroHorarioDisponivel]);
 
   function alterarQuantidade(produtoId, diferenca) {
     if (diferenca > 0 && !restaurante?.pedidos_antecipados_habilitados) {

@@ -128,6 +128,27 @@ function pedidoPodeSairDaCozinha(status) {
     return ["PRONTO", "ENTREGUE", "CANCELADO"].includes(status);
 }
 
+function agruparPedidosPorReserva(pedidos = []) {
+    const reservasPorId = new Map();
+
+    pedidos.forEach((pedido) => {
+        const reservaOrigem = pedido.reservas ?? {};
+        const idReserva = pedido.id_reserva ?? reservaOrigem.id_reserva ?? `pedido-${pedido.id_pedido}`;
+        const reserva = reservasPorId.get(idReserva) ?? {
+            ...reservaOrigem,
+            id_reserva: idReserva,
+            clientes: pedido.clientes,
+            pedidos: [],
+        };
+
+        reserva.clientes = reserva.clientes ?? pedido.clientes;
+        reserva.pedidos.push(pedido);
+        reservasPorId.set(idReserva, reserva);
+    });
+
+    return Array.from(reservasPorId.values());
+}
+
 function EmptyPanel({ title, description }) {
     return (
         <div className="flex min-h-72 flex-col items-center justify-center rounded-[16px] bg-app-creme-leve px-6 py-10 text-center ring-1 ring-app-baunilha-dourada/70">
@@ -162,8 +183,8 @@ export default function RestaurantOrdersPage() {
             return;
         }
 
-        apiRequest("/reservas")
-            .then(setReservas)
+        apiRequest("/pedidos/historico/restaurante?fila=cozinha")
+            .then((pedidosOperacionais) => setReservas(agruparPedidosPorReserva(pedidosOperacionais ?? [])))
             .catch((erro) =>
                 setMensagem(erro instanceof Error ? erro.message : "Nao foi possivel carregar os pedidos."),
             );
@@ -532,7 +553,7 @@ export default function RestaurantOrdersPage() {
                     ) : (
                         <EmptyPanel
                             title="Nenhum pedido neste filtro"
-                            description="Quando o cliente pagar um pedido antecipado, ele aparecera aqui para a cozinha acompanhar o preparo no horario correto."
+                            description="Pedidos pagos aparecem aqui quando entram na janela operacional, 60 minutos antes da reserva. Pedidos futuros continuam no historico e entram na fila no momento certo."
                         />
                     )}
                 </section>
