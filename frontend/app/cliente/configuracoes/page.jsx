@@ -2,7 +2,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { SeletorTema } from "@/components/configuracoes/seletor-tema";
 import { encerrarSessao } from "@/lib/session";
 const navItems = [
@@ -18,12 +18,6 @@ const settingsItems = [
         description: "Atualize suas informações pessoais e foto de perfil",
         href: "/cliente/configuracoes/conta",
         icon: "user",
-    },
-    {
-        title: "Pagamentos",
-        description: "Gerencie formas de pagamento e dados de cobrança",
-        href: "/cliente/configuracoes/pagamentos",
-        icon: "card",
     },
     {
         title: "Idioma",
@@ -57,6 +51,9 @@ export default function SettingsPage() {
         const storedSession = window.localStorage.getItem("appono:session");
         return storedSession ? JSON.parse(storedSession) : null;
     });
+    useEffect(() => {
+        window.localStorage.removeItem("appono:paymentDraft");
+    }, []);
     async function logout() {
         await encerrarSessao();
         window.location.assign("/");

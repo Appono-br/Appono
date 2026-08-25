@@ -70,7 +70,7 @@ export default function PaginaPagamentoPedido({ params }) {
     return (
         <main className="flex min-h-screen flex-col bg-app-chantilly px-4 py-8 text-app-cafe-profundo sm:px-5">
             <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col justify-center">
-                <BotaoVoltar href="/cliente/detalhes-pedido" className="text-sm font-bold text-app-caramelo-torrado transition hover:text-app-cafe-profundo">
+                <BotaoVoltar href={`/cliente/pedidos/${pedidoId}`} className="text-sm font-bold text-app-caramelo-torrado transition hover:text-app-cafe-profundo">
                     Voltar aos detalhes do pedido
                 </BotaoVoltar>
 

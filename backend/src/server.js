@@ -18,6 +18,8 @@ const { marketplaceRouter } = require("./routes/marketplace");
 const { adminRouter } = require("./routes/admin");
 const { notificationsRouter } = require("./routes/notifications");
 const { restaurantDashboardRouter } = require("./routes/restaurant-dashboard");
+const { refundsRouter } = require("./routes/refunds");
+const { requestContext } = require("./middleware/observability");
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -48,6 +50,7 @@ app.use(
 );
 
 app.use(express.json());
+app.use(requestContext);
 
 app.get("/", (req, res) => {
   res.json({
@@ -103,6 +106,19 @@ app.use("/api/marketplace", marketplaceRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/notificacoes", notificationsRouter);
 app.use("/api/restaurante", restaurantDashboardRouter);
+app.use("/api/reembolsos", refundsRouter);
+
+app.use((error, _req, res, _next) => {
+    const mensagem = String(error?.message ?? "");
+    const erroDeConexao = /fetch failed|unable to verify|certificate|econnreset|enotfound/i.test(mensagem);
+    if (erroDeConexao) {
+        return res.status(503).json({
+            error: "Nao foi possivel acessar um servico externo. Verifique a conexao e tente novamente.",
+        });
+    }
+    console.error("Erro nao tratado na API:", mensagem || error);
+    return res.status(500).json({ error: "Nao foi possivel concluir a operacao agora." });
+});
 
 if (require.main === module) {
   app.listen(PORT, () => {

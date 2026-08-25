@@ -25,6 +25,7 @@ const filtrosPedido = [
     { label: "Pedido pago", value: "PEDIDO_PAGO" },
     { label: "Em atendimento", value: "EM_ATENDIMENTO" },
     { label: "Finalizadas", value: "CONCLUIDA" },
+    { label: "Não compareceu", value: "NAO_COMPARECEU" },
     { label: "Cancelados", value: "CANCELADO" },
 ];
 
@@ -91,11 +92,12 @@ function obterStatusReserva(status) {
         CANCELADA: "Cancelada",
         RECUSADA: "Recusada",
         CONCLUIDA: "Finalizada",
+        NAO_COMPARECEU: "Não compareceu",
     };
     return statusMap[status] ?? status;
 }
 function obterClasseStatusReserva(status) {
-    if (status === "CANCELADA" || status === "RECUSADA") {
+    if (["CANCELADA", "RECUSADA", "NAO_COMPARECEU"].includes(status)) {
         return "bg-app-vermelho-erro/10 text-app-vermelho-erro ring-app-vermelho-erro/25";
     }
     if (status === "CHECK_IN") {
@@ -132,6 +134,10 @@ function obterJanelaCheckIn(reserva) {
         }),
     };
 }
+function reservaJaTerminou(reserva) {
+    const fim = new Date(`${reserva.data_reserva}T${reserva.horario_fim}`);
+    return !Number.isNaN(fim.getTime()) && new Date() >= fim;
+}
 
 export default function RestaurantReservationsPage() {
     const [session] = useState(() => {
@@ -167,7 +173,7 @@ export default function RestaurantReservationsPage() {
     async function cancelarReserva(id) {
         setCancelandoReserva(true);
         try {
-            const atualizada = await apiRequest(`/reservas/${id}/cancelar`, {
+            const atualizada = await apiRequest(`/reservas/${id}/cancelar-restaurante`, {
                 method: "PATCH",
             });
 
@@ -250,6 +256,9 @@ export default function RestaurantReservationsPage() {
         }
         if (filtroPedido === "CONCLUIDA") {
             return reservas.filter((reserva) => reserva.status_reserva === "CONCLUIDA");
+        }
+        if (filtroPedido === "NAO_COMPARECEU") {
+            return reservas.filter((reserva) => reserva.status_reserva === "NAO_COMPARECEU");
         }
         if (filtroPedido === "CANCELADO") {
             return reservas.filter((reserva) => reserva.status_reserva === "CANCELADA" || (reserva.pedidos ?? []).some((pedido) => pedido.status_pedido === "CANCELADO"));
@@ -475,7 +484,7 @@ export default function RestaurantReservationsPage() {
                                         </div>
 
                                         <div className="flex shrink-0 flex-wrap gap-2 border-t border-app-baunilha-dourada/55 bg-app-chantilly px-5 py-4 lg:flex-col lg:items-stretch lg:justify-center lg:border-l lg:border-t-0">
-                                            {reserva.status_reserva === "CONFIRMADA" ? (
+                                            {reserva.status_reserva === "CONFIRMADA" && !reservaJaTerminou(reserva) ? (
                                                 <div className="grid gap-1">
                                                     <button
                                                         type="button"
@@ -511,7 +520,7 @@ export default function RestaurantReservationsPage() {
                                                 </div>
                                             ) : null}
 
-                                            {["PENDENTE", "CONFIRMADA"].includes(reserva.status_reserva) ? (
+                                            {["PENDENTE", "CONFIRMADA"].includes(reserva.status_reserva) && !reservaJaTerminou(reserva) ? (
                                                 <button
                                                     type="button"
                                                     onClick={() => setReservaParaCancelar(reserva)}
@@ -521,7 +530,7 @@ export default function RestaurantReservationsPage() {
                                                 </button>
                                             ) : null}
 
-                                            {["CANCELADA", "RECUSADA", "CONCLUIDA"].includes(reserva.status_reserva) ? (
+                                            {["CANCELADA", "RECUSADA", "CONCLUIDA", "NAO_COMPARECEU"].includes(reserva.status_reserva) ? (
                                                 <button
                                                     type="button"
                                                     onClick={() => excluirReservaDaLista(reserva.id_reserva)}
@@ -556,11 +565,11 @@ export default function RestaurantReservationsPage() {
                             Deseja desmarcar esta reserva?
                         </h2>
                         <p className="mt-3 text-sm leading-6 text-app-mocha">
-                            Ao confirmar, esta reserva sera marcada como cancelada para o cliente e sairá do fluxo ativo de atendimento.
+                            Ao confirmar, a reserva será cancelada para o cliente. Se houver pagamento aprovado, o Mercado Pago fará o estorno antes do cancelamento.
                         </p>
                         {reservaParaCancelar.pedidos?.some((pedido) => ["PENDENTE", "CONFIRMADO"].includes(pedido.status_pedido)) ? (
                             <p className="mt-3 rounded-[10px] bg-app-chantilly p-3 text-sm font-semibold leading-6 text-app-cafe-profundo ring-1 ring-app-baunilha-dourada/60">
-                                Existe pedido antecipado vinculado. Se ele ainda nao entrou em preparo, o sistema tambem marcara o pedido como cancelado.
+                                Existe pedido antecipado vinculado. Se estiver pago, o cancelamento só será concluído após o estorno; se estiver pendente, ele será cancelado.
                             </p>
                         ) : null}
                         <div className="mt-6 rounded-[10px] bg-app-chantilly p-4 ring-1 ring-app-baunilha-dourada/60">

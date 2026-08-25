@@ -9,69 +9,53 @@ const supabase_1 = require("../lib/supabase");
 const auth_1 = require("../middleware/auth");
 const mercado_pago_1 = require("../services/pagamentos/mercado-pago");
 const notificacoes_1 = require("../services/notificacoes");
+const { log } = require("../middleware/observability");
+const { calculateSplit, nextTransferStatus, strongestPaymentStatus } = require("../domain/payment-state");
+const { lateApprovalDecision, paymentEligibility } = require("../domain/payment-eligibility");
+const paymentConfig = require("../services/pagamentos/config");
+const { sincronizarReservasNaoComparecidas } = require("../services/reservas/expiracao");
 
 exports.paymentsRouter = (0, express_1.Router)();
 
 function obterFrontendOrigin() {
-    return (process.env.FRONTEND_PUBLIC_URL ?? process.env.FRONTEND_ORIGIN ?? "http://localhost:3000")
-        .split(",")[0]
-        .trim()
-        .replace(/\/$/, "");
+    return paymentConfig.frontendOrigin();
 }
 
 function obterBackendPublicUrl() {
-    return (process.env.BACKEND_PUBLIC_URL ?? "")
-        .trim()
-        .replace(/\/$/, "");
+    return paymentConfig.backendPublicUrl();
 }
 
 function obterWebhookSecretMercadoPago() {
-    return process.env.MERCADO_PAGO_WEBHOOK_SECRET?.trim() ?? "";
+    return paymentConfig.webhookSecret();
 }
 
 function urlPermiteRetornoAutomatico(url) {
-    return /^https:\/\//i.test(url);
-}
-
-function tokenMercadoPagoEhTeste(token) {
-    return /^TEST-/i.test(String(token ?? ""));
+    return paymentConfig.isHttpsUrl(url);
 }
 
 function mercadoPagoProducaoPermitida() {
-    return String(process.env.MERCADO_PAGO_PERMITIR_PRODUCAO ?? "false").toLowerCase() === "true";
+    return paymentConfig.productionAllowed();
 }
 
 function obterModoRepasseMercadoPago() {
-    return String(process.env.MERCADO_PAGO_MODO_REPASSE ?? "SIMULADO").trim().toUpperCase();
+    return paymentConfig.transferMode();
 }
 
 function marketplaceRealAtivo() {
-    return ["MARKETPLACE_REAL", "REAL", "PRODUCAO"].includes(obterModoRepasseMercadoPago());
+    return paymentConfig.isRealMarketplace();
 }
 
 function obterCheckoutUrlMercadoPago(preferencia, token) {
-    if (tokenMercadoPagoEhTeste(token)) {
-        return preferencia.sandbox_init_point ?? preferencia.init_point;
-    }
-    return preferencia.init_point ?? preferencia.sandbox_init_point;
+    return paymentConfig.checkoutUrl(preferencia, token);
 }
 
 function obterPrimeiroValorQuery(valor) {
     return Array.isArray(valor) ? valor[0] : valor;
 }
 
-function obterStatusRetornoMercadoPago(query) {
-    return obterPrimeiroValorQuery(query.status ?? query.collection_status);
-}
-
 function obterPaymentIdRetornoMercadoPago(query) {
     const paymentId = obterPrimeiroValorQuery(query.payment_id ?? query.collection_id);
     return paymentId && paymentId !== "null" ? String(paymentId) : null;
-}
-
-function obterPreferenceIdRetornoMercadoPago(query) {
-    const preferenceId = obterPrimeiroValorQuery(query.preference_id);
-    return preferenceId && preferenceId !== "null" ? String(preferenceId) : null;
 }
 
 function obterReferencia(referencia) {
@@ -83,7 +67,7 @@ function obterStatusPedidoPorPagamento(statusPagamento) {
     if (statusPagamento === "APROVADO") {
         return "CONFIRMADO";
     }
-    if (statusPagamento === "RECUSADO") {
+    if (["RECUSADO", "ESTORNADO"].includes(statusPagamento)) {
         return "CANCELADO";
     }
     return null;
@@ -100,43 +84,24 @@ function arredondarMoeda(valor) {
 
 function calcularResumoFinanceiro(valorTotal, conexaoRestaurante) {
     const percentualComissao = obterPercentualComissaoAppono();
-    const valorPedido = arredondarMoeda(valorTotal);
+    const { gross: valorPedido, fee: valorComissao, restaurant: valorRestaurante } = calculateSplit(valorTotal, percentualComissao);
     const usaMarketplaceReal = marketplaceRealAtivo() && conexaoRestaurante;
-    const valorComissao = arredondarMoeda(valorPedido * (percentualComissao / 100));
     return {
         tipo_fluxo_pagamento: usaMarketplaceReal ? "MARKETPLACE_RESTAURANTE" : "SIMULADO_APPONO",
         percentual_comissao_app: percentualComissao,
         valor_comissao_app: valorComissao,
-        valor_restaurante: arredondarMoeda(valorPedido - valorComissao),
+        valor_restaurante: valorRestaurante,
         mercado_pago_restaurante_user_id: usaMarketplaceReal ? conexaoRestaurante?.mercado_pago_user_id ?? null : null,
         status_repasse: "AGUARDANDO_PAGAMENTO",
     };
 }
 
 function statusPagamentoEhMaisForte(statusAtual, novoStatus) {
-    const prioridade = {
-        PENDENTE: 1,
-        RECUSADO: 2,
-        APROVADO: 3,
-    };
-    return (prioridade[statusAtual] ?? 0) > (prioridade[novoStatus] ?? 0);
+    return strongestPaymentStatus(statusAtual, novoStatus) === statusAtual && statusAtual !== novoStatus;
 }
 
 function obterProximoStatusRepasse(statusAtual, novoStatus, tipoFluxoPagamento) {
-    const usaRepasse = ["MARKETPLACE_RESTAURANTE", "SIMULADO_APPONO"].includes(tipoFluxoPagamento);
-    if (!usaRepasse) {
-        return "NAO_APLICAVEL";
-    }
-    if (["LIBERADO_PARA_REPASSE", "REPASSADO", "ESTORNADO"].includes(statusAtual)) {
-        return statusAtual;
-    }
-    if (novoStatus === "APROVADO") {
-        return "AGUARDANDO_ENTREGA";
-    }
-    if (novoStatus === "RECUSADO") {
-        return "ESTORNADO";
-    }
-    return statusAtual ?? "AGUARDANDO_PAGAMENTO";
+    return nextTransferStatus(statusAtual, novoStatus, tipoFluxoPagamento);
 }
 
 async function obterClienteAtual(supabase, userId) {
@@ -193,7 +158,7 @@ async function obterPedidoDoCliente(supabase, pedidoId, userId) {
     }
     const { data: pedido, error } = await supabase
         .from("pedidos")
-        .select("id_pedido, id_cliente, id_restaurante, id_reserva, status_pedido, valor_total, restaurantes(nome), reservas(data_reserva, horario_inicio)")
+        .select("id_pedido, id_cliente, id_restaurante, id_reserva, status_pedido, valor_total, restaurantes(nome), reservas(data_reserva, horario_inicio, status_reserva)")
         .eq("id_pedido", pedidoId)
         .eq("id_cliente", cliente.id_cliente)
         .maybeSingle();
@@ -344,74 +309,30 @@ async function registrarEventoFinanceiro(dados) {
     }
 }
 
-async function aplicarStatusRetornoPedido(pedido, referencia, query) {
-    const pagamentoExistente = await obterPagamentoExistentePorReferencia(referencia);
-    const statusRetorno = obterStatusRetornoMercadoPago(query);
-    if (!pagamentoExistente || !statusRetorno) {
-        return null;
-    }
-    const statusMapeado = (0, mercado_pago_1.mapearStatusMercadoPago)(statusRetorno);
-    const resumoFinanceiro = {
-        tipo_fluxo_pagamento: pagamentoExistente.tipo_fluxo_pagamento,
-        percentual_comissao_app: pagamentoExistente.percentual_comissao_app,
-        valor_comissao_app: pagamentoExistente.valor_comissao_app,
-        valor_restaurante: pagamentoExistente.valor_restaurante,
-        mercado_pago_restaurante_user_id: pagamentoExistente.mercado_pago_restaurante_user_id,
-        status_repasse: pagamentoExistente.status_repasse,
-    };
-    const pagamento = await salvarPagamento({
-        id_pedido: pedido.id_pedido,
-        id_reserva: pedido.id_reserva,
-        valor_pago: Number(pedido.valor_total ?? pagamentoExistente.valor_pago ?? pagamentoExistente.valor ?? 0),
-        status_pagamento: statusMapeado.pagamento,
-        referencia_externa: referencia,
-        mercado_pago_payment_id: obterPaymentIdRetornoMercadoPago(query),
-        mercado_pago_preference_id: obterPreferenceIdRetornoMercadoPago(query) ?? pagamentoExistente.mercado_pago_preference_id,
-        checkout_url: pagamentoExistente.checkout_url,
-        ...resumoFinanceiro,
-    });
+async function expirarPedidoPendente(pedido, motivo) {
+    if (!supabase_1.supabaseAdmin || pedido?.status_pedido !== "PENDENTE") return pedido;
+    const agora = new Date().toISOString();
+    const { data: atualizado, error } = await supabase_1.supabaseAdmin
+        .from("pedidos")
+        .update({ status_pedido: "CANCELADO" })
+        .eq("id_pedido", pedido.id_pedido)
+        .eq("status_pedido", "PENDENTE")
+        .select("*")
+        .maybeSingle();
+    if (error) throw new Error(error.message);
+    await supabase_1.supabaseAdmin
+        .from("pagamentos")
+        .update({ status_pagamento: "RECUSADO", atualizado_em: agora, updated_at: agora })
+        .eq("id_pedido", pedido.id_pedido)
+        .eq("status_pagamento", "PENDENTE");
     await registrarEventoFinanceiro({
-        id_pagamento: pagamento.id_pagamento,
         id_pedido: pedido.id_pedido,
         id_reserva: pedido.id_reserva,
-        tipo_evento: `PAGAMENTO_${statusMapeado.pagamento}`,
-        descricao: `Pagamento ${statusMapeado.pagamento.toLowerCase()} pelo retorno do Mercado Pago.`,
-        valor: Number(pedido.valor_total ?? pagamentoExistente.valor_pago ?? pagamentoExistente.valor ?? 0),
+        tipo_evento: "CHECKOUT_EXPIRADO",
+        descricao: motivo,
+        valor: Number(pedido.valor_total ?? 0),
     });
-    const pedidoAtualizado = await atualizarPedidoPorPagamento(
-        pedido.id_pedido,
-        obterStatusPedidoPorPagamento(statusMapeado.pagamento),
-    );
-    if (statusMapeado.pagamento === "APROVADO" && pagamentoExistente.status_pagamento !== "APROVADO") {
-        await Promise.all([
-            (0, notificacoes_1.notificarCliente)(pedido.id_cliente, {
-                titulo: "Pagamento aprovado",
-                mensagem: "Seu pagamento foi aprovado e o restaurante ja pode acompanhar o pedido antecipado.",
-                tipo_evento: "PAGAMENTO_APROVADO",
-                link_destino: "/cliente/detalhes-pedido",
-                dados: { id_pedido: pedido.id_pedido, id_reserva: pedido.id_reserva },
-            }),
-            (0, notificacoes_1.notificarRestaurante)(pedido.id_restaurante, {
-                titulo: "Pedido pago",
-                mensagem: "Um pedido antecipado foi pago e esta pronto para acompanhamento operacional.",
-                tipo_evento: "PAGAMENTO_APROVADO",
-                link_destino: "/restaurante/pedidos",
-                dados: { id_pedido: pedido.id_pedido, id_reserva: pedido.id_reserva },
-            }),
-            (0, notificacoes_1.notificarAdministradores)({
-                titulo: "Pagamento aprovado",
-                mensagem: `Pedido #${pedido.id_pedido} aprovado no Mercado Pago para conciliacao financeira.`,
-                tipo_evento: "PAGAMENTO_APROVADO",
-                link_destino: "/admin/financeiro",
-                dados: { id_pedido: pedido.id_pedido, id_reserva: pedido.id_reserva, id_pagamento: pagamento.id_pagamento },
-            }),
-        ]);
-    }
-    return {
-        pagamento,
-        pedido: pedidoAtualizado ?? pedido,
-        status_pagamento: statusMapeado.pagamento,
-    };
+    return atualizado ?? { ...pedido, status_pedido: "CANCELADO" };
 }
 
 async function aplicarPagamentoMercadoPago(pagamentoMercadoPago, fallbackReferencia = null) {
@@ -425,15 +346,15 @@ async function aplicarPagamentoMercadoPago(pagamentoMercadoPago, fallbackReferen
     const pagamentoId = String(pagamentoMercadoPago.id);
 
     if (referenciaInfo.tipo === "pedido") {
+        const pagamentoExistente = await obterPagamentoExistentePorReferencia(referencia);
         const { data: pedido, error: pedidoError } = await supabase_1.supabaseAdmin
             .from("pedidos")
-            .select("id_pedido, id_cliente, id_restaurante, id_reserva, valor_total, status_pedido")
+            .select("id_pedido, id_cliente, id_restaurante, id_reserva, valor_total, status_pedido, reservas(data_reserva, horario_inicio, status_reserva)")
             .eq("id_pedido", referenciaInfo.id)
             .maybeSingle();
         if (pedidoError || !pedido) {
             throw new Error(pedidoError?.message ?? "Pedido nao encontrado para conciliacao.");
         }
-        const pagamentoExistente = await obterPagamentoExistentePorReferencia(referencia);
         const resumoFinanceiro = pagamentoExistente
             ? {
                 tipo_fluxo_pagamento: pagamentoExistente.tipo_fluxo_pagamento,
@@ -444,11 +365,22 @@ async function aplicarPagamentoMercadoPago(pagamentoMercadoPago, fallbackReferen
                 status_repasse: pagamentoExistente.status_repasse,
             }
             : {};
+        const decisaoAprovacao = lateApprovalDecision({
+            gatewayStatus: statusMapeado.pagamento,
+            existingStatus: pagamentoExistente?.status_pagamento,
+            reservation: pedido.reservas,
+            payment: pagamentoMercadoPago,
+        });
+        const statusPagamentoFinal = decisaoAprovacao.finalStatus;
+        if (decisaoAprovacao.shouldRefund) {
+            const token = await obterTokenPagamentoPorPedido(pedido.id_pedido) ?? (0, mercado_pago_1.obterAccessTokenMercadoPago)();
+            await (0, mercado_pago_1.estornarPagamentoMercadoPago)(pagamentoId, token);
+        }
         const pagamento = await salvarPagamento({
             id_pedido: pedido.id_pedido,
             id_reserva: pedido.id_reserva,
             valor_pago: valorPago || Number(pedido.valor_total ?? 0),
-            status_pagamento: statusMapeado.pagamento,
+            status_pagamento: statusPagamentoFinal,
             referencia_externa: referencia,
             mercado_pago_payment_id: pagamentoId,
             ...resumoFinanceiro,
@@ -457,21 +389,23 @@ async function aplicarPagamentoMercadoPago(pagamentoMercadoPago, fallbackReferen
             id_pagamento: pagamento.id_pagamento,
             id_pedido: pedido.id_pedido,
             id_reserva: pedido.id_reserva,
-            tipo_evento: `PAGAMENTO_${statusMapeado.pagamento}`,
-            descricao: `Pagamento ${statusMapeado.pagamento.toLowerCase()} conciliado pelo Mercado Pago.`,
+            tipo_evento: `PAGAMENTO_${statusPagamentoFinal}`,
+            descricao: decisaoAprovacao.shouldRefund
+                ? `Pagamento aprovado sem elegibilidade (${decisaoAprovacao.reason}) e estornado automaticamente.`
+                : `Pagamento ${statusPagamentoFinal.toLowerCase()} conciliado pelo Mercado Pago.`,
             valor: valorPago || Number(pedido.valor_total ?? 0),
         });
         const pedidoAtualizado = await atualizarPedidoPorPagamento(
             pedido.id_pedido,
-            obterStatusPedidoPorPagamento(statusMapeado.pagamento),
+            obterStatusPedidoPorPagamento(statusPagamentoFinal),
         );
-        if (statusMapeado.pagamento === "APROVADO" && pagamentoExistente?.status_pagamento !== "APROVADO") {
+        if (statusPagamentoFinal === "APROVADO" && pagamentoExistente?.status_pagamento !== "APROVADO") {
             await Promise.all([
                 (0, notificacoes_1.notificarCliente)(pedido.id_cliente, {
                     titulo: "Pagamento aprovado",
                     mensagem: "Seu pagamento foi aprovado e o pedido antecipado foi confirmado.",
                     tipo_evento: "PAGAMENTO_APROVADO",
-                    link_destino: "/cliente/detalhes-pedido",
+                    link_destino: `/cliente/pedidos/${pedido.id_pedido}`,
                     dados: { id_pedido: pedido.id_pedido, id_reserva: pedido.id_reserva },
                 }),
                 (0, notificacoes_1.notificarRestaurante)(pedido.id_restaurante, {
@@ -493,7 +427,7 @@ async function aplicarPagamentoMercadoPago(pagamentoMercadoPago, fallbackReferen
         return {
             pagamento,
             pedido: pedidoAtualizado ?? pedido,
-            status_pagamento: statusMapeado.pagamento,
+            status_pagamento: statusPagamentoFinal,
         };
     }
 
@@ -578,7 +512,15 @@ exports.paymentsRouter.post("/webhook/mercado-pago", async (req, res) => {
         return res.status(200).json({ received: true });
     }
     if (!validarAssinaturaWebhookMercadoPago(req, paymentId)) {
+        log("warn", "mercado_pago_webhook_invalid_signature", { request_id: req.requestId, payment_id: paymentId });
         return res.status(401).json({ received: false });
+    }
+    const notificationId = String(req.headers["x-request-id"] ?? crypto.createHash("sha256").update(JSON.stringify(req.body ?? {})).digest("hex"));
+    const webhookKey = `payment:${paymentId}:notification:${notificationId}`;
+    if (supabase_1.supabaseAdmin) {
+        const { data: adquirido, error: claimError } = await supabase_1.supabaseAdmin.rpc("reclamar_webhook_mercado_pago", { chave: webhookKey, pagamento: String(paymentId), requisicao: req.requestId });
+        if (claimError) log("error", "mercado_pago_webhook_claim_failed", { request_id: req.requestId, payment_id: paymentId, error: claimError.message });
+        else if (!adquirido) return res.status(200).json({ received: true, duplicate: true });
     }
     try {
         let pagamentoMercadoPago = await (0, mercado_pago_1.consultarPagamentoMercadoPago)(paymentId);
@@ -593,29 +535,28 @@ exports.paymentsRouter.post("/webhook/mercado-pago", async (req, res) => {
             pagamentoMercadoPago = await (0, mercado_pago_1.consultarPagamentoMercadoPago)(paymentId, conexao?.access_token);
         }
         await aplicarPagamentoMercadoPago(pagamentoMercadoPago);
+        if (supabase_1.supabaseAdmin) await supabase_1.supabaseAdmin.from("webhooks_mercado_pago").update({ status: "PROCESSADO", processado_em: new Date().toISOString() }).eq("chave_idempotencia", webhookKey);
         return res.status(200).json({ received: true });
     }
     catch (error) {
-        console.warn("Falha ao conciliar webhook Mercado Pago:", error instanceof Error ? error.message : error);
+        const message = error instanceof Error ? error.message : String(error);
+        if (supabase_1.supabaseAdmin) await supabase_1.supabaseAdmin.from("webhooks_mercado_pago").update({ status: "ERRO", erro: message.slice(0, 500) }).eq("chave_idempotencia", webhookKey);
+        log("error", "mercado_pago_webhook_failed", { request_id: req.requestId, payment_id: paymentId, error: message });
         return res.status(200).json({ received: true });
     }
 });
 
 exports.paymentsRouter.use(auth_1.requireAuth);
+exports.paymentsRouter.use((0, auth_1.requireRole)("cliente"));
 
 exports.paymentsRouter.post("/pedido/:id/preferencia", async (req, res) => {
     const pedidoId = Number(req.params.id);
     if (!Number.isInteger(pedidoId) || pedidoId <= 0) {
         return res.status(400).json({ error: "Pedido invalido." });
     }
-    const tokenPadrao = (0, mercado_pago_1.obterAccessTokenMercadoPago)();
-    if (!tokenPadrao) {
-        return res.status(409).json({
-            error: "MERCADO_PAGO_ACCESS_TOKEN ainda nao esta configurado no backend.",
-        });
-    }
     const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
     try {
+        await sincronizarReservasNaoComparecidas();
         const { cliente, pedido } = await obterPedidoDoCliente(supabase, pedidoId, res.locals.user.id);
         if (!cliente || !pedido) {
             return res.status(404).json({ error: "Pedido nao encontrado para este cliente." });
@@ -623,16 +564,33 @@ exports.paymentsRouter.post("/pedido/:id/preferencia", async (req, res) => {
         if (pedido.status_pedido !== "PENDENTE") {
             return res.status(409).json({ error: "Este pedido nao pode receber pagamento." });
         }
+        const elegibilidade = paymentEligibility(pedido.reservas);
+        if (!elegibilidade.allowed) {
+            await expirarPedidoPendente(pedido, elegibilidade.message);
+            return res.status(409).json({ error: elegibilidade.message, code: elegibilidade.code });
+        }
         if (Number(pedido.valor_total ?? 0) <= 0) {
             return res.status(400).json({ error: "Valor do pedido invalido." });
         }
         const conexaoRestaurante = await obterConexaoMercadoPagoRestaurante(pedido.id_restaurante);
-        if (marketplaceRealAtivo() && conexaoRestaurante?.live_mode && !mercadoPagoProducaoPermitida()) {
+        if (marketplaceRealAtivo() && !conexaoRestaurante) {
+            return res.status(409).json({
+                error: "O restaurante ainda nao conectou uma conta Mercado Pago para receber este pagamento.",
+            });
+        }
+        if (conexaoRestaurante?.live_mode && !mercadoPagoProducaoPermitida()) {
             return res.status(409).json({
                 error: "A conta Mercado Pago do restaurante foi conectada em modo producao. Para testes sem transacao real, desconecte e conecte uma conta de teste, ou habilite producao explicitamente no backend.",
             });
         }
-        const token = marketplaceRealAtivo() && conexaoRestaurante?.access_token ? conexaoRestaurante.access_token : tokenPadrao;
+        const token = marketplaceRealAtivo()
+            ? conexaoRestaurante.access_token
+            : (0, mercado_pago_1.obterAccessTokenMercadoPago)();
+        if (!token) {
+            return res.status(409).json({
+                error: "MERCADO_PAGO_ACCESS_TOKEN ainda nao esta configurado no backend.",
+            });
+        }
         const resumoFinanceiro = calcularResumoFinanceiro(pedido.valor_total, conexaoRestaurante);
         const referencia = `pedido:${pedido.id_pedido}`;
         const pagamentoExistente = await obterPagamentoExistentePorReferencia(referencia);
@@ -658,6 +616,8 @@ exports.paymentsRouter.post("/pedido/:id/preferencia", async (req, res) => {
         const frontendOrigin = obterFrontendOrigin();
         const backUrl = `${frontendOrigin}/cliente/pagamentos/retorno?pedido=${pedido.id_pedido}`;
         const body = {
+            expires: true,
+            expiration_date_to: elegibilidade.deadline.toISOString(),
             items: [
                 {
                     id: String(pedido.id_pedido),
@@ -786,16 +746,9 @@ exports.paymentsRouter.get("/pedido/:id/status", async (req, res) => {
                 pedido.status_pedido = conciliacao.pedido.status_pedido;
             }
         }
-        else {
-            const conciliacaoPorRetorno = await aplicarStatusRetornoPedido(pedido, referencia, req.query);
-            if (conciliacaoPorRetorno) {
-                pagamento = conciliacaoPorRetorno.pagamento;
-                statusPagamento = conciliacaoPorRetorno.status_pagamento;
-                if (conciliacaoPorRetorno.pedido) {
-                    pedido.status_pedido = conciliacaoPorRetorno.pedido.status_pedido;
-                }
-            }
-        }
+        // Parametros da URL de retorno nao sao fonte confiavel para aprovar ou
+        // cancelar pagamentos. Sem confirmacao da API, preservamos o estado local
+        // ate que o webhook ou uma consulta posterior confirme o resultado.
         if (!pagamento) {
             const { data } = await supabase
                 .from("pagamentos")

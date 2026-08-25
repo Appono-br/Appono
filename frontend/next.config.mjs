@@ -36,6 +36,16 @@ const nextConfig = {
                 destination: "/cliente/detalhes-pedido",
                 permanent: true,
             },
+            {
+                source: "/cliente/configuracoes/pagamentos",
+                destination: "/cliente/configuracoes",
+                permanent: true,
+            },
+            {
+                source: "/restaurante/configuracoes/dados-bancarios",
+                destination: "/restaurante/financeiro",
+                permanent: true,
+            },
         ];
     },
     images: {

@@ -14,6 +14,9 @@ const mapaEventosPreferenciasRestaurante = {
     PAGAMENTO_APROVADO: "billing",
     REPASSE_LIBERADO: "billing",
     REPASSE_ESTORNADO: "billing",
+    REEMBOLSO_SOLICITADO: "billing",
+    REEMBOLSO_CONCLUIDO: "billing",
+    REEMBOLSO_RECUSADO: "billing",
 };
 
 function obterEmailsAdministradores() {

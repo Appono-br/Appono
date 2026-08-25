@@ -263,6 +263,9 @@ export default function RestaurantFinancialReportPage() {
             <h1 className="mt-2 text-4xl font-medium leading-tight text-app-cafe-profundo sm:text-5xl">
               Relatorio Financeiro
             </h1>
+            <Link href="/restaurante/reembolsos" className="mt-5 inline-flex rounded-[8px] border border-app-caramelo-torrado px-5 py-2.5 text-xs font-bold uppercase tracking-[0.12em] text-app-caramelo-torrado">
+              Analisar reembolsos
+            </Link>
             <p className="mt-4 max-w-2xl text-sm leading-6 text-app-cinza sm:text-base">
               Acompanhe apenas pedidos pagos e nao cancelados. A Appono retem o valor ate a entrega e libera o repasse conforme o status do pedido.
             </p>

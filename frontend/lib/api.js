@@ -1,3 +1,4 @@
+
 import { getAccessToken, obterTokensAutenticacao, salvarTokensAutenticacao } from "./session";
 import { supabase } from "./supabase";
 
@@ -5,6 +6,7 @@ const API_URL = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001/api")
 const TEMPO_CACHE_GET_MS = 15000;
 const cacheGet = new Map();
 const requisicoesEmAndamento = new Map();
+let renovacaoEmAndamento = null;
 
 function obterMetodo(options) {
     return String(options.method ?? "GET").toUpperCase();
@@ -20,28 +22,21 @@ function limparCacheGet() {
 }
 
 async function renovarSessaoExpirada() {
-    const tokens = obterTokensAutenticacao();
-    if (!tokens?.refreshToken) {
-        const { data } = await supabase.auth.getSession();
-        if (data.session) {
-            salvarTokensAutenticacao(data.session);
-            return data.session.access_token;
-        }
-        return null;
-    }
-    const { data, error } = await supabase.auth.refreshSession({
-        refresh_token: tokens.refreshToken,
+    if (renovacaoEmAndamento) return renovacaoEmAndamento;
+    renovacaoEmAndamento = (async () => {
+        const tokens = obterTokensAutenticacao();
+        if (!tokens?.accessToken || !tokens.refreshToken) return null;
+        const { data, error } = await supabase.auth.setSession({
+            access_token: tokens.accessToken,
+            refresh_token: tokens.refreshToken,
+        });
+        if (error || !data.session) return null;
+        salvarTokensAutenticacao(data.session);
+        return data.session.access_token;
+    })().finally(() => {
+        renovacaoEmAndamento = null;
     });
-    if (error || !data.session) {
-        const { data: sessaoAtual } = await supabase.auth.getSession();
-        if (sessaoAtual.session) {
-            salvarTokensAutenticacao(sessaoAtual.session);
-            return sessaoAtual.session.access_token;
-        }
-        return null;
-    }
-    salvarTokensAutenticacao(data.session);
-    return data.session.access_token;
+    return renovacaoEmAndamento;
 }
 
 async function obterAccessTokenSincronizado() {
@@ -89,12 +84,12 @@ export async function apiRequest(path, options = {}) {
         try {
             response = await fazerRequisicao(path, fetchOptions, accessToken);
         }
-        catch {
+        catch (error) {
+            if (error?.name === "AbortError") throw error;
             throw new Error("Nao conseguimos acessar o servico agora. Tente novamente em alguns instantes.");
         }
         let body = await response.json().catch(() => null);
-        const tokenInvalido = response.status === 401 && String(body?.error ?? "").toLowerCase().includes("token");
-        if (auth && tokenInvalido) {
+        if (auth && response.status === 401 && obterTokensAutenticacao()?.refreshToken) {
             accessToken = await renovarSessaoExpirada();
             if (accessToken) {
                 response = await fazerRequisicao(path, fetchOptions, accessToken);

@@ -5,30 +5,12 @@ const express_1 = require("express");
 const supabase_1 = require("../lib/supabase");
 const auth_1 = require("../middleware/auth");
 const comum_1 = require("../services/validacoes/comum");
-const dados_bancarios_1 = require("../services/validacoes/dados-bancarios");
 exports.meRouter = (0, express_1.Router)();
 function textoOpcional(valor) {
     return typeof valor === "string" ? valor.trim() : undefined;
 }
-function prepararStatusFinanceiro(dados) {
-    return {
-        status_cadastro: dados.status_cadastro ?? "nao_configurado",
-        provedor_pagamento: dados.provedor_pagamento ?? "integracao_externa_pendente",
-        referencia_externa: dados.referencia_externa ?? null,
-        updated_at: dados.updated_at ?? null,
-    };
-}
 function prepararPerfilParaResposta(perfil) {
-    if (!perfil || perfil.tipo !== "restaurante") {
-        return perfil;
-    }
-    return {
-        ...perfil,
-        perfil: {
-            ...perfil.perfil,
-            dados_bancarios_restaurante: (perfil.perfil.dados_bancarios_restaurante ?? []).map(prepararStatusFinanceiro),
-        },
-    };
+    return perfil;
 }
 function obterEmailsAdministradores() {
     return String(process.env.APPONO_ADMIN_EMAILS ?? "")
@@ -54,7 +36,7 @@ async function obterPerfil(supabase, userId) {
     }
     const { data: restaurante, error: restauranteError } = await supabase
         .from("restaurantes")
-        .select("*, dados_bancarios_restaurante(status_cadastro, provedor_pagamento, referencia_externa, updated_at)")
+        .select("*")
         .eq("id_auth", userId)
         .maybeSingle();
     if (restauranteError) {
@@ -144,49 +126,5 @@ exports.meRouter.patch("/", auth_1.requireAuth, async (req, res) => {
     return res.json({
         ...prepararPerfilParaResposta(perfilAtualizado),
         message: "Alteracoes salvas com sucesso.",
-    });
-});
-exports.meRouter.patch("/dados-bancarios", auth_1.requireAuth, async (req, res) => {
-    const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
-    const perfilAtual = await obterPerfil(supabase, res.locals.user.id);
-    if (!perfilAtual || perfilAtual.tipo !== "restaurante") {
-        return res.status(403).json({ error: "Apenas restaurantes podem alterar dados bancarios." });
-    }
-    const body = req.body;
-    const informouAlgumDado = [
-        body.bankCode,
-        body.agency,
-        body.checkingAccount,
-        body.pixKey,
-    ].some((valor) => Boolean(textoOpcional(valor)));
-    if (!informouAlgumDado) {
-        return res.status(400).json({ error: "Informe ao menos um dado bancario para atualizar." });
-    }
-    const erroValidacao = (0, dados_bancarios_1.validarDadosBancarios)(body);
-    if (erroValidacao) {
-        return res.status(400).json({ error: erroValidacao });
-    }
-    const dados = {
-        id_restaurante: perfilAtual.perfil.id_restaurante,
-        status_cadastro: "pendente_validacao",
-        provedor_pagamento: "integracao_financeira_externa",
-        referencia_externa: null,
-        updated_at: new Date().toISOString(),
-    };
-    const possuiRegistro = Boolean(perfilAtual.perfil.dados_bancarios_restaurante?.length);
-    const operacao = possuiRegistro
-        ? supabase
-            .from("dados_bancarios_restaurante")
-            .update(dados)
-            .eq("id_restaurante", perfilAtual.perfil.id_restaurante)
-        : supabase.from("dados_bancarios_restaurante").insert(dados);
-    const { error } = await operacao;
-    if (error) {
-        return res.status(400).json({ error: error.message });
-    }
-    const perfilAtualizado = await obterPerfil(supabase, res.locals.user.id);
-    return res.json({
-        ...prepararPerfilParaResposta(perfilAtualizado),
-        message: "Dados bancarios salvos com sucesso.",
     });
 });

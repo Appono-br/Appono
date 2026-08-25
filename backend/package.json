@@ -4,10 +4,10 @@
   "description": "Backend API com Node.js, Express e JavaScript",
   "main": "src/server.js",
   "scripts": {
-    "dev": "nodemon src/server.js",
+    "dev": "nodemon --exec \"node --use-system-ca\" src/server.js",
     "build": "node --check src/server.js",
-    "start": "node src/server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node --use-system-ca src/server.js",
+    "test": "node --test test/*.test.js"
   },
   "keywords": [],
   "author": "",

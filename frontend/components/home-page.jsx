@@ -441,62 +441,62 @@ export default function HomePage() {
       </div>
 
       <div className="mt-6 grid gap-3">
-        <button
-          type="button"
-          onClick={() => {
-            window.location.href =
-              profileDialog === "cadastro" ? "/cadastro/cliente" : "/login";
-          }}
-          className="group relative flex items-center gap-4 rounded-xl border border-app-baunilha-dourada bg-app-creme-suave p-4 text-left transition-all duration-200 hover:border-app-dourado-mel hover:bg-app-baunilha-dourada hover:shadow-md hover:-translate-y-0.5"
-        >
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-app-baunilha-dourada text-app-cafe-profundo transition group-hover:bg-app-dourado-mel group-hover:text-app-chantilly">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-              <circle cx="12" cy="7" r="4" />
-            </svg>
-          </div>
-          <div>
-            <strong className="block text-app-cafe-profundo">Sou cliente</strong>
-            <span className="mt-1 block text-sm leading-6 text-app-mocha">
-              Quero reservar mesa e antecipar meu pedido presencial.
-            </span>
-          </div>
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-auto shrink-0 text-app-caramelo-torrado opacity-0 transition-all -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0">
-            <line x1="5" y1="12" x2="19" y2="12" />
-            <polyline points="12 5 19 12 12 19" />
-          </svg>
-        </button>
+  <button
+    type="button"
+    onClick={() => {
+      window.location.href =
+        profileDialog === "cadastro" ? "/cadastro/cliente" : "/login";
+    }}
+    className="group relative flex items-center gap-4 rounded-xl bg-app-creme-suave p-4 text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
+  >
+    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-app-baunilha-dourada text-app-cafe-profundo transition group-hover:bg-app-dourado-mel group-hover:text-app-chantilly">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+        <circle cx="12" cy="7" r="4" />
+      </svg>
+    </div>
+    <div>
+      <strong className="block text-app-cafe-profundo">Sou cliente</strong>
+      <span className="mt-1 block text-sm leading-6 text-app-mocha">
+        Quero reservar mesa e antecipar meu pedido presencial.
+      </span>
+    </div>
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-auto shrink-0 text-app-caramelo-torrado opacity-0 transition-all -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0">
+      <line x1="5" y1="12" x2="19" y2="12" />
+      <polyline points="12 5 19 12 12 19" />
+    </svg>
+  </button>
 
-        <button
-          type="button"
-          onClick={() => {
-            window.location.href =
-              profileDialog === "cadastro" ? "/cadastro/restaurante" : "/login";
-          }}
-          className="group relative flex items-center gap-4 rounded-xl border border-app-baunilha-dourada bg-app-creme-suave p-4 text-left transition-all duration-200 hover:border-app-dourado-mel hover:bg-app-baunilha-dourada hover:shadow-md hover:-translate-y-0.5"
-        >
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-app-baunilha-dourada text-app-cafe-profundo transition group-hover:bg-app-dourado-mel group-hover:text-app-chantilly">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M3 21h18" />
-              <path d="M5 21V7l7-4 7 4v14" />
-              <path d="M9 9h1" />
-              <path d="M9 13h1" />
-              <path d="M14 9h1" />
-              <path d="M14 13h1" />
-            </svg>
-          </div>
-          <div>
-            <strong className="block text-app-cafe-profundo">Sou restaurante</strong>
-            <span className="mt-1 block text-sm leading-6 text-app-mocha">
-              Quero organizar reservas, cardápio e pedidos antecipados.
-            </span>
-          </div>
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-auto shrink-0 text-app-caramelo-torrado opacity-0 transition-all -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0">
-            <line x1="5" y1="12" x2="19" y2="12" />
-            <polyline points="12 5 19 12 12 19" />
-          </svg>
-        </button>
-      </div>
+  <button
+    type="button"
+    onClick={() => {
+      window.location.href =
+        profileDialog === "cadastro" ? "/cadastro/restaurante" : "/login";
+    }}
+    className="group relative flex items-center gap-4 rounded-xl bg-app-creme-suave p-4 text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
+  >
+    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-app-baunilha-dourada text-app-cafe-profundo transition group-hover:bg-app-dourado-mel group-hover:text-app-chantilly">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M3 21h18" />
+        <path d="M5 21V7l7-4 7 4v14" />
+        <path d="M9 9h1" />
+        <path d="M9 13h1" />
+        <path d="M14 9h1" />
+        <path d="M14 13h1" />
+      </svg>
+    </div>
+    <div>
+      <strong className="block text-app-cafe-profundo">Sou restaurante</strong>
+      <span className="mt-1 block text-sm leading-6 text-app-mocha">
+        Quero organizar reservas, cardápio e pedidos antecipados.
+      </span>
+    </div>
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-auto shrink-0 text-app-caramelo-torrado opacity-0 transition-all -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0">
+      <line x1="5" y1="12" x2="19" y2="12" />
+      <polyline points="12 5 19 12 12 19" />
+    </svg>
+  </button>
+</div>
     </div>
   </div>
 ) : null}
