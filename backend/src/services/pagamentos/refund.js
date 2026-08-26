@@ -19,7 +19,7 @@ function shouldRefundViaGateway(payment) {
     return isRealMarketplace();
 }
 
-async function refundApprovedPayments(payments, restaurantId) {
+async function refundApprovedPayments(payments, restaurantId, amountByPaymentId = new Map()) {
     const approved = (payments ?? []).filter((payment) => payment.status_pagamento === "APROVADO");
     if (!approved.length) return [];
     const needsGateway = approved.some((payment) => shouldRefundViaGateway(payment));
@@ -41,7 +41,8 @@ async function refundApprovedPayments(payments, restaurantId) {
             refunds.push({ payment, gatewayRefund: null, alreadyRefunded: true });
             continue;
         }
-        refunds.push({ payment, gatewayRefund: await estornarPagamentoMercadoPago(payment.mercado_pago_payment_id, token), alreadyRefunded: false });
+        const refundAmount = amountByPaymentId.get(payment.id_pagamento) ?? null;
+        refunds.push({ payment, gatewayRefund: await estornarPagamentoMercadoPago(payment.mercado_pago_payment_id, token, refundAmount), alreadyRefunded: false });
     }
     return refunds;
 }

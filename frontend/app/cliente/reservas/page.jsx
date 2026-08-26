@@ -98,7 +98,27 @@ function calcularSubtotalItem(item) {
 function reservaJaIniciou(reservation) {
     return new Date(`${reservation.date}T${reservation.time}`) <= new Date();
 }
+function obterPrazoConfirmacaoPresenca(reservation) {
+    return new Date(new Date(`${reservation.date}T${reservation.time}`).getTime() - 60 * 60 * 1000);
+}
+function podeResponderPresenca(reservation) {
+    return reservation.status === "CONFIRMADA" &&
+        reservation.attendanceStatus !== "RECUSADA" &&
+        new Date() <= obterPrazoConfirmacaoPresenca(reservation);
+}
+function formatarPrazoPresenca(reservation) {
+    return obterPrazoConfirmacaoPresenca(reservation).toLocaleTimeString("pt-BR", {
+        hour: "2-digit",
+        minute: "2-digit",
+    });
+}
 function obterDescricaoFluxoReserva(reservation) {
+    if (reservation.attendanceStatus === "CONFIRMADA" && reservation.status === "CONFIRMADA") {
+        return "Presenca confirmada. O restaurante pode organizar sua experiencia com mais seguranca.";
+    }
+    if (reservation.attendanceStatus === "RECUSADA") {
+        return "Voce informou que nao ira comparecer. A reserva e pedidos vinculados foram cancelados.";
+    }
     if (reservation.status === "CHECK_IN") {
         return "Check-in registrado pelo restaurante. Sua experiencia esta em atendimento.";
     }
@@ -118,7 +138,9 @@ function obterDescricaoFluxoReserva(reservation) {
         return "Reserva com pedido antecipado vinculado. Acompanhe o status do preparo pelos detalhes do pedido.";
     }
     if (reservation.status === "CONFIRMADA") {
-        return "Reserva simples confirmada. Voce ainda pode adicionar um pedido antecipado para reduzir sua espera.";
+        return podeResponderPresenca(reservation)
+            ? `Confirme sua presenca ate ${formatarPrazoPresenca(reservation)} para manter o restaurante alinhado.`
+            : "Reserva confirmada. O prazo de confirmacao de presenca encerra 1 hora antes do horario.";
     }
     return "Acompanhe aqui o status da sua reserva.";
 }
@@ -177,7 +199,10 @@ export default function ReservationsPage() {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [reservations, setReservations] = useState([]);
     const [reservaParaCancelar, setReservaParaCancelar] = useState(null);
+    const [reservaParaRecusarPresenca, setReservaParaRecusarPresenca] = useState(null);
     const [cancelandoReserva, setCancelandoReserva] = useState(false);
+    const [processandoPresenca, setProcessandoPresenca] = useState(false);
+    const [mensagemPresenca, setMensagemPresenca] = useState("");
     const [period, setPeriod] = useState({
         month: today.getMonth(),
         year: today.getFullYear(),
@@ -200,6 +225,10 @@ export default function ReservationsPage() {
                         date: reservation.data_reserva,
                         time: reservation.horario_inicio,
                         status: reservation.status_reserva,
+                        attendanceStatus: reservation.status_confirmacao_presenca ?? "PENDENTE",
+                        attendanceConfirmedAt: reservation.confirmacao_presenca_em,
+                        attendanceDeadline: reservation.prazo_confirmacao_presenca,
+                        attendanceRefundValue: Number(reservation.valor_reembolso_ausencia ?? 0),
                         restaurant: reservation.restaurantes?.nome ?? "Restaurante",
                         people: reservation.quantidade_pessoas,
                         minimumTotal: reservation.valor_minimo_total,
@@ -253,6 +282,63 @@ export default function ReservationsPage() {
         }
         catch {
             return;
+        }
+    }
+    function aplicarReservaAtualizada(reservaAtualizada) {
+        setReservations((atuais) => atuais.map((reserva) => reserva.id === String(reservaAtualizada.id_reserva)
+            ? {
+                ...reserva,
+                status: reservaAtualizada.status_reserva,
+                attendanceStatus: reservaAtualizada.status_confirmacao_presenca ?? reserva.attendanceStatus,
+                attendanceConfirmedAt: reservaAtualizada.confirmacao_presenca_em,
+                attendanceDeadline: reservaAtualizada.prazo_confirmacao_presenca,
+                attendanceRefundValue: Number(reservaAtualizada.valor_reembolso_ausencia ?? 0),
+                activeOrder: reservaAtualizada.status_reserva === "CANCELADA" ? undefined : reserva.activeOrder,
+                canceledOrder: reservaAtualizada.status_reserva === "CANCELADA" && reserva.activeOrder
+                    ? { id: reserva.activeOrder.id, total: reserva.activeOrder.total }
+                    : reserva.canceledOrder,
+            }
+            : reserva));
+    }
+    async function confirmarPresenca(id) {
+        setProcessandoPresenca(true);
+        setMensagemPresenca("");
+        try {
+            const resposta = await apiRequest(`/reservas/${id}/presenca`, {
+                method: "PATCH",
+                body: JSON.stringify({ acao: "CONFIRMAR" }),
+            });
+            aplicarReservaAtualizada(resposta.reserva);
+            setMensagemPresenca("Presenca confirmada com sucesso.");
+        }
+        catch (error) {
+            setMensagemPresenca(error instanceof Error ? error.message : "Nao foi possivel confirmar presenca.");
+        }
+        finally {
+            setProcessandoPresenca(false);
+        }
+    }
+    async function recusarPresenca() {
+        if (!reservaParaRecusarPresenca) return;
+        setProcessandoPresenca(true);
+        setMensagemPresenca("");
+        try {
+            const resposta = await apiRequest(`/reservas/${reservaParaRecusarPresenca.id}/presenca`, {
+                method: "PATCH",
+                body: JSON.stringify({ acao: "NAO_COMPARECEREI" }),
+            });
+            aplicarReservaAtualizada(resposta.reserva);
+            setReservaParaRecusarPresenca(null);
+            const valor = Number(resposta.reembolso?.valor ?? 0);
+            setMensagemPresenca(valor > 0
+                ? `Reserva cancelada. Reembolso parcial registrado: ${formatarMoeda(valor)}.`
+                : "Reserva cancelada.");
+        }
+        catch (error) {
+            setMensagemPresenca(error instanceof Error ? error.message : "Nao foi possivel cancelar a presenca.");
+        }
+        finally {
+            setProcessandoPresenca(false);
         }
     }
     return (<main className="flex min-h-screen flex-col bg-app-chantilly text-app-cafe-profundo">
@@ -355,6 +441,11 @@ export default function ReservationsPage() {
           </aside>
 
           <section className="grid content-start gap-6 self-start">
+            {mensagemPresenca ? (
+              <p className="rounded-[10px] bg-app-creme-leve px-4 py-3 text-sm font-semibold text-app-cafe-profundo ring-1 ring-app-baunilha-dourada">
+                {mensagemPresenca}
+              </p>
+            ) : null}
             {reservations.length ? (<div className="grid auto-rows-max content-start gap-4">
                 {reservations.map((reservation) => (<article key={reservation.id} className="overflow-hidden rounded-[12px] bg-app-creme-leve shadow-sm ring-1 ring-app-baunilha-dourada/70 transition hover:-translate-y-0.5 hover:shadow-md">
                     <div className="grid sm:grid-cols-[112px_1fr_auto]">
@@ -394,6 +485,21 @@ export default function ReservationsPage() {
                             {formatarMoeda(reservation.minimumTotal)}
                           </span>
                         </div>
+                        {reservation.status === "CONFIRMADA" ? (<div className="mt-5 rounded-[10px] bg-app-chantilly px-4 py-3 text-sm ring-1 ring-app-baunilha-dourada/60">
+                            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                              <div>
+                                <p className="text-xs font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">
+                                  Confirmacao de presenca
+                                </p>
+                                <p className="mt-1 text-app-mocha">
+                                  Prazo: ate {formatarPrazoPresenca(reservation)}
+                                </p>
+                              </div>
+                              <span className="w-fit rounded-full bg-app-creme-leve px-3 py-1 text-[11px] font-bold uppercase text-app-cafe-profundo ring-1 ring-app-baunilha-dourada">
+                                {reservation.attendanceStatus === "CONFIRMADA" ? "Presenca confirmada" : "Pendente"}
+                              </span>
+                            </div>
+                          </div>) : null}
                         {reservation.activeOrder ? (<div className="mt-5 rounded-[10px] border border-app-caramelo-torrado/25 bg-app-creme-suave px-4 py-3">
                             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                               <p className="text-xs font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">
@@ -440,6 +546,14 @@ export default function ReservationsPage() {
                         <span className={`rounded-full px-3 py-1 text-xs font-bold ${obterStatusReserva(reservation.status).classe}`}>
                           {obterStatusReserva(reservation.status).texto}
                         </span>
+                        {podeResponderPresenca(reservation) ? (<div className="grid w-full gap-2">
+                            {reservation.attendanceStatus !== "CONFIRMADA" ? (<button type="button" disabled={processandoPresenca} onClick={() => confirmarPresenca(reservation.id)} className="rounded-[8px] bg-app-cafe-profundo px-4 py-2 text-xs font-bold text-app-creme-leve transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-60">
+                                Confirmar presenca
+                              </button>) : null}
+                            <button type="button" disabled={processandoPresenca} onClick={() => setReservaParaRecusarPresenca(reservation)} className="rounded-[8px] border border-app-vermelho-erro/40 px-4 py-2 text-xs font-bold text-app-vermelho-erro transition hover:bg-app-vermelho-erro hover:text-white disabled:cursor-not-allowed disabled:opacity-60">
+                              Nao vou comparecer
+                            </button>
+                          </div>) : null}
                         {["PENDENTE", "CONFIRMADA"].includes(reservation.status) && !reservaJaIniciou(reservation) ? (<button type="button" onClick={() => setReservaParaCancelar(reservation)} className="text-xs font-bold text-app-vermelho-erro transition hover:text-app-cafe-profundo">
                             Desmarcar reserva
                           </button>) : null}
@@ -489,6 +603,37 @@ export default function ReservationsPage() {
               </button>
               <button type="button" onClick={() => cancelarReserva(reservaParaCancelar.id)} disabled={cancelandoReserva} className="h-11 rounded-[8px] bg-app-vermelho-erro px-4 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-app-cafe-profundo disabled:cursor-not-allowed disabled:bg-app-cinza/50">
                 {cancelandoReserva ? "Cancelando..." : "Confirmar cancelamento"}
+              </button>
+            </div>
+          </section>
+        </div>) : null}
+
+      {reservaParaRecusarPresenca ? (<div className="fixed inset-0 z-50 flex items-center justify-center bg-app-cafe-profundo/70 px-5 backdrop-blur-sm">
+          <section className="w-full max-w-lg rounded-[16px] bg-app-creme-leve p-6 text-app-cafe-profundo shadow-xl ring-1 ring-app-baunilha-dourada/70">
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">
+              Confirmar ausencia
+            </p>
+            <h2 className="mt-3 text-2xl font-semibold">
+              Voce nao ira comparecer?
+            </h2>
+            <p className="mt-3 text-sm leading-6 text-app-mocha">
+              Ao confirmar, sua reserva sera cancelada, o pedido antecipado vinculado tambem sera cancelado e o restaurante sera avisado para nao preparar a comanda.
+            </p>
+            {reservaParaRecusarPresenca.activeOrder ? (<p className="mt-3 rounded-[10px] bg-app-chantilly p-3 text-sm font-semibold leading-6 text-app-cafe-profundo ring-1 ring-app-baunilha-dourada/60">
+                Como existe pedido pago ou vinculado, o reembolso sera calculado pelo excedente: valor pago menos consumo minimo da reserva e comissao Appono.
+              </p>) : null}
+            <div className="mt-6 rounded-[10px] bg-app-chantilly p-4 ring-1 ring-app-baunilha-dourada/60">
+              <p className="text-sm font-semibold">{reservaParaRecusarPresenca.restaurant}</p>
+              <p className="mt-1 text-xs text-app-cinza">
+                {formatarDataReserva(reservaParaRecusarPresenca.date).dia} {formatarDataReserva(reservaParaRecusarPresenca.date).mes} - {formatarHorario(reservaParaRecusarPresenca.time)} - {reservaParaRecusarPresenca.people} {reservaParaRecusarPresenca.people === 1 ? "pessoa" : "pessoas"}
+              </p>
+            </div>
+            <div className="mt-6 grid gap-3 sm:grid-cols-2">
+              <button type="button" onClick={() => setReservaParaRecusarPresenca(null)} disabled={processandoPresenca} className="h-11 rounded-[8px] border border-app-baunilha-dourada px-4 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:bg-app-chantilly disabled:cursor-not-allowed disabled:text-app-cinza">
+                Voltar
+              </button>
+              <button type="button" onClick={recusarPresenca} disabled={processandoPresenca} className="h-11 rounded-[8px] bg-app-vermelho-erro px-4 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-app-cafe-profundo disabled:cursor-not-allowed disabled:bg-app-cinza/50">
+                {processandoPresenca ? "Processando..." : "Confirmar ausencia"}
               </button>
             </div>
           </section>

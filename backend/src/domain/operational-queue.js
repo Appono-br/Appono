@@ -2,6 +2,7 @@
 
 const JANELA_OPERACIONAL_MINUTOS = 60;
 const HORIZONTE_RESERVAS_OPERACIONAIS_HORAS = 24;
+const STATUS_RESERVA_OPERACIONAL_PEDIDO = ["CONFIRMADA", "CHECK_IN"];
 
 function obterDataHoraReserva(reserva) {
     if (!reserva?.data_reserva || !reserva?.horario_inicio) {
@@ -21,17 +22,51 @@ function obterMinutosAteReserva(reserva, agora = new Date()) {
     return Math.floor((inicio.getTime() - agora.getTime()) / 60000);
 }
 
+function obterDataHoraLocal(valor) {
+    if (!valor) {
+        return null;
+    }
+
+    const normalizado = String(valor).replace(" ", "T");
+    const temTimezone = /(?:Z|[+-]\d{2}:?\d{2})$/.test(normalizado);
+    const data = new Date(temTimezone ? normalizado : `${normalizado}-03:00`);
+    return Number.isNaN(data.getTime()) ? null : data;
+}
+
 function pedidoEstaNaFilaOperacional(pedido, agora = new Date(), janelaMinutos = JANELA_OPERACIONAL_MINUTOS) {
     if (!pedido || pedido.ocultado_cozinha === true || pedido.status_pedido === "PENDENTE") {
         return false;
     }
 
-    if (["EM_PREPARO", "PRONTO", "ENTREGUE", "CANCELADO"].includes(pedido.status_pedido)) {
+    if (!STATUS_RESERVA_OPERACIONAL_PEDIDO.includes(pedido.reservas?.status_reserva)) {
+        return false;
+    }
+
+    if (pedido.reservas.status_reserva !== "CHECK_IN" &&
+        pedido.reservas.status_confirmacao_presenca !== "CONFIRMADA") {
+        return false;
+    }
+
+    if (["EM_PREPARO", "PRONTO"].includes(pedido.status_pedido)) {
         return true;
     }
 
     if (pedido.status_pedido !== "CONFIRMADO") {
         return false;
+    }
+
+    const minutosAteReserva = obterMinutosAteReserva(pedido.reservas, agora);
+    return minutosAteReserva !== null && minutosAteReserva >= -janelaMinutos;
+}
+
+function pedidoPodeIniciarPreparo(pedido, agora = new Date(), janelaMinutos = JANELA_OPERACIONAL_MINUTOS) {
+    if (!pedidoEstaNaFilaOperacional(pedido, agora, janelaMinutos) || pedido.status_pedido !== "CONFIRMADO") {
+        return false;
+    }
+
+    const inicioPreparo = obterDataHoraLocal(pedido.iniciar_preparo_em);
+    if (inicioPreparo) {
+        return inicioPreparo.getTime() <= agora.getTime();
     }
 
     const minutosAteReserva = obterMinutosAteReserva(pedido.reservas, agora);
@@ -65,9 +100,12 @@ function ordenarPorHorarioReserva(a, b) {
 module.exports = {
     HORIZONTE_RESERVAS_OPERACIONAIS_HORAS,
     JANELA_OPERACIONAL_MINUTOS,
+    STATUS_RESERVA_OPERACIONAL_PEDIDO,
+    obterDataHoraLocal,
     obterDataHoraReserva,
     obterMinutosAteReserva,
     ordenarPorHorarioReserva,
+    pedidoPodeIniciarPreparo,
     pedidoEstaNaFilaOperacional,
     reservaEstaNaFilaOperacional,
 };

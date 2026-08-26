@@ -39,14 +39,14 @@ export function obterReservasHoje(reservas = []) {
   const hoje = obterDataLocalISO();
   return reservas.filter((reserva) =>
     reserva.data_reserva === hoje &&
-    !["CANCELADA", "RECUSADA"].includes(reserva.status_reserva),
+    !["CANCELADA", "RECUSADA", "NAO_COMPARECEU"].includes(reserva.status_reserva),
   );
 }
 
 export function obterReservasNoPeriodo(reservas = [], dias = 30) {
   return reservas.filter((reserva) =>
     dataEstaNoPeriodo(reserva.data_reserva, dias) &&
-    !["CANCELADA", "RECUSADA"].includes(reserva.status_reserva),
+    !["CANCELADA", "RECUSADA", "NAO_COMPARECEU"].includes(reserva.status_reserva),
   );
 }
 
@@ -83,7 +83,7 @@ export function obterClientesUnicos(reservas = [], pedidos = []) {
 
 export function calcularTicketMedio(pedidos = []) {
   const pedidosValidos = pedidos.filter((pedido) =>
-    pedido.status_pedido !== "CANCELADO" && Number(pedido.valor_total ?? 0) > 0,
+    !["PENDENTE", "CANCELADO"].includes(pedido.status_pedido) && Number(pedido.valor_total ?? 0) > 0,
   );
   if (!pedidosValidos.length) {
     return 0;
@@ -94,7 +94,7 @@ export function calcularTicketMedio(pedidos = []) {
 
 export function calcularItensVendidos(pedidos = []) {
   return pedidos
-    .filter((pedido) => pedido.status_pedido !== "CANCELADO")
+    .filter((pedido) => !["PENDENTE", "CANCELADO"].includes(pedido.status_pedido))
     .flatMap((pedido) => pedido.itens_pedido ?? [])
     .reduce((soma, item) => soma + Number(item.quantidade ?? 0), 0);
 }

@@ -8,7 +8,7 @@ const mercado_pago_1 = require("../services/pagamentos/mercado-pago");
 const paymentConfig = require("../services/pagamentos/config");
 const notificacoes_1 = require("../services/notificacoes");
 const { canTransitionOrder } = require("../domain/order-state");
-const { ordenarPorHorarioReserva, pedidoEstaNaFilaOperacional } = require("../domain/operational-queue");
+const { ordenarPorHorarioReserva, pedidoEstaNaFilaOperacional, pedidoPodeIniciarPreparo } = require("../domain/operational-queue");
 const { paginationMeta, parsePagination } = require("../domain/pagination");
 const { orderReviewEligibility } = require("../domain/review-state");
 exports.ordersRouter = (0, express_1.Router)();
@@ -268,7 +268,7 @@ exports.ordersRouter.get("/historico/restaurante", async (req, res) => {
     const clienteBanco = supabase_1.supabaseAdmin ?? supabase;
     const { data, error } = await clienteBanco
         .from("pedidos")
-        .select("id_pedido, id_reserva, status_pedido, valor_total, data_pedido, horario_entrega_previsto, iniciar_preparo_em, ocultado_cozinha, ocultado_cozinha_em, observacoes, clientes(nome, telefone), reservas(data_reserva, horario_inicio, horario_fim, quantidade_pessoas, mesas(numero_mesa)), pagamentos(id_pagamento, valor_pago, status_pagamento, status_repasse, valor_restaurante, valor_comissao_app, data_pagamento), itens_pedido(quantidade, preco_unitario, observacoes, produtos(nome, descricao, imagem_url, tempo_preparo_minutos))")
+        .select("id_pedido, id_reserva, status_pedido, valor_total, data_pedido, horario_entrega_previsto, iniciar_preparo_em, ocultado_cozinha, ocultado_cozinha_em, observacoes, clientes(nome, telefone), reservas(data_reserva, horario_inicio, horario_fim, quantidade_pessoas, status_reserva, status_confirmacao_presenca, mesas(numero_mesa)), pagamentos(id_pagamento, valor_pago, status_pagamento, status_repasse, valor_restaurante, valor_comissao_app, data_pagamento), itens_pedido(quantidade, preco_unitario, observacoes, produtos(nome, descricao, imagem_url, tempo_preparo_minutos))")
         .eq("id_restaurante", restaurante.id_restaurante)
         .order("data_pedido", { ascending: false });
     if (error) {
@@ -576,7 +576,7 @@ exports.ordersRouter.patch("/:id/status", (0, auth_1.requireRole)("restaurante")
     }
     const { data: pedidoAtual, error: pedidoAtualError } = await supabase
         .from("pedidos")
-        .select("id_pedido, id_restaurante, status_pedido, iniciar_preparo_em, reservas(data_reserva, horario_inicio)")
+        .select("id_pedido, id_restaurante, status_pedido, iniciar_preparo_em, reservas(data_reserva, horario_inicio, status_reserva, status_confirmacao_presenca)")
         .eq("id_pedido", orderId)
         .eq("id_restaurante", restaurante.id_restaurante)
         .maybeSingle();
@@ -590,7 +590,7 @@ exports.ordersRouter.patch("/:id/status", (0, auth_1.requireRole)("restaurante")
         return res.status(409).json({ error: `Transicao de ${pedidoAtual.status_pedido} para ${status_pedido} nao permitida.` });
     }
     if (status_pedido === "EM_PREPARO") {
-        if (!pedidoEstaNaFilaOperacional(pedidoAtual)) {
+        if (!pedidoPodeIniciarPreparo(pedidoAtual)) {
             return res.status(409).json({
                 error: `O preparo deste pedido so fica liberado as ${formatarHorario(pedidoAtual.iniciar_preparo_em)}.`,
             });
