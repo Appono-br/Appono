@@ -114,6 +114,42 @@ A migration `20260815000100_create_simulated_refunds.sql` cria a tabela, as pol�
 
 Na página do restaurante, o cliente pode selecionar quantidades diretamente no cardápio. Sem itens, `POST /api/reservas` cria somente a reserva; com itens e o consumo mínimo atingido, `POST /api/reservas/com-pedido` cria reserva e pedido antecipado na mesma transação e direciona ao checkout do pedido.
 
+## Fila operacional de reservas e cozinha
+
+A Appono deve organizar a operação do restaurante por proximidade de horário, e não por uma tentativa rígida de calcular o tempo médio real de preparo de cada prato. O tempo de preparo de uma cozinha depende de fatores variáveis, como equipe disponível, fila interna, quantidade de itens, horário de pico, mise en place e complexidade operacional. Por isso, a regra principal passa a ser a fila operacional.
+
+Regra de negócio proposta:
+
+- Reservas aparecem para o restaurante em ordem de proximidade do horário.
+- A tela de reservas prioriza agendamentos do dia, check-in, finalização e não comparecimento.
+- A cozinha exibe somente pedidos pagos e próximos do horário da reserva.
+- Pedidos muito futuros não devem poluir a fila da cozinha.
+- O pedido antecipado continua vinculado à reserva, mas sua preparação passa a depender da janela operacional configurada pela Appono/restaurante.
+- Para o MVP, a janela inicial recomendada é de 60 minutos antes da reserva.
+- Em evolução futura, essa janela deve ser configurável em `Restaurante > Configurações > Operação`.
+- Na API, a fila da cozinha é carregada por `GET /api/pedidos/historico/restaurante?fila=cozinha`.
+- Na API, a fila operacional de reservas é carregada por `GET /api/reservas?fila=operacional`.
+- As listagens operacionais do restaurante validam o restaurante autenticado e só então usam consulta privilegiada para carregar nome/telefone do cliente, evitando que a interface mostre apenas “Cliente” por limitação de RLS.
+
+Fluxo esperado:
+
+```text
+Cliente reserva mesa
+  ├─ sem pedido antecipado → aparece na fila de reservas
+  └─ com pedido antecipado → paga o pedido → pedido fica confirmado
+                              → entra na fila da cozinha apenas perto do horário
+```
+
+Estados operacionais recomendados:
+
+- Reserva futura: visível na agenda, mas sem destaque operacional.
+- Reserva próxima: aparece no topo da fila de reservas.
+- Pedido confirmado futuro: pago, mas ainda fora da fila de preparo.
+- Pedido liberado para cozinha: dentro da janela operacional, pronto para ser preparado.
+- Pedido em preparo, pronto e entregue: fluxo normal da cozinha.
+
+Essa regra reduz ruído operacional, melhora a experiência do restaurante e evita que a Appono assuma uma responsabilidade difícil de garantir: prever exatamente quando cada prato deve começar a ser preparado.
+
 ## Organização e manutenção
 
 O projeto permanece integralmente em JavaScript e Node.js. Regras puras ficam em `backend/src/domain`, configuração e integração financeira em `backend/src/services/pagamentos`, e rotas Express coordenam HTTP, autorização e serviços. No frontend, listagens usam paginação, abortam requisições antigas e carregam detalhes por ID para reduzir consultas, payload e acoplamento entre telas.

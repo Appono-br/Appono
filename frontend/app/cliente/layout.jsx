@@ -1,5 +1,6 @@
 "use client";
 import { useSyncExternalStore } from "react";
+import { RotaProtegida } from "@/components/auth/rota-protegida";
 import { useTemaLocal } from "@/lib/use-tema-local";
 import { TelaCarregandoSessao } from "@/lib/use-sessao-local";
 function inscrever() {
@@ -17,7 +18,9 @@ export default function LayoutCliente({ children }) {
     if (!estaNoNavegador) {
         return <TelaCarregandoSessao />;
     }
-    return (<div className={`area-autenticada min-h-full ${tema === "escuro" ? "tema-escuro" : ""}`}>
-      {children}
-    </div>);
+    return (<RotaProtegida perfisPermitidos={["client"]}>
+      <div className={`area-autenticada min-h-full ${tema === "escuro" ? "tema-escuro" : ""}`}>
+        {children}
+      </div>
+    </RotaProtegida>);
 }

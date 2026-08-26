@@ -446,7 +446,7 @@ export default function ReservationsPage() {
                         {reservation.activeOrder?.status === "PENDENTE" && reservaAceitaPagamento(reservation) ? (<Link href={`/cliente/pagamentos/pedido/${reservation.activeOrder.id}`} className="rounded-[8px] bg-app-dourado-mel px-4 py-2 text-xs font-bold text-white transition hover:bg-app-caramelo-torrado">
                             Pagar pedido
                           </Link>) : null}
-                        {reservation.status === "CONFIRMADA" && reservation.activeOrder && reservation.activeOrder.status !== "PENDENTE" ? (<Link href="/cliente/detalhes-pedido" className="rounded-[8px] bg-app-dourado-mel px-4 py-2 text-xs font-bold text-white transition hover:bg-app-caramelo-torrado">
+                        {reservation.status === "CONFIRMADA" && reservation.activeOrder && reservation.activeOrder.status !== "PENDENTE" ? (<Link href={`/cliente/pedidos/${reservation.activeOrder.id}`} className="rounded-[8px] bg-app-dourado-mel px-4 py-2 text-xs font-bold text-white transition hover:bg-app-caramelo-torrado">
                             Acompanhar pedido
                           </Link>) : null}
                         {reservation.status === "CONFIRMADA" && !reservation.activeOrder && !reservaJaIniciou(reservation) ? (<Link href={`/cliente/reservas/${reservation.id}/pedido`} className="rounded-[8px] bg-app-dourado-mel px-4 py-2 text-xs font-bold text-white transition hover:bg-app-caramelo-torrado">

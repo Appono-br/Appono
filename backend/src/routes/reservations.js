@@ -7,14 +7,15 @@ const auth_1 = require("../middleware/auth");
 const notificacoes_1 = require("../services/notificacoes");
 const { sincronizarReservasNaoComparecidas } = require("../services/reservas/expiracao");
 const { refundApprovedPayments } = require("../services/pagamentos/refund");
+const paymentConfig = require("../services/pagamentos/config");
+const { ordenarPorHorarioReserva, reservaEstaNaFilaOperacional } = require("../domain/operational-queue");
 const { restaurantCancellationEligibility } = require("../domain/reservation-time");
 exports.reservationsRouter = (0, express_1.Router)();
 exports.reservationsRouter.use(auth_1.requireAuth);
 const LIMITE_UNIDADES_POR_ITEM = 10;
 
 async function restaurantePodeReceberPedidoPago(restauranteId) {
-    const modoRepasse = String(process.env.MERCADO_PAGO_MODO_REPASSE ?? "SIMULADO").trim().toUpperCase();
-    if (!["MARKETPLACE_REAL", "REAL", "PRODUCAO"].includes(modoRepasse)) {
+    if (!paymentConfig.isRealMarketplace()) {
         return true;
     }
     if (!supabase_1.supabaseAdmin || !restauranteId) {
@@ -134,7 +135,7 @@ function obterDataHoraLocal(data, horario) {
     return new Date(`${data}T${String(horario ?? "").slice(0, 8)}`);
 }
 
-exports.reservationsRouter.get("/", async (_req, res) => {
+exports.reservationsRouter.get("/", async (req, res) => {
     try {
         await sincronizarReservasNaoComparecidas();
     } catch (error) {
@@ -145,23 +146,41 @@ exports.reservationsRouter.get("/", async (_req, res) => {
         .from("clientes")
         .select("id_cliente")
         .maybeSingle();
+    const { data: restaurante, error: restauranteError } = cliente ? { data: null, error: null } : await supabase
+        .from("restaurantes")
+        .select("id_restaurante")
+        .eq("id_auth", res.locals.user.id)
+        .maybeSingle();
+    if (restauranteError) {
+        return res.status(400).json({ error: restauranteError.message });
+    }
+    if (!cliente && !restaurante) {
+        return res.status(403).json({ error: "Perfil nao encontrado para consultar reservas." });
+    }
+    const clienteBanco = cliente ? supabase : (supabase_1.supabaseAdmin ?? supabase);
     const colunaOcultacao = cliente ? "ocultada_cliente" : "ocultada_restaurante";
-    const consultaReservas = supabase
+    let consultaReservas = clienteBanco
         .from("reservas")
         .select("*, restaurantes(nome, endereco), clientes(nome, telefone), mesas(numero_mesa, capacidade)")
         .eq(colunaOcultacao, false)
         .order("data_reserva", { ascending: true })
         .order("horario_inicio", { ascending: true });
+    if (restaurante) {
+        consultaReservas = consultaReservas.eq("id_restaurante", restaurante.id_restaurante);
+    }
     const { data, error } = await consultaReservas;
     if (error) {
         return res.status(400).json({ error: error.message });
     }
-    const reservas = data ?? [];
+    const somenteFilaOperacional = !cliente && String(req.query?.fila ?? "").toLowerCase() === "operacional";
+    const reservas = somenteFilaOperacional
+        ? (data ?? []).filter((reserva) => reservaEstaNaFilaOperacional(reserva)).sort(ordenarPorHorarioReserva)
+        : data ?? [];
     const idsReservas = reservas.map((reserva) => reserva.id_reserva);
     if (!idsReservas.length) {
         return res.json(reservas);
     }
-    const clientePedidos = supabase_1.supabaseAdmin ?? supabase;
+    const clientePedidos = cliente ? (supabase_1.supabaseAdmin ?? supabase) : clienteBanco;
     const { data: pedidos, error: pedidosError } = await clientePedidos
         .from("pedidos")
         .select("id_pedido, id_reserva, status_pedido, valor_total, horario_entrega_previsto, iniciar_preparo_em, ocultado_cozinha, ocultado_cozinha_em, observacoes, itens_pedido(quantidade, preco_unitario, observacoes, produtos(nome, descricao, imagem_url, tempo_preparo_minutos))")
@@ -329,16 +348,16 @@ exports.reservationsRouter.post("/com-pedido", async (req, res) => {
     }
     await Promise.all([
         (0, notificacoes_1.notificarCliente)(reservaCriada.id_cliente, {
-            titulo: "Reserva confirmada",
-            mensagem: "Sua reserva foi confirmada e o pedido antecipado foi vinculado para pagamento.",
-            tipo_evento: "RESERVA_CONFIRMADA",
-            link_destino: "/cliente/reservas",
+            titulo: "Reserva aguardando pagamento",
+            mensagem: "Sua reserva foi registrada e sera confirmada assim que o pagamento do pedido antecipado for aprovado.",
+            tipo_evento: "RESERVA_AGUARDANDO_PAGAMENTO",
+            link_destino: `/cliente/pagamentos/pedido/${pedidoCriado.id_pedido}`,
             dados: { id_reserva: reservaCriada.id_reserva, id_pedido: pedidoCriado.id_pedido },
         }),
         (0, notificacoes_1.notificarRestaurante)(reservaCriada.id_restaurante, {
-            titulo: "Nova reserva com pedido",
-            mensagem: "Uma reserva foi registrada com pedido antecipado vinculado.",
-            tipo_evento: "NOVA_RESERVA",
+            titulo: "Reserva aguardando pagamento",
+            mensagem: "Uma reserva com pedido antecipado foi iniciada e aparecera na operacao apos o pagamento.",
+            tipo_evento: "RESERVA_AGUARDANDO_PAGAMENTO",
             link_destino: "/restaurante/reservas",
             dados: { id_reserva: reservaCriada.id_reserva, id_pedido: pedidoCriado.id_pedido },
         }),

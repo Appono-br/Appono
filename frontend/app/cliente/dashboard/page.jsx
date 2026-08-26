@@ -66,15 +66,23 @@ function formatarMoeda(valor) {
 export default function DashboardPage() {
     const [activeFilter, setActiveFilter] = useState(filters[0]);
     const [query, setQuery] = useState("");
+    const [debouncedQuery, setDebouncedQuery] = useState("");
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [restaurants, setRestaurants] = useState([]);
     const [reservas, setReservas] = useState([]);
     const [message, setMessage] = useState("");
     const [updatingFavorite, setUpdatingFavorite] = useState("");
     useEffect(() => {
+        const timer = window.setTimeout(() => setDebouncedQuery(query.trim()), 250);
+        return () => window.clearTimeout(timer);
+    }, [query]);
+    useEffect(() => {
         async function loadRestaurants() {
             try {
-                const data = await apiRequest("/restaurantes");
+                const endpoint = debouncedQuery
+                    ? `/restaurantes?q=${encodeURIComponent(debouncedQuery)}`
+                    : "/restaurantes";
+                const data = await apiRequest(endpoint);
                 setRestaurants(data.map((restaurant) => ({
                     id: String(restaurant.id_restaurante),
                     name: restaurant.nome,
@@ -86,6 +94,7 @@ export default function DashboardPage() {
                     reviewCount: restaurant.total_avaliacoes ?? 0,
                     favoriteCount: restaurant.total_favoritos ?? 0,
                     isFavorite: Boolean(restaurant.favorito_cliente),
+                    matchedProducts: restaurant.produtos_encontrados ?? [],
                 })));
             }
             catch (error) {
@@ -95,7 +104,7 @@ export default function DashboardPage() {
             }
         }
         loadRestaurants();
-    }, []);
+    }, [debouncedQuery]);
     useEffect(() => {
         async function loadReservations() {
             try {
@@ -122,7 +131,8 @@ export default function DashboardPage() {
             const normalizedQuery = query.trim().toLowerCase();
             const matchesSearch = !normalizedQuery ||
                 restaurant.name.toLowerCase().includes(normalizedQuery) ||
-                restaurant.specialty.toLowerCase().includes(normalizedQuery);
+                restaurant.specialty.toLowerCase().includes(normalizedQuery) ||
+                (restaurant.matchedProducts ?? []).some((produto) => `${produto.nome ?? ""} ${produto.descricao ?? ""}`.toLowerCase().includes(normalizedQuery));
             return matchesFilter && matchesSearch;
         });
     }, [activeFilter, query, restaurants]);
@@ -311,6 +321,11 @@ export default function DashboardPage() {
                     ? restaurant.openingHours
                     : "Consulte os horarios"}
                         </p>
+                        {restaurant.matchedProducts?.length ? (
+                          <p className="mt-1 truncate text-xs font-semibold leading-4 text-app-caramelo-torrado antialiased">
+                            Encontrado no cardápio: {restaurant.matchedProducts.map((produto) => produto.nome).join(", ")}
+                          </p>
+                        ) : null}
                         <span className="mt-1 inline-flex rounded-[5px] bg-app-creme-suave px-2 py-0.5 text-xs font-semibold leading-4 text-app-caramelo-torrado antialiased">
                           Reserva e pedido antecipado
                         </span>

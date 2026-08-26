@@ -5,8 +5,10 @@ const express_1 = require("express");
 const supabase_1 = require("../lib/supabase");
 const auth_1 = require("../middleware/auth");
 const mercado_pago_1 = require("../services/pagamentos/mercado-pago");
+const paymentConfig = require("../services/pagamentos/config");
 const notificacoes_1 = require("../services/notificacoes");
 const { canTransitionOrder } = require("../domain/order-state");
+const { ordenarPorHorarioReserva, pedidoEstaNaFilaOperacional } = require("../domain/operational-queue");
 const { paginationMeta, parsePagination } = require("../domain/pagination");
 const { orderReviewEligibility } = require("../domain/review-state");
 exports.ordersRouter = (0, express_1.Router)();
@@ -16,8 +18,7 @@ const LIMITE_UNIDADES_POR_ITEM = 10;
 const STATUS_HISTORICO_RESTAURANTE = ["ENTREGUE", "CANCELADO"];
 
 async function restaurantePodeReceberPedidoPago(restauranteId) {
-    const modoRepasse = String(process.env.MERCADO_PAGO_MODO_REPASSE ?? "SIMULADO").trim().toUpperCase();
-    if (!["MARKETPLACE_REAL", "REAL", "PRODUCAO"].includes(modoRepasse)) {
+    if (!paymentConfig.isRealMarketplace()) {
         return true;
     }
     if (!supabase_1.supabaseAdmin || !restauranteId) {
@@ -42,6 +43,16 @@ function obterStatusPedidoPorPagamento(statusPagamento) {
     }
     if (statusPagamento === "RECUSADO") {
         return "CANCELADO";
+    }
+    return null;
+}
+
+function obterStatusReservaPorPagamento(statusPagamento) {
+    if (statusPagamento === "APROVADO") {
+        return "CONFIRMADA";
+    }
+    if (["RECUSADO", "ESTORNADO"].includes(statusPagamento)) {
+        return "CANCELADA";
     }
     return null;
 }
@@ -88,7 +99,7 @@ function formatarHorario(valor) {
 }
 
 function marketplaceRealAtivo() {
-    return ["MARKETPLACE_REAL", "REAL", "PRODUCAO"].includes(obterModoRepasseMercadoPago());
+    return paymentConfig.isRealMarketplace();
 }
 
 async function registrarEventoFinanceiro(dados) {
@@ -141,6 +152,19 @@ async function conciliarPedidosPendentes(pedidos) {
         let pagamentoMercadoPago = await (0, mercado_pago_1.consultarPagamentoPorReferenciaMercadoPago)(referencia, tokenPagamento ?? undefined);
         if (!pagamentoMercadoPago?.status && tokenPagamento) {
             pagamentoMercadoPago = await (0, mercado_pago_1.consultarPagamentoPorReferenciaMercadoPago)(referencia);
+        }
+        if (!pagamentoMercadoPago?.status) {
+            const { data: pagamentoLocal } = await supabase_1.supabaseAdmin
+                .from("pagamentos")
+                .select("mercado_pago_preference_id")
+                .eq("referencia_externa", referencia)
+                .maybeSingle();
+            if (pagamentoLocal?.mercado_pago_preference_id) {
+                pagamentoMercadoPago = await (0, mercado_pago_1.consultarPagamentoPorPreferenciaMercadoPago)(pagamentoLocal.mercado_pago_preference_id, tokenPagamento ?? undefined);
+            }
+            if (!pagamentoMercadoPago?.status && pagamentoLocal?.mercado_pago_preference_id && tokenPagamento) {
+                pagamentoMercadoPago = await (0, mercado_pago_1.consultarPagamentoPorPreferenciaMercadoPago)(pagamentoLocal.mercado_pago_preference_id);
+            }
         }
         if (!pagamentoMercadoPago?.status) {
             continue;
@@ -199,6 +223,13 @@ async function conciliarPedidosPendentes(pedidos) {
         if (!pedidoError && pedidoAtualizado) {
             pedidosAtualizados.set(pedido.id_pedido, pedidoAtualizado);
         }
+        const statusReserva = obterStatusReservaPorPagamento(statusMapeado.pagamento);
+        if (statusReserva && pedido.id_reserva) {
+            await supabase_1.supabaseAdmin
+                .from("reservas")
+                .update({ status_reserva: statusReserva })
+                .eq("id_reserva", pedido.id_reserva);
+        }
     }
     if (!pedidosAtualizados.size) {
         return pedidos;
@@ -221,7 +252,7 @@ exports.ordersRouter.get("/", async (req, res) => {
     }
     return res.json({ items: data ?? [], pagination: paginationMeta(count, page, limit) });
 });
-exports.ordersRouter.get("/historico/restaurante", async (_req, res) => {
+exports.ordersRouter.get("/historico/restaurante", async (req, res) => {
     const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
     const { data: restaurante, error: restauranteError } = await supabase
         .from("restaurantes")
@@ -243,8 +274,11 @@ exports.ordersRouter.get("/historico/restaurante", async (_req, res) => {
     if (error) {
         return res.status(400).json({ error: error.message });
     }
-    const historico = (data ?? []).filter((pedido) => STATUS_HISTORICO_RESTAURANTE.includes(pedido.status_pedido) ||
-        pedido.ocultado_cozinha === true);
+    const somenteFilaCozinha = String(req.query?.fila ?? "").toLowerCase() === "cozinha";
+    const historico = somenteFilaCozinha
+        ? (data ?? []).filter((pedido) => pedidoEstaNaFilaOperacional(pedido)).sort(ordenarPorHorarioReserva)
+        : (data ?? []).filter((pedido) => STATUS_HISTORICO_RESTAURANTE.includes(pedido.status_pedido) ||
+            pedido.ocultado_cozinha === true);
     return res.json(historico);
 });
 exports.ordersRouter.get("/:id/avaliacao", (0, auth_1.requireRole)("cliente"), async (req, res) => {
@@ -542,7 +576,7 @@ exports.ordersRouter.patch("/:id/status", (0, auth_1.requireRole)("restaurante")
     }
     const { data: pedidoAtual, error: pedidoAtualError } = await supabase
         .from("pedidos")
-        .select("id_pedido, id_restaurante, status_pedido, iniciar_preparo_em")
+        .select("id_pedido, id_restaurante, status_pedido, iniciar_preparo_em, reservas(data_reserva, horario_inicio)")
         .eq("id_pedido", orderId)
         .eq("id_restaurante", restaurante.id_restaurante)
         .maybeSingle();
@@ -556,8 +590,7 @@ exports.ordersRouter.patch("/:id/status", (0, auth_1.requireRole)("restaurante")
         return res.status(409).json({ error: `Transicao de ${pedidoAtual.status_pedido} para ${status_pedido} nao permitida.` });
     }
     if (status_pedido === "EM_PREPARO") {
-        const liberadoEm = obterDataHoraLocal(pedidoAtual.iniciar_preparo_em);
-        if (liberadoEm && liberadoEm.getTime() > Date.now()) {
+        if (!pedidoEstaNaFilaOperacional(pedidoAtual)) {
             return res.status(409).json({
                 error: `O preparo deste pedido so fica liberado as ${formatarHorario(pedidoAtual.iniciar_preparo_em)}.`,
             });

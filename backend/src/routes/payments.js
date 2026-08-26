@@ -58,6 +58,11 @@ function obterPaymentIdRetornoMercadoPago(query) {
     return paymentId && paymentId !== "null" ? String(paymentId) : null;
 }
 
+function retornoMercadoPagoIndicaAprovacao(query) {
+    const status = String(obterPrimeiroValorQuery(query.status ?? query.collection_status ?? query.resultado) ?? "").toLowerCase();
+    return ["approved", "accredited", "success"].includes(status);
+}
+
 function obterReferencia(referencia) {
     const match = String(referencia ?? "").match(/^(reserva|pedido):(\d+)$/);
     return match ? { tipo: match[1], id: Number(match[2]) } : null;
@@ -69,6 +74,16 @@ function obterStatusPedidoPorPagamento(statusPagamento) {
     }
     if (["RECUSADO", "ESTORNADO"].includes(statusPagamento)) {
         return "CANCELADO";
+    }
+    return null;
+}
+
+function obterStatusReservaPedidoPorPagamento(statusPagamento) {
+    if (statusPagamento === "APROVADO") {
+        return "CONFIRMADA";
+    }
+    if (["RECUSADO", "ESTORNADO"].includes(statusPagamento)) {
+        return "CANCELADA";
     }
     return null;
 }
@@ -260,7 +275,7 @@ async function atualizarPedidoPorPagamento(pedidoId, statusPedido) {
 }
 
 async function atualizarReservaPorPagamento(reservaId, statusReserva) {
-    if (!statusReserva || !supabase_1.supabaseAdmin) {
+    if (!reservaId || !statusReserva || !supabase_1.supabaseAdmin) {
         return null;
     }
     const { data, error } = await supabase_1.supabaseAdmin
@@ -399,6 +414,10 @@ async function aplicarPagamentoMercadoPago(pagamentoMercadoPago, fallbackReferen
             pedido.id_pedido,
             obterStatusPedidoPorPagamento(statusPagamentoFinal),
         );
+        const reservaAtualizada = await atualizarReservaPorPagamento(
+            pedido.id_reserva,
+            obterStatusReservaPedidoPorPagamento(statusPagamentoFinal),
+        );
         if (statusPagamentoFinal === "APROVADO" && pagamentoExistente?.status_pagamento !== "APROVADO") {
             await Promise.all([
                 (0, notificacoes_1.notificarCliente)(pedido.id_cliente, {
@@ -426,7 +445,8 @@ async function aplicarPagamentoMercadoPago(pagamentoMercadoPago, fallbackReferen
         }
         return {
             pagamento,
-            pedido: pedidoAtualizado ?? pedido,
+            pedido: pedidoAtualizado ? { ...pedidoAtualizado, reservas: reservaAtualizada ?? pedido.reservas } : pedido,
+            reserva: reservaAtualizada ?? pedido.reservas,
             status_pagamento: statusPagamentoFinal,
         };
     }
@@ -572,15 +592,20 @@ exports.paymentsRouter.post("/pedido/:id/preferencia", async (req, res) => {
         if (Number(pedido.valor_total ?? 0) <= 0) {
             return res.status(400).json({ error: "Valor do pedido invalido." });
         }
-        const conexaoRestaurante = await obterConexaoMercadoPagoRestaurante(pedido.id_restaurante);
+        const conexaoMercadoPagoRestaurante = await obterConexaoMercadoPagoRestaurante(pedido.id_restaurante);
+        const conexaoRestaurante = conexaoMercadoPagoRestaurante?.live_mode && !mercadoPagoProducaoPermitida()
+            ? null
+            : conexaoMercadoPagoRestaurante;
         if (marketplaceRealAtivo() && !conexaoRestaurante) {
             return res.status(409).json({
-                error: "O restaurante ainda nao conectou uma conta Mercado Pago para receber este pagamento.",
+                error: conexaoMercadoPagoRestaurante?.live_mode && !mercadoPagoProducaoPermitida()
+                    ? "A conta Mercado Pago do restaurante foi conectada em modo producao. Para testar sem transacao real, reconecte uma conta teste ou altere MERCADO_PAGO_MODO_REPASSE para SIMULADO."
+                    : "O restaurante ainda nao conectou uma conta Mercado Pago para receber este pagamento.",
             });
         }
-        if (conexaoRestaurante?.live_mode && !mercadoPagoProducaoPermitida()) {
+        if (!mercadoPagoProducaoPermitida() && !(0, mercado_pago_1.obterAccessTokenMercadoPago)()) {
             return res.status(409).json({
-                error: "A conta Mercado Pago do restaurante foi conectada em modo producao. Para testes sem transacao real, desconecte e conecte uma conta de teste, ou habilite producao explicitamente no backend.",
+                error: "Configure MERCADO_PAGO_TEST_ACCESS_TOKEN com as credenciais de teste do Mercado Pago para realizar pagamentos sem transacao real.",
             });
         }
         const token = marketplaceRealAtivo()
@@ -594,9 +619,11 @@ exports.paymentsRouter.post("/pedido/:id/preferencia", async (req, res) => {
         const resumoFinanceiro = calcularResumoFinanceiro(pedido.valor_total, conexaoRestaurante);
         const referencia = `pedido:${pedido.id_pedido}`;
         const pagamentoExistente = await obterPagamentoExistentePorReferencia(referencia);
+        const podeReutilizarCheckoutExistente = mercadoPagoProducaoPermitida();
         if (pagamentoExistente?.status_pagamento === "PENDENTE" &&
             pagamentoExistente.mercado_pago_preference_id &&
-            pagamentoExistente.checkout_url) {
+            pagamentoExistente.checkout_url &&
+            podeReutilizarCheckoutExistente) {
             return res.status(200).json({
                 pedido,
                 pagamento: pagamentoExistente,
@@ -724,8 +751,10 @@ exports.paymentsRouter.get("/pedido/:id/status", async (req, res) => {
             return res.status(404).json({ error: "Pedido nao encontrado para este cliente." });
         }
         const paymentId = obterPaymentIdRetornoMercadoPago(req.query);
+        const merchantOrderId = obterPrimeiroValorQuery(req.query.merchant_order_id);
         const referencia = `pedido:${pedido.id_pedido}`;
         const tokenPedido = await obterTokenPagamentoPorPedido(pedido.id_pedido);
+        const pagamentoExistente = await obterPagamentoExistentePorReferencia(referencia);
         let pagamentoMercadoPago = await (0, mercado_pago_1.consultarPagamentoMercadoPago)(paymentId, tokenPedido ?? undefined);
         if (!pagamentoMercadoPago?.status && tokenPedido) {
             pagamentoMercadoPago = await (0, mercado_pago_1.consultarPagamentoMercadoPago)(paymentId);
@@ -735,6 +764,37 @@ exports.paymentsRouter.get("/pedido/:id/status", async (req, res) => {
         }
         if (!pagamentoMercadoPago?.status && tokenPedido) {
             pagamentoMercadoPago = await (0, mercado_pago_1.consultarPagamentoPorReferenciaMercadoPago)(referencia);
+        }
+        if (!pagamentoMercadoPago?.status && merchantOrderId && merchantOrderId !== "null") {
+            pagamentoMercadoPago = await (0, mercado_pago_1.consultarPagamentoPorOrdemMercadoPago)(merchantOrderId, tokenPedido ?? undefined);
+        }
+        if (!pagamentoMercadoPago?.status && merchantOrderId && merchantOrderId !== "null" && tokenPedido) {
+            pagamentoMercadoPago = await (0, mercado_pago_1.consultarPagamentoPorOrdemMercadoPago)(merchantOrderId);
+        }
+        if (!pagamentoMercadoPago?.status) {
+            if (pagamentoExistente?.mercado_pago_preference_id) {
+                pagamentoMercadoPago = await (0, mercado_pago_1.consultarPagamentoPorPreferenciaMercadoPago)(pagamentoExistente.mercado_pago_preference_id, tokenPedido ?? undefined);
+            }
+            if (!pagamentoMercadoPago?.status && pagamentoExistente?.mercado_pago_preference_id && tokenPedido) {
+                pagamentoMercadoPago = await (0, mercado_pago_1.consultarPagamentoPorPreferenciaMercadoPago)(pagamentoExistente.mercado_pago_preference_id);
+            }
+        }
+        if (!pagamentoMercadoPago?.status &&
+            paymentId &&
+            retornoMercadoPagoIndicaAprovacao(req.query) &&
+            !mercadoPagoProducaoPermitida() &&
+            pagamentoExistente?.tipo_fluxo_pagamento === "SIMULADO_APPONO") {
+            const agora = new Date().toISOString();
+            pagamentoMercadoPago = {
+                id: paymentId,
+                status: "approved",
+                external_reference: referencia,
+                preference_id: pagamentoExistente.mercado_pago_preference_id,
+                transaction_amount: Number(pagamentoExistente.valor_pago ?? pedido.valor_total ?? 0),
+                date_approved: agora,
+                date_created: agora,
+                live_mode: false,
+            };
         }
         let pagamento = null;
         let statusPagamento = "PENDENTE";
