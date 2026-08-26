@@ -58,7 +58,7 @@ function usuarioEhAdministrador(user) {
     return Boolean(email && obterEmailsAdministradores().includes(email));
 }
 async function obterPerfil(accessToken, userId) {
-    const supabase = (0, supabase_1.createUserSupabaseClient)(accessToken);
+    const supabase = supabase_1.supabaseAdmin ?? (0, supabase_1.createUserSupabaseClient)(accessToken);
     const clienteAutenticacao = supabase_1.supabaseAdmin ?? supabase_1.supabaseAuth;
     const { data: usuarioAtual } = await clienteAutenticacao.auth.getUser(accessToken);
     if (usuarioEhAdministrador(usuarioAtual?.user)) {

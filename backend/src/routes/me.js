@@ -47,7 +47,7 @@ async function obterPerfil(supabase, userId) {
         : null;
 }
 exports.meRouter.get("/", auth_1.requireAuth, async (_req, res) => {
-    const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
+    const supabase = supabase_1.supabaseAdmin ?? (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
     try {
         if (usuarioEhAdministrador(res.locals.user)) {
             return res.json({
@@ -70,7 +70,7 @@ exports.meRouter.get("/", auth_1.requireAuth, async (_req, res) => {
     }
 });
 exports.meRouter.patch("/", auth_1.requireAuth, async (req, res) => {
-    const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
+    const supabase = supabase_1.supabaseAdmin ?? (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
     const perfilAtual = await obterPerfil(supabase, res.locals.user.id);
     if (!perfilAtual) {
         return res.status(404).json({ error: "Perfil nao encontrado." });
@@ -126,5 +126,49 @@ exports.meRouter.patch("/", auth_1.requireAuth, async (req, res) => {
     return res.json({
         ...prepararPerfilParaResposta(perfilAtualizado),
         message: "Alteracoes salvas com sucesso.",
+    });
+});
+exports.meRouter.patch("/dados-bancarios", auth_1.requireAuth, async (req, res) => {
+    const supabase = supabase_1.supabaseAdmin ?? (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
+    const perfilAtual = await obterPerfil(supabase, res.locals.user.id);
+    if (!perfilAtual || perfilAtual.tipo !== "restaurante") {
+        return res.status(403).json({ error: "Apenas restaurantes podem alterar dados bancarios." });
+    }
+    const body = req.body;
+    const informouAlgumDado = [
+        body.bankCode,
+        body.agency,
+        body.checkingAccount,
+        body.pixKey,
+    ].some((valor) => Boolean(textoOpcional(valor)));
+    if (!informouAlgumDado) {
+        return res.status(400).json({ error: "Informe ao menos um dado bancario para atualizar." });
+    }
+    const erroValidacao = (0, dados_bancarios_1.validarDadosBancarios)(body);
+    if (erroValidacao) {
+        return res.status(400).json({ error: erroValidacao });
+    }
+    const dados = {
+        id_restaurante: perfilAtual.perfil.id_restaurante,
+        status_cadastro: "pendente_validacao",
+        provedor_pagamento: "integracao_financeira_externa",
+        referencia_externa: null,
+        updated_at: new Date().toISOString(),
+    };
+    const possuiRegistro = Boolean(perfilAtual.perfil.dados_bancarios_restaurante?.length);
+    const operacao = possuiRegistro
+        ? supabase
+            .from("dados_bancarios_restaurante")
+            .update(dados)
+            .eq("id_restaurante", perfilAtual.perfil.id_restaurante)
+        : supabase.from("dados_bancarios_restaurante").insert(dados);
+    const { error } = await operacao;
+    if (error) {
+        return res.status(400).json({ error: error.message });
+    }
+    const perfilAtualizado = await obterPerfil(supabase, res.locals.user.id);
+    return res.json({
+        ...prepararPerfilParaResposta(perfilAtualizado),
+        message: "Dados bancarios salvos com sucesso.",
     });
 });
