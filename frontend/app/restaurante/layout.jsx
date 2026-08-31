@@ -19,7 +19,7 @@ export default function LayoutRestaurante({ children }) {
         return <TelaCarregandoSessao />;
     }
     return (<RotaProtegida perfisPermitidos={["restaurant"]}>
-      <div className={`area-autenticada min-h-full ${tema === "escuro" ? "tema-escuro" : ""}`}>
+      <div className={`area-autenticada area-restaurante min-h-full ${tema === "escuro" ? "tema-escuro" : ""}`}>
         {children}
       </div>
     </RotaProtegida>);

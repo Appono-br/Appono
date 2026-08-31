@@ -243,7 +243,7 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
   return (
     <div className="mx-auto w-full max-w-xl">
       {/* CARD PRINCIPAL */}
-      <div className="rounded-2xl bg-white px-6 py-7 shadow-[0_12px_35px_rgba(91,55,26,0.15)] sm:px-9">
+      <div className="rounded-2xl bg-app-creme-leve px-6 py-7 shadow-sm ring-1 ring-app-baunilha-dourada/45 sm:px-9">
 
         {/* LOGO */}
         <div className="mb-5 flex justify-center">
@@ -261,7 +261,7 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
         <div className="mb-5 flex items-center justify-between gap-3">
           <Link
             href="/"
-            className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-bold text-[#633719] transition hover:bg-[#EFE3D0] hover:text-[#4D2A13]"
+            className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-bold text-app-caramelo-torrado transition hover:bg-app-chantilly hover:text-app-cafe-profundo"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -281,17 +281,17 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
             Voltar
           </Link>
 
-          <p className="rounded-full bg-[#DFC39D] px-3 py-1 text-[10px] font-bold uppercase tracking-[0.24em] text-[#633719]">
+          <p className="rounded-full bg-app-creme-suave px-3 py-1 text-[10px] font-bold uppercase tracking-[0.24em] text-app-caramelo-torrado">
             Cadastro de parceiro
           </p>
         </div>
 
         {/* TÍTULO */}
-        <h1 className="text-2xl font-bold text-[#4D2A13]">
+        <h1 className="text-2xl font-bold text-app-cafe-profundo">
           Torne-se um parceiro APPONO
         </h1>
 
-        <p className="mt-1 text-sm leading-5 text-[#5F5A55]">
+        <p className="mt-1 text-sm leading-5 text-app-cinza">
           Informe os dados operacionais do estabelecimento. A conta
           Mercado Pago poderá ser conectada depois, nas configurações.
         </p>
@@ -489,9 +489,9 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
           ) : null}
 
           {/* IMAGEM DO RESTAURANTE */}
-          <label className="group grid gap-3 rounded-xl border-2 border-dashed border-[#A8754A]/50 bg-[#F7F1E8] p-5 text-center transition hover:border-[#8A542F] hover:bg-[#EFE3D0] sm:col-span-2">
+          <label className="group grid gap-3 rounded-xl border-2 border-dashed border-app-baunilha-dourada/50 bg-app-creme-leve p-5 text-center transition hover:border-app-caramelo-torrado hover:bg-app-chantilly sm:col-span-2">
 
-            <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#633719]">
+            <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-app-caramelo-torrado">
               Imagem do restaurante
             </span>
 
@@ -499,7 +499,7 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
 
               {/* PREVIEW */}
               <div
-                className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#DFC39D] bg-cover bg-center ring-2 ring-[#8A542F]/20 transition group-hover:ring-[#B96532]"
+                className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full bg-app-creme-suave bg-cover bg-center ring-2 ring-app-caramelo-torrado/20 transition group-hover:ring-app-dourado-mel"
                 style={
                   imagemPreview
                     ? {
@@ -519,7 +519,7 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
                     strokeWidth="1.5"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    className="text-[#8A542F]/70"
+                    className="text-app-caramelo-torrado/70"
                   >
                     <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
                     <circle cx="12" cy="13" r="4" />
@@ -528,14 +528,14 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
               </div>
 
               {/* TEXTO */}
-              <span className="text-xs leading-5 text-[#5F5A55]">
+              <span className="text-xs leading-5 text-app-cinza">
                 Selecione JPG, PNG ou WebP de até 5 MB.
                 <br />
                 Esta imagem aparecerá para os clientes.
               </span>
 
               {/* BOTÃO */}
-              <span className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-[#8A542F] px-4 py-2 text-xs font-bold text-white transition hover:bg-[#633719]">
+              <span className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-app-caramelo-torrado px-4 py-2 text-xs font-bold text-white transition hover:bg-app-cafe-profundo">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="14"
@@ -568,9 +568,9 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
         </div>
 
         {/* DIVISÓRIA + BOTÃO */}
-        <div className="mt-6 flex flex-col-reverse gap-3 border-t border-[#DFC39D] pt-5 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-6 flex flex-col-reverse gap-3 border-t border-app-creme-suave pt-5 sm:flex-row sm:items-center sm:justify-between">
 
-          <p className="text-[10px] leading-4 text-[#7A746F]">
+          <p className="text-[10px] leading-4 text-app-cinza">
             Ao finalizar, você concorda com nossos Termos e
             Política de Privacidade.
           </p>
@@ -579,7 +579,7 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
             type="button"
             onClick={criarRestaurante}
             disabled={isSubmitting}
-            className="flex h-10 w-full items-center justify-center gap-2 rounded-full bg-[#B96532] px-6 text-xs font-bold uppercase tracking-wide text-white shadow-[0_4px_10px_rgba(99,55,25,0.2)] transition hover:-translate-y-0.5 hover:bg-[#8A542F] hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-[#B96532]/25 disabled:cursor-not-allowed disabled:translate-y-0 disabled:opacity-70 disabled:shadow-none sm:w-auto"
+            className="flex h-10 w-full items-center justify-center gap-2 rounded-full bg-app-dourado-mel px-6 text-xs font-bold uppercase tracking-wide text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-app-caramelo-torrado hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-app-dourado-mel/25 disabled:cursor-not-allowed disabled:translate-y-0 disabled:opacity-70 disabled:shadow-none sm:w-auto"
           >
             {isSubmitting ? (
               <>
@@ -614,20 +614,20 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
         </div>
 
         {/* LOGIN */}
-        <div className="mt-3 flex flex-col gap-2 text-sm text-[#7A746F] sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-3 flex flex-col gap-2 text-sm text-app-cinza sm:flex-row sm:items-center sm:justify-between">
           <span>
             Já possui uma conta?{" "}
 
             <Link
               href="/login"
-              className="font-bold text-[#633719] transition hover:text-[#B96532]"
+              className="font-bold text-app-caramelo-torrado transition hover:text-app-dourado-mel"
             >
               Entrar
             </Link>
           </span>
 
           {message ? (
-            <span className="rounded-full bg-[#F7F1E8] px-3 py-1 font-semibold text-[#8A542F]">
+            <span className="rounded-full bg-app-creme-leve px-3 py-1 font-semibold text-app-caramelo-torrado">
               {message}
             </span>
           ) : null}
