@@ -26,12 +26,6 @@ const valueCards = [
   },
 ];
 
-const testimonials = [
-  { name: "Marina Costa", text: "Cheguei e minha mesa já estava pronta, sem fila e sem espera pelo pedido.", role: "Cliente" },
-  { name: "Ricardo Alves", text: "Conseguimos organizar melhor a cozinha nos horários de pico.", role: "Dono de restaurante" },
-  { name: "Beatriz Lima", text: "A experiência ficou muito mais fluida, do agendamento até a mesa.", role: "Cliente" },
-];
-
 const faqs = [
   {
     question: "A Appono faz delivery?",
@@ -52,8 +46,6 @@ function Icon({ type, className = "h-5 w-5" }) {
     calendar: "M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z",
     clock: "M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z M12 6v6l4 2",
     trending: "M23 6 13.5 15.5 8.5 10.5 1 18 M17 6h6v6",
-    star: "M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z",
-    quote: "M9 22c-1.1 0-2-.9-2-2v-4c0-1.1.9-2 2-2h2V8c0-2.8-2.2-5-5-5v2c1.7 0 3 1.3 3 3v1H5c-1.1 0-2 .9-2 2v6c0 1.1.9 2 2 2h4zm10 0c-1.1 0-2-.9-2-2v-4c0-1.1.9-2 2-2h2V8c0-2.8-2.2-5-5-5v2c1.7 0 3 1.3 3 3v1h-3c-1.1 0-2 .9-2 2v6c0 1.1.9 2 2 2h4z",
   };
   return (
     <svg aria-hidden="true" viewBox="0 0 24 24" className={className}>
@@ -74,109 +66,113 @@ export default function HomePage() {
   return (
     <main className="min-h-screen bg-white text-app-texto-escuro">
       <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-white/95 backdrop-blur">
-        <div className="mx-auto flex h-20 max-w-7xl items-center justify-between pl-4 pr-8">
-          <Link href="/" className="flex shrink-0 items-center" onClick={closeMenu}>
-            <Image
-              src="/brand/appono-mark.svg"
-              alt="Appono"
-              width={90}
-              height={72}
-              className="h-16 w-auto transition-transform duration-300 hover:scale-105"
-            />
-          </Link>
+  <div className="mx-auto flex h-20 max-w-7xl items-center px-4 sm:pr-8">
+    <div className="flex flex-1 items-center">
+      <Link href="/" className="flex shrink-0 items-center" onClick={closeMenu}>
+        <Image
+          src="/brand/appono-mark.svg"
+          alt="Appono"
+          width={90}
+          height={72}
+          className="h-16 w-auto transition-transform duration-300 hover:scale-105"
+        />
+      </Link>
+    </div>
 
-          <nav className="hidden items-center gap-20 md:flex">
-            <Link href="#inicio" className="rounded-full px-5 py-2.5 text-base font-semibold text-app-cafe-profundo transition hover:bg-app-creme-suave">
-              Início
-            </Link>
-            <Link href="#reserva" className="rounded-full px-5 py-2.5 text-base font-semibold text-app-cafe-profundo transition hover:bg-app-creme-suave">
-              Como usar
-            </Link>
-            <Link href="#sobre" className="rounded-full px-5 py-2.5 text-base font-semibold text-app-cafe-profundo transition hover:bg-app-creme-suave">
-              Sobre
-            </Link>
-          </nav>
+    <nav className="hidden flex-1 items-center justify-center gap-8 md:flex">
+      <Link href="#inicio" className="rounded-full px-5 py-2.5 text-base font-semibold text-app-cafe-profundo transition hover:bg-app-creme-suave">
+        Início
+      </Link>
+      <Link href="#reserva" className="rounded-full px-5 py-2.5 text-base font-semibold text-app-cafe-profundo transition hover:bg-app-creme-suave">
+        Como usar
+      </Link>
+      <Link href="#sobre" className="rounded-full px-5 py-2.5 text-base font-semibold text-app-cafe-profundo transition hover:bg-app-creme-suave">
+        Sobre
+      </Link>
+    </nav>
 
-          <div className="hidden items-center gap-3 sm:flex">
-            <button
-              type="button"
-              onClick={() => setProfileDialog("cadastro")}
-              className="rounded-full border border-app-baunilha-dourada px-6 py-2.5 text-sm font-semibold text-app-cafe-profundo transition-all duration-300 hover:-translate-y-0.5 hover:bg-app-creme-suave hover:shadow-sm"
-            >
-              Criar conta
-            </button>
+    <div className="flex flex-1 items-center justify-end gap-3">
+      <div className="hidden items-center gap-3 sm:flex">
+        <button
+          type="button"
+          onClick={() => setProfileDialog("cadastro")}
+          className="rounded-full border border-app-baunilha-dourada px-6 py-2.5 text-sm font-semibold text-app-cafe-profundo transition-all duration-300 hover:-translate-y-0.5 hover:bg-app-creme-suave hover:shadow-sm"
+        >
+          Criar conta
+        </button>
 
-            <button
-              type="button"
-              onClick={() => {
-                window.location.href = "/login";
-              }}
-              className="rounded-full bg-app-cafe-profundo px-6 py-2.5 text-sm font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-app-caramelo-torrado hover:shadow-md"
-            >
-              Entrar
-            </button>
-          </div>
+        <button
+          type="button"
+          onClick={() => {
+            window.location.href = "/login";
+          }}
+          className="rounded-full bg-app-caramelo-torrado px-6 py-2.5 text-sm font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-app-cafe-profundo hover:shadow-md"
+        >
+          Entrar
+        </button>
+      </div>
 
-          <button
-            type="button"
-            onClick={() => setMenuOpen((current) => !current)}
-            className="rounded-full border border-app-baunilha-dourada px-4 py-2 text-sm font-semibold text-app-cafe-profundo md:hidden"
-            aria-expanded={menuOpen}
-            aria-controls="mobile-menu"
-          >
-            Menu
-          </button>
-        </div>
+      <button
+        type="button"
+        onClick={() => setMenuOpen((current) => !current)}
+        className="rounded-full border border-app-baunilha-dourada px-4 py-2 text-sm font-semibold text-app-cafe-profundo md:hidden"
+        aria-expanded={menuOpen}
+        aria-controls="mobile-menu"
+      >
+        Menu
+      </button>
+    </div>
+  </div>
 
-        {menuOpen ? (
-          <div id="mobile-menu" className="border-t border-app-baunilha-dourada/50 bg-white px-5 py-5 md:hidden">
-            <nav className="mx-auto flex max-w-7xl flex-col gap-1 text-sm font-semibold text-app-cafe-profundo">
-              <Link href="#inicio" onClick={closeMenu} className="rounded-full px-4 py-2.5 transition hover:bg-app-creme-suave">
-                Início
-              </Link>
-              <Link href="#reserva" onClick={closeMenu} className="rounded-full px-4 py-2.5 transition hover:bg-app-creme-suave">
-                Como usar
-              </Link>
-              <Link href="#sobre" onClick={closeMenu} className="rounded-full px-4 py-2.5 transition hover:bg-app-creme-suave">
-                Sobre
-              </Link>
-              <button
-                type="button"
-                onClick={() => {
-                  closeMenu();
-                  setProfileDialog("cadastro");
-                }}
-                className="mt-2 rounded-full bg-app-cafe-profundo px-5 py-3 text-left font-semibold text-white"
-              >
-                Criar conta
-              </button>
-            </nav>
-          </div>
-        ) : null}
-      </header>
+  {menuOpen ? (
+    <div id="mobile-menu" className="border-t border-app-baunilha-dourada/50 bg-white px-5 py-5 md:hidden">
+      <nav className="mx-auto flex max-w-7xl flex-col gap-1 text-sm font-semibold text-app-cafe-profundo">
+        <Link href="#inicio" onClick={closeMenu} className="rounded-full px-4 py-2.5 transition hover:bg-app-creme-suave">
+          Início
+        </Link>
+        <Link href="#reserva" onClick={closeMenu} className="rounded-full px-4 py-2.5 transition hover:bg-app-creme-suave">
+          Como usar
+        </Link>
+        <Link href="#sobre" onClick={closeMenu} className="rounded-full px-4 py-2.5 transition hover:bg-app-creme-suave">
+          Sobre
+        </Link>
+        <button
+          type="button"
+          onClick={() => {
+            closeMenu();
+            setProfileDialog("cadastro");
+          }}
+          className="mt-2 rounded-full bg-app-caramelo-torrado px-5 py-3 text-left font-semibold text-white"
+        >
+          Criar conta
+        </button>
+      </nav>
+    </div>
+  ) : null}
+</header>
 
       <section id="inicio" className="relative flex min-h-[620px] items-center justify-center overflow-hidden bg-app-cafe-profundo px-5 py-20 text-white">
-        <Image src={heroImage} alt="Mesa reservada em restaurante elegante" fill priority sizes="100vw" className="absolute inset-0 h-full w-full object-cover opacity-40" />
-        <div className="absolute inset-0 bg-gradient-to-t from-app-cafe-profundo via-app-cafe-profundo/80 to-app-cafe-profundo/50" />
+  <Image src={heroImage} alt="Mesa reservada em restaurante elegante" fill priority sizes="100vw" className="absolute inset-0 h-full w-full object-cover opacity-90" />
+  <div className="absolute inset-0 bg-gradient-to-b from-transparent via-app-cafe-profundo/40 to-app-cafe-profundo/85" />
 
-        <div className="relative z-10 mx-auto flex max-w-3xl flex-col items-center text-center">
-          <h1 className="max-w-2xl text-4xl font-semibold leading-tight sm:text-6xl">
-            Reserve sua mesa com antecedência
-          </h1>
-          <p className="mt-5 max-w-xl text-base leading-7 text-app-creme-suave sm:text-lg">
-            Planeje sua chegada, escolha seus pratos e ajude o restaurante a
-            preparar uma experiência presencial mais rápida e organizada.
-          </p>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <button type="button" onClick={() => setProfileDialog("cadastro")} className="rounded-full bg-white px-8 py-4 font-bold text-app-cafe-profundo tracking-wide transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl">
-              Reservar agora
-            </button>
-            <Link href="#reserva" className="rounded-full border border-white/40 px-8 py-4 font-bold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-white/10">
-              Saiba mais
-            </Link>
-          </div>
-        </div>
-      </section>
+  <div className="relative z-10 mx-auto flex max-w-3xl flex-col items-center text-center">
+    <h1 className="max-w-2xl text-4xl font-semibold leading-tight text-white sm:text-6xl">
+      Reserve sua mesa com antecedência
+    </h1>
+    <p className="mt-5 max-w-xl text-base leading-7 text-app-creme-suave sm:text-lg">
+      Planeje sua chegada, escolha seus pratos e ajude o restaurante a
+      preparar uma experiência presencial mais rápida e organizada.
+    </p>
+    <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+      <button type="button" onClick={() => setProfileDialog("cadastro")} className="rounded-full bg-white px-8 py-4 font-bold text-app-cafe-profundo tracking-wide transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl">
+        Reservar agora
+      </button>
+      <Link href="#reserva" className="rounded-full border border-white/40 px-8 py-4 font-bold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-white/10">
+        Saiba mais
+      </Link>
+    </div>
+  </div>
+</section>
 
       <section id="reserva" className="bg-white py-20">
         <div className="mx-auto max-w-7xl px-6">
@@ -191,14 +187,14 @@ export default function HomePage() {
               />
             </div>
 
-            <div className="flex flex-col justify-center rounded-3xl bg-app-cafe-profundo px-8 py-8 text-white shadow-lg xl:col-span-2">
-              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-app-baunilha-dourada">
+            <div className="flex flex-col justify-center rounded-3xl bg-app-creme-suave px-8 py-8 text-app-cafe-profundo shadow-lg xl:col-span-2">
+              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">
                 APPONO
               </p>
               <h2 className="mt-4 text-2xl font-bold leading-tight sm:text-3xl">
                 A melhor experiência gastronômica.
               </h2>
-              <p className="mt-4 text-sm leading-7 text-app-creme-suave sm:text-base">
+              <p className="mt-4 text-sm leading-7 text-app-mocha sm:text-base">
                 A reserva e o pedido caminham juntos para reduzir a espera e
                 organizar o fluxo do restaurante.
               </p>
@@ -263,38 +259,36 @@ export default function HomePage() {
         </div>
       </section>
 
-     <section id="sobre" className="bg-app-cafe-profundo py-24 text-white">
-  <div className="mx-auto grid max-w-6xl items-center gap-16 px-6 md:grid-cols-2">
-    <div>
-      <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-app-baunilha-dourada ring-1 ring-white/20">
-        Nossa história
-      </span>
+      <section id="sobre" className="bg-app-creme-suave py-24">
+        <div className="mx-auto grid max-w-6xl items-center gap-16 px-6 md:grid-cols-2">
+          <div>
+            <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">
+              Nossa história
+            </span>
 
-      <h2 className="mt-4 text-4xl font-bold">
-        Quem somos nós?
-      </h2>
+            <h2 className="mt-4 text-4xl font-bold text-app-cafe-profundo">
+              Quem somos nós?
+            </h2>
 
-      <p className="mt-6 text-lg leading-9 text-app-creme-suave">
-        A Appono nasceu para melhorar a relação entre clientes e
-        restaurantes no consumo presencial. Nossa proposta é transformar
-        a reserva em uma experiência planejada, onde o cliente chega com
-        menos espera e o restaurante trabalha com mais previsibilidade.
-      </p>
-    </div>
+            <p className="mt-6 text-lg leading-9 text-app-mocha">
+              A Appono nasceu para melhorar a relação entre clientes e
+              restaurantes no consumo presencial. Nossa proposta é transformar
+              a reserva em uma experiência planejada, onde o cliente chega com
+              menos espera e o restaurante trabalha com mais previsibilidade.
+            </p>
+          </div>
 
-    <div className="overflow-hidden rounded-3xl shadow-lg">
-      <Image
-        src={restaurantImage}
-        alt="Ambiente interno de restaurante"
-        width={640}
-        height={420}
-        className="h-80 w-full object-cover transition-all duration-500 hover:scale-[1.03]"
-      />
-    </div>
-  </div>
-</section>
-
-
+          <div className="overflow-hidden rounded-3xl shadow-lg">
+            <Image
+              src={restaurantImage}
+              alt="Ambiente interno de restaurante"
+              width={640}
+              height={420}
+              className="h-80 w-full object-cover transition-all duration-500 hover:scale-[1.03]"
+            />
+          </div>
+        </div>
+      </section>
 
       <section className="bg-white py-24">
         <div className="mx-auto max-w-5xl px-6">
@@ -342,7 +336,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <footer className="border-t border-app-cacau-intenso/20 bg-app-cafe-profundo py-20 text-app-creme-leve">
+      <footer className="border-t border-app-baunilha-dourada/40 bg-app-creme-suave py-20 text-app-cafe-profundo">
         <div className="mx-auto grid max-w-6xl gap-12 px-6 md:grid-cols-[1.5fr_1fr_1fr_1fr]">
           <div>
             <Image
@@ -350,47 +344,47 @@ export default function HomePage() {
               alt="Appono"
               width={100}
               height={80}
-              className="h-20 w-auto brightness-0 invert"
+              className="h-20 w-auto"
             />
-            <p className="mt-5 max-w-sm text-base leading-8 text-app-creme-suave">
+            <p className="mt-5 max-w-sm text-base leading-8 text-app-mocha">
               Reserve sua mesa, antecipe seu pedido e aproveite melhor o tempo
               dentro do restaurante com uma experiência mais organizada.
             </p>
           </div>
 
           <div>
-            <h3 className="text-lg font-bold text-white">Appono</h3>
+            <h3 className="text-lg font-bold text-app-cafe-profundo">Appono</h3>
             <div className="mt-2 h-1 w-12 rounded-full bg-app-dourado-mel" />
-            <div className="mt-6 flex flex-col gap-4 text-app-baunilha-dourada">
-              <Link href="#inicio" className="transition-all duration-300 hover:translate-x-1 hover:text-white">
+            <div className="mt-6 flex flex-col gap-4 text-app-mocha">
+              <Link href="#inicio" className="transition-all duration-300 hover:translate-x-1 hover:text-app-caramelo-torrado">
                 Início
               </Link>
-              <Link href="#reserva" className="transition-all duration-300 hover:translate-x-1 hover:text-white">
+              <Link href="#reserva" className="transition-all duration-300 hover:translate-x-1 hover:text-app-caramelo-torrado">
                 Como usar
               </Link>
-              <Link href="#sobre" className="transition-all duration-300 hover:translate-x-1 hover:text-white">
+              <Link href="#sobre" className="transition-all duration-300 hover:translate-x-1 hover:text-app-caramelo-torrado">
                 Sobre
               </Link>
             </div>
           </div>
 
           <div>
-            <h3 className="text-lg font-bold text-white">Conta</h3>
+            <h3 className="text-lg font-bold text-app-cafe-profundo">Conta</h3>
             <div className="mt-2 h-1 w-12 rounded-full bg-app-dourado-mel" />
-            <div className="mt-6 flex flex-col gap-4 text-app-baunilha-dourada">
+            <div className="mt-6 flex flex-col gap-4 text-app-mocha">
               <button
                 type="button"
                 onClick={() => {
                   window.location.href = "/login";
                 }}
-                className="w-fit text-left transition-all duration-300 hover:translate-x-1 hover:text-white"
+                className="w-fit text-left transition-all duration-300 hover:translate-x-1 hover:text-app-caramelo-torrado"
               >
                 Entrar
               </button>
               <button
                 type="button"
                 onClick={() => setProfileDialog("cadastro")}
-                className="w-fit text-left transition-all duration-300 hover:translate-x-1 hover:text-white"
+                className="w-fit text-left transition-all duration-300 hover:translate-x-1 hover:text-app-caramelo-torrado"
               >
                 Criar conta
               </button>
@@ -398,18 +392,18 @@ export default function HomePage() {
           </div>
 
           <div>
-            <h3 className="text-lg font-bold text-white">Contato</h3>
+            <h3 className="text-lg font-bold text-app-cafe-profundo">Contato</h3>
             <div className="mt-2 h-1 w-12 rounded-full bg-app-dourado-mel" />
             <div className="mt-6">
-              <p className="text-base text-app-baunilha-dourada">
+              <p className="text-base text-app-mocha">
                 appono.br@gmail.com
               </p>
             </div>
           </div>
         </div>
 
-        <div className="mx-auto mt-14 max-w-6xl border-t border-white/10 pt-6 text-center">
-          <p className="text-sm text-app-creme-suave">
+        <div className="mx-auto mt-14 max-w-6xl border-t border-app-baunilha-dourada/40 pt-6 text-center">
+          <p className="text-sm text-app-mocha">
             © 2026 Appono. Todos os direitos reservados.
           </p>
         </div>
@@ -452,7 +446,7 @@ export default function HomePage() {
                   window.location.href =
                     profileDialog === "cadastro" ? "/cadastro/cliente" : "/login";
                 }}
-                className="group relative flex items-center gap-4 rounded-2xl  bg-white p-4 text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
+                className="group relative flex items-center gap-4 rounded-2xl bg-white p-4 text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
               >
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-app-creme-suave text-app-caramelo-torrado transition group-hover:bg-app-dourado-mel group-hover:text-white">
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -478,7 +472,7 @@ export default function HomePage() {
                   window.location.href =
                     profileDialog === "cadastro" ? "/cadastro/restaurante" : "/login";
                 }}
-                className="group relative flex items-center gap-4 rounded-2xl  bg-white p-4 text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
+                className="group relative flex items-center gap-4 rounded-2xl bg-white p-4 text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
               >
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-app-creme-suave text-app-caramelo-torrado transition group-hover:bg-app-dourado-mel group-hover:text-white">
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
