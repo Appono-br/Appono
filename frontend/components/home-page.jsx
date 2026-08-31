@@ -6,6 +6,7 @@ import { useState } from "react";
 const heroImage = "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=1800&q=80";
 const foodImage = "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=1200&q=80";
 const restaurantImage = "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=80";
+const chefImage = "https://images.unsplash.com/photo-1577219491135-ce391730fb2c?auto=format&fit=crop&w=1200&q=80";
 
 const valueCards = [
   {
@@ -23,6 +24,12 @@ const valueCards = [
     text: "O restaurante acompanha reservas, pedidos e capacidade em um só lugar.",
     icon: "trending",
   },
+];
+
+const testimonials = [
+  { name: "Marina Costa", text: "Cheguei e minha mesa já estava pronta, sem fila e sem espera pelo pedido.", role: "Cliente" },
+  { name: "Ricardo Alves", text: "Conseguimos organizar melhor a cozinha nos horários de pico.", role: "Dono de restaurante" },
+  { name: "Beatriz Lima", text: "A experiência ficou muito mais fluida, do agendamento até a mesa.", role: "Cliente" },
 ];
 
 const faqs = [
@@ -45,7 +52,8 @@ function Icon({ type, className = "h-5 w-5" }) {
     calendar: "M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z",
     clock: "M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z M12 6v6l4 2",
     trending: "M23 6 13.5 15.5 8.5 10.5 1 18 M17 6h6v6",
-    fork: "M3 2v20 M3 2c0 4 0 6 3 6s3-2 3-6 M9 2v20 M15 2c-3 3-3 15 0 20 M21 2c-3 2-3 5-3 8h6c0-3 0-6-3-8z",
+    star: "M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z",
+    quote: "M9 22c-1.1 0-2-.9-2-2v-4c0-1.1.9-2 2-2h2V8c0-2.8-2.2-5-5-5v2c1.7 0 3 1.3 3 3v1H5c-1.1 0-2 .9-2 2v6c0 1.1.9 2 2 2h4zm10 0c-1.1 0-2-.9-2-2v-4c0-1.1.9-2 2-2h2V8c0-2.8-2.2-5-5-5v2c1.7 0 3 1.3 3 3v1h-3c-1.1 0-2 .9-2 2v6c0 1.1.9 2 2 2h4z",
   };
   return (
     <svg aria-hidden="true" viewBox="0 0 24 24" className={className}>
@@ -66,7 +74,7 @@ export default function HomePage() {
   return (
     <main className="min-h-screen bg-white text-app-texto-escuro">
       <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-white/95 backdrop-blur">
-       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between pl-4 pr-8">
+        <div className="mx-auto flex h-20 max-w-7xl items-center justify-between pl-4 pr-8">
           <Link href="/" className="flex shrink-0 items-center" onClick={closeMenu}>
             <Image
               src="/brand/appono-mark.svg"
@@ -152,7 +160,6 @@ export default function HomePage() {
         <div className="absolute inset-0 bg-gradient-to-t from-app-cafe-profundo via-app-cafe-profundo/80 to-app-cafe-profundo/50" />
 
         <div className="relative z-10 mx-auto flex max-w-3xl flex-col items-center text-center">
-
           <h1 className="max-w-2xl text-4xl font-semibold leading-tight sm:text-6xl">
             Reserve sua mesa com antecedência
           </h1>
@@ -199,8 +206,8 @@ export default function HomePage() {
 
             <div className="overflow-hidden rounded-3xl shadow-sm">
               <Image
-                src={foodImage}
-                alt="Experiência gastronômica"
+                src={chefImage}
+                alt="Chef preparando prato"
                 width={560}
                 height={420}
                 className="h-full w-full object-cover"
@@ -256,34 +263,38 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section id="sobre" className="bg-white py-24">
-        <div className="mx-auto grid max-w-6xl items-center gap-16 px-6 md:grid-cols-2">
-          <div>
-            <span className="inline-flex items-center gap-2 rounded-full bg-app-creme-suave px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">
-              Nossa história
-            </span>
-            <h2 className="mt-4 text-4xl font-bold text-app-cafe-profundo">
-              Quem somos nós?
-            </h2>
-            <p className="mt-6 text-lg leading-9 text-app-mocha">
-              A Appono nasceu para melhorar a relação entre clientes e
-              restaurantes no consumo presencial. Nossa proposta é transformar
-              a reserva em uma experiência planejada, onde o cliente chega com
-              menos espera e o restaurante trabalha com mais previsibilidade.
-            </p>
-          </div>
+     <section id="sobre" className="bg-app-cafe-profundo py-24 text-white">
+  <div className="mx-auto grid max-w-6xl items-center gap-16 px-6 md:grid-cols-2">
+    <div>
+      <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-app-baunilha-dourada ring-1 ring-white/20">
+        Nossa história
+      </span>
 
-          <div className="overflow-hidden rounded-3xl shadow-lg">
-            <Image
-              src={restaurantImage}
-              alt="Ambiente interno de restaurante"
-              width={640}
-              height={420}
-              className="h-80 w-full object-cover transition-all duration-500 hover:scale-[1.03]"
-            />
-          </div>
-        </div>
-      </section>
+      <h2 className="mt-4 text-4xl font-bold">
+        Quem somos nós?
+      </h2>
+
+      <p className="mt-6 text-lg leading-9 text-app-creme-suave">
+        A Appono nasceu para melhorar a relação entre clientes e
+        restaurantes no consumo presencial. Nossa proposta é transformar
+        a reserva em uma experiência planejada, onde o cliente chega com
+        menos espera e o restaurante trabalha com mais previsibilidade.
+      </p>
+    </div>
+
+    <div className="overflow-hidden rounded-3xl shadow-lg">
+      <Image
+        src={restaurantImage}
+        alt="Ambiente interno de restaurante"
+        width={640}
+        height={420}
+        className="h-80 w-full object-cover transition-all duration-500 hover:scale-[1.03]"
+      />
+    </div>
+  </div>
+</section>
+
+
 
       <section className="bg-white py-24">
         <div className="mx-auto max-w-5xl px-6">
@@ -441,7 +452,7 @@ export default function HomePage() {
                   window.location.href =
                     profileDialog === "cadastro" ? "/cadastro/cliente" : "/login";
                 }}
-                className="group relative flex items-center gap-4 rounded-2xl border border-app-baunilha-dourada/60 bg-white p-4 text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
+                className="group relative flex items-center gap-4 rounded-2xl  bg-white p-4 text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
               >
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-app-creme-suave text-app-caramelo-torrado transition group-hover:bg-app-dourado-mel group-hover:text-white">
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -467,7 +478,7 @@ export default function HomePage() {
                   window.location.href =
                     profileDialog === "cadastro" ? "/cadastro/restaurante" : "/login";
                 }}
-                className="group relative flex items-center gap-4 rounded-2xl border border-app-baunilha-dourada/60 bg-white p-4 text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
+                className="group relative flex items-center gap-4 rounded-2xl  bg-white p-4 text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
               >
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-app-creme-suave text-app-caramelo-torrado transition group-hover:bg-app-dourado-mel group-hover:text-white">
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
