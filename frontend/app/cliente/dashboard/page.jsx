@@ -192,10 +192,10 @@ export default function DashboardPage() {
 
       <section className="border-b border-app-baunilha-dourada/50 bg-app-creme-leve px-5 py-5">
         <div className="mx-auto max-w-7xl">
-          <label className="mx-auto flex h-12 max-w-xl items-center gap-3 rounded-[8px] border border-app-baunilha-dourada bg-app-chantilly px-4 text-app-mocha shadow-sm">
+          <label className="campo-busca-app mx-auto flex h-12 max-w-xl items-center gap-3 rounded-[8px] border border-app-baunilha-dourada bg-app-chantilly px-4 text-app-mocha shadow-sm">
             <Icon type="search" className="h-5 w-5 shrink-0"/>
             <span className="sr-only">Buscar restaurantes</span>
-            <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar" className="h-full min-w-0 flex-1 bg-transparent text-sm text-app-cafe-profundo outline-none placeholder:text-app-cinza"/>
+            <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar" className="input-busca-app h-full min-w-0 flex-1 bg-transparent text-sm text-app-cafe-profundo outline-none placeholder:text-app-cinza"/>
           </label>
 
           <div className="mt-4 flex flex-wrap items-center justify-center gap-3">

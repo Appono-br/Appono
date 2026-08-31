@@ -319,8 +319,16 @@ export default function RestaurantMenuManagementPage() {
                         ["Itens em falta", itensEmFalta],
                         ["Destaques", itensEmDestaque],
                     ].map(([label, value], index) => (
-                        <article key={label} className={`min-h-32 rounded-[8px] p-6 shadow-sm ring-1 ring-app-baunilha-dourada/45 ${index === 2 ? "bg-app-creme-suave" : "bg-app-creme-leve"}`}>
-                            <p className="text-xs font-bold uppercase tracking-[0.18em] text-app-cinza">{label}</p>
+                        <article key={label} className={`min-h-32 rounded-[8px] border border-app-baunilha-dourada/60 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-md ${index === 0 ? "xl:col-span-2" : ""}`}>
+                            <p className={`text-xs font-bold uppercase tracking-[0.18em] ${
+                                label === "Itens disponiveis"
+                                    ? "text-green-800"
+                                    : label === "Itens em falta"
+                                      ? "text-red-800"
+                                      : label === "Destaques"
+                                        ? "text-app-amarelo-alerta"
+                                        : "text-app-cinza"
+                            }`}>{label}</p>
                             <strong className="mt-6 block text-3xl font-medium text-app-cafe-profundo">{value}</strong>
                         </article>
                     ))}
@@ -369,7 +377,7 @@ export default function RestaurantMenuManagementPage() {
                                         })} className="h-9 rounded-[8px] border border-app-baunilha-dourada px-3 text-xs font-bold uppercase text-app-mocha transition hover:bg-app-creme-leve">
                                             Editar
                                         </button>
-                                        <button type="button" onClick={() => arquivarCategoria(categoria)} disabled={categoriaAtualizandoId === categoria.id_categoria} className="h-9 rounded-[8px] bg-app-cafe-profundo px-3 text-xs font-bold uppercase text-app-creme-leve transition hover:bg-app-caramelo-torrado disabled:opacity-60">
+                                        <button type="button" onClick={() => arquivarCategoria(categoria)} disabled={categoriaAtualizandoId === categoria.id_categoria} className="h-9 rounded-[8px] border border-red-300 bg-transparent px-3 text-xs font-bold uppercase text-red-800 transition hover:border-app-vermelho-erro hover:text-app-vermelho-erro disabled:opacity-60">
                                             Arquivar
                                         </button>
                                     </div>
@@ -425,7 +433,7 @@ export default function RestaurantMenuManagementPage() {
                                     <div className="flex flex-wrap items-center gap-2">
                                         <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">{produto.cardapio}</p>
                                         {produto.destaque ? (
-                                            <span className="inline-flex items-center gap-1 rounded-full bg-app-cafe-profundo px-2.5 py-1 text-[10px] font-bold uppercase text-app-creme-leve">
+                                            <span className="inline-flex items-center gap-1 rounded-full border border-app-dourado-mel/40 bg-transparent px-2.5 py-1 text-[10px] font-bold uppercase text-app-amarelo-alerta">
                                                 <Icon type="star" className="h-3 w-3" />
                                                 Destaque
                                             </span>
@@ -437,11 +445,11 @@ export default function RestaurantMenuManagementPage() {
                                 </div>
                                 <div className="text-left sm:text-right">
                                     <strong className="text-lg text-app-cafe-profundo">{formatarMoeda(produto.preco)}</strong>
-                                    <span className={`mt-2 block rounded-full px-3 py-1 text-xs font-bold uppercase ${produto.disponivel ? "bg-app-baunilha-dourada text-app-cafe-profundo" : "bg-app-cafe-profundo text-app-creme-leve"}`}>
+                                    <span className={`mt-2 block rounded-full border bg-transparent px-3 py-1 text-xs font-bold uppercase ${produto.disponivel ? "border-green-200 text-green-800" : "border-red-300 text-red-800"}`}>
                                         {produto.disponivel ? "Disponivel" : "Indisponivel"}
                                     </span>
                                     <div className="mt-3 flex flex-wrap gap-2 sm:justify-end">
-                                        <button type="button" onClick={() => alterarDisponibilidade(produto)} disabled={produtoAtualizandoId === produto.id_produto} className="inline-flex h-9 items-center justify-center gap-2 rounded-[8px] border border-app-baunilha-dourada px-3 text-xs font-bold uppercase text-app-mocha transition hover:bg-app-creme-suave disabled:cursor-not-allowed disabled:opacity-60">
+                                        <button type="button" onClick={() => alterarDisponibilidade(produto)} disabled={produtoAtualizandoId === produto.id_produto} className={`inline-flex h-9 items-center justify-center gap-2 rounded-[8px] border bg-transparent px-3 text-xs font-bold uppercase transition disabled:cursor-not-allowed disabled:opacity-60 ${produto.disponivel ? "border-red-300 text-red-800 hover:border-app-vermelho-erro hover:text-app-vermelho-erro" : "border-green-200 text-green-800 hover:border-app-verde-sucesso hover:text-app-verde-sucesso"}`}>
                                             <Icon type="check" className="h-4 w-4" />
                                             {produto.disponivel ? "Pausar" : "Ativar"}
                                         </button>
@@ -453,7 +461,7 @@ export default function RestaurantMenuManagementPage() {
                                             <Icon type="pencil" className="h-4 w-4" />
                                             Editar
                                         </Link>
-                                        <button type="button" onClick={() => setProdutoParaExcluir(produto)} disabled={produtoExcluindoId === produto.id_produto} className="inline-flex h-9 items-center justify-center gap-2 rounded-[8px] bg-app-cafe-profundo px-3 text-xs font-bold uppercase text-app-creme-leve transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-60">
+                                        <button type="button" onClick={() => setProdutoParaExcluir(produto)} disabled={produtoExcluindoId === produto.id_produto} className="inline-flex h-9 items-center justify-center gap-2 rounded-[8px] border border-red-300 bg-transparent px-3 text-xs font-bold uppercase text-red-800 transition hover:border-app-vermelho-erro hover:text-app-vermelho-erro disabled:cursor-not-allowed disabled:opacity-60">
                                             <Icon type="trash" className="h-4 w-4" />
                                             {produtoExcluindoId === produto.id_produto ? "Excluindo" : "Excluir"}
                                         </button>
@@ -497,7 +505,7 @@ export default function RestaurantMenuManagementPage() {
                             <button type="button" onClick={() => setProdutoParaExcluir(null)} className="h-11 rounded-[8px] border border-app-baunilha-dourada px-5 text-xs font-bold uppercase text-app-mocha transition hover:bg-app-creme-suave">
                                 Cancelar
                             </button>
-                            <button type="button" onClick={excluirProduto} disabled={produtoExcluindoId === produtoParaExcluir.id_produto} className="h-11 rounded-[8px] bg-app-cafe-profundo px-5 text-xs font-bold uppercase text-app-creme-leve transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-60">
+                            <button type="button" onClick={excluirProduto} disabled={produtoExcluindoId === produtoParaExcluir.id_produto} className="h-11 rounded-[8px] border border-red-300 bg-transparent px-5 text-xs font-bold uppercase text-red-800 transition hover:border-app-vermelho-erro hover:text-app-vermelho-erro disabled:cursor-not-allowed disabled:opacity-60">
                                 {produtoExcluindoId === produtoParaExcluir.id_produto ? "Removendo..." : "Remover item"}
                             </button>
                         </div>
