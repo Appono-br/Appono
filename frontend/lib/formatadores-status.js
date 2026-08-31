@@ -15,6 +15,8 @@ export function textoTipoEvento(tipo) {
         RESERVA_CANCELADA: "Reserva cancelada",
         RESERVA_CHECK_IN: "Check-in realizado",
         RESERVA_CONCLUIDA: "Reserva finalizada",
+        PRESENCA_CONFIRMADA: "Presenca confirmada",
+        PRESENCA_RECUSADA: "Ausencia informada",
         PEDIDO_CRIADO: "Pedido criado",
         PEDIDO_CANCELADO: "Pedido cancelado",
         STATUS_PEDIDO: "Status do pedido",

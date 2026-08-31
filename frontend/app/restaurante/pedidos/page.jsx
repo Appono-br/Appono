@@ -553,7 +553,7 @@ export default function RestaurantOrdersPage() {
                     ) : (
                         <EmptyPanel
                             title="Nenhum pedido neste filtro"
-                            description="Pedidos pagos aparecem aqui quando entram na janela operacional, 60 minutos antes da reserva. Pedidos futuros continuam no historico e entram na fila no momento certo."
+                            description="Pedidos pagos aparecem aqui em ordem de reserva. Os mais proximos ficam primeiro para orientar a cozinha."
                         />
                     )}
                 </section>

@@ -108,6 +108,24 @@ function obterClasseStatusReserva(status) {
     }
     return "bg-app-creme-suave text-app-cafe-profundo ring-app-baunilha-dourada/70";
 }
+function obterStatusConfirmacaoPresenca(status) {
+    const statusMap = {
+        PENDENTE: "Aguardando cliente",
+        CONFIRMADA: "Presenca confirmada",
+        RECUSADA: "Ausencia informada",
+        EXPIRADA: "Prazo expirado",
+    };
+    return statusMap[status] ?? "Aguardando cliente";
+}
+function obterClasseConfirmacaoPresenca(status) {
+    if (status === "CONFIRMADA") {
+        return "bg-app-dourado-mel/20 text-app-cafe-profundo ring-app-dourado-mel/40";
+    }
+    if (status === "RECUSADA" || status === "EXPIRADA") {
+        return "bg-app-vermelho-erro/10 text-app-vermelho-erro ring-app-vermelho-erro/25";
+    }
+    return "bg-app-creme-suave text-app-mocha ring-app-baunilha-dourada/70";
+}
 function obterPedidosAtivos(reserva) {
     return (reserva.pedidos ?? []).filter((pedido) => pedido.status_pedido !== "CANCELADO");
 }
@@ -444,6 +462,11 @@ export default function RestaurantReservationsPage() {
                                                 <span className={`w-fit rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-[0.08em] ring-1 ${obterClasseStatusReserva(reserva.status_reserva)}`}>
                                                     {obterStatusReserva(reserva.status_reserva)}
                                                 </span>
+                                                {reserva.status_reserva === "CONFIRMADA" ? (
+                                                    <span className={`w-fit rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-[0.08em] ring-1 ${obterClasseConfirmacaoPresenca(reserva.status_confirmacao_presenca)}`}>
+                                                        {obterStatusConfirmacaoPresenca(reserva.status_confirmacao_presenca)}
+                                                    </span>
+                                                ) : null}
                                             </div>
 
                                             <div className="mt-5 grid gap-3 text-sm text-app-mocha sm:grid-cols-3">

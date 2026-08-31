@@ -6,11 +6,12 @@ exports.restaurantDashboardRouter = void 0;
 const express_1 = require("express");
 const supabase_1 = require("../lib/supabase");
 const auth_1 = require("../middleware/auth");
+const { ordenarPorHorarioReserva, pedidoEstaNaFilaOperacional } = require("../domain/operational-queue");
 
 exports.restaurantDashboardRouter = (0, express_1.Router)();
 exports.restaurantDashboardRouter.use(auth_1.requireAuth);
 
-const STATUS_PEDIDOS_ATIVOS = ["PENDENTE", "CONFIRMADO", "EM_PREPARO", "PRONTO"];
+const STATUS_PEDIDOS_PAGOS_ATIVOS = ["CONFIRMADO", "EM_PREPARO", "PRONTO"];
 
 function formatarMoedaResumo(valor) {
     return new Intl.NumberFormat("pt-BR", {
@@ -78,7 +79,7 @@ function obterClientesUnicos(reservas, pedidos) {
 
 function calcularTempoMedioPreparo(pedidos) {
     const tempos = [];
-    for (const pedido of pedidos ?? []) {
+    for (const pedido of (pedidos ?? []).filter((item) => item.status_pedido === "ENTREGUE")) {
         for (const item of pedido.itens_pedido ?? []) {
             const tempo = Number(item.produtos?.tempo_preparo_minutos ?? 0);
             if (tempo > 0) {
@@ -146,7 +147,7 @@ exports.restaurantDashboardRouter.get("/dashboard/resumo", async (_req, res) => 
             .order("horario_inicio", { ascending: true }),
         clienteBanco
             .from("pedidos")
-            .select("id_pedido, id_reserva, id_cliente, id_restaurante, status_pedido, valor_total, data_pedido, horario_entrega_previsto, iniciar_preparo_em, observacoes, ocultado_cozinha, itens_pedido(quantidade, preco_unitario, observacoes, produtos(nome, descricao, imagem_url, tempo_preparo_minutos)), reservas(data_reserva, horario_inicio, clientes(nome))")
+            .select("id_pedido, id_reserva, id_cliente, id_restaurante, status_pedido, valor_total, data_pedido, horario_entrega_previsto, iniciar_preparo_em, observacoes, ocultado_cozinha, itens_pedido(quantidade, preco_unitario, observacoes, produtos(nome, descricao, imagem_url, tempo_preparo_minutos)), reservas(data_reserva, horario_inicio, status_reserva, status_confirmacao_presenca, clientes(nome))")
             .eq("id_restaurante", restaurante.id_restaurante)
             .order("data_pedido", { ascending: false }),
         clienteBanco
@@ -176,8 +177,17 @@ exports.restaurantDashboardRouter.get("/dashboard/resumo", async (_req, res) => 
     const pedidos30Dias = obterPedidosNoPeriodo(pedidos, 30);
     const hoje = obterDataLocalISO();
     const reservasHoje = reservas.filter((reserva) => reserva.data_reserva === hoje);
-    const pedidosAtivos = pedidos.filter((pedido) => STATUS_PEDIDOS_ATIVOS.includes(pedido.status_pedido));
-    const proximosPedidos = pedidosAtivos
+    const pedidosAtivos = pedidos.filter((pedido) =>
+        STATUS_PEDIDOS_PAGOS_ATIVOS.includes(pedido.status_pedido) &&
+        pedido.ocultado_cozinha !== true,
+    );
+    const pedidosFilaCozinha = pedidos
+        .filter((pedido) =>
+            STATUS_PEDIDOS_PAGOS_ATIVOS.includes(pedido.status_pedido) &&
+            pedidoEstaNaFilaOperacional(pedido),
+        )
+        .sort(ordenarPorHorarioReserva);
+    const proximosPedidos = pedidosFilaCozinha
         .filter((pedido) => pedido.ocultado_cozinha !== true)
         .slice(0, 3)
         .map((pedido) => ({
@@ -204,6 +214,6 @@ exports.restaurantDashboardRouter.get("/dashboard/resumo", async (_req, res) => 
         proximosPedidos,
         produtoDestaque: produtoDestaqueResposta.data ?? null,
         tempoMedioPreparo: calcularTempoMedioPreparo(pedidos),
-        pedidosAtivosCozinha: pedidosAtivos.length,
+        pedidosAtivosCozinha: pedidosFilaCozinha.length,
     });
 });

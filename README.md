@@ -76,6 +76,8 @@ A migration `20260813000100_financial_webhook_idempotency.sql` cria o controle d
 
 A migration `20260814000100_expire_no_show_reservations.sql` adiciona `NAO_COMPARECEU` e a transição atômica de reservas confirmadas cujo horário final terminou sem check-in. Ela também cancela pedidos pendentes, recusa pagamentos ainda pendentes e registra auditoria. Esta migration precisa ser aplicada antes de executar a versão correspondente do backend.
 
+A migration `20260825000100_add_client_attendance_confirmation.sql` adiciona a confirmação de presença do cliente. A regra do MVP é: o cliente pode confirmar presença ou avisar ausência até 1 hora antes da reserva. Se confirmar, a cozinha passa a receber o pedido pago na fila operacional. Se avisar ausência, a reserva e os pedidos que ainda não entraram em preparo são cancelados, o restaurante é notificado e a Appono registra reembolso parcial. O reembolso é calculado pelo excedente: valor pago menos consumo mínimo da reserva e comissão Appono. O consumo mínimo fica registrado como valor do restaurante, a comissão fica registrada para a Appono e o excedente retorna ao cliente. A comissão padrão é 13%, configurável por `MERCADO_PAGO_MARKETPLACE_FEE_PERCENTUAL`.
+
 Aplicar migrations primeiro em testes, depois em homologação e por último em produção. Fazer backup e validar restauração antes de alterações críticas.
 
 ## Segurança de pagamentos

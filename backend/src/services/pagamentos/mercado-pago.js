@@ -139,22 +139,30 @@ async function consultarPagamentoPorPreferenciaMercadoPago(preferenceId, accessT
     const ordem = resultado?.elements?.[0];
     return pagamentoDaOrdemMercadoPago(ordem);
 }
-async function estornarPagamentoMercadoPago(paymentId, accessToken = obterAccessTokenMercadoPago()) {
+async function estornarPagamentoMercadoPago(paymentId, accessToken = obterAccessTokenMercadoPago(), amount = null) {
     const token = accessToken?.trim?.() ?? "";
     if (!token || !paymentId) throw new Error("Pagamento sem credenciais para estorno.");
+    const valorParcial = amount !== null && amount !== undefined ? Number(amount) : null;
+    const requestBody = valorParcial && Number.isFinite(valorParcial) && valorParcial > 0
+        ? JSON.stringify({ amount: valorParcial })
+        : undefined;
+    const idempotencyAmount = valorParcial && Number.isFinite(valorParcial) && valorParcial > 0
+        ? `-${Math.round(valorParcial * 100)}`
+        : "";
     const resposta = await fetch(`${MERCADO_PAGO_API}/v1/payments/${encodeURIComponent(paymentId)}/refunds`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json", "X-Idempotency-Key": `appono-refund-${paymentId}` },
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json", "X-Idempotency-Key": `appono-refund-${paymentId}${idempotencyAmount}` },
+        body: requestBody,
     });
-    const body = await resposta.json().catch(() => null);
+    const responseBody = await resposta.json().catch(() => null);
     if (!resposta.ok) {
-        const message = String(body?.message ?? "");
+        const message = String(responseBody?.message ?? "");
         if (resposta.status === 401 && /live credentials/i.test(message)) {
             throw new Error("A credencial Mercado Pago atual consulta o pagamento, mas nao possui permissao para estornar pagamentos reais. Gere uma credencial de producao com escopo de pagamentos ou estorne esta venda pelo painel do Mercado Pago.");
         }
         throw new Error(message || "Mercado Pago recusou o estorno.");
     }
-    return body;
+    return responseBody;
 }
 
 module.exports = {

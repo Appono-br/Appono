@@ -9,7 +9,13 @@ const { sincronizarReservasNaoComparecidas } = require("../services/reservas/exp
 const { refundApprovedPayments } = require("../services/pagamentos/refund");
 const paymentConfig = require("../services/pagamentos/config");
 const { ordenarPorHorarioReserva, reservaEstaNaFilaOperacional } = require("../domain/operational-queue");
-const { restaurantCancellationEligibility } = require("../domain/reservation-time");
+const {
+    attendanceConfirmationDeadline,
+    attendanceConfirmationEligibility,
+    apponoCommissionPercentage,
+    calculateAttendanceRefundPolicy,
+    restaurantCancellationEligibility,
+} = require("../domain/reservation-time");
 exports.reservationsRouter = (0, express_1.Router)();
 exports.reservationsRouter.use(auth_1.requireAuth);
 const LIMITE_UNIDADES_POR_ITEM = 10;
@@ -133,6 +139,21 @@ function obterDataLocalSaoPaulo() {
 }
 function obterDataHoraLocal(data, horario) {
     return new Date(`${data}T${String(horario ?? "").slice(0, 8)}`);
+}
+
+function arredondarMoeda(valor) {
+    return Math.round(Number(valor ?? 0) * 100) / 100;
+}
+
+function obterMensagemErroConfirmacaoPresenca(reason) {
+    const mensagens = {
+        RESERVA_NAO_ENCONTRADA: "Reserva nao encontrada.",
+        STATUS_INVALIDO: "A confirmacao de presenca esta disponivel apenas para reservas confirmadas.",
+        JA_RESPONDIDA: "Esta reserva ja teve ausencia confirmada e nao pode ser alterada.",
+        HORARIO_INVALIDO: "Horario da reserva invalido para confirmacao de presenca.",
+        PRAZO_ENCERRADO: "O prazo para confirmar presenca encerrou 1 hora antes da reserva.",
+    };
+    return mensagens[reason] ?? "Nao foi possivel atualizar a confirmacao de presenca.";
 }
 
 exports.reservationsRouter.get("/", async (req, res) => {
@@ -413,6 +434,280 @@ exports.reservationsRouter.get("/:id/cardapio", async (req, res) => {
         return res.status(400).json({ error: cardapiosError.message });
     }
     return res.json({ reserva: { ...reserva, pedidos: pedidos ?? [] }, cardapios: organizarCardapios(cardapios) });
+});
+exports.reservationsRouter.patch("/:id/presenca", (0, auth_1.requireRole)("cliente"), async (req, res) => {
+    await sincronizarReservasNaoComparecidas().catch(() => null);
+    const reservationId = Number(req.params.id);
+    const acao = String(req.body?.acao ?? "").trim().toUpperCase();
+    if (!Number.isInteger(reservationId) || reservationId <= 0) {
+        return res.status(400).json({ error: "Reserva invalida." });
+    }
+    if (!["CONFIRMAR", "NAO_COMPARECEREI"].includes(acao)) {
+        return res.status(400).json({ error: "Informe se voce ira comparecer ou nao." });
+    }
+    if (!supabase_1.supabaseAdmin) {
+        return res.status(409).json({ error: "SUPABASE_SECRET_KEY precisa estar configurada no backend." });
+    }
+    try {
+        const { data: cliente, error: clienteError } = await supabase_1.supabaseAdmin
+            .from("clientes")
+            .select("id_cliente, nome")
+            .eq("id_auth", res.locals.user.id)
+            .maybeSingle();
+        if (clienteError) throw new Error(clienteError.message);
+        if (!cliente) return res.status(403).json({ error: "Apenas clientes podem confirmar presenca." });
+
+        const { data: reserva, error: reservaError } = await supabase_1.supabaseAdmin
+            .from("reservas")
+            .select("id_reserva, id_cliente, id_restaurante, status_reserva, status_confirmacao_presenca, data_reserva, horario_inicio, horario_fim, valor_minimo_total, restaurantes(nome)")
+            .eq("id_reserva", reservationId)
+            .eq("id_cliente", cliente.id_cliente)
+            .maybeSingle();
+        if (reservaError) throw new Error(reservaError.message);
+        if (!reserva) return res.status(404).json({ error: "Reserva nao encontrada para este cliente." });
+
+        const elegibilidade = attendanceConfirmationEligibility(reserva, obterDataLocalSaoPaulo());
+        if (!elegibilidade.allowed) {
+            return res.status(409).json({ error: obterMensagemErroConfirmacaoPresenca(elegibilidade.reason), code: elegibilidade.reason });
+        }
+
+        const prazo = attendanceConfirmationDeadline(reserva);
+        const agora = new Date().toISOString();
+        if (acao === "CONFIRMAR") {
+            const { data, error } = await supabase_1.supabaseAdmin
+                .from("reservas")
+                .update({
+                    status_confirmacao_presenca: "CONFIRMADA",
+                    confirmacao_presenca_em: agora,
+                    prazo_confirmacao_presenca: prazo?.toISOString() ?? null,
+                    motivo_confirmacao_presenca: "Cliente confirmou presenca.",
+                })
+                .eq("id_reserva", reservationId)
+                .eq("id_cliente", cliente.id_cliente)
+                .eq("status_reserva", "CONFIRMADA")
+                .select("*, restaurantes(nome, endereco), clientes(nome, telefone), mesas(numero_mesa, capacidade)")
+                .single();
+            if (error) throw new Error(error.message);
+            await Promise.all([
+                (0, notificacoes_1.notificarCliente)(data.id_cliente, {
+                    titulo: "Presenca confirmada",
+                    mensagem: "Sua presenca foi confirmada. O restaurante ja pode organizar sua experiencia.",
+                    tipo_evento: "PRESENCA_CONFIRMADA",
+                    link_destino: "/cliente/reservas",
+                    dados: { id_reserva: data.id_reserva },
+                }),
+                (0, notificacoes_1.notificarRestaurante)(data.id_restaurante, {
+                    titulo: "Cliente confirmou presenca",
+                    mensagem: `${cliente.nome ?? "Um cliente"} confirmou presenca na reserva.`,
+                    tipo_evento: "PRESENCA_CONFIRMADA",
+                    link_destino: "/restaurante/reservas",
+                    dados: { id_reserva: data.id_reserva },
+                }),
+            ]);
+            return res.json({ reserva: data, reembolso: null });
+        }
+
+        const { data: pedidos, error: pedidosError } = await supabase_1.supabaseAdmin
+            .from("pedidos")
+            .select("id_pedido, id_reserva, id_cliente, id_restaurante, status_pedido, valor_total")
+            .eq("id_reserva", reservationId);
+        if (pedidosError) throw new Error(pedidosError.message);
+        const pedidosEmAndamento = (pedidos ?? []).filter((pedido) => ["EM_PREPARO", "PRONTO", "ENTREGUE"].includes(pedido.status_pedido));
+        if (pedidosEmAndamento.length) {
+            return res.status(409).json({ error: "Nao e possivel cancelar a presenca porque o pedido ja entrou em preparo ou atendimento." });
+        }
+
+        const idsPedidos = (pedidos ?? []).map((pedido) => pedido.id_pedido);
+        let pagamentos = [];
+        if (idsPedidos.length) {
+            const { data, error } = await supabase_1.supabaseAdmin
+                .from("pagamentos")
+                .select("id_pagamento, id_pedido, id_reserva, status_pagamento, status_repasse, tipo_fluxo_pagamento, mercado_pago_payment_id, valor_pago, valor, valor_reembolsado")
+                .in("id_pedido", idsPedidos);
+            if (error) throw new Error(error.message);
+            pagamentos = data ?? [];
+        }
+        const percentualComissaoAppono = apponoCommissionPercentage();
+        const pagamentosAprovados = pagamentos.filter((pagamento) => pagamento.status_pagamento === "APROVADO");
+        const valorPorPagamento = new Map();
+        const politicaPorPagamento = new Map();
+        for (const pagamento of pagamentosAprovados) {
+            const valorBase = Number(pagamento.valor_pago ?? pagamento.valor ?? 0) - Number(pagamento.valor_reembolsado ?? 0);
+            const politica = calculateAttendanceRefundPolicy({
+                paidAmount: valorBase,
+                minimumTotal: reserva.valor_minimo_total,
+                commissionPercentage: percentualComissaoAppono,
+            });
+            politicaPorPagamento.set(pagamento.id_pagamento, politica);
+            const valorReembolso = politica.refund;
+            if (valorReembolso > 0) {
+                valorPorPagamento.set(pagamento.id_pagamento, arredondarMoeda(valorReembolso));
+            }
+        }
+        const pagamentosParaReembolso = pagamentosAprovados.filter((pagamento) => valorPorPagamento.has(pagamento.id_pagamento));
+        const estornos = await refundApprovedPayments(pagamentosParaReembolso, reserva.id_restaurante, valorPorPagamento);
+        let totalReembolsado = 0;
+        const totalRetido = Array.from(politicaPorPagamento.values())
+            .reduce((total, politica) => total + Number(politica.retained ?? 0), 0);
+        const pagamentosPendentes = pagamentos.filter((pagamento) => pagamento.status_pagamento === "PENDENTE");
+        for (const pagamento of pagamentosPendentes) {
+            await supabase_1.supabaseAdmin
+                .from("pagamentos")
+                .update({
+                    status_pagamento: "RECUSADO",
+                    status_repasse: "ESTORNADO",
+                    atualizado_em: agora,
+                    updated_at: agora,
+                })
+                .eq("id_pagamento", pagamento.id_pagamento);
+            await supabase_1.supabaseAdmin.from("eventos_financeiros").insert({
+                id_pagamento: pagamento.id_pagamento,
+                id_pedido: pagamento.id_pedido,
+                id_reserva: reservationId,
+                tipo_evento: "PAGAMENTO_RECUSADO_AUSENCIA",
+                descricao: "Checkout pendente encerrado porque o cliente avisou que nao comparecera.",
+                valor: pagamento.valor_pago ?? pagamento.valor ?? 0,
+                origem: "CLIENTE",
+            });
+        }
+        for (const pagamento of pagamentosAprovados) {
+            const politica = politicaPorPagamento.get(pagamento.id_pagamento) ?? calculateAttendanceRefundPolicy({
+                paidAmount: pagamento.valor_pago ?? pagamento.valor ?? 0,
+                minimumTotal: reserva.valor_minimo_total,
+                commissionPercentage: percentualComissaoAppono,
+            });
+            const valorReembolso = valorPorPagamento.get(pagamento.id_pagamento) ?? 0;
+            totalReembolsado += valorReembolso;
+            const valorPago = Number(pagamento.valor_pago ?? pagamento.valor ?? 0);
+            const totalJaReembolsado = arredondarMoeda(Number(pagamento.valor_reembolsado ?? 0) + valorReembolso);
+            const reembolsoTotal = totalJaReembolsado >= valorPago;
+            const valorRestauranteRetido = arredondarMoeda(politica.restaurantRetained ?? 0);
+            const valorComissaoRetida = arredondarMoeda(politica.appCommission ?? politica.commission ?? 0);
+            await supabase_1.supabaseAdmin
+                .from("pagamentos")
+                .update({
+                    valor_reembolsado: totalJaReembolsado,
+                    valor_restaurante: valorRestauranteRetido,
+                    valor_comissao_app: valorComissaoRetida,
+                    status_pagamento: reembolsoTotal ? "ESTORNADO" : pagamento.status_pagamento,
+                    status_repasse: valorRestauranteRetido > 0 ? "LIBERADO_PARA_REPASSE" : "ESTORNADO",
+                    atualizado_em: agora,
+                    updated_at: agora,
+                })
+                .eq("id_pagamento", pagamento.id_pagamento);
+            const pedido = (pedidos ?? []).find((item) => item.id_pedido === pagamento.id_pedido);
+            if (valorReembolso > 0) {
+                await supabase_1.supabaseAdmin.from("solicitacoes_reembolso").insert({
+                    id_pagamento: pagamento.id_pagamento,
+                    id_pedido: pagamento.id_pedido,
+                    id_reserva: reservationId,
+                    id_cliente: reserva.id_cliente,
+                    id_restaurante: reserva.id_restaurante,
+                    valor_solicitado: valorReembolso,
+                    motivo: "Cliente informou ausencia antes do prazo de confirmacao de presenca.",
+                    resposta: "Reembolso parcial processado automaticamente: valor pago menos consumo minimo da reserva e comissao Appono.",
+                    status_reembolso: "CONCLUIDO",
+                    modo_execucao: paymentConfig.productionAllowed() ? "MERCADO_PAGO_PRODUCAO" : "MERCADO_PAGO_TESTE",
+                    analisado_em: agora,
+                    concluido_em: agora,
+                    id_auth_analista: res.locals.user.id,
+                });
+                await supabase_1.supabaseAdmin.from("eventos_financeiros").insert({
+                    id_pagamento: pagamento.id_pagamento,
+                    id_pedido: pagamento.id_pedido,
+                    id_reserva: reservationId,
+                    tipo_evento: "REEMBOLSO_PARCIAL_AUSENCIA",
+                    descricao: `Cliente avisou ausencia. Reembolso parcial calculado por excedente: pago menos consumo minimo e comissao Appono de ${percentualComissaoAppono}%.`,
+                    valor: valorReembolso,
+                    origem: "CLIENTE",
+                });
+            }
+            await supabase_1.supabaseAdmin.from("eventos_financeiros").insert({
+                id_pagamento: pagamento.id_pagamento,
+                id_pedido: pagamento.id_pedido,
+                id_reserva: reservationId,
+                tipo_evento: "RETENCAO_AUSENCIA",
+                descricao: `Cliente avisou ausencia. Restaurante manteve R$ ${valorRestauranteRetido.toFixed(2).replace(".", ",")} e Appono manteve R$ ${valorComissaoRetida.toFixed(2).replace(".", ",")}.`,
+                valor: arredondarMoeda(politica.retained ?? 0),
+                origem: "CLIENTE",
+            });
+            if (pedido) {
+                await supabase_1.supabaseAdmin.from("eventos_financeiros").insert({
+                    id_pagamento: pagamento.id_pagamento,
+                    id_pedido: pedido.id_pedido,
+                    id_reserva: reservationId,
+                    tipo_evento: "PEDIDO_CANCELADO_AUSENCIA",
+                    descricao: "Pedido cancelado porque o cliente avisou que nao comparecera.",
+                    valor: pedido.valor_total,
+                    origem: "CLIENTE",
+                });
+            }
+        }
+
+        if (idsPedidos.length) {
+            await supabase_1.supabaseAdmin
+                .from("pedidos")
+                .update({ status_pedido: "CANCELADO" })
+                .eq("id_reserva", reservationId)
+                .in("status_pedido", ["PENDENTE", "CONFIRMADO"]);
+        }
+
+        const { data: reservaCancelada, error: updateError } = await supabase_1.supabaseAdmin
+            .from("reservas")
+            .update({
+                status_reserva: "CANCELADA",
+                status_confirmacao_presenca: "RECUSADA",
+                confirmacao_presenca_em: agora,
+                prazo_confirmacao_presenca: prazo?.toISOString() ?? null,
+                percentual_comissao_ausencia: percentualComissaoAppono,
+                valor_retido_ausencia: arredondarMoeda(totalRetido),
+                valor_reembolso_ausencia: arredondarMoeda(totalReembolsado),
+                motivo_confirmacao_presenca: "Cliente informou que nao ira comparecer.",
+            })
+            .eq("id_reserva", reservationId)
+            .eq("id_cliente", cliente.id_cliente)
+            .eq("status_reserva", "CONFIRMADA")
+            .select("*, restaurantes(nome, endereco), clientes(nome, telefone), mesas(numero_mesa, capacidade)")
+            .single();
+        if (updateError) throw new Error(updateError.message);
+
+        await Promise.all([
+            (0, notificacoes_1.notificarCliente)(reservaCancelada.id_cliente, {
+                titulo: "Reserva cancelada",
+                mensagem: totalReembolsado > 0
+                    ? `Sua ausencia foi registrada e um reembolso parcial de R$ ${arredondarMoeda(totalReembolsado).toFixed(2).replace(".", ",")} foi processado.`
+                    : "Sua ausencia foi registrada e a reserva foi cancelada.",
+                tipo_evento: "PRESENCA_RECUSADA",
+                link_destino: "/cliente/reservas",
+                dados: { id_reserva: reservationId, valor_reembolso: arredondarMoeda(totalReembolsado) },
+            }),
+            (0, notificacoes_1.notificarRestaurante)(reservaCancelada.id_restaurante, {
+                titulo: "Cliente nao ira comparecer",
+                mensagem: "A reserva foi cancelada e saiu da fila operacional. Pedidos vinculados foram cancelados.",
+                tipo_evento: "PRESENCA_RECUSADA",
+                link_destino: "/restaurante/reservas",
+                dados: { id_reserva: reservationId },
+            }),
+            (0, notificacoes_1.notificarAdministradores)({
+                titulo: "Ausencia informada",
+                mensagem: `Reserva #${reservationId} cancelada pelo cliente com reembolso do excedente apos consumo minimo e comissao Appono.`,
+                tipo_evento: "REEMBOLSO_PARCIAL_AUSENCIA",
+                link_destino: "/admin/financeiro",
+                dados: { id_reserva: reservationId, valor_reembolso: arredondarMoeda(totalReembolsado) },
+            }),
+        ]);
+        return res.json({
+            reserva: reservaCancelada,
+            reembolso: {
+                percentual_comissao_app: percentualComissaoAppono,
+                valor: arredondarMoeda(totalReembolsado),
+                estornos: estornos.length,
+                politica: Array.from(politicaPorPagamento.values())[0] ?? null,
+            },
+        });
+    } catch (error) {
+        return res.status(400).json({ error: error instanceof Error ? error.message : "Nao foi possivel atualizar a presenca." });
+    }
 });
 exports.reservationsRouter.patch("/:id/check-in", async (req, res) => {
     await sincronizarReservasNaoComparecidas().catch(() => null);

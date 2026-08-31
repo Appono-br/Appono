@@ -8,6 +8,8 @@ const mapaEventosPreferenciasRestaurante = {
     RESERVA_CANCELADA: "reservationChange",
     RESERVA_CHECK_IN: "reservationChange",
     RESERVA_CONCLUIDA: "reservationChange",
+    PRESENCA_CONFIRMADA: "reservationChange",
+    PRESENCA_RECUSADA: "reservationChange",
     PEDIDO_CRIADO: "orderAhead",
     PEDIDO_CANCELADO: "orderAhead",
     STATUS_PEDIDO: "orderAhead",
