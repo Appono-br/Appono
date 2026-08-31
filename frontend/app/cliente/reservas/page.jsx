@@ -107,10 +107,22 @@ function podeResponderPresenca(reservation) {
         new Date() <= obterPrazoConfirmacaoPresenca(reservation);
 }
 function formatarPrazoPresenca(reservation) {
-    return obterPrazoConfirmacaoPresenca(reservation).toLocaleTimeString("pt-BR", {
+    const prazo = reservation.attendanceDeadline
+        ? new Date(reservation.attendanceDeadline)
+        : obterPrazoConfirmacaoPresenca(reservation);
+    return prazo.toLocaleTimeString("pt-BR", {
         hour: "2-digit",
         minute: "2-digit",
     });
+}
+function obterTextoConfirmacaoPresenca(status) {
+    const statusMap = {
+        PENDENTE: "Aguardando confirmacao",
+        CONFIRMADA: "Presenca confirmada",
+        RECUSADA: "Ausencia avisada",
+        EXPIRADA: "Prazo encerrado",
+    };
+    return statusMap[status] ?? "Aguardando confirmacao";
 }
 function obterDescricaoFluxoReserva(reservation) {
     if (reservation.attendanceStatus === "CONFIRMADA" && reservation.status === "CONFIRMADA") {
@@ -229,6 +241,8 @@ export default function ReservationsPage() {
                         attendanceConfirmedAt: reservation.confirmacao_presenca_em,
                         attendanceDeadline: reservation.prazo_confirmacao_presenca,
                         attendanceRefundValue: Number(reservation.valor_reembolso_ausencia ?? 0),
+                        attendanceRetainedValue: Number(reservation.valor_retido_ausencia ?? 0),
+                        attendanceCommissionPercent: Number(reservation.percentual_comissao_ausencia ?? 13),
                         restaurant: reservation.restaurantes?.nome ?? "Restaurante",
                         people: reservation.quantidade_pessoas,
                         minimumTotal: reservation.valor_minimo_total,
@@ -293,6 +307,8 @@ export default function ReservationsPage() {
                 attendanceConfirmedAt: reservaAtualizada.confirmacao_presenca_em,
                 attendanceDeadline: reservaAtualizada.prazo_confirmacao_presenca,
                 attendanceRefundValue: Number(reservaAtualizada.valor_reembolso_ausencia ?? 0),
+                attendanceRetainedValue: Number(reservaAtualizada.valor_retido_ausencia ?? reserva.attendanceRetainedValue ?? 0),
+                attendanceCommissionPercent: Number(reservaAtualizada.percentual_comissao_ausencia ?? reserva.attendanceCommissionPercent ?? 13),
                 activeOrder: reservaAtualizada.status_reserva === "CANCELADA" ? undefined : reserva.activeOrder,
                 canceledOrder: reservaAtualizada.status_reserva === "CANCELADA" && reserva.activeOrder
                     ? { id: reserva.activeOrder.id, total: reserva.activeOrder.total }
@@ -485,20 +501,34 @@ export default function ReservationsPage() {
                             {formatarMoeda(reservation.minimumTotal)}
                           </span>
                         </div>
-                        {reservation.status === "CONFIRMADA" ? (<div className="mt-5 rounded-[10px] bg-app-chantilly px-4 py-3 text-sm ring-1 ring-app-baunilha-dourada/60">
+                        {["CONFIRMADA", "CANCELADA"].includes(reservation.status) ? (<div className="mt-5 rounded-[10px] bg-app-chantilly px-4 py-3 text-sm ring-1 ring-app-baunilha-dourada/60">
                             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                               <div>
                                 <p className="text-xs font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">
                                   Confirmacao de presenca
                                 </p>
                                 <p className="mt-1 text-app-mocha">
-                                  Prazo: ate {formatarPrazoPresenca(reservation)}
+                                  {reservation.attendanceStatus === "RECUSADA"
+                                      ? "Voce avisou que nao ira comparecer. Restaurante e Appono foram notificados."
+                                      : `Prazo: ate ${formatarPrazoPresenca(reservation)}`}
                                 </p>
                               </div>
                               <span className="w-fit rounded-full bg-app-creme-leve px-3 py-1 text-[11px] font-bold uppercase text-app-cafe-profundo ring-1 ring-app-baunilha-dourada">
-                                {reservation.attendanceStatus === "CONFIRMADA" ? "Presenca confirmada" : "Pendente"}
+                                {obterTextoConfirmacaoPresenca(reservation.attendanceStatus)}
                               </span>
                             </div>
+                            {reservation.attendanceStatus === "RECUSADA" ? (
+                              <div className="mt-4 grid gap-3 border-t border-app-baunilha-dourada/60 pt-4 text-xs sm:grid-cols-2">
+                                <p className="rounded-[8px] bg-app-creme-leve px-3 py-2 ring-1 ring-app-baunilha-dourada/60">
+                                  <span className="block font-bold uppercase tracking-[0.12em] text-app-cinza">Retido</span>
+                                  <strong className="mt-1 block text-base text-app-cafe-profundo">{formatarMoeda(reservation.attendanceRetainedValue)}</strong>
+                                </p>
+                                <p className="rounded-[8px] bg-app-creme-leve px-3 py-2 ring-1 ring-app-baunilha-dourada/60">
+                                  <span className="block font-bold uppercase tracking-[0.12em] text-app-cinza">Reembolso</span>
+                                  <strong className="mt-1 block text-base text-app-cafe-profundo">{formatarMoeda(reservation.attendanceRefundValue)}</strong>
+                                </p>
+                              </div>
+                            ) : null}
                           </div>) : null}
                         {reservation.activeOrder ? (<div className="mt-5 rounded-[10px] border border-app-caramelo-torrado/25 bg-app-creme-suave px-4 py-3">
                             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -551,7 +581,7 @@ export default function ReservationsPage() {
                                 Confirmar presenca
                               </button>) : null}
                             <button type="button" disabled={processandoPresenca} onClick={() => setReservaParaRecusarPresenca(reservation)} className="rounded-[8px] border border-app-vermelho-erro/40 px-4 py-2 text-xs font-bold text-app-vermelho-erro transition hover:bg-app-vermelho-erro hover:text-white disabled:cursor-not-allowed disabled:opacity-60">
-                              Nao vou comparecer
+                              {reservation.attendanceStatus === "CONFIRMADA" ? "Alterar para ausencia" : "Nao vou comparecer"}
                             </button>
                           </div>) : null}
                         {["PENDENTE", "CONFIRMADA"].includes(reservation.status) && !reservaJaIniciou(reservation) ? (<button type="button" onClick={() => setReservaParaCancelar(reservation)} className="text-xs font-bold text-app-vermelho-erro transition hover:text-app-cafe-profundo">
@@ -620,8 +650,24 @@ export default function ReservationsPage() {
               Ao confirmar, sua reserva sera cancelada, o pedido antecipado vinculado tambem sera cancelado e o restaurante sera avisado para nao preparar a comanda.
             </p>
             {reservaParaRecusarPresenca.activeOrder ? (<p className="mt-3 rounded-[10px] bg-app-chantilly p-3 text-sm font-semibold leading-6 text-app-cafe-profundo ring-1 ring-app-baunilha-dourada/60">
-                Como existe pedido pago ou vinculado, o reembolso sera calculado pelo excedente: valor pago menos consumo minimo da reserva e comissao Appono.
+                Como existe pedido pago ou vinculado, o reembolso sera calculado pelo excedente: valor pago menos consumo minimo da reserva e comissao Appono de {reservaParaRecusarPresenca.attendanceCommissionPercent}%.
               </p>) : null}
+            {reservaParaRecusarPresenca.activeOrder ? (
+              <div className="mt-4 grid gap-3 rounded-[10px] bg-app-chantilly p-4 text-sm ring-1 ring-app-baunilha-dourada/60 sm:grid-cols-3">
+                <p>
+                  <span className="block text-[10px] font-bold uppercase tracking-[0.14em] text-app-cinza">Pedido</span>
+                  <strong className="mt-1 block text-app-cafe-profundo">{formatarMoeda(reservaParaRecusarPresenca.activeOrder.total)}</strong>
+                </p>
+                <p>
+                  <span className="block text-[10px] font-bold uppercase tracking-[0.14em] text-app-cinza">Minimo</span>
+                  <strong className="mt-1 block text-app-cafe-profundo">{formatarMoeda(reservaParaRecusarPresenca.minimumTotal)}</strong>
+                </p>
+                <p>
+                  <span className="block text-[10px] font-bold uppercase tracking-[0.14em] text-app-cinza">Taxa</span>
+                  <strong className="mt-1 block text-app-cafe-profundo">{reservaParaRecusarPresenca.attendanceCommissionPercent}%</strong>
+                </p>
+              </div>
+            ) : null}
             <div className="mt-6 rounded-[10px] bg-app-chantilly p-4 ring-1 ring-app-baunilha-dourada/60">
               <p className="text-sm font-semibold">{reservaParaRecusarPresenca.restaurant}</p>
               <p className="mt-1 text-xs text-app-cinza">

@@ -188,7 +188,7 @@ exports.marketplaceRouter.get("/financeiro/resumo", auth_1.requireAuth, (0, auth
                     valor_liquido_recebido: 0,
                     valor_a_receber: 0,
                     valor_liberado: 0,
-                    valor_estornado: 0,
+                    valor_reembolsado: 0,
                     quantidade_pagamentos: 0,
                     quantidade_liberados: 0,
                 },
@@ -201,7 +201,7 @@ exports.marketplaceRouter.get("/financeiro/resumo", auth_1.requireAuth, (0, auth
         }
         const { data: pagamentos, error: pagamentosError } = await supabase_1.supabaseAdmin
             .from("pagamentos")
-            .select("id_pagamento, id_pedido, valor_pago, valor, status_pagamento, tipo_fluxo_pagamento, percentual_comissao_app, valor_comissao_app, valor_restaurante, status_repasse, atualizado_em, data_pagamento, data_aprovacao")
+            .select("id_pagamento, id_pedido, valor_pago, valor, status_pagamento, tipo_fluxo_pagamento, percentual_comissao_app, valor_comissao_app, valor_restaurante, valor_reembolsado, status_repasse, atualizado_em, data_pagamento, data_aprovacao")
             .in("id_pedido", idsPedidos)
             .order("atualizado_em", { ascending: false });
         if (pagamentosError) {
@@ -220,20 +220,25 @@ exports.marketplaceRouter.get("/financeiro/resumo", auth_1.requireAuth, (0, auth
         });
         const resumo = pagamentosValidos.reduce((acumulado, pagamento) => {
             const pedido = pedidosPorId.get(pagamento.id_pedido);
-            const foiCancelado = pagamento.status_repasse === "ESTORNADO" || pedido?.status_pedido === "CANCELADO";
+            const valorPago = Number(pagamento.valor_pago ?? pagamento.valor ?? 0);
+            const valorReembolsado = Number(pagamento.valor_reembolsado ?? 0);
+            const valorRestaurante = Number(pagamento.valor_restaurante ?? 0);
+            const valorRecebido = Math.max(0, valorPago - valorReembolsado);
+            const foiCanceladoSemRetencao = pagamento.status_repasse === "ESTORNADO" ||
+                (pedido?.status_pedido === "CANCELADO" && valorRestaurante <= 0);
             acumulado.quantidade_pagamentos += 1;
-            if (foiCancelado) {
-                acumulado.valor_estornado += Number(pagamento.valor_pago ?? pagamento.valor ?? 0);
+            acumulado.valor_reembolsado += valorReembolsado;
+            if (foiCanceladoSemRetencao) {
                 return acumulado;
             }
-            acumulado.valor_bruto += Number(pagamento.valor_pago ?? pagamento.valor ?? 0);
+            acumulado.valor_bruto += valorRecebido;
             acumulado.valor_comissao_app += Number(pagamento.valor_comissao_app ?? 0);
-            acumulado.valor_restaurante += Number(pagamento.valor_restaurante ?? 0);
+            acumulado.valor_restaurante += valorRestaurante;
             if (pagamento.status_repasse === "AGUARDANDO_ENTREGA") {
-                acumulado.valor_a_receber += Number(pagamento.valor_restaurante ?? 0);
+                acumulado.valor_a_receber += valorRestaurante;
             }
             if (pagamento.status_repasse === "LIBERADO_PARA_REPASSE" || pagamento.status_repasse === "REPASSADO") {
-                acumulado.valor_liberado += Number(pagamento.valor_restaurante ?? 0);
+                acumulado.valor_liberado += valorRestaurante;
                 acumulado.quantidade_liberados += 1;
             }
             return acumulado;
@@ -244,7 +249,7 @@ exports.marketplaceRouter.get("/financeiro/resumo", auth_1.requireAuth, (0, auth
             valor_liquido_recebido: 0,
             valor_a_receber: 0,
             valor_liberado: 0,
-            valor_estornado: 0,
+            valor_reembolsado: 0,
             quantidade_pagamentos: 0,
             quantidade_liberados: 0,
         });

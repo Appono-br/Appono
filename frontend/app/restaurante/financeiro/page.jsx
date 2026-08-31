@@ -21,14 +21,14 @@ const navItems = [
 ];
 const financeCards = [
     {
-        label: "Pedidos pagos",
+        label: "Receita considerada",
         key: "valor_bruto",
-        description: "Total aprovado no Mercado Pago, sem pedidos cancelados.",
+        description: "Valor pago menos reembolsos. Entram pedidos entregues, em andamento e ausencias com retencao.",
     },
     {
-        label: "Liquido recebido",
+        label: "Valor do restaurante",
         key: "valor_liquido_recebido",
-        description: "Valor do restaurante em pedidos pagos e nao cancelados.",
+        description: "Parte do restaurante depois da taxa Appono e dos reembolsos aplicados.",
     },
     {
         label: "Retido ate entrega",
@@ -36,7 +36,7 @@ const financeCards = [
         description: "Pedidos pagos que ainda aguardam conclusao.",
     },
 ];
-const tableHeaders = ["Pedido", "Cliente", "Reserva", "Pedido", "Repasse", "Valor liquido"];
+const tableHeaders = ["Pedido", "Cliente", "Reserva", "Pedido", "Repasse", "Reembolso", "Valor restaurante"];
 const periodos = [
     { label: "Hoje", value: "hoje" },
     { label: "7 dias", value: "7d" },
@@ -74,6 +74,10 @@ function formatarReserva(data, horario) {
 }
 
 function obterPrevisaoRepasse(repasse) {
+    const valorRestaurante = Number(repasse.valor_restaurante ?? 0);
+    if (repasse.pedido?.status_pedido === "CANCELADO" && valorRestaurante > 0) {
+        return "Minimo retido por ausencia";
+    }
     if (repasse.pedido?.status_pedido === "CANCELADO") {
         return "Pedido cancelado";
     }
@@ -102,7 +106,7 @@ function FinanceCard({ label, value, description, featured = false, }) {
 function RepassesTable({ repasses }) {
     if (!repasses.length) {
         return (<div className="overflow-hidden rounded-[8px] bg-app-chantilly shadow-sm ring-1 ring-app-baunilha-dourada/45">
-      <div className="grid gap-4 bg-app-creme-suave px-6 py-5 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha lg:grid-cols-[1fr_1fr_1.2fr_1fr_1fr_1fr]">
+      <div className="grid gap-4 bg-app-creme-suave px-6 py-5 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha lg:grid-cols-[0.8fr_1fr_1.1fr_0.9fr_1fr_0.8fr_0.9fr]">
         {tableHeaders.map((header) => (<span key={header}>{header}</span>))}
       </div>
       <div className="flex min-h-56 flex-col justify-center border-t border-app-baunilha-dourada/45 px-6 py-10">
@@ -116,11 +120,15 @@ function RepassesTable({ repasses }) {
     </div>);
     }
     return (<div className="overflow-hidden rounded-[8px] bg-app-chantilly shadow-sm ring-1 ring-app-baunilha-dourada/45">
-      <div className="hidden gap-4 bg-app-creme-suave px-6 py-5 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha lg:grid lg:grid-cols-[1fr_1fr_1.2fr_1fr_1fr_1fr]">
+      <div className="hidden gap-4 bg-app-creme-suave px-6 py-5 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha lg:grid lg:grid-cols-[0.8fr_1fr_1.1fr_0.9fr_1fr_0.8fr_0.9fr]">
         {tableHeaders.map((header) => (<span key={header}>{header}</span>))}
       </div>
       <div className="divide-y divide-app-baunilha-dourada/45 border-t border-app-baunilha-dourada/45">
-        {repasses.map((repasse) => (<article key={repasse.id_pagamento} className="grid gap-4 px-6 py-5 text-sm text-app-mocha lg:grid-cols-[1fr_1fr_1.2fr_1fr_1fr_1fr]">
+        {repasses.map((repasse) => {
+          const valorRestaurante = Number(repasse.valor_restaurante ?? 0);
+          const reembolso = Number(repasse.valor_reembolsado ?? 0);
+          const canceladoComRetencao = repasse.pedido?.status_pedido === "CANCELADO" && valorRestaurante > 0;
+          return (<article key={repasse.id_pagamento} className="grid gap-4 px-6 py-5 text-sm text-app-mocha lg:grid-cols-[0.8fr_1fr_1.1fr_0.9fr_1fr_0.8fr_0.9fr]">
           <div>
             <strong className="block text-app-cafe-profundo">Pedido #{repasse.id_pedido}</strong>
             <span className="text-xs text-app-cinza">{formatarData(repasse.data_pagamento ?? repasse.atualizado_em)}</span>
@@ -130,17 +138,19 @@ function RepassesTable({ repasses }) {
           <span>{textoStatusPedido(repasse.pedido?.status_pedido)}</span>
           <div>
             <strong className="block text-app-caramelo-torrado">
-              {repasse.pedido?.status_pedido === "CANCELADO" ? "Sem repasse" : textoStatusRepasse(repasse.status_repasse)}
+              {canceladoComRetencao ? "Retencao por ausencia" : repasse.pedido?.status_pedido === "CANCELADO" ? "Sem repasse" : textoStatusRepasse(repasse.status_repasse)}
             </strong>
             <span className="text-xs text-app-cinza">{obterPrevisaoRepasse(repasse)}</span>
           </div>
+          <strong className="block text-app-cafe-profundo">{formatarMoeda(reembolso)}</strong>
           <div>
             <strong className="block text-app-cafe-profundo">{formatarMoeda(repasse.valor_restaurante)}</strong>
             <span className="text-xs text-app-cinza">
               Bruto {formatarMoeda(repasse.valor_pago ?? repasse.valor)}
             </span>
           </div>
-        </article>))}
+        </article>);
+        })}
       </div>
     </div>);
 }
@@ -168,7 +178,7 @@ export default function RestaurantFinancialReportPage() {
         quantidade_liberados: 0,
         valor_a_receber: 0,
         valor_liberado: 0,
-        valor_estornado: 0,
+        valor_reembolsado: 0,
     });
     const [repasses, setRepasses] = useState([]);
     const [mensagemMercadoPago, setMensagemMercadoPago] = useState("Carregando conexao Mercado Pago...");
@@ -338,7 +348,7 @@ export default function RestaurantFinancialReportPage() {
               Analisar reembolsos
             </Link>
             <p className="mt-4 max-w-2xl text-sm leading-6 text-app-cinza sm:text-base">
-              Acompanhe apenas pedidos pagos e nao cancelados. A Appono retem o valor ate a entrega e libera o repasse conforme o status do pedido.
+              Acompanhe valores pagos, reembolsos e repasses. Ausencia avisada pode manter o minimo do restaurante e devolver apenas o excedente ao cliente.
             </p>
           </div>
 
@@ -365,7 +375,7 @@ export default function RestaurantFinancialReportPage() {
                 Conta de recebimento
               </h2>
               <p className="mt-3 max-w-2xl text-sm leading-6 text-app-mocha">
-                Esta conta recebe os repasses dos pedidos entregues. Pedidos pendentes, em preparo ou cancelados ficam separados para evitar dupla interpretacao.
+                Esta conta recebe os repasses dos pedidos entregues e valores retidos por ausencia conforme a regra comercial da Appono.
               </p>
             </div>
             <div className="rounded-[8px] bg-app-chantilly p-5 text-sm ring-1 ring-app-baunilha-dourada/45 lg:min-w-96">
@@ -468,16 +478,16 @@ export default function RestaurantFinancialReportPage() {
             </h2>
             <div className="mt-6 grid gap-3 text-sm leading-6 text-app-mocha">
               <p>
-                <strong className="text-app-cafe-profundo">Pedidos pagos:</strong> mostra o total aprovado pelos clientes no periodo selecionado.
+                <strong className="text-app-cafe-profundo">Receita considerada:</strong> mostra o valor aprovado que permaneceu na operacao depois dos reembolsos.
               </p>
               <p>
-                <strong className="text-app-cafe-profundo">Liquido recebido:</strong> mostra a parte do restaurante sobre pedidos pagos e validos, mesmo antes da liberacao do repasse.
+                <strong className="text-app-cafe-profundo">Valor do restaurante:</strong> mostra a parte do restaurante sobre pedidos validos e ausencias com minimo retido.
               </p>
               <p>
                 <strong className="text-app-cafe-profundo">Retido ate entrega:</strong> valor ainda protegido pela Appono enquanto o pedido nao foi entregue.
               </p>
               <p>
-                <strong className="text-app-cafe-profundo">Liberado para repasse:</strong> valor de pedidos entregues, ja disponivel para conciliacao.
+                <strong className="text-app-cafe-profundo">Reembolso:</strong> aparece na tabela quando parte do pagamento voltou ao cliente.
               </p>
             </div>
           </article>
