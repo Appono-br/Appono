@@ -77,22 +77,6 @@ function obterClientesUnicos(reservas, pedidos) {
     return ids.size;
 }
 
-function calcularTempoMedioPreparo(pedidos) {
-    const tempos = [];
-    for (const pedido of (pedidos ?? []).filter((item) => item.status_pedido === "ENTREGUE")) {
-        for (const item of pedido.itens_pedido ?? []) {
-            const tempo = Number(item.produtos?.tempo_preparo_minutos ?? 0);
-            if (tempo > 0) {
-                tempos.push(tempo);
-            }
-        }
-    }
-    if (!tempos.length) {
-        return null;
-    }
-    return Math.round(tempos.reduce((soma, tempo) => soma + tempo, 0) / tempos.length);
-}
-
 function montarSerieReservas(reservas, dias = 7) {
     const hoje = new Date(`${obterDataLocalISO()}T12:00:00`);
     const pontos = [];
@@ -213,7 +197,6 @@ exports.restaurantDashboardRouter.get("/dashboard/resumo", async (_req, res) => 
         serieReservas: montarSerieReservas(reservas, 7),
         proximosPedidos,
         produtoDestaque: produtoDestaqueResposta.data ?? null,
-        tempoMedioPreparo: calcularTempoMedioPreparo(pedidos),
         pedidosAtivosCozinha: pedidosFilaCozinha.length,
     });
 });

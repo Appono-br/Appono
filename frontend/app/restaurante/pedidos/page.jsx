@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 import { useEffect, useMemo, useState } from "react";
 import { apiRequest } from "@/lib/api";
-import { calcularTempoPreparoItens, formatarHorarioPreparo, preparoEstaLiberado } from "@/lib/tempo-preparo";
+import { filtrarOrdenarPorBusca, textoBusca } from "@/lib/busca-avancada";
 
 const navItems = [
     { label: "Home", href: "/restaurante/home" },
@@ -35,6 +35,7 @@ function Icon({ type, className = "h-5 w-5" }) {
         menu: "M4 7h16M4 12h16M4 17h16",
         clock: "M12 7v5l3 2M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
         receipt: "M7 3h10a2 2 0 0 1 2 2v16l-3-2-2 2-2-2-2 2-2-2-3 2V5a2 2 0 0 1 2-2Z",
+        search: "m21 21-4.35-4.35M11 18a7 7 0 1 1 0-14 7 7 0 0 1 0 14z",
         user: "M20 21a8 8 0 0 0-16 0M12 13a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z",
         trash: "M4 7h16M10 11v6M14 11v6M6 7l1 14h10l1-14M9 7V4h6v3",
     };
@@ -148,6 +149,33 @@ function agruparPedidosPorReserva(pedidos = []) {
 
     return Array.from(reservasPorId.values());
 }
+function obterCamposPedido(pedido) {
+    const reserva = pedido.reserva ?? pedido.reservas ?? {};
+    return [
+        `pedido ${pedido.id_pedido}`,
+        pedido.id_pedido,
+        pedido.status_pedido,
+        obterStatusPedido(pedido.status_pedido),
+        pedido.observacoes,
+        pedido.valor_total,
+        reserva.clientes?.nome,
+        reserva.clientes?.telefone,
+        pedido.clientes?.nome,
+        pedido.clientes?.telefone,
+        reserva.id_reserva ? `reserva ${reserva.id_reserva}` : "",
+        reserva.data_reserva,
+        reserva.horario_inicio,
+        reserva.horario_fim,
+        reserva.mesas?.numero_mesa ? `mesa ${reserva.mesas.numero_mesa}` : "",
+        reserva.quantidade_pessoas ? `${reserva.quantidade_pessoas} pessoas` : "",
+        ...(pedido.itens_pedido ?? []).map((item) => textoBusca(
+            item.produtos?.nome,
+            item.produtos?.descricao,
+            item.observacoes,
+            item.quantidade ? `${item.quantidade}x` : "",
+        )),
+    ];
+}
 
 function EmptyPanel({ title, description }) {
     return (
@@ -173,6 +201,7 @@ export default function RestaurantOrdersPage() {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [reservas, setReservas] = useState([]);
     const [filtroPedido, setFiltroPedido] = useState("TODOS");
+    const [busca, setBusca] = useState("");
     const [mensagem, setMensagem] = useState("");
     const [pedidoParaRemover, setPedidoParaRemover] = useState(null);
     const [removendoPedido, setRemovendoPedido] = useState(false);
@@ -202,13 +231,16 @@ export default function RestaurantOrdersPage() {
         );
     }, [reservas]);
 
-    const pedidosFiltrados = useMemo(() => {
+    const pedidosPorFiltro = useMemo(() => {
         if (filtroPedido === "TODOS") {
             return pedidos;
         }
 
         return pedidos.filter((pedido) => pedido.status_pedido === filtroPedido);
     }, [filtroPedido, pedidos]);
+    const pedidosFiltrados = useMemo(() => {
+        return filtrarOrdenarPorBusca(pedidosPorFiltro, busca, obterCamposPedido);
+    }, [busca, pedidosPorFiltro]);
 
     async function atualizarStatusPedido(idPedido, statusPedido) {
         try {
@@ -363,11 +395,22 @@ export default function RestaurantOrdersPage() {
                             Cozinha
                         </h1>
                         <p className="mt-4 max-w-2xl text-sm leading-6 text-app-cinza sm:text-base">
-                            Acompanhe os pedidos pagos, os horarios de preparo e as entregas vinculadas as reservas.
+                            Acompanhe os pedidos pagos, a ordem das reservas e as entregas vinculadas ao atendimento.
                         </p>
                     </div>
 
-                    <div className="mt-6 flex gap-2 overflow-x-auto pb-2">
+                    <label className="campo-busca-app mt-6 flex h-11 w-full max-w-2xl items-center gap-3 rounded-[10px] border border-app-baunilha-dourada/70 bg-white px-4 text-app-mocha shadow-sm transition">
+                        <Icon type="search" className="h-4 w-4 shrink-0" />
+                        <span className="sr-only">Buscar pedidos na cozinha</span>
+                        <input
+                            value={busca}
+                            onChange={(event) => setBusca(event.target.value)}
+                            placeholder="Buscar por cliente, pedido, mesa, status, item ou horario..."
+                            className="input-busca-app h-full min-w-0 flex-1 bg-transparent text-sm text-app-cafe-profundo placeholder:text-app-cinza/60"
+                        />
+                    </label>
+
+                    <div className="mt-4 flex gap-2 overflow-x-auto pb-2">
                         {filtrosPedido.map((filtro) => (
                             <button
                                 key={filtro.value}
@@ -400,11 +443,7 @@ export default function RestaurantOrdersPage() {
                             {pedidosFiltrados.map((pedido) => {
                                 const reserva = pedido.reserva;
                                 const acao = obterProximaAcaoPedido(pedido.status_pedido);
-                                const preparoLiberado = preparoEstaLiberado(pedido.iniciar_preparo_em);
-                                const inicioPreparo = formatarHorarioPreparo(pedido.iniciar_preparo_em);
-                                const acaoBloqueada = acao?.status === "EM_PREPARO" && !preparoLiberado;
                                 const totalItensPedido = (pedido.itens_pedido ?? []).reduce((soma, item) => soma + Number(item.quantidade ?? 0), 0);
-                                const tempoEstimadoPedido = calcularTempoPreparoItens(pedido.itens_pedido ?? []);
                                 const podeRemoverDaCozinha = pedidoPodeSairDaCozinha(pedido.status_pedido);
 
                                 return (
@@ -442,7 +481,7 @@ export default function RestaurantOrdersPage() {
                                                     </strong>
                                                 </div>
 
-                                                <div className="mt-5 grid gap-3 text-sm text-app-mocha sm:grid-cols-4">
+                                                <div className="mt-5 grid gap-3 text-sm text-app-mocha sm:grid-cols-3">
                                                     <div className="rounded-[10px] bg-white px-3 py-3 ring-1 ring-app-baunilha-dourada/45">
                                                         <span className="block text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">Reserva</span>
                                                         <strong className="mt-1 block text-app-cafe-profundo">{reserva.data_reserva} as {reserva.horario_inicio?.slice(0, 5)}</strong>
@@ -455,19 +494,7 @@ export default function RestaurantOrdersPage() {
                                                         <span className="block text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">Pessoas</span>
                                                         <strong className="mt-1 block text-app-cafe-profundo">{reserva.quantidade_pessoas}</strong>
                                                     </div>
-                                                    <div className="rounded-[10px] bg-white px-3 py-3 ring-1 ring-app-baunilha-dourada/45">
-                                                        <span className="block text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">Preparo</span>
-                                                        <strong className="mt-1 block text-app-cafe-profundo">{tempoEstimadoPedido || "--"} min</strong>
-                                                    </div>
                                                 </div>
-
-                                                {pedido.iniciar_preparo_em ? (
-                                                    <p className={`mt-4 rounded-[10px] px-4 py-3 text-sm font-semibold ring-1 ${preparoLiberado ? "bg-app-dourado-mel/20 text-app-cafe-profundo ring-app-dourado-mel/40" : "bg-app-cafe-profundo text-app-creme-leve ring-app-cafe-profundo"}`}>
-                                                        {preparoLiberado
-                                                            ? "Preparo liberado. A cozinha ja pode iniciar este pedido."
-                                                            : `Iniciar preparo as ${inicioPreparo}.`}
-                                                    </p>
-                                                ) : null}
 
                                                 <div className="mt-5 grid gap-3">
                                                     {pedido.itens_pedido?.map((item, indice) => (
@@ -509,9 +536,6 @@ export default function RestaurantOrdersPage() {
                                                     </p>
                                                     <div className="mt-4 grid gap-2 text-sm text-app-mocha">
                                                         <span className="rounded-[8px] bg-app-creme-leve px-3 py-2 ring-1 ring-app-baunilha-dourada/45">
-                                                            Inicio: {inicioPreparo}
-                                                        </span>
-                                                        <span className="rounded-[8px] bg-app-creme-leve px-3 py-2 ring-1 ring-app-baunilha-dourada/45">
                                                             {totalItensPedido} item(ns)
                                                         </span>
                                                     </div>
@@ -521,11 +545,10 @@ export default function RestaurantOrdersPage() {
                                                     {acao ? (
                                                         <button
                                                             type="button"
-                                                            disabled={acaoBloqueada}
                                                             onClick={() => atualizarStatusPedido(pedido.id_pedido, acao.status)}
                                                             className={`h-11 rounded-[9px] px-4 text-xs font-bold uppercase tracking-[0.14em] text-white transition disabled:cursor-not-allowed disabled:bg-app-cinza/45 disabled:text-app-creme-suave ${acao.classe}`}
                                                         >
-                                                            {acaoBloqueada ? `Liberado as ${inicioPreparo}` : acao.texto}
+                                                            {acao.texto}
                                                         </button>
                                                     ) : (
                                                         <p className="rounded-[10px] bg-app-creme-leve px-4 py-3 text-sm font-semibold text-app-cinza ring-1 ring-app-baunilha-dourada/45">

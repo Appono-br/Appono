@@ -138,7 +138,7 @@ function obterDiaOperacao(configuracao, dataReserva) {
     const data = new Date(`${dataReserva}T12:00:00`);
     return configuracao.days?.find((day) => day.id === diasSemanaOperacao[data.getDay()]);
 }
-function montarHorariosOperacionais({ restaurante, dataReserva, pessoas, tempoPreparo, reservas, mesas }) {
+function montarHorariosOperacionais({ restaurante, dataReserva, pessoas, reservas, mesas }) {
     const configuracao = restaurante.configuracao_operacao ?? {};
     if (!restauranteTemOperacaoConfigurada(configuracao)) {
         return {
@@ -157,7 +157,7 @@ function montarHorariosOperacionais({ restaurante, dataReserva, pessoas, tempoPr
     }
     const agora = obterDataLocalSaoPaulo();
     const hoje = formatarDataLocal(agora);
-    const antecedenciaMinima = Math.max(Number(configuracao.antecedenciaMinutosReserva ?? 60), Number(tempoPreparo ?? 0), 0);
+    const antecedenciaMinima = Math.max(Number(configuracao.antecedenciaMinutosReserva ?? 60), 0);
     const minimoMesmoDia = dataReserva === hoje ? agora.getHours() * 60 + agora.getMinutes() + antecedenciaMinima : 0;
     const duracaoReserva = 120;
     const mesasCompativeis = (mesas ?? []).filter((mesa) => Number(mesa.capacidade ?? 0) >= pessoas);
@@ -248,7 +248,6 @@ exports.restaurantsRouter.get("/:id/disponibilidade", async (req, res) => {
     const restaurantId = Number(req.params.id);
     const dataReserva = String(req.query.data ?? "");
     const pessoas = Math.max(1, Number(req.query.pessoas ?? 1));
-    const tempoPreparo = Math.max(0, Number(req.query.tempo_preparo ?? 0));
     if (!Number.isFinite(restaurantId) || !/^\d{4}-\d{2}-\d{2}$/.test(dataReserva) || !Number.isFinite(pessoas)) {
         return res.status(400).json({ error: "Parametros de disponibilidade invalidos." });
     }
@@ -281,7 +280,6 @@ exports.restaurantsRouter.get("/:id/disponibilidade", async (req, res) => {
         restaurante,
         dataReserva,
         pessoas,
-        tempoPreparo,
         reservas: reservas ?? [],
         mesas: mesas ?? [],
     }));

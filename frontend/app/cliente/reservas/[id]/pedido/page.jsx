@@ -4,7 +4,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { apiRequest } from "@/lib/api";
-import { calcularTempoPreparoItens } from "@/lib/tempo-preparo";
 
 function formatarMoeda(valor) {
     return new Intl.NumberFormat("pt-BR", {
@@ -111,13 +110,11 @@ export default function PaginaPedidoAntecipado({ params }) {
     const total = produtosSelecionados.reduce((soma, produto) => soma + Number(produto.preco) * produto.quantidade, 0);
     const consumoMinimo = Number(dados?.reserva?.valor_minimo_total ?? 0);
     const faltaParaMinimo = Math.max(0, consumoMinimo - total);
-    const maiorTempoPreparo = calcularTempoPreparoItens(produtosSelecionados);
     const pedidoAtivo = dados?.reserva.pedidos?.find((pedido) => ["PENDENTE", "CONFIRMADO", "EM_PREPARO", "PRONTO"].includes(pedido.status_pedido));
     const reservaConfirmada = dados?.reserva.status_reserva === "CONFIRMADA";
     const reservaIniciada = reservaJaIniciou(dados?.reserva);
     const itensPedidoAtivo = pedidoAtivo?.itens_pedido ?? [];
     const totalItensPedidoAtivo = itensPedidoAtivo.reduce((soma, item) => soma + Number(item.quantidade ?? 0), 0);
-    const maiorTempoPedidoAtivo = calcularTempoPreparoItens(itensPedidoAtivo);
 
     function alterarQuantidade(produtoId, diferenca) {
         setMensagem("");
@@ -251,10 +248,11 @@ export default function PaginaPedidoAntecipado({ params }) {
                                                 <p className="text-xs font-bold uppercase text-app-caramelo-torrado">{item.quantidade} unidade(s)</p>
                                                 <h3 className="mt-1 text-xl font-bold text-app-cafe-profundo">{produto.nome ?? "Item"}</h3>
                                                 {produto.descricao ? <p className="mt-2 text-sm leading-6 text-app-mocha">{produto.descricao}</p> : null}
-                                                <div className="mt-2 flex flex-wrap gap-3 text-xs font-semibold text-app-cinza">
-                                                    <span>Tempo: {produto.tempo_preparo_minutos ?? "--"} min</span>
-                                                    {item.observacoes ? <span>Obs: {item.observacoes}</span> : null}
-                                                </div>
+                                                {item.observacoes ? (
+                                                    <div className="mt-2 text-xs font-semibold text-app-cinza">
+                                                        <span>Obs: {item.observacoes}</span>
+                                                    </div>
+                                                ) : null}
                                             </div>
                                             <div className="text-left sm:text-right">
                                                 <p className="text-xs font-semibold text-app-cinza">Subtotal</p>
@@ -284,16 +282,6 @@ export default function PaginaPedidoAntecipado({ params }) {
                                     <span className="text-app-mocha">Status</span>
                                     <strong>{statusPedido[pedidoAtivo.status_pedido] ?? pedidoAtivo.status_pedido}</strong>
                                 </div>
-                                <div className="flex justify-between gap-4">
-                                    <span className="text-app-mocha">Tempo estimado</span>
-                                    <strong>{maiorTempoPedidoAtivo || "--"} min</strong>
-                                </div>
-                                {pedidoAtivo.iniciar_preparo_em ? (
-                                    <div className="flex justify-between gap-4">
-                                        <span className="text-app-mocha">Iniciar preparo</span>
-                                        <strong>{String(pedidoAtivo.iniciar_preparo_em).slice(11, 16)}</strong>
-                                    </div>
-                                ) : null}
                                 {pedidoAtivo.horario_entrega_previsto ? (
                                     <div className="flex justify-between gap-4">
                                         <span className="text-app-mocha">Previsao</span>
@@ -350,10 +338,6 @@ export default function PaginaPedidoAntecipado({ params }) {
                                                                     Destaque
                                                                 </span>
                                                             ) : null}
-                                                            <span className="inline-flex items-center gap-1 text-xs font-semibold text-app-cinza">
-                                                                <Icon type="clock" className="h-4 w-4" />
-                                                                {produto.tempo_preparo_minutos ?? 30} min
-                                                            </span>
                                                         </div>
                                                         <h3 className="mt-2 text-lg font-bold text-app-cafe-profundo">{produto.nome}</h3>
                                                         {produto.descricao ? <p className="mt-1 text-sm leading-6 text-app-mocha">{produto.descricao}</p> : null}
@@ -441,10 +425,6 @@ export default function PaginaPedidoAntecipado({ params }) {
                                 <div className="flex items-center justify-between text-sm">
                                     <span className="text-app-mocha">Consumo minimo</span>
                                     <strong>{formatarMoeda(consumoMinimo)}</strong>
-                                </div>
-                                <div className="flex items-center justify-between text-sm">
-                                    <span className="text-app-mocha">Tempo estimado</span>
-                                    <strong>{maiorTempoPreparo || 0} min</strong>
                                 </div>
                                 <div className="flex items-center justify-between">
                                     <span className="font-bold">Total</span>

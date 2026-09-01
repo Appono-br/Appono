@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { apiRequest } from "@/lib/api";
+import { filtrarOrdenarPorBusca, textoBusca } from "@/lib/busca-avancada";
 import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 const specialties = [];
 const filters = [
@@ -62,6 +63,15 @@ function formatarMoeda(valor) {
         style: "currency",
         currency: "BRL",
     }).format(Number(valor ?? 0));
+}
+function obterCamposRestaurante(restaurant) {
+    return [
+        restaurant.name,
+        restaurant.specialty,
+        restaurant.neighborhood,
+        restaurant.openingHours,
+        ...(restaurant.matchedProducts ?? []).map((produto) => textoBusca(produto.nome, produto.descricao)),
+    ];
 }
 export default function DashboardPage() {
     const [activeFilter, setActiveFilter] = useState(filters[0]);
@@ -125,17 +135,19 @@ export default function DashboardPage() {
             .sort((a, b) => new Date(`${a.data_reserva}T${a.horario_inicio}`) - new Date(`${b.data_reserva}T${b.horario_inicio}`))[0];
     }, [reservas]);
     const filteredRestaurants = useMemo(() => {
-        return restaurants.filter((restaurant) => {
+        const byFilter = restaurants.filter((restaurant) => {
             const matchesFilter = activeFilter === "Todas Especialidades" ||
                 restaurant.specialty === activeFilter;
-            const normalizedQuery = query.trim().toLowerCase();
-            const matchesSearch = !normalizedQuery ||
-                restaurant.name.toLowerCase().includes(normalizedQuery) ||
-                restaurant.specialty.toLowerCase().includes(normalizedQuery) ||
-                (restaurant.matchedProducts ?? []).some((produto) => `${produto.nome ?? ""} ${produto.descricao ?? ""}`.toLowerCase().includes(normalizedQuery));
-            return matchesFilter && matchesSearch;
+            return matchesFilter;
         });
+        return filtrarOrdenarPorBusca(byFilter, query, obterCamposRestaurante);
     }, [activeFilter, query, restaurants]);
+    const searchResults = useMemo(() => {
+        if (!query.trim()) {
+            return [];
+        }
+        return filtrarOrdenarPorBusca(restaurants, query, obterCamposRestaurante).slice(0, 5);
+    }, [query, restaurants]);
     const highlightedRestaurants = useMemo(() => [...restaurants].sort((a, b) => b.favoriteCount - a.favoriteCount).slice(0, 3), [restaurants]);
     async function alternarFavorito(id) {
         const atual = restaurants.find((restaurant) => restaurant.id === id);
@@ -198,7 +210,7 @@ export default function DashboardPage() {
             <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar" className="input-busca-app h-full min-w-0 flex-1 bg-transparent text-sm text-app-cafe-profundo outline-none placeholder:text-app-cinza"/>
           </label>
 
-          <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
+          <div className="hidden">
             {filters.map((filter) => (<button key={filter} type="button" onClick={() => setActiveFilter(filter)} className={`h-10 rounded-[8px] border px-5 text-xs font-semibold transition ${activeFilter === filter
                 ? "border-app-caramelo-torrado bg-app-caramelo-torrado text-app-chantilly"
                 : "border-app-baunilha-dourada bg-white text-app-mocha hover:border-app-caramelo-torrado hover:bg-app-baunilha-dourada hover:text-app-cafe-profundo"}`}>
@@ -209,6 +221,29 @@ export default function DashboardPage() {
               Filtrar por Distância
             </button>
           </div>
+          {query.trim() ? (<section className="mx-auto mt-5 max-w-3xl rounded-[12px] border border-app-baunilha-dourada bg-white p-3 text-left shadow-lg">
+            <div className="flex items-center justify-between gap-3 border-b border-app-baunilha-dourada/45 px-2 pb-3">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">Resultado da busca</p>
+                <p className="mt-1 text-sm font-semibold text-app-cafe-profundo">{searchResults.length ? `${searchResults.length} restaurante(s) encontrado(s)` : "Nenhum restaurante encontrado"}</p>
+              </div>
+              <button type="button" onClick={() => setQuery("")} className="rounded-[8px] border border-app-baunilha-dourada px-3 py-2 text-[11px] font-bold uppercase text-app-mocha transition hover:bg-app-chantilly">Limpar</button>
+            </div>
+
+            {searchResults.length ? (<div className="mt-3 grid gap-2">
+              {searchResults.map((restaurant) => (<Link key={restaurant.id} href={`/cliente/restaurantes/${restaurant.id}`} className="group flex items-center gap-3 rounded-[10px] p-2 transition hover:bg-app-chantilly">
+                <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-[8px] bg-white ring-1 ring-app-baunilha-dourada/55">
+                  {restaurant.imageUrl ? (<Image src={restaurant.imageUrl} alt={restaurant.name} fill sizes="56px" className="object-cover transition group-hover:scale-105"/>) : (<div className="flex h-full items-center justify-center text-[10px] font-semibold text-app-mocha">Appono</div>)}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h3 className="truncate text-sm font-bold text-app-cafe-profundo">{restaurant.name}</h3>
+                  <p className="mt-1 truncate text-xs text-app-cinza">{restaurant.neighborhood ?? "Endereco em atualizacao"}</p>
+                  {restaurant.matchedProducts?.length ? (<p className="mt-1 truncate text-xs font-semibold text-app-caramelo-torrado">Cardapio: {restaurant.matchedProducts.map((produto) => produto.nome).join(", ")}</p>) : null}
+                </div>
+                <span className="hidden rounded-full bg-app-cafe-profundo px-3 py-1 text-[10px] font-bold uppercase text-app-creme-leve sm:inline-flex">Ver</span>
+              </Link>))}
+            </div>) : (<p className="px-2 py-5 text-center text-sm text-app-cinza">Tente buscar pelo nome, bairro, endereco ou item do cardapio.</p>)}
+          </section>) : null}
         </div>
       </section>
 

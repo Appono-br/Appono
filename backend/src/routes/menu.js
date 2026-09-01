@@ -38,7 +38,7 @@ function normalizarInteiro(valor, fallback = 0) {
 
 function normalizarTempoPreparo(valor) {
     const tempo = Number(valor);
-    return Number.isInteger(tempo) && tempo > 0 ? tempo : null;
+    return Number.isInteger(tempo) && tempo > 0 ? tempo : 30;
 }
 
 function obterCaminhoStoragePorUrl(url) {
@@ -381,9 +381,9 @@ exports.menuRouter.post("/produtos", async (req, res) => {
     const preco = normalizarPreco(body.price);
     const tempoPreparo = normalizarTempoPreparo(body.preparationTime);
     const ordemExibicao = normalizarInteiro(body.displayOrder);
-    if (!nome || !categoriaNome || !Number.isFinite(preco) || preco <= 0 || !tempoPreparo) {
+    if (!nome || !categoriaNome || !Number.isFinite(preco) || preco <= 0) {
         return res.status(400).json({
-            error: "Informe nome, categoria, preco valido e tempo de preparo para publicar o item.",
+            error: "Informe nome, categoria e preco valido para publicar o item.",
         });
     }
     try {
@@ -440,9 +440,9 @@ exports.menuRouter.put("/produtos/:id", async (req, res) => {
     const preco = normalizarPreco(body.price);
     const tempoPreparo = normalizarTempoPreparo(body.preparationTime);
     const ordemExibicao = normalizarInteiro(body.displayOrder);
-    if (!nome || !categoriaNome || !Number.isFinite(preco) || preco <= 0 || !tempoPreparo) {
+    if (!nome || !categoriaNome || !Number.isFinite(preco) || preco <= 0) {
         return res.status(400).json({
-            error: "Informe nome, categoria, preco valido e tempo de preparo para atualizar o item.",
+            error: "Informe nome, categoria e preco valido para atualizar o item.",
         });
     }
     try {

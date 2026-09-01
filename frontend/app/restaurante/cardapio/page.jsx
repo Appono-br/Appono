@@ -441,7 +441,6 @@ export default function RestaurantMenuManagementPage() {
                                     </div>
                                     <h3 className="mt-1 text-xl font-bold text-app-cafe-profundo">{produto.nome}</h3>
                                     {produto.descricao ? <p className="mt-2 text-sm leading-6 text-app-mocha">{produto.descricao}</p> : null}
-                                    <p className="mt-2 text-xs font-semibold text-app-cinza">{produto.tempo_preparo_minutos ?? 30} min de preparo</p>
                                 </div>
                                 <div className="text-left sm:text-right">
                                     <strong className="text-lg text-app-cafe-profundo">{formatarMoeda(produto.preco)}</strong>
@@ -482,7 +481,7 @@ export default function RestaurantMenuManagementPage() {
                                 <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">Comece pelo essencial</p>
                                 <h2 className="mt-2 text-2xl font-bold text-app-cafe-profundo">Cadastre seu primeiro item</h2>
                                 <p className="mt-2 max-w-2xl text-sm leading-6 text-app-mocha">
-                                    Adicione nome, categoria, preco, tempo de preparo e, se quiser, uma imagem. Quando publicado, o item ja aparece para o cliente na pagina do restaurante.
+                                    Adicione nome, categoria, preco e, se quiser, uma imagem. Quando publicado, o item ja aparece para o cliente na pagina do restaurante.
                                 </p>
                             </div>
                             <Link href="/restaurante/cardapio/editar" className="inline-flex h-11 items-center justify-center rounded-[8px] bg-app-dourado-mel px-5 text-xs font-bold uppercase text-white transition hover:bg-app-caramelo-torrado sm:justify-self-end">

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 import { useEffect, useMemo, useState } from "react";
 import { apiRequest } from "@/lib/api";
+import { filtrarOrdenarPorBusca, textoBusca } from "@/lib/busca-avancada";
 
 const navItems = [
     { label: "Home", href: "/restaurante/home" },
@@ -35,6 +36,7 @@ function Icon({ type, className = "h-5 w-5" }) {
         filter: "M4 7h16M7 12h10M10 17h4",
         menu: "M4 7h16M4 12h16M4 17h16",
         plus: "M12 5v14M5 12h14",
+        search: "m21 21-4.35-4.35M11 18a7 7 0 1 1 0-14 7 7 0 0 1 0 14z",
     };
 
     return (
@@ -156,6 +158,30 @@ function reservaJaTerminou(reserva) {
     const fim = new Date(`${reserva.data_reserva}T${reserva.horario_fim}`);
     return !Number.isNaN(fim.getTime()) && new Date() >= fim;
 }
+function obterCamposReserva(reserva) {
+    const pedidosAtivos = obterPedidosAtivos(reserva);
+    return [
+        `reserva ${reserva.id_reserva}`,
+        reserva.id_reserva,
+        reserva.clientes?.nome,
+        reserva.clientes?.telefone,
+        reserva.data_reserva,
+        reserva.horario_inicio,
+        reserva.horario_fim,
+        reserva.status_reserva,
+        obterStatusReserva(reserva.status_reserva),
+        obterStatusConfirmacaoPresenca(reserva.status_confirmacao_presenca),
+        reserva.mesas?.numero_mesa ? `mesa ${reserva.mesas.numero_mesa}` : "",
+        reserva.quantidade_pessoas ? `${reserva.quantidade_pessoas} pessoas` : "",
+        ...pedidosAtivos.map((pedido) => textoBusca(
+            `pedido ${pedido.id_pedido}`,
+            pedido.status_pedido,
+            obterStatusPedido(pedido.status_pedido),
+            pedido.observacoes,
+            ...(pedido.itens_pedido ?? []).map((item) => textoBusca(item.produtos?.nome, item.observacoes)),
+        )),
+    ];
+}
 
 export default function RestaurantReservationsPage() {
     const [session] = useState(() => {
@@ -169,6 +195,7 @@ export default function RestaurantReservationsPage() {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [reservas, setReservas] = useState([]);
     const [filtroPedido, setFiltroPedido] = useState("TODOS");
+    const [busca, setBusca] = useState("");
     const [reservaParaCancelar, setReservaParaCancelar] = useState(null);
     const [cancelandoReserva, setCancelandoReserva] = useState(false);
     const [registrandoCheckIn, setRegistrandoCheckIn] = useState(null);
@@ -256,7 +283,7 @@ export default function RestaurantReservationsPage() {
         }
     }
 
-    const reservasFiltradas = useMemo(() => {
+    const reservasPorFiltro = useMemo(() => {
         if (filtroPedido === "TODOS") {
             return reservas;
         }
@@ -283,6 +310,9 @@ export default function RestaurantReservationsPage() {
         }
         return reservas;
     }, [filtroPedido, reservas]);
+    const reservasFiltradas = useMemo(() => {
+        return filtrarOrdenarPorBusca(reservasPorFiltro, busca, obterCamposReserva);
+    }, [busca, reservasPorFiltro]);
 
     if (!isRestaurant) {
         return (
@@ -389,7 +419,18 @@ export default function RestaurantReservationsPage() {
                         </h1>
                     </div>
 
-                    <div className="mt-6 flex gap-2 overflow-x-auto pb-2">
+                    <label className="campo-busca-app mt-6 flex h-11 w-full max-w-2xl items-center gap-3 rounded-[10px] border border-app-baunilha-dourada/70 bg-white px-4 text-app-mocha shadow-sm transition">
+                        <Icon type="search" className="h-4 w-4 shrink-0" />
+                        <span className="sr-only">Buscar reservas</span>
+                        <input
+                            value={busca}
+                            onChange={(event) => setBusca(event.target.value)}
+                            placeholder="Buscar por cliente, mesa, reserva, pedido, status ou data..."
+                            className="input-busca-app h-full min-w-0 flex-1 bg-transparent text-sm text-app-cafe-profundo placeholder:text-app-cinza/60"
+                        />
+                    </label>
+
+                    <div className="mt-4 flex gap-2 overflow-x-auto pb-2">
                         {filtrosPedido.map((filtro) => (
                             <button
                                 key={filtro.value}

@@ -4,7 +4,6 @@ import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { BotaoVoltar } from "@/components/botao-voltar";
 import { apiRequest } from "@/lib/api";
-import { calcularTempoPreparoItens } from "@/lib/tempo-preparo";
 
 const LIMITE_UNIDADES_POR_ITEM = 10;
 
@@ -165,7 +164,6 @@ export default function PaginaRestaurante({ params }) {
   const totalPedido = produtosSelecionados.reduce((soma, produto) => soma + Number(produto.preco ?? 0) * produto.quantidade, 0);
   const temPedidoAntecipado = totalItens > 0;
   const faltaParaMinimo = temPedidoAntecipado ? Math.max(0, valorMinimoTotal - totalPedido) : 0;
-  const tempoEstimado = calcularTempoPreparoItens(produtosSelecionados);
   const horariosComStatus = disponibilidade.horarios ?? [];
   const horariosDisponiveis = horariosComStatus.filter((item) => item.disponivel);
   const slotSelecionado = horariosDisponiveis.find((item) => item.horario === horario) ?? horariosDisponiveis[0] ?? null;
@@ -176,7 +174,6 @@ export default function PaginaRestaurante({ params }) {
   const avaliacaoMedia = Number(restaurante?.avaliacao_media ?? 0);
   const totalAvaliacoes = Number(restaurante?.total_avaliacoes ?? 0);
   const avaliacoesRecentes = restaurante?.avaliacoes_recentes ?? [];
-  const menorTempoCardapio = produtos.length ? Math.min(...produtos.map((produto) => Number(produto.tempo_preparo_minutos ?? 30))) : 0;
   const linhasHorarioFuncionamento = obterLinhasHorarioFuncionamento(restaurante?.horario_funcionamento);
   const chaveHorariosDisponiveis = horariosDisponiveis.map((slot) => slot.horario).join("|");
   const primeiroHorarioDisponivel = horariosDisponiveis[0]?.horario ?? "";
@@ -188,7 +185,6 @@ export default function PaginaRestaurante({ params }) {
     const parametros = new URLSearchParams({
       data,
       pessoas: String(pessoas),
-      tempo_preparo: String(temPedidoAntecipado ? tempoEstimado : 0),
     });
 
     apiRequest(`/restaurantes/${restauranteId}/disponibilidade?${parametros.toString()}`)
@@ -200,7 +196,7 @@ export default function PaginaRestaurante({ params }) {
           motivo: erro instanceof Error ? erro.message : "Nao foi possivel carregar os horarios.",
         }),
       );
-  }, [data, pessoas, restaurante, restauranteId, temPedidoAntecipado, tempoEstimado]);
+  }, [data, pessoas, restaurante, restauranteId]);
 
   useEffect(() => {
     if (!chaveHorariosDisponiveis) {
@@ -368,7 +364,6 @@ export default function PaginaRestaurante({ params }) {
                     {operacaoConfigurada ? "Reservas disponiveis" : "Operacao em configuracao"}
                   </span>
                   <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-app-mocha">{resumoCardapio}</span>
-                  {menorTempoCardapio ? <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-app-mocha">A partir de {menorTempoCardapio} min</span> : null}
                   <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-xs font-bold text-app-mocha">
                     {totalAvaliacoes ? <EstrelasNota nota={avaliacaoMedia} /> : <Icon type="star" className="h-3.5 w-3.5 text-app-dourado-mel" />}
                     {totalAvaliacoes ? `${avaliacaoMedia.toFixed(1)} (${totalAvaliacoes})` : "Novo na Appono"}
@@ -480,10 +475,6 @@ export default function PaginaRestaurante({ params }) {
                           <div className="min-w-0">
                             <div className="flex flex-wrap items-center gap-2">
                               {produto.destaque ? <span className="rounded-full bg-app-cafe-profundo px-2.5 py-1 text-[10px] font-bold uppercase text-app-creme-leve">Destaque</span> : null}
-                              <span className="inline-flex items-center gap-1 text-xs font-semibold text-app-cinza">
-                                <Icon type="clock" className="h-4 w-4" />
-                                {produto.tempo_preparo_minutos ?? 30} min
-                              </span>
                             </div>
                             <h3 className="mt-2 break-words text-base font-bold text-app-cafe-profundo sm:text-lg">{produto.nome}</h3>
                             {produto.descricao ? <p className="mt-1 break-words text-sm leading-6 text-app-mocha">{produto.descricao}</p> : null}
@@ -532,19 +523,19 @@ export default function PaginaRestaurante({ params }) {
               </div>
 
               <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                <label className="grid gap-1 text-xs font-bold uppercase text-app-cinza">
+                <label className="grid min-w-0 gap-1 text-xs font-bold uppercase text-app-cinza">
                   Data
-                  <input type="date" min={obterDataPermitida()} max={obterDataLimiteReserva()} value={data} onChange={(evento) => setData(evento.target.value)} className="h-11 rounded-[10px] border border-app-baunilha-dourada bg-white px-3 text-sm font-normal normal-case text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20" />
+                  <input type="date" min={obterDataPermitida()} max={obterDataLimiteReserva()} value={data} onChange={(evento) => setData(evento.target.value)} className="h-11 w-full min-w-0 rounded-[10px] border border-app-baunilha-dourada bg-white px-3 text-sm font-normal normal-case text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20" />
                 </label>
-                <label className="grid gap-1 text-xs font-bold uppercase text-app-cinza">
+                <label className="grid min-w-0 gap-1 text-xs font-bold uppercase text-app-cinza">
                   Horario
-                  <select value={horarioSelecionado} onChange={(evento) => setHorario(evento.target.value)} disabled={!horariosDisponiveis.length} className="h-11 rounded-[10px] border border-app-baunilha-dourada bg-white px-3 text-sm font-normal normal-case text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20 disabled:cursor-not-allowed disabled:opacity-60">
-                    {horariosComStatus.length ? horariosComStatus.map((slot) => (
-                      <option key={slot.horario} value={slot.horario} disabled={!slot.disponivel}>
-                        {slot.disponivel ? slot.horario : `${slot.horario} - ${slot.motivo}`}
+                  <select value={horarioSelecionado} onChange={(evento) => setHorario(evento.target.value)} disabled={!horariosDisponiveis.length} className="h-11 w-full min-w-0 rounded-[10px] border border-app-baunilha-dourada bg-white px-3 text-sm font-normal normal-case text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20 disabled:cursor-not-allowed disabled:opacity-60">
+                    {horariosDisponiveis.length ? horariosDisponiveis.map((slot) => (
+                      <option key={slot.horario} value={slot.horario}>
+                        {slot.horario}
                       </option>
                     )) : (
-                      <option value="">Sem horarios</option>
+                      <option value="">Sem horarios disponiveis</option>
                     )}
                   </select>
                 </label>
@@ -593,10 +584,6 @@ export default function PaginaRestaurante({ params }) {
                   <span className="text-app-mocha">{temPedidoAntecipado ? `Minimo para ${pessoas} pessoa(s)` : "Aplicado somente se houver pedido"}</span>
                   <strong>{formatarMoeda(valorMinimoTotal)}</strong>
                 </div>
-                <div className="flex justify-between gap-4">
-                  <span className="text-app-mocha">Tempo estimado</span>
-                  <strong>{temPedidoAntecipado ? `${tempoEstimado || 0} min` : "Sem pedido"}</strong>
-                </div>
                 <div className="flex items-center justify-between border-t border-app-baunilha-dourada pt-4">
                   <span className="font-bold">{temPedidoAntecipado ? "Total do pedido" : "Total a pagar agora"}</span>
                   <strong className="text-2xl text-app-cafe-profundo">{formatarMoeda(temPedidoAntecipado ? totalPedido : 0)}</strong>
@@ -615,7 +602,7 @@ export default function PaginaRestaurante({ params }) {
               ) : null}
               {operacaoConfigurada && !horariosDisponiveis.length ? (
                 <p className="mt-5 rounded-[8px] bg-white p-3 text-sm font-semibold leading-6 text-app-caramelo-torrado">
-                  {disponibilidade.motivo ?? "Nao ha horarios disponiveis para esta data considerando funcionamento, antecedencia minima, tempo de preparo e mesas ocupadas."}
+                  {disponibilidade.motivo ?? "Nao ha horarios disponiveis para esta data considerando funcionamento, antecedencia minima e mesas ocupadas."}
                 </p>
               ) : null}
 

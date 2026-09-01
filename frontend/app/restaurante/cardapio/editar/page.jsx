@@ -13,7 +13,6 @@ const initialForm = {
     name: "",
     category: "",
     price: "",
-    preparationTime: "30",
     displayOrder: "0",
     description: "",
     available: true,
@@ -70,7 +69,6 @@ function obterPrecoNumerico(valor) {
 
 function validarFormularioCardapio(form) {
     const preco = obterPrecoNumerico(form.price);
-    const tempoPreparo = Number(form.preparationTime);
     if (!form.name.trim()) {
         return "Informe o nome do item.";
     }
@@ -79,9 +77,6 @@ function validarFormularioCardapio(form) {
     }
     if (!Number.isFinite(preco) || preco <= 0) {
         return "Informe um preco valido maior que zero.";
-    }
-    if (!Number.isInteger(tempoPreparo) || tempoPreparo <= 0) {
-        return "Informe o tempo de preparo em minutos.";
     }
     return "";
 }
@@ -124,7 +119,6 @@ function RestaurantMenuItemEditorContent() {
                     name: produto.nome ?? "",
                     category: produto.categoria ?? "",
                     price: formatarPrecoParaFormulario(produto.preco),
-                    preparationTime: String(produto.tempo_preparo_minutos ?? 30),
                     displayOrder: String(produto.ordem_exibicao ?? 0),
                     description: produto.descricao ?? "",
                     available: produto.disponivel !== false,
@@ -257,7 +251,6 @@ function RestaurantMenuItemEditorContent() {
                             </span>
                         </label>
                         <Field label="Preco (R$)" value={form.price} onChange={(value) => updateField("price", normalizarPrecoDigitado(value))} inputMode="decimal" placeholder="Ex: 49,90" required />
-                        <Field label="Tempo de preparo (min)" value={form.preparationTime} onChange={(value) => updateField("preparationTime", value.replace(/\D/g, "").slice(0, 3))} inputMode="numeric" placeholder="30" required min="1" max="999" />
                         <Field label="Ordem" value={form.displayOrder} onChange={(value) => updateField("displayOrder", value.replace(/\D/g, "").slice(0, 4))} inputMode="numeric" placeholder="0" />
                     </div>
 
