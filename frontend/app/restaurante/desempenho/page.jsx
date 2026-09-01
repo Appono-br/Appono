@@ -53,7 +53,7 @@ export default function RestaurantPerformancePage() {
         return meses;
     }, [dados.items]);
     if (!isRestaurant) {
-        return (<main className="flex min-h-screen items-center justify-center bg-app-chantilly px-5 text-app-cafe-profundo">
+        return (<main className="flex min-h-screen items-center justify-center bg-white px-5 text-app-cafe-profundo">
         <section className="w-full max-w-lg rounded-[8px] bg-app-creme-leve p-8 text-center shadow-sm ring-1 ring-app-baunilha-dourada">
           <Image src="/brand/appono-mark.svg" alt="Appono" width={88} height={88} className="mx-auto h-20 w-20" priority/>
           <h1 className="mt-6 text-3xl font-semibold">Acesso restrito</h1>
@@ -66,7 +66,7 @@ export default function RestaurantPerformancePage() {
         </section>
       </main>);
     }
-    return (<main className="flex min-h-screen flex-col bg-app-chantilly text-app-cafe-profundo">
+    return (<main className="flex min-h-screen flex-col bg-white text-app-cafe-profundo">
       <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-app-creme-leve/90 text-app-cafe-profundo shadow-sm backdrop-blur-md">
         <div className="mx-auto grid h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-5 lg:h-20">
           <div aria-label="Appono">
@@ -82,7 +82,7 @@ export default function RestaurantPerformancePage() {
           </nav>
 
           <ItemHeaderNotificacoes href="/restaurante/notificacoes" />
-          <button type="button" onClick={() => setMobileMenuOpen((current) => !current)} className="flex h-9 w-9 items-center justify-center justify-self-end rounded-[8px] border border-app-baunilha-dourada bg-app-chantilly text-app-cafe-profundo xl:hidden" aria-label="Abrir menu" aria-expanded={mobileMenuOpen} aria-controls="restaurant-performance-menu">
+          <button type="button" onClick={() => setMobileMenuOpen((current) => !current)} className="flex h-9 w-9 items-center justify-center justify-self-end rounded-[8px] border border-app-baunilha-dourada bg-white text-app-cafe-profundo xl:hidden" aria-label="Abrir menu" aria-expanded={mobileMenuOpen} aria-controls="restaurant-performance-menu">
             <Icon type="menu"/>
           </button>
         </div>
@@ -113,7 +113,7 @@ export default function RestaurantPerformancePage() {
         </div>
 
         <section className="mt-10 grid gap-8 lg:grid-cols-[0.42fr_1fr]">
-          <article className="rounded-[8px] bg-app-chantilly p-7 shadow-sm ring-1 ring-app-baunilha-dourada/45 sm:p-8">
+          <article className="rounded-[8px] bg-white p-7 shadow-sm ring-1 ring-app-baunilha-dourada/45 sm:p-8">
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-app-mocha">
               Media geral
             </p>
@@ -133,7 +133,7 @@ export default function RestaurantPerformancePage() {
             </div>
           </article>
 
-          <article className="rounded-[8px] bg-app-chantilly p-6 shadow-sm ring-1 ring-app-baunilha-dourada/45 sm:p-8">
+          <article className="rounded-[8px] bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada/45 sm:p-8">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <p className="text-xs font-bold uppercase tracking-[0.18em] text-app-mocha">
                 Volume de avaliacoes
@@ -158,7 +158,7 @@ export default function RestaurantPerformancePage() {
           </h2>
 
           {mensagem ? <p className="mt-6 text-sm font-semibold text-app-mocha">{mensagem}</p> : null}
-          <div className="mt-8 grid gap-4 lg:grid-cols-2">{(dados.items ?? []).filter((item) => item.comentario).map((item) => <article key={item.id_avaliacao} className="rounded-[10px] bg-app-chantilly p-5 ring-1 ring-app-baunilha-dourada/60"><p className="font-bold text-app-caramelo-torrado">{item.nota}/5</p><p className="mt-2 text-sm leading-6 text-app-mocha">{item.comentario}</p><p className="mt-3 text-xs text-app-cinza">{item.clientes?.nome ?? "Cliente Appono"}</p></article>)}</div>
+          <div className="mt-8 grid gap-4 lg:grid-cols-2">{(dados.items ?? []).filter((item) => item.comentario).map((item) => <article key={item.id_avaliacao} className="rounded-[10px] bg-white p-5 ring-1 ring-app-baunilha-dourada/60"><p className="font-bold text-app-caramelo-torrado">{item.nota}/5</p><p className="mt-2 text-sm leading-6 text-app-mocha">{item.comentario}</p><p className="mt-3 text-xs text-app-cinza">{item.clientes?.nome ?? "Cliente Appono"}</p></article>)}</div>
         </section>
 
         <p className="mt-8 text-sm text-app-cinza">As notas atuais representam a experiência geral. Categorias detalhadas serão disponibilizadas quando o formulário passar a coletar essas dimensões.</p>

@@ -63,7 +63,7 @@ function Icon({ type, className = "h-5 w-5", }) {
 }
 function Toggle({ checked, onChange, label, }) {
     return (<button type="button" onClick={onChange} className={`relative h-8 w-14 rounded-full transition ${checked ? "bg-app-mocha" : "bg-app-cinza/35"}`} aria-label={label}>
-      <span className={`absolute top-1 h-6 w-6 rounded-full bg-app-chantilly transition ${checked ? "left-7" : "left-1"}`}/>
+      <span className={`absolute top-1 h-6 w-6 rounded-full bg-white transition ${checked ? "left-7" : "left-1"}`}/>
     </button>);
 }
 export default function RestaurantNotificationSettingsPage() {
@@ -130,7 +130,7 @@ export default function RestaurantNotificationSettingsPage() {
         return <TelaCarregandoSessao />;
     }
     if (sessao?.type !== "restaurant") {
-        return (<main className="flex min-h-screen items-center justify-center bg-app-chantilly px-5 text-app-cafe-profundo">
+        return (<main className="flex min-h-screen items-center justify-center bg-white px-5 text-app-cafe-profundo">
         <section className="w-full max-w-lg rounded-[8px] bg-app-creme-leve p-8 text-center shadow-sm ring-1 ring-app-baunilha-dourada">
           <Image src="/brand/appono-mark.svg" alt="Appono" width={88} height={88} className="mx-auto h-20 w-20" priority/>
           <h1 className="mt-6 text-3xl font-semibold">Acesso restrito</h1>
@@ -143,7 +143,7 @@ export default function RestaurantNotificationSettingsPage() {
         </section>
       </main>);
     }
-    return (<main className="flex min-h-screen flex-col bg-app-chantilly text-app-cafe-profundo">
+    return (<main className="flex min-h-screen flex-col bg-white text-app-cafe-profundo">
       <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-app-creme-leve/90 text-app-cafe-profundo shadow-sm backdrop-blur-md">
         <div className="mx-auto grid min-h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-5 py-2">
           <div aria-label="Appono">
@@ -202,7 +202,7 @@ export default function RestaurantNotificationSettingsPage() {
                   </span>
                   <span className="relative">
                     <Icon type="mail" className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-app-cinza"/>
-                    <input type="email" value={form.contactEmail} onChange={(event) => updateField("contactEmail", event.target.value)} className="h-12 w-full rounded-[8px] border border-app-baunilha-dourada bg-app-chantilly px-4 pl-10 text-sm outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20"/>
+                    <input type="email" value={form.contactEmail} onChange={(event) => updateField("contactEmail", event.target.value)} className="h-12 w-full rounded-[8px] border border-app-baunilha-dourada bg-white px-4 pl-10 text-sm outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20"/>
                   </span>
                 </label>
                 <label className="grid gap-2">
@@ -211,13 +211,13 @@ export default function RestaurantNotificationSettingsPage() {
                   </span>
                   <span className="relative">
                     <Icon type="phone" className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-app-cinza"/>
-                    <input value={form.contactPhone} onChange={(event) => updateField("contactPhone", aplicarMascaraTelefone(event.target.value))} className="h-12 w-full rounded-[8px] border border-app-baunilha-dourada bg-app-chantilly px-4 pl-10 text-sm outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20"/>
+                    <input value={form.contactPhone} onChange={(event) => updateField("contactPhone", aplicarMascaraTelefone(event.target.value))} className="h-12 w-full rounded-[8px] border border-app-baunilha-dourada bg-white px-4 pl-10 text-sm outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20"/>
                   </span>
                 </label>
               </div>
             </section>
 
-            <section className="rounded-[8px] bg-app-chantilly p-6 shadow-sm ring-1 ring-app-baunilha-dourada/45 sm:p-8">
+            <section className="rounded-[8px] bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada/45 sm:p-8">
               <h3 className="text-2xl font-medium text-app-cafe-profundo">
                 Janela silenciosa
               </h3>
@@ -253,14 +253,14 @@ export default function RestaurantNotificationSettingsPage() {
                   tipo de aviso.
                 </p>
               </div>
-              <span className="inline-flex items-center gap-2 rounded-[8px] bg-app-chantilly px-4 py-2 text-xs font-bold uppercase text-app-mocha">
+              <span className="inline-flex items-center gap-2 rounded-[8px] bg-white px-4 py-2 text-xs font-bold uppercase text-app-mocha">
                 <Icon type="check" className="h-4 w-4 text-app-caramelo-torrado"/>
                 Rascunho local
               </span>
             </div>
 
             <div className="mt-7 grid gap-4">
-              {form.rules.map((rule) => (<article key={rule.key} className="rounded-[8px] bg-app-chantilly p-5 ring-1 ring-app-baunilha-dourada/50">
+              {form.rules.map((rule) => (<article key={rule.key} className="rounded-[8px] bg-white p-5 ring-1 ring-app-baunilha-dourada/50">
                   <div className="grid gap-4 xl:grid-cols-[1fr_auto] xl:items-start">
                     <div>
                       <div className="flex flex-wrap items-center gap-3">

@@ -69,7 +69,7 @@ export default function RestaurantConversationPage() {
         setDraft("");
     }
     if (!isRestaurant) {
-        return (<main className="flex min-h-screen items-center justify-center bg-app-chantilly px-5 text-app-cafe-profundo">
+        return (<main className="flex min-h-screen items-center justify-center bg-white px-5 text-app-cafe-profundo">
         <section className="w-full max-w-lg rounded-[8px] bg-app-creme-leve p-8 text-center shadow-sm ring-1 ring-app-baunilha-dourada">
           <Image src="/brand/appono-mark.svg" alt="Appono" width={88} height={88} className="mx-auto h-20 w-20" priority/>
           <h1 className="mt-6 text-3xl font-semibold">Acesso restrito</h1>
@@ -82,7 +82,7 @@ export default function RestaurantConversationPage() {
         </section>
       </main>);
     }
-    return (<main className="flex min-h-screen flex-col bg-app-chantilly text-app-cafe-profundo">
+    return (<main className="flex min-h-screen flex-col bg-white text-app-cafe-profundo">
       <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-app-creme-leve/90 text-app-cafe-profundo shadow-sm backdrop-blur-md">
         <div className="mx-auto grid h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-5">
           <div aria-label="Appono">
@@ -146,7 +146,7 @@ export default function RestaurantConversationPage() {
                 <div className={message.sender === "restaurant" ? "max-w-md" : "max-w-sm"}>
                   <div className={`overflow-hidden rounded-[8px] shadow-sm ring-1 ${message.sender === "restaurant"
                 ? "bg-app-cafe-profundo text-app-creme-leve ring-app-cafe-profundo"
-                : "bg-app-chantilly text-app-cafe-profundo ring-app-baunilha-dourada/60"}`}>
+                : "bg-white text-app-cafe-profundo ring-app-baunilha-dourada/60"}`}>
                     <p className="p-5 text-base leading-7">{message.text}</p>
                   </div>
                   <p className={`mt-2 text-right text-xs ${message.sender === "restaurant"
@@ -169,7 +169,7 @@ export default function RestaurantConversationPage() {
               </div>)}
           </div>
 
-          <form onSubmit={submitMessage} className="mt-8 flex items-center gap-3 rounded-[8px] bg-app-chantilly p-4 shadow-sm ring-1 ring-app-baunilha-dourada/60">
+          <form onSubmit={submitMessage} className="mt-8 flex items-center gap-3 rounded-[8px] bg-white p-4 shadow-sm ring-1 ring-app-baunilha-dourada/60">
             <button type="button" className="text-app-cinza transition hover:text-app-caramelo-torrado" aria-label="Anexar arquivo">
               <Icon type="paperclip"/>
             </button>
@@ -200,7 +200,7 @@ export default function RestaurantConversationPage() {
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-cinza">
               Informacoes de reserva
             </p>
-            <div className="mt-5 rounded-[8px] bg-app-chantilly p-5">
+            <div className="mt-5 rounded-[8px] bg-white p-5">
               {[
             ["Data", conversation.reservation.date],
             ["Horario", conversation.reservation.time],
@@ -215,10 +215,10 @@ export default function RestaurantConversationPage() {
               Preferencias
             </p>
             <div className="mt-4 flex flex-wrap gap-3">
-              {conversation.preferences.map((preference) => (<span key={preference} className="rounded-[8px] bg-app-chantilly px-4 py-2 text-xs font-semibold text-app-mocha">
+              {conversation.preferences.map((preference) => (<span key={preference} className="rounded-[8px] bg-white px-4 py-2 text-xs font-semibold text-app-mocha">
                   {preference}
                 </span>))}
-              {conversation.preferences.length === 0 ? (<span className="rounded-[8px] bg-app-chantilly px-4 py-2 text-xs font-semibold text-app-cinza">
+              {conversation.preferences.length === 0 ? (<span className="rounded-[8px] bg-white px-4 py-2 text-xs font-semibold text-app-cinza">
                   Sem preferencias carregadas
                 </span>) : null}
             </div>

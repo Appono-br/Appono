@@ -21,14 +21,14 @@ function calcularSubtotal(item) {
 
 function PedidoCarregando() {
     return (
-        <main className="min-h-screen bg-app-chantilly px-5 py-10 text-app-cafe-profundo">
+        <main className="min-h-screen bg-white px-5 py-10 text-app-cafe-profundo">
             <section className="mx-auto max-w-5xl">
                 <div className="h-5 w-36 animate-pulse rounded-full bg-app-baunilha-dourada/60" />
-                <div className="mt-6 rounded-[18px] bg-app-creme-leve p-7 shadow-sm ring-1 ring-app-baunilha-dourada/60">
+                <div className="mt-6 rounded-[18px] bg-white p-7 shadow-sm ring-1 ring-app-baunilha-dourada/60">
                     <div className="h-4 w-28 animate-pulse rounded-full bg-app-baunilha-dourada/70" />
                     <div className="mt-5 h-10 w-72 max-w-full animate-pulse rounded-full bg-app-baunilha-dourada/50" />
                     <div className="mt-6 grid gap-4 md:grid-cols-3">
-                        {[1, 2, 3].map((item) => <div key={item} className="h-24 animate-pulse rounded-[12px] bg-app-chantilly" />)}
+                        {[1, 2, 3].map((item) => <div key={item} className="h-24 animate-pulse rounded-[12px] bg-white" />)}
                     </div>
                 </div>
             </section>
@@ -106,8 +106,8 @@ export default function DetalhePedidoPorId({ params }) {
 
     if (erro && !pedido) {
         return (
-            <main className="flex min-h-screen items-center justify-center bg-app-chantilly p-5 text-app-cafe-profundo">
-                <section className="w-full max-w-lg rounded-[16px] bg-app-creme-leve p-8 text-center shadow-sm ring-1 ring-app-baunilha-dourada/70">
+            <main className="flex min-h-screen items-center justify-center bg-white p-5 text-app-cafe-profundo">
+                <section className="w-full max-w-lg rounded-[16px] bg-white p-8 text-center shadow-sm ring-1 ring-app-baunilha-dourada/70">
                     <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">Pedido</p>
                     <h1 className="mt-3 text-2xl font-semibold">Pedido indisponível</h1>
                     <p className="mt-3 text-sm leading-6 text-app-cinza">{erro}</p>
@@ -121,7 +121,7 @@ export default function DetalhePedidoPorId({ params }) {
     const totalItens = itens.reduce((total, item) => total + Number(item.quantidade ?? 0), 0);
 
     return (
-        <main className="min-h-screen bg-app-chantilly px-5 py-10 text-app-cafe-profundo">
+        <main className="min-h-screen bg-white px-5 py-10 text-app-cafe-profundo">
             <section className="mx-auto max-w-6xl">
                 <Link href="/cliente/detalhes-pedido" className="text-sm font-bold text-app-caramelo-torrado">← Todos os pedidos</Link>
 
@@ -134,7 +134,7 @@ export default function DetalhePedidoPorId({ params }) {
                             <h1 className="mt-3 text-4xl font-semibold sm:text-5xl">{pedido.restaurantes?.nome ?? "Restaurante"}</h1>
                             <p className="mt-4 max-w-2xl text-sm leading-6 text-app-creme-suave">Acompanhe os itens do seu pedido e o vínculo com a reserva. O restaurante recebe o pedido após a confirmação do pagamento.</p>
                         </div>
-                        <div className="rounded-[14px] bg-app-creme-leve/10 p-5 ring-1 ring-app-baunilha-dourada/20 lg:min-w-72">
+                        <div className="rounded-[14px] bg-white/10 p-5 ring-1 ring-app-baunilha-dourada/20 lg:min-w-72">
                             <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-baunilha-dourada">Status atual</p>
                             <strong className="mt-2 block text-2xl">{textoStatusPedido(pedido.status_pedido)}</strong>
                             <p className="mt-2 text-sm text-app-creme-suave">{formatarDataReserva(pedido.reservas)}</p>
@@ -143,21 +143,21 @@ export default function DetalhePedidoPorId({ params }) {
                 </header>
 
                 <section className="mt-6 grid gap-4 md:grid-cols-3">
-                    <article className="rounded-[14px] bg-app-creme-leve p-5 shadow-sm ring-1 ring-app-baunilha-dourada/60">
+                    <article className="rounded-[14px] bg-white p-5 shadow-sm ring-1 ring-app-baunilha-dourada/60">
                         <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">Total</p>
                         <strong className="mt-2 block text-2xl">{moeda(pedido.valor_total)}</strong>
                     </article>
-                    <article className="rounded-[14px] bg-app-creme-leve p-5 shadow-sm ring-1 ring-app-baunilha-dourada/60">
+                    <article className="rounded-[14px] bg-white p-5 shadow-sm ring-1 ring-app-baunilha-dourada/60">
                         <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">Itens</p>
                         <strong className="mt-2 block text-2xl">{totalItens}</strong>
                     </article>
-                    <article className="rounded-[14px] bg-app-creme-leve p-5 shadow-sm ring-1 ring-app-baunilha-dourada/60">
+                    <article className="rounded-[14px] bg-white p-5 shadow-sm ring-1 ring-app-baunilha-dourada/60">
                         <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">Reserva</p>
                         <strong className="mt-2 block text-lg">{formatarDataReserva(pedido.reservas)}</strong>
                     </article>
                 </section>
 
-                <section className="mt-6 rounded-[18px] bg-app-creme-leve p-5 shadow-sm ring-1 ring-app-baunilha-dourada/70 sm:p-6">
+                <section className="mt-6 rounded-[18px] bg-white p-5 shadow-sm ring-1 ring-app-baunilha-dourada/70 sm:p-6">
                     <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                         <div>
                             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">Itens do pedido</p>
@@ -167,7 +167,7 @@ export default function DetalhePedidoPorId({ params }) {
                     </div>
                     <div className="mt-5 grid gap-3">
                         {itens.length ? itens.map((item, index) => (
-                            <article key={`${item.produtos?.nome ?? "item"}-${index}`} className="grid gap-4 rounded-[12px] bg-app-chantilly p-4 ring-1 ring-app-baunilha-dourada/50 sm:grid-cols-[1fr_auto] sm:items-center">
+                            <article key={`${item.produtos?.nome ?? "item"}-${index}`} className="grid gap-4 rounded-[12px] bg-white p-4 ring-1 ring-app-baunilha-dourada/50 sm:grid-cols-[1fr_auto] sm:items-center">
                                 <div>
                                     <h3 className="font-bold">{item.produtos?.nome ?? "Item"}</h3>
                                     <p className="mt-1 text-sm text-app-cinza">{item.quantidade} unidade(s) · {moeda(item.preco_unitario)} cada</p>
@@ -176,12 +176,12 @@ export default function DetalhePedidoPorId({ params }) {
                                 <strong>{moeda(calcularSubtotal(item))}</strong>
                             </article>
                         )) : (
-                            <p className="rounded-[12px] bg-app-chantilly p-5 text-sm text-app-cinza ring-1 ring-app-baunilha-dourada/50">Nenhum item carregado para este pedido.</p>
+                            <p className="rounded-[12px] bg-white p-5 text-sm text-app-cinza ring-1 ring-app-baunilha-dourada/50">Nenhum item carregado para este pedido.</p>
                         )}
                     </div>
                 </section>
 
-                <section className="mt-6 rounded-[18px] bg-app-creme-leve p-5 shadow-sm ring-1 ring-app-baunilha-dourada/70 sm:p-6">
+                <section className="mt-6 rounded-[18px] bg-white p-5 shadow-sm ring-1 ring-app-baunilha-dourada/70 sm:p-6">
                     <div className="flex flex-wrap gap-3">
                         {pedido.status_pedido === "PENDENTE" && reservaAceitaPagamento(pedido.reservas) ? <Link href={`/cliente/pagamentos/pedido/${pedido.id_pedido}`} className="inline-flex h-11 items-center rounded-[8px] bg-app-dourado-mel px-6 text-xs font-bold uppercase tracking-[0.12em] text-white">Pagar no Mercado Pago</Link> : null}
                         {["PENDENTE", "CONFIRMADO"].includes(pedido.status_pedido) ? <button type="button" disabled={processando} onClick={cancelarPedido} className="inline-flex h-11 items-center rounded-[8px] border border-red-300 px-6 text-xs font-bold uppercase tracking-[0.12em] text-red-700 disabled:opacity-50">{processando ? "Cancelando..." : "Cancelar pedido"}</button> : null}
@@ -189,10 +189,10 @@ export default function DetalhePedidoPorId({ params }) {
                         {pedido.status_pedido !== "PENDENTE" && !reembolsoBloqueiaNovaSolicitacao ? <button type="button" onClick={() => setMostrandoReembolso(true)} className="inline-flex h-11 items-center rounded-[8px] border border-app-caramelo-torrado px-6 text-xs font-bold uppercase tracking-[0.12em] text-app-caramelo-torrado">Solicitar reembolso</button> : null}
                     </div>
 
-                    {reembolso ? <div className="mt-5 rounded-[12px] bg-app-chantilly p-4 text-sm ring-1 ring-app-baunilha-dourada/60"><strong>Reembolso: {textoStatusReembolso(reembolso.status_reembolso)}</strong><p className="mt-2 text-app-cinza">{reembolso.motivo}</p>{reembolso.resposta ? <p className="mt-2"><strong>Resposta:</strong> {reembolso.resposta}</p> : null}</div> : null}
+                    {reembolso ? <div className="mt-5 rounded-[12px] bg-white p-4 text-sm ring-1 ring-app-baunilha-dourada/60"><strong>Reembolso: {textoStatusReembolso(reembolso.status_reembolso)}</strong><p className="mt-2 text-app-cinza">{reembolso.motivo}</p>{reembolso.resposta ? <p className="mt-2"><strong>Resposta:</strong> {reembolso.resposta}</p> : null}</div> : null}
 
                     {mostrandoReembolso ? (
-                        <div className="mt-5 rounded-[12px] bg-app-chantilly p-4 ring-1 ring-app-baunilha-dourada/60">
+                        <div className="mt-5 rounded-[12px] bg-white p-4 ring-1 ring-app-baunilha-dourada/60">
                             <label className="text-sm font-bold" htmlFor="motivo-reembolso">Motivo do reembolso</label>
                             <textarea id="motivo-reembolso" value={motivoReembolso} onChange={(event) => setMotivoReembolso(event.target.value)} maxLength={500} rows={4} className="mt-2 w-full rounded-[8px] border border-app-baunilha-dourada bg-white p-3 text-sm" placeholder="Explique o ocorrido em pelo menos 10 caracteres." />
                             <div className="mt-3 flex gap-3">

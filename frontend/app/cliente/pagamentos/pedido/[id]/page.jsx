@@ -69,13 +69,13 @@ export default function PaginaPagamentoPedido({ params }) {
     const hrefDetalhesPedido = pedidoId ? `/cliente/pedidos/${pedidoId}` : "/cliente/detalhes-pedido";
 
     return (
-        <main className="flex min-h-screen flex-col bg-app-chantilly px-4 py-8 text-app-cafe-profundo sm:px-5">
+        <main className="flex min-h-screen flex-col bg-white px-4 py-8 text-app-cafe-profundo sm:px-5">
             <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col justify-center">
                 <BotaoVoltar href={hrefDetalhesPedido} className="text-sm font-bold text-app-caramelo-torrado transition hover:text-app-cafe-profundo">
                     Voltar aos detalhes do pedido
                 </BotaoVoltar>
 
-                <section className="mt-6 grid overflow-hidden rounded-[18px] bg-app-creme-leve shadow-sm ring-1 ring-app-baunilha-dourada/70 lg:grid-cols-[minmax(0,1fr)_minmax(360px,430px)]">
+                <section className="mt-6 grid overflow-hidden rounded-[18px] bg-white shadow-sm ring-1 ring-app-baunilha-dourada/70 lg:grid-cols-[minmax(0,1fr)_minmax(360px,430px)]">
                     <div className="min-w-0 p-5 sm:p-10">
                         <Image src="/brand/appono-mark.svg" alt="Appono" width={88} height={88} className="h-16 w-16" priority />
                         <p className="mt-8 text-[10px] font-bold uppercase tracking-[0.22em] text-app-caramelo-torrado">
@@ -88,7 +88,7 @@ export default function PaginaPagamentoPedido({ params }) {
                             O pagamento e processado pelo Mercado Pago. Depois da aprovacao, a Appono confirma o pedido para o restaurante preparar no horario da sua reserva.
                         </p>
 
-                        <div className="mt-8 grid gap-3 rounded-[12px] bg-app-chantilly p-5 ring-1 ring-app-baunilha-dourada/60 sm:grid-cols-2">
+                        <div className="mt-8 grid gap-3 rounded-[12px] bg-white p-5 ring-1 ring-app-baunilha-dourada/60 sm:grid-cols-2">
                             <div>
                                 <p className="text-[10px] font-bold uppercase text-app-cinza">Pedido</p>
                                 <p className="mt-1 font-semibold">#{pedido?.id_pedido ?? pedidoId ?? "--"}</p>
@@ -111,7 +111,7 @@ export default function PaginaPagamentoPedido({ params }) {
                     </div>
 
                     <aside className="min-w-0 bg-app-cafe-profundo p-5 text-app-creme-leve sm:p-8 lg:flex lg:flex-col lg:justify-center">
-                        <div className="rounded-[18px] border border-app-baunilha-dourada/25 bg-app-creme-leve/8 p-5 shadow-sm">
+                        <div className="rounded-[18px] border border-app-baunilha-dourada/25 bg-white/8 p-5 shadow-sm">
                             <div className="flex items-start gap-4">
                                 <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[14px] bg-app-baunilha-dourada text-app-cafe-profundo">
                                     <Icon type="shield" className="h-6 w-6" />
@@ -137,7 +137,7 @@ export default function PaginaPagamentoPedido({ params }) {
                                 </strong>
                             </div>
 
-                            <div className="mt-6 rounded-[12px] bg-app-creme-leve p-3 text-app-cafe-profundo ring-1 ring-app-baunilha-dourada/35">
+                            <div className="mt-6 rounded-[12px] bg-white p-3 text-app-cafe-profundo ring-1 ring-app-baunilha-dourada/35">
                                 {checkoutUrl ? (
                                     <a
                                         href={checkoutUrl}
@@ -170,7 +170,7 @@ export default function PaginaPagamentoPedido({ params }) {
                         </div>
 
                         {mensagem && preferenceId ? (
-                            <p className="mt-4 rounded-[8px] bg-app-creme-leve/10 p-3 text-sm text-app-creme-suave">
+                            <p className="mt-4 rounded-[8px] bg-white/10 p-3 text-sm text-app-creme-suave">
                                 {mensagem}
                             </p>
                         ) : null}

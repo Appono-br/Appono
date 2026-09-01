@@ -64,7 +64,7 @@ export default function HomePage() {
   }
 
   return (
-    <main className="min-h-screen bg-white text-app-texto-escuro">
+    <main className="home-publica min-h-screen bg-white text-app-texto-escuro">
       <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-white/95 backdrop-blur">
         <div className="mx-auto flex h-20 max-w-7xl items-center px-4 sm:pr-8">
           <div className="flex flex-1 items-center">
@@ -79,27 +79,27 @@ export default function HomePage() {
             </Link>
           </div>
 
-          <nav className="hidden flex-1 items-center justify-center gap-8 md:flex">
-            <Link href="#inicio" className="rounded-full px-5 py-2.5 text-base font-semibold text-app-cafe-profundo transition hover:bg-app-creme-suave">
-              Início
-            </Link>
-            <Link href="#reserva" className="rounded-full px-5 py-2.5 text-base font-semibold text-app-cafe-profundo transition hover:bg-app-creme-suave">
-              Como usar
-            </Link>
-            <Link href="#sobre" className="rounded-full px-5 py-2.5 text-base font-semibold text-app-cafe-profundo transition hover:bg-app-creme-suave">
-              Sobre
-            </Link>
-          </nav>
+    <nav className="hidden flex-1 items-center justify-center gap-8 md:flex">
+      <Link href="#inicio" className="rounded-full px-5 py-2.5 text-base font-semibold text-app-cafe-profundo transition hover:bg-app-chantilly">
+        Início
+      </Link>
+      <Link href="#reserva" className="rounded-full px-5 py-2.5 text-base font-semibold text-app-cafe-profundo transition hover:bg-app-chantilly">
+        Como usar
+      </Link>
+      <Link href="#sobre" className="rounded-full px-5 py-2.5 text-base font-semibold text-app-cafe-profundo transition hover:bg-app-chantilly">
+        Sobre
+      </Link>
+    </nav>
 
-          <div className="flex flex-1 items-center justify-end gap-3">
-            <div className="hidden items-center gap-3 sm:flex">
-              <button
-                type="button"
-                onClick={() => setProfileDialog("cadastro")}
-                className="cursor-pointer rounded-full border border-app-baunilha-dourada px-6 py-2.5 text-sm font-semibold text-app-cafe-profundo transition-all duration-300 hover:-translate-y-0.5 hover:bg-app-creme-suave hover:shadow-sm"
-              >
-                Criar conta
-              </button>
+    <div className="flex flex-1 items-center justify-end gap-3">
+      <div className="hidden items-center gap-3 sm:flex">
+        <button
+          type="button"
+          onClick={() => setProfileDialog("cadastro")}
+          className="rounded-full border border-app-baunilha-dourada px-6 py-2.5 text-sm font-semibold text-app-cafe-profundo transition-all duration-300 hover:-translate-y-0.5 hover:bg-app-chantilly hover:shadow-sm"
+        >
+          Criar conta
+        </button>
 
               <button
                 type="button"
@@ -122,32 +122,32 @@ export default function HomePage() {
           </div>
         </div>
 
-        {menuOpen ? (
-          <div id="mobile-menu" className="border-t border-app-baunilha-dourada/50 bg-white px-5 py-5 md:hidden">
-            <nav className="mx-auto flex max-w-7xl flex-col gap-1 text-sm font-semibold text-app-cafe-profundo">
-              <Link href="#inicio" onClick={closeMenu} className="rounded-full px-4 py-2.5 transition hover:bg-app-creme-suave">
-                Início
-              </Link>
-              <Link href="#reserva" onClick={closeMenu} className="rounded-full px-4 py-2.5 transition hover:bg-app-creme-suave">
-                Como usar
-              </Link>
-              <Link href="#sobre" onClick={closeMenu} className="rounded-full px-4 py-2.5 transition hover:bg-app-creme-suave">
-                Sobre
-              </Link>
-              <button
-                type="button"
-                onClick={() => {
-                  closeMenu();
-                  setProfileDialog("cadastro");
-                }}
-                className="mt-2 rounded-full bg-app-caramelo-torrado px-5 py-3 text-left font-semibold text-white"
-              >
-                Criar conta
-              </button>
-            </nav>
-          </div>
-        ) : null}
-      </header>
+  {menuOpen ? (
+    <div id="mobile-menu" className="border-t border-app-baunilha-dourada/50 bg-white px-5 py-5 md:hidden">
+      <nav className="mx-auto flex max-w-7xl flex-col gap-1 text-sm font-semibold text-app-cafe-profundo">
+        <Link href="#inicio" onClick={closeMenu} className="rounded-full px-4 py-2.5 transition hover:bg-app-chantilly">
+          Início
+        </Link>
+        <Link href="#reserva" onClick={closeMenu} className="rounded-full px-4 py-2.5 transition hover:bg-app-chantilly">
+          Como usar
+        </Link>
+        <Link href="#sobre" onClick={closeMenu} className="rounded-full px-4 py-2.5 transition hover:bg-app-chantilly">
+          Sobre
+        </Link>
+        <button
+          type="button"
+          onClick={() => {
+            closeMenu();
+            setProfileDialog("cadastro");
+          }}
+          className="mt-2 rounded-full bg-app-caramelo-torrado px-5 py-3 text-left font-semibold text-white"
+        >
+          Criar conta
+        </button>
+      </nav>
+    </div>
+  ) : null}
+</header>
 
       <section id="inicio" className="relative flex min-h-[620px] items-center justify-center overflow-hidden bg-app-cafe-profundo px-5 py-20 text-white">
         <Image src={heroImage} alt="Mesa reservada em restaurante elegante" fill priority sizes="100vw" className="absolute inset-0 h-full w-full object-cover opacity-90" />
@@ -185,14 +185,16 @@ export default function HomePage() {
               />
             </div>
 
-            <div className="flex flex-col justify-center rounded-3xl bg-app-creme-suave px-8 py-8 text-app-cafe-profundo shadow-lg xl:col-span-2">
-              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">
+            <div className="relative isolate flex flex-col justify-center overflow-hidden rounded-3xl border border-app-baunilha-dourada/45 bg-app-chantilly px-8 py-8 text-app-cafe-profundo shadow-lg xl:col-span-2">
+              <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-white/70 blur-2xl" />
+              <div className="mb-5 h-1.5 w-14 rounded-full bg-app-caramelo-torrado" />
+              <p className="relative text-[11px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">
                 APPONO
               </p>
-              <h2 className="mt-4 text-2xl font-bold leading-tight sm:text-3xl">
+              <h2 className="relative mt-4 text-2xl font-bold leading-tight text-app-cafe-profundo sm:text-3xl">
                 A melhor experiência gastronômica.
               </h2>
-              <p className="mt-4 text-sm leading-7 text-app-mocha sm:text-base">
+              <p className="relative mt-4 text-sm leading-7 text-slate-700 sm:text-base">
                 A reserva e o pedido caminham juntos para reduzir a espera e
                 organizar o fluxo do restaurante.
               </p>
@@ -224,7 +226,7 @@ export default function HomePage() {
       <section className="bg-white py-24">
         <div className="mx-auto max-w-6xl px-6">
           <div className="mx-auto max-w-2xl text-center">
-            <span className="inline-flex items-center gap-2 rounded-full bg-app-creme-suave px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">
+            <span className="inline-flex items-center gap-2 rounded-full bg-app-chantilly px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">
               Por que a Appono
             </span>
             <h2 className="mt-4 text-4xl font-bold text-app-cafe-profundo">
@@ -242,7 +244,7 @@ export default function HomePage() {
                 key={card.title}
                 className="rounded-3xl border border-app-baunilha-dourada/60 bg-white p-8 text-center shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
               >
-                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-app-creme-suave text-app-caramelo-torrado">
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-app-chantilly text-app-caramelo-torrado">
                   <Icon type={card.icon} className="h-6 w-6" />
                 </div>
                 <h3 className="mt-5 text-xl font-bold text-app-cafe-profundo">
@@ -257,7 +259,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section id="sobre" className="bg-app-creme-suave py-24">
+      <section id="sobre" className="bg-app-chantilly py-24">
         <div className="mx-auto grid max-w-6xl items-center gap-16 px-6 md:grid-cols-2">
           <div>
             <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">
@@ -291,7 +293,7 @@ export default function HomePage() {
       <section className="bg-white py-24">
         <div className="mx-auto max-w-5xl px-6">
           <div className="text-center">
-            <span className="inline-flex items-center gap-2 rounded-full bg-app-creme-suave px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">
+            <span className="inline-flex items-center gap-2 rounded-full bg-app-chantilly px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">
               Duvidas
             </span>
             <h2 className="mt-4 text-4xl font-bold text-app-cafe-profundo">
@@ -316,7 +318,7 @@ export default function HomePage() {
                   <span className="text-lg font-semibold text-app-cafe-profundo">
                     {faq.question}
                   </span>
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-app-creme-suave text-xl font-light text-app-caramelo-torrado transition-transform duration-300">
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-app-chantilly text-xl font-light text-app-caramelo-torrado transition-transform duration-300">
                     {activeFaq === index ? "−" : "+"}
                   </span>
                 </button>
@@ -334,7 +336,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <footer className="border-t border-app-baunilha-dourada/40 bg-app-creme-suave py-20 text-app-cafe-profundo">
+      <footer className="border-t border-app-baunilha-dourada/40 bg-app-chantilly py-20 text-app-cafe-profundo">
         <div className="mx-auto grid max-w-6xl gap-12 px-6 md:grid-cols-[1.5fr_1fr_1fr_1fr]">
           <div>
             <Image
@@ -427,7 +429,7 @@ export default function HomePage() {
               <button
                 type="button"
                 onClick={() => setProfileDialog(null)}
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-app-baunilha-dourada text-app-cafe-profundo transition hover:bg-app-creme-suave"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-app-baunilha-dourada text-app-cafe-profundo transition hover:bg-app-chantilly"
                 aria-label="Fechar"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -446,7 +448,7 @@ export default function HomePage() {
                 }}
                 className="group relative flex items-center gap-4 rounded-2xl bg-white p-4 text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
               >
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-app-creme-suave text-app-caramelo-torrado transition group-hover:bg-app-dourado-mel group-hover:text-white">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-app-chantilly text-app-caramelo-torrado transition group-hover:bg-app-dourado-mel group-hover:text-white">
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                     <circle cx="12" cy="7" r="4" />
@@ -472,7 +474,7 @@ export default function HomePage() {
                 }}
                 className="group relative flex items-center gap-4 rounded-2xl bg-white p-4 text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
               >
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-app-creme-suave text-app-caramelo-torrado transition group-hover:bg-app-dourado-mel group-hover:text-white">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-app-chantilly text-app-caramelo-torrado transition group-hover:bg-app-dourado-mel group-hover:text-white">
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M3 21h18" />
                     <path d="M5 21V7l7-4 7 4v14" />

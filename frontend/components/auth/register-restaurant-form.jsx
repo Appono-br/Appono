@@ -243,7 +243,7 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
   return (
     <div className="mx-auto w-full max-w-xl">
       {/* CARD PRINCIPAL */}
-      <div className="rounded-2xl bg-app-creme-leve px-6 py-7 shadow-sm ring-1 ring-app-baunilha-dourada/45 sm:px-9">
+      <div className="rounded-2xl bg-white px-6 py-7 shadow-sm ring-1 ring-app-baunilha-dourada/45 sm:px-9">
 
         {/* LOGO */}
         <div className="mb-5 flex justify-center">
@@ -489,7 +489,7 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
           ) : null}
 
           {/* IMAGEM DO RESTAURANTE */}
-          <label className="group grid gap-3 rounded-xl border-2 border-dashed border-app-baunilha-dourada/50 bg-app-creme-leve p-5 text-center transition hover:border-app-caramelo-torrado hover:bg-app-chantilly sm:col-span-2">
+          <label className="group grid gap-3 rounded-xl border-2 border-dashed border-app-baunilha-dourada/50 bg-white p-5 text-center transition hover:border-app-caramelo-torrado hover:bg-app-chantilly sm:col-span-2">
 
             <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-app-caramelo-torrado">
               Imagem do restaurante
@@ -627,7 +627,7 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
           </span>
 
           {message ? (
-            <span className="rounded-full bg-app-creme-leve px-3 py-1 font-semibold text-app-caramelo-torrado">
+            <span className="rounded-full bg-white px-3 py-1 font-semibold text-app-caramelo-torrado ring-1 ring-app-baunilha-dourada/45">
               {message}
             </span>
           ) : null}

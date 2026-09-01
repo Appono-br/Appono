@@ -35,7 +35,7 @@ function Icon({ type, className = "h-5 w-5", filled = false, }) {
     </svg>);
 }
 function EmptyState({ title, description, compact = false, }) {
-    return (<div className={`flex min-h-48 flex-col items-center justify-center rounded-[8px] border border-dashed border-app-caramelo-torrado/35 bg-app-creme-leve px-6 text-center shadow-sm ${compact ? "py-8" : "py-12"}`}>
+    return (<div className={`flex min-h-48 flex-col items-center justify-center rounded-[8px] border border-dashed border-app-caramelo-torrado/35 bg-white px-6 text-center shadow-sm ${compact ? "py-8" : "py-12"}`}>
       <div className="flex h-12 w-12 items-center justify-center rounded-full bg-app-baunilha-dourada text-app-cafe-profundo">
         <Icon type="search" className="h-5 w-5"/>
       </div>
@@ -153,8 +153,8 @@ export default function DashboardPage() {
             setUpdatingFavorite("");
         }
     }
-    return (<main className="min-h-screen bg-app-chantilly text-app-cafe-profundo">
-      <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-app-creme-leve/90 text-app-cafe-profundo shadow-sm backdrop-blur-md">
+    return (<main className="min-h-screen bg-white text-app-cafe-profundo">
+      <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-white/90 text-app-cafe-profundo shadow-sm backdrop-blur-md">
         <div className="mx-auto grid h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-5 lg:h-20">
           <div className="shrink-0" aria-label="Appono">
             <Image src="/brand/appono-mark.svg" alt="Appono" width={88} height={88} className="h-11 w-11 lg:h-14 lg:w-14" priority/>
@@ -173,13 +173,13 @@ export default function DashboardPage() {
               <Icon type="bag"/>
             </button>
             <ItemHeaderNotificacoes href="/cliente/notificacoes" />
-          <button type="button" onClick={() => setMobileMenuOpen((current) => !current)} className="flex h-9 w-9 items-center justify-center rounded-[8px] border border-app-baunilha-dourada bg-app-creme-leve lg:hidden" aria-label="Abrir menu" aria-expanded={mobileMenuOpen} aria-controls="client-mobile-menu">
+          <button type="button" onClick={() => setMobileMenuOpen((current) => !current)} className="flex h-9 w-9 items-center justify-center rounded-[8px] border border-app-baunilha-dourada bg-white lg:hidden" aria-label="Abrir menu" aria-expanded={mobileMenuOpen} aria-controls="client-mobile-menu">
               <Icon type="menu"/>
             </button>
           </div>
         </div>
 
-        {mobileMenuOpen ? (<nav id="client-mobile-menu" className="border-t border-app-baunilha-dourada/50 bg-app-creme-leve px-5 py-3 lg:hidden">
+        {mobileMenuOpen ? (<nav id="client-mobile-menu" className="border-t border-app-baunilha-dourada/50 bg-white px-5 py-3 lg:hidden">
             <div className="mx-auto grid max-w-7xl gap-2 text-xs font-semibold text-app-cinza">
               {navItems.map((item, index) => (<Link key={item.label} href={item.href} onClick={() => setMobileMenuOpen(false)} className={index === 0
                     ? "text-app-cafe-profundo"
@@ -190,9 +190,9 @@ export default function DashboardPage() {
           </nav>) : null}
       </header>
 
-      <section className="border-b border-app-baunilha-dourada/50 bg-app-creme-leve px-5 py-5">
+      <section className="border-b border-app-baunilha-dourada/50 bg-white px-5 py-5">
         <div className="mx-auto max-w-7xl">
-          <label className="campo-busca-app mx-auto flex h-12 max-w-xl items-center gap-3 rounded-[8px] border border-app-baunilha-dourada bg-app-chantilly px-4 text-app-mocha shadow-sm">
+          <label className="campo-busca-app mx-auto flex h-12 max-w-xl items-center gap-3 rounded-[8px] border border-app-baunilha-dourada bg-white px-4 text-app-mocha shadow-sm">
             <Icon type="search" className="h-5 w-5 shrink-0"/>
             <span className="sr-only">Buscar restaurantes</span>
             <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar" className="input-busca-app h-full min-w-0 flex-1 bg-transparent text-sm text-app-cafe-profundo outline-none placeholder:text-app-cinza"/>
@@ -201,7 +201,7 @@ export default function DashboardPage() {
           <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
             {filters.map((filter) => (<button key={filter} type="button" onClick={() => setActiveFilter(filter)} className={`h-10 rounded-[8px] border px-5 text-xs font-semibold transition ${activeFilter === filter
                 ? "border-app-caramelo-torrado bg-app-caramelo-torrado text-app-chantilly"
-                : "border-app-baunilha-dourada bg-app-chantilly text-app-mocha hover:border-app-caramelo-torrado hover:bg-app-baunilha-dourada hover:text-app-cafe-profundo"}`}>
+                : "border-app-baunilha-dourada bg-white text-app-mocha hover:border-app-caramelo-torrado hover:bg-app-baunilha-dourada hover:text-app-cafe-profundo"}`}>
                 {filter}
               </button>))}
             <button type="button" className="flex h-10 items-center gap-2 rounded-[8px] px-2 text-xs font-semibold text-app-cafe-profundo transition hover:text-app-caramelo-torrado">
@@ -257,7 +257,7 @@ export default function DashboardPage() {
             Ver todos
           </Link>
         </div>
-        {message ? (<p className="mt-4 rounded-[8px] bg-app-creme-leve p-3 text-sm font-semibold text-app-caramelo-torrado">
+        {message ? (<p className="mt-4 rounded-[8px] bg-white p-3 text-sm font-semibold text-app-caramelo-torrado">
             {message}
           </p>) : null}
 
@@ -265,7 +265,7 @@ export default function DashboardPage() {
           <EmptyState title="Nenhum destaque disponível" description="Os restaurantes mais curtidos aparecerão aqui quando forem cadastrados e avaliados pela comunidade."/>
 
           <div className="grid gap-6">
-            {highlightedRestaurants.length ? (highlightedRestaurants.map((restaurant) => (<article key={restaurant.id} className="rounded-[8px] border border-app-baunilha-dourada bg-app-creme-leve p-5 shadow-sm">
+            {highlightedRestaurants.length ? (highlightedRestaurants.map((restaurant) => (<article key={restaurant.id} className="rounded-[8px] border border-app-baunilha-dourada bg-white p-5 shadow-sm">
                   <h3 className="text-lg font-semibold">{restaurant.name}</h3>
                   <p className="mt-1 text-sm text-app-cinza">
                     {restaurant.favoriteCount} favorito(s) · {restaurant.rating?.toFixed(1) ?? "Novo"}
@@ -276,7 +276,7 @@ export default function DashboardPage() {
       </section>
 
       <section className="mx-auto max-w-7xl px-5 py-8">
-        <div className="rounded-[8px] bg-app-creme-leve p-6 sm:p-8">
+        <div className="rounded-[8px] bg-white p-6 sm:p-8">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <p className="text-[10px] font-bold uppercase text-app-caramelo-torrado">
@@ -294,9 +294,9 @@ export default function DashboardPage() {
 
           <div className="mt-6">
             {filteredRestaurants.length ? (<div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-                {filteredRestaurants.map((restaurant) => (<article key={restaurant.id} className="group relative min-w-0 rounded-[8px] border border-app-baunilha-dourada bg-app-chantilly p-2.5 shadow-sm transition hover:-translate-y-0.5 hover:border-app-caramelo-torrado/55 hover:shadow-md">
+                {filteredRestaurants.map((restaurant) => (<article key={restaurant.id} className="group relative min-w-0 rounded-[8px] border border-app-baunilha-dourada bg-white p-2.5 shadow-sm transition hover:-translate-y-0.5 hover:border-app-caramelo-torrado/55 hover:shadow-md">
                     <Link href={`/cliente/restaurantes/${restaurant.id}`} className="flex min-w-0 gap-3" aria-label={`Ver ${restaurant.name}`}>
-                      <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-[8px] bg-app-creme-leve">
+                      <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-[8px] bg-white">
                         {restaurant.imageUrl ? (<Image src={restaurant.imageUrl} alt={restaurant.name} fill sizes="96px" className="object-cover transition duration-300 group-hover:scale-105"/>) : (<div className="flex h-full items-center justify-center bg-app-baunilha-dourada/45 px-2 text-center text-xs font-medium leading-4 text-app-mocha">
                             Imagem em breve
                           </div>)}
@@ -326,15 +326,15 @@ export default function DashboardPage() {
                             Encontrado no cardápio: {restaurant.matchedProducts.map((produto) => produto.nome).join(", ")}
                           </p>
                         ) : null}
-                        <span className="mt-1 inline-flex rounded-[5px] bg-app-creme-suave px-2 py-0.5 text-xs font-semibold leading-4 text-app-caramelo-torrado antialiased">
+                        <span className="mt-1 inline-flex rounded-[5px] bg-white px-2 py-0.5 text-xs font-semibold leading-4 text-app-caramelo-torrado antialiased">
                           Reserva e pedido antecipado
                         </span>
                       </div>
                     </Link>
 
                     <button type="button" disabled={updatingFavorite === restaurant.id} onClick={() => alternarFavorito(restaurant.id)} className={`absolute right-2 top-2 z-10 flex h-8 w-8 items-center justify-center rounded-full p-1.5 transition disabled:opacity-50 ${restaurant.isFavorite
-                    ? "bg-app-creme-suave text-app-vermelho-erro"
-                    : "text-app-mocha hover:bg-app-creme-suave hover:text-app-vermelho-erro"}`} aria-label={`${restaurant.isFavorite ? "Remover" : "Adicionar"} ${restaurant.name} dos favoritos`} aria-pressed={restaurant.isFavorite}>
+                    ? "bg-white text-app-vermelho-erro"
+                    : "text-app-mocha hover:bg-app-chantilly hover:text-app-vermelho-erro"}`} aria-label={`${restaurant.isFavorite ? "Remover" : "Adicionar"} ${restaurant.name} dos favoritos`} aria-pressed={restaurant.isFavorite}>
                       <Icon type="heart" filled={restaurant.isFavorite} className="h-full w-full"/>
                     </button>
                   </article>))}
@@ -355,7 +355,7 @@ export default function DashboardPage() {
 
         <div className="mt-10">
           {specialties.length ? (<div className="grid gap-8 lg:grid-cols-3">
-              {specialties.map((specialty) => (<article key={specialty.id} className="rounded-[8px] border border-app-baunilha-dourada bg-app-creme-leve p-6 shadow-sm">
+              {specialties.map((specialty) => (<article key={specialty.id} className="rounded-[8px] border border-app-baunilha-dourada bg-white p-6 shadow-sm">
                   <h3 className="text-xl font-semibold">{specialty.name}</h3>
                   {specialty.description ? (<p className="mt-2 text-sm leading-6 text-app-cinza">
                       {specialty.description}

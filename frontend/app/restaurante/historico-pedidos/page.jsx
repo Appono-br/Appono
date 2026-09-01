@@ -511,7 +511,7 @@ export default function RestaurantOrderHistoryPage() {
 
     if (sessao?.type !== "restaurant") {
         return (
-            <main className="flex min-h-screen items-center justify-center bg-app-chantilly px-5 text-app-cafe-profundo">
+            <main className="flex min-h-screen items-center justify-center bg-white px-5 text-app-cafe-profundo">
                 <section className="w-full max-w-lg rounded-[8px] bg-app-creme-leve p-8 text-center shadow-sm ring-1 ring-app-baunilha-dourada">
                     <Image src="/brand/appono-mark.svg" alt="Appono" width={88} height={88} className="mx-auto h-20 w-20" priority />
                     <h1 className="mt-6 text-3xl font-semibold">Acesso restrito</h1>
@@ -525,7 +525,7 @@ export default function RestaurantOrderHistoryPage() {
     }
 
     return (
-        <main className="flex min-h-screen flex-col bg-app-chantilly text-app-cafe-profundo">
+        <main className="flex min-h-screen flex-col bg-white text-app-cafe-profundo">
             <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-app-creme-leve/90 text-app-cafe-profundo shadow-sm backdrop-blur-md">
                 <div className="mx-auto grid h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-5 lg:h-20">
                     <div aria-label="Appono">
@@ -542,7 +542,7 @@ export default function RestaurantOrderHistoryPage() {
 
                     <div className="flex items-center justify-self-end gap-3 text-app-cafe-profundo">
                         <ItemHeaderNotificacoes href="/restaurante/notificacoes" />
-                        <button type="button" onClick={() => setMobileMenuOpen((current) => !current)} className="flex h-9 w-9 items-center justify-center rounded-[8px] border border-app-baunilha-dourada bg-app-chantilly text-app-cafe-profundo xl:hidden" aria-label="Abrir menu" aria-expanded={mobileMenuOpen} aria-controls="restaurant-history-menu">
+                        <button type="button" onClick={() => setMobileMenuOpen((current) => !current)} className="flex h-9 w-9 items-center justify-center rounded-[8px] border border-app-baunilha-dourada bg-white text-app-cafe-profundo xl:hidden" aria-label="Abrir menu" aria-expanded={mobileMenuOpen} aria-controls="restaurant-history-menu">
                             <Icon type="menu" />
                         </button>
                     </div>
@@ -616,7 +616,7 @@ export default function RestaurantOrderHistoryPage() {
 
                 <section className="mt-6 rounded-[14px] bg-app-creme-leve p-4 ring-1 ring-app-baunilha-dourada/65">
                     <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-center">
-                        <label className="campo-busca-app flex h-11 items-center gap-3 rounded-[10px] border border-app-baunilha-dourada/60 bg-app-chantilly px-4 text-sm text-app-cinza transition">
+                        <label className="campo-busca-app flex h-11 items-center gap-3 rounded-[10px] border border-app-baunilha-dourada/60 bg-white px-4 text-sm text-app-cinza transition">
                             <Icon type="search" className="h-4 w-4" />
                             <input value={busca} onChange={(event) => setBusca(event.target.value)} placeholder={abaAtiva === "PEDIDOS" ? "Buscar por cliente, pedido, data ou item..." : "Buscar por cliente, reserva, data ou mesa..."} className="input-busca-app h-full min-w-0 flex-1 bg-transparent text-app-cafe-profundo placeholder:text-app-cinza/60" />
                         </label>
@@ -635,7 +635,7 @@ export default function RestaurantOrderHistoryPage() {
 
                     <div className="mt-3 flex flex-wrap gap-2 border-t border-app-baunilha-dourada/55 pt-3">
                         {filtrosPeriodo.map((item) => (
-                            <button key={item.value} type="button" onClick={() => setPeriodo(item.value)} className={`h-8 rounded-full border px-3 text-[10px] font-bold uppercase tracking-[0.12em] transition ${periodo === item.value ? "border-app-cafe-profundo bg-app-cafe-profundo text-app-creme-leve" : "border-app-baunilha-dourada bg-app-chantilly text-app-cinza hover:border-app-caramelo-torrado hover:text-app-cafe-profundo"}`}>
+                            <button key={item.value} type="button" onClick={() => setPeriodo(item.value)} className={`h-8 rounded-full border px-3 text-[10px] font-bold uppercase tracking-[0.12em] transition ${periodo === item.value ? "border-app-cafe-profundo bg-app-cafe-profundo text-app-creme-leve" : "border-app-baunilha-dourada bg-white text-app-cinza hover:border-app-caramelo-torrado hover:text-app-cafe-profundo"}`}>
                                 {item.label}
                             </button>
                         ))}
@@ -658,7 +658,7 @@ export default function RestaurantOrderHistoryPage() {
                                                     <div className="flex flex-wrap items-center gap-2">
                                                         <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">Pedido #{pedido.id_pedido}</span>
                                                         <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ring-1 ${obterClasseStatus(pedido.status_pedido)}`}>{textoStatusPedido(pedido.status_pedido)}</span>
-                                                        {pedido.ocultado_cozinha ? <span className="rounded-full bg-app-chantilly px-2.5 py-1 text-[11px] font-bold text-app-cinza ring-1 ring-app-baunilha-dourada/60">Removido</span> : null}
+                                                        {pedido.ocultado_cozinha ? <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-bold text-app-cinza ring-1 ring-app-baunilha-dourada/60">Removido</span> : null}
                                                     </div>
 
                                                     <h2 className="mt-2 truncate text-xl font-semibold text-app-cafe-profundo">{pedido.clientes?.nome ?? "Cliente"}</h2>
@@ -676,7 +676,7 @@ export default function RestaurantOrderHistoryPage() {
                                                             <Icon type="print" className="h-4 w-4" />
                                                             Comanda
                                                         </button>
-                                                        <button type="button" onClick={() => alternarPedidoAberto(pedido.id_pedido)} className="inline-flex h-9 items-center justify-center gap-2 rounded-[10px] border border-app-baunilha-dourada bg-app-chantilly px-3 text-[11px] font-bold uppercase tracking-[0.12em] text-app-cafe-profundo transition hover:border-app-caramelo-torrado hover:bg-app-baunilha-dourada">
+                                                        <button type="button" onClick={() => alternarPedidoAberto(pedido.id_pedido)} className="inline-flex h-9 items-center justify-center gap-2 rounded-[10px] border border-app-baunilha-dourada bg-white px-3 text-[11px] font-bold uppercase tracking-[0.12em] text-app-cafe-profundo transition hover:border-app-caramelo-torrado hover:bg-app-baunilha-dourada">
                                                             {pedidosAbertos.includes(pedido.id_pedido) ? "Ocultar itens" : `Ver ${totalItens} itens`}
                                                             <Icon type="chevron" className={`h-4 w-4 transition ${pedidosAbertos.includes(pedido.id_pedido) ? "rotate-180" : ""}`} />
                                                         </button>
@@ -688,7 +688,7 @@ export default function RestaurantOrderHistoryPage() {
                                                 <div className="mt-4 border-t border-app-baunilha-dourada/60 pt-4">
                                                     <div className="grid gap-2">
                                                         {(pedido.itens_pedido ?? []).map((item, indice) => (
-                                                            <div key={`${pedido.id_pedido}-${item.produtos?.nome ?? indice}`} className="flex items-start justify-between gap-4 rounded-[10px] bg-app-chantilly px-3 py-2 text-sm text-app-mocha ring-1 ring-app-baunilha-dourada/45">
+                                                            <div key={`${pedido.id_pedido}-${item.produtos?.nome ?? indice}`} className="flex items-start justify-between gap-4 rounded-[10px] bg-white px-3 py-2 text-sm text-app-mocha ring-1 ring-app-baunilha-dourada/45">
                                                                 <div className="min-w-0">
                                                                     <p className="font-semibold text-app-cafe-profundo">{item.quantidade}x {item.produtos?.nome ?? "Item"}</p>
                                                                     {item.observacoes ? <p className="mt-1 text-xs text-app-cinza">Obs.: {item.observacoes}</p> : null}
@@ -723,7 +723,7 @@ export default function RestaurantOrderHistoryPage() {
                                                 <div className="flex flex-wrap items-center gap-2">
                                                     <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">Reserva #{reserva.id_reserva}</span>
                                                     <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ring-1 ${obterClasseStatusReserva(reserva.status_reserva)}`}>{textoStatusReserva(reserva.status_reserva)}</span>
-                                                    <span className="rounded-full bg-app-chantilly px-2.5 py-1 text-[11px] font-bold text-app-cinza ring-1 ring-app-baunilha-dourada/60">
+                                                    <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-bold text-app-cinza ring-1 ring-app-baunilha-dourada/60">
                                                         {pedidosAtivos.length ? "Com pedido" : "Somente reserva"}
                                                     </span>
                                                 </div>

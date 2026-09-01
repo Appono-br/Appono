@@ -69,7 +69,7 @@ export default function RestaurantMessagesPage() {
         return conversations.filter((conversation) => !conversation.archived);
     }, [filter]);
     if (!isRestaurant) {
-        return (<main className="flex min-h-screen items-center justify-center bg-app-chantilly px-5 text-app-cafe-profundo">
+        return (<main className="flex min-h-screen items-center justify-center bg-white px-5 text-app-cafe-profundo">
         <section className="w-full max-w-lg rounded-[8px] bg-app-creme-leve p-8 text-center shadow-sm ring-1 ring-app-baunilha-dourada">
           <Image src="/brand/appono-mark.svg" alt="Appono" width={88} height={88} className="mx-auto h-20 w-20" priority/>
           <h1 className="mt-6 text-3xl font-semibold">Acesso restrito</h1>
@@ -82,7 +82,7 @@ export default function RestaurantMessagesPage() {
         </section>
       </main>);
     }
-    return (<main className="flex min-h-screen flex-col bg-app-chantilly text-app-cafe-profundo">
+    return (<main className="flex min-h-screen flex-col bg-white text-app-cafe-profundo">
       <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-app-creme-leve/90 text-app-cafe-profundo shadow-sm backdrop-blur-md">
         <div className="mx-auto grid h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-5 lg:h-20">
           <div aria-label="Appono">
@@ -98,7 +98,7 @@ export default function RestaurantMessagesPage() {
           </nav>
 
           <ItemHeaderNotificacoes href="/restaurante/notificacoes" />
-          <button type="button" onClick={() => setMobileMenuOpen((current) => !current)} className="flex h-9 w-9 items-center justify-center justify-self-end rounded-[8px] border border-app-baunilha-dourada bg-app-chantilly text-app-cafe-profundo xl:hidden" aria-label="Abrir menu" aria-expanded={mobileMenuOpen} aria-controls="restaurant-messages-menu">
+          <button type="button" onClick={() => setMobileMenuOpen((current) => !current)} className="flex h-9 w-9 items-center justify-center justify-self-end rounded-[8px] border border-app-baunilha-dourada bg-white text-app-cafe-profundo xl:hidden" aria-label="Abrir menu" aria-expanded={mobileMenuOpen} aria-controls="restaurant-messages-menu">
             <Icon type="menu"/>
           </button>
         </div>
@@ -136,7 +136,7 @@ export default function RestaurantMessagesPage() {
         </div>
 
         <section className="mt-10 grid gap-5">
-          {visibleConversations.length ? (visibleConversations.map((conversation) => (<Link key={conversation.id} href={`/restaurante/mensagens/${conversation.id}`} className="grid gap-5 rounded-[8px] bg-app-chantilly p-5 shadow-sm ring-1 ring-app-baunilha-dourada/40 transition hover:-translate-y-0.5 hover:bg-app-creme-leve sm:grid-cols-[1fr_auto_1fr] sm:items-center sm:p-7">
+          {visibleConversations.length ? (visibleConversations.map((conversation) => (<Link key={conversation.id} href={`/restaurante/mensagens/${conversation.id}`} className="grid gap-5 rounded-[8px] bg-white p-5 shadow-sm ring-1 ring-app-baunilha-dourada/40 transition hover:-translate-y-0.5 hover:bg-app-creme-leve sm:grid-cols-[1fr_auto_1fr] sm:items-center sm:p-7">
                 <span className="relative flex h-16 w-16 items-center justify-center rounded-[8px] bg-app-creme-suave text-lg font-bold text-app-mocha ring-1 ring-app-baunilha-dourada">
                   {conversation.initials}
                   {conversation.online ? (<span className="absolute -bottom-1 -right-1 h-4 w-4 rounded-full border-2 border-app-chantilly bg-emerald-500"/>) : null}
@@ -162,7 +162,7 @@ export default function RestaurantMessagesPage() {
                       <Icon type="chevron-right" className="h-5 w-5"/>
                     </span>)}
                 </span>
-              </Link>))) : (<div className="flex min-h-[320px] flex-col items-center justify-center rounded-[8px] bg-app-chantilly px-6 text-center shadow-sm ring-1 ring-app-baunilha-dourada/45">
+              </Link>))) : (<div className="flex min-h-[320px] flex-col items-center justify-center rounded-[8px] bg-white px-6 text-center shadow-sm ring-1 ring-app-baunilha-dourada/45">
               <span className="flex h-12 w-12 items-center justify-center rounded-full bg-app-baunilha-dourada text-app-cafe-profundo">
                 <Icon type="message"/>
               </span>
