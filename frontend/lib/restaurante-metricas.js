@@ -99,24 +99,6 @@ export function calcularItensVendidos(pedidos = []) {
     .reduce((soma, item) => soma + Number(item.quantidade ?? 0), 0);
 }
 
-export function calcularTempoMedioPreparo(pedidos = []) {
-  const tempos = pedidos
-    .filter((pedido) => pedido.status_pedido === "ENTREGUE")
-    .map((pedido) => {
-      const itens = pedido.itens_pedido ?? [];
-      return itens.reduce((total, item) => {
-        const quantidade = Number(item.quantidade ?? 0);
-        const tempo = Number(item.produtos?.tempo_preparo_minutos ?? 0);
-        return total + quantidade * tempo;
-      }, 0);
-    })
-    .filter((tempo) => tempo > 0);
-  if (!tempos.length) {
-    return 0;
-  }
-  return Math.round(tempos.reduce((soma, tempo) => soma + tempo, 0) / tempos.length);
-}
-
 export function montarSerieReservas(reservas = [], dias = 7) {
   const hoje = new Date(`${obterDataLocalISO()}T12:00:00`);
   return Array.from({ length: dias }, (_, index) => {

@@ -81,23 +81,6 @@ function obterModoRepasseMercadoPago() {
     return String(process.env.MERCADO_PAGO_MODO_REPASSE ?? "SIMULADO").trim().toUpperCase();
 }
 
-function obterDataHoraLocal(valor) {
-    if (!valor) {
-        return null;
-    }
-    const normalizado = String(valor).replace(" ", "T");
-    const temTimezone = /(?:Z|[+-]\d{2}:?\d{2})$/.test(normalizado);
-    const data = new Date(temTimezone ? normalizado : `${normalizado}-03:00`);
-    return Number.isNaN(data.getTime()) ? null : data;
-}
-
-function formatarHorario(valor) {
-    if (!valor) {
-        return "--:--";
-    }
-    return String(valor).slice(11, 16);
-}
-
 function marketplaceRealAtivo() {
     return paymentConfig.isRealMarketplace();
 }
@@ -592,7 +575,7 @@ exports.ordersRouter.patch("/:id/status", (0, auth_1.requireRole)("restaurante")
     if (status_pedido === "EM_PREPARO") {
         if (!pedidoPodeIniciarPreparo(pedidoAtual)) {
             return res.status(409).json({
-                error: `O preparo deste pedido so fica liberado as ${formatarHorario(pedidoAtual.iniciar_preparo_em)}.`,
+                error: "Este pedido ainda nao esta elegivel para entrar em preparo. Verifique a confirmacao de presenca e a data da reserva.",
             });
         }
     }

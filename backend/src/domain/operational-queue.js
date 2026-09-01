@@ -22,17 +22,6 @@ function obterMinutosAteReserva(reserva, agora = new Date()) {
     return Math.floor((inicio.getTime() - agora.getTime()) / 60000);
 }
 
-function obterDataHoraLocal(valor) {
-    if (!valor) {
-        return null;
-    }
-
-    const normalizado = String(valor).replace(" ", "T");
-    const temTimezone = /(?:Z|[+-]\d{2}:?\d{2})$/.test(normalizado);
-    const data = new Date(temTimezone ? normalizado : `${normalizado}-03:00`);
-    return Number.isNaN(data.getTime()) ? null : data;
-}
-
 function pedidoEstaNaFilaOperacional(pedido, agora = new Date(), janelaMinutos = JANELA_OPERACIONAL_MINUTOS) {
     if (!pedido || pedido.ocultado_cozinha === true || pedido.status_pedido === "PENDENTE") {
         return false;
@@ -64,13 +53,7 @@ function pedidoPodeIniciarPreparo(pedido, agora = new Date(), janelaMinutos = JA
         return false;
     }
 
-    const inicioPreparo = obterDataHoraLocal(pedido.iniciar_preparo_em);
-    if (inicioPreparo) {
-        return inicioPreparo.getTime() <= agora.getTime();
-    }
-
-    const minutosAteReserva = obterMinutosAteReserva(pedido.reservas, agora);
-    return minutosAteReserva !== null && minutosAteReserva <= janelaMinutos;
+    return true;
 }
 
 function reservaEstaNaFilaOperacional(reserva, agora = new Date()) {
@@ -101,7 +84,6 @@ module.exports = {
     HORIZONTE_RESERVAS_OPERACIONAIS_HORAS,
     JANELA_OPERACIONAL_MINUTOS,
     STATUS_RESERVA_OPERACIONAL_PEDIDO,
-    obterDataHoraLocal,
     obterDataHoraReserva,
     obterMinutosAteReserva,
     ordenarPorHorarioReserva,

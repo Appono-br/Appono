@@ -78,7 +78,6 @@ const resumoInicial = {
     serieReservas: [],
     proximosPedidos: [],
     produtoDestaque: null,
-    tempoMedioPreparo: null,
     pedidosAtivosCozinha: 0,
 };
 export default function RestaurantDashboardPage() {
@@ -102,7 +101,6 @@ export default function RestaurantDashboardPage() {
     const proximosPedidos = resumo.proximosPedidos;
     const maiorValorSerie = Math.max(...serieReservas.map((ponto) => ponto.valor), 1);
     const produtoDestaque = resumo.produtoDestaque;
-    const tempoMedioPreparo = resumo.tempoMedioPreparo;
     if (!sessaoCarregada) {
         return <TelaCarregandoSessao />;
     }
@@ -257,7 +255,6 @@ export default function RestaurantDashboardPage() {
             </h2>
             <div className="mt-8 grid gap-6">
               {[
-                { label: "Tempo medio estimado", value: tempoMedioPreparo ? `${tempoMedioPreparo} min` : "--" },
                 { label: "Pedidos ativos na cozinha", value: resumo.pedidosAtivosCozinha ?? 0 },
               ].map((item) => (<div key={item.label}>
                     <div className="flex items-center justify-between gap-4 text-sm text-app-cinza">

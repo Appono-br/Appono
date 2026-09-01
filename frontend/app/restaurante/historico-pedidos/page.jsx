@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 import { useEffect, useMemo, useState } from "react";
 import { apiRequest } from "@/lib/api";
+import { filtrarOrdenarPorBusca, textoBusca } from "@/lib/busca-avancada";
 import { textoStatusPedido, textoStatusRepasse, textoStatusReserva } from "@/lib/formatadores-status";
 import { TelaCarregandoSessao, useSessaoLocal } from "@/lib/use-sessao-local";
 
@@ -181,6 +182,57 @@ function obterItensResumo(pedido) {
     const principais = itens.slice(0, 2).map((item) => `${item.quantidade}x ${item.produtos?.nome ?? "Item"}`);
     const restantes = itens.length > 2 ? ` +${itens.length - 2}` : "";
     return `${principais.join(", ")}${restantes}`;
+}
+function obterCamposPedidoHistorico(pedido) {
+    const pagamento = obterPagamentoPrincipal(pedido);
+    return [
+        `pedido ${pedido.id_pedido}`,
+        pedido.id_pedido,
+        pedido.clientes?.nome,
+        pedido.clientes?.telefone,
+        pedido.reservas?.data_reserva,
+        pedido.reservas?.horario_inicio,
+        pedido.reservas?.horario_fim,
+        pedido.reservas?.mesas?.numero_mesa ? `mesa ${pedido.reservas.mesas.numero_mesa}` : "",
+        pedido.reservas?.quantidade_pessoas ? `${pedido.reservas.quantidade_pessoas} pessoas` : "",
+        pedido.status_pedido,
+        textoStatusPedido(pedido.status_pedido),
+        pedido.observacoes,
+        pedido.valor_total,
+        pagamento?.status_pagamento,
+        pagamento?.status_repasse,
+        textoStatusRepasse(pagamento?.status_repasse ?? "NAO_APLICAVEL"),
+        ...(pedido.itens_pedido ?? []).map((item) => textoBusca(
+            item.produtos?.nome,
+            item.produtos?.descricao,
+            item.observacoes,
+            item.quantidade ? `${item.quantidade}x` : "",
+        )),
+    ];
+}
+function obterCamposReservaHistorico(reserva) {
+    const pedidosAtivos = obterPedidosAtivos(reserva);
+    return [
+        `reserva ${reserva.id_reserva}`,
+        reserva.id_reserva,
+        reserva.clientes?.nome,
+        reserva.clientes?.telefone,
+        reserva.data_reserva,
+        reserva.horario_inicio,
+        reserva.horario_fim,
+        reserva.status_reserva,
+        textoStatusReserva(reserva.status_reserva),
+        reserva.mesas?.numero_mesa ? `mesa ${reserva.mesas.numero_mesa}` : "",
+        reserva.quantidade_pessoas ? `${reserva.quantidade_pessoas} pessoas` : "",
+        reserva.valor_minimo_total,
+        ...pedidosAtivos.map((pedido) => textoBusca(
+            `pedido ${pedido.id_pedido}`,
+            pedido.status_pedido,
+            textoStatusPedido(pedido.status_pedido),
+            pedido.valor_total,
+            ...(pedido.itens_pedido ?? []).map((item) => textoBusca(item.produtos?.nome, item.observacoes)),
+        )),
+    ];
 }
 
 function escaparCsv(valor) {
@@ -411,50 +463,27 @@ export default function RestaurantOrderHistoryPage() {
     }, [sessao, sessaoCarregada]);
 
     const pedidosFiltrados = useMemo(() => {
-        const termo = busca.trim().toLowerCase();
-        return pedidos.filter((pedido) => {
+        const pedidosPorFiltro = pedidos.filter((pedido) => {
             const passaFiltro = filtro === "TODOS" ||
                 pedido.status_pedido === filtro ||
                 (filtro === "REMOVIDOS" && pedido.ocultado_cozinha === true);
             const passaPeriodo = pedidoPassaPeriodo(pedido, periodo);
-            const textoBusca = [
-                pedido.id_pedido,
-                pedido.clientes?.nome,
-                pedido.clientes?.telefone,
-                pedido.reservas?.data_reserva,
-                pedido.status_pedido,
-                ...(pedido.itens_pedido ?? []).map((item) => item.produtos?.nome),
-            ]
-                .filter(Boolean)
-                .join(" ")
-                .toLowerCase();
-            return passaFiltro && passaPeriodo && (!termo || textoBusca.includes(termo));
+            return passaFiltro && passaPeriodo;
         });
+        return filtrarOrdenarPorBusca(pedidosPorFiltro, busca, obterCamposPedidoHistorico);
     }, [busca, filtro, pedidos, periodo]);
 
     const reservasFiltradas = useMemo(() => {
-        const termo = busca.trim().toLowerCase();
-        return reservas.filter((reserva) => {
+        const reservasPorFiltro = reservas.filter((reserva) => {
             const pedidosAtivos = obterPedidosAtivos(reserva);
             const passaFiltro = filtroReserva === "TODOS" ||
                 reserva.status_reserva === filtroReserva ||
                 (filtroReserva === "COM_PEDIDO" && pedidosAtivos.length > 0) ||
                 (filtroReserva === "SOMENTE_RESERVA" && pedidosAtivos.length === 0);
             const passaPeriodo = reservaPassaPeriodo(reserva, periodo);
-            const textoBusca = [
-                reserva.id_reserva,
-                reserva.clientes?.nome,
-                reserva.clientes?.telefone,
-                reserva.data_reserva,
-                reserva.status_reserva,
-                reserva.mesas?.numero_mesa,
-                ...pedidosAtivos.map((pedido) => pedido.id_pedido),
-            ]
-                .filter(Boolean)
-                .join(" ")
-                .toLowerCase();
-            return passaFiltro && passaPeriodo && (!termo || textoBusca.includes(termo));
+            return passaFiltro && passaPeriodo;
         });
+        return filtrarOrdenarPorBusca(reservasPorFiltro, busca, obterCamposReservaHistorico);
     }, [busca, filtroReserva, periodo, reservas]);
 
     const resumo = useMemo(() => {

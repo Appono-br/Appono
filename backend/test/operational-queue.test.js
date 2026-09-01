@@ -49,12 +49,12 @@ test("pedido confirmado entra na fila futura da cozinha ordenada por horario", (
     }, agora), false);
 });
 
-test("inicio de preparo respeita o horario planejado", () => {
+test("inicio de preparo depende da elegibilidade operacional do pedido", () => {
     assert.equal(pedidoPodeIniciarPreparo({
         status_pedido: "CONFIRMADO",
         iniciar_preparo_em: "2026-08-18T10:15:00",
         reservas: reservaEm(90),
-    }, agora), false);
+    }, agora), true);
 
     assert.equal(pedidoPodeIniciarPreparo({
         status_pedido: "CONFIRMADO",
