@@ -1,18 +1,19 @@
 @import "tailwindcss";
 
 :root {
-  --background: #eadcc8;
+  --background: #ffffff;
   --foreground: #241713;
   --app-cacau-intenso: #241713;
   --app-caramelo-torrado: #7f4325;
-  --app-creme-suave: #d8bf9d;
+  --app-creme-suave: #ffffff;
   --app-baunilha-dourada: #947553;
   --app-cafe-profundo: #241713;
   --app-mocha: #4f382e;
   --app-dourado-mel: #b35f32;
   --app-creme-leve: #f7ead6;
   --app-areia-quente: #bf7d3a;
-  --app-chantilly: #eadcc8;
+  --app-chantilly: #ffffff;
+  --app-chantilly-hover: #eadcc8;
   --app-texto-escuro: #18100d;
   --app-cinza: #5f534b;
   --app-vermelho-erro: #b54837;
@@ -47,7 +48,7 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #eadcc8;
+    --background: #ffffff;
     --foreground: #241713;
   }
 }
@@ -65,14 +66,15 @@ html {
 .area-autenticada {
   --app-cacau-intenso: #241713;
   --app-caramelo-torrado: #7f4325;
-  --app-creme-suave: #d8bf9d;
+  --app-creme-suave: #ffffff;
   --app-baunilha-dourada: #947553;
   --app-cafe-profundo: #241713;
   --app-mocha: #4f382e;
   --app-dourado-mel: #b35f32;
   --app-creme-leve: #f7ead6;
   --app-areia-quente: #bf7d3a;
-  --app-chantilly: #eadcc8;
+  --app-chantilly: #ffffff;
+  --app-chantilly-hover: #eadcc8;
   --app-texto-escuro: #18100d;
   --app-cinza: #5f534b;
   --app-vermelho-erro: #b54837;
@@ -502,11 +504,11 @@ html {
 }
 
 .area-autenticada:not(.tema-escuro) .bg-app-chantilly {
-  background-color: #ead7bb;
+  background-color: var(--app-chantilly);
 }
 
 .area-autenticada:not(.tema-escuro) .bg-app-creme-suave {
-  background-color: #dcc39f;
+  background-color: var(--app-chantilly);
 }
 
 .area-autenticada:not(.tema-escuro) .ring-app-baunilha-dourada,
@@ -725,15 +727,15 @@ body > div:not(.area-autenticada) select {
 }
 
 .area-restaurante :is(section, article, aside, form, div)[class*="bg-app-creme-leve"] {
-  background-color: #fff7ea !important;
+  background-color: var(--app-creme-leve) !important;
 }
 
 .area-restaurante :is(section, article, aside, form, div)[class*="bg-app-chantilly"] {
-  background-color: #ead7bb !important;
+  background-color: var(--app-chantilly) !important;
 }
 
 .area-restaurante :is(section, article, aside, form, div)[class*="bg-app-creme-suave"] {
-  background-color: #dcc39f !important;
+  background-color: var(--app-chantilly) !important;
 }
 
 .area-restaurante :is(section, article, aside, form)[class*="rounded-["] {
@@ -884,15 +886,15 @@ body > div:not(.area-autenticada) select {
 }
 
 .area-cliente :is(section, article, aside, form, div)[class*="bg-app-creme-leve"] {
-  background-color: #fff7ea !important;
+  background-color: var(--app-creme-leve) !important;
 }
 
 .area-cliente :is(section, article, aside, form, div)[class*="bg-app-chantilly"] {
-  background-color: #ead7bb !important;
+  background-color: var(--app-chantilly) !important;
 }
 
 .area-cliente :is(section, article, aside, form, div)[class*="bg-app-creme-suave"] {
-  background-color: #dcc39f !important;
+  background-color: var(--app-chantilly) !important;
 }
 
 .area-cliente :is(section, article, aside, form)[class*="rounded-["] {
@@ -993,4 +995,48 @@ body > div:not(.area-autenticada) select {
 .area-cliente :is(button, a, p, span)[class*="bg-app-dourado-mel/"],
 .area-cliente :is(button, a, p, span)[class*="bg-app-caramelo-torrado/"] {
   background-color: transparent !important;
+}
+
+.home-publica,
+.home-publica.bg-white,
+.home-publica .bg-white,
+.home-publica .bg-white\/95,
+.home-publica .bg-white\/90,
+.home-publica .bg-white\/80 {
+  background-color: #ffffff !important;
+}
+
+.home-publica header.bg-white\/95 {
+  background-color: rgb(255 255 255 / 0.95) !important;
+}
+
+.home-publica .hover\:bg-white\/10:hover {
+  background-color: rgb(255 255 255 / 0.1) !important;
+}
+
+body > div:not(.area-autenticada) .home-publica :is(form, section, article, div)[class*="bg-white"] {
+  border-color: rgb(181 154 120 / 0.6);
+}
+
+.auth-publica,
+.auth-publica.bg-white,
+.auth-publica .bg-white,
+.auth-publica .bg-white\/95,
+.auth-publica .bg-white\/90,
+.auth-publica .bg-white\/80 {
+  background-color: #ffffff !important;
+}
+
+.auth-publica :is(form, section, article, div)[class*="bg-white"],
+body > div:not(.area-autenticada) .auth-publica :is(form, section, article, div)[class*="bg-white"] {
+  background-color: #ffffff !important;
+}
+
+.auth-publica :is(input, textarea, select)[class*="bg-white"] {
+  background-color: #ffffff !important;
+}
+
+.hover\:bg-app-chantilly:hover,
+.hover\:bg-app-creme-suave:hover {
+  background-color: var(--app-chantilly-hover) !important;
 }

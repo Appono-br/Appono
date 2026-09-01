@@ -3,12 +3,19 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+
 import { FormField } from "@/components/auth/form-field";
 import { apiRequest } from "@/lib/api";
 import { getDashboardPath, persistAuthResponse } from "@/lib/session";
 import { supabase } from "@/lib/supabase";
-import { aplicarMascaraCep, cepEstaCompleto } from "@/lib/validacoes/cep";
-import { aplicarMascaraCnpj, cnpjEstaCompleto } from "@/lib/validacoes/cnpj";
+import {
+  aplicarMascaraCep,
+  cepEstaCompleto,
+} from "@/lib/validacoes/cep";
+import {
+  aplicarMascaraCnpj,
+  cnpjEstaCompleto,
+} from "@/lib/validacoes/cnpj";
 import { somenteNumeros } from "@/lib/validacoes/comum";
 import { aplicarMascaraTelefone } from "@/lib/validacoes/telefone";
 import {
@@ -40,6 +47,7 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
   const [imagem, setImagem] = useState(null);
   const [imagemPreview, setImagemPreview] = useState("");
   const [googleSession, setGoogleSession] = useState(null);
+
   const isGoogleFlow = googleFlow;
 
   useEffect(() => {
@@ -49,11 +57,14 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
 
     supabase.auth.getSession().then(({ data }) => {
       if (!data.session) {
-        setMessage("Entre com Google novamente para completar o cadastro.");
+        setMessage(
+          "Entre com Google novamente para completar o cadastro."
+        );
         return;
       }
 
       setGoogleSession(data.session);
+
       setForm((current) => ({
         ...current,
         email: data.session.user.email ?? current.email,
@@ -62,7 +73,11 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
   }, [isGoogleFlow]);
 
   function atualizarCampo(field, value) {
-    setForm((current) => ({ ...current, [field]: value }));
+    setForm((current) => ({
+      ...current,
+      [field]: value,
+    }));
+
     setMessage("");
   }
 
@@ -90,6 +105,7 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
     }
 
     const erro = validarImagemRestaurante(arquivo);
+
     if (erro) {
       setMessage(erro);
       return;
@@ -110,16 +126,25 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
     }
 
     try {
-      const company = await apiRequest(`/validacoes/cnpj/${somenteNumeros(form.cnpj)}`, {
-        auth: false,
-      });
+      const company = await apiRequest(
+        `/validacoes/cnpj/${somenteNumeros(form.cnpj)}`,
+        {
+          auth: false,
+        }
+      );
+
       setForm((current) => ({
         ...current,
         legalName: company.razaoSocial || current.legalName,
       }));
+
       setMessage("");
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "CNPJ invalido.");
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : "CNPJ invalido."
+      );
     }
   }
 
@@ -129,9 +154,13 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
     }
 
     try {
-      const address = await apiRequest(`/validacoes/cep/${somenteNumeros(form.cep)}`, {
-        auth: false,
-      });
+      const address = await apiRequest(
+        `/validacoes/cep/${somenteNumeros(form.cep)}`,
+        {
+          auth: false,
+        }
+      );
+
       setForm((current) => ({
         ...current,
         address: address.rua || current.address,
@@ -139,15 +168,22 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
         city: address.cidade || current.city,
         uf: address.estado || current.uf,
       }));
+
       setMessage("");
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "CEP invalido.");
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : "CEP invalido."
+      );
     }
   }
 
   async function criarRestaurante() {
     if (!dadosRestauranteEstaoPreenchidos()) {
-      setMessage("Preencha os dados do restaurante antes de finalizar.");
+      setMessage(
+        "Preencha os dados do restaurante antes de finalizar."
+      );
       return;
     }
 
@@ -156,23 +192,32 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
 
     try {
       const response = await apiRequest(
-        isGoogleFlow ? "/auth/google/restaurant" : "/auth/register/restaurant",
+        isGoogleFlow
+          ? "/auth/google/restaurant"
+          : "/auth/register/restaurant",
         {
           method: "POST",
           auth: isGoogleFlow,
           body: JSON.stringify(form),
         }
       );
+
       const session = response.session ?? googleSession;
 
-      await persistAuthResponse({ ...response, session });
+      await persistAuthResponse({
+        ...response,
+        session,
+      });
 
       if (session) {
         if (imagem) {
           try {
             await enviarImagemRestaurante(imagem, session);
           } catch (error) {
-            console.warn("Nao foi possivel enviar a imagem do restaurante.", error);
+            console.warn(
+              "Nao foi possivel enviar a imagem do restaurante.",
+              error
+            );
           }
         }
 
@@ -197,7 +242,10 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
 
   return (
     <div className="mx-auto w-full max-w-xl">
-      <div className="rounded-2xl bg-app-creme-leve px-6 py-7 shadow-sm ring-1 ring-app-baunilha-dourada/45 sm:px-9">
+      {/* CARD PRINCIPAL */}
+      <div className="rounded-2xl bg-white px-6 py-7 shadow-sm ring-1 ring-app-baunilha-dourada/45 sm:px-9">
+
+        {/* LOGO */}
         <div className="mb-5 flex justify-center">
           <Image
             src="/brand/appono-mark.svg"
@@ -209,7 +257,8 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
           />
         </div>
 
-        <div className="mb-4 flex items-center justify-between gap-3">
+        {/* TOPO */}
+        <div className="mb-5 flex items-center justify-between gap-3">
           <Link
             href="/"
             className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-bold text-app-caramelo-torrado transition hover:bg-app-chantilly hover:text-app-cafe-profundo"
@@ -228,6 +277,7 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
               <line x1="19" y1="12" x2="5" y2="12" />
               <polyline points="12 19 5 12 12 5" />
             </svg>
+
             Voltar
           </Link>
 
@@ -236,46 +286,66 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
           </p>
         </div>
 
+        {/* TÍTULO */}
         <h1 className="text-2xl font-bold text-app-cafe-profundo">
           Torne-se um parceiro APPONO
         </h1>
+
         <p className="mt-1 text-sm leading-5 text-app-cinza">
-          Informe os dados operacionais do estabelecimento. A conta Mercado Pago
-          podera ser conectada depois, nas configuracoes.
+          Informe os dados operacionais do estabelecimento. A conta
+          Mercado Pago poderá ser conectada depois, nas configurações.
         </p>
 
-        <div className="mt-5 grid gap-3 sm:grid-cols-2">
+        {/* FORMULÁRIO */}
+        <div className="mt-6 grid gap-3 sm:grid-cols-2">
+
+          {/* NOME DA LOJA */}
           <FormField
             label="Nome da loja"
             value={form.storeName}
-            onChange={(event) => atualizarCampo("storeName", event.target.value)}
-            placeholder="Nome que aparecera para os clientes"
+            onChange={(event) =>
+              atualizarCampo("storeName", event.target.value)
+            }
+            placeholder="Nome que aparecerá para os clientes"
             required
             className="sm:col-span-2"
           />
+
+          {/* RAZÃO SOCIAL */}
           <FormField
-            label="Razao social"
+            label="Razão social"
             value={form.legalName}
-            onChange={(event) => atualizarCampo("legalName", event.target.value)}
+            onChange={(event) =>
+              atualizarCampo("legalName", event.target.value)
+            }
             placeholder="Ex: Terra Artisan Gastronomia LTDA"
             required
             className="sm:col-span-2"
           />
+
+          {/* EMAIL */}
           <FormField
             label="E-mail"
             type="email"
             value={form.email}
-            onChange={(event) => atualizarCampo("email", event.target.value)}
+            onChange={(event) =>
+              atualizarCampo("email", event.target.value)
+            }
             placeholder="contato@restaurante.com"
             required
             disabled={isGoogleFlow}
             className="sm:col-span-2"
           />
+
+          {/* TELEFONE */}
           <FormField
             label="Telefone"
             value={form.phone}
             onChange={(event) =>
-              atualizarCampo("phone", aplicarMascaraTelefone(event.target.value))
+              atualizarCampo(
+                "phone",
+                aplicarMascaraTelefone(event.target.value)
+              )
             }
             placeholder="(11) 99999-9999"
             inputMode="tel"
@@ -283,11 +353,16 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
             required
             className="sm:col-span-2"
           />
+
+          {/* CNPJ */}
           <FormField
             label="CNPJ"
             value={form.cnpj}
             onChange={(event) =>
-              atualizarCampo("cnpj", aplicarMascaraCnpj(event.target.value))
+              atualizarCampo(
+                "cnpj",
+                aplicarMascaraCnpj(event.target.value)
+              )
             }
             onBlur={validarCnpj}
             placeholder="00.000.000/0001-00"
@@ -296,11 +371,16 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
             required
             className="sm:col-span-2"
           />
+
+          {/* CEP */}
           <FormField
             label="CEP"
             value={form.cep}
             onChange={(event) =>
-              atualizarCampo("cep", aplicarMascaraCep(event.target.value))
+              atualizarCampo(
+                "cep",
+                aplicarMascaraCep(event.target.value)
+              )
             }
             onBlur={validarCep}
             placeholder="00000-000"
@@ -309,14 +389,20 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
             required
             className="sm:col-span-2"
           />
+
+          {/* ENDEREÇO */}
           <FormField
-            label="Endereco"
+            label="Endereço"
             value={form.address}
-            onChange={(event) => atualizarCampo("address", event.target.value)}
+            onChange={(event) =>
+              atualizarCampo("address", event.target.value)
+            }
             placeholder="Rua, Avenida, etc."
             required
             className="sm:col-span-2"
           />
+
+          {/* BAIRRO */}
           <FormField
             label="Bairro"
             value={form.neighborhood}
@@ -326,51 +412,75 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
             placeholder="Ex: Jardins"
             required
           />
+
+          {/* CIDADE */}
           <FormField
             label="Cidade"
             value={form.city}
-            onChange={(event) => atualizarCampo("city", event.target.value)}
-            placeholder="Ex: Sao Paulo"
+            onChange={(event) =>
+              atualizarCampo("city", event.target.value)
+            }
+            placeholder="Ex: São Paulo"
             required
           />
+
+          {/* UF */}
           <FormField
             label="UF"
             value={form.uf}
-            onChange={(event) => atualizarCampo("uf", event.target.value)}
+            onChange={(event) =>
+              atualizarCampo("uf", event.target.value)
+            }
             placeholder="Ex: SP"
             required
             maxLength={2}
           />
+
+          {/* NÚMERO */}
           <FormField
-            label="Numero"
+            label="Número"
             value={form.number}
-            onChange={(event) => atualizarCampo("number", event.target.value)}
+            onChange={(event) =>
+              atualizarCampo("number", event.target.value)
+            }
             placeholder="Ex: 123"
             required
           />
+
+          {/* COMPLEMENTO */}
           <FormField
             label="Complemento"
             value={form.complement}
-            onChange={(event) => atualizarCampo("complement", event.target.value)}
+            onChange={(event) =>
+              atualizarCampo("complement", event.target.value)
+            }
             placeholder="Sala, Bloco, etc."
             className="sm:col-span-2"
           />
+
+          {/* NÚMERO DE MESAS */}
           <FormField
-            label="Numero de mesas"
+            label="Número de mesas"
             type="number"
             min="1"
             value={form.tables}
-            onChange={(event) => atualizarCampo("tables", event.target.value)}
+            onChange={(event) =>
+              atualizarCampo("tables", event.target.value)
+            }
             placeholder="Ex: 12"
             required
             className="sm:col-span-2"
           />
+
+          {/* SENHA */}
           {!isGoogleFlow ? (
             <FormField
               label="Senha"
               type="password"
               value={form.password}
-              onChange={(event) => atualizarCampo("password", event.target.value)}
+              onChange={(event) =>
+                atualizarCampo("password", event.target.value)
+              }
               placeholder="Digite aqui"
               required
               minLength={6}
@@ -378,16 +488,23 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
             />
           ) : null}
 
-          <label className="group grid gap-3 rounded-xl border-2 border-dashed border-app-baunilha-dourada/50 bg-app-creme-leve p-5 text-center transition hover:border-app-caramelo-torrado hover:bg-app-chantilly sm:col-span-2">
+          {/* IMAGEM DO RESTAURANTE */}
+          <label className="group grid gap-3 rounded-xl border-2 border-dashed border-app-baunilha-dourada/50 bg-white p-5 text-center transition hover:border-app-caramelo-torrado hover:bg-app-chantilly sm:col-span-2">
+
             <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-app-caramelo-torrado">
               Imagem do restaurante
             </span>
+
             <div className="flex flex-col items-center gap-3">
+
+              {/* PREVIEW */}
               <div
                 className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full bg-app-creme-suave bg-cover bg-center ring-2 ring-app-caramelo-torrado/20 transition group-hover:ring-app-dourado-mel"
                 style={
                   imagemPreview
-                    ? { backgroundImage: `url("${imagemPreview}")` }
+                    ? {
+                        backgroundImage: `url("${imagemPreview}")`,
+                      }
                     : undefined
                 }
               >
@@ -409,11 +526,15 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
                   </svg>
                 ) : null}
               </div>
+
+              {/* TEXTO */}
               <span className="text-xs leading-5 text-app-cinza">
-                Selecione JPG, PNG ou WebP de ate 5 MB.
+                Selecione JPG, PNG ou WebP de até 5 MB.
                 <br />
-                Esta imagem aparecera para os clientes.
+                Esta imagem aparecerá para os clientes.
               </span>
+
+              {/* BOTÃO */}
               <span className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-app-caramelo-torrado px-4 py-2 text-xs font-bold text-white transition hover:bg-app-cafe-profundo">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -430,23 +551,30 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
                   <polyline points="17 8 12 3 7 8" />
                   <line x1="12" y1="3" x2="12" y2="15" />
                 </svg>
+
                 Escolher arquivo
               </span>
             </div>
+
             <input
               type="file"
               accept="image/jpeg,image/png,image/webp"
-              onChange={(event) => selecionarImagem(event.target.files?.[0])}
+              onChange={(event) =>
+                selecionarImagem(event.target.files?.[0])
+              }
               className="hidden"
             />
           </label>
         </div>
 
+        {/* DIVISÓRIA + BOTÃO */}
         <div className="mt-6 flex flex-col-reverse gap-3 border-t border-app-creme-suave pt-5 sm:flex-row sm:items-center sm:justify-between">
+
           <p className="text-[10px] leading-4 text-app-cinza">
-            Ao finalizar, voce concorda com nossos Termos e Politica de
-            Privacidade.
+            Ao finalizar, você concorda com nossos Termos e
+            Política de Privacidade.
           </p>
+
           <button
             type="button"
             onClick={criarRestaurante}
@@ -469,12 +597,14 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
                     stroke="currentColor"
                     strokeWidth="4"
                   />
+
                   <path
                     className="opacity-75"
                     fill="currentColor"
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
                   />
                 </svg>
+
                 Criando...
               </>
             ) : (
@@ -483,9 +613,11 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
           </button>
         </div>
 
+        {/* LOGIN */}
         <div className="mt-3 flex flex-col gap-2 text-sm text-app-cinza sm:flex-row sm:items-center sm:justify-between">
           <span>
-            Ja possui uma conta?{" "}
+            Já possui uma conta?{" "}
+
             <Link
               href="/login"
               className="font-bold text-app-caramelo-torrado transition hover:text-app-dourado-mel"
@@ -493,8 +625,9 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
               Entrar
             </Link>
           </span>
+
           {message ? (
-            <span className="rounded-full bg-app-creme-leve px-3 py-1 font-semibold text-app-caramelo-torrado">
+            <span className="rounded-full bg-white px-3 py-1 font-semibold text-app-caramelo-torrado ring-1 ring-app-baunilha-dourada/45">
               {message}
             </span>
           ) : null}
