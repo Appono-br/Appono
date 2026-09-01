@@ -153,7 +153,7 @@ export default function HomePage() {
         <Image src={heroImage} alt="Mesa reservada em restaurante elegante" fill priority sizes="100vw" className="absolute inset-0 h-full w-full object-cover opacity-90" />
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-app-cafe-profundo/40 to-app-cafe-profundo/85" />
 
-        <div className="relative z-10 mx-auto flex max-w-3xl flex-col items-center text-center">
+        <div className="relative z-10 mx-auto flex max-w-3xl flex-col items-center text-center">git merge main
           <h1 className="max-w-2xl text-4xl font-semibold leading-tight text-white sm:text-6xl">
             Reserve sua mesa com antecedência
           </h1>
