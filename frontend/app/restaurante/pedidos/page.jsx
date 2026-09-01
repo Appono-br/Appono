@@ -261,7 +261,7 @@ export default function RestaurantOrdersPage() {
 
     if (!isRestaurant) {
         return (
-            <main className="flex min-h-screen items-center justify-center bg-app-chantilly px-5 text-app-cafe-profundo">
+            <main className="flex min-h-screen items-center justify-center bg-white px-5 text-app-cafe-profundo">
                 <section className="w-full max-w-lg rounded-[8px] bg-app-creme-leve p-8 text-center shadow-sm ring-1 ring-app-baunilha-dourada">
                     <Image
                         src="/brand/appono-mark.svg"
@@ -287,7 +287,7 @@ export default function RestaurantOrdersPage() {
     }
 
     return (
-        <main className="flex min-h-screen flex-col bg-app-chantilly text-app-cafe-profundo">
+        <main className="flex min-h-screen flex-col bg-white text-app-cafe-profundo">
             <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-app-creme-leve/90 text-app-cafe-profundo shadow-sm backdrop-blur-md">
                 <div className="mx-auto grid h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-5 lg:h-20">
                     <div aria-label="Appono">
@@ -325,7 +325,7 @@ export default function RestaurantOrdersPage() {
                         <button
                             type="button"
                             onClick={() => setMobileMenuOpen((current) => !current)}
-                            className="flex h-9 w-9 items-center justify-center rounded-[8px] border border-app-baunilha-dourada bg-app-chantilly text-app-cafe-profundo xl:hidden"
+                            className="flex h-9 w-9 items-center justify-center rounded-[8px] border border-app-baunilha-dourada bg-white text-app-cafe-profundo xl:hidden"
                             aria-label="Abrir menu"
                             aria-expanded={mobileMenuOpen}
                             aria-controls="restaurant-orders-menu"
@@ -413,7 +413,7 @@ export default function RestaurantOrdersPage() {
                                         className="overflow-hidden rounded-[14px] bg-app-creme-leve shadow-sm ring-1 ring-app-baunilha-dourada/75"
                                     >
                                         <div className="grid lg:grid-cols-[220px_minmax(0,1fr)_250px]">
-                                            <div className="flex items-center justify-between gap-4 border-b border-app-baunilha-dourada/55 bg-app-chantilly px-5 py-4 lg:flex-col lg:items-start lg:justify-center lg:border-b-0 lg:border-r">
+                                            <div className="flex items-center justify-between gap-4 border-b border-app-baunilha-dourada/55 bg-white px-5 py-4 lg:flex-col lg:items-start lg:justify-center lg:border-b-0 lg:border-r">
                                                 <div>
                                                     <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">
                                                         Pedido
@@ -443,19 +443,19 @@ export default function RestaurantOrdersPage() {
                                                 </div>
 
                                                 <div className="mt-5 grid gap-3 text-sm text-app-mocha sm:grid-cols-4">
-                                                    <div className="rounded-[10px] bg-app-chantilly px-3 py-3 ring-1 ring-app-baunilha-dourada/45">
+                                                    <div className="rounded-[10px] bg-white px-3 py-3 ring-1 ring-app-baunilha-dourada/45">
                                                         <span className="block text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">Reserva</span>
                                                         <strong className="mt-1 block text-app-cafe-profundo">{reserva.data_reserva} as {reserva.horario_inicio?.slice(0, 5)}</strong>
                                                     </div>
-                                                    <div className="rounded-[10px] bg-app-chantilly px-3 py-3 ring-1 ring-app-baunilha-dourada/45">
+                                                    <div className="rounded-[10px] bg-white px-3 py-3 ring-1 ring-app-baunilha-dourada/45">
                                                         <span className="block text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">Mesa</span>
                                                         <strong className="mt-1 block text-app-cafe-profundo">{reserva.mesas?.numero_mesa ?? "-"}</strong>
                                                     </div>
-                                                    <div className="rounded-[10px] bg-app-chantilly px-3 py-3 ring-1 ring-app-baunilha-dourada/45">
+                                                    <div className="rounded-[10px] bg-white px-3 py-3 ring-1 ring-app-baunilha-dourada/45">
                                                         <span className="block text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">Pessoas</span>
                                                         <strong className="mt-1 block text-app-cafe-profundo">{reserva.quantidade_pessoas}</strong>
                                                     </div>
-                                                    <div className="rounded-[10px] bg-app-chantilly px-3 py-3 ring-1 ring-app-baunilha-dourada/45">
+                                                    <div className="rounded-[10px] bg-white px-3 py-3 ring-1 ring-app-baunilha-dourada/45">
                                                         <span className="block text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">Preparo</span>
                                                         <strong className="mt-1 block text-app-cafe-profundo">{tempoEstimadoPedido || "--"} min</strong>
                                                     </div>
@@ -473,7 +473,7 @@ export default function RestaurantOrdersPage() {
                                                     {pedido.itens_pedido?.map((item, indice) => (
                                                         <div
                                                             key={`${item.produtos?.nome ?? "item"}-${indice}`}
-                                                            className="flex items-start justify-between gap-4 rounded-[10px] bg-app-chantilly px-4 py-3 text-sm text-app-mocha ring-1 ring-app-baunilha-dourada/45"
+                                                            className="flex items-start justify-between gap-4 rounded-[10px] bg-white px-4 py-3 text-sm text-app-mocha ring-1 ring-app-baunilha-dourada/45"
                                                         >
                                                             <div className="min-w-0">
                                                                 <p className="font-semibold text-app-cafe-profundo">
@@ -499,7 +499,7 @@ export default function RestaurantOrdersPage() {
                                                 ) : null}
                                             </div>
 
-                                            <aside className="flex flex-col justify-between border-t border-app-baunilha-dourada/55 bg-app-chantilly px-5 py-4 text-app-cafe-profundo lg:border-l lg:border-t-0">
+                                            <aside className="flex flex-col justify-between border-t border-app-baunilha-dourada/55 bg-white px-5 py-4 text-app-cafe-profundo lg:border-l lg:border-t-0">
                                                 <div>
                                                     <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-app-caramelo-torrado">
                                                         Entrega

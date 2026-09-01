@@ -93,7 +93,7 @@ export default function RestaurantAddressSettingsPage() {
         return <TelaCarregandoSessao />;
     }
     if (sessao?.type !== "restaurant") {
-        return (<main className="flex min-h-screen items-center justify-center bg-app-chantilly px-5 text-app-cafe-profundo">
+        return (<main className="flex min-h-screen items-center justify-center bg-white px-5 text-app-cafe-profundo">
         <section className="w-full max-w-lg rounded-[8px] bg-app-creme-leve p-8 text-center shadow-sm ring-1 ring-app-baunilha-dourada">
           <Image src="/brand/appono-mark.svg" alt="Appono" width={88} height={88} className="mx-auto h-20 w-20" priority/>
           <h1 className="mt-6 text-3xl font-semibold">Acesso restrito</h1>
@@ -106,7 +106,7 @@ export default function RestaurantAddressSettingsPage() {
         </section>
       </main>);
     }
-    return (<main className="flex min-h-screen flex-col bg-app-chantilly text-app-cafe-profundo">
+    return (<main className="flex min-h-screen flex-col bg-white text-app-cafe-profundo">
       <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-app-creme-leve/90 text-app-cafe-profundo shadow-sm backdrop-blur-md">
         <div className="mx-auto grid min-h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-5 py-2">
           <div aria-label="Appono">
@@ -135,7 +135,7 @@ export default function RestaurantAddressSettingsPage() {
         </div>
       </header>
 
-      <section className="border-b border-app-baunilha-dourada/45 bg-app-chantilly px-5 py-7">
+      <section className="border-b border-app-baunilha-dourada/45 bg-white px-5 py-7">
         <div className="mx-auto flex max-w-7xl items-center gap-4">
           <span className="flex h-12 w-12 items-center justify-center rounded-[8px] bg-app-creme-suave text-app-caramelo-torrado">
             <Icon type="map-pin" className="h-6 w-6"/>
@@ -152,7 +152,7 @@ export default function RestaurantAddressSettingsPage() {
       </section>
 
       <section className="mx-auto grid w-full max-w-7xl flex-1 gap-8 px-5 py-10 lg:grid-cols-[1fr_0.7fr] lg:items-start">
-        <form onSubmit={submitForm} className="rounded-[8px] bg-app-chantilly p-6 shadow-sm ring-1 ring-app-baunilha-dourada/45 sm:p-10">
+        <form onSubmit={submitForm} className="rounded-[8px] bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada/45 sm:p-10">
           <div className="grid gap-6 sm:grid-cols-[0.48fr_1fr] sm:items-end">
             <Field label="CEP" value={form.postalCode} onChange={(value) => updateField("postalCode", aplicarMascaraCep(value))} placeholder="00000-000"/>
             <p className="pb-3 text-sm font-semibold text-app-caramelo-torrado">
@@ -227,7 +227,7 @@ export default function RestaurantAddressSettingsPage() {
         <aside className="overflow-hidden rounded-[8px] bg-app-creme-suave shadow-sm ring-1 ring-app-baunilha-dourada/60">
           <div className="relative flex min-h-[260px] items-center justify-center bg-app-baunilha-dourada/45">
             <div className="absolute inset-0 opacity-45 [background-image:linear-gradient(30deg,rgba(138,85,42,.22)_1px,transparent_1px),linear-gradient(120deg,rgba(47,27,16,.16)_1px,transparent_1px)] [background-size:42px_42px]"/>
-            <span className="relative inline-flex items-center gap-3 rounded-[8px] bg-app-chantilly px-6 py-4 text-sm font-bold uppercase tracking-[0.16em] text-app-mocha shadow-sm">
+            <span className="relative inline-flex items-center gap-3 rounded-[8px] bg-white px-6 py-4 text-sm font-bold uppercase tracking-[0.16em] text-app-mocha shadow-sm">
               <Icon type="navigation" className="h-5 w-5 text-app-caramelo-torrado"/>
               Mapa preview
             </span>

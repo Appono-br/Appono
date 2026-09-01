@@ -174,7 +174,7 @@ export default function RestaurantSettingsPage() {
         return <TelaCarregandoSessao />;
     }
     if (sessao?.type !== "restaurant") {
-        return (<main className="flex min-h-screen items-center justify-center bg-app-chantilly px-5 text-app-cafe-profundo">
+        return (<main className="flex min-h-screen items-center justify-center bg-white px-5 text-app-cafe-profundo">
         <section className="w-full max-w-lg rounded-[8px] bg-app-creme-leve p-8 text-center shadow-sm ring-1 ring-app-baunilha-dourada">
           <Image src="/brand/appono-mark.svg" alt="Appono" width={88} height={88} className="mx-auto h-20 w-20" priority/>
           <h1 className="mt-6 text-3xl font-semibold">Acesso restrito</h1>
@@ -187,7 +187,7 @@ export default function RestaurantSettingsPage() {
         </section>
       </main>);
     }
-    return (<main className="flex min-h-screen flex-col bg-app-chantilly text-app-cafe-profundo">
+    return (<main className="flex min-h-screen flex-col bg-white text-app-cafe-profundo">
       <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-app-creme-leve/90 text-app-cafe-profundo shadow-sm backdrop-blur-md">
         <div className="mx-auto grid h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-5 lg:h-20">
           <div aria-label="Appono">
@@ -203,7 +203,7 @@ export default function RestaurantSettingsPage() {
           </nav>
 
           <ItemHeaderNotificacoes href="/restaurante/notificacoes" />
-          <button type="button" onClick={() => setMobileMenuOpen((current) => !current)} className="flex h-9 w-9 items-center justify-center justify-self-end rounded-[8px] border border-app-baunilha-dourada bg-app-chantilly text-app-cafe-profundo xl:hidden" aria-label="Abrir menu" aria-expanded={mobileMenuOpen} aria-controls="restaurant-settings-menu">
+          <button type="button" onClick={() => setMobileMenuOpen((current) => !current)} className="flex h-9 w-9 items-center justify-center justify-self-end rounded-[8px] border border-app-baunilha-dourada bg-white text-app-cafe-profundo xl:hidden" aria-label="Abrir menu" aria-expanded={mobileMenuOpen} aria-controls="restaurant-settings-menu">
             <Icon type="menu"/>
           </button>
         </div>
@@ -235,7 +235,7 @@ export default function RestaurantSettingsPage() {
               </p>
             </section>
 
-            <nav className="rounded-[8px] bg-app-chantilly p-2 shadow-sm ring-1 ring-app-baunilha-dourada/45">
+            <nav className="rounded-[8px] bg-white p-2 shadow-sm ring-1 ring-app-baunilha-dourada/45">
               {settingsItems.map((item, index) => (<Link key={item.label} href={item.href} className={`flex w-full items-center justify-between gap-4 rounded-[8px] px-5 py-4 text-left transition ${index === 0
                 ? "bg-app-creme-suave text-app-cafe-profundo"
                 : "text-app-mocha hover:bg-app-creme-leve"}`}>
@@ -248,7 +248,7 @@ export default function RestaurantSettingsPage() {
             </nav>
           </aside>
 
-          <form onSubmit={submitForm} className="rounded-[8px] bg-app-chantilly p-6 shadow-sm ring-1 ring-app-baunilha-dourada/45 sm:p-8">
+          <form onSubmit={submitForm} className="rounded-[8px] bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada/45 sm:p-8">
             <div className="flex flex-col gap-6 border-b border-app-baunilha-dourada/60 pb-7 sm:flex-row sm:items-start sm:justify-between">
               <div>
                 <h2 className="text-3xl font-medium text-app-cafe-profundo">

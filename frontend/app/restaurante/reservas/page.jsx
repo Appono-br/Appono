@@ -286,7 +286,7 @@ export default function RestaurantReservationsPage() {
 
     if (!isRestaurant) {
         return (
-            <main className="flex min-h-screen items-center justify-center bg-app-chantilly px-5 text-app-cafe-profundo">
+            <main className="flex min-h-screen items-center justify-center bg-white px-5 text-app-cafe-profundo">
                 <section className="w-full max-w-lg rounded-[8px] bg-app-creme-leve p-8 text-center shadow-sm ring-1 ring-app-baunilha-dourada">
                     <Image
                         src="/brand/appono-mark.svg"
@@ -312,7 +312,7 @@ export default function RestaurantReservationsPage() {
     }
 
     return (
-        <main className="flex min-h-screen flex-col bg-app-chantilly text-app-cafe-profundo">
+        <main className="flex min-h-screen flex-col bg-white text-app-cafe-profundo">
             <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-app-creme-leve/90 text-app-cafe-profundo shadow-sm backdrop-blur-md">
                 <div className="mx-auto grid h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-5 lg:h-20">
                     <div aria-label="Appono">
@@ -350,7 +350,7 @@ export default function RestaurantReservationsPage() {
                         <button
                             type="button"
                             onClick={() => setMobileMenuOpen((current) => !current)}
-                            className="flex h-9 w-9 items-center justify-center rounded-[8px] border border-app-baunilha-dourada bg-app-chantilly text-app-cafe-profundo xl:hidden"
+                            className="flex h-9 w-9 items-center justify-center rounded-[8px] border border-app-baunilha-dourada bg-white text-app-cafe-profundo xl:hidden"
                             aria-label="Abrir menu"
                             aria-expanded={mobileMenuOpen}
                             aria-controls="restaurant-reservations-menu"
@@ -430,7 +430,7 @@ export default function RestaurantReservationsPage() {
                                         className="overflow-hidden rounded-[14px] bg-app-creme-leve shadow-sm ring-1 ring-app-baunilha-dourada/75"
                                     >
                                     <div className="grid lg:grid-cols-[140px_1fr_220px]">
-                                        <div className="flex items-center gap-4 border-b border-app-baunilha-dourada/55 bg-app-chantilly px-5 py-4 lg:flex-col lg:items-start lg:justify-center lg:border-b-0 lg:border-r">
+                                        <div className="flex items-center gap-4 border-b border-app-baunilha-dourada/55 bg-white px-5 py-4 lg:flex-col lg:items-start lg:justify-center lg:border-b-0 lg:border-r">
                                             <div>
                                                 <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">
                                                     Data
@@ -470,21 +470,21 @@ export default function RestaurantReservationsPage() {
                                             </div>
 
                                             <div className="mt-5 grid gap-3 text-sm text-app-mocha sm:grid-cols-3">
-                                                <div className="rounded-[10px] bg-app-chantilly px-4 py-3 ring-1 ring-app-baunilha-dourada/55">
+                                                <div className="rounded-[10px] bg-white px-4 py-3 ring-1 ring-app-baunilha-dourada/55">
                                                     <span className="block text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">Pessoas</span>
                                                     <strong className="mt-1 block text-app-cafe-profundo">{reserva.quantidade_pessoas}</strong>
                                                 </div>
-                                                <div className="rounded-[10px] bg-app-chantilly px-4 py-3 ring-1 ring-app-baunilha-dourada/55">
+                                                <div className="rounded-[10px] bg-white px-4 py-3 ring-1 ring-app-baunilha-dourada/55">
                                                     <span className="block text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">Mesa</span>
                                                     <strong className="mt-1 block text-app-cafe-profundo">{reserva.mesas?.numero_mesa ?? "-"}</strong>
                                                 </div>
-                                                <div className="rounded-[10px] bg-app-chantilly px-4 py-3 ring-1 ring-app-baunilha-dourada/55">
+                                                <div className="rounded-[10px] bg-white px-4 py-3 ring-1 ring-app-baunilha-dourada/55">
                                                     <span className="block text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">Consumo minimo</span>
                                                     <strong className="mt-1 block text-app-cafe-profundo">{formatarMoeda(reserva.valor_minimo_total)}</strong>
                                                 </div>
                                             </div>
 
-                                            <div className="mt-4 flex flex-col gap-3 rounded-[10px] border border-app-baunilha-dourada/60 bg-app-chantilly px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                                            <div className="mt-4 flex flex-col gap-3 rounded-[10px] border border-app-baunilha-dourada/60 bg-white px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
                                                 <div>
                                                     <p className="text-sm font-semibold text-app-cafe-profundo">
                                                         {pedidoPrincipal ? `Pedido antecipado #${pedidoPrincipal.id_pedido}` : "Reserva simples"}
@@ -506,7 +506,7 @@ export default function RestaurantReservationsPage() {
                                             </div>
                                         </div>
 
-                                        <div className="flex shrink-0 flex-wrap gap-2 border-t border-app-baunilha-dourada/55 bg-app-chantilly px-5 py-4 lg:flex-col lg:items-stretch lg:justify-center lg:border-l lg:border-t-0">
+                                        <div className="flex shrink-0 flex-wrap gap-2 border-t border-app-baunilha-dourada/55 bg-white px-5 py-4 lg:flex-col lg:items-stretch lg:justify-center lg:border-l lg:border-t-0">
                                             {reserva.status_reserva === "CONFIRMADA" && !reservaJaTerminou(reserva) ? (
                                                 <div className="grid gap-1">
                                                     <button
@@ -572,7 +572,7 @@ export default function RestaurantReservationsPage() {
                         <EmptyPanel
                             title="Nenhum agendamento neste filtro"
                             description="Altere o filtro para visualizar outros agendamentos."
-                            className="min-h-[310px] bg-app-chantilly"
+                            className="min-h-[310px] bg-white"
                         />
                     )}
                 </section>
@@ -591,11 +591,11 @@ export default function RestaurantReservationsPage() {
                             Ao confirmar, a reserva será cancelada para o cliente. Se houver pagamento aprovado, o Mercado Pago fará o estorno antes do cancelamento.
                         </p>
                         {reservaParaCancelar.pedidos?.some((pedido) => ["PENDENTE", "CONFIRMADO"].includes(pedido.status_pedido)) ? (
-                            <p className="mt-3 rounded-[10px] bg-app-chantilly p-3 text-sm font-semibold leading-6 text-app-cafe-profundo ring-1 ring-app-baunilha-dourada/60">
+                            <p className="mt-3 rounded-[10px] bg-white p-3 text-sm font-semibold leading-6 text-app-cafe-profundo ring-1 ring-app-baunilha-dourada/60">
                                 Existe pedido antecipado vinculado. Se estiver pago, o cancelamento só será concluído após o estorno; se estiver pendente, ele será cancelado.
                             </p>
                         ) : null}
-                        <div className="mt-6 rounded-[10px] bg-app-chantilly p-4 ring-1 ring-app-baunilha-dourada/60">
+                        <div className="mt-6 rounded-[10px] bg-white p-4 ring-1 ring-app-baunilha-dourada/60">
                             <p className="text-sm font-semibold">
                                 {reservaParaCancelar.clientes?.nome ?? "Cliente"}
                             </p>

@@ -247,7 +247,7 @@ export default function RestaurantMenuManagementPage() {
 
     if (sessao?.type !== "restaurant") {
         return (
-            <main className="flex min-h-screen items-center justify-center bg-app-chantilly px-5 text-app-cafe-profundo">
+            <main className="flex min-h-screen items-center justify-center bg-white px-5 text-app-cafe-profundo">
                 <section className="w-full max-w-lg rounded-[8px] bg-app-creme-leve p-8 text-center shadow-sm ring-1 ring-app-baunilha-dourada">
                     <Image src="/brand/appono-mark.svg" alt="Appono" width={88} height={88} className="mx-auto h-20 w-20" priority />
                     <h1 className="mt-6 text-3xl font-semibold">Acesso restrito</h1>
@@ -261,7 +261,7 @@ export default function RestaurantMenuManagementPage() {
     }
 
     return (
-        <main className="flex min-h-screen flex-col bg-app-chantilly text-app-cafe-profundo">
+        <main className="flex min-h-screen flex-col bg-white text-app-cafe-profundo">
             <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-app-creme-leve/90 text-app-cafe-profundo shadow-sm backdrop-blur-md">
                 <div className="mx-auto grid h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-5 lg:h-20">
                     <div aria-label="Appono">
@@ -277,7 +277,7 @@ export default function RestaurantMenuManagementPage() {
                     </nav>
 
                     <ItemHeaderNotificacoes href="/restaurante/notificacoes" />
-          <button type="button" onClick={() => setMobileMenuOpen((current) => !current)} className="flex h-9 w-9 items-center justify-center justify-self-end rounded-[8px] border border-app-baunilha-dourada bg-app-chantilly text-app-cafe-profundo xl:hidden" aria-label="Abrir menu">
+          <button type="button" onClick={() => setMobileMenuOpen((current) => !current)} className="flex h-9 w-9 items-center justify-center justify-self-end rounded-[8px] border border-app-baunilha-dourada bg-white text-app-cafe-profundo xl:hidden" aria-label="Abrir menu">
                         <Icon type="menu" />
                     </button>
                 </div>
@@ -342,9 +342,9 @@ export default function RestaurantMenuManagementPage() {
                                 {categoriaForm.id ? "Editar categoria" : "Nova categoria"}
                             </h2>
                         </div>
-                        <input value={categoriaForm.name} onChange={(event) => setCategoriaForm((atual) => ({ ...atual, name: event.target.value }))} placeholder="Nome da categoria" className="h-11 rounded-[8px] border border-app-baunilha-dourada bg-app-chantilly px-3 text-sm outline-none focus:border-app-caramelo-torrado"/>
-                        <input value={categoriaForm.description} onChange={(event) => setCategoriaForm((atual) => ({ ...atual, description: event.target.value }))} placeholder="Descricao opcional" className="h-11 rounded-[8px] border border-app-baunilha-dourada bg-app-chantilly px-3 text-sm outline-none focus:border-app-caramelo-torrado"/>
-                        <input value={categoriaForm.displayOrder} onChange={(event) => setCategoriaForm((atual) => ({ ...atual, displayOrder: event.target.value.replace(/\D/g, "") }))} placeholder="Ordem de exibicao" inputMode="numeric" className="h-11 rounded-[8px] border border-app-baunilha-dourada bg-app-chantilly px-3 text-sm outline-none focus:border-app-caramelo-torrado"/>
+                        <input value={categoriaForm.name} onChange={(event) => setCategoriaForm((atual) => ({ ...atual, name: event.target.value }))} placeholder="Nome da categoria" className="h-11 rounded-[8px] border border-app-baunilha-dourada bg-white px-3 text-sm outline-none focus:border-app-caramelo-torrado"/>
+                        <input value={categoriaForm.description} onChange={(event) => setCategoriaForm((atual) => ({ ...atual, description: event.target.value }))} placeholder="Descricao opcional" className="h-11 rounded-[8px] border border-app-baunilha-dourada bg-white px-3 text-sm outline-none focus:border-app-caramelo-torrado"/>
+                        <input value={categoriaForm.displayOrder} onChange={(event) => setCategoriaForm((atual) => ({ ...atual, displayOrder: event.target.value.replace(/\D/g, "") }))} placeholder="Ordem de exibicao" inputMode="numeric" className="h-11 rounded-[8px] border border-app-baunilha-dourada bg-white px-3 text-sm outline-none focus:border-app-caramelo-torrado"/>
                         <div className="flex flex-wrap gap-2">
                             <button type="submit" disabled={categoriaAtualizandoId !== null} className="h-10 rounded-[8px] bg-app-dourado-mel px-5 text-xs font-bold uppercase text-white transition hover:bg-app-caramelo-torrado disabled:opacity-60">
                                 {categoriaAtualizandoId !== null ? "Salvando..." : "Salvar categoria"}
@@ -390,11 +390,11 @@ export default function RestaurantMenuManagementPage() {
                 </section>
 
                 <section className="mt-8 grid gap-3 rounded-[12px] bg-app-creme-leve p-5 shadow-sm ring-1 ring-app-baunilha-dourada/55 md:grid-cols-[1fr_auto] md:items-center">
-                    <label className="campo-busca-app flex h-11 items-center gap-3 rounded-[8px] border border-app-baunilha-dourada bg-app-chantilly px-3 text-app-mocha transition">
+                    <label className="campo-busca-app flex h-11 items-center gap-3 rounded-[8px] border border-app-baunilha-dourada bg-white px-3 text-app-mocha transition">
                         <Icon type="search" className="h-4 w-4 shrink-0" />
                         <input value={busca} onChange={(event) => setBusca(event.target.value)} placeholder="Buscar por item, descricao ou categoria" className="input-busca-app h-full min-w-0 flex-1 bg-transparent text-sm text-app-cafe-profundo placeholder:text-app-cinza/60"/>
                     </label>
-                    <select value={filtro} onChange={(event) => setFiltro(event.target.value)} className="h-11 rounded-[8px] border border-app-baunilha-dourada bg-app-chantilly px-3 text-sm font-semibold text-app-mocha outline-none focus:border-app-caramelo-torrado">
+                    <select value={filtro} onChange={(event) => setFiltro(event.target.value)} className="h-11 rounded-[8px] border border-app-baunilha-dourada bg-white px-3 text-sm font-semibold text-app-mocha outline-none focus:border-app-caramelo-torrado">
                         <option value="todos">Todos os itens</option>
                         <option value="disponiveis">Disponiveis</option>
                         <option value="indisponiveis">Indisponiveis</option>

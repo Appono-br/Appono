@@ -142,7 +142,7 @@ export default function RestaurantBankSettingsPage() {
         return <TelaCarregandoSessao />;
     }
     if (sessao?.type !== "restaurant") {
-        return (<main className="flex min-h-screen items-center justify-center bg-app-chantilly px-5 text-app-cafe-profundo">
+        return (<main className="flex min-h-screen items-center justify-center bg-white px-5 text-app-cafe-profundo">
         <section className="w-full max-w-lg rounded-[8px] bg-app-creme-leve p-8 text-center shadow-sm ring-1 ring-app-baunilha-dourada">
           <Image src="/brand/appono-mark.svg" alt="Appono" width={88} height={88} className="mx-auto h-20 w-20" priority/>
           <h1 className="mt-6 text-3xl font-semibold">Acesso restrito</h1>
@@ -155,7 +155,7 @@ export default function RestaurantBankSettingsPage() {
         </section>
       </main>);
     }
-    return (<main className="flex min-h-screen flex-col bg-app-chantilly text-app-cafe-profundo">
+    return (<main className="flex min-h-screen flex-col bg-white text-app-cafe-profundo">
       <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-app-creme-leve/90 text-app-cafe-profundo shadow-sm backdrop-blur-md">
         <div className="mx-auto grid min-h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-5 py-2">
           <div aria-label="Appono">
@@ -191,7 +191,7 @@ export default function RestaurantBankSettingsPage() {
         </div>
 
         <form onSubmit={enviarFormulario} className="mt-10 grid gap-8 lg:grid-cols-[1fr_0.5fr]">
-          <section className="rounded-[8px] bg-app-chantilly p-6 shadow-sm ring-1 ring-app-baunilha-dourada/45 sm:p-8">
+          <section className="rounded-[8px] bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada/45 sm:p-8">
             <div className="flex flex-col gap-4 border-b border-app-baunilha-dourada/60 pb-7 sm:flex-row sm:items-start sm:justify-between">
               <div>
                 <h3 className="text-2xl font-medium text-app-cafe-profundo">
@@ -315,7 +315,7 @@ export default function RestaurantBankSettingsPage() {
               </p>
             </section>
 
-            <section className="rounded-[8px] bg-app-chantilly p-6 shadow-sm ring-1 ring-app-baunilha-dourada/45 sm:p-8">
+            <section className="rounded-[8px] bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada/45 sm:p-8">
               <h3 className="flex items-center gap-3 text-xl font-medium text-app-cafe-profundo">
                 <Icon type="lock" className="h-5 w-5 text-app-caramelo-torrado"/>
                 Dados sensiveis
@@ -332,7 +332,7 @@ export default function RestaurantBankSettingsPage() {
                 <Icon type="card" className="h-5 w-5"/>
                 Status de repasse
               </h3>
-              <div className="mt-5 rounded-[8px] bg-app-chantilly p-5">
+              <div className="mt-5 rounded-[8px] bg-white p-5">
                 <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-cinza">
                   Integracao financeira pendente
                 </p>

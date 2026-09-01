@@ -79,8 +79,8 @@ export default function AccountSettingsPage() {
     if (!sessaoCarregada) {
         return <TelaCarregandoSessao />;
     }
-    return (<main className="flex min-h-screen flex-col bg-app-chantilly text-app-cafe-profundo">
-      <header className="border-b border-app-baunilha-dourada/50 bg-app-creme-suave">
+    return (<main className="flex min-h-screen flex-col bg-white text-app-cafe-profundo">
+      <header className="border-b border-app-baunilha-dourada/50 bg-white">
         <div className="mx-auto grid h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-5">
           <div aria-label="Appono">
             <Image src="/brand/appono-mark.svg" alt="Appono" width={72} height={72} className="h-11 w-11" priority/>
@@ -113,7 +113,7 @@ export default function AccountSettingsPage() {
           </p>
         </div>
 
-        <form onSubmit={enviarFormulario} className="mt-10 rounded-[8px] bg-app-chantilly p-6 shadow-sm ring-1 ring-app-baunilha-dourada/45 sm:grid sm:grid-cols-2 sm:gap-6 sm:p-8">
+        <form onSubmit={enviarFormulario} className="mt-10 rounded-[8px] bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada/45 sm:grid sm:grid-cols-2 sm:gap-6 sm:p-8">
           <label className="grid gap-2 sm:col-span-2">
             <span className="text-[10px] font-bold uppercase tracking-[0.22em] text-app-cinza">
               Nome completo
@@ -153,13 +153,13 @@ export default function AccountSettingsPage() {
             <button type="submit" disabled={salvando} className="h-11 rounded-[8px] bg-app-dourado-mel px-8 text-xs font-bold uppercase tracking-wide text-white transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-60">
               {salvando ? "Salvando..." : "Salvar alterações"}
             </button>
-            <Link href="/cliente/configuracoes" className="flex h-11 items-center justify-center rounded-[8px] border border-app-mocha px-8 text-xs font-bold uppercase tracking-wide text-app-mocha transition hover:bg-app-creme-leve">
+            <Link href="/cliente/configuracoes" className="flex h-11 items-center justify-center rounded-[8px] border border-app-mocha px-8 text-xs font-bold uppercase tracking-wide text-app-mocha transition hover:bg-app-chantilly">
               Cancelar
             </Link>
           </div>
         </form>
 
-        <aside className="mt-8 rounded-[8px] bg-app-creme-leve p-5 ring-1 ring-app-baunilha-dourada/60 sm:p-6">
+        <aside className="mt-8 rounded-[8px] bg-white p-5 ring-1 ring-app-baunilha-dourada/60 sm:p-6">
           <div className="flex gap-3">
             <Icon type="info" className="mt-0.5 h-5 w-5 shrink-0 text-app-caramelo-torrado"/>
             <div>

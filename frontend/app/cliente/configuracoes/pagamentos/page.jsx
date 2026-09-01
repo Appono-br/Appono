@@ -19,8 +19,8 @@ export default function PaymentSettingsPage() {
     });
 
     return (
-        <main className="flex min-h-screen flex-col bg-app-chantilly text-app-cafe-profundo">
-            <header className="border-b border-app-baunilha-dourada/50 bg-app-creme-suave">
+        <main className="flex min-h-screen flex-col bg-white text-app-cafe-profundo">
+            <header className="border-b border-app-baunilha-dourada/50 bg-white">
                 <div className="mx-auto grid h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-5">
                     <Image src="/brand/appono-mark.svg" alt="Appono" width={72} height={72} className="h-11 w-11" priority />
                     <div className="flex items-center justify-center gap-5">
@@ -36,7 +36,7 @@ export default function PaymentSettingsPage() {
                 <p className="mt-5 max-w-3xl text-base leading-7 text-app-mocha">A Appono não coleta, armazena nem processa número de cartão, validade ou CVV. Ao pagar, você será direcionado ao checkout seguro do Mercado Pago.</p>
                 <div className="mt-10 grid gap-5 sm:grid-cols-3">
                     {[["Coleta externa", "Os dados são informados somente no ambiente do Mercado Pago."], ["Sem cartão salvo", "Nenhum dado completo de cartão permanece no navegador ou nos servidores da Appono."], ["Escolha no checkout", "Cartão, Pix e outras opções disponíveis são apresentados pelo Mercado Pago."]].map(([titulo, texto]) => (
-                        <article key={titulo} className="rounded-[12px] bg-app-creme-leve p-6 shadow-sm ring-1 ring-app-baunilha-dourada/70"><h3 className="font-bold">{titulo}</h3><p className="mt-3 text-sm leading-6 text-app-cinza">{texto}</p></article>
+                        <article key={titulo} className="rounded-[12px] bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada/70"><h3 className="font-bold">{titulo}</h3><p className="mt-3 text-sm leading-6 text-app-cinza">{texto}</p></article>
                     ))}
                 </div>
                 {dadosRemovidos ? <p role="status" className="mt-8 rounded-[10px] bg-green-50 p-4 text-sm font-semibold text-green-800 ring-1 ring-green-200">Dados de pagamento legados foram removidos deste navegador.</p> : null}

@@ -25,8 +25,8 @@ function Icon({ type, className = "h-5 w-5", }) {
 }
 export default function MessagesPage() {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-    return (<main className="flex min-h-screen flex-col bg-app-chantilly text-app-cafe-profundo">
-      <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-app-creme-leve/90 text-app-cafe-profundo shadow-sm backdrop-blur-md">
+    return (<main className="flex min-h-screen flex-col bg-white text-app-cafe-profundo">
+      <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-white/90 text-app-cafe-profundo shadow-sm backdrop-blur-md">
         <div className="mx-auto grid h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-5 lg:h-20">
           <div className="shrink-0" aria-label="Appono">
             <Image src="/brand/appono-mark.svg" alt="Appono" width={88} height={88} className="h-11 w-11 lg:h-14 lg:w-14" priority/>
@@ -45,13 +45,13 @@ export default function MessagesPage() {
             <button type="button" className="transition hover:text-app-caramelo-torrado" aria-label="Sacola">
               <Icon type="bag"/>
             </button>
-            <button type="button" onClick={() => setMobileMenuOpen((current) => !current)} className="flex h-9 w-9 items-center justify-center rounded-[8px] border border-app-baunilha-dourada bg-app-creme-leve lg:hidden" aria-label="Abrir menu" aria-expanded={mobileMenuOpen} aria-controls="messages-mobile-menu">
+            <button type="button" onClick={() => setMobileMenuOpen((current) => !current)} className="flex h-9 w-9 items-center justify-center rounded-[8px] border border-app-baunilha-dourada bg-white lg:hidden" aria-label="Abrir menu" aria-expanded={mobileMenuOpen} aria-controls="messages-mobile-menu">
               <Icon type="menu"/>
             </button>
           </div>
         </div>
 
-        {mobileMenuOpen ? (<nav id="messages-mobile-menu" className="border-t border-app-baunilha-dourada/50 bg-app-creme-leve px-5 py-3 lg:hidden">
+        {mobileMenuOpen ? (<nav id="messages-mobile-menu" className="border-t border-app-baunilha-dourada/50 bg-white px-5 py-3 lg:hidden">
             <div className="mx-auto grid max-w-7xl gap-2 text-xs font-semibold text-app-cinza">
               {navItems.map((item, index) => (<Link key={item.label} href={item.href} onClick={() => setMobileMenuOpen(false)} className={index === 3
                     ? "text-app-cafe-profundo"
@@ -70,9 +70,9 @@ export default function MessagesPage() {
           Mensagens
         </h1>
 
-        <div className="mt-12 overflow-hidden rounded-[8px] bg-app-chantilly shadow-sm ring-1 ring-app-baunilha-dourada/45">
+        <div className="mt-12 overflow-hidden rounded-[8px] bg-white shadow-sm ring-1 ring-app-baunilha-dourada/45">
           {conversations.length ? (<div className="divide-y divide-app-baunilha-dourada/45">
-              {conversations.map((conversation) => (<Link key={conversation.id} href={`/cliente/mensagens/${conversation.id}`} className="grid gap-4 p-6 transition hover:bg-app-creme-leve sm:grid-cols-[1fr_auto] sm:items-center sm:p-8">
+              {conversations.map((conversation) => (<Link key={conversation.id} href={`/cliente/mensagens/${conversation.id}`} className="grid gap-4 p-6 transition hover:bg-app-chantilly sm:grid-cols-[1fr_auto] sm:items-center sm:p-8">
                   <span>
                     <strong className="block text-2xl font-medium text-app-cafe-profundo">
                       {conversation.title}
