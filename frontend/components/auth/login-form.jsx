@@ -165,8 +165,8 @@ export function LoginForm() {
   }
 
   return (
-    <div className="flex flex-1 bg-app-chantilly text-app-cafe-profundo">
-      <section className="flex w-full flex-col justify-center bg-app-chantilly px-4 py-5 sm:px-8 sm:py-8">
+    <div className="flex flex-1 bg-white text-app-cafe-profundo">
+      <section className="flex w-full flex-col justify-center bg-white px-4 py-5 sm:px-8 sm:py-8">
         <div className="mx-auto w-full max-w-md rounded-2xl bg-white px-6 py-7 shadow-xl sm:px-9">
           
           <div className="mb-4 flex justify-center">
