@@ -195,7 +195,7 @@ function RestaurantMenuItemEditorContent() {
 
     if (sessao?.type !== "restaurant") {
         return (
-            <main className="flex min-h-screen items-center justify-center bg-app-chantilly px-5 text-app-cafe-profundo">
+            <main className="flex min-h-screen items-center justify-center bg-white px-5 text-app-cafe-profundo">
                 <section className="w-full max-w-lg rounded-[8px] bg-app-creme-leve p-8 text-center shadow-sm ring-1 ring-app-baunilha-dourada">
                     <Image src="/brand/appono-mark.svg" alt="Appono" width={88} height={88} className="mx-auto h-20 w-20" priority />
                     <h1 className="mt-6 text-3xl font-semibold">Acesso restrito</h1>
@@ -209,7 +209,7 @@ function RestaurantMenuItemEditorContent() {
     }
 
     return (
-        <main className="flex min-h-screen flex-col bg-app-chantilly text-app-cafe-profundo">
+        <main className="flex min-h-screen flex-col bg-white text-app-cafe-profundo">
             <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-app-creme-leve/90 text-app-cafe-profundo shadow-sm backdrop-blur-md">
                 <div className="mx-auto grid h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-5">
                     <div aria-label="Appono">
@@ -288,14 +288,14 @@ function RestaurantMenuItemEditorContent() {
                     </label>
 
                     <button type="button" onClick={() => updateField("available", !form.available)} className="inline-flex w-fit items-center gap-3 rounded-full bg-app-baunilha-dourada/45 px-4 py-2 text-sm font-semibold text-app-mocha transition hover:bg-app-baunilha-dourada">
-                        <span className={`flex h-5 w-5 items-center justify-center rounded-[4px] border border-app-baunilha-dourada bg-app-chantilly ${form.available ? "text-app-caramelo-torrado" : "text-transparent"}`}>
+                        <span className={`flex h-5 w-5 items-center justify-center rounded-[4px] border border-app-baunilha-dourada bg-white ${form.available ? "text-app-caramelo-torrado" : "text-transparent"}`}>
                             <Icon type="check" className="h-3 w-3" />
                         </span>
                         Item disponivel para pedidos
                     </button>
 
                     <button type="button" onClick={() => updateField("featured", !form.featured)} className="inline-flex w-fit items-center gap-3 rounded-full bg-app-cafe-profundo px-4 py-2 text-sm font-semibold text-app-creme-leve transition hover:bg-app-caramelo-torrado">
-                        <span className={`flex h-5 w-5 items-center justify-center rounded-[4px] border border-app-baunilha-dourada bg-app-chantilly ${form.featured ? "text-app-caramelo-torrado" : "text-transparent"}`}>
+                        <span className={`flex h-5 w-5 items-center justify-center rounded-[4px] border border-app-baunilha-dourada bg-white ${form.featured ? "text-app-caramelo-torrado" : "text-transparent"}`}>
                             <Icon type="check" className="h-3 w-3" />
                         </span>
                         Marcar como destaque do cardapio

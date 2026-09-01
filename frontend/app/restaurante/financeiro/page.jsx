@@ -93,7 +93,7 @@ function obterPrevisaoRepasse(repasse) {
 function FinanceCard({ label, value, description, featured = false, }) {
     return (<article className={`min-h-40 rounded-[8px] p-5 shadow-sm ${featured
             ? "bg-app-cafe-profundo text-app-creme-leve"
-            : "bg-app-chantilly text-app-cafe-profundo ring-1 ring-app-baunilha-dourada/45"}`}>
+            : "bg-white text-app-cafe-profundo ring-1 ring-app-baunilha-dourada/45"}`}>
       <p className={`text-xs font-bold uppercase tracking-[0.18em] ${featured ? "text-app-baunilha-dourada" : "text-app-cinza"}`}>
         {label}
       </p>
@@ -105,7 +105,7 @@ function FinanceCard({ label, value, description, featured = false, }) {
 }
 function RepassesTable({ repasses }) {
     if (!repasses.length) {
-        return (<div className="overflow-hidden rounded-[8px] bg-app-chantilly shadow-sm ring-1 ring-app-baunilha-dourada/45">
+        return (<div className="overflow-hidden rounded-[8px] bg-white shadow-sm ring-1 ring-app-baunilha-dourada/45">
       <div className="grid gap-4 bg-app-creme-suave px-6 py-5 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha lg:grid-cols-[0.8fr_1fr_1.1fr_0.9fr_1fr_0.8fr_0.9fr]">
         {tableHeaders.map((header) => (<span key={header}>{header}</span>))}
       </div>
@@ -119,7 +119,7 @@ function RepassesTable({ repasses }) {
       </div>
     </div>);
     }
-    return (<div className="overflow-hidden rounded-[8px] bg-app-chantilly shadow-sm ring-1 ring-app-baunilha-dourada/45">
+    return (<div className="overflow-hidden rounded-[8px] bg-white shadow-sm ring-1 ring-app-baunilha-dourada/45">
       <div className="hidden gap-4 bg-app-creme-suave px-6 py-5 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha lg:grid lg:grid-cols-[0.8fr_1fr_1.1fr_0.9fr_1fr_0.8fr_0.9fr]">
         {tableHeaders.map((header) => (<span key={header}>{header}</span>))}
       </div>
@@ -290,7 +290,7 @@ export default function RestaurantFinancialReportPage() {
         return <TelaCarregandoSessao />;
     }
     if (!isRestaurant) {
-        return (<main className="flex min-h-screen items-center justify-center bg-app-chantilly px-5 text-app-cafe-profundo">
+        return (<main className="flex min-h-screen items-center justify-center bg-white px-5 text-app-cafe-profundo">
         <section className="w-full max-w-lg rounded-[8px] bg-app-creme-leve p-8 text-center shadow-sm ring-1 ring-app-baunilha-dourada">
           <Image src="/brand/appono-mark.svg" alt="Appono" width={88} height={88} className="mx-auto h-20 w-20" priority/>
           <h1 className="mt-6 text-3xl font-semibold">Acesso restrito</h1>
@@ -303,7 +303,7 @@ export default function RestaurantFinancialReportPage() {
         </section>
       </main>);
     }
-    return (<main className="flex min-h-screen flex-col bg-app-chantilly text-app-cafe-profundo">
+    return (<main className="flex min-h-screen flex-col bg-white text-app-cafe-profundo">
       <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-app-creme-leve/90 text-app-cafe-profundo shadow-sm backdrop-blur-md">
         <div className="mx-auto grid h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-5 lg:h-20">
           <div aria-label="Appono">
@@ -319,7 +319,7 @@ export default function RestaurantFinancialReportPage() {
           </nav>
 
           <ItemHeaderNotificacoes href="/restaurante/notificacoes" />
-          <button type="button" onClick={() => setMobileMenuOpen((current) => !current)} className="flex h-9 w-9 items-center justify-center justify-self-end rounded-[8px] border border-app-baunilha-dourada bg-app-chantilly text-app-cafe-profundo xl:hidden" aria-label="Abrir menu" aria-expanded={mobileMenuOpen} aria-controls="restaurant-finance-menu">
+          <button type="button" onClick={() => setMobileMenuOpen((current) => !current)} className="flex h-9 w-9 items-center justify-center justify-self-end rounded-[8px] border border-app-baunilha-dourada bg-white text-app-cafe-profundo xl:hidden" aria-label="Abrir menu" aria-expanded={mobileMenuOpen} aria-controls="restaurant-finance-menu">
             <Icon type="menu"/>
           </button>
         </div>
@@ -378,7 +378,7 @@ export default function RestaurantFinancialReportPage() {
                 Esta conta recebe os repasses dos pedidos entregues e valores retidos por ausencia conforme a regra comercial da Appono.
               </p>
             </div>
-            <div className="rounded-[8px] bg-app-chantilly p-5 text-sm ring-1 ring-app-baunilha-dourada/45 lg:min-w-96">
+            <div className="rounded-[8px] bg-white p-5 text-sm ring-1 ring-app-baunilha-dourada/45 lg:min-w-96">
               <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-app-cinza">
                 Status da conexao
               </p>
@@ -417,7 +417,7 @@ export default function RestaurantFinancialReportPage() {
             </div>
           </div>
           <div className="mt-6 grid gap-4">
-            <div className="rounded-[8px] bg-app-chantilly p-4 text-sm leading-6 text-app-mocha ring-1 ring-app-baunilha-dourada/45">
+            <div className="rounded-[8px] bg-white p-4 text-sm leading-6 text-app-mocha ring-1 ring-app-baunilha-dourada/45">
               {mercadoPagoConectado ? (
                 <p>
                   Sua conta Mercado Pago esta conectada. Para trocar de vendedor, desconecte a conta atual e conecte novamente pelo login do Mercado Pago.

@@ -24,13 +24,13 @@ export default function FavoritosPage() {
         } catch (error) { setMensagem(error instanceof Error ? error.message : "Nao foi possivel remover o favorito."); }
         finally { setAtualizando(""); }
     }
-    return <main className="min-h-screen bg-app-chantilly px-5 py-10 text-app-cafe-profundo"><section className="mx-auto max-w-6xl">
+    return <main className="min-h-screen bg-white px-5 py-10 text-app-cafe-profundo"><section className="mx-auto max-w-6xl">
         <Link href="/cliente/dashboard" className="text-sm font-bold text-app-caramelo-torrado">← Voltar</Link>
         <p className="mt-8 text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">Sua seleção</p>
         <h1 className="mt-2 text-4xl font-semibold sm:text-5xl">Restaurantes favoritos</h1>
         {mensagem ? <p role="status" className="mt-6 text-sm font-semibold text-app-mocha">{mensagem}</p> : null}
-        {!mensagem && !favoritos.length ? <div className="mt-8 rounded-[14px] border border-dashed border-app-baunilha-dourada bg-app-creme-leve p-10 text-center"><h2 className="text-xl font-bold">Nenhum favorito ainda</h2><p className="mt-2 text-app-cinza">Use o coração no dashboard para guardar seus restaurantes preferidos.</p></div> : null}
-        <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">{favoritos.map((restaurante) => <article key={restaurante.id_restaurante} className="overflow-hidden rounded-[14px] bg-app-creme-leve shadow-sm ring-1 ring-app-baunilha-dourada/70">
+        {!mensagem && !favoritos.length ? <div className="mt-8 rounded-[14px] border border-dashed border-app-baunilha-dourada bg-white p-10 text-center"><h2 className="text-xl font-bold">Nenhum favorito ainda</h2><p className="mt-2 text-app-cinza">Use o coração no dashboard para guardar seus restaurantes preferidos.</p></div> : null}
+        <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">{favoritos.map((restaurante) => <article key={restaurante.id_restaurante} className="overflow-hidden rounded-[14px] bg-white shadow-sm ring-1 ring-app-baunilha-dourada/70">
             <div className="relative h-40 bg-app-baunilha-dourada/40">{restaurante.logo_url ? <Image src={restaurante.logo_url} alt={restaurante.nome} fill className="object-cover" /> : null}</div>
             <div className="p-5"><h2 className="text-xl font-bold">{restaurante.nome}</h2><p className="mt-2 text-sm text-app-cinza">{restaurante.avaliacao_media?.toFixed(1) ?? "Novo"} · {restaurante.total_avaliacoes ?? 0} avaliações</p><div className="mt-5 flex gap-3"><Link href={`/cliente/restaurantes/${restaurante.id_restaurante}`} className="flex h-10 flex-1 items-center justify-center rounded-[8px] bg-app-dourado-mel text-xs font-bold uppercase text-white">Ver restaurante</Link><button disabled={atualizando === String(restaurante.id_restaurante)} onClick={() => remover(restaurante)} className="rounded-[8px] border border-app-caramelo-torrado px-4 text-xs font-bold text-app-caramelo-torrado disabled:opacity-50">Remover</button></div></div>
         </article>)}</div>

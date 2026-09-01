@@ -144,10 +144,10 @@ function PagamentoRetornoContent() {
     }, [dados, tipoPagamento]);
 
     return (
-        <main className="flex min-h-screen flex-col bg-app-chantilly px-4 py-8 text-app-cafe-profundo sm:px-5">
+        <main className="flex min-h-screen flex-col bg-white px-4 py-8 text-app-cafe-profundo sm:px-5">
             <div className="mx-auto flex w-full max-w-4xl flex-1 flex-col items-center justify-center">
                 <Image src="/brand/appono-mark.svg" alt="Appono" width={92} height={92} className="h-20 w-20" priority />
-                <section className="mt-8 w-full rounded-[18px] bg-app-creme-leve p-5 text-center shadow-sm ring-1 ring-app-baunilha-dourada/70 sm:p-10">
+                <section className="mt-8 w-full rounded-[18px] bg-white p-5 text-center shadow-sm ring-1 ring-app-baunilha-dourada/70 sm:p-10">
                     <div className={`mx-auto flex h-16 w-16 items-center justify-center rounded-full ${estado.className}`}>
                         <Icon type={estado.icon} className="h-7 w-7" />
                     </div>
@@ -164,7 +164,7 @@ function PagamentoRetornoContent() {
                     ) : null}
 
                     {dados?.reserva ? (
-                        <div className="mx-auto mt-7 grid max-w-xl gap-3 rounded-[12px] bg-app-chantilly p-4 text-left ring-1 ring-app-baunilha-dourada/60 sm:grid-cols-2">
+                        <div className="mx-auto mt-7 grid max-w-xl gap-3 rounded-[12px] bg-white p-4 text-left ring-1 ring-app-baunilha-dourada/60 sm:grid-cols-2">
                             <div>
                                 <p className="text-[10px] font-bold uppercase text-app-cinza">Reserva</p>
                                 <p className="mt-1 font-semibold">#{dados.reserva.id_reserva}</p>
@@ -184,7 +184,7 @@ function PagamentoRetornoContent() {
                         </div>
                     ) : null}
                     {dados?.pedido ? (
-                        <div className="mx-auto mt-7 grid max-w-xl gap-3 rounded-[12px] bg-app-chantilly p-4 text-left ring-1 ring-app-baunilha-dourada/60 sm:grid-cols-2">
+                        <div className="mx-auto mt-7 grid max-w-xl gap-3 rounded-[12px] bg-white p-4 text-left ring-1 ring-app-baunilha-dourada/60 sm:grid-cols-2">
                             <div>
                                 <p className="text-[10px] font-bold uppercase text-app-cinza">Pedido</p>
                                 <p className="mt-1 font-semibold">#{dados.pedido.id_pedido}</p>
@@ -229,7 +229,7 @@ function PagamentoRetornoContent() {
 
 export default function PagamentoRetornoPage() {
     return (
-        <Suspense fallback={<main className="flex min-h-screen items-center justify-center bg-app-chantilly text-app-cafe-profundo">Carregando pagamento...</main>}>
+        <Suspense fallback={<main className="flex min-h-screen items-center justify-center bg-white text-app-cafe-profundo">Carregando pagamento...</main>}>
             <PagamentoRetornoContent />
         </Suspense>
     );

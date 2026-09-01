@@ -175,7 +175,7 @@ export default function RestaurantOperationSettingsPage() {
         return <TelaCarregandoSessao />;
     }
     if (sessao?.type !== "restaurant") {
-        return (<main className="flex min-h-screen items-center justify-center bg-app-chantilly px-5 text-app-cafe-profundo">
+        return (<main className="flex min-h-screen items-center justify-center bg-white px-5 text-app-cafe-profundo">
         <section className="w-full max-w-lg rounded-[8px] bg-app-creme-leve p-8 text-center shadow-sm ring-1 ring-app-baunilha-dourada">
           <Image src="/brand/appono-mark.svg" alt="Appono" width={88} height={88} className="mx-auto h-20 w-20" priority/>
           <h1 className="mt-6 text-3xl font-semibold">Acesso restrito</h1>
@@ -189,7 +189,7 @@ export default function RestaurantOperationSettingsPage() {
       </main>);
     }
     const resumoCliente = obterResumoCliente(form.days);
-    return (<main className="flex min-h-screen flex-col bg-app-chantilly text-app-cafe-profundo">
+    return (<main className="flex min-h-screen flex-col bg-white text-app-cafe-profundo">
       <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-app-creme-leve/90 text-app-cafe-profundo shadow-sm backdrop-blur-md">
         <div className="mx-auto grid min-h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-5 py-2">
           <div aria-label="Appono">
@@ -243,7 +243,7 @@ export default function RestaurantOperationSettingsPage() {
                 <NumberField label="Antecedencia minima" value={form.antecedenciaMinutosReserva} onChange={(value) => updateField("antecedenciaMinutosReserva", value)} helper="Tempo minimo, em minutos, entre o momento atual e a reserva."/>
               </div>
 
-              <div className="mt-6 rounded-[10px] bg-app-chantilly p-4 ring-1 ring-app-baunilha-dourada/60">
+              <div className="mt-6 rounded-[10px] bg-white p-4 ring-1 ring-app-baunilha-dourada/60">
                 <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">
                   Visivel ao cliente
                 </p>
@@ -286,7 +286,7 @@ export default function RestaurantOperationSettingsPage() {
             </div>
 
             <div className="mt-7 grid gap-4">
-              {form.days.map((day) => (<article key={day.id} className="grid gap-5 rounded-[8px] border-l-4 border-app-caramelo-torrado bg-app-chantilly p-5 sm:grid-cols-[0.34fr_1fr_auto] sm:items-center">
+              {form.days.map((day) => (<article key={day.id} className="grid gap-5 rounded-[8px] border-l-4 border-app-caramelo-torrado bg-white p-5 sm:grid-cols-[0.34fr_1fr_auto] sm:items-center">
                   <div>
                     <h4 className="text-lg font-medium text-app-cafe-profundo">
                       {day.label}
@@ -333,7 +333,7 @@ export default function RestaurantOperationSettingsPage() {
                 ...current,
                 enabled: !current.enabled,
             }))} className={`relative h-8 w-14 rounded-full transition ${day.enabled ? "bg-app-mocha" : "bg-app-cinza/35"}`} aria-label={`${day.enabled ? "Desativar" : "Ativar"} ${day.label}`}>
-                      <span className={`absolute top-1 h-6 w-6 rounded-full bg-app-chantilly transition ${day.enabled ? "left-7" : "left-1"}`}/>
+                      <span className={`absolute top-1 h-6 w-6 rounded-full bg-white transition ${day.enabled ? "left-7" : "left-1"}`}/>
                     </button>
                   </div>
                 </article>))}

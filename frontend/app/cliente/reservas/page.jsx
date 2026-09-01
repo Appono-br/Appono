@@ -65,7 +65,7 @@ function obterStatusReserva(status) {
         return { texto: "Check-in realizado", classe: "bg-app-cafe-profundo text-app-creme-leve" };
     }
     if (status === "CONCLUIDA") {
-        return { texto: "Atendimento finalizado", classe: "bg-app-creme-suave text-app-mocha" };
+        return { texto: "Atendimento finalizado", classe: "bg-white text-app-mocha" };
     }
     if (status === "CANCELADA") {
         return { texto: "Cancelada", classe: "bg-app-vermelho-erro/10 text-app-vermelho-erro" };
@@ -73,7 +73,7 @@ function obterStatusReserva(status) {
     if (status === "NAO_COMPARECEU") {
         return { texto: "Não compareceu", classe: "bg-app-vermelho-erro/10 text-app-vermelho-erro" };
     }
-    return { texto: status.toLowerCase(), classe: "bg-app-creme-suave text-app-mocha" };
+    return { texto: status.toLowerCase(), classe: "bg-white text-app-mocha" };
 }
 function obterStatusPedido(status) {
     const statusMap = {
@@ -191,7 +191,7 @@ function getCalendarDays(month, year) {
     return days;
 }
 function EmptyReservationPanel() {
-    return (<section className="flex min-h-[320px] flex-col items-center justify-center rounded-[8px] border border-dashed border-app-caramelo-torrado/35 bg-app-creme-leve px-6 py-12 text-center shadow-sm">
+    return (<section className="flex min-h-[320px] flex-col items-center justify-center rounded-[8px] border border-dashed border-app-caramelo-torrado/35 bg-white px-6 py-12 text-center shadow-sm">
       <div className="flex h-12 w-12 items-center justify-center rounded-full bg-app-baunilha-dourada text-app-cafe-profundo">
         <Icon type="plus" className="h-6 w-6"/>
       </div>
@@ -357,8 +357,8 @@ export default function ReservationsPage() {
             setProcessandoPresenca(false);
         }
     }
-    return (<main className="flex min-h-screen flex-col bg-app-chantilly text-app-cafe-profundo">
-      <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-app-creme-leve/90 text-app-cafe-profundo shadow-sm backdrop-blur-md">
+    return (<main className="flex min-h-screen flex-col bg-white text-app-cafe-profundo">
+      <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-white/90 text-app-cafe-profundo shadow-sm backdrop-blur-md">
         <div className="mx-auto grid h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-5 lg:h-20">
           <div className="shrink-0" aria-label="Appono">
             <Image src="/brand/appono-mark.svg" alt="Appono" width={88} height={88} className="h-11 w-11 lg:h-14 lg:w-14" priority/>
@@ -377,13 +377,13 @@ export default function ReservationsPage() {
             <button type="button" className="transition hover:text-app-caramelo-torrado" aria-label="Sacola">
               <Icon type="bag"/>
             </button>
-            <button type="button" onClick={() => setMobileMenuOpen((current) => !current)} className="flex h-9 w-9 items-center justify-center rounded-[8px] border border-app-baunilha-dourada bg-app-creme-leve lg:hidden" aria-label="Abrir menu" aria-expanded={mobileMenuOpen} aria-controls="reservations-mobile-menu">
+            <button type="button" onClick={() => setMobileMenuOpen((current) => !current)} className="flex h-9 w-9 items-center justify-center rounded-[8px] border border-app-baunilha-dourada bg-white lg:hidden" aria-label="Abrir menu" aria-expanded={mobileMenuOpen} aria-controls="reservations-mobile-menu">
               <Icon type="menu"/>
             </button>
           </div>
         </div>
 
-        {mobileMenuOpen ? (<nav id="reservations-mobile-menu" className="border-t border-app-baunilha-dourada/50 bg-app-creme-leve px-5 py-3 lg:hidden">
+        {mobileMenuOpen ? (<nav id="reservations-mobile-menu" className="border-t border-app-baunilha-dourada/50 bg-white px-5 py-3 lg:hidden">
             <div className="mx-auto grid max-w-7xl gap-2 text-xs font-semibold text-app-cinza">
               {navItems.map((item, index) => (<Link key={item.label} href={item.href} onClick={() => setMobileMenuOpen(false)} className={index === 2
                     ? "text-app-cafe-profundo"
@@ -408,7 +408,7 @@ export default function ReservationsPage() {
             </p>
           </div>
 
-          <div className="flex w-fit items-center gap-5 rounded-[8px] bg-app-creme-leve px-5 py-4 text-app-cafe-profundo shadow-sm ring-1 ring-app-baunilha-dourada/60">
+          <div className="flex w-fit items-center gap-5 rounded-[8px] bg-white px-5 py-4 text-app-cafe-profundo shadow-sm ring-1 ring-app-baunilha-dourada/60">
             <button type="button" onClick={() => changeMonth(-1)} className="transition hover:text-app-caramelo-torrado" aria-label="Período anterior">
               <Icon type="chevron-left"/>
             </button>
@@ -427,7 +427,7 @@ export default function ReservationsPage() {
         </div>
 
         <div className="mt-12 grid gap-8 lg:grid-cols-[0.78fr_1.62fr]">
-          <aside className="h-fit rounded-[8px] bg-app-creme-leve p-6 shadow-sm ring-1 ring-app-baunilha-dourada/60 sm:p-10">
+          <aside className="h-fit rounded-[8px] bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada/60 sm:p-10">
             <h2 className="text-2xl font-medium text-app-cafe-profundo">
               Calendário do Mês
             </h2>
@@ -458,14 +458,14 @@ export default function ReservationsPage() {
 
           <section className="grid content-start gap-6 self-start">
             {mensagemPresenca ? (
-              <p className="rounded-[10px] bg-app-creme-leve px-4 py-3 text-sm font-semibold text-app-cafe-profundo ring-1 ring-app-baunilha-dourada">
+              <p className="rounded-[10px] bg-white px-4 py-3 text-sm font-semibold text-app-cafe-profundo ring-1 ring-app-baunilha-dourada">
                 {mensagemPresenca}
               </p>
             ) : null}
             {reservations.length ? (<div className="grid auto-rows-max content-start gap-4">
-                {reservations.map((reservation) => (<article key={reservation.id} className="overflow-hidden rounded-[12px] bg-app-creme-leve shadow-sm ring-1 ring-app-baunilha-dourada/70 transition hover:-translate-y-0.5 hover:shadow-md">
+                {reservations.map((reservation) => (<article key={reservation.id} className="overflow-hidden rounded-[12px] bg-white shadow-sm ring-1 ring-app-baunilha-dourada/70 transition hover:-translate-y-0.5 hover:shadow-md">
                     <div className="grid sm:grid-cols-[112px_1fr_auto]">
-                      <div className="flex items-center gap-4 border-b border-app-baunilha-dourada/60 bg-app-creme-suave px-5 py-4 sm:flex-col sm:justify-center sm:border-b-0 sm:border-r sm:px-4 sm:text-center">
+                      <div className="flex items-center gap-4 border-b border-app-baunilha-dourada/60 bg-white px-5 py-4 sm:flex-col sm:justify-center sm:border-b-0 sm:border-r sm:px-4 sm:text-center">
                         <span className="text-3xl font-semibold leading-none text-app-cafe-profundo">
                           {formatarDataReserva(reservation.date).dia}
                         </span>
@@ -479,7 +479,7 @@ export default function ReservationsPage() {
                         </div>
                       </div>
 
-                      <div className="min-w-0 bg-app-creme-leve p-5">
+                      <div className="min-w-0 bg-white p-5">
                         <h2 className="truncate text-xl font-semibold text-app-cafe-profundo">
                           {reservation.restaurant}
                         </h2>
@@ -501,7 +501,7 @@ export default function ReservationsPage() {
                             {formatarMoeda(reservation.minimumTotal)}
                           </span>
                         </div>
-                        {["CONFIRMADA", "CANCELADA"].includes(reservation.status) ? (<div className="mt-5 rounded-[10px] bg-app-chantilly px-4 py-3 text-sm ring-1 ring-app-baunilha-dourada/60">
+                        {["CONFIRMADA", "CANCELADA"].includes(reservation.status) ? (<div className="mt-5 rounded-[10px] bg-white px-4 py-3 text-sm ring-1 ring-app-baunilha-dourada/60">
                             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                               <div>
                                 <p className="text-xs font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">
@@ -513,24 +513,24 @@ export default function ReservationsPage() {
                                       : `Prazo: ate ${formatarPrazoPresenca(reservation)}`}
                                 </p>
                               </div>
-                              <span className="w-fit rounded-full bg-app-creme-leve px-3 py-1 text-[11px] font-bold uppercase text-app-cafe-profundo ring-1 ring-app-baunilha-dourada">
+                              <span className="w-fit rounded-full bg-white px-3 py-1 text-[11px] font-bold uppercase text-app-cafe-profundo ring-1 ring-app-baunilha-dourada">
                                 {obterTextoConfirmacaoPresenca(reservation.attendanceStatus)}
                               </span>
                             </div>
                             {reservation.attendanceStatus === "RECUSADA" ? (
                               <div className="mt-4 grid gap-3 border-t border-app-baunilha-dourada/60 pt-4 text-xs sm:grid-cols-2">
-                                <p className="rounded-[8px] bg-app-creme-leve px-3 py-2 ring-1 ring-app-baunilha-dourada/60">
+                                <p className="rounded-[8px] bg-white px-3 py-2 ring-1 ring-app-baunilha-dourada/60">
                                   <span className="block font-bold uppercase tracking-[0.12em] text-app-cinza">Retido</span>
                                   <strong className="mt-1 block text-base text-app-cafe-profundo">{formatarMoeda(reservation.attendanceRetainedValue)}</strong>
                                 </p>
-                                <p className="rounded-[8px] bg-app-creme-leve px-3 py-2 ring-1 ring-app-baunilha-dourada/60">
+                                <p className="rounded-[8px] bg-white px-3 py-2 ring-1 ring-app-baunilha-dourada/60">
                                   <span className="block font-bold uppercase tracking-[0.12em] text-app-cinza">Reembolso</span>
                                   <strong className="mt-1 block text-base text-app-cafe-profundo">{formatarMoeda(reservation.attendanceRefundValue)}</strong>
                                 </p>
                               </div>
                             ) : null}
                           </div>) : null}
-                        {reservation.activeOrder ? (<div className="mt-5 rounded-[10px] border border-app-caramelo-torrado/25 bg-app-creme-suave px-4 py-3">
+                        {reservation.activeOrder ? (<div className="mt-5 rounded-[10px] border border-app-caramelo-torrado/25 bg-white px-4 py-3">
                             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                               <p className="text-xs font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">
                                 Pedido antecipado
@@ -559,7 +559,7 @@ export default function ReservationsPage() {
                               </strong>
                             </div>
                           </div>) : null}
-                        {!reservation.activeOrder && reservation.canceledOrder ? (<div className="mt-5 rounded-[10px] border border-app-caramelo-torrado/25 bg-app-chantilly px-4 py-3">
+                        {!reservation.activeOrder && reservation.canceledOrder ? (<div className="mt-5 rounded-[10px] border border-app-caramelo-torrado/25 bg-white px-4 py-3">
                             <p className="text-xs font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">
                               Pedido cancelado
                             </p>
@@ -572,7 +572,7 @@ export default function ReservationsPage() {
                           </div>) : null}
                       </div>
 
-                      <div className="flex flex-col items-center justify-center gap-4 border-t border-app-baunilha-dourada/60 bg-app-creme-suave/55 p-5 text-center sm:min-w-40 sm:border-l sm:border-t-0">
+                      <div className="flex flex-col items-center justify-center gap-4 border-t border-app-baunilha-dourada/60 bg-white/55 p-5 text-center sm:min-w-40 sm:border-l sm:border-t-0">
                         <span className={`rounded-full px-3 py-1 text-xs font-bold ${obterStatusReserva(reservation.status).classe}`}>
                           {obterStatusReserva(reservation.status).texto}
                         </span>
@@ -608,7 +608,7 @@ export default function ReservationsPage() {
       </section>
 
       {reservaParaCancelar ? (<div className="fixed inset-0 z-50 flex items-center justify-center bg-app-cafe-profundo/70 px-5 backdrop-blur-sm">
-          <section className="w-full max-w-md rounded-[16px] bg-app-creme-leve p-6 text-app-cafe-profundo shadow-xl ring-1 ring-app-baunilha-dourada/70">
+          <section className="w-full max-w-md rounded-[16px] bg-white p-6 text-app-cafe-profundo shadow-xl ring-1 ring-app-baunilha-dourada/70">
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">
               Cancelamento de reserva
             </p>
@@ -618,10 +618,10 @@ export default function ReservationsPage() {
             <p className="mt-3 text-sm leading-6 text-app-mocha">
               Ao confirmar, a mesa e o horario reservados serao cancelados. O restaurante passara a ver esta reserva como cancelada.
             </p>
-            {reservaParaCancelar.activeOrder ? (<p className="mt-3 rounded-[10px] bg-app-chantilly p-3 text-sm font-semibold leading-6 text-app-cafe-profundo ring-1 ring-app-baunilha-dourada/60">
+            {reservaParaCancelar.activeOrder ? (<p className="mt-3 rounded-[10px] bg-white p-3 text-sm font-semibold leading-6 text-app-cafe-profundo ring-1 ring-app-baunilha-dourada/60">
                 Esta reserva possui pedido antecipado ativo. Se o preparo ainda nao tiver iniciado, o pedido tambem sera cancelado pelo sistema.
               </p>) : null}
-            <div className="mt-6 rounded-[10px] bg-app-chantilly p-4 ring-1 ring-app-baunilha-dourada/60">
+            <div className="mt-6 rounded-[10px] bg-white p-4 ring-1 ring-app-baunilha-dourada/60">
               <p className="text-sm font-semibold">{reservaParaCancelar.restaurant}</p>
               <p className="mt-1 text-xs text-app-cinza">
                 {formatarDataReserva(reservaParaCancelar.date).dia} {formatarDataReserva(reservaParaCancelar.date).mes} - {formatarHorario(reservaParaCancelar.time)} - {reservaParaCancelar.people} {reservaParaCancelar.people === 1 ? "pessoa" : "pessoas"}
@@ -639,7 +639,7 @@ export default function ReservationsPage() {
         </div>) : null}
 
       {reservaParaRecusarPresenca ? (<div className="fixed inset-0 z-50 flex items-center justify-center bg-app-cafe-profundo/70 px-5 backdrop-blur-sm">
-          <section className="w-full max-w-lg rounded-[16px] bg-app-creme-leve p-6 text-app-cafe-profundo shadow-xl ring-1 ring-app-baunilha-dourada/70">
+          <section className="w-full max-w-lg rounded-[16px] bg-white p-6 text-app-cafe-profundo shadow-xl ring-1 ring-app-baunilha-dourada/70">
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">
               Confirmar ausencia
             </p>
@@ -649,11 +649,11 @@ export default function ReservationsPage() {
             <p className="mt-3 text-sm leading-6 text-app-mocha">
               Ao confirmar, sua reserva sera cancelada, o pedido antecipado vinculado tambem sera cancelado e o restaurante sera avisado para nao preparar a comanda.
             </p>
-            {reservaParaRecusarPresenca.activeOrder ? (<p className="mt-3 rounded-[10px] bg-app-chantilly p-3 text-sm font-semibold leading-6 text-app-cafe-profundo ring-1 ring-app-baunilha-dourada/60">
+            {reservaParaRecusarPresenca.activeOrder ? (<p className="mt-3 rounded-[10px] bg-white p-3 text-sm font-semibold leading-6 text-app-cafe-profundo ring-1 ring-app-baunilha-dourada/60">
                 Como existe pedido pago ou vinculado, o reembolso sera calculado pelo excedente: valor pago menos consumo minimo da reserva e comissao Appono de {reservaParaRecusarPresenca.attendanceCommissionPercent}%.
               </p>) : null}
             {reservaParaRecusarPresenca.activeOrder ? (
-              <div className="mt-4 grid gap-3 rounded-[10px] bg-app-chantilly p-4 text-sm ring-1 ring-app-baunilha-dourada/60 sm:grid-cols-3">
+              <div className="mt-4 grid gap-3 rounded-[10px] bg-white p-4 text-sm ring-1 ring-app-baunilha-dourada/60 sm:grid-cols-3">
                 <p>
                   <span className="block text-[10px] font-bold uppercase tracking-[0.14em] text-app-cinza">Pedido</span>
                   <strong className="mt-1 block text-app-cafe-profundo">{formatarMoeda(reservaParaRecusarPresenca.activeOrder.total)}</strong>
@@ -668,7 +668,7 @@ export default function ReservationsPage() {
                 </p>
               </div>
             ) : null}
-            <div className="mt-6 rounded-[10px] bg-app-chantilly p-4 ring-1 ring-app-baunilha-dourada/60">
+            <div className="mt-6 rounded-[10px] bg-white p-4 ring-1 ring-app-baunilha-dourada/60">
               <p className="text-sm font-semibold">{reservaParaRecusarPresenca.restaurant}</p>
               <p className="mt-1 text-xs text-app-cinza">
                 {formatarDataReserva(reservaParaRecusarPresenca.date).dia} {formatarDataReserva(reservaParaRecusarPresenca.date).mes} - {formatarHorario(reservaParaRecusarPresenca.time)} - {reservaParaRecusarPresenca.people} {reservaParaRecusarPresenca.people === 1 ? "pessoa" : "pessoas"}

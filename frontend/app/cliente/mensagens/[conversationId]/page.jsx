@@ -18,8 +18,8 @@ function Icon({ type, className = "h-5 w-5", }) {
     </svg>);
 }
 export default function ConversationPage() {
-    return (<main className="flex min-h-screen flex-col bg-app-chantilly text-app-cafe-profundo">
-      <header className="border-b border-app-baunilha-dourada/50 bg-app-creme-suave">
+    return (<main className="flex min-h-screen flex-col bg-white text-app-cafe-profundo">
+      <header className="border-b border-app-baunilha-dourada/50 bg-white">
         <div className="mx-auto grid h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-5">
           <div aria-label="Appono">
             <Image src="/brand/appono-mark.svg" alt="Appono" width={88} height={88} className="h-16 w-16" priority/>
@@ -38,10 +38,10 @@ export default function ConversationPage() {
         </div>
       </header>
 
-      <section className="border-b border-app-baunilha-dourada/45 bg-app-chantilly px-5 py-3">
+      <section className="border-b border-app-baunilha-dourada/45 bg-white px-5 py-3">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-[8px] bg-app-creme-leve text-app-cafe-profundo ring-1 ring-app-baunilha-dourada/60">
+            <div className="flex h-10 w-10 items-center justify-center rounded-[8px] bg-white text-app-cafe-profundo ring-1 ring-app-baunilha-dourada/60">
               <Icon type="message"/>
             </div>
             <div>
@@ -65,7 +65,7 @@ export default function ConversationPage() {
       </section>
 
       <section className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-5 py-10">
-        <div className="flex flex-1 items-center justify-center rounded-[8px] border border-dashed border-app-caramelo-torrado/35 bg-app-creme-leve px-6 py-12 text-center">
+        <div className="flex flex-1 items-center justify-center rounded-[8px] border border-dashed border-app-caramelo-torrado/35 bg-white px-6 py-12 text-center">
           <div>
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-app-baunilha-dourada text-app-cafe-profundo">
               <Icon type="message"/>
@@ -79,7 +79,7 @@ export default function ConversationPage() {
           </div>
         </div>
 
-        {messages.length ? null : (<form className="mt-8 flex items-center gap-3 rounded-[8px] bg-app-creme-leve p-4 shadow-sm ring-1 ring-app-baunilha-dourada/60">
+        {messages.length ? null : (<form className="mt-8 flex items-center gap-3 rounded-[8px] bg-white p-4 shadow-sm ring-1 ring-app-baunilha-dourada/60">
             <button type="button" disabled className="text-app-cinza" aria-label="Anexar arquivo">
               <Icon type="paperclip"/>
             </button>

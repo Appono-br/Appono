@@ -42,7 +42,7 @@ function Icon({ type, className = "h-5 w-5", }) {
 }
 function Toggle({ checked, onChange, label, }) {
     return (<button type="button" onClick={onChange} className={`relative h-8 w-14 rounded-full transition ${checked ? "bg-app-mocha" : "bg-app-cinza/35"}`} aria-label={label}>
-      <span className={`absolute top-1 h-6 w-6 rounded-full bg-app-chantilly transition ${checked ? "left-7" : "left-1"}`}/>
+      <span className={`absolute top-1 h-6 w-6 rounded-full bg-white transition ${checked ? "left-7" : "left-1"}`}/>
     </button>);
 }
 function PasswordField({ label, value, onChange, }) {
@@ -94,7 +94,7 @@ export default function RestaurantSecuritySettingsPage() {
         setMessage("Configuracoes de seguranca salvas neste navegador.");
     }
     if (!isRestaurant) {
-        return (<main className="flex min-h-screen items-center justify-center bg-app-chantilly px-5 text-app-cafe-profundo">
+        return (<main className="flex min-h-screen items-center justify-center bg-white px-5 text-app-cafe-profundo">
         <section className="w-full max-w-lg rounded-[8px] bg-app-creme-leve p-8 text-center shadow-sm ring-1 ring-app-baunilha-dourada">
           <Image src="/brand/appono-mark.svg" alt="Appono" width={88} height={88} className="mx-auto h-20 w-20" priority/>
           <h1 className="mt-6 text-3xl font-semibold">Acesso restrito</h1>
@@ -107,7 +107,7 @@ export default function RestaurantSecuritySettingsPage() {
         </section>
       </main>);
     }
-    return (<main className="flex min-h-screen flex-col bg-app-chantilly text-app-cafe-profundo">
+    return (<main className="flex min-h-screen flex-col bg-white text-app-cafe-profundo">
       <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-app-creme-leve/90 text-app-cafe-profundo shadow-sm backdrop-blur-md">
         <div className="mx-auto grid min-h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-5 py-2">
           <div aria-label="Appono">
@@ -168,7 +168,7 @@ export default function RestaurantSecuritySettingsPage() {
                 </p>) : null}
             </section>
 
-            <section className="rounded-[8px] bg-app-chantilly p-6 shadow-sm ring-1 ring-app-baunilha-dourada/45 sm:p-8">
+            <section className="rounded-[8px] bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada/45 sm:p-8">
               <h3 className="flex items-center gap-3 text-2xl font-medium text-app-cafe-profundo">
                 <Icon type="user-plus" className="h-6 w-6 text-app-caramelo-torrado"/>
                 Convidar equipe
@@ -205,7 +205,7 @@ export default function RestaurantSecuritySettingsPage() {
                   operadores.
                 </p>
               </div>
-              <span className="flex h-12 w-12 items-center justify-center rounded-[8px] bg-app-chantilly text-app-caramelo-torrado">
+              <span className="flex h-12 w-12 items-center justify-center rounded-[8px] bg-white text-app-caramelo-torrado">
                 <Icon type="shield" className="h-6 w-6"/>
               </span>
             </div>
@@ -236,7 +236,7 @@ export default function RestaurantSecuritySettingsPage() {
                 checked: form.financeApprovalRequired,
                 action: () => updateField("financeApprovalRequired", !form.financeApprovalRequired),
             },
-        ].map((item) => (<article key={item.title} className="flex flex-col gap-4 rounded-[8px] bg-app-chantilly p-5 ring-1 ring-app-baunilha-dourada/50 sm:flex-row sm:items-center sm:justify-between">
+        ].map((item) => (<article key={item.title} className="flex flex-col gap-4 rounded-[8px] bg-white p-5 ring-1 ring-app-baunilha-dourada/50 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <h4 className="text-lg font-medium text-app-cafe-profundo">
                       {item.title}
@@ -249,7 +249,7 @@ export default function RestaurantSecuritySettingsPage() {
                 </article>))}
             </div>
 
-            <label className="mt-6 grid gap-2 rounded-[8px] bg-app-chantilly p-5 ring-1 ring-app-baunilha-dourada/50">
+            <label className="mt-6 grid gap-2 rounded-[8px] bg-white p-5 ring-1 ring-app-baunilha-dourada/50">
               <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-cinza">
                 Encerrar sessao apos inatividade
               </span>
