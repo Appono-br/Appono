@@ -66,113 +66,111 @@ export default function HomePage() {
   return (
     <main className="min-h-screen bg-white text-app-texto-escuro">
       <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-white/95 backdrop-blur">
-  <div className="mx-auto flex h-20 max-w-7xl items-center px-4 sm:pr-8">
-    <div className="flex flex-1 items-center">
-      <Link href="/" className="flex shrink-0 items-center" onClick={closeMenu}>
-        <Image
-          src="/brand/appono-mark.svg"
-          alt="Appono"
-          width={90}
-          height={72}
-          className="h-16 w-auto transition-transform duration-300 hover:scale-105"
-        />
-      </Link>
-    </div>
+        <div className="mx-auto flex h-20 max-w-7xl items-center px-4 sm:pr-8">
+          <div className="flex flex-1 items-center">
+            <Link href="/" className="flex shrink-0 items-center" onClick={closeMenu}>
+              <Image
+                src="/brand/appono-mark.svg"
+                alt="Appono"
+                width={90}
+                height={72}
+                className="h-16 w-auto transition-transform duration-300 hover:scale-105"
+              />
+            </Link>
+          </div>
 
-    <nav className="hidden flex-1 items-center justify-center gap-8 md:flex">
-      <Link href="#inicio" className="rounded-full px-5 py-2.5 text-base font-semibold text-app-cafe-profundo transition hover:bg-app-creme-suave">
-        Início
-      </Link>
-      <Link href="#reserva" className="rounded-full px-5 py-2.5 text-base font-semibold text-app-cafe-profundo transition hover:bg-app-creme-suave">
-        Como usar
-      </Link>
-      <Link href="#sobre" className="rounded-full px-5 py-2.5 text-base font-semibold text-app-cafe-profundo transition hover:bg-app-creme-suave">
-        Sobre
-      </Link>
-    </nav>
+          <nav className="hidden flex-1 items-center justify-center gap-8 md:flex">
+            <Link href="#inicio" className="rounded-full px-5 py-2.5 text-base font-semibold text-app-cafe-profundo transition hover:bg-app-creme-suave">
+              Início
+            </Link>
+            <Link href="#reserva" className="rounded-full px-5 py-2.5 text-base font-semibold text-app-cafe-profundo transition hover:bg-app-creme-suave">
+              Como usar
+            </Link>
+            <Link href="#sobre" className="rounded-full px-5 py-2.5 text-base font-semibold text-app-cafe-profundo transition hover:bg-app-creme-suave">
+              Sobre
+            </Link>
+          </nav>
 
-    <div className="flex flex-1 items-center justify-end gap-3">
-      <div className="hidden items-center gap-3 sm:flex">
-        <button
-          type="button"
-          onClick={() => setProfileDialog("cadastro")}
-          className="rounded-full border border-app-baunilha-dourada px-6 py-2.5 text-sm font-semibold text-app-cafe-profundo transition-all duration-300 hover:-translate-y-0.5 hover:bg-app-creme-suave hover:shadow-sm"
-        >
-          Criar conta
-        </button>
+          <div className="flex flex-1 items-center justify-end gap-3">
+            <div className="hidden items-center gap-3 sm:flex">
+              <button
+                type="button"
+                onClick={() => setProfileDialog("cadastro")}
+                className="cursor-pointer rounded-full border border-app-baunilha-dourada px-6 py-2.5 text-sm font-semibold text-app-cafe-profundo transition-all duration-300 hover:-translate-y-0.5 hover:bg-app-creme-suave hover:shadow-sm"
+              >
+                Criar conta
+              </button>
 
-        <button
-          type="button"
-          onClick={() => {
-            window.location.href = "/login";
-          }}
-          className="rounded-full bg-app-caramelo-torrado px-6 py-2.5 text-sm font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-app-cafe-profundo hover:shadow-md"
-        >
-          Entrar
-        </button>
-      </div>
+              <button
+                type="button"
+                onClick={() => { window.location.href = "/login"; }}
+                className="cursor-pointer rounded-full bg-app-caramelo-torrado px-6 py-2.5 text-sm font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-app-cafe-profundo hover:shadow-md"
+              >
+                Entrar
+              </button>
+            </div>
 
-      <button
-        type="button"
-        onClick={() => setMenuOpen((current) => !current)}
-        className="rounded-full border border-app-baunilha-dourada px-4 py-2 text-sm font-semibold text-app-cafe-profundo md:hidden"
-        aria-expanded={menuOpen}
-        aria-controls="mobile-menu"
-      >
-        Menu
-      </button>
-    </div>
-  </div>
+            <button
+              type="button"
+              onClick={() => setMenuOpen((current) => !current)}
+              className="rounded-full border border-app-baunilha-dourada px-4 py-2 text-sm font-semibold text-app-cafe-profundo md:hidden"
+              aria-expanded={menuOpen}
+              aria-controls="mobile-menu"
+            >
+              Menu
+            </button>
+          </div>
+        </div>
 
-  {menuOpen ? (
-    <div id="mobile-menu" className="border-t border-app-baunilha-dourada/50 bg-white px-5 py-5 md:hidden">
-      <nav className="mx-auto flex max-w-7xl flex-col gap-1 text-sm font-semibold text-app-cafe-profundo">
-        <Link href="#inicio" onClick={closeMenu} className="rounded-full px-4 py-2.5 transition hover:bg-app-creme-suave">
-          Início
-        </Link>
-        <Link href="#reserva" onClick={closeMenu} className="rounded-full px-4 py-2.5 transition hover:bg-app-creme-suave">
-          Como usar
-        </Link>
-        <Link href="#sobre" onClick={closeMenu} className="rounded-full px-4 py-2.5 transition hover:bg-app-creme-suave">
-          Sobre
-        </Link>
-        <button
-          type="button"
-          onClick={() => {
-            closeMenu();
-            setProfileDialog("cadastro");
-          }}
-          className="mt-2 rounded-full bg-app-caramelo-torrado px-5 py-3 text-left font-semibold text-white"
-        >
-          Criar conta
-        </button>
-      </nav>
-    </div>
-  ) : null}
-</header>
+        {menuOpen ? (
+          <div id="mobile-menu" className="border-t border-app-baunilha-dourada/50 bg-white px-5 py-5 md:hidden">
+            <nav className="mx-auto flex max-w-7xl flex-col gap-1 text-sm font-semibold text-app-cafe-profundo">
+              <Link href="#inicio" onClick={closeMenu} className="rounded-full px-4 py-2.5 transition hover:bg-app-creme-suave">
+                Início
+              </Link>
+              <Link href="#reserva" onClick={closeMenu} className="rounded-full px-4 py-2.5 transition hover:bg-app-creme-suave">
+                Como usar
+              </Link>
+              <Link href="#sobre" onClick={closeMenu} className="rounded-full px-4 py-2.5 transition hover:bg-app-creme-suave">
+                Sobre
+              </Link>
+              <button
+                type="button"
+                onClick={() => {
+                  closeMenu();
+                  setProfileDialog("cadastro");
+                }}
+                className="mt-2 rounded-full bg-app-caramelo-torrado px-5 py-3 text-left font-semibold text-white"
+              >
+                Criar conta
+              </button>
+            </nav>
+          </div>
+        ) : null}
+      </header>
 
       <section id="inicio" className="relative flex min-h-[620px] items-center justify-center overflow-hidden bg-app-cafe-profundo px-5 py-20 text-white">
-  <Image src={heroImage} alt="Mesa reservada em restaurante elegante" fill priority sizes="100vw" className="absolute inset-0 h-full w-full object-cover opacity-90" />
-  <div className="absolute inset-0 bg-gradient-to-b from-transparent via-app-cafe-profundo/40 to-app-cafe-profundo/85" />
+        <Image src={heroImage} alt="Mesa reservada em restaurante elegante" fill priority sizes="100vw" className="absolute inset-0 h-full w-full object-cover opacity-90" />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-app-cafe-profundo/40 to-app-cafe-profundo/85" />
 
-  <div className="relative z-10 mx-auto flex max-w-3xl flex-col items-center text-center">
-    <h1 className="max-w-2xl text-4xl font-semibold leading-tight text-white sm:text-6xl">
-      Reserve sua mesa com antecedência
-    </h1>
-    <p className="mt-5 max-w-xl text-base leading-7 text-app-creme-suave sm:text-lg">
-      Planeje sua chegada, escolha seus pratos e ajude o restaurante a
-      preparar uma experiência presencial mais rápida e organizada.
-    </p>
-    <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-      <button type="button" onClick={() => setProfileDialog("cadastro")} className="rounded-full bg-white px-8 py-4 font-bold text-app-cafe-profundo tracking-wide transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl">
-        Reservar agora
-      </button>
-      <Link href="#reserva" className="rounded-full border border-white/40 px-8 py-4 font-bold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-white/10">
-        Saiba mais
-      </Link>
-    </div>
-  </div>
-</section>
+        <div className="relative z-10 mx-auto flex max-w-3xl flex-col items-center text-center">
+          <h1 className="max-w-2xl text-4xl font-semibold leading-tight text-white sm:text-6xl">
+            Reserve sua mesa com antecedência
+          </h1>
+          <p className="mt-5 max-w-xl text-base leading-7 text-app-creme-suave sm:text-lg">
+            Planeje sua chegada, escolha seus pratos e ajude o restaurante a
+            preparar uma experiência presencial mais rápida e organizada.
+          </p>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <button type="button" onClick={() => setProfileDialog("cadastro")} className="rounded-full bg-white px-8 py-4 font-bold text-app-cafe-profundo tracking-wide transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl cursor-pointer">
+              Reservar agora
+            </button>
+            <Link href="#reserva" className="rounded-full border border-white/40 px-8 py-4 font-bold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-white/10 cursor-pointer">
+              Saiba mais
+            </Link>
+          </div>
+        </div>
+      </section>
 
       <section id="reserva" className="bg-white py-20">
         <div className="mx-auto max-w-7xl px-6">
