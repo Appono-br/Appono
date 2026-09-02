@@ -496,8 +496,8 @@ export default function RestaurantMenuManagementPage() {
             </section>
 
             {produtoParaExcluir ? (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-app-cafe-profundo/55 px-5 backdrop-blur-sm">
-                    <section className="w-full max-w-md rounded-[14px] bg-app-creme-leve p-6 text-app-cafe-profundo shadow-2xl ring-1 ring-app-baunilha-dourada">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 px-5 backdrop-blur-[2px]">
+                    <section className="w-full max-w-md rounded-[18px] bg-white p-6 text-app-cafe-profundo shadow-2xl ring-1 ring-black/10">
                         <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">Confirmar exclusao</p>
                         <h2 className="mt-3 text-2xl font-bold">Remover item do cardapio?</h2>
                         <p className="mt-3 text-sm leading-6 text-app-mocha">
@@ -507,7 +507,7 @@ export default function RestaurantMenuManagementPage() {
                             <button type="button" onClick={() => setProdutoParaExcluir(null)} className="h-11 rounded-[8px] border border-app-baunilha-dourada px-5 text-xs font-bold uppercase text-app-mocha transition hover:bg-app-creme-suave">
                                 Cancelar
                             </button>
-                            <button type="button" onClick={excluirProduto} disabled={produtoExcluindoId === produtoParaExcluir.id_produto} className="h-11 rounded-[8px] border border-red-300 bg-transparent px-5 text-xs font-bold uppercase text-red-800 transition hover:border-app-vermelho-erro hover:text-app-vermelho-erro disabled:cursor-not-allowed disabled:opacity-60">
+                            <button type="button" onClick={excluirProduto} disabled={produtoExcluindoId === produtoParaExcluir.id_produto} className="botao-acao-critica h-11 rounded-[8px] px-5 text-xs font-bold uppercase transition disabled:cursor-not-allowed disabled:opacity-60">
                                 {produtoExcluindoId === produtoParaExcluir.id_produto ? "Removendo..." : "Remover item"}
                             </button>
                         </div>

@@ -34,30 +34,6 @@ function PedidoCarregando() {
                     </div>
                 </div>
             </section>
-            <ConfirmationDialog
-                open={confirmacaoAcao === "cancelar"}
-                eyebrow="Cancelar pedido"
-                title="Deseja cancelar este pedido?"
-                description="A reserva continua ativa se ainda estiver confirmada. O pedido sera cancelado somente se o preparo ainda nao tiver iniciado."
-                confirmLabel="Cancelar pedido"
-                cancelLabel="Manter pedido"
-                loading={processando}
-                onCancel={() => setConfirmacaoAcao(null)}
-                onConfirm={cancelarPedido}
-                details={<p className="font-semibold">Pedido #{pedido.id_pedido} - {moeda(pedido.valor_total)}</p>}
-            />
-            <ConfirmationDialog
-                open={confirmacaoAcao === "excluir"}
-                eyebrow="Excluir pedido"
-                title="Remover este pedido do historico?"
-                description="O pedido sera ocultado apenas da sua lista. Pagamentos, reembolsos e registros operacionais continuam preservados."
-                confirmLabel="Excluir"
-                cancelLabel="Manter"
-                loading={processando}
-                onCancel={() => setConfirmacaoAcao(null)}
-                onConfirm={excluirPedidoDaLista}
-                details={<p className="font-semibold">Pedido #{pedido.id_pedido} - {moeda(pedido.valor_total)}</p>}
-            />
         </main>
     );
 }
@@ -245,6 +221,30 @@ export default function DetalhePedidoPorId({ params }) {
                     ) : null}
                 </section>
             </section>
+            <ConfirmationDialog
+                open={confirmacaoAcao === "cancelar"}
+                eyebrow="Cancelar pedido"
+                title="Deseja cancelar este pedido?"
+                description="A reserva continua ativa se ainda estiver confirmada. O pedido sera cancelado somente se o preparo ainda nao tiver iniciado."
+                confirmLabel="Cancelar pedido"
+                cancelLabel="Manter pedido"
+                loading={processando}
+                onCancel={() => setConfirmacaoAcao(null)}
+                onConfirm={cancelarPedido}
+                details={<p className="font-semibold">Pedido #{pedido.id_pedido} - {moeda(pedido.valor_total)}</p>}
+            />
+            <ConfirmationDialog
+                open={confirmacaoAcao === "excluir"}
+                eyebrow="Excluir pedido"
+                title="Remover este pedido do historico?"
+                description="O pedido sera ocultado apenas da sua lista. Pagamentos, reembolsos e registros operacionais continuam preservados."
+                confirmLabel="Excluir"
+                cancelLabel="Manter"
+                loading={processando}
+                onCancel={() => setConfirmacaoAcao(null)}
+                onConfirm={excluirPedidoDaLista}
+                details={<p className="font-semibold">Pedido #{pedido.id_pedido} - {moeda(pedido.valor_total)}</p>}
+            />
         </main>
     );
 }

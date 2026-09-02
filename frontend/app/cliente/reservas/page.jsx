@@ -99,6 +99,10 @@ function calcularSubtotalItem(item) {
 function reservaJaIniciou(reservation) {
     return new Date(`${reservation.date}T${reservation.time}`) <= new Date();
 }
+function podeExcluirReservaDaLista(reservation) {
+    return reservaJaIniciou(reservation) ||
+        ["CANCELADA", "RECUSADA", "CONCLUIDA", "NAO_COMPARECEU"].includes(reservation.status);
+}
 function obterPrazoConfirmacaoPresenca(reservation) {
     return new Date(new Date(`${reservation.date}T${reservation.time}`).getTime() - 60 * 60 * 1000);
 }
@@ -477,8 +481,8 @@ export default function ReservationsPage() {
               </p>
             ) : null}
                 {reservations.length ? (<div className="grid auto-rows-max content-start gap-4">
-                {reservations.map((reservation) => (<article key={reservation.id} className="overflow-hidden rounded-[16px] bg-white shadow-sm ring-1 ring-app-baunilha-dourada/70 transition hover:-translate-y-0.5 hover:shadow-md">
-                    <div className="grid lg:grid-cols-[92px_minmax(0,1fr)_184px]">
+                {reservations.map((reservation) => (<article key={reservation.id} className="overflow-hidden rounded-[18px] bg-white shadow-sm ring-1 ring-app-baunilha-dourada/70 transition hover:-translate-y-0.5 hover:shadow-md">
+                    <div className="grid lg:grid-cols-[86px_minmax(0,1fr)]">
                       <div className="flex items-center gap-4 border-b border-app-baunilha-dourada/60 bg-white px-5 py-4 lg:flex-col lg:justify-center lg:border-b-0 lg:border-r lg:px-4 lg:text-center">
                         <span className="text-3xl font-semibold leading-none text-app-cafe-profundo">
                           {formatarDataReserva(reservation.date).dia}
@@ -494,13 +498,20 @@ export default function ReservationsPage() {
                       </div>
 
                       <div className="min-w-0 bg-white p-5 sm:p-6">
-                        <h2 className="truncate text-xl font-semibold text-app-cafe-profundo">
-                          {reservation.restaurant}
-                        </h2>
-                        <p className="mt-2 max-w-2xl text-sm leading-6 text-app-cinza">
-                          {obterDescricaoFluxoReserva(reservation)}
-                        </p>
-                        <div className="mt-4 flex flex-wrap gap-x-5 gap-y-3 rounded-[12px] bg-white px-4 py-3 text-sm text-app-mocha ring-1 ring-app-baunilha-dourada/55">
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                          <div className="min-w-0">
+                            <h2 className="truncate text-xl font-semibold text-app-cafe-profundo">
+                              {reservation.restaurant}
+                            </h2>
+                            <p className="mt-2 max-w-2xl text-sm leading-6 text-app-cinza">
+                              {obterDescricaoFluxoReserva(reservation)}
+                            </p>
+                          </div>
+                          <span className={`w-fit shrink-0 rounded-full px-3 py-1 text-xs font-bold ${obterStatusReserva(reservation.status).classe}`}>
+                            {obterStatusReserva(reservation.status).texto}
+                          </span>
+                        </div>
+                        <div className="mt-4 flex flex-wrap gap-x-5 gap-y-3 text-sm text-app-mocha">
                           <span className="flex items-center gap-2">
                             <Icon type="clock" className="h-4 w-4 text-app-caramelo-torrado"/>
                             {formatarHorario(reservation.time)}
@@ -515,7 +526,7 @@ export default function ReservationsPage() {
                             {formatarMoeda(reservation.minimumTotal)}
                           </span>
                         </div>
-                        {["CONFIRMADA", "CANCELADA"].includes(reservation.status) ? (<div className="mt-4 rounded-[12px] bg-white px-4 py-3 text-sm shadow-sm ring-1 ring-app-baunilha-dourada/60">
+                        {["CONFIRMADA", "CANCELADA"].includes(reservation.status) ? (<div className="mt-5 rounded-[12px] border border-app-baunilha-dourada/60 bg-white px-4 py-3 text-sm">
                             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                               <div>
                                 <p className="text-xs font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">
@@ -544,7 +555,7 @@ export default function ReservationsPage() {
                               </div>
                             ) : null}
                           </div>) : null}
-                        {reservation.activeOrder ? (<div className="mt-4 rounded-[12px] border border-app-caramelo-torrado/25 bg-white px-4 py-3 shadow-sm">
+                        {reservation.activeOrder ? (<div className="mt-4 rounded-[12px] border border-app-caramelo-torrado/25 bg-white px-4 py-3">
                             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                               <p className="text-xs font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">
                                 Pedido antecipado
@@ -584,20 +595,15 @@ export default function ReservationsPage() {
                               Pedido #{reservation.canceledOrder.id} - {formatarMoeda(reservation.canceledOrder.total)}
                             </p>
                           </div>) : null}
-                      </div>
-
-                      <div className="flex flex-col items-stretch justify-center gap-3 border-t border-app-baunilha-dourada/60 bg-white p-5 text-center lg:border-l lg:border-t-0">
-                        <span className={`rounded-full px-3 py-1 text-xs font-bold ${obterStatusReserva(reservation.status).classe}`}>
-                          {obterStatusReserva(reservation.status).texto}
-                        </span>
-                        {podeResponderPresenca(reservation) ? (<div className="grid w-full gap-2">
+                        <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-app-baunilha-dourada/60 pt-4">
+                          {podeResponderPresenca(reservation) ? (<>
                             {reservation.attendanceStatus !== "CONFIRMADA" ? (<button type="button" disabled={processandoPresenca} onClick={() => setReservaParaConfirmarPresenca(reservation)} className="rounded-[8px] bg-app-cafe-profundo px-4 py-2 text-xs font-bold text-app-creme-leve transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-60">
                                 Confirmar presenca
                               </button>) : null}
                             <button type="button" disabled={processandoPresenca} onClick={() => setReservaParaRecusarPresenca(reservation)} className="rounded-[8px] border border-app-vermelho-erro/40 px-4 py-2 text-xs font-bold text-app-vermelho-erro transition hover:bg-app-vermelho-erro hover:text-white disabled:cursor-not-allowed disabled:opacity-60">
                               {reservation.attendanceStatus === "CONFIRMADA" ? "Alterar para ausencia" : "Nao vou comparecer"}
                             </button>
-                          </div>) : null}
+                          </>) : null}
                         {["PENDENTE", "CONFIRMADA"].includes(reservation.status) && !reservaJaIniciou(reservation) ? (<button type="button" onClick={() => setReservaParaCancelar(reservation)} className="text-xs font-bold text-app-vermelho-erro transition hover:text-app-cafe-profundo">
                             Desmarcar reserva
                           </button>) : null}
@@ -610,9 +616,10 @@ export default function ReservationsPage() {
                         {reservation.status === "CONFIRMADA" && !reservation.activeOrder && !reservaJaIniciou(reservation) ? (<Link href={`/cliente/reservas/${reservation.id}/pedido`} className="rounded-[8px] bg-app-dourado-mel px-4 py-2 text-xs font-bold text-white transition hover:bg-app-caramelo-torrado">
                             Adicionar pedido antecipado
                           </Link>) : null}
-                        {["CANCELADA", "RECUSADA", "CONCLUIDA", "NAO_COMPARECEU"].includes(reservation.status) ? (<button type="button" onClick={() => setReservaParaExcluir(reservation)} className="text-xs font-bold text-app-cinza transition hover:text-app-vermelho-erro">
+                        {podeExcluirReservaDaLista(reservation) ? (<button type="button" onClick={() => setReservaParaExcluir(reservation)} className="text-xs font-bold text-app-cinza transition hover:text-app-vermelho-erro">
                             Excluir da lista
                           </button>) : null}
+                        </div>
                       </div>
                     </div>
                   </article>))}
@@ -662,8 +669,8 @@ export default function ReservationsPage() {
         ) : null}
       />
 
-      {reservaParaCancelar ? (<div className="fixed inset-0 z-50 flex items-center justify-center bg-app-cafe-profundo/70 px-5 backdrop-blur-sm">
-          <section className="w-full max-w-md rounded-[16px] bg-white p-6 text-app-cafe-profundo shadow-xl ring-1 ring-app-baunilha-dourada/70">
+      {reservaParaCancelar ? (<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 px-5 backdrop-blur-[2px]">
+          <section className="w-full max-w-md rounded-[18px] bg-white p-6 text-app-cafe-profundo shadow-2xl ring-1 ring-black/10">
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">
               Cancelamento de reserva
             </p>
@@ -686,15 +693,15 @@ export default function ReservationsPage() {
               <button type="button" onClick={() => setReservaParaCancelar(null)} disabled={cancelandoReserva} className="h-11 rounded-[8px] border border-app-baunilha-dourada px-4 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:bg-app-chantilly disabled:cursor-not-allowed disabled:text-app-cinza">
                 Manter reserva
               </button>
-              <button type="button" onClick={() => cancelarReserva(reservaParaCancelar.id)} disabled={cancelandoReserva} className="h-11 rounded-[8px] bg-app-vermelho-erro px-4 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-app-cafe-profundo disabled:cursor-not-allowed disabled:bg-app-cinza/50">
+              <button type="button" onClick={() => cancelarReserva(reservaParaCancelar.id)} disabled={cancelandoReserva} className="h-11 rounded-[8px] bg-red-600 px-4 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-app-cinza/50">
                 {cancelandoReserva ? "Cancelando..." : "Confirmar cancelamento"}
               </button>
             </div>
           </section>
         </div>) : null}
 
-      {reservaParaRecusarPresenca ? (<div className="fixed inset-0 z-50 flex items-center justify-center bg-app-cafe-profundo/70 px-5 backdrop-blur-sm">
-          <section className="w-full max-w-lg rounded-[16px] bg-white p-6 text-app-cafe-profundo shadow-xl ring-1 ring-app-baunilha-dourada/70">
+      {reservaParaRecusarPresenca ? (<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 px-5 backdrop-blur-[2px]">
+          <section className="w-full max-w-lg rounded-[18px] bg-white p-6 text-app-cafe-profundo shadow-2xl ring-1 ring-black/10">
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">
               Confirmar ausencia
             </p>
@@ -733,7 +740,7 @@ export default function ReservationsPage() {
               <button type="button" onClick={() => setReservaParaRecusarPresenca(null)} disabled={processandoPresenca} className="h-11 rounded-[8px] border border-app-baunilha-dourada px-4 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:bg-app-chantilly disabled:cursor-not-allowed disabled:text-app-cinza">
                 Voltar
               </button>
-              <button type="button" onClick={recusarPresenca} disabled={processandoPresenca} className="h-11 rounded-[8px] bg-app-vermelho-erro px-4 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-app-cafe-profundo disabled:cursor-not-allowed disabled:bg-app-cinza/50">
+              <button type="button" onClick={recusarPresenca} disabled={processandoPresenca} className="h-11 rounded-[8px] bg-red-600 px-4 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-app-cinza/50">
                 {processandoPresenca ? "Processando..." : "Confirmar ausencia"}
               </button>
             </div>

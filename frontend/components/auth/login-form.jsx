@@ -410,7 +410,7 @@ export function LoginForm() {
 
       {registerDialog ? (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-app-cafe-profundo/70 px-5 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 px-5 backdrop-blur-[2px]"
           role="dialog"
           aria-modal="true"
           aria-label="Escolha de cadastro"
@@ -521,7 +521,7 @@ export function LoginForm() {
 
       {recoveryDialog ? (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-app-cafe-profundo/70 px-5 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 px-5 backdrop-blur-[2px]"
           role="dialog"
           aria-modal="true"
           aria-label="Recuperacao de senha"

@@ -413,7 +413,7 @@ export default function HomePage() {
 
       {profileDialog ? (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-app-cafe-profundo/70 px-5 backdrop-blur-sm animate-in fade-in duration-200"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 px-5 backdrop-blur-[2px] animate-in fade-in duration-200"
           role="dialog"
           aria-modal="true"
           aria-label="Escolha de perfil"

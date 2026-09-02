@@ -1180,6 +1180,15 @@ body > div:not(.area-autenticada) select {
   background-color: transparent !important;
 }
 
+.botao-acao-critica {
+  background-color: #dc2626 !important;
+  color: #ffffff !important;
+}
+
+.botao-acao-critica:hover {
+  background-color: #b91c1c !important;
+}
+
 .area-cliente.tema-escuro {
   --app-cacau-intenso: #0c0807;
   --app-caramelo-torrado: #d89a6f;

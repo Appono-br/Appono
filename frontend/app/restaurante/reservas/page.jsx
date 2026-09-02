@@ -627,8 +627,8 @@ export default function RestaurantReservationsPage() {
             </section>
 
             {reservaParaCancelar ? (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-app-cafe-profundo/70 px-5 backdrop-blur-sm">
-                    <section className="w-full max-w-md rounded-[16px] bg-app-creme-leve p-6 text-app-cafe-profundo shadow-xl ring-1 ring-app-baunilha-dourada/70">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 px-5 backdrop-blur-[2px]">
+                    <section className="w-full max-w-md rounded-[18px] bg-white p-6 text-app-cafe-profundo shadow-2xl ring-1 ring-black/10">
                         <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">
                             Cancelamento de reserva
                         </p>
@@ -664,7 +664,7 @@ export default function RestaurantReservationsPage() {
                                 type="button"
                                 onClick={() => cancelarReserva(reservaParaCancelar.id_reserva)}
                                 disabled={cancelandoReserva}
-                                className="h-11 rounded-[8px] bg-app-vermelho-erro px-4 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-app-cafe-profundo disabled:cursor-not-allowed disabled:bg-app-cinza/50"
+                                className="h-11 rounded-[8px] bg-red-600 px-4 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-app-cinza/50"
                             >
                                 {cancelandoReserva ? "Cancelando..." : "Confirmar cancelamento"}
                             </button>

@@ -16,12 +16,12 @@ export function ConfirmationDialog({
     if (!open) return null;
 
     const confirmClass = variant === "danger"
-        ? "bg-app-vermelho-erro text-white hover:bg-app-cafe-profundo"
+        ? "botao-acao-critica"
         : "bg-app-cafe-profundo text-app-creme-leve hover:bg-app-caramelo-torrado";
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-app-cafe-profundo/70 px-5 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="confirmation-dialog-title">
-            <section className="w-full max-w-md rounded-[16px] bg-white p-6 text-app-cafe-profundo shadow-xl ring-1 ring-app-baunilha-dourada/70">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 px-5 backdrop-blur-[2px]" role="dialog" aria-modal="true" aria-labelledby="confirmation-dialog-title">
+            <section className="w-full max-w-md rounded-[18px] bg-white p-6 text-app-cafe-profundo shadow-2xl ring-1 ring-black/10">
                 <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">
                     {eyebrow}
                 </p>
