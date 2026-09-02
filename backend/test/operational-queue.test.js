@@ -51,6 +51,11 @@ test("pedido confirmado entra na cozinha somente na janela operacional da reserv
     assert.equal(pedidoEstaNaFilaOperacional({
         status_pedido: "CONFIRMADO",
         reservas: reservaEm(-90),
+    }, agora), true);
+
+    assert.equal(pedidoEstaNaFilaOperacional({
+        status_pedido: "CONFIRMADO",
+        reservas: reservaEm(-91),
     }, agora), false);
 });
 
@@ -71,6 +76,12 @@ test("inicio de preparo depende da elegibilidade operacional do pedido", () => {
         status_pedido: "CONFIRMADO",
         iniciar_preparo_em: "2026-08-18T09:45:00",
         reservas: reservaEm(-90),
+    }, agora), true);
+
+    assert.equal(pedidoPodeIniciarPreparo({
+        status_pedido: "CONFIRMADO",
+        iniciar_preparo_em: "2026-08-18T09:45:00",
+        reservas: reservaEm(-91),
     }, agora), false);
 });
 

@@ -610,7 +610,7 @@ export default function RestaurantOrdersPage() {
                                 type="button"
                                 onClick={removerPedidoDaCozinha}
                                 disabled={removendoPedido}
-                                className="h-11 rounded-[10px] bg-red-600 px-4 text-xs font-bold uppercase tracking-[0.14em] text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+                                className="botao-acao-critica h-11 rounded-[10px] px-4 text-xs font-bold uppercase tracking-[0.14em] transition disabled:cursor-not-allowed disabled:opacity-60"
                             >
                                 {removendoPedido ? "Removendo..." : "Remover"}
                             </button>

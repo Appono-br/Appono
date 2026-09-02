@@ -664,7 +664,7 @@ export default function RestaurantReservationsPage() {
                                 type="button"
                                 onClick={() => cancelarReserva(reservaParaCancelar.id_reserva)}
                                 disabled={cancelandoReserva}
-                                className="h-11 rounded-[8px] bg-red-600 px-4 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-app-cinza/50"
+                                className="botao-acao-critica h-11 rounded-[8px] px-4 text-xs font-bold uppercase tracking-[0.12em] transition disabled:cursor-not-allowed disabled:bg-app-cinza/50"
                             >
                                 {cancelandoReserva ? "Cancelando..." : "Confirmar cancelamento"}
                             </button>

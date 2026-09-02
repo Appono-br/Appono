@@ -693,7 +693,7 @@ export default function ReservationsPage() {
               <button type="button" onClick={() => setReservaParaCancelar(null)} disabled={cancelandoReserva} className="h-11 rounded-[8px] border border-app-baunilha-dourada px-4 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:bg-app-chantilly disabled:cursor-not-allowed disabled:text-app-cinza">
                 Manter reserva
               </button>
-              <button type="button" onClick={() => cancelarReserva(reservaParaCancelar.id)} disabled={cancelandoReserva} className="h-11 rounded-[8px] bg-red-600 px-4 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-app-cinza/50">
+              <button type="button" onClick={() => cancelarReserva(reservaParaCancelar.id)} disabled={cancelandoReserva} className="botao-acao-critica h-11 rounded-[8px] px-4 text-xs font-bold uppercase tracking-[0.12em] transition disabled:cursor-not-allowed disabled:bg-app-cinza/50">
                 {cancelandoReserva ? "Cancelando..." : "Confirmar cancelamento"}
               </button>
             </div>
@@ -740,7 +740,7 @@ export default function ReservationsPage() {
               <button type="button" onClick={() => setReservaParaRecusarPresenca(null)} disabled={processandoPresenca} className="h-11 rounded-[8px] border border-app-baunilha-dourada px-4 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:bg-app-chantilly disabled:cursor-not-allowed disabled:text-app-cinza">
                 Voltar
               </button>
-              <button type="button" onClick={recusarPresenca} disabled={processandoPresenca} className="h-11 rounded-[8px] bg-red-600 px-4 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-app-cinza/50">
+              <button type="button" onClick={recusarPresenca} disabled={processandoPresenca} className="botao-acao-critica h-11 rounded-[8px] px-4 text-xs font-bold uppercase tracking-[0.12em] transition disabled:cursor-not-allowed disabled:bg-app-cinza/50">
                 {processandoPresenca ? "Processando..." : "Confirmar ausencia"}
               </button>
             </div>

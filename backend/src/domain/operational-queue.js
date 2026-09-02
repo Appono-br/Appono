@@ -45,7 +45,7 @@ function pedidoEstaNaFilaOperacional(pedido, agora = new Date(), janelaMinutos =
     }
 
     const minutosAteReserva = obterMinutosAteReserva(pedido.reservas, agora);
-    return minutosAteReserva !== null && minutosAteReserva <= janelaMinutos && minutosAteReserva >= 0;
+    return minutosAteReserva !== null && minutosAteReserva <= janelaMinutos && minutosAteReserva >= -janelaMinutos;
 }
 
 function pedidoPodeIniciarPreparo(pedido, agora = new Date(), janelaMinutos = JANELA_OPERACIONAL_MINUTOS) {

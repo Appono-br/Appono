@@ -532,7 +532,7 @@ export default function RestaurantFinancialReportPage() {
               <button type="button" disabled={acaoMercadoPago} onClick={() => setModalMercadoPago(null)} className="inline-flex h-11 items-center justify-center rounded-[8px] border border-app-baunilha-dourada px-5 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:bg-app-chantilly disabled:cursor-not-allowed disabled:opacity-60">
                 Cancelar
               </button>
-              <button type="button" disabled={acaoMercadoPago} onClick={confirmarAcaoMercadoPago} className={`inline-flex h-11 items-center justify-center rounded-[8px] px-5 text-xs font-bold uppercase tracking-[0.12em] text-white transition disabled:cursor-not-allowed disabled:opacity-60 ${modalMercadoPago === "desconectar" ? "bg-red-600 hover:bg-red-700" : "bg-app-cafe-profundo hover:bg-app-caramelo-torrado"}`}>
+              <button type="button" disabled={acaoMercadoPago} onClick={confirmarAcaoMercadoPago} className={`inline-flex h-11 items-center justify-center rounded-[8px] px-5 text-xs font-bold uppercase tracking-[0.12em] transition disabled:cursor-not-allowed disabled:opacity-60 ${modalMercadoPago === "desconectar" ? "botao-acao-critica" : "bg-app-cafe-profundo text-app-creme-leve hover:bg-app-caramelo-torrado"}`}>
                 {acaoMercadoPago ? "Processando..." : modalMercadoPago === "conectar" ? "Continuar" : "Desconectar"}
               </button>
             </div>
