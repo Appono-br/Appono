@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { apiRequest } from "@/lib/api";
 import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 import { TelaCarregandoSessao, useSessaoLocal } from "@/lib/use-sessao-local";
+import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 
 const navItems = [
     { label: "Home", href: "/restaurante/home" },
@@ -84,6 +85,7 @@ export default function RestaurantMenuManagementPage() {
     const [produtoParaExcluir, setProdutoParaExcluir] = useState(null);
     const [categoriaForm, setCategoriaForm] = useState(categoriaInicial);
     const [categoriaAtualizandoId, setCategoriaAtualizandoId] = useState(null);
+    const [categoriaParaArquivar, setCategoriaParaArquivar] = useState(null);
     const [busca, setBusca] = useState("");
     const [filtro, setFiltro] = useState("todos");
 
@@ -198,6 +200,7 @@ export default function RestaurantMenuManagementPage() {
                 method: "DELETE",
             });
             setMensagem(resposta.message ?? "Categoria arquivada.");
+            setCategoriaParaArquivar(null);
             if (categoriaForm.id === categoria.id_categoria) {
                 setCategoriaForm(categoriaInicial);
             }
@@ -377,7 +380,7 @@ export default function RestaurantMenuManagementPage() {
                                         })} className="h-9 rounded-[8px] border border-app-baunilha-dourada px-3 text-xs font-bold uppercase text-app-mocha transition hover:bg-app-creme-leve">
                                             Editar
                                         </button>
-                                        <button type="button" onClick={() => arquivarCategoria(categoria)} disabled={categoriaAtualizandoId === categoria.id_categoria} className="h-9 rounded-[8px] border border-red-300 bg-transparent px-3 text-xs font-bold uppercase text-red-800 transition hover:border-app-vermelho-erro hover:text-app-vermelho-erro disabled:opacity-60">
+                                        <button type="button" onClick={() => setCategoriaParaArquivar(categoria)} disabled={categoriaAtualizandoId === categoria.id_categoria} className="h-9 rounded-[8px] border border-red-300 bg-transparent px-3 text-xs font-bold uppercase text-red-800 transition hover:border-app-vermelho-erro hover:text-app-vermelho-erro disabled:opacity-60">
                                             Arquivar
                                         </button>
                                     </div>
@@ -511,6 +514,18 @@ export default function RestaurantMenuManagementPage() {
                     </section>
                 </div>
             ) : null}
+            <ConfirmationDialog
+                open={Boolean(categoriaParaArquivar)}
+                eyebrow="Arquivar categoria"
+                title="Arquivar esta categoria?"
+                description="A categoria deixara de aparecer no cardapio ativo. Itens e historico permanecem preservados."
+                confirmLabel="Arquivar"
+                cancelLabel="Voltar"
+                loading={categoriaAtualizandoId === categoriaParaArquivar?.id_categoria}
+                onCancel={() => setCategoriaParaArquivar(null)}
+                onConfirm={() => arquivarCategoria(categoriaParaArquivar)}
+                details={categoriaParaArquivar ? <p className="font-semibold">{categoriaParaArquivar.nome}</p> : null}
+            />
         </main>
     );
 }

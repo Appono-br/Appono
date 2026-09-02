@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { apiRequest } from "@/lib/api";
 import { textoStatusPedido } from "@/lib/formatadores-status";
 import { reservaAceitaPagamento } from "@/lib/elegibilidade-pagamento";
+import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 
 const moeda = (valor) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(valor ?? 0));
 const dataReserva = (pedido) => pedido.reservas?.data_reserva
@@ -21,6 +22,7 @@ export default function PedidosClientePage() {
     const [carregando, setCarregando] = useState(true);
     const [erro, setErro] = useState("");
     const [pedidoExcluindo, setPedidoExcluindo] = useState(null);
+    const [pedidoParaExcluir, setPedidoParaExcluir] = useState(null);
 
     useEffect(() => {
         const controller = new AbortController();
@@ -42,7 +44,6 @@ export default function PedidosClientePage() {
     }
 
     async function excluirPedidoDaLista(pedido) {
-        if (!window.confirm(`Remover o pedido #${pedido.id_pedido} do seu historico?`)) return;
         setPedidoExcluindo(pedido.id_pedido);
         setErro("");
         try {
@@ -51,6 +52,7 @@ export default function PedidosClientePage() {
                 ...atual,
                 items: (atual.items ?? []).filter((item) => item.id_pedido !== pedido.id_pedido),
             }));
+            setPedidoParaExcluir(null);
         } catch (error) {
             setErro(error instanceof Error ? error.message : "Nao foi possivel remover o pedido da lista.");
         } finally {
@@ -100,7 +102,7 @@ export default function PedidosClientePage() {
                                         ) : null}
                                         <Link href={`/cliente/pedidos/${pedido.id_pedido}`} className="rounded-[8px] bg-app-cafe-profundo px-4 py-2 text-xs font-bold uppercase text-app-creme-leve transition hover:bg-app-caramelo-torrado">Ver detalhes</Link>
                                         {["ENTREGUE", "CANCELADO"].includes(pedido.status_pedido) ? (
-                                            <button type="button" disabled={pedidoExcluindo === pedido.id_pedido} onClick={() => excluirPedidoDaLista(pedido)} className="rounded-[8px] border border-red-300 px-4 py-2 text-xs font-bold uppercase text-red-700 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50">
+                                            <button type="button" disabled={pedidoExcluindo === pedido.id_pedido} onClick={() => setPedidoParaExcluir(pedido)} className="rounded-[8px] border border-red-300 px-4 py-2 text-xs font-bold uppercase text-red-700 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50">
                                                 {pedidoExcluindo === pedido.id_pedido ? "Removendo..." : "Excluir"}
                                             </button>
                                         ) : null}
@@ -119,6 +121,23 @@ export default function PedidosClientePage() {
                     </nav>
                 ) : null}
             </section>
+            <ConfirmationDialog
+                open={Boolean(pedidoParaExcluir)}
+                eyebrow="Excluir pedido"
+                title="Remover este pedido do historico?"
+                description="O pedido sera ocultado apenas da sua lista. Pagamentos, reembolsos e registros operacionais continuam preservados."
+                confirmLabel="Excluir"
+                cancelLabel="Manter"
+                loading={pedidoExcluindo === pedidoParaExcluir?.id_pedido}
+                onCancel={() => setPedidoParaExcluir(null)}
+                onConfirm={() => excluirPedidoDaLista(pedidoParaExcluir)}
+                details={pedidoParaExcluir ? (
+                    <div>
+                        <p className="font-semibold">Pedido #{pedidoParaExcluir.id_pedido}</p>
+                        <p className="mt-1 text-xs text-app-cinza">{pedidoParaExcluir.restaurantes?.nome ?? "Restaurante"} - {moeda(pedidoParaExcluir.valor_total)}</p>
+                    </div>
+                ) : null}
+            />
         </main>
     );
 }

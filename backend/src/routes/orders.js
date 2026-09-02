@@ -439,17 +439,6 @@ exports.ordersRouter.patch("/:id/cancelar", (0, auth_1.requireRole)("cliente"), 
             error: "O pedido nao pode ser cancelado porque o preparo ja foi iniciado.",
         });
     }
-    const dataReserva = pedido.reservas?.data_reserva;
-    const horarioReserva = pedido.reservas?.horario_inicio;
-    if (dataReserva && horarioReserva) {
-        const dataHoraReserva = new Date(`${dataReserva}T${horarioReserva}`);
-        const limiteCancelamento = new Date(dataHoraReserva.getTime() - 30 * 60 * 1000);
-        if (new Date() > limiteCancelamento) {
-            return res.status(409).json({
-                error: "O pedido so pode ser cancelado ate 30 minutos antes da reserva.",
-            });
-        }
-    }
     if (supabase_1.supabaseAdmin) {
         const { data: pagamentoAprovado } = await supabase_1.supabaseAdmin.from("pagamentos")
             .select("id_pagamento, mercado_pago_payment_id, status_pagamento")
@@ -514,9 +503,7 @@ exports.ordersRouter.patch("/:id/cancelar", (0, auth_1.requireRole)("cliente"), 
         pedido_id: orderId,
     });
     if (error) {
-        const mensagem = error.message.includes("30 minutos")
-            ? "O pedido so pode ser cancelado ate 30 minutos antes da reserva."
-            : error.message.includes("nao pode mais ser cancelado")
+        const mensagem = error.message.includes("nao pode mais ser cancelado")
                 ? "Este pedido nao pode mais ser cancelado."
                 : error.message;
         return res.status(409).json({ error: mensagem });
