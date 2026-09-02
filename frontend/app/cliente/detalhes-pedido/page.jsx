@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { apiRequest } from "@/lib/api";
 import { textoStatusPedido } from "@/lib/formatadores-status";
+import { reservaAceitaPagamento } from "@/lib/elegibilidade-pagamento";
 
 const moeda = (valor) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(valor ?? 0));
 const dataReserva = (pedido) => pedido.reservas?.data_reserva
@@ -71,7 +72,17 @@ export default function PedidosClientePage() {
                                     <span className="rounded-full bg-white px-3 py-1 text-xs font-bold ring-1 ring-app-baunilha-dourada">{textoStatusPedido(pedido.status_pedido)}</span>
                                 </div>
                                 <p className="mt-4 text-sm text-app-cinza">{dataReserva(pedido)} às {String(pedido.reservas?.horario_inicio ?? "--:--").slice(0, 5)}</p>
-                                <div className="mt-5 flex items-center justify-between gap-4"><strong>{moeda(pedido.valor_total)}</strong><Link href={`/cliente/pedidos/${pedido.id_pedido}`} className="rounded-[8px] bg-app-cafe-profundo px-4 py-2 text-xs font-bold uppercase text-app-creme-leve">Ver detalhes</Link></div>
+                                <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
+                                    <strong>{moeda(pedido.valor_total)}</strong>
+                                    <div className="flex flex-wrap gap-2">
+                                        {pedido.status_pedido === "PENDENTE" && reservaAceitaPagamento(pedido.reservas) ? (
+                                            <Link href={`/cliente/pagamentos/pedido/${pedido.id_pedido}`} className="rounded-[8px] bg-app-dourado-mel px-4 py-2 text-xs font-bold uppercase text-white transition hover:bg-app-caramelo-torrado">
+                                                Pagar
+                                            </Link>
+                                        ) : null}
+                                        <Link href={`/cliente/pedidos/${pedido.id_pedido}`} className="rounded-[8px] bg-app-cafe-profundo px-4 py-2 text-xs font-bold uppercase text-app-creme-leve transition hover:bg-app-caramelo-torrado">Ver detalhes</Link>
+                                    </div>
+                                </div>
                             </article>
                         ))}
                     </div>
