@@ -34,14 +34,29 @@ function obterUrlCallbackAutenticacao() {
 }
 
 export function LoginForm() {
-  const [identifier, setIdentifier] = useState("");
+  const [identifier, setIdentifier] = useState(() => {
+    if (typeof window === "undefined") {
+      return "";
+    }
+
+    return new URLSearchParams(window.location.search).get("email") ?? "";
+  });
   const [recoveryEmail, setRecoveryEmail] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [registerDialog, setRegisterDialog] = useState(false);
   const [recoveryDialog, setRecoveryDialog] = useState(false);
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState(() => {
+    if (typeof window === "undefined") {
+      return "";
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    return params.get("cadastro") === "existente"
+      ? "Esta conta ja existe. Entre com seu e-mail e senha para continuar."
+      : "";
+  });
   const [recoveryMessage, setRecoveryMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
@@ -67,12 +82,9 @@ export function LoginForm() {
         body: JSON.stringify({ email, password }),
       });
 
-      await persistAuthResponse({ session: auth.session });
-
-      const profile = await apiRequest("/me");
-
       await persistAuthResponse({
-        ...profile,
+        tipo: auth.tipo,
+        perfil: auth.perfil,
         session: auth.session,
       });
 
@@ -81,7 +93,7 @@ export function LoginForm() {
         JSON.stringify({ remember })
       );
 
-      window.location.href = getDashboardPath(profile.tipo);
+      window.location.href = getDashboardPath(auth.tipo);
     } catch (error) {
       setMessage(
         error instanceof Error

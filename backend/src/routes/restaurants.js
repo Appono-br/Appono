@@ -8,6 +8,157 @@ exports.restaurantsRouter = (0, express_1.Router)();
 function obterClienteLeituraPublica() {
     return supabase_1.supabaseAdmin ?? supabase_1.supabaseAuth;
 }
+function numeroValido(valor) {
+    if (valor === null || valor === undefined || valor === "") return null;
+    const numero = Number(valor);
+    return Number.isFinite(numero) ? numero : null;
+}
+function coordenadaValida(latitude, longitude) {
+    return latitude !== null && longitude !== null &&
+        latitude >= -90 && latitude <= 90 &&
+        longitude >= -180 && longitude <= 180;
+}
+function calcularDistanciaKm(origemLatitude, origemLongitude, destinoLatitude, destinoLongitude) {
+    const raioTerraKm = 6371;
+    const paraRadianos = (valor) => (valor * Math.PI) / 180;
+    const deltaLatitude = paraRadianos(destinoLatitude - origemLatitude);
+    const deltaLongitude = paraRadianos(destinoLongitude - origemLongitude);
+    const a = Math.sin(deltaLatitude / 2) ** 2 +
+        Math.cos(paraRadianos(origemLatitude)) *
+            Math.cos(paraRadianos(destinoLatitude)) *
+            Math.sin(deltaLongitude / 2) ** 2;
+    return raioTerraKm * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+function removerComplementoEndereco(endereco) {
+    return String(endereco ?? "")
+        .replace(/,\s*(apto|apartamento|sala|bloco|cj|conjunto|loja)\b[^,]*/gi, "")
+        .replace(/\s{2,}/g, " ")
+        .trim();
+}
+async function geocodificarLocalizacao(texto) {
+    const consulta = String(texto ?? "").trim();
+    if (!consulta) return null;
+    try {
+        const url = new URL("https://nominatim.openstreetmap.org/search");
+        url.searchParams.set("format", "jsonv2");
+        url.searchParams.set("limit", "1");
+        url.searchParams.set("countrycodes", "br");
+        url.searchParams.set("q", `${consulta}, Brasil`);
+        const resposta = await fetch(url, {
+            headers: {
+                "Accept": "application/json",
+                "User-Agent": "Appono MVP contato@appono.com.br",
+            },
+        });
+        if (!resposta.ok) return null;
+        const resultados = await resposta.json();
+        const resultado = Array.isArray(resultados) ? resultados[0] : null;
+        const latitude = numeroValido(resultado?.lat);
+        const longitude = numeroValido(resultado?.lon);
+        if (!coordenadaValida(latitude, longitude)) return null;
+        return {
+            latitude,
+            longitude,
+            nome: resultado?.display_name ?? consulta,
+        };
+    }
+    catch {
+        return null;
+    }
+}
+async function geocodificarEnderecoRestaurante(restaurante) {
+    const endereco = String(restaurante?.endereco ?? "").trim();
+    const enderecoSemComplemento = removerComplementoEndereco(endereco);
+    const consultas = [
+        [endereco, restaurante?.cep].filter(Boolean).join(", "),
+        enderecoSemComplemento !== endereco
+            ? [enderecoSemComplemento, restaurante?.cep].filter(Boolean).join(", ")
+            : "",
+        enderecoSemComplemento,
+        restaurante?.cep,
+    ].filter(Boolean);
+    for (const consulta of [...new Set(consultas)]) {
+        const coordenadas = await geocodificarLocalizacao(consulta);
+        if (coordenadas) return coordenadas;
+    }
+    return null;
+}
+async function preencherCoordenadasAusentes(restaurantes) {
+    if (!supabase_1.supabaseAdmin || !Array.isArray(restaurantes) || !restaurantes.length) {
+        return restaurantes;
+    }
+    const resultado = [];
+    for (const restaurante of restaurantes) {
+        const latitudeAtual = numeroValido(restaurante.latitude);
+        const longitudeAtual = numeroValido(restaurante.longitude);
+        if (coordenadaValida(latitudeAtual, longitudeAtual)) {
+            resultado.push(restaurante);
+            continue;
+        }
+        const coordenadas = await geocodificarEnderecoRestaurante(restaurante);
+        if (!coordenadas) {
+            resultado.push(restaurante);
+            continue;
+        }
+        const geocodificadoEm = new Date().toISOString();
+        const { error } = await supabase_1.supabaseAdmin
+            .from("restaurantes")
+            .update({
+            latitude: coordenadas.latitude,
+            longitude: coordenadas.longitude,
+            geocodificado_em: geocodificadoEm,
+        })
+            .eq("id_restaurante", restaurante.id_restaurante);
+        resultado.push(error
+            ? restaurante
+            : {
+                ...restaurante,
+                latitude: coordenadas.latitude,
+                longitude: coordenadas.longitude,
+                geocodificado_em: geocodificadoEm,
+            });
+    }
+    return resultado;
+}
+function erroColunaGeolocalizacaoAusente(error) {
+    const mensagem = String(error?.message ?? "").toLowerCase();
+    return mensagem.includes("latitude") || mensagem.includes("longitude") || mensagem.includes("geocodificado");
+}
+async function consultarRestaurantesPublicos() {
+    const cliente = obterClienteLeituraPublica();
+    const consulta = cliente
+        .from("restaurantes")
+        .select("id_restaurante, nome, razao_social, telefone, email, cep, endereco, horario_funcionamento, logo_url, valor_minimo_reserva_por_pessoa, latitude, longitude")
+        .eq("ativo", true)
+        .order("nome");
+    const resposta = await consulta;
+    if (!resposta.error || !erroColunaGeolocalizacaoAusente(resposta.error)) {
+        return resposta;
+    }
+    return cliente
+        .from("restaurantes")
+        .select("id_restaurante, nome, razao_social, telefone, email, cep, endereco, horario_funcionamento, logo_url, valor_minimo_reserva_por_pessoa")
+        .eq("ativo", true)
+        .order("nome");
+}
+async function consultarRestaurantePublicoPorId(restaurantId) {
+    const cliente = obterClienteLeituraPublica();
+    const resposta = await cliente
+        .from("restaurantes")
+        .select("id_restaurante, nome, telefone, email, endereco, horario_funcionamento, logo_url, valor_minimo_reserva_por_pessoa, configuracao_operacao, latitude, longitude")
+        .eq("id_restaurante", restaurantId)
+        .eq("ativo", true)
+        .single();
+    if (!resposta.error || !erroColunaGeolocalizacaoAusente(resposta.error)) {
+        return resposta;
+    }
+    return cliente
+        .from("restaurantes")
+        .select("id_restaurante, nome, telefone, email, endereco, horario_funcionamento, logo_url, valor_minimo_reserva_por_pessoa, configuracao_operacao")
+        .eq("id_restaurante", restaurantId)
+        .eq("ativo", true)
+        .single();
+}
 async function obterUsuarioOpcional(req) {
     const authorization = req.headers.authorization;
     if (!authorization?.startsWith("Bearer ")) return null;
@@ -204,14 +355,24 @@ function montarHorariosOperacionais({ restaurante, dataReserva, pessoas, reserva
 exports.restaurantsRouter.get("/", async (req, res) => {
     try {
         const termoBusca = normalizarBusca(req.query.q);
+        let latitudeCliente = numeroValido(req.query.latitude);
+        let longitudeCliente = numeroValido(req.query.longitude);
+        let origemDistancia = coordenadaValida(latitudeCliente, longitudeCliente) ? "navegador" : null;
+        let localizacaoResolvida = null;
+        if (!origemDistancia && req.query.localizacao) {
+            localizacaoResolvida = await geocodificarLocalizacao(req.query.localizacao);
+            if (localizacaoResolvida) {
+                latitudeCliente = localizacaoResolvida.latitude;
+                longitudeCliente = localizacaoResolvida.longitude;
+                origemDistancia = "busca";
+            }
+        }
+        const podeCalcularDistancia = Boolean(origemDistancia);
+        const raioKm = numeroValido(req.query.raio_km);
         const usuario = await obterUsuarioOpcional(req);
         const cliente = await obterClientePorUsuario(usuario?.id);
         const [restaurantesResposta, produtosCorrespondentes] = await Promise.all([
-            obterClienteLeituraPublica()
-                .from("restaurantes")
-                .select("id_restaurante, nome, razao_social, telefone, email, cep, endereco, horario_funcionamento, logo_url, valor_minimo_reserva_por_pessoa")
-                .eq("ativo", true)
-                .order("nome"),
+            consultarRestaurantesPublicos(),
             obterProdutosCorrespondentes(termoBusca),
         ]);
         if (restaurantesResposta.error) {
@@ -219,12 +380,35 @@ exports.restaurantsRouter.get("/", async (req, res) => {
         }
         const restaurantesFiltrados = (restaurantesResposta.data ?? []).filter((restaurante) => restauranteCorrespondeBusca(restaurante, termoBusca) ||
             produtosCorrespondentes.has(restaurante.id_restaurante));
-        const metricas = await obterMetricas(restaurantesFiltrados.map((item) => item.id_restaurante), cliente?.id_cliente);
-        return res.json(restaurantesFiltrados.map((item) => ({
-            ...item,
-            produtos_encontrados: produtosCorrespondentes.get(item.id_restaurante) ?? [],
-            ...metricas.get(item.id_restaurante),
-        })));
+        const restaurantesComGeolocalizacao = podeCalcularDistancia
+            ? await preencherCoordenadasAusentes(restaurantesFiltrados)
+            : restaurantesFiltrados;
+        const metricas = await obterMetricas(restaurantesComGeolocalizacao.map((item) => item.id_restaurante), cliente?.id_cliente);
+        const resposta = restaurantesComGeolocalizacao.map((item) => {
+            const latitudeRestaurante = numeroValido(item.latitude);
+            const longitudeRestaurante = numeroValido(item.longitude);
+            const distanciaKm = podeCalcularDistancia && coordenadaValida(latitudeRestaurante, longitudeRestaurante)
+                ? Number(calcularDistanciaKm(latitudeCliente, longitudeCliente, latitudeRestaurante, longitudeRestaurante).toFixed(1))
+                : null;
+            return {
+                ...item,
+                distancia_km: distanciaKm,
+                origem_distancia: origemDistancia,
+                localizacao_resolvida: localizacaoResolvida?.nome ?? null,
+                produtos_encontrados: produtosCorrespondentes.get(item.id_restaurante) ?? [],
+                ...metricas.get(item.id_restaurante),
+            };
+        }).filter((item) => {
+            if (!podeCalcularDistancia || !Number.isFinite(raioKm) || raioKm <= 0) return true;
+            return item.distancia_km !== null && item.distancia_km <= raioKm;
+        }).sort((a, b) => {
+            if (!podeCalcularDistancia) return 0;
+            if (a.distancia_km === null && b.distancia_km === null) return 0;
+            if (a.distancia_km === null) return 1;
+            if (b.distancia_km === null) return -1;
+            return a.distancia_km - b.distancia_km;
+        });
+        return res.json(resposta);
     }
     catch (error) {
         return res.status(400).json({
@@ -293,12 +477,7 @@ exports.restaurantsRouter.get("/:id", async (req, res) => {
         const usuario = await obterUsuarioOpcional(req);
         const cliente = await obterClientePorUsuario(usuario?.id);
         const [{ data, error }, metricas, avaliacoes, conexaoResposta] = await Promise.all([
-            obterClienteLeituraPublica()
-                .from("restaurantes")
-                .select("id_restaurante, nome, telefone, email, endereco, horario_funcionamento, logo_url, valor_minimo_reserva_por_pessoa, configuracao_operacao")
-                .eq("id_restaurante", restaurantId)
-                .eq("ativo", true)
-                .single(),
+            consultarRestaurantePublicoPorId(restaurantId),
             obterMetricas([restaurantId], cliente?.id_cliente),
             obterClienteLeituraPublica().from("avaliacoes_restaurante")
                 .select("id_avaliacao, nota, comentario, created_at, clientes(nome)")

@@ -22,6 +22,64 @@ function usuarioEhAdministrador(user) {
     const email = String(user?.email ?? "").toLowerCase();
     return Boolean(email && obterEmailsAdministradores().includes(email));
 }
+function coordenadaValida(latitude, longitude) {
+    return Number.isFinite(latitude) && Number.isFinite(longitude) &&
+        latitude >= -90 && latitude <= 90 &&
+        longitude >= -180 && longitude <= 180;
+}
+function removerComplementoEndereco(endereco) {
+    return String(endereco ?? "")
+        .replace(/,\s*(apto|apartamento|sala|bloco|cj|conjunto|loja)\b[^,]*/gi, "")
+        .replace(/\s{2,}/g, " ")
+        .trim();
+}
+async function geocodificarLocalizacao(consulta) {
+    if (!consulta.trim()) return null;
+    try {
+        const url = new URL("https://nominatim.openstreetmap.org/search");
+        url.searchParams.set("format", "jsonv2");
+        url.searchParams.set("limit", "1");
+        url.searchParams.set("countrycodes", "br");
+        url.searchParams.set("q", `${consulta}, Brasil`);
+        const resposta = await fetch(url, {
+            headers: {
+                "Accept": "application/json",
+                "User-Agent": "Appono MVP contato@appono.com.br",
+            },
+        });
+        if (!resposta.ok) return null;
+        const resultados = await resposta.json();
+        const resultado = Array.isArray(resultados) ? resultados[0] : null;
+        const latitude = Number(resultado?.lat);
+        const longitude = Number(resultado?.lon);
+        if (!coordenadaValida(latitude, longitude)) return null;
+        return { latitude, longitude };
+    }
+    catch {
+        return null;
+    }
+}
+async function geocodificarEnderecoRestaurante(endereco, cep) {
+    const enderecoInformado = String(endereco ?? "").trim();
+    const enderecoSemComplemento = removerComplementoEndereco(enderecoInformado);
+    const consultas = [
+        [enderecoInformado, cep].filter(Boolean).join(", "),
+        enderecoSemComplemento !== enderecoInformado
+            ? [enderecoSemComplemento, cep].filter(Boolean).join(", ")
+            : "",
+        enderecoSemComplemento,
+        cep,
+    ].filter(Boolean);
+    for (const consulta of [...new Set(consultas)]) {
+        const coordenadas = await geocodificarLocalizacao(consulta);
+        if (coordenadas) return coordenadas;
+    }
+    return null;
+}
+function erroColunaGeolocalizacaoAusente(error) {
+    const mensagem = String(error?.message ?? "").toLowerCase();
+    return mensagem.includes("latitude") || mensagem.includes("longitude") || mensagem.includes("geocodificado");
+}
 async function obterPerfil(supabase, userId) {
     const { data: cliente, error: clienteError } = await supabase
         .from("clientes")
@@ -118,7 +176,24 @@ exports.meRouter.patch("/", auth_1.requireAuth, async (req, res) => {
         return res.status(400).json({ error: "Nenhum campo editavel foi informado." });
     }
     const tabela = perfilAtual.tipo === "cliente" ? "clientes" : "restaurantes";
-    const { error } = await supabase.from(tabela).update(atualizacao).eq("id_auth", res.locals.user.id);
+    if (perfilAtual.tipo === "restaurante" &&
+        (Object.prototype.hasOwnProperty.call(atualizacao, "endereco") ||
+            Object.prototype.hasOwnProperty.call(atualizacao, "cep"))) {
+        const coordenadas = await geocodificarEnderecoRestaurante(atualizacao.endereco ?? perfilAtual.perfil.endereco, atualizacao.cep ?? perfilAtual.perfil.cep);
+        if (coordenadas) {
+            atualizacao.latitude = coordenadas.latitude;
+            atualizacao.longitude = coordenadas.longitude;
+            atualizacao.geocodificado_em = new Date().toISOString();
+        }
+    }
+    let { error } = await supabase.from(tabela).update(atualizacao).eq("id_auth", res.locals.user.id);
+    if (error && perfilAtual.tipo === "restaurante" && erroColunaGeolocalizacaoAusente(error)) {
+        delete atualizacao.latitude;
+        delete atualizacao.longitude;
+        delete atualizacao.geocodificado_em;
+        const tentativaSemGeolocalizacao = await supabase.from(tabela).update(atualizacao).eq("id_auth", res.locals.user.id);
+        error = tentativaSemGeolocalizacao.error;
+    }
     if (error) {
         return res.status(400).json({ error: error.message });
     }

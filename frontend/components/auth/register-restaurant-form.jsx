@@ -40,6 +40,18 @@ const initialForm = {
   password: "",
 };
 
+function redirecionarParaLogin(email) {
+  const params = new URLSearchParams();
+  const emailNormalizado = String(email ?? "").trim().toLowerCase();
+
+  params.set("cadastro", "existente");
+  if (emailNormalizado) {
+    params.set("email", emailNormalizado);
+  }
+
+  window.location.href = `/login?${params.toString()}`;
+}
+
 export function RegisterRestaurantForm({ googleFlow = false }) {
   const [form, setForm] = useState(initialForm);
   const [message, setMessage] = useState("");
@@ -140,6 +152,11 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
 
       setMessage("");
     } catch (error) {
+      if (error?.code === "AUTH_USER_ALREADY_EXISTS") {
+        redirecionarParaLogin(form.email);
+        return;
+      }
+
       setMessage(
         error instanceof Error
           ? error.message
