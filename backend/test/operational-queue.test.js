@@ -29,14 +29,19 @@ function reservaEm(minutos, status = "CONFIRMADA") {
 
 test("calcula a janela operacional a partir do horario da reserva", () => {
     assert.equal(obterMinutosAteReserva(reservaEm(45), agora), 45);
-    assert.equal(JANELA_OPERACIONAL_MINUTOS, 60);
+    assert.equal(JANELA_OPERACIONAL_MINUTOS, 90);
 });
 
-test("pedido confirmado entra na fila futura da cozinha ordenada por horario", () => {
+test("pedido confirmado entra na cozinha somente na janela operacional da reserva", () => {
     assert.equal(pedidoEstaNaFilaOperacional({
         status_pedido: "CONFIRMADO",
         reservas: reservaEm(90),
     }, agora), true);
+
+    assert.equal(pedidoEstaNaFilaOperacional({
+        status_pedido: "CONFIRMADO",
+        reservas: reservaEm(91),
+    }, agora), false);
 
     assert.equal(pedidoEstaNaFilaOperacional({
         status_pedido: "CONFIRMADO",
@@ -59,7 +64,7 @@ test("inicio de preparo depende da elegibilidade operacional do pedido", () => {
     assert.equal(pedidoPodeIniciarPreparo({
         status_pedido: "CONFIRMADO",
         iniciar_preparo_em: "2026-08-18T09:45:00",
-        reservas: reservaEm(90),
+        reservas: reservaEm(45),
     }, agora), true);
 
     assert.equal(pedidoPodeIniciarPreparo({

@@ -227,7 +227,8 @@ exports.ordersRouter.get("/", async (req, res) => {
     const { page, limit, from, to } = parsePagination(req.query);
     const { data, error, count } = await supabase
         .from("pedidos")
-        .select("id_pedido, id_restaurante, id_reserva, status_pedido, valor_total, data_pedido, restaurantes(nome), reservas(data_reserva, horario_inicio, status_reserva)", { count: "exact" })
+        .select("id_pedido, id_restaurante, id_reserva, status_pedido, valor_total, data_pedido, ocultado_cliente, restaurantes(nome), reservas(data_reserva, horario_inicio, status_reserva)", { count: "exact" })
+        .eq("ocultado_cliente", false)
         .order("data_pedido", { ascending: false })
         .range(from, to);
     if (error) {
@@ -536,6 +537,56 @@ exports.ordersRouter.patch("/:id/cancelar", (0, auth_1.requireRole)("cliente"), 
             dados: { id_pedido: data.id_pedido, id_reserva: data.id_reserva },
         }),
     ]);
+    return res.json(data);
+});
+exports.ordersRouter.patch("/:id/ocultar", (0, auth_1.requireRole)("cliente"), async (req, res) => {
+    const orderId = Number(req.params.id);
+    const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
+    if (!Number.isFinite(orderId)) {
+        return res.status(400).json({ error: "Pedido invalido." });
+    }
+    const { data: cliente, error: clienteError } = await supabase
+        .from("clientes")
+        .select("id_cliente")
+        .eq("id_auth", res.locals.user.id)
+        .maybeSingle();
+    if (clienteError) {
+        return res.status(400).json({ error: clienteError.message });
+    }
+    if (!cliente) {
+        return res.status(403).json({ error: "Apenas o cliente pode remover o proprio pedido do historico." });
+    }
+    const { data: pedido, error: pedidoError } = await supabase
+        .from("pedidos")
+        .select("id_pedido, id_cliente, status_pedido")
+        .eq("id_pedido", orderId)
+        .eq("id_cliente", cliente.id_cliente)
+        .maybeSingle();
+    if (pedidoError) {
+        return res.status(400).json({ error: pedidoError.message });
+    }
+    if (!pedido) {
+        return res.status(404).json({ error: "Pedido nao encontrado." });
+    }
+    if (!["ENTREGUE", "CANCELADO"].includes(pedido.status_pedido)) {
+        return res.status(409).json({
+            error: "Apenas pedidos entregues ou cancelados podem ser removidos do historico.",
+        });
+    }
+    const clienteBanco = supabase_1.supabaseAdmin ?? supabase;
+    const { data, error } = await clienteBanco
+        .from("pedidos")
+        .update({
+            ocultado_cliente: true,
+            ocultado_cliente_em: new Date().toISOString(),
+        })
+        .eq("id_pedido", orderId)
+        .eq("id_cliente", cliente.id_cliente)
+        .select("id_pedido, status_pedido, ocultado_cliente, ocultado_cliente_em")
+        .single();
+    if (error) {
+        return res.status(400).json({ error: error.message });
+    }
     return res.json(data);
 });
 exports.ordersRouter.patch("/:id/status", (0, auth_1.requireRole)("restaurante"), async (req, res) => {

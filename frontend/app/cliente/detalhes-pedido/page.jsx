@@ -20,6 +20,7 @@ export default function PedidosClientePage() {
     const [resultado, setResultado] = useState({ items: [], pagination: null });
     const [carregando, setCarregando] = useState(true);
     const [erro, setErro] = useState("");
+    const [pedidoExcluindo, setPedidoExcluindo] = useState(null);
 
     useEffect(() => {
         const controller = new AbortController();
@@ -38,6 +39,23 @@ export default function PedidosClientePage() {
         setCarregando(true);
         setErro("");
         setPagina(proximaPagina);
+    }
+
+    async function excluirPedidoDaLista(pedido) {
+        if (!window.confirm(`Remover o pedido #${pedido.id_pedido} do seu historico?`)) return;
+        setPedidoExcluindo(pedido.id_pedido);
+        setErro("");
+        try {
+            await apiRequest(`/pedidos/${pedido.id_pedido}/ocultar`, { method: "PATCH" });
+            setResultado((atual) => ({
+                ...atual,
+                items: (atual.items ?? []).filter((item) => item.id_pedido !== pedido.id_pedido),
+            }));
+        } catch (error) {
+            setErro(error instanceof Error ? error.message : "Nao foi possivel remover o pedido da lista.");
+        } finally {
+            setPedidoExcluindo(null);
+        }
     }
 
     const pedidos = resultado.items ?? [];
@@ -81,6 +99,11 @@ export default function PedidosClientePage() {
                                             </Link>
                                         ) : null}
                                         <Link href={`/cliente/pedidos/${pedido.id_pedido}`} className="rounded-[8px] bg-app-cafe-profundo px-4 py-2 text-xs font-bold uppercase text-app-creme-leve transition hover:bg-app-caramelo-torrado">Ver detalhes</Link>
+                                        {["ENTREGUE", "CANCELADO"].includes(pedido.status_pedido) ? (
+                                            <button type="button" disabled={pedidoExcluindo === pedido.id_pedido} onClick={() => excluirPedidoDaLista(pedido)} className="rounded-[8px] border border-red-300 px-4 py-2 text-xs font-bold uppercase text-red-700 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50">
+                                                {pedidoExcluindo === pedido.id_pedido ? "Removendo..." : "Excluir"}
+                                            </button>
+                                        ) : null}
                                     </div>
                                 </div>
                             </article>
