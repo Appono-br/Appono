@@ -514,8 +514,8 @@ export default function RestaurantFinancialReportPage() {
       </footer>
 
       {modalMercadoPago ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-app-cafe-profundo/65 px-5 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="modal-mercado-pago-titulo">
-          <section className="w-full max-w-lg rounded-[14px] bg-app-creme-leve p-6 text-app-cafe-profundo shadow-2xl ring-1 ring-app-baunilha-dourada/70 sm:p-8">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 px-5 backdrop-blur-[2px]" role="dialog" aria-modal="true" aria-labelledby="modal-mercado-pago-titulo">
+          <section className="w-full max-w-lg rounded-[18px] bg-white p-6 text-app-cafe-profundo shadow-2xl ring-1 ring-black/10 sm:p-8">
             <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-app-caramelo-torrado">
               Mercado Pago
             </p>
@@ -531,7 +531,7 @@ export default function RestaurantFinancialReportPage() {
               <button type="button" disabled={acaoMercadoPago} onClick={() => setModalMercadoPago(null)} className="inline-flex h-11 items-center justify-center rounded-[8px] border border-app-baunilha-dourada px-5 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:bg-app-chantilly disabled:cursor-not-allowed disabled:opacity-60">
                 Cancelar
               </button>
-              <button type="button" disabled={acaoMercadoPago} onClick={confirmarAcaoMercadoPago} className="inline-flex h-11 items-center justify-center rounded-[8px] bg-app-cafe-profundo px-5 text-xs font-bold uppercase tracking-[0.12em] text-app-creme-leve transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-60">
+              <button type="button" disabled={acaoMercadoPago} onClick={confirmarAcaoMercadoPago} className={`inline-flex h-11 items-center justify-center rounded-[8px] px-5 text-xs font-bold uppercase tracking-[0.12em] transition disabled:cursor-not-allowed disabled:opacity-60 ${modalMercadoPago === "desconectar" ? "botao-acao-critica" : "bg-app-cafe-profundo text-app-creme-leve hover:bg-app-caramelo-torrado"}`}>
                 {acaoMercadoPago ? "Processando..." : modalMercadoPago === "conectar" ? "Continuar" : "Desconectar"}
               </button>
             </div>

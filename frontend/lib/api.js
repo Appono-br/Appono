@@ -97,7 +97,10 @@ export async function apiRequest(path, options = {}) {
             }
         }
         if (!response.ok) {
-            throw new Error(body?.error ?? "Nao conseguimos concluir agora.");
+            const error = new Error(body?.error ?? "Nao conseguimos concluir agora.");
+            error.status = response.status;
+            error.code = body?.code;
+            throw error;
         }
         if (metodo !== "GET") {
             limparCacheGet();

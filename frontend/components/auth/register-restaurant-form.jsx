@@ -40,13 +40,25 @@
     password: "",
   };
 
-  export function RegisterRestaurantForm({ googleFlow = false }) {
-    const [form, setForm] = useState(initialForm);
-    const [message, setMessage] = useState("");
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [imagem, setImagem] = useState(null);
-    const [imagemPreview, setImagemPreview] = useState("");
-    const [googleSession, setGoogleSession] = useState(null);
+function redirecionarParaLogin(email) {
+  const params = new URLSearchParams();
+  const emailNormalizado = String(email ?? "").trim().toLowerCase();
+
+  params.set("cadastro", "existente");
+  if (emailNormalizado) {
+    params.set("email", emailNormalizado);
+  }
+
+  window.location.href = `/login?${params.toString()}`;
+}
+
+export function RegisterRestaurantForm({ googleFlow = false }) {
+  const [form, setForm] = useState(initialForm);
+  const [message, setMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [imagem, setImagem] = useState(null);
+  const [imagemPreview, setImagemPreview] = useState("");
+  const [googleSession, setGoogleSession] = useState(null);
 
     const isGoogleFlow = googleFlow;
 
@@ -230,6 +242,11 @@
             "Conta criada. Confirme seu e-mail para entrar direto no painel."
         );
       } catch (error) {
+        if (error?.code === "AUTH_USER_ALREADY_EXISTS") {
+          redirecionarParaLogin(form.email);
+          return;
+        }
+
         setMessage(
           error instanceof Error
             ? error.message

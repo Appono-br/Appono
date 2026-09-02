@@ -227,7 +227,8 @@ exports.ordersRouter.get("/", async (req, res) => {
     const { page, limit, from, to } = parsePagination(req.query);
     const { data, error, count } = await supabase
         .from("pedidos")
-        .select("id_pedido, id_restaurante, id_reserva, status_pedido, valor_total, data_pedido, restaurantes(nome), reservas(data_reserva, horario_inicio, status_reserva)", { count: "exact" })
+        .select("id_pedido, id_restaurante, id_reserva, status_pedido, valor_total, data_pedido, ocultado_cliente, restaurantes(nome), reservas(data_reserva, horario_inicio, status_reserva)", { count: "exact" })
+        .eq("ocultado_cliente", false)
         .order("data_pedido", { ascending: false })
         .range(from, to);
     if (error) {
@@ -438,17 +439,6 @@ exports.ordersRouter.patch("/:id/cancelar", (0, auth_1.requireRole)("cliente"), 
             error: "O pedido nao pode ser cancelado porque o preparo ja foi iniciado.",
         });
     }
-    const dataReserva = pedido.reservas?.data_reserva;
-    const horarioReserva = pedido.reservas?.horario_inicio;
-    if (dataReserva && horarioReserva) {
-        const dataHoraReserva = new Date(`${dataReserva}T${horarioReserva}`);
-        const limiteCancelamento = new Date(dataHoraReserva.getTime() - 30 * 60 * 1000);
-        if (new Date() > limiteCancelamento) {
-            return res.status(409).json({
-                error: "O pedido so pode ser cancelado ate 30 minutos antes da reserva.",
-            });
-        }
-    }
     if (supabase_1.supabaseAdmin) {
         const { data: pagamentoAprovado } = await supabase_1.supabaseAdmin.from("pagamentos")
             .select("id_pagamento, mercado_pago_payment_id, status_pagamento")
@@ -513,9 +503,7 @@ exports.ordersRouter.patch("/:id/cancelar", (0, auth_1.requireRole)("cliente"), 
         pedido_id: orderId,
     });
     if (error) {
-        const mensagem = error.message.includes("30 minutos")
-            ? "O pedido so pode ser cancelado ate 30 minutos antes da reserva."
-            : error.message.includes("nao pode mais ser cancelado")
+        const mensagem = error.message.includes("nao pode mais ser cancelado")
                 ? "Este pedido nao pode mais ser cancelado."
                 : error.message;
         return res.status(409).json({ error: mensagem });
@@ -536,6 +524,56 @@ exports.ordersRouter.patch("/:id/cancelar", (0, auth_1.requireRole)("cliente"), 
             dados: { id_pedido: data.id_pedido, id_reserva: data.id_reserva },
         }),
     ]);
+    return res.json(data);
+});
+exports.ordersRouter.patch("/:id/ocultar", (0, auth_1.requireRole)("cliente"), async (req, res) => {
+    const orderId = Number(req.params.id);
+    const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
+    if (!Number.isFinite(orderId)) {
+        return res.status(400).json({ error: "Pedido invalido." });
+    }
+    const { data: cliente, error: clienteError } = await supabase
+        .from("clientes")
+        .select("id_cliente")
+        .eq("id_auth", res.locals.user.id)
+        .maybeSingle();
+    if (clienteError) {
+        return res.status(400).json({ error: clienteError.message });
+    }
+    if (!cliente) {
+        return res.status(403).json({ error: "Apenas o cliente pode remover o proprio pedido do historico." });
+    }
+    const { data: pedido, error: pedidoError } = await supabase
+        .from("pedidos")
+        .select("id_pedido, id_cliente, status_pedido")
+        .eq("id_pedido", orderId)
+        .eq("id_cliente", cliente.id_cliente)
+        .maybeSingle();
+    if (pedidoError) {
+        return res.status(400).json({ error: pedidoError.message });
+    }
+    if (!pedido) {
+        return res.status(404).json({ error: "Pedido nao encontrado." });
+    }
+    if (!["ENTREGUE", "CANCELADO"].includes(pedido.status_pedido)) {
+        return res.status(409).json({
+            error: "Apenas pedidos entregues ou cancelados podem ser removidos do historico.",
+        });
+    }
+    const clienteBanco = supabase_1.supabaseAdmin ?? supabase;
+    const { data, error } = await clienteBanco
+        .from("pedidos")
+        .update({
+            ocultado_cliente: true,
+            ocultado_cliente_em: new Date().toISOString(),
+        })
+        .eq("id_pedido", orderId)
+        .eq("id_cliente", cliente.id_cliente)
+        .select("id_pedido, status_pedido, ocultado_cliente, ocultado_cliente_em")
+        .single();
+    if (error) {
+        return res.status(400).json({ error: error.message });
+    }
     return res.json(data);
 });
 exports.ordersRouter.patch("/:id/status", (0, auth_1.requireRole)("restaurante"), async (req, res) => {

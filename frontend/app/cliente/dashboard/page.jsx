@@ -64,6 +64,28 @@ function formatarMoeda(valor) {
         currency: "BRL",
     }).format(Number(valor ?? 0));
 }
+function formatarDistancia(valor) {
+    const distancia = Number(valor);
+    if (!Number.isFinite(distancia)) {
+        return "Distancia indisponivel";
+    }
+    if (distancia < 1) {
+        return `${Math.max(100, Math.round(distancia * 1000 / 100) * 100)} m`;
+    }
+    return `${distancia.toFixed(distancia < 10 ? 1 : 0).replace(".", ",")} km`;
+}
+function obterMensagemOrigemLocalizacao(status) {
+    if (status === "ready") {
+        return "Restaurantes ordenados pela sua localizacao atual.";
+    }
+    if (status === "manual") {
+        return "Restaurantes ordenados pelo local informado.";
+    }
+    if (status === "loading") {
+        return "Buscando sua localizacao para carregar os restaurantes mais proximos.";
+    }
+    return "Permita sua localizacao para carregar restaurantes proximos automaticamente.";
+}
 function obterCamposRestaurante(restaurant) {
     return [
         restaurant.name,
@@ -82,17 +104,35 @@ export default function DashboardPage() {
     const [reservas, setReservas] = useState([]);
     const [message, setMessage] = useState("");
     const [updatingFavorite, setUpdatingFavorite] = useState("");
+    const [localizacaoCliente, setLocalizacaoCliente] = useState(null);
+    const [localizacaoManual, setLocalizacaoManual] = useState("");
+    const [localizacaoManualAplicada, setLocalizacaoManualAplicada] = useState("");
+    const [raioKm, setRaioKm] = useState("5");
+    const [statusLocalizacao, setStatusLocalizacao] = useState("idle");
+    const [carregandoRestaurantes, setCarregandoRestaurantes] = useState(true);
     useEffect(() => {
         const timer = window.setTimeout(() => setDebouncedQuery(query.trim()), 250);
         return () => window.clearTimeout(timer);
     }, [query]);
     useEffect(() => {
         async function loadRestaurants() {
+            setCarregandoRestaurantes(true);
             try {
                 const endpoint = debouncedQuery
-                    ? `/restaurantes?q=${encodeURIComponent(debouncedQuery)}`
-                    : "/restaurantes";
-                const data = await apiRequest(endpoint);
+                    ? new URLSearchParams({ q: debouncedQuery })
+                    : new URLSearchParams();
+                if (localizacaoCliente) {
+                    endpoint.set("latitude", String(localizacaoCliente.latitude));
+                    endpoint.set("longitude", String(localizacaoCliente.longitude));
+                }
+                else if (localizacaoManualAplicada) {
+                    endpoint.set("localizacao", localizacaoManualAplicada);
+                }
+                if (raioKm !== "todos") {
+                    endpoint.set("raio_km", raioKm);
+                }
+                const queryString = endpoint.toString();
+                const data = await apiRequest(`/restaurantes${queryString ? `?${queryString}` : ""}`);
                 setRestaurants(data.map((restaurant) => ({
                     id: String(restaurant.id_restaurante),
                     name: restaurant.nome,
@@ -105,6 +145,9 @@ export default function DashboardPage() {
                     favoriteCount: restaurant.total_favoritos ?? 0,
                     isFavorite: Boolean(restaurant.favorito_cliente),
                     matchedProducts: restaurant.produtos_encontrados ?? [],
+                    distanceKm: restaurant.distancia_km,
+                    distanceOrigin: restaurant.origem_distancia,
+                    resolvedLocation: restaurant.localizacao_resolvida,
                 })));
             }
             catch (error) {
@@ -112,9 +155,41 @@ export default function DashboardPage() {
                     ? error.message
                     : "Nao foi possivel carregar restaurantes.");
             }
+            finally {
+                setCarregandoRestaurantes(false);
+            }
         }
         loadRestaurants();
-    }, [debouncedQuery]);
+    }, [debouncedQuery, localizacaoCliente, localizacaoManualAplicada, raioKm]);
+    useEffect(() => {
+        let cancelado = false;
+        async function solicitarLocalizacaoInicial() {
+            if (!("geolocation" in navigator)) {
+                if (!cancelado) setStatusLocalizacao("unsupported");
+                return;
+            }
+            if ("permissions" in navigator && navigator.permissions?.query) {
+                try {
+                    const permissao = await navigator.permissions.query({ name: "geolocation" });
+                    if (cancelado) return;
+                    if (permissao.state === "denied") {
+                        setStatusLocalizacao("denied");
+                        return;
+                    }
+                }
+                catch {
+                }
+            }
+            if (!cancelado) {
+                solicitarLocalizacao();
+            }
+        }
+        const timer = window.setTimeout(solicitarLocalizacaoInicial, 250);
+        return () => {
+            cancelado = true;
+            window.clearTimeout(timer);
+        };
+    }, []);
     useEffect(() => {
         async function loadReservations() {
             try {
@@ -134,14 +209,6 @@ export default function DashboardPage() {
             .filter((reserva) => new Date(`${reserva.data_reserva}T${reserva.horario_inicio}`) >= agora)
             .sort((a, b) => new Date(`${a.data_reserva}T${a.horario_inicio}`) - new Date(`${b.data_reserva}T${b.horario_inicio}`))[0];
     }, [reservas]);
-    const filteredRestaurants = useMemo(() => {
-        const byFilter = restaurants.filter((restaurant) => {
-            const matchesFilter = activeFilter === "Todas Especialidades" ||
-                restaurant.specialty === activeFilter;
-            return matchesFilter;
-        });
-        return filtrarOrdenarPorBusca(byFilter, query, obterCamposRestaurante);
-    }, [activeFilter, query, restaurants]);
     const searchResults = useMemo(() => {
         if (!query.trim()) {
             return [];
@@ -149,6 +216,43 @@ export default function DashboardPage() {
         return filtrarOrdenarPorBusca(restaurants, query, obterCamposRestaurante).slice(0, 5);
     }, [query, restaurants]);
     const highlightedRestaurants = useMemo(() => [...restaurants].sort((a, b) => b.favoriteCount - a.favoriteCount).slice(0, 3), [restaurants]);
+    const nearbyRestaurants = useMemo(() => restaurants
+        .filter((restaurant) => Number.isFinite(Number(restaurant.distanceKm)))
+        .sort((a, b) => Number(a.distanceKm) - Number(b.distanceKm))
+        .slice(0, 6), [restaurants]);
+    function solicitarLocalizacao() {
+        if (!("geolocation" in navigator)) {
+            setStatusLocalizacao("unsupported");
+            return;
+        }
+        setStatusLocalizacao("loading");
+        navigator.geolocation.getCurrentPosition((posicao) => {
+            setLocalizacaoCliente({
+                latitude: Number(posicao.coords.latitude.toFixed(7)),
+                longitude: Number(posicao.coords.longitude.toFixed(7)),
+            });
+            setLocalizacaoManualAplicada("");
+            setStatusLocalizacao("ready");
+        }, () => {
+            setStatusLocalizacao("denied");
+        }, {
+            enableHighAccuracy: true,
+            timeout: 8000,
+            maximumAge: 0,
+        });
+    }
+    function buscarPorLocalizacaoManual(event) {
+        event.preventDefault();
+        const localizacao = localizacaoManual.trim();
+        if (!localizacao) {
+            setStatusLocalizacao("idle");
+            setLocalizacaoManualAplicada("");
+            return;
+        }
+        setLocalizacaoCliente(null);
+        setLocalizacaoManualAplicada(localizacao);
+        setStatusLocalizacao("manual");
+    }
     async function alternarFavorito(id) {
         const atual = restaurants.find((restaurant) => restaurant.id === id);
         if (!atual || updatingFavorite) return;
@@ -311,25 +415,61 @@ export default function DashboardPage() {
       </section>
 
       <section className="mx-auto max-w-7xl px-5 py-8">
-        <div className="rounded-[8px] bg-white p-6 sm:p-8">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="overflow-hidden rounded-[18px] bg-white shadow-sm ring-1 ring-app-baunilha-dourada/55">
+          <div className="grid gap-6 bg-app-cafe-profundo p-6 text-app-creme-leve lg:grid-cols-[1fr_0.9fr] lg:items-end sm:p-8">
             <div>
-              <p className="text-[10px] font-bold uppercase text-app-caramelo-torrado">
-                Conveniência e frescor
+              <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-app-baunilha-dourada">
+                Localizacao
               </p>
-              <h2 className="mt-2 text-4xl font-medium text-app-cafe-profundo sm:text-5xl">
-                Perto de Você
+              <h2 className="mt-2 text-4xl font-medium sm:text-5xl">
+                Perto de Voce
               </h2>
+              <p className="mt-3 max-w-xl text-sm leading-6 text-app-creme-suave">
+                {obterMensagemOrigemLocalizacao(statusLocalizacao)}
+              </p>
             </div>
-            <p className="flex items-center gap-2 text-sm text-app-mocha">
-              <Icon type="pin" className="h-4 w-4"/>
-              Localização será definida pelo perfil
-            </p>
+            <form onSubmit={buscarPorLocalizacaoManual} className="grid gap-3 rounded-[14px] bg-white/10 p-3 ring-1 ring-white/15">
+              <div className="grid gap-3 sm:grid-cols-[auto_1fr]">
+                <button type="button" onClick={solicitarLocalizacao} disabled={statusLocalizacao === "loading"} className="h-11 rounded-[10px] bg-white px-4 text-xs font-bold uppercase tracking-[0.12em] text-app-cafe-profundo transition hover:bg-app-chantilly disabled:cursor-wait disabled:opacity-60">
+                  {statusLocalizacao === "loading" ? "Localizando..." : localizacaoCliente ? "Atualizar localizacao" : "Permitir localizacao"}
+                </button>
+                <select value={raioKm} onChange={(event) => setRaioKm(event.target.value)} className="h-11 rounded-[10px] border border-white/20 bg-white px-3 text-sm font-semibold text-app-cafe-profundo outline-none">
+                  <option value="2">Ate 2 km</option>
+                  <option value="5">Ate 5 km</option>
+                  <option value="10">Ate 10 km</option>
+                  <option value="20">Ate 20 km</option>
+                  <option value="todos">Qualquer distancia</option>
+                </select>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
+                <label className="flex h-11 items-center gap-2 rounded-[10px] bg-white px-3 text-app-cafe-profundo">
+                  <Icon type="pin" className="h-4 w-4 text-app-caramelo-torrado"/>
+                  <span className="sr-only">Buscar por bairro, cidade ou CEP</span>
+                  <input value={localizacaoManual} onChange={(event) => setLocalizacaoManual(event.target.value)} placeholder="Ou informe bairro, cidade ou CEP" className="h-full min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-app-cinza"/>
+                </label>
+                <button type="submit" className="h-11 rounded-[10px] bg-app-dourado-mel px-5 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-app-caramelo-torrado">
+                  Buscar
+                </button>
+              </div>
+            </form>
           </div>
 
-          <div className="mt-6">
-            {filteredRestaurants.length ? (<div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-                {filteredRestaurants.map((restaurant) => (<article key={restaurant.id} className="group relative min-w-0 rounded-[8px] border border-app-baunilha-dourada bg-white p-2.5 shadow-sm transition hover:-translate-y-0.5 hover:border-app-caramelo-torrado/55 hover:shadow-md">
+          {statusLocalizacao === "denied" ? (
+            <p className="mx-6 mt-5 rounded-[8px] border border-app-baunilha-dourada bg-white p-4 text-sm font-semibold text-app-mocha sm:mx-8">
+              Nao foi possivel acessar sua localizacao. Libere a permissao no navegador para ver restaurantes por distancia.
+            </p>
+          ) : null}
+          {statusLocalizacao === "unsupported" ? (
+            <p className="mx-6 mt-5 rounded-[8px] border border-app-baunilha-dourada bg-white p-4 text-sm font-semibold text-app-mocha sm:mx-8">
+              Este navegador nao oferece suporte a localizacao automatica.
+            </p>
+          ) : null}
+
+          <div className="p-6 sm:p-8">
+            {carregandoRestaurantes && (statusLocalizacao === "loading" || localizacaoCliente || localizacaoManualAplicada) ? (
+              <EmptyState title="Carregando restaurantes proximos" description="Estamos calculando a distancia dos restaurantes para ordenar a lista."/>
+            ) : (localizacaoCliente || localizacaoManualAplicada) && nearbyRestaurants.length ? (<div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                {nearbyRestaurants.map((restaurant) => (<article key={restaurant.id} className="group relative min-w-0 rounded-[8px] border border-app-baunilha-dourada bg-white p-2.5 shadow-sm transition hover:-translate-y-0.5 hover:border-app-caramelo-torrado/55 hover:shadow-md">
                     <Link href={`/cliente/restaurantes/${restaurant.id}`} className="flex min-w-0 gap-3" aria-label={`Ver ${restaurant.name}`}>
                       <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-[8px] bg-white">
                         {restaurant.imageUrl ? (<Image src={restaurant.imageUrl} alt={restaurant.name} fill sizes="96px" className="object-cover transition duration-300 group-hover:scale-105"/>) : (<div className="flex h-full items-center justify-center bg-app-baunilha-dourada/45 px-2 text-center text-xs font-medium leading-4 text-app-mocha">
@@ -343,14 +483,19 @@ export default function DashboardPage() {
                         </h3>
                         <p className="mt-0.5 truncate text-xs font-medium leading-4 text-app-mocha antialiased">
                           <span className="font-semibold text-app-caramelo-torrado">
-                            {restaurant.rating?.toFixed(1) ?? "Novo"}
+                            {formatarDistancia(restaurant.distanceKm)}
                           </span>
-                          <span className="mx-1.5 text-app-cinza">•</span>
-                          {restaurant.specialty}
+                          <span className="mx-1.5 text-app-cinza">|</span>
+                          {restaurant.rating?.toFixed(1) ?? "Novo"}
                         </p>
                         <p className="mt-1 truncate text-xs leading-4 text-app-mocha antialiased">
                           {restaurant.neighborhood ?? "Endereco em atualizacao"}
                         </p>
+                        {restaurant.resolvedLocation ? (
+                          <p className="mt-0.5 truncate text-xs leading-4 text-app-cinza antialiased">
+                            Base: {restaurant.resolvedLocation}
+                          </p>
+                        ) : null}
                         <p className="truncate text-xs leading-4 text-app-mocha antialiased">
                           {restaurant.openingHours && restaurant.openingHours !== "A definir"
                     ? restaurant.openingHours
@@ -373,7 +518,7 @@ export default function DashboardPage() {
                       <Icon type="heart" filled={restaurant.isFavorite} className="h-full w-full"/>
                     </button>
                   </article>))}
-              </div>) : (<EmptyState title="Nenhum restaurante encontrado" description="Nenhum restaurante corresponde aos filtros selecionados."/>)}
+              </div>) : (localizacaoCliente || localizacaoManualAplicada) ? (<EmptyState title="Nenhum restaurante neste raio" description="Tente aumentar o raio de busca ou usar outra cidade, bairro ou CEP."/>) : (<EmptyState title="Permita sua localizacao" description="Ao autorizar o navegador, a Appono carrega automaticamente os restaurantes mais proximos e permite filtrar por raio."/>)}
           </div>
         </div>
       </section>

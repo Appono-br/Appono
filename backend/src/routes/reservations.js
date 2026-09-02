@@ -220,6 +220,7 @@ exports.reservationsRouter.patch("/:id/ocultar", async (req, res) => {
     if (!Number.isFinite(reservationId)) {
         return res.status(400).json({ error: "Reserva invalida." });
     }
+    await sincronizarReservasNaoComparecidas().catch(() => null);
     const { data, error } = await supabase.rpc("ocultar_reserva_do_historico", {
         reserva_id: reservationId,
     });

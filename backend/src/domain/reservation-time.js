@@ -42,6 +42,15 @@ function attendanceConfirmationEligibility(reservation, now = new Date()) {
     return { allowed: true, deadline };
 }
 
+function attendanceConfirmationExpired(reservation, now = new Date()) {
+    if (!reservation || reservation.status_reserva !== "CONFIRMADA") return false;
+    if (reservation.status_confirmacao_presenca !== "PENDENTE") return false;
+    const deadline = reservation.prazo_confirmacao_presenca
+        ? new Date(reservation.prazo_confirmacao_presenca)
+        : attendanceConfirmationDeadline(reservation);
+    return Boolean(deadline) && !Number.isNaN(deadline.getTime()) && now.getTime() > deadline.getTime();
+}
+
 function apponoCommissionPercentage() {
     const percentage = Number(process.env.MERCADO_PAGO_MARKETPLACE_FEE_PERCENTUAL ?? process.env.MERCADO_PAGO_MARKETPLACE_FEE ?? 13);
     if (!Number.isFinite(percentage)) return 13;
@@ -75,6 +84,7 @@ function calculateAttendanceRefundPolicy({ paidAmount, minimumTotal, commissionP
 module.exports = {
     apponoCommissionPercentage,
     attendanceConfirmationDeadline,
+    attendanceConfirmationExpired,
     attendanceConfirmationEligibility,
     calculateAttendanceRefundPolicy,
     intervalsOverlap,

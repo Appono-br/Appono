@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
+  --background: #f8f6f2;
   --foreground: #241713;
   --app-cacau-intenso: #241713;
   --app-caramelo-torrado: #7f4325;
@@ -12,7 +12,7 @@
   --app-dourado-mel: #b35f32;
   --app-creme-leve: #f7ead6;
   --app-areia-quente: #bf7d3a;
-  --app-chantilly: #ffffff;
+  --app-chantilly: #f8f6f2;
   --app-chantilly-hover: #eadcc8;
   --app-texto-escuro: #18100d;
   --app-cinza: #5f534b;
@@ -73,13 +73,13 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #ffffff;
+    --background: #f8f6f2;
     --foreground: #241713;
   }
 }
 
 body {
-  background: var(--app-chantilly);
+  background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
@@ -98,7 +98,7 @@ html {
   --app-dourado-mel: #b35f32;
   --app-creme-leve: #f7ead6;
   --app-areia-quente: #bf7d3a;
-  --app-chantilly: #ffffff;
+  --app-chantilly: #f8f6f2;
   --app-chantilly-hover: #eadcc8;
   --app-texto-escuro: #18100d;
   --app-cinza: #5f534b;
@@ -114,7 +114,6 @@ html {
 
 .area-autenticada main {
   position: relative;
-  overflow-x: hidden;
   background: var(--app-chantilly);
 }
 
@@ -706,7 +705,7 @@ body > div:not(.area-autenticada) select {
 }
 
 .area-restaurante main {
-  background: #ffffff !important;
+  background: var(--app-chantilly) !important;
   color: var(--app-cafe-profundo);
 }
 
@@ -1047,7 +1046,7 @@ body > div:not(.area-autenticada) select {
 }
 
 .area-cliente main {
-  background: #ffffff !important;
+  background: var(--app-chantilly) !important;
   color: var(--app-cafe-profundo);
 }
 
@@ -1203,6 +1202,15 @@ body > div:not(.area-autenticada) select {
 .area-cliente :is(button, a, p, span)[class*="bg-app-dourado-mel/"],
 .area-cliente :is(button, a, p, span)[class*="bg-app-caramelo-torrado/"] {
   background-color: transparent !important;
+}
+
+.botao-acao-critica {
+  background-color: #dc2626 !important;
+  color: #ffffff !important;
+}
+
+.botao-acao-critica:hover {
+  background-color: #b91c1c !important;
 }
 
 .area-cliente.tema-escuro {

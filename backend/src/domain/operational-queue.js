@@ -1,6 +1,6 @@
 "use strict";
 
-const JANELA_OPERACIONAL_MINUTOS = 60;
+const JANELA_OPERACIONAL_MINUTOS = 90;
 const HORIZONTE_RESERVAS_OPERACIONAIS_HORAS = 24;
 const STATUS_RESERVA_OPERACIONAL_PEDIDO = ["CONFIRMADA", "CHECK_IN"];
 
@@ -45,7 +45,7 @@ function pedidoEstaNaFilaOperacional(pedido, agora = new Date(), janelaMinutos =
     }
 
     const minutosAteReserva = obterMinutosAteReserva(pedido.reservas, agora);
-    return minutosAteReserva !== null && minutosAteReserva >= -janelaMinutos;
+    return minutosAteReserva !== null && minutosAteReserva <= janelaMinutos && minutosAteReserva >= -janelaMinutos;
 }
 
 function pedidoPodeIniciarPreparo(pedido, agora = new Date(), janelaMinutos = JANELA_OPERACIONAL_MINUTOS) {

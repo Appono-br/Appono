@@ -5,6 +5,8 @@ import { use, useEffect, useState } from "react";
 import { apiRequest } from "@/lib/api";
 import { textoStatusPedido, textoStatusReembolso } from "@/lib/formatadores-status";
 import { reservaAceitaPagamento } from "@/lib/elegibilidade-pagamento";
+import { useRouter } from "next/navigation";
+import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 
 const moeda = (valor) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(valor ?? 0));
 
@@ -38,6 +40,7 @@ function PedidoCarregando() {
 
 export default function DetalhePedidoPorId({ params }) {
     const { id } = use(params);
+    const router = useRouter();
     const [pedido, setPedido] = useState(null);
     const [reembolso, setReembolso] = useState(null);
     const [carregandoPedido, setCarregandoPedido] = useState(true);
@@ -45,6 +48,7 @@ export default function DetalhePedidoPorId({ params }) {
     const [processando, setProcessando] = useState(false);
     const [mostrandoReembolso, setMostrandoReembolso] = useState(false);
     const [motivoReembolso, setMotivoReembolso] = useState("");
+    const [confirmacaoAcao, setConfirmacaoAcao] = useState(null);
     const reembolsoBloqueiaNovaSolicitacao = reembolso && !["RECUSADO", "CANCELADO"].includes(reembolso.status_reembolso);
 
     useEffect(() => {
@@ -74,12 +78,12 @@ export default function DetalhePedidoPorId({ params }) {
     }, [id]);
 
     async function cancelarPedido() {
-        if (!window.confirm("Deseja cancelar este pedido? A reserva continuará ativa se ainda estiver confirmada.")) return;
         setProcessando(true);
         setErro("");
         try {
             const atualizado = await apiRequest(`/pedidos/${id}/cancelar`, { method: "PATCH" });
             setPedido((atual) => ({ ...atual, ...atualizado }));
+            setConfirmacaoAcao(null);
         } catch (error) {
             setErro(error instanceof Error ? error.message : "Não foi possível cancelar o pedido.");
         } finally {
@@ -97,6 +101,19 @@ export default function DetalhePedidoPorId({ params }) {
             setMotivoReembolso("");
         } catch (error) {
             setErro(error instanceof Error ? error.message : "Não foi possível solicitar o reembolso.");
+        } finally {
+            setProcessando(false);
+        }
+    }
+
+    async function excluirPedidoDaLista() {
+        setProcessando(true);
+        setErro("");
+        try {
+            await apiRequest(`/pedidos/${id}/ocultar`, { method: "PATCH" });
+            router.replace("/cliente/detalhes-pedido");
+        } catch (error) {
+            setErro(error instanceof Error ? error.message : "Nao foi possivel remover o pedido da lista.");
         } finally {
             setProcessando(false);
         }
@@ -184,9 +201,10 @@ export default function DetalhePedidoPorId({ params }) {
                 <section className="mt-6 rounded-[18px] bg-white p-5 shadow-sm ring-1 ring-app-baunilha-dourada/70 sm:p-6">
                     <div className="flex flex-wrap gap-3">
                         {pedido.status_pedido === "PENDENTE" && reservaAceitaPagamento(pedido.reservas) ? <Link href={`/cliente/pagamentos/pedido/${pedido.id_pedido}`} className="inline-flex h-11 items-center rounded-[8px] bg-app-dourado-mel px-6 text-xs font-bold uppercase tracking-[0.12em] text-white">Pagar no Mercado Pago</Link> : null}
-                        {["PENDENTE", "CONFIRMADO"].includes(pedido.status_pedido) ? <button type="button" disabled={processando} onClick={cancelarPedido} className="inline-flex h-11 items-center rounded-[8px] border border-red-300 px-6 text-xs font-bold uppercase tracking-[0.12em] text-red-700 disabled:opacity-50">{processando ? "Cancelando..." : "Cancelar pedido"}</button> : null}
+                        {["PENDENTE", "CONFIRMADO"].includes(pedido.status_pedido) ? <button type="button" disabled={processando} onClick={() => setConfirmacaoAcao("cancelar")} className="inline-flex h-11 items-center rounded-[8px] border border-red-300 px-6 text-xs font-bold uppercase tracking-[0.12em] text-red-700 disabled:opacity-50">{processando ? "Cancelando..." : "Cancelar pedido"}</button> : null}
                         {pedido.status_pedido === "ENTREGUE" ? <Link href={`/cliente/pedidos/${pedido.id_pedido}/avaliar`} className="inline-flex h-11 items-center rounded-[8px] border border-app-dourado-mel px-6 text-xs font-bold uppercase tracking-[0.12em] text-app-caramelo-torrado">Avaliar experiência</Link> : null}
                         {pedido.status_pedido !== "PENDENTE" && !reembolsoBloqueiaNovaSolicitacao ? <button type="button" onClick={() => setMostrandoReembolso(true)} className="inline-flex h-11 items-center rounded-[8px] border border-app-caramelo-torrado px-6 text-xs font-bold uppercase tracking-[0.12em] text-app-caramelo-torrado">Solicitar reembolso</button> : null}
+                        {["ENTREGUE", "CANCELADO"].includes(pedido.status_pedido) ? <button type="button" disabled={processando} onClick={() => setConfirmacaoAcao("excluir")} className="inline-flex h-11 items-center rounded-[8px] border border-red-300 px-6 text-xs font-bold uppercase tracking-[0.12em] text-red-700 transition hover:bg-red-50 disabled:opacity-50">Excluir do historico</button> : null}
                     </div>
 
                     {reembolso ? <div className="mt-5 rounded-[12px] bg-white p-4 text-sm ring-1 ring-app-baunilha-dourada/60"><strong>Reembolso: {textoStatusReembolso(reembolso.status_reembolso)}</strong><p className="mt-2 text-app-cinza">{reembolso.motivo}</p>{reembolso.resposta ? <p className="mt-2"><strong>Resposta:</strong> {reembolso.resposta}</p> : null}</div> : null}
@@ -203,6 +221,30 @@ export default function DetalhePedidoPorId({ params }) {
                     ) : null}
                 </section>
             </section>
+            <ConfirmationDialog
+                open={confirmacaoAcao === "cancelar"}
+                eyebrow="Cancelar pedido"
+                title="Deseja cancelar este pedido?"
+                description="A reserva continua ativa se ainda estiver confirmada. O pedido sera cancelado somente se o preparo ainda nao tiver iniciado."
+                confirmLabel="Cancelar pedido"
+                cancelLabel="Manter pedido"
+                loading={processando}
+                onCancel={() => setConfirmacaoAcao(null)}
+                onConfirm={cancelarPedido}
+                details={<p className="font-semibold">Pedido #{pedido.id_pedido} - {moeda(pedido.valor_total)}</p>}
+            />
+            <ConfirmationDialog
+                open={confirmacaoAcao === "excluir"}
+                eyebrow="Excluir pedido"
+                title="Remover este pedido do historico?"
+                description="O pedido sera ocultado apenas da sua lista. Pagamentos, reembolsos e registros operacionais continuam preservados."
+                confirmLabel="Excluir"
+                cancelLabel="Manter"
+                loading={processando}
+                onCancel={() => setConfirmacaoAcao(null)}
+                onConfirm={excluirPedidoDaLista}
+                details={<p className="font-semibold">Pedido #{pedido.id_pedido} - {moeda(pedido.valor_total)}</p>}
+            />
         </main>
     );
 }

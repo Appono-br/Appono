@@ -1,0 +1,38 @@
+[
+  {
+    "name": "01-home-publica",
+    "finalUrl": "http://localhost:3000/",
+    "bytes": 420370,
+    "preview": "Menu Reserve sua mesa com antecedência Planeje sua chegada, escolha seus pratos e ajude o restaurante a preparar uma experiência presencial mais rápida e organizada. Reservar ago"
+  },
+  {
+    "name": "02-login",
+    "finalUrl": "http://localhost:3000/login",
+    "bytes": 39778,
+    "preview": "Voltar ACESSO APPONO Bem-vindo de volta Entre para continuar sua jornada gastronomica ou torne-se um membro. ENDERECO DE E-MAIL SENHA Ver Lembrar-me Esqueceu a senha? ENTRAR CA"
+  },
+  {
+    "name": "03-cadastro-cliente",
+    "finalUrl": "http://localhost:3000/cadastro/cliente",
+    "bytes": 43211,
+    "preview": "Voltar CADASTRO DE CLIENTE Crie sua conta Appono Use seus dados reais para reservar mesa e acessar sua conta depois. NOME COMPLETO DATA DE NASCIMENTO CPF E-MAIL TELEFONE SENHA "
+  },
+  {
+    "name": "04-cadastro-restaurante",
+    "finalUrl": "http://localhost:3000/cadastro/restaurante",
+    "bytes": 90972,
+    "preview": "Voltar CADASTRO DE PARCEIRO Torne-se um parceiro APPONO Informe os dados operacionais do estabelecimento. A conta Mercado Pago poderá ser conectada depois, nas configurações. N"
+  },
+  {
+    "name": "05-recuperar-senha",
+    "finalUrl": "http://localhost:3000/recuperar-senha",
+    "bytes": 20904,
+    "preview": "RECUPERACAO DE SENHA Crie uma nova senha Link invalido ou expirado. Solicite um novo link de recuperacao. VOLTAR PARA LOGIN"
+  },
+  {
+    "name": "06-completar-perfil",
+    "finalUrl": "http://localhost:3000/completar-perfil",
+    "bytes": 40694,
+    "preview": "LOGIN COM GOOGLE Complete seu perfil Appono Sua conta Google ja foi autenticada. Agora precisamos saber como voce usara a plataforma para criar o perfil correto. Sou cliente Que"
+  }
+]

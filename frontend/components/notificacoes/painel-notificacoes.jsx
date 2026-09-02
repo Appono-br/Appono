@@ -350,8 +350,8 @@ export function PainelNotificacoes({ modulo, voltarHref, dashboardHref }) {
                 </section>
             </section>
             {confirmacao ? (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-app-cafe-profundo/70 px-5 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="titulo-confirmacao-notificacao">
-                    <section className="w-full max-w-md rounded-[24px] bg-app-creme-leve p-6 text-app-cafe-profundo shadow-2xl ring-1 ring-app-baunilha-dourada/70">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 px-5 backdrop-blur-[2px]" role="dialog" aria-modal="true" aria-labelledby="titulo-confirmacao-notificacao">
+                    <section className="w-full max-w-md rounded-[24px] bg-white p-6 text-app-cafe-profundo shadow-2xl ring-1 ring-black/10">
                         <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">Confirmacao</p>
                         <h2 id="titulo-confirmacao-notificacao" className="mt-3 text-2xl font-semibold">{confirmacao.titulo}</h2>
                         <p className="mt-3 text-sm leading-6 text-app-mocha">{confirmacao.mensagem}</p>
@@ -359,7 +359,7 @@ export function PainelNotificacoes({ modulo, voltarHref, dashboardHref }) {
                             <button type="button" onClick={() => setConfirmacao(null)} disabled={processandoConfirmacao} className="rounded-full border border-app-baunilha-dourada px-5 py-3 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:bg-app-baunilha-dourada disabled:cursor-not-allowed disabled:opacity-60">
                                 Cancelar
                             </button>
-                            <button type="button" onClick={confirmarAcao} disabled={processandoConfirmacao} className="rounded-full bg-app-vermelho-erro px-5 py-3 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-60">
+                            <button type="button" onClick={confirmarAcao} disabled={processandoConfirmacao} className="botao-acao-critica rounded-full px-5 py-3 text-xs font-bold uppercase tracking-[0.12em] transition disabled:cursor-not-allowed disabled:opacity-60">
                                 {processandoConfirmacao ? "Processando..." : confirmacao.acao}
                             </button>
                         </div>

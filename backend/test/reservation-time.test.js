@@ -3,6 +3,7 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const {
     attendanceConfirmationDeadline,
+    attendanceConfirmationExpired,
     attendanceConfirmationEligibility,
     calculateAttendanceRefundPolicy,
     intervalsOverlap,
@@ -36,6 +37,13 @@ test("cliente confirma presenca ate uma hora antes da reserva", () => {
     assert.equal(attendanceConfirmationEligibility(reserva, new Date("2026-08-22T18:59:00-03:00")).allowed, true);
     assert.equal(attendanceConfirmationEligibility(reserva, new Date("2026-08-22T19:01:00-03:00")).reason, "PRAZO_ENCERRADO");
     assert.equal(attendanceConfirmationEligibility({ ...reserva, status_confirmacao_presenca: "RECUSADA" }, new Date("2026-08-22T18:00:00-03:00")).reason, "JA_RESPONDIDA");
+});
+test("expira confirmacao pendente depois do prazo de presenca", () => {
+    const reserva = { status_reserva: "CONFIRMADA", status_confirmacao_presenca: "PENDENTE", data_reserva: "2026-09-02", horario_inicio: "11:00:00" };
+    assert.equal(attendanceConfirmationExpired(reserva, new Date("2026-09-02T09:59:00-03:00")), false);
+    assert.equal(attendanceConfirmationExpired(reserva, new Date("2026-09-02T10:01:00-03:00")), true);
+    assert.equal(attendanceConfirmationExpired({ ...reserva, status_confirmacao_presenca: "CONFIRMADA" }, new Date("2026-09-02T10:01:00-03:00")), false);
+    assert.equal(attendanceConfirmationExpired({ ...reserva, status_reserva: "CANCELADA" }, new Date("2026-09-02T10:01:00-03:00")), false);
 });
 test("calcula reembolso parcial por ausencia pelo excedente", () => {
     assert.deepEqual(calculateAttendanceRefundPolicy({ paidAmount: 100, minimumTotal: 30, commissionPercentage: 13 }), {

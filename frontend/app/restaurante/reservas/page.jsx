@@ -6,6 +6,7 @@ import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notif
 import { useEffect, useMemo, useState } from "react";
 import { apiRequest } from "@/lib/api";
 import { filtrarOrdenarPorBusca, textoBusca } from "@/lib/busca-avancada";
+import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 
 const navItems = [
     { label: "Dashboard", href: "/restaurante/dashboard" },
@@ -196,7 +197,9 @@ export default function RestaurantReservationsPage() {
     const [filtroPedido, setFiltroPedido] = useState("TODOS");
     const [busca, setBusca] = useState("");
     const [reservaParaCancelar, setReservaParaCancelar] = useState(null);
+    const [reservaParaExcluir, setReservaParaExcluir] = useState(null);
     const [cancelandoReserva, setCancelandoReserva] = useState(false);
+    const [excluindoReserva, setExcluindoReserva] = useState(false);
     const [registrandoCheckIn, setRegistrandoCheckIn] = useState(null);
     const [finalizandoReserva, setFinalizandoReserva] = useState(null);
     const [mensagem, setMensagem] = useState("");
@@ -273,12 +276,16 @@ export default function RestaurantReservationsPage() {
     }
 
     async function excluirReservaDaLista(id) {
+        setExcluindoReserva(true);
         try {
             await apiRequest(`/reservas/${id}/ocultar`, { method: "PATCH" });
             setReservas((atuais) => atuais.filter((reserva) => reserva.id_reserva !== id));
             setMensagem("Reserva removida da lista.");
+            setReservaParaExcluir(null);
         } catch (erro) {
             setMensagem(erro instanceof Error ? erro.message : "Nao foi possivel remover a reserva.");
+        } finally {
+            setExcluindoReserva(false);
         }
     }
 
@@ -596,7 +603,7 @@ export default function RestaurantReservationsPage() {
                                             {["CANCELADA", "RECUSADA", "CONCLUIDA", "NAO_COMPARECEU"].includes(reserva.status_reserva) ? (
                                                 <button
                                                     type="button"
-                                                    onClick={() => excluirReservaDaLista(reserva.id_reserva)}
+                                                    onClick={() => setReservaParaExcluir(reserva)}
                                                     className="h-9 rounded-[8px] border border-app-baunilha-dourada px-3 text-xs font-bold text-app-cinza transition hover:border-app-vermelho-erro/40 hover:text-app-vermelho-erro"
                                                 >
                                                     Excluir da lista
@@ -619,8 +626,8 @@ export default function RestaurantReservationsPage() {
             </section>
 
             {reservaParaCancelar ? (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-app-cafe-profundo/70 px-5 backdrop-blur-sm">
-                    <section className="w-full max-w-md rounded-[16px] bg-app-creme-leve p-6 text-app-cafe-profundo shadow-xl ring-1 ring-app-baunilha-dourada/70">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 px-5 backdrop-blur-[2px]">
+                    <section className="w-full max-w-md rounded-[18px] bg-white p-6 text-app-cafe-profundo shadow-2xl ring-1 ring-black/10">
                         <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">
                             Cancelamento de reserva
                         </p>
@@ -656,7 +663,7 @@ export default function RestaurantReservationsPage() {
                                 type="button"
                                 onClick={() => cancelarReserva(reservaParaCancelar.id_reserva)}
                                 disabled={cancelandoReserva}
-                                className="h-11 rounded-[8px] bg-app-vermelho-erro px-4 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-app-cafe-profundo disabled:cursor-not-allowed disabled:bg-app-cinza/50"
+                                className="botao-acao-critica h-11 rounded-[8px] px-4 text-xs font-bold uppercase tracking-[0.12em] transition disabled:cursor-not-allowed disabled:bg-app-cinza/50"
                             >
                                 {cancelandoReserva ? "Cancelando..." : "Confirmar cancelamento"}
                             </button>
@@ -664,6 +671,26 @@ export default function RestaurantReservationsPage() {
                     </section>
                 </div>
             ) : null}
+
+            <ConfirmationDialog
+                open={Boolean(reservaParaExcluir)}
+                eyebrow="Excluir da lista"
+                title="Remover esta reserva da lista?"
+                description="A reserva sera ocultada da tela operacional do restaurante. O historico e os registros financeiros continuam preservados."
+                confirmLabel="Excluir"
+                cancelLabel="Manter"
+                loading={excluindoReserva}
+                onCancel={() => setReservaParaExcluir(null)}
+                onConfirm={() => excluirReservaDaLista(reservaParaExcluir.id_reserva)}
+                details={reservaParaExcluir ? (
+                    <div>
+                        <p className="font-semibold">{reservaParaExcluir.clientes?.nome ?? "Cliente"}</p>
+                        <p className="mt-1 text-xs text-app-cinza">
+                            {reservaParaExcluir.data_reserva} - {reservaParaExcluir.horario_inicio}
+                        </p>
+                    </div>
+                ) : null}
+            />
 
             <footer className="border-t border-app-cacau-intenso/20 bg-app-cafe-profundo px-5 py-7 text-app-creme-leve">
                 <div className="mx-auto flex max-w-7xl flex-col items-center gap-5 text-center sm:flex-row sm:justify-between">

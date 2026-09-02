@@ -582,8 +582,8 @@ export default function RestaurantOrdersPage() {
             </section>
 
             {pedidoParaRemover ? (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-app-cafe-profundo/60 px-5 py-8 backdrop-blur-sm">
-                    <section className="w-full max-w-md rounded-[18px] bg-app-creme-leve p-6 text-app-cafe-profundo shadow-xl ring-1 ring-app-baunilha-dourada">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 px-5 py-8 backdrop-blur-[2px]">
+                    <section className="w-full max-w-md rounded-[18px] bg-white p-6 text-app-cafe-profundo shadow-2xl ring-1 ring-black/10">
                         <div className="flex h-12 w-12 items-center justify-center rounded-full bg-app-cafe-profundo text-app-creme-leve">
                             <Icon type="trash" />
                         </div>
@@ -609,7 +609,7 @@ export default function RestaurantOrdersPage() {
                                 type="button"
                                 onClick={removerPedidoDaCozinha}
                                 disabled={removendoPedido}
-                                className="h-11 rounded-[10px] bg-app-caramelo-torrado px-4 text-xs font-bold uppercase tracking-[0.14em] text-white transition hover:bg-app-cacau-intenso disabled:cursor-not-allowed disabled:opacity-60"
+                                className="botao-acao-critica h-11 rounded-[10px] px-4 text-xs font-bold uppercase tracking-[0.14em] transition disabled:cursor-not-allowed disabled:opacity-60"
                             >
                                 {removendoPedido ? "Removendo..." : "Remover"}
                             </button>

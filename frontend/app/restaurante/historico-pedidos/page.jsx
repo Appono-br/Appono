@@ -612,11 +612,11 @@ export default function RestaurantOrderHistoryPage() {
 
                 <section className="mt-8 rounded-[14px] bg-app-creme-leve p-2 ring-1 ring-app-baunilha-dourada/65">
                     <div className="grid gap-2 sm:grid-cols-2">
-                        <button type="button" onClick={() => setAbaAtiva("PEDIDOS")} className={`rounded-[11px] px-4 py-3 text-left transition ${abaAtiva === "PEDIDOS" ? "bg-app-cafe-profundo text-app-creme-leve shadow-sm" : "text-app-cafe-profundo hover:bg-app-chantilly"}`}>
+                        <button type="button" onClick={() => setAbaAtiva("PEDIDOS")} className={`rounded-xl px-4 py-3 text-left transition ${abaAtiva === "PEDIDOS" ? "bg-app-cafe-profundo text-app-creme-leve shadow-sm" : "text-app-cafe-profundo hover:bg-app-chantilly"}`}>
                             <span className="block text-[10px] font-bold uppercase tracking-[0.2em] opacity-80">Cozinha</span>
                             <strong className="mt-1 block text-lg">Pedidos</strong>
                         </button>
-                        <button type="button" onClick={() => setAbaAtiva("RESERVAS")} className={`rounded-[11px] px-4 py-3 text-left transition ${abaAtiva === "RESERVAS" ? "bg-app-cafe-profundo text-app-creme-leve shadow-sm" : "text-app-cafe-profundo hover:bg-app-chantilly"}`}>
+                        <button type="button" onClick={() => setAbaAtiva("RESERVAS")} className={`rounded-xl px-4 py-3 text-left transition ${abaAtiva === "RESERVAS" ? "bg-app-cafe-profundo text-app-creme-leve shadow-sm" : "text-app-cafe-profundo hover:bg-app-chantilly"}`}>
                             <span className="block text-[10px] font-bold uppercase tracking-[0.2em] opacity-80">Recepcao</span>
                             <strong className="mt-1 block text-lg">Reservas</strong>
                         </button>

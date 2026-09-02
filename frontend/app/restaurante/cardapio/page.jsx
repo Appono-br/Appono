@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { apiRequest } from "@/lib/api";
 import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 import { TelaCarregandoSessao, useSessaoLocal } from "@/lib/use-sessao-local";
+import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 
 const navItems = [
     { label: "Dashboard", href: "/restaurante/dashboard" },
@@ -83,6 +84,7 @@ export default function RestaurantMenuManagementPage() {
     const [produtoParaExcluir, setProdutoParaExcluir] = useState(null);
     const [categoriaForm, setCategoriaForm] = useState(categoriaInicial);
     const [categoriaAtualizandoId, setCategoriaAtualizandoId] = useState(null);
+    const [categoriaParaArquivar, setCategoriaParaArquivar] = useState(null);
     const [busca, setBusca] = useState("");
     const [filtro, setFiltro] = useState("todos");
 
@@ -197,6 +199,7 @@ export default function RestaurantMenuManagementPage() {
                 method: "DELETE",
             });
             setMensagem(resposta.message ?? "Categoria arquivada.");
+            setCategoriaParaArquivar(null);
             if (categoriaForm.id === categoria.id_categoria) {
                 setCategoriaForm(categoriaInicial);
             }
@@ -376,7 +379,7 @@ export default function RestaurantMenuManagementPage() {
                                         })} className="h-9 rounded-[8px] border border-app-baunilha-dourada px-3 text-xs font-bold uppercase text-app-mocha transition hover:bg-app-creme-leve">
                                             Editar
                                         </button>
-                                        <button type="button" onClick={() => arquivarCategoria(categoria)} disabled={categoriaAtualizandoId === categoria.id_categoria} className="h-9 rounded-[8px] border border-red-300 bg-transparent px-3 text-xs font-bold uppercase text-red-800 transition hover:border-app-vermelho-erro hover:text-app-vermelho-erro disabled:opacity-60">
+                                        <button type="button" onClick={() => setCategoriaParaArquivar(categoria)} disabled={categoriaAtualizandoId === categoria.id_categoria} className="h-9 rounded-[8px] border border-red-300 bg-transparent px-3 text-xs font-bold uppercase text-red-800 transition hover:border-app-vermelho-erro hover:text-app-vermelho-erro disabled:opacity-60">
                                             Arquivar
                                         </button>
                                     </div>
@@ -492,8 +495,8 @@ export default function RestaurantMenuManagementPage() {
             </section>
 
             {produtoParaExcluir ? (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-app-cafe-profundo/55 px-5 backdrop-blur-sm">
-                    <section className="w-full max-w-md rounded-[14px] bg-app-creme-leve p-6 text-app-cafe-profundo shadow-2xl ring-1 ring-app-baunilha-dourada">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 px-5 backdrop-blur-[2px]">
+                    <section className="w-full max-w-md rounded-[18px] bg-white p-6 text-app-cafe-profundo shadow-2xl ring-1 ring-black/10">
                         <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">Confirmar exclusao</p>
                         <h2 className="mt-3 text-2xl font-bold">Remover item do cardapio?</h2>
                         <p className="mt-3 text-sm leading-6 text-app-mocha">
@@ -503,13 +506,25 @@ export default function RestaurantMenuManagementPage() {
                             <button type="button" onClick={() => setProdutoParaExcluir(null)} className="h-11 rounded-[8px] border border-app-baunilha-dourada px-5 text-xs font-bold uppercase text-app-mocha transition hover:bg-app-creme-suave">
                                 Cancelar
                             </button>
-                            <button type="button" onClick={excluirProduto} disabled={produtoExcluindoId === produtoParaExcluir.id_produto} className="h-11 rounded-[8px] border border-red-300 bg-transparent px-5 text-xs font-bold uppercase text-red-800 transition hover:border-app-vermelho-erro hover:text-app-vermelho-erro disabled:cursor-not-allowed disabled:opacity-60">
+                            <button type="button" onClick={excluirProduto} disabled={produtoExcluindoId === produtoParaExcluir.id_produto} className="botao-acao-critica h-11 rounded-[8px] px-5 text-xs font-bold uppercase transition disabled:cursor-not-allowed disabled:opacity-60">
                                 {produtoExcluindoId === produtoParaExcluir.id_produto ? "Removendo..." : "Remover item"}
                             </button>
                         </div>
                     </section>
                 </div>
             ) : null}
+            <ConfirmationDialog
+                open={Boolean(categoriaParaArquivar)}
+                eyebrow="Arquivar categoria"
+                title="Arquivar esta categoria?"
+                description="A categoria deixara de aparecer no cardapio ativo. Itens e historico permanecem preservados."
+                confirmLabel="Arquivar"
+                cancelLabel="Voltar"
+                loading={categoriaAtualizandoId === categoriaParaArquivar?.id_categoria}
+                onCancel={() => setCategoriaParaArquivar(null)}
+                onConfirm={() => arquivarCategoria(categoriaParaArquivar)}
+                details={categoriaParaArquivar ? <p className="font-semibold">{categoriaParaArquivar.nome}</p> : null}
+            />
         </main>
     );
 }

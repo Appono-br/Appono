@@ -257,15 +257,6 @@ export default function RestaurantSettingsPage() {
                   Preencha as informacoes fiscais e de contato da sua loja.
                 </p>
               </div>
-
-              <div className="grid w-full max-w-xs grid-cols-2 rounded-[8px] bg-app-creme-suave p-1 text-center text-xs font-bold uppercase text-app-mocha">
-                <button type="button" className="rounded-[8px] bg-app-cafe-profundo px-4 py-3 text-app-creme-leve">
-                  PJ (CNPJ)
-                </button>
-                <button type="button" className="px-4 py-3">
-                  PF (CPF)
-                </button>
-              </div>
             </div>
 
             <section className="mt-8 flex flex-col gap-5 sm:flex-row sm:items-center">
@@ -326,25 +317,7 @@ export default function RestaurantSettingsPage() {
           </form>
         </div>
 
-        <section className="mx-auto mt-10 max-w-4xl rounded-[8px] bg-app-creme-suave p-6 shadow-sm ring-1 ring-app-baunilha-dourada/60 sm:p-8">
-          <div className="grid gap-6 sm:grid-cols-[180px_1fr] sm:items-center">
-            <div className="flex min-h-32 items-center justify-center rounded-[8px] bg-app-cafe-profundo/55 text-app-creme-leve">
-              <Icon type="shield" className="h-10 w-10"/>
-            </div>
-            <div>
-              <h2 className="text-xl font-medium text-app-cafe-profundo">
-                Precisa alterar dados restritos?
-              </h2>
-              <p className="mt-3 max-w-md text-sm leading-6 text-app-mocha">
-                Algumas informacoes cadastrais requerem validacao manual para
-                garantir a seguranca da plataforma.
-              </p>
-              <button type="button" className="mt-5 text-xs font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado transition hover:text-app-cafe-profundo">
-                Falar com consultor
-              </button>
-            </div>
-          </div>
-        </section>
+        
 
         <SeletorTema />
 

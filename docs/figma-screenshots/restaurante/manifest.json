@@ -1,0 +1,128 @@
+[
+  {
+    "name": "01-home-restaurante",
+    "finalUrl": "http://localhost:3000/restaurante/home",
+    "bytes": 58186,
+    "maybeLoading": false,
+    "preview": "RESTAURANTE Bem-vindo (a) de volta! Resumo Diario 0 RESERVAS HOJE 0 PESSOAS ESPERADAS Gerenciar reservas OPERACAO Desempenho Mensal PEDIDOS NO PERIODO 0 PEDIDOS NO PERIOD"
+  },
+  {
+    "name": "02-dashboard",
+    "finalUrl": "http://localhost:3000/restaurante/dashboard",
+    "bytes": 92998,
+    "maybeLoading": false,
+    "preview": "PAINEL ADMINISTRATIVO Visao Geral do Restaurante Acompanhe o desempenho da cozinha, do salao e das reservas do dia. Reservas recentes Volume real de reservas dos ultimos 7 dias"
+  },
+  {
+    "name": "03-reservas",
+    "finalUrl": "http://localhost:3000/restaurante/reservas",
+    "bytes": 41653,
+    "maybeLoading": false,
+    "preview": "RESERVAS Agendamentos do Dia Buscar reservas TODOS SOMENTE RESERVA PEDIDO AGUARDANDO PAGAMENTO PEDIDO PAGO EM ATENDIMENTO FINALIZADAS NÃO COMPARECEU CANCELADOS PROXIMOS CLIENTES "
+  },
+  {
+    "name": "04-cozinha",
+    "finalUrl": "http://localhost:3000/restaurante/pedidos",
+    "bytes": 38837,
+    "maybeLoading": false,
+    "preview": "COZINHA APPONO Cozinha Acompanhe os pedidos pagos, a ordem das reservas e as entregas vinculadas ao atendimento. Buscar pedidos na cozinha TODOS A FAZER EM PREPARO PRONTOS ENTRE"
+  },
+  {
+    "name": "05-historico",
+    "finalUrl": "http://localhost:3000/restaurante/historico-pedidos",
+    "bytes": 177547,
+    "maybeLoading": false,
+    "preview": "9+ HISTORICO OPERACIONAL Historico Consulte pedidos e reservas em um unico lugar, separando cozinha e recepcao sem perder rastreabilidade. CSV COZINHA COZINHA Pedidos RECEPCAO "
+  },
+  {
+    "name": "06-financeiro",
+    "finalUrl": "http://localhost:3000/restaurante/financeiro",
+    "bytes": 205877,
+    "maybeLoading": false,
+    "preview": "9+ FINANCEIRO Relatorio Financeiro ANALISAR REEMBOLSOS Acompanhe valores pagos, reembolsos e repasses. Ausencia avisada pode manter o minimo do restaurante e devolver apenas o e"
+  },
+  {
+    "name": "07-desempenho",
+    "finalUrl": "http://localhost:3000/restaurante/desempenho",
+    "bytes": 60513,
+    "maybeLoading": true,
+    "preview": "9+ AVALIACOES Desempenho & Avaliacoes Acompanhe a experiencia dos clientes e os principais indicadores de atendimento. MEDIA GERAL -- / 5.0 Nenhuma avaliação recebida até o m"
+  },
+  {
+    "name": "08-cardapio",
+    "finalUrl": "http://localhost:3000/restaurante/cardapio",
+    "bytes": 257037,
+    "maybeLoading": false,
+    "preview": "9+ CARDAPIO Gestao de Cardapio Organize pratos, categorias, precos e disponibilidade. Os itens publicados aparecem para o cliente no restaurante e no pedido antecipado. ADICION"
+  },
+  {
+    "name": "09-editar-cardapio",
+    "finalUrl": "http://localhost:3000/restaurante/cardapio/editar",
+    "bytes": 73606,
+    "maybeLoading": false,
+    "preview": "MENU 9+ CARDAPIO Criar Novo Item Publique pratos que o cliente conseguira visualizar na pagina do restaurante e selecionar no pedido antecipado. NOME DO PRATO CATEGORIA Selecio"
+  },
+  {
+    "name": "10-configuracoes",
+    "finalUrl": "http://localhost:3000/restaurante/configuracoes",
+    "bytes": 138751,
+    "maybeLoading": false,
+    "preview": "9+ PERFIL Configuracoes do Perfil Gerencie as informacoes da loja e dados fiscais do estabelecimento. Informacoes da loja Endereco da loja Preferencias de notificacao Seguranca"
+  },
+  {
+    "name": "11-config-operacao",
+    "finalUrl": "http://localhost:3000/restaurante/configuracoes/operacao",
+    "bytes": 135685,
+    "maybeLoading": false,
+    "preview": "CONFIGURACOES OPERACAO DO RESTAURANTE Disponibilidade Defina quando o cliente pode reservar e qual antecedencia minima a equipe precisa para organizar a operacao. REGRAS GERAIS"
+  },
+  {
+    "name": "12-config-endereco",
+    "finalUrl": "http://localhost:3000/restaurante/configuracoes/endereco",
+    "bytes": 68365,
+    "maybeLoading": false,
+    "preview": "CONFIGURACOES Endereco da Loja LOCALIZACAO FISICA E FISCAL CEP Consulte seu CEP automaticamente quando a integracao estiver ativa. ENDERECO (RUA, AVENIDA) NUMERO COMPLEMENTO BA"
+  },
+  {
+    "name": "13-config-dados-bancarios",
+    "finalUrl": "http://localhost:3000/restaurante/financeiro",
+    "bytes": 205141,
+    "maybeLoading": true,
+    "preview": "9+ FINANCEIRO Relatorio Financeiro ANALISAR REEMBOLSOS Acompanhe valores pagos, reembolsos e repasses. Ausencia avisada pode manter o minimo do restaurante e devolver apenas o e"
+  },
+  {
+    "name": "14-config-notificacoes",
+    "finalUrl": "http://localhost:3000/restaurante/configuracoes/notificacoes",
+    "bytes": 145669,
+    "maybeLoading": false,
+    "preview": "CONFIGURACOES 9+ COMUNICACAO OPERACIONAL Preferencias de Notificacao Defina quais eventos exigem aviso imediato e quais canais a equipe deve usar durante o expediente. Canais p"
+  },
+  {
+    "name": "15-config-seguranca",
+    "finalUrl": "http://localhost:3000/restaurante/configuracoes/seguranca",
+    "bytes": 119343,
+    "maybeLoading": false,
+    "preview": "CONFIGURACOES CONTROLE ADMINISTRATIVO Seguranca e Acesso Proteja a conta do restaurante, convide pessoas da equipe e limite acoes sensiveis por perfil de trabalho. Alterar senh"
+  },
+  {
+    "name": "16-reembolsos",
+    "finalUrl": "http://localhost:3000/restaurante/reembolsos",
+    "bytes": 4537,
+    "maybeLoading": false,
+    "preview": "← Voltar ao financeiro CONTROLE FINANCEIRO Solicitacoes de reembolso Analise os pedidos solicitados pelos clientes. Ao aprovar, a Appono marca o pagamento como estornado e remov"
+  },
+  {
+    "name": "17-notificacoes",
+    "finalUrl": "http://localhost:3000/restaurante/notificacoes",
+    "bytes": 404391,
+    "maybeLoading": false,
+    "preview": "VOLTAR CENTRAL DE NOTIFICACOES Acompanhe o que muda na sua operacao Aqui ficam os avisos importantes de reservas, pedidos, pagamentos e cancelamentos do modulo restaurante. RES"
+  },
+  {
+    "name": "18-mensagens",
+    "finalUrl": "http://localhost:3000/restaurante/mensagens",
+    "bytes": 44756,
+    "maybeLoading": false,
+    "preview": "9+ Mensagens Recebidas Gerencie as interacoes com seus clientes. Acompanhe pedidos, reservas e feedbacks em tempo real. TODAS NAO LIDAS ARQUIVADAS Nenhuma conversa recebida As i"
+  }
+]
