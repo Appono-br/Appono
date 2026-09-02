@@ -23,7 +23,6 @@ const initialForm = {
     minimumReservationValue: "0",
 };
 const navItems = [
-    { label: "Home", href: "/restaurante/home" },
     { label: "Dashboard", href: "/restaurante/dashboard" },
     { label: "Gestao de cardapio", href: "/restaurante/cardapio" },
     { label: "Desempenho", href: "/restaurante/desempenho" },

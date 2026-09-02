@@ -5,7 +5,6 @@ import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notif
 import { useMemo, useState } from "react";
 const conversations = [];
 const navItems = [
-    { label: "Home", href: "/restaurante/home" },
     { label: "Dashboard", href: "/restaurante/dashboard" },
     { label: "Gestao de cardapio", href: "/restaurante/cardapio" },
     { label: "Desempenho", href: "/restaurante/desempenho" },

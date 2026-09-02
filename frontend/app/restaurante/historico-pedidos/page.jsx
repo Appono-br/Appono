@@ -10,7 +10,6 @@ import { textoStatusPedido, textoStatusRepasse, textoStatusReserva } from "@/lib
 import { TelaCarregandoSessao, useSessaoLocal } from "@/lib/use-sessao-local";
 
 const navItems = [
-    { label: "Home", href: "/restaurante/home" },
     { label: "Dashboard", href: "/restaurante/dashboard" },
     { label: "Gestao de cardapio", href: "/restaurante/cardapio" },
     { label: "Desempenho", href: "/restaurante/desempenho" },

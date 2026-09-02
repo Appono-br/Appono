@@ -8,7 +8,6 @@ import { textoStatusPedido, textoStatusRepasse } from "@/lib/formatadores-status
 import { TelaCarregandoSessao, useSessaoLocal } from "@/lib/use-sessao-local";
 import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 const navItems = [
-    { label: "Home", href: "/restaurante/home" },
     { label: "Dashboard", href: "/restaurante/dashboard" },
     { label: "Gestao de cardapio", href: "/restaurante/cardapio" },
     { label: "Desempenho", href: "/restaurante/desempenho" },
