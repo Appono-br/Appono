@@ -37,6 +37,8 @@
   --paleta-texto-escuro: #121212;
   --paleta-cinza: #787979;
   --paleta-vermelho-erro: #AA6020;
+  --app-botao-aba-ativa: #241713;
+  --app-botao-aba-ativa-texto: #f7ead6;
 }
 @theme inline {
   --color-background: var(--background);
@@ -69,6 +71,9 @@
   --color-paleta-texto-escuro: var(--paleta-texto-escuro);
   --color-paleta-cinza: var(--paleta-cinza);
   --color-paleta-vermelho-erro: var(--paleta-vermelho-erro);
+  --color-app-fundo-destaque: var(--app-fundo-destaque);
+  --color-app-botao-aba-ativa-texto: var(--app-botao-aba-ativa-texto);
+  --color-app-botao-aba-ativa: var(--app-botao-aba-ativa);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -129,19 +134,19 @@ html {
 
 .area-autenticada.tema-escuro {
   color-scheme: dark;
-  --app-cacau-intenso: #0f0b09;
+  --app-cacau-intenso: #050505;
   --app-caramelo-torrado: #e0a174;
-  --app-creme-suave: #403329;
-  --app-baunilha-dourada: #9b8068;
+  --app-creme-suave: #1a1a1a;
+  --app-baunilha-dourada: #c9a878;
   --app-cafe-profundo: #f3e8da;
   --app-mocha: #d9c7b5;
   --app-dourado-mel: #d18452;
-  --app-creme-leve: #2b211b;
+  --app-creme-leve: #141414;
   --app-areia-quente: #e0a05a;
-  --app-chantilly: #130f0d;
-  --app-chantilly-hover: #2f241d;
+  --app-chantilly: #0a0a0a;
+  --app-chantilly-hover: #1f1f1f;
   --app-texto-escuro: #fff7ec;
-  --app-cinza: #b4a79d;
+  --app-cinza: #a8a29a;
   --app-vermelho-erro: #ff9a86;
   --app-verde-sucesso: #9bc288;
   --app-verde-sucesso-claro: #22311f;
@@ -150,6 +155,7 @@ html {
   --app-vermelho-claro: #3a1e19;
   --app-azul-info: #a7b6c7;
   --app-azul-info-claro: #1c2730;
+  --app-fundo-destaque: #000000;
 }
 
 .area-autenticada.tema-escuro main {
@@ -161,7 +167,7 @@ html {
 }
 
 .area-autenticada.tema-escuro .bg-app-cafe-profundo {
-  background-color: #0f0b09;
+  background-color: #050505 !important;
 }
 
 .area-autenticada.tema-escuro .text-app-creme-leve {
@@ -864,26 +870,32 @@ body > div:not(.area-autenticada) select {
 }
 
 .area-restaurante.tema-escuro {
-  --app-cacau-intenso: #0c0807;
+  --app-fundo-destaque: #000000;
+  --app-cacau-intenso: #050505;
   --app-caramelo-torrado: #d89a6f;
-  --app-creme-suave: #211815;
-  --app-baunilha-dourada: #8f7662;
+  --app-creme-suave: #1a1a1a;
+  --app-baunilha-dourada: #c9a878;
   --app-cafe-profundo: #f6eee5;
   --app-mocha: #d8c5b4;
   --app-dourado-mel: #cf8150;
-  --app-creme-leve: #18110f;
+  --app-creme-leve: #0f0f0f;
   --app-areia-quente: #d29358;
-  --app-chantilly: #120d0b;
-  --app-chantilly-hover: #2a1f1a;
+  --app-chantilly: #050505;
+  --app-chantilly-hover: #1a1a1a;
   --app-texto-escuro: #fffaf2;
-  --app-cinza: #aa998c;
+  --app-cinza: #a8a29a;
+  --app-botao-aba-ativa:#cf8150;
+  --app-botao-aba-ativa-texto: #241713;
+}
+
+.area-restaurante.tema-escuro [class*="text-app-botao-aba-ativa-texto"],
+.area-restaurante.tema-escuro [class*="text-app-botao-aba-ativa-texto"] strong,
+.area-restaurante.tema-escuro [class*="text-app-botao-aba-ativa-texto"] span {
+  color: var(--app-botao-aba-ativa-texto) !important;
 }
 
 .area-restaurante.tema-escuro main {
-  background:
-    radial-gradient(circle at 12% -8%, rgb(207 129 80 / 0.16), transparent 28rem),
-    radial-gradient(circle at 92% 4%, rgb(143 118 98 / 0.14), transparent 26rem),
-    linear-gradient(180deg, #100b09 0%, #15100d 48%, #0d0908 100%) !important;
+  background: var(--app-fundo-destaque) !important;
   color: var(--app-cafe-profundo);
 }
 
@@ -1214,19 +1226,21 @@ body > div:not(.area-autenticada) select {
 }
 
 .area-cliente.tema-escuro {
-  --app-cacau-intenso: #0c0807;
+  --app-cacau-intenso: #050505;
   --app-caramelo-torrado: #d89a6f;
-  --app-creme-suave: #211815;
-  --app-baunilha-dourada: #8f7662;
+  --app-creme-suave: #1a1a1a;
+  --app-baunilha-dourada: #c9a878;
   --app-cafe-profundo: #f6eee5;
   --app-mocha: #d8c5b4;
   --app-dourado-mel: #cf8150;
-  --app-creme-leve: #18110f;
+  --app-creme-leve: #0f0f0f;
   --app-areia-quente: #d29358;
-  --app-chantilly: #120d0b;
-  --app-chantilly-hover: #2a1f1a;
+  --app-chantilly: #050505;
+  --app-chantilly-hover: #1a1a1a;
   --app-texto-escuro: #fffaf2;
-  --app-cinza: #aa998c;
+  --app-cinza: #a8a29a;
+  --app-botao-aba-ativa: #2b1a10;
+  --app-botao-aba-ativa-texto: #241713;
 }
 
 .area-cliente.tema-escuro main {
@@ -1426,3 +1440,4 @@ body > div:not(.area-autenticada) .auth-publica :is(form, section, article, div)
 .hover\:bg-app-creme-leve:hover {
   background-color: var(--app-chantilly-hover) !important;
 }
+
