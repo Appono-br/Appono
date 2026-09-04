@@ -23,7 +23,7 @@ const initialForm = {
 };
 const initialBankSummary = {
     status: "nao_configurado",
-    provider: "integracao_externa_pendente",
+    provider: "integração_externa_pendente",
     updatedAt: "",
 };
 function Icon({ type, className = "h-5 w-5", }) {
@@ -52,7 +52,7 @@ export default function RestaurantBankSettingsPage() {
     const { sessao, sessaoCarregada } = useSessaoLocal();
     const [form, setForm] = useState(initialForm);
     const [bankSummary, setBankSummary] = useState(initialBankSummary);
-    const [message, setMessage] = useState("Carregando dados bancarios...");
+    const [message, setMessage] = useState("Carregando dados bancários...");
     const [salvando, setSalvando] = useState(false);
     useEffect(() => {
         if (!sessaoCarregada || sessao?.type !== "restaurant") {
@@ -70,7 +70,7 @@ export default function RestaurantBankSettingsPage() {
                 }));
                 setBankSummary({
                     status: dadosBancarios?.status_cadastro ?? "nao_configurado",
-                    provider: dadosBancarios?.provedor_pagamento ?? "integracao_externa_pendente",
+                    provider: dadosBancarios?.provedor_pagamento ?? "integração_externa_pendente",
                     updatedAt: dadosBancarios?.updated_at ?? "",
                 });
                 setMessage("");
@@ -78,7 +78,7 @@ export default function RestaurantBankSettingsPage() {
             catch (error) {
                 setMessage(error instanceof Error
                     ? error.message
-                    : "Nao foi possivel carregar os dados bancarios.");
+                    : "Não foi possível carregar os dados bancários.");
             }
         }
         carregarDadosBancarios();
@@ -90,15 +90,15 @@ export default function RestaurantBankSettingsPage() {
     async function enviarFormulario(event) {
         event.preventDefault();
         if (!form.bankCode || !form.agency || !form.account) {
-            setMessage("Para alterar os dados bancarios, informe banco, agencia e conta completos.");
+            setMessage("Para alterar os dados bancários, informe banco, agência e conta completos.");
             return;
         }
         if (form.bankCode && somenteNumeros(form.bankCode).length !== 3) {
-            setMessage("O codigo do banco deve possuir 3 digitos.");
+            setMessage("O codigo do banco deve possuir 3 dígitos.");
             return;
         }
         if (form.agency && somenteNumeros(form.agency).length > 5) {
-            setMessage("A agencia deve possuir no maximo 5 digitos.");
+            setMessage("A agência deve possuir no maximo 5 dígitos.");
             return;
         }
         setSalvando(true);
@@ -117,8 +117,8 @@ export default function RestaurantBankSettingsPage() {
             });
             const dadosBancarios = resposta.perfil?.dados_bancarios_restaurante?.[0];
             setBankSummary({
-                status: dadosBancarios?.status_cadastro ?? "pendente_validacao",
-                provider: dadosBancarios?.provedor_pagamento ?? "integracao_financeira_externa",
+                status: dadosBancarios?.status_cadastro ?? "pendente_validação",
+                provider: dadosBancarios?.provedor_pagamento ?? "integração_financeira_externa",
                 updatedAt: dadosBancarios?.updated_at ?? "",
             });
             setForm((atual) => ({
@@ -129,10 +129,10 @@ export default function RestaurantBankSettingsPage() {
                 accountDigit: "",
                 pixKey: "",
             }));
-            setMessage(resposta.message ?? "Dados bancarios salvos com sucesso.");
+            setMessage(resposta.message ?? "Dados bancários salvos com sucesso.");
         }
         catch (error) {
-            setMessage(error instanceof Error ? error.message : "Nao foi possivel salvar os dados.");
+            setMessage(error instanceof Error ? error.message : "Não foi possível salvar os dados.");
         }
         finally {
             setSalvando(false);
@@ -147,7 +147,7 @@ export default function RestaurantBankSettingsPage() {
           <Image src="/brand/appono-mark.svg" alt="Appono" width={88} height={88} className="mx-auto h-20 w-20" priority/>
           <h1 className="mt-6 text-3xl font-semibold">Acesso restrito</h1>
           <p className="mt-3 text-sm leading-6 text-app-cinza">
-            Esta area e destinada a contas de restaurante.
+            Esta área é destinada a contas de restaurante.
           </p>
           <Link href="/login" className="mt-6 inline-flex h-11 items-center justify-center rounded-[8px] bg-app-dourado-mel px-6 text-sm font-bold text-white transition hover:bg-app-caramelo-torrado">
             Entrar
@@ -162,11 +162,11 @@ export default function RestaurantBankSettingsPage() {
             <Image src="/brand/appono-mark.svg" alt="Appono" width={72} height={72} className="h-11 w-11" priority/>
           </div>
           <div className="flex items-center justify-center gap-6">
-            <Link href="/restaurante/configuracoes" className="transition hover:text-app-caramelo-torrado" aria-label="Voltar para configuracoes">
+            <Link href="/restaurante/configuracoes" className="transition hover:text-app-caramelo-torrado" aria-label="Voltar para configurações">
               <Icon type="arrow-left" className="h-5 w-5"/>
             </Link>
             <h1 className="text-lg font-bold uppercase tracking-[0.14em] sm:text-2xl">
-              Configuracoes
+              Configurações
             </h1>
           </div>
           <div className="flex items-center justify-self-end gap-3 text-app-cafe-profundo">
@@ -179,14 +179,14 @@ export default function RestaurantBankSettingsPage() {
       <section className="mx-auto w-full max-w-7xl flex-1 px-5 py-10 sm:py-14">
         <div className="border-t border-app-baunilha-dourada/60 pt-10">
           <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">
-            Repasses e conciliacao
+            Repasses e conciliação
           </p>
           <h2 className="mt-3 text-4xl font-medium leading-tight text-app-cafe-profundo sm:text-5xl">
-            Dados Bancarios
+            Dados Bancários
           </h2>
           <p className="mt-4 max-w-3xl text-sm leading-6 text-app-cinza sm:text-base">
-            Cadastre a conta juridica que recebera os repasses. A validacao
-            definitiva fica pendente ate a integracao financeira estar ativa.
+            Cadastre a conta juridica que recebera os repasses. A validação
+            definitiva fica pendente até a integração financeira estar ativa.
           </p>
         </div>
 
@@ -207,31 +207,31 @@ export default function RestaurantBankSettingsPage() {
             </div>
 
             <div className="mt-7 grid gap-5 sm:grid-cols-2">
-              <Field label="Razao social titular" value={form.legalName} onChange={(value) => atualizarCampo("legalName", value)} className="sm:col-span-2" disabled/>
+              <Field label="Razão social titular" value={form.legalName} onChange={(value) => atualizarCampo("legalName", value)} className="sm:col-span-2" disabled/>
               <Field label="CNPJ titular" value={form.document} onChange={(value) => atualizarCampo("document", aplicarMascaraCnpj(value))} inputMode="numeric" maxLength={18} disabled/>
               <div className="rounded-[8px] border border-app-baunilha-dourada bg-app-creme-suave p-4 text-sm leading-6 text-app-mocha sm:col-span-2">
                 <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-cinza">
                   Dados cadastrados
                 </p>
                 <div className="mt-2 grid gap-2 sm:grid-cols-3">
-                  <span>Status: <strong>{bankSummary.status === "pendente_validacao"
-                ? "Pendente de validacao"
+                  <span>Status: <strong>{bankSummary.status === "pendente_validação"
+                ? "Pendente de validação"
                 : bankSummary.status === "validado"
                     ? "Validado"
-                    : "Nao configurado"}</strong></span>
+                    : "Não configurado"}</strong></span>
                   <span>Provedor: <strong>{bankSummary.provider}</strong></span>
-                  <span>Atualizacao: <strong>{bankSummary.updatedAt
+                  <span>Atualização: <strong>{bankSummary.updatedAt
                 ? new Date(bankSummary.updatedAt).toLocaleDateString("pt-BR")
                 : "Sem registro"}</strong></span>
                 </div>
                 <p className="mt-3 text-xs text-app-cinza">
-                  Por seguranca, a Appono nao armazena banco, agencia, conta ou
-                  Pix. No MVP, o envio abaixo apenas muda o status para validacao
+                  Por segurança, a Appono não armazena banco, agência, conta ou
+                  Pix. No MVP, o envio abaixo apenas muda o status para validação
                   externa pendente.
                 </p>
               </div>
-              <Field label="Codigo do banco" value={form.bankCode} onChange={(value) => atualizarCampo("bankCode", aplicarMascaraCodigoBanco(value))} inputMode="numeric" maxLength={3}/>
-              <Field label="Agencia" value={form.agency} onChange={(value) => atualizarCampo("agency", aplicarMascaraAgencia(value))} inputMode="numeric" maxLength={5}/>
+              <Field label="Código do banco" value={form.bankCode} onChange={(value) => atualizarCampo("bankCode", aplicarMascaraCodigoBanco(value))} inputMode="numeric" maxLength={3}/>
+              <Field label="Agência" value={form.agency} onChange={(value) => atualizarCampo("agency", aplicarMascaraAgencia(value))} inputMode="numeric" maxLength={5}/>
               <div className="grid gap-5 sm:grid-cols-[1fr_0.38fr]">
                 <Field label="Conta" value={form.account} onChange={(value) => atualizarCampo("account", somenteNumeros(value).slice(0, 20))} inputMode="numeric" maxLength={20}/>
                 <Field label="Digito" value={form.accountDigit} onChange={(value) => atualizarCampo("accountDigit", value.replace(/[^\dXx]/g, "").slice(0, 1).toUpperCase())} maxLength={1}/>
@@ -306,10 +306,10 @@ export default function RestaurantBankSettingsPage() {
                 <Icon type="shield" className="h-6 w-6"/>
               </span>
               <h3 className="mt-5 text-2xl font-medium text-app-cafe-profundo">
-                Validacao financeira
+                Validação financeira
               </h3>
               <p className="mt-3 text-sm leading-6 text-app-mocha">
-                Em producao, os dados bancarios seriam enviados diretamente para
+                Em produção, os dados bancários seriam enviados diretamente para
                 um provedor financeiro. A Appono guardaria apenas o identificador
                 seguro retornado por esse provedor.
               </p>
@@ -321,9 +321,9 @@ export default function RestaurantBankSettingsPage() {
                 Dados sensiveis
               </h3>
               <p className="mt-3 text-sm leading-6 text-app-cinza">
-                Banco, agencia, conta e Pix nao ficam salvos na base da Appono.
-                Essa decisao reduz exposicao de dados sensiveis e melhora a
-                aderencia a boas praticas de seguranca.
+                Banco, agência, conta e Pix não ficam salvos na base da Appono.
+                Essa decisao reduz exposição de dados sensiveis e melhora a
+                aderência a boas práticas de segurança.
               </p>
             </section>
 
@@ -334,11 +334,11 @@ export default function RestaurantBankSettingsPage() {
               </h3>
               <div className="mt-5 rounded-[8px] bg-white p-5">
                 <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-cinza">
-                  Integracao financeira pendente
+                  Integração financeira pendente
                 </p>
                 <p className="mt-2 text-sm leading-6 text-app-mocha">
-                  O historico de repasses aparecera aqui quando a integracao
-                  financeira estiver disponivel.
+                  O histórico de repasses aparecerá aqui quando a integração
+                  financeira estiver disponível.
                 </p>
               </div>
             </section>
@@ -350,7 +350,7 @@ export default function RestaurantBankSettingsPage() {
         <div className="mx-auto flex max-w-7xl flex-col items-center gap-5 text-center sm:flex-row sm:justify-between">
           <Image src="/brand/appono-mark.svg" alt="Appono" width={80} height={80} className="h-14 w-14 brightness-0 invert"/>
           <nav className="flex flex-wrap justify-center gap-8 text-[10px] font-bold uppercase text-app-baunilha-dourada">
-            <Link href="#" className="transition hover:text-app-chantilly">Politica de Privacidade</Link>
+            <Link href="#" className="transition hover:text-app-chantilly">Política de Privacidade</Link>
             <Link href="#" className="transition hover:text-app-chantilly">Termos de Uso</Link>
             <Link href="#" className="transition hover:text-app-chantilly">Contato</Link>
           </nav>

@@ -121,7 +121,7 @@ async function obterOuCriarCardapio(supabase, restauranteId) {
         .from("cardapios")
         .insert({
         id_restaurante: restauranteId,
-        nome: "Cardapio principal",
+        nome: "Cardápio principal",
         descricao: "Itens publicados pelo restaurante na Appono.",
         ativo: true,
     })
@@ -173,7 +173,7 @@ exports.menuRouter.get("/", async (_req, res) => {
     try {
         const restaurante = await obterRestauranteLogado(supabase, res.locals.user.id);
         if (!restaurante) {
-            return res.status(403).json({ error: "Apenas restaurantes podem gerenciar cardapio." });
+            return res.status(403).json({ error: "Apenas restaurantes podem gerenciar cardápio." });
         }
         const { data, error } = await supabase
             .from("cardapios")
@@ -190,7 +190,7 @@ exports.menuRouter.get("/", async (_req, res) => {
     }
     catch (error) {
         return res.status(400).json({
-            error: error instanceof Error ? error.message : "Nao foi possivel carregar o cardapio.",
+            error: error instanceof Error ? error.message : "Não foi possível carregar o cardápio.",
         });
     }
 });
@@ -241,7 +241,7 @@ exports.menuRouter.post("/categorias", async (req, res) => {
     }
     catch (error) {
         return res.status(400).json({
-            error: error instanceof Error ? error.message : "Nao foi possivel criar a categoria.",
+            error: error instanceof Error ? error.message : "Não foi possível criar a categoria.",
         });
     }
 });
@@ -265,7 +265,7 @@ exports.menuRouter.put("/categorias/:id", async (req, res) => {
         }
         const categoriaExistente = await obterCategoriaDoRestaurante(supabase, categoriaId, restaurante.id_restaurante);
         if (!categoriaExistente) {
-            return res.status(404).json({ error: "Categoria nao encontrada." });
+            return res.status(404).json({ error: "Categoria não encontrada." });
         }
         const { data: categoria, error } = await supabase
             .from("categorias")
@@ -286,7 +286,7 @@ exports.menuRouter.put("/categorias/:id", async (req, res) => {
     }
     catch (error) {
         return res.status(400).json({
-            error: error instanceof Error ? error.message : "Nao foi possivel atualizar a categoria.",
+            error: error instanceof Error ? error.message : "Não foi possível atualizar a categoria.",
         });
     }
 });
@@ -304,7 +304,7 @@ exports.menuRouter.delete("/categorias/:id", async (req, res) => {
         }
         const categoriaExistente = await obterCategoriaDoRestaurante(supabase, categoriaId, restaurante.id_restaurante);
         if (!categoriaExistente) {
-            return res.status(404).json({ error: "Categoria nao encontrada." });
+            return res.status(404).json({ error: "Categoria não encontrada." });
         }
         const { error: produtosError } = await supabase
             .from("produtos")
@@ -329,7 +329,7 @@ exports.menuRouter.delete("/categorias/:id", async (req, res) => {
     }
     catch (error) {
         return res.status(400).json({
-            error: error instanceof Error ? error.message : "Nao foi possivel arquivar a categoria.",
+            error: error instanceof Error ? error.message : "Não foi possível arquivar a categoria.",
         });
     }
 });
@@ -338,12 +338,12 @@ exports.menuRouter.get("/produtos/:id", async (req, res) => {
     const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
     const produtoId = normalizarProdutoId(req.params.id);
     if (!produtoId) {
-        return res.status(400).json({ error: "Produto invalido." });
+        return res.status(400).json({ error: "Produto inválido." });
     }
     try {
         const restaurante = await obterRestauranteLogado(supabase, res.locals.user.id);
         if (!restaurante) {
-            return res.status(403).json({ error: "Apenas restaurantes podem gerenciar cardapio." });
+            return res.status(403).json({ error: "Apenas restaurantes podem gerenciar cardápio." });
         }
         const { data: produto, error } = await supabase
             .from("produtos")
@@ -356,7 +356,7 @@ exports.menuRouter.get("/produtos/:id", async (req, res) => {
             return res.status(400).json({ error: error.message });
         }
         if (!produto) {
-            return res.status(404).json({ error: "Produto nao encontrado." });
+            return res.status(404).json({ error: "Produto não encontrado." });
         }
         return res.json({
             produto: {
@@ -367,7 +367,7 @@ exports.menuRouter.get("/produtos/:id", async (req, res) => {
     }
     catch (error) {
         return res.status(400).json({
-            error: error instanceof Error ? error.message : "Nao foi possivel carregar o produto.",
+            error: error instanceof Error ? error.message : "Não foi possível carregar o produto.",
         });
     }
 });
@@ -383,7 +383,7 @@ exports.menuRouter.post("/produtos", async (req, res) => {
     const ordemExibicao = normalizarInteiro(body.displayOrder);
     if (!nome || !categoriaNome || !Number.isFinite(preco) || preco <= 0) {
         return res.status(400).json({
-            error: "Informe nome, categoria e preco valido para publicar o item.",
+            error: "Informe nome, categoria e preço válido para publicar o item.",
         });
     }
     try {
@@ -414,7 +414,7 @@ exports.menuRouter.post("/produtos", async (req, res) => {
             return res.status(400).json({ error: produtoError.message });
         }
         return res.status(201).json({
-            message: "Item publicado no cardapio.",
+            message: "Item publicado no cardápio.",
             produto,
             categoria,
             cardapio,
@@ -422,7 +422,7 @@ exports.menuRouter.post("/produtos", async (req, res) => {
     }
     catch (error) {
         return res.status(400).json({
-            error: error instanceof Error ? error.message : "Nao foi possivel publicar o item.",
+            error: error instanceof Error ? error.message : "Não foi possível publicar o item.",
         });
     }
 });
@@ -431,7 +431,7 @@ exports.menuRouter.put("/produtos/:id", async (req, res) => {
     const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
     const produtoId = normalizarProdutoId(req.params.id);
     if (!produtoId) {
-        return res.status(400).json({ error: "Produto invalido." });
+        return res.status(400).json({ error: "Produto inválido." });
     }
     const body = req.body;
     const nome = textoObrigatorio(body.name);
@@ -442,7 +442,7 @@ exports.menuRouter.put("/produtos/:id", async (req, res) => {
     const ordemExibicao = normalizarInteiro(body.displayOrder);
     if (!nome || !categoriaNome || !Number.isFinite(preco) || preco <= 0) {
         return res.status(400).json({
-            error: "Informe nome, categoria e preco valido para atualizar o item.",
+            error: "Informe nome, categoria e preço válido para atualizar o item.",
         });
     }
     try {
@@ -461,7 +461,7 @@ exports.menuRouter.put("/produtos/:id", async (req, res) => {
             return res.status(400).json({ error: buscaError.message });
         }
         if (!produtoExistente) {
-            return res.status(404).json({ error: "Produto nao encontrado." });
+            return res.status(404).json({ error: "Produto não encontrado." });
         }
         const cardapio = await obterOuCriarCardapio(supabase, restaurante.id_restaurante);
         const categoria = await obterOuCriarCategoria(supabase, cardapio.id_cardapio, categoriaNome);
@@ -491,7 +491,7 @@ exports.menuRouter.put("/produtos/:id", async (req, res) => {
             removerImagemCardapioPorUrl(produtoExistente.imagem_url).catch(() => undefined);
         }
         return res.json({
-            message: "Item atualizado no cardapio.",
+            message: "Item atualizado no cardápio.",
             produto,
             categoria,
             cardapio,
@@ -499,7 +499,7 @@ exports.menuRouter.put("/produtos/:id", async (req, res) => {
     }
     catch (error) {
         return res.status(400).json({
-            error: error instanceof Error ? error.message : "Nao foi possivel atualizar o item.",
+            error: error instanceof Error ? error.message : "Não foi possível atualizar o item.",
         });
     }
 });
@@ -508,7 +508,7 @@ exports.menuRouter.patch("/produtos/:id/disponibilidade", async (req, res) => {
     const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
     const produtoId = normalizarProdutoId(req.params.id);
     if (!produtoId) {
-        return res.status(400).json({ error: "Produto invalido." });
+        return res.status(400).json({ error: "Produto inválido." });
     }
     try {
         const restaurante = await obterRestauranteLogado(supabase, res.locals.user.id);
@@ -528,16 +528,16 @@ exports.menuRouter.patch("/produtos/:id/disponibilidade", async (req, res) => {
             return res.status(400).json({ error: error.message });
         }
         if (!produto) {
-            return res.status(404).json({ error: "Produto nao encontrado." });
+            return res.status(404).json({ error: "Produto não encontrado." });
         }
         return res.json({
-            message: disponivel ? "Item disponibilizado no cardapio." : "Item marcado como indisponivel.",
+            message: disponivel ? "Item disponibilizado no cardápio." : "Item marcado como indisponível.",
             produto,
         });
     }
     catch (error) {
         return res.status(400).json({
-            error: error instanceof Error ? error.message : "Nao foi possivel alterar a disponibilidade.",
+            error: error instanceof Error ? error.message : "Não foi possível alterar a disponibilidade.",
         });
     }
 });
@@ -546,7 +546,7 @@ exports.menuRouter.patch("/produtos/:id/destaque", async (req, res) => {
     const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
     const produtoId = normalizarProdutoId(req.params.id);
     if (!produtoId) {
-        return res.status(400).json({ error: "Produto invalido." });
+        return res.status(400).json({ error: "Produto inválido." });
     }
     try {
         const restaurante = await obterRestauranteLogado(supabase, res.locals.user.id);
@@ -566,7 +566,7 @@ exports.menuRouter.patch("/produtos/:id/destaque", async (req, res) => {
             return res.status(400).json({ error: error.message });
         }
         if (!produto) {
-            return res.status(404).json({ error: "Produto nao encontrado." });
+            return res.status(404).json({ error: "Produto não encontrado." });
         }
         return res.json({
             message: destaque ? "Item marcado como destaque." : "Item removido dos destaques.",
@@ -575,7 +575,7 @@ exports.menuRouter.patch("/produtos/:id/destaque", async (req, res) => {
     }
     catch (error) {
         return res.status(400).json({
-            error: error instanceof Error ? error.message : "Nao foi possivel alterar o destaque.",
+            error: error instanceof Error ? error.message : "Não foi possível alterar o destaque.",
         });
     }
 });
@@ -584,7 +584,7 @@ exports.menuRouter.delete("/produtos/:id", async (req, res) => {
     const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
     const produtoId = normalizarProdutoId(req.params.id);
     if (!produtoId) {
-        return res.status(400).json({ error: "Produto invalido." });
+        return res.status(400).json({ error: "Produto inválido." });
     }
     try {
         const restaurante = await obterRestauranteLogado(supabase, res.locals.user.id);
@@ -602,7 +602,7 @@ exports.menuRouter.delete("/produtos/:id", async (req, res) => {
             return res.status(400).json({ error: buscaError.message });
         }
         if (!produtoExistente) {
-            return res.status(404).json({ error: "Produto nao encontrado." });
+            return res.status(404).json({ error: "Produto não encontrado." });
         }
 
         const { data: itemVinculado, error: itemVinculadoError } = await supabase
@@ -627,10 +627,10 @@ exports.menuRouter.delete("/produtos/:id", async (req, res) => {
                 .eq("id_restaurante", restaurante.id_restaurante);
             if (error) {
                 return res.status(400).json({
-                    error: "Nao foi possivel arquivar este item.",
+                    error: "Não foi possível arquivar este item.",
                 });
             }
-            return res.json({ message: "Item arquivado para preservar o historico de pedidos." });
+            return res.json({ message: "Item arquivado para preservar o histórico de pedidos." });
         }
 
         const { error } = await supabase
@@ -651,23 +651,23 @@ exports.menuRouter.delete("/produtos/:id", async (req, res) => {
                     .eq("id_restaurante", restaurante.id_restaurante);
                 if (arquivoError) {
                     return res.status(400).json({
-                        error: "Nao foi possivel arquivar este item.",
+                        error: "Não foi possível arquivar este item.",
                     });
                 }
-                return res.json({ message: "Item arquivado para preservar o historico de pedidos." });
+                return res.json({ message: "Item arquivado para preservar o histórico de pedidos." });
             }
             return res.status(400).json({
-                error: "Nao foi possivel excluir este item.",
+                error: "Não foi possível excluir este item.",
             });
         }
         if (produtoExistente.imagem_url) {
             removerImagemCardapioPorUrl(produtoExistente.imagem_url).catch(() => undefined);
         }
-        return res.json({ message: "Item excluido definitivamente do cardapio." });
+        return res.json({ message: "Item excluído definitivamente do cardápio." });
     }
     catch (error) {
         return res.status(400).json({
-            error: error instanceof Error ? error.message : "Nao foi possivel excluir o item.",
+            error: error instanceof Error ? error.message : "Não foi possível excluir o item.",
         });
     }
 });

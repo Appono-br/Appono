@@ -7,10 +7,10 @@ const { testGatewayRefundEligibility } = require("../../domain/refund-state");
 
 async function paymentTokenForRestaurant(restaurantId) {
     if (!isRealMarketplace()) return obterAccessTokenMercadoPago();
-    if (!supabaseAdmin) throw new Error("Supabase administrativo indisponivel para localizar a conta Mercado Pago.");
+    if (!supabaseAdmin) throw new Error("Supabase administrativo indisponível para localizar a conta Mercado Pago.");
     const { data, error } = await supabaseAdmin.from("mercado_pago_conexoes_restaurante")
         .select("access_token").eq("id_restaurante", restaurantId).eq("status", "CONECTADO").maybeSingle();
-    if (error || !data?.access_token) throw new Error(error?.message ?? "Conta Mercado Pago do restaurante nao encontrada.");
+    if (error || !data?.access_token) throw new Error(error?.message ?? "Conta Mercado Pago do restaurante não encontrada.");
     return data.access_token;
 }
 
@@ -34,9 +34,9 @@ async function refundApprovedPayments(payments, restaurantId, amountByPaymentId 
         const gatewayPayment = await consultarPagamentoMercadoPago(payment.mercado_pago_payment_id, token);
         const gatewayEligibility = testGatewayRefundEligibility(gatewayPayment, productionAllowed());
         if (!gatewayEligibility.allowed && gatewayEligibility.code === "PAGAMENTO_REAL_BLOQUEADO") {
-            throw new Error(`Pagamento ${payment.id_pagamento} e real e nao pode ser estornado pelo fluxo de testes.`);
+            throw new Error(`Pagamento ${payment.id_pagamento} e real e não pode ser estornado pelo fluxo de testes.`);
         }
-        if (!gatewayEligibility.allowed) throw new Error(`Pagamento ${payment.id_pagamento} nao foi confirmado pelo Mercado Pago.`);
+        if (!gatewayEligibility.allowed) throw new Error(`Pagamento ${payment.id_pagamento} não foi confirmado pelo Mercado Pago.`);
         if (["refunded", "charged_back"].includes(String(gatewayPayment?.status ?? "").toLowerCase())) {
             refunds.push({ payment, gatewayRefund: null, alreadyRefunded: true });
             continue;

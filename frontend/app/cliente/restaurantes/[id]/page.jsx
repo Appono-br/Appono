@@ -69,7 +69,7 @@ function obterProdutosSelecionados(produtos, quantidades) {
 }
 
 function resumirEndereco(endereco) {
-  if (!endereco) return "Endereco em atualizacao";
+  if (!endereco) return "Endereço em atualização";
   return String(endereco).split(",").slice(0, 3).join(",").trim();
 }
 
@@ -134,7 +134,7 @@ export default function PaginaRestaurante({ params }) {
         setCardapios(dadosCardapio ?? []);
         setMensagem("");
       })
-      .catch((erro) => setMensagem(erro instanceof Error ? erro.message : "Nao foi possivel carregar o restaurante."));
+      .catch((erro) => setMensagem(erro instanceof Error ? erro.message : "Não foi possível carregar o restaurante."));
   }, [restauranteId]);
 
   const valorMinimoPorPessoa = Number(restaurante?.valor_minimo_reserva_por_pessoa ?? 0);
@@ -193,7 +193,7 @@ export default function PaginaRestaurante({ params }) {
         setDisponibilidade({
           operacao_configurada: false,
           horarios: [],
-          motivo: erro instanceof Error ? erro.message : "Nao foi possivel carregar os horarios.",
+          motivo: erro instanceof Error ? erro.message : "Não foi possível carregar os horários.",
         }),
       );
   }, [data, pessoas, restaurante, restauranteId]);
@@ -212,7 +212,7 @@ export default function PaginaRestaurante({ params }) {
 
   function alterarQuantidade(produtoId, diferenca) {
     if (diferenca > 0 && !restaurante?.pedidos_antecipados_habilitados) {
-      setMensagem("Este restaurante ainda nao habilitou pedidos antecipados pelo Mercado Pago. A reserva simples continua disponivel.");
+      setMensagem("Este restaurante ainda não hábilitou pedidos antecipados pelo Mercado Pago. A reserva simples continua disponível.");
       return;
     }
     setMensagem("");
@@ -243,7 +243,7 @@ export default function PaginaRestaurante({ params }) {
       });
       setRestaurante((atual) => ({ ...atual, ...resposta }));
     } catch (erro) {
-      setMensagem(erro instanceof Error ? erro.message : "Nao foi possivel atualizar o favorito.");
+      setMensagem(erro instanceof Error ? erro.message : "Não foi possível atualizar o favorito.");
     } finally {
       setFavoritando(false);
     }
@@ -253,15 +253,15 @@ export default function PaginaRestaurante({ params }) {
     event.preventDefault();
     if (!restaurante) return;
     if (!operacaoConfigurada) {
-      setMensagem("Este restaurante ainda nao configurou horarios de funcionamento para receber reservas.");
+      setMensagem("Este restaurante ainda não configurou horários de funcionamento para receber reservas.");
       return;
     }
     if (!horarioSelecionado) {
-      setMensagem("Escolha um horario disponivel dentro do funcionamento do restaurante.");
+      setMensagem("Escolha um horário disponível dentro do funcionamento do restaurante.");
       return;
     }
     if (temPedidoAntecipado && faltaParaMinimo > 0) {
-      setMensagem(`Para reservar com pedido antecipado, ainda faltam ${formatarMoeda(faltaParaMinimo)} para atingir o consumo minimo.`);
+      setMensagem(`Para reservar com pedido antecipado, ainda faltam ${formatarMoeda(faltaParaMinimo)} para atingir o consumo mínimo.`);
       return;
     }
 
@@ -305,7 +305,7 @@ export default function PaginaRestaurante({ params }) {
       });
       window.location.assign(`/cliente/pagamentos/pedido/${fluxoCriado.pedido.id_pedido}`);
     } catch (erro) {
-      setMensagem(erro instanceof Error ? erro.message : "Nao foi possivel concluir a reserva.");
+      setMensagem(erro instanceof Error ? erro.message : "Não foi possível concluir a reserva.");
     } finally {
       setEnviando(false);
     }
@@ -361,7 +361,7 @@ export default function PaginaRestaurante({ params }) {
                 <p className="mt-3 max-w-xl break-words text-sm leading-6 text-app-mocha">{resumirEndereco(restaurante.endereco)}</p>
                 <div className="mt-4 flex flex-wrap gap-2">
                   <span className={`rounded-full px-3 py-1 text-xs font-bold ${operacaoConfigurada ? "bg-app-cafe-profundo text-app-creme-leve" : "bg-white text-app-caramelo-torrado"}`}>
-                    {operacaoConfigurada ? "Reservas disponiveis" : "Operacao em configuracao"}
+                    {operacaoConfigurada ? "Reservas disponíveis" : "Operação em configuracao"}
                   </span>
                   <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-app-mocha">{resumoCardapio}</span>
                   <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-xs font-bold text-app-mocha">
@@ -373,7 +373,7 @@ export default function PaginaRestaurante({ params }) {
 
               <div className="mt-5 rounded-[14px] bg-white p-3 ring-1 ring-app-baunilha-dourada/60">
                 <div className="min-w-0 rounded-[10px] bg-white px-3 py-3 ring-1 ring-app-baunilha-dourada/45">
-                  <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-app-cinza">Horario</p>
+                  <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-app-cinza">Horário</p>
                   <div className="mt-2 grid gap-1.5">
                     {linhasHorarioFuncionamento.map((linha) => (
                       <span key={linha} className="break-words text-[11px] font-semibold leading-4 text-app-cafe-profundo">{linha}</span>
@@ -395,7 +395,7 @@ export default function PaginaRestaurante({ params }) {
                 </div>
                 <div className="flex w-fit items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-bold text-app-cafe-profundo ring-1 ring-app-baunilha-dourada/60">
                   {totalAvaliacoes ? <EstrelasNota nota={avaliacaoMedia} /> : <Icon type="star" className="h-4 w-4 text-app-dourado-mel" />}
-                  {totalAvaliacoes ? `${avaliacaoMedia.toFixed(1)} de 5` : "Sem avaliacoes"}
+                  {totalAvaliacoes ? `${avaliacaoMedia.toFixed(1)} de 5` : "Sem avaliações"}
                 </div>
               </div>
               {avaliacoesRecentes.length ? (
@@ -416,7 +416,7 @@ export default function PaginaRestaurante({ params }) {
                 </div>
               ) : (
                 <p className="mt-4 rounded-[12px] bg-white p-4 text-sm leading-6 text-app-mocha ring-1 ring-app-baunilha-dourada/60">
-                  As avaliacoes aparecerao aqui depois que os clientes concluirem reservas ou pedidos.
+                  As avaliações aparecerão aqui depois que os clientes concluírem reservas ou pedidos.
                 </p>
               )}
             </section>
@@ -426,7 +426,7 @@ export default function PaginaRestaurante({ params }) {
                 <div className="flex flex-wrap items-end justify-between gap-3">
                   <div>
                     <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-dourado-mel">Selecionados pelo restaurante</p>
-                    <h2 className="mt-1 text-2xl font-bold">Destaques do cardapio</h2>
+                    <h2 className="mt-1 text-2xl font-bold">Destaques do cardápio</h2>
                   </div>
                   <span className="rounded-full bg-app-mocha px-3 py-1 text-xs font-bold text-app-creme-suave">Boa pedida para antecipar</span>
                 </div>
@@ -504,8 +504,8 @@ export default function PaginaRestaurante({ params }) {
               ))
             ) : (
               <section className="rounded-[18px] bg-white p-6 text-sm leading-6 text-app-mocha shadow-sm ring-1 ring-app-baunilha-dourada">
-                <p className="font-bold text-app-cafe-profundo">Cardapio em atualizacao</p>
-                <p className="mt-1">Este restaurante ainda nao publicou itens. Voce ainda pode reservar uma mesa normalmente.</p>
+                <p className="font-bold text-app-cafe-profundo">Cardápio em atualização</p>
+                <p className="mt-1">Este restaurante ainda não publicou itens. Você ainda pode reservar uma mesa normalmente.</p>
               </section>
             )}
           </section>
@@ -528,14 +528,14 @@ export default function PaginaRestaurante({ params }) {
                   <input type="date" min={obterDataPermitida()} max={obterDataLimiteReserva()} value={data} onChange={(evento) => setData(evento.target.value)} className="h-11 w-full min-w-0 rounded-[10px] border border-app-baunilha-dourada bg-white px-3 text-sm font-normal normal-case text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20" />
                 </label>
                 <label className="grid min-w-0 gap-1 text-xs font-bold uppercase text-app-cinza">
-                  Horario
+                  Horário
                   <select value={horarioSelecionado} onChange={(evento) => setHorario(evento.target.value)} disabled={!horariosDisponiveis.length} className="h-11 w-full min-w-0 rounded-[10px] border border-app-baunilha-dourada bg-white px-3 text-sm font-normal normal-case text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20 disabled:cursor-not-allowed disabled:opacity-60">
                     {horariosDisponiveis.length ? horariosDisponiveis.map((slot) => (
                       <option key={slot.horario} value={slot.horario}>
                         {slot.horario}
                       </option>
                     )) : (
-                      <option value="">Sem horarios disponiveis</option>
+                      <option value="">Sem horários disponíveis</option>
                     )}
                   </select>
                 </label>
@@ -545,7 +545,7 @@ export default function PaginaRestaurante({ params }) {
                 </label>
                 <label className="grid gap-1 text-xs font-bold uppercase text-app-cinza sm:col-span-2">
                   Observacoes da reserva
-                  <textarea value={observacoesReserva} onChange={(evento) => setObservacoesReserva(evento.target.value)} placeholder="Ex: mesa proxima da janela, cadeira infantil..." className="min-h-20 rounded-[10px] border border-app-baunilha-dourada bg-white p-3 text-sm font-normal normal-case text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20" />
+                  <textarea value={observacoesReserva} onChange={(evento) => setObservacoesReserva(evento.target.value)} placeholder="Ex: mesa próxima da janela, cadeira infantil..." className="min-h-20 rounded-[10px] border border-app-baunilha-dourada bg-white p-3 text-sm font-normal normal-case text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20" />
                 </label>
               </div>
 
@@ -560,7 +560,7 @@ export default function PaginaRestaurante({ params }) {
                   </div>
                 )) : (
                   <p className="rounded-[10px] bg-white p-4 text-sm leading-6 text-app-mocha">
-                    Voce pode reservar somente a mesa ou selecionar itens do cardapio para antecipar o pedido.
+                    Você pode reservar somente a mesa ou selecionar itens do cardápio para antecipar o pedido.
                   </p>
                 )}
               </div>
@@ -574,14 +574,14 @@ export default function PaginaRestaurante({ params }) {
 
               <div className="mt-5 grid gap-3 rounded-[14px] bg-white p-4 text-sm ring-1 ring-app-baunilha-dourada/60">
                 <p className="rounded-[10px] bg-white px-3 py-2 text-xs leading-5 text-app-mocha">
-                  Pedido antecipado possui consumo minimo de <strong className="text-app-cafe-profundo">{formatarMoeda(valorMinimoPorPessoa)}</strong> por pessoa.
+                  Pedido antecipado possui consumo mínimo de <strong className="text-app-cafe-profundo">{formatarMoeda(valorMinimoPorPessoa)}</strong> por pessoa.
                 </p>
                 <div className="flex justify-between gap-4">
-                  <span className="text-app-mocha">Consumo minimo por pessoa</span>
+                  <span className="text-app-mocha">Consumo mínimo por pessoa</span>
                   <strong>{formatarMoeda(valorMinimoPorPessoa)}</strong>
                 </div>
                 <div className="flex justify-between gap-4">
-                  <span className="text-app-mocha">{temPedidoAntecipado ? `Minimo para ${pessoas} pessoa(s)` : "Aplicado somente se houver pedido"}</span>
+                  <span className="text-app-mocha">{temPedidoAntecipado ? `Mínimo para ${pessoas} pessoa(s)` : "Aplicado somente se houver pedido"}</span>
                   <strong>{formatarMoeda(valorMinimoTotal)}</strong>
                 </div>
                 <div className="flex items-center justify-between border-t border-app-baunilha-dourada pt-4">
@@ -592,17 +592,17 @@ export default function PaginaRestaurante({ params }) {
 
               {temPedidoAntecipado && faltaParaMinimo > 0 ? (
                 <p className="mt-5 rounded-[8px] bg-white p-3 text-sm font-semibold leading-6 text-app-caramelo-torrado">
-                  Faltam {formatarMoeda(faltaParaMinimo)} para atingir o consumo minimo do pedido antecipado.
+                  Faltam {formatarMoeda(faltaParaMinimo)} para atingir o consumo mínimo do pedido antecipado.
                 </p>
               ) : null}
               {!operacaoConfigurada ? (
                 <p className="mt-5 rounded-[8px] bg-white p-3 text-sm font-semibold leading-6 text-app-caramelo-torrado">
-                  {disponibilidade.motivo ?? "Este restaurante ainda precisa configurar os horarios de funcionamento antes de receber reservas."}
+                  {disponibilidade.motivo ?? "Este restaurante ainda precisa configurar os horários de funcionamento antes de receber reservas."}
                 </p>
               ) : null}
               {operacaoConfigurada && !horariosDisponiveis.length ? (
                 <p className="mt-5 rounded-[8px] bg-white p-3 text-sm font-semibold leading-6 text-app-caramelo-torrado">
-                  {disponibilidade.motivo ?? "Nao ha horarios disponiveis para esta data considerando funcionamento, antecedencia minima e mesas ocupadas."}
+                  {disponibilidade.motivo ?? "Não há horários disponíveis para esta data considerando funcionamento, antecedência mínima e mesas ocupadas."}
                 </p>
               ) : null}
 
@@ -613,9 +613,9 @@ export default function PaginaRestaurante({ params }) {
             </form>
 
             <section className="mt-5 rounded-[14px] bg-white p-4 text-xs leading-5 text-app-mocha">
-              <h2 className="text-sm font-bold text-app-cafe-profundo">Sobre a experiencia</h2>
+              <h2 className="text-sm font-bold text-app-cafe-profundo">Sobre a experiência</h2>
               <p className="mt-2">
-                Reserve sua mesa normalmente ou antecipe o pedido. O consumo minimo so passa a valer quando houver pedido antecipado.
+                Reserve sua mesa normalmente ou antecipe o pedido. O consumo mínimo só passa a valer quando houver pedido antecipado.
               </p>
             </section>
           </aside>

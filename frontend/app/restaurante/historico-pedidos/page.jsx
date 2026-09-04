@@ -12,14 +12,14 @@ import { TelaCarregandoSessao, useSessaoLocal } from "@/lib/use-sessao-local";
 const navItems = [
     { label: "Home", href: "/restaurante/home" },
     { label: "Dashboard", href: "/restaurante/dashboard" },
-    { label: "Gestao de cardapio", href: "/restaurante/cardapio" },
+    { label: "Gestão de cardápio", href: "/restaurante/cardapio" },
     { label: "Desempenho", href: "/restaurante/desempenho" },
-    { label: "Relatorio financeiro", href: "/restaurante/financeiro" },
+    { label: "Relatório financeiro", href: "/restaurante/financeiro" },
     { label: "Reservas", href: "/restaurante/reservas" },
     { label: "Cozinha", href: "/restaurante/pedidos" },
-    { label: "Historico", href: "/restaurante/historico-pedidos" },
+    { label: "Histórico", href: "/restaurante/historico-pedidos" },
     { label: "Mensagens", href: "/restaurante/mensagens" },
-    { label: "Configuracoes", href: "/restaurante/configuracoes" },
+    { label: "Configurações", href: "/restaurante/configuracoes" },
 ];
 
 const filtros = [
@@ -183,7 +183,7 @@ function obterItensResumo(pedido) {
     const restantes = itens.length > 2 ? ` +${itens.length - 2}` : "";
     return `${principais.join(", ")}${restantes}`;
 }
-function obterCamposPedidoHistorico(pedido) {
+function obterCamposPedidoHistórico(pedido) {
     const pagamento = obterPagamentoPrincipal(pedido);
     return [
         `pedido ${pedido.id_pedido}`,
@@ -210,7 +210,7 @@ function obterCamposPedidoHistorico(pedido) {
         )),
     ];
 }
-function obterCamposReservaHistorico(reserva) {
+function obterCamposReservaHistórico(reserva) {
     const pedidosAtivos = obterPedidosAtivos(reserva);
     return [
         `reserva ${reserva.id_reserva}`,
@@ -249,9 +249,9 @@ function escaparHtml(valor) {
         .replaceAll("'", "&#39;");
 }
 
-function gerarCsvHistorico(pedidos) {
+function gerarCsvHistórico(pedidos) {
     const linhas = [
-        ["Pedido", "Cliente", "Data", "Horario", "Status", "Itens", "Valor total", "Valor pago", "Repasse"].map(escaparCsv).join(";"),
+        ["Pedido", "Cliente", "Data", "Horário", "Status", "Itens", "Valor total", "Valor pago", "Repasse"].map(escaparCsv).join(";"),
         ...pedidos.map((pedido) => {
             const pagamento = obterPagamentoPrincipal(pedido);
             return [
@@ -272,7 +272,7 @@ function gerarCsvHistorico(pedidos) {
 
 function gerarCsvReservas(reservas) {
     const linhas = [
-        ["Reserva", "Cliente", "Data", "Horario", "Mesa", "Pessoas", "Status", "Tipo"].map(escaparCsv).join(";"),
+        ["Reserva", "Cliente", "Data", "Horário", "Mesa", "Pessoas", "Status", "Tipo"].map(escaparCsv).join(";"),
         ...reservas.map((reserva) => {
             const pedidosAtivos = obterPedidosAtivos(reserva);
             return [
@@ -392,7 +392,7 @@ function montarHtmlComanda(pedido) {
                     <div class="meta">
                         <div><strong>Status:</strong> ${escaparHtml(textoStatusPedido(pedido.status_pedido))}</div>
                         <div><strong>Data:</strong> ${escaparHtml(formatarData(pedido.reservas?.data_reserva))}</div>
-                        <div><strong>Horario:</strong> ${escaparHtml(pedido.reservas?.horario_inicio?.slice(0, 5) ?? "--:--")}</div>
+                        <div><strong>Horário:</strong> ${escaparHtml(pedido.reservas?.horario_inicio?.slice(0, 5) ?? "--:--")}</div>
                         <div><strong>Mesa:</strong> ${escaparHtml(pedido.reservas?.mesas?.numero_mesa ?? "-")}</div>
                         <div><strong>Pessoas:</strong> ${escaparHtml(pedido.reservas?.quantidade_pessoas ?? "-")}</div>
                     </div>
@@ -424,7 +424,7 @@ function EmptyPanel() {
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-app-cafe-profundo text-app-creme-leve">
                 <Icon type="receipt" />
             </div>
-            <h3 className="mt-5 text-2xl font-semibold">Nenhum pedido no historico</h3>
+            <h3 className="mt-5 text-2xl font-semibold">Nenhum pedido no histórico</h3>
             <p className="mt-3 max-w-md text-sm leading-6 text-app-cinza">
                 Pedidos entregues, cancelados ou removidos da cozinha aparecem aqui para consulta operacional.
             </p>
@@ -443,7 +443,7 @@ export default function RestaurantOrderHistoryPage() {
     const [periodo, setPeriodo] = useState("TODOS");
     const [busca, setBusca] = useState("");
     const [pedidosAbertos, setPedidosAbertos] = useState([]);
-    const [mensagem, setMensagem] = useState("Carregando historico operacional...");
+    const [mensagem, setMensagem] = useState("Carregando histórico operacional...");
 
     useEffect(() => {
         if (!sessaoCarregada || sessao?.type !== "restaurant") {
@@ -459,7 +459,7 @@ export default function RestaurantOrderHistoryPage() {
                 setReservas(respostaReservas ?? []);
                 setMensagem("");
             })
-            .catch((erro) => setMensagem(erro instanceof Error ? erro.message : "Nao foi possivel carregar o historico."));
+            .catch((erro) => setMensagem(erro instanceof Error ? erro.message : "Não foi possível carregar o histórico."));
     }, [sessao, sessaoCarregada]);
 
     const pedidosFiltrados = useMemo(() => {
@@ -470,7 +470,7 @@ export default function RestaurantOrderHistoryPage() {
             const passaPeriodo = pedidoPassaPeriodo(pedido, periodo);
             return passaFiltro && passaPeriodo;
         });
-        return filtrarOrdenarPorBusca(pedidosPorFiltro, busca, obterCamposPedidoHistorico);
+        return filtrarOrdenarPorBusca(pedidosPorFiltro, busca, obterCamposPedidoHistórico);
     }, [busca, filtro, pedidos, periodo]);
 
     const reservasFiltradas = useMemo(() => {
@@ -483,7 +483,7 @@ export default function RestaurantOrderHistoryPage() {
             const passaPeriodo = reservaPassaPeriodo(reserva, periodo);
             return passaFiltro && passaPeriodo;
         });
-        return filtrarOrdenarPorBusca(reservasPorFiltro, busca, obterCamposReservaHistorico);
+        return filtrarOrdenarPorBusca(reservasPorFiltro, busca, obterCamposReservaHistórico);
     }, [busca, filtroReserva, periodo, reservas]);
 
     const resumo = useMemo(() => {
@@ -511,7 +511,7 @@ export default function RestaurantOrderHistoryPage() {
 
     function exportarCsv() {
         const csv = abaAtiva === "PEDIDOS"
-            ? gerarCsvHistorico(pedidosFiltrados)
+            ? gerarCsvHistórico(pedidosFiltrados)
             : gerarCsvReservas(reservasFiltradas);
         const blob = new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8;" });
         const url = URL.createObjectURL(blob);
@@ -525,7 +525,7 @@ export default function RestaurantOrderHistoryPage() {
     function imprimirPedido(pedido) {
         const janela = window.open("", "_blank", "width=420,height=680");
         if (!janela) {
-            setMensagem("Nao foi possivel abrir a janela de impressao. Verifique o bloqueador de pop-ups.");
+            setMensagem("Não foi possível abrir a janela de impressao. Verifique o bloqueador de pop-ups.");
             return;
         }
 
@@ -544,7 +544,7 @@ export default function RestaurantOrderHistoryPage() {
                 <section className="w-full max-w-lg rounded-[8px] bg-app-creme-leve p-8 text-center shadow-sm ring-1 ring-app-baunilha-dourada">
                     <Image src="/brand/appono-mark.svg" alt="Appono" width={88} height={88} className="mx-auto h-20 w-20" priority />
                     <h1 className="mt-6 text-3xl font-semibold">Acesso restrito</h1>
-                    <p className="mt-3 text-sm leading-6 text-app-cinza">Esta area e destinada a contas de restaurante.</p>
+                    <p className="mt-3 text-sm leading-6 text-app-cinza">Esta área é destinada a contas de restaurante.</p>
                     <Link href="/login" className="mt-6 inline-flex h-11 items-center justify-center rounded-[8px] bg-app-dourado-mel px-6 text-sm font-bold text-white transition hover:bg-app-caramelo-torrado">
                         Entrar
                     </Link>
@@ -593,10 +593,10 @@ export default function RestaurantOrderHistoryPage() {
             <section className="mx-auto w-full max-w-7xl flex-1 px-5 py-10 sm:py-14">
                 <div className="grid gap-6 border-t border-app-baunilha-dourada/60 pt-10 lg:grid-cols-[1fr_auto] lg:items-end">
                     <div>
-                        <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-app-caramelo-torrado">Historico operacional</p>
-                        <h1 className="mt-2 text-4xl font-medium leading-tight text-app-cafe-profundo sm:text-5xl">Historico</h1>
+                        <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-app-caramelo-torrado">Histórico operacional</p>
+                        <h1 className="mt-2 text-4xl font-medium leading-tight text-app-cafe-profundo sm:text-5xl">Histórico</h1>
                         <p className="mt-4 max-w-2xl text-sm leading-6 text-app-cinza sm:text-base">
-                            Consulte pedidos e reservas em um unico lugar, separando cozinha e recepcao sem perder rastreabilidade.
+                            Consulte pedidos e reservas em um único lugar, separando cozinha e recepção sem perder rastreabilidade.
                         </p>
                     </div>
 
@@ -618,7 +618,7 @@ export default function RestaurantOrderHistoryPage() {
                             <strong className="mt-1 block text-lg">Pedidos</strong>
                         </button>
                         <button type="button" onClick={() => setAbaAtiva("RESERVAS")} className={`rounded-[11px] px-4 py-3 text-left transition ${abaAtiva === "RESERVAS" ? "bg-app-cafe-profundo text-app-creme-leve shadow-sm" : "text-app-cafe-profundo hover:bg-app-chantilly"}`}>
-                            <span className="block text-[10px] font-bold uppercase tracking-[0.2em] opacity-80">Recepcao</span>
+                            <span className="block text-[10px] font-bold uppercase tracking-[0.2em] opacity-80">Recepção</span>
                             <strong className="mt-1 block text-lg">Reservas</strong>
                         </button>
                     </div>
@@ -728,8 +728,8 @@ export default function RestaurantOrderHistoryPage() {
                                                     </div>
                                                     <div className="mt-3 grid gap-2 rounded-[10px] bg-app-cafe-profundo px-3 py-3 text-xs text-app-creme-suave sm:grid-cols-3">
                                                         <span>Liquido: <strong className="text-app-creme-leve">{formatarMoeda(pagamento?.valor_restaurante ?? 0)}</strong></span>
-                                                        <span>Comissao: <strong className="text-app-creme-leve">{formatarMoeda(pagamento?.valor_comissao_app ?? 0)}</strong></span>
-                                                        <span>Data pagamento: <strong className="text-app-creme-leve">{pagamento?.data_pagamento ? new Date(pagamento.data_pagamento).toLocaleDateString("pt-BR") : "Nao informado"}</strong></span>
+                                                        <span>Comissão: <strong className="text-app-creme-leve">{formatarMoeda(pagamento?.valor_comissao_app ?? 0)}</strong></span>
+                                                        <span>Data pagamento: <strong className="text-app-creme-leve">{pagamento?.data_pagamento ? new Date(pagamento.data_pagamento).toLocaleDateString("pt-BR") : "Não informado"}</strong></span>
                                                     </div>
                                                 </div>
                                             ) : null}
@@ -758,13 +758,13 @@ export default function RestaurantOrderHistoryPage() {
                                                 </div>
                                                 <h2 className="mt-2 truncate text-xl font-semibold text-app-cafe-profundo">{reserva.clientes?.nome ?? "Cliente"}</h2>
                                                 <p className="mt-1 text-sm text-app-cinza">
-                                                    {formatarData(reserva.data_reserva)} - {reserva.horario_inicio?.slice(0, 5) ?? "--:--"} ate {reserva.horario_fim?.slice(0, 5) ?? "--:--"} - Mesa {reserva.mesas?.numero_mesa ?? "-"}
+                                                    {formatarData(reserva.data_reserva)} - {reserva.horario_inicio?.slice(0, 5) ?? "--:--"} até {reserva.horario_fim?.slice(0, 5) ?? "--:--"} - Mesa {reserva.mesas?.numero_mesa ?? "-"}
                                                 </p>
                                             </div>
 
                                             <div className="grid gap-2 text-sm text-app-mocha lg:min-w-72 lg:text-right">
                                                 <strong className="text-lg text-app-cafe-profundo">{reserva.quantidade_pessoas} pessoa(s)</strong>
-                                                <span>Consumo minimo {formatarMoeda(reserva.valor_minimo_total)}</span>
+                                                <span>Consumo mínimo {formatarMoeda(reserva.valor_minimo_total)}</span>
                                                 {pedidoPrincipal ? <span>Pedido #{pedidoPrincipal.id_pedido} - {textoStatusPedido(pedidoPrincipal.status_pedido)}</span> : <span>Sem pedido antecipado</span>}
                                             </div>
                                         </div>
@@ -777,9 +777,9 @@ export default function RestaurantOrderHistoryPage() {
                             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-app-cafe-profundo text-app-creme-leve">
                                 <Icon type="calendar" />
                             </div>
-                            <h3 className="mt-5 text-2xl font-semibold">Nenhuma reserva no historico</h3>
+                            <h3 className="mt-5 text-2xl font-semibold">Nenhuma reserva no histórico</h3>
                             <p className="mt-3 max-w-md text-sm leading-6 text-app-cinza">
-                                Reservas finalizadas, canceladas e demais registros aparecem aqui para consulta da recepcao.
+                                Reservas finalizadas, canceladas e demais registros aparecem aqui para consulta da recepção.
                             </p>
                         </div>
                     )}

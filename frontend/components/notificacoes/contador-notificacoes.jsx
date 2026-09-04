@@ -63,7 +63,7 @@ export function LinkNotificacoes({ href }) {
     }, []);
 
     return (
-        <Link href={href} className="relative transition hover:text-app-caramelo-torrado focus:outline-none focus:ring-2 focus:ring-app-dourado-mel" aria-label={naoLidas ? `${naoLidas} notificacoes nao lidas` : "Notificacoes"}>
+        <Link href={href} className="relative transition hover:text-app-caramelo-torrado focus:outline-none focus:ring-2 focus:ring-app-dourado-mel" aria-label={naoLidas ? `${naoLidas} notificações não lidas` : "Notificações"}>
             <IconeSino />
             {naoLidas > 0 ? (
                 <span className="absolute -right-2 -top-2 flex h-4 min-w-4 animate-pulse items-center justify-center rounded-full bg-app-vermelho-erro px-1 text-[10px] font-bold leading-none text-white">

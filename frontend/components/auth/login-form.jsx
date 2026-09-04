@@ -54,7 +54,7 @@ export function LoginForm() {
 
     const params = new URLSearchParams(window.location.search);
     return params.get("cadastro") === "existente"
-      ? "Esta conta ja existe. Entre com seu e-mail e senha para continuar."
+      ? "Esta conta já existe. Entre com seu e-mail e senha para continuar."
       : "";
   });
   const [recoveryMessage, setRecoveryMessage] = useState("");
@@ -98,7 +98,7 @@ export function LoginForm() {
       setMessage(
         error instanceof Error
           ? error.message
-          : "Nao foi possivel entrar. Tente novamente."
+          : "Não foi possível entrar. Tente novamente."
       );
     } finally {
       setIsSubmitting(false);
@@ -139,7 +139,7 @@ export function LoginForm() {
       setRecoveryMessage(
         error instanceof Error
           ? error.message
-          : "Nao foi possivel enviar o e-mail de recuperacao."
+          : "Não foi possível enviar o e-mail de recuperação."
       );
     } finally {
       setIsSendingRecovery(false);
@@ -171,7 +171,7 @@ export function LoginForm() {
       setMessage(
         error instanceof Error
           ? error.message
-          : "Nao foi possivel iniciar o login com Google."
+          : "Não foi possível iniciar o login com Google."
       );
     }
   }
@@ -224,7 +224,7 @@ export function LoginForm() {
           </h1>
 
           <p className="mt-1 text-sm leading-5 text-app-mocha">
-            Entre para continuar sua jornada gastronomica ou torne-se um membro.
+            Entre para continuar sua jornada gastronômica ou torne-se um membro.
           </p>
 
           <form
@@ -235,7 +235,7 @@ export function LoginForm() {
             {/* E-MAIL */}
             <label className="flex flex-col gap-1">
               <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-app-mocha">
-                Endereco de e-mail
+                Endereço de e-mail
               </span>
 
               <input
@@ -402,19 +402,19 @@ export function LoginForm() {
           </button>
 
           <p className="mt-3 text-center text-[9px] uppercase leading-4 tracking-[0.12em] text-app-cinza">
-            Ao continuar, voce concorda com nossos{" "}
+            Ao continuar, você concorda com nossos{" "}
             <Link
               href="#"
               className="text-app-caramelo-torrado underline underline-offset-4 transition hover:text-app-cafe-profundo"
             >
-              termos de servico
+              termos de serviço
             </Link>{" "}
             &{" "}
             <Link
               href="#"
               className="text-app-caramelo-torrado underline underline-offset-4 transition hover:text-app-cafe-profundo"
             >
-              politica de privacidade
+              política de privacidade
             </Link>
           </p>
         </div>
@@ -523,7 +523,7 @@ export function LoginForm() {
                 </strong>
 
                 <span className="mt-2 block text-sm leading-6 text-app-mocha">
-                  Quero organizar reservas, cardapio e pedidos antecipados.
+                  Quero organizar reservas, cardápio e pedidos antecipados.
                 </span>
               </Link>
             </div>
@@ -536,7 +536,7 @@ export function LoginForm() {
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 px-5 backdrop-blur-[2px]"
           role="dialog"
           aria-modal="true"
-          aria-label="Recuperacao de senha"
+          aria-label="Recuperação de senha"
         >
           <section className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl sm:p-8">
             <div className="flex items-start justify-between gap-4">
@@ -554,7 +554,7 @@ export function LoginForm() {
                 type="button"
                 onClick={() => setRecoveryDialog(false)}
                 className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-app-baunilha-dourada text-app-cafe-profundo transition hover:bg-app-creme-suave"
-                aria-label="Fechar recuperacao de senha"
+                aria-label="Fechar recuperação de senha"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -574,7 +574,7 @@ export function LoginForm() {
             </div>
 
             <p className="mt-3 text-sm leading-6 text-app-mocha">
-              Informe o e-mail cadastrado. A Appono enviara um link seguro para voce criar uma nova senha.
+              Informe o e-mail cadastrado. A Appono enviará um link seguro para você criar uma nova senha.
             </p>
 
             <form

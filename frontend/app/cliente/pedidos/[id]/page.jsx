@@ -113,7 +113,7 @@ export default function DetalhePedidoPorId({ params }) {
             await apiRequest(`/pedidos/${id}/ocultar`, { method: "PATCH" });
             router.replace("/cliente/detalhes-pedido");
         } catch (error) {
-            setErro(error instanceof Error ? error.message : "Nao foi possivel remover o pedido da lista.");
+            setErro(error instanceof Error ? error.message : "Não foi possível remover o pedido da lista.");
         } finally {
             setProcessando(false);
         }
@@ -225,7 +225,7 @@ export default function DetalhePedidoPorId({ params }) {
                 open={confirmacaoAcao === "cancelar"}
                 eyebrow="Cancelar pedido"
                 title="Deseja cancelar este pedido?"
-                description="A reserva continua ativa se ainda estiver confirmada. O pedido sera cancelado somente se o preparo ainda nao tiver iniciado."
+                description="A reserva continua ativa se ainda estiver confirmada. O pedido será cancelado somente se o preparo ainda não tiver iniciado."
                 confirmLabel="Cancelar pedido"
                 cancelLabel="Manter pedido"
                 loading={processando}
@@ -236,8 +236,8 @@ export default function DetalhePedidoPorId({ params }) {
             <ConfirmationDialog
                 open={confirmacaoAcao === "excluir"}
                 eyebrow="Excluir pedido"
-                title="Remover este pedido do historico?"
-                description="O pedido sera ocultado apenas da sua lista. Pagamentos, reembolsos e registros operacionais continuam preservados."
+                title="Remover este pedido do histórico?"
+                description="O pedido será ocultado apenas da sua lista. Pagamentos, reembolsos e registros operacionais continuam preservados."
                 confirmLabel="Excluir"
                 cancelLabel="Manter"
                 loading={processando}

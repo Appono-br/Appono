@@ -11,14 +11,14 @@ import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 const navItems = [
     { label: "Home", href: "/restaurante/home" },
     { label: "Dashboard", href: "/restaurante/dashboard" },
-    { label: "Gestao de cardapio", href: "/restaurante/cardapio" },
+    { label: "Gestão de cardápio", href: "/restaurante/cardapio" },
     { label: "Desempenho", href: "/restaurante/desempenho" },
-    { label: "Relatorio financeiro", href: "/restaurante/financeiro" },
+    { label: "Relatório financeiro", href: "/restaurante/financeiro" },
     { label: "Reservas", href: "/restaurante/reservas" },
     { label: "Cozinha", href: "/restaurante/pedidos" },
-    { label: "Historico", href: "/restaurante/historico-pedidos" },
+    { label: "Histórico", href: "/restaurante/historico-pedidos" },
     { label: "Mensagens", href: "/restaurante/mensagens" },
-    { label: "Configuracoes", href: "/restaurante/configuracoes" },
+    { label: "Configurações", href: "/restaurante/configuracoes" },
 ];
 const filtrosPedido = [
     { label: "Todos", value: "TODOS" },
@@ -114,8 +114,8 @@ function obterClasseStatusReserva(status) {
 function obterStatusConfirmacaoPresenca(status) {
     const statusMap = {
         PENDENTE: "Aguardando cliente",
-        CONFIRMADA: "Presenca confirmada",
-        RECUSADA: "Ausencia informada",
+        CONFIRMADA: "Presença confirmada",
+        RECUSADA: "Ausência informada",
         EXPIRADA: "Prazo expirado",
     };
     return statusMap[status] ?? "Aguardando cliente";
@@ -214,7 +214,7 @@ export default function RestaurantReservationsPage() {
         apiRequest("/reservas?fila=operacional")
             .then(setReservas)
             .catch((erro) =>
-                setMensagem(erro instanceof Error ? erro.message : "Nao foi possivel carregar as reservas."),
+                setMensagem(erro instanceof Error ? erro.message : "Não foi possível carregar as reservas."),
             );
     }, [isRestaurant]);
 
@@ -231,7 +231,7 @@ export default function RestaurantReservationsPage() {
             setMensagem("Reserva desmarcada.");
             setReservaParaCancelar(null);
         } catch (erro) {
-            setMensagem(erro instanceof Error ? erro.message : "Nao foi possivel desmarcar a reserva.");
+            setMensagem(erro instanceof Error ? erro.message : "Não foi possível desmarcar a reserva.");
         }
         finally {
             setCancelandoReserva(false);
@@ -250,7 +250,7 @@ export default function RestaurantReservationsPage() {
             );
             setMensagem("Check-in registrado. A reserva entrou em atendimento.");
         } catch (erro) {
-            setMensagem(erro instanceof Error ? erro.message : "Nao foi possivel registrar o check-in.");
+            setMensagem(erro instanceof Error ? erro.message : "Não foi possível registrar o check-in.");
         }
         finally {
             setRegistrandoCheckIn(null);
@@ -269,7 +269,7 @@ export default function RestaurantReservationsPage() {
             );
             setMensagem("Reserva finalizada com sucesso.");
         } catch (erro) {
-            setMensagem(erro instanceof Error ? erro.message : "Nao foi possivel finalizar a reserva.");
+            setMensagem(erro instanceof Error ? erro.message : "Não foi possível finalizar a reserva.");
         }
         finally {
             setFinalizandoReserva(null);
@@ -284,7 +284,7 @@ export default function RestaurantReservationsPage() {
             setMensagem("Reserva removida da lista.");
             setReservaParaExcluir(null);
         } catch (erro) {
-            setMensagem(erro instanceof Error ? erro.message : "Nao foi possivel remover a reserva.");
+            setMensagem(erro instanceof Error ? erro.message : "Não foi possível remover a reserva.");
         } finally {
             setExcluindoReserva(false);
         }
@@ -335,7 +335,7 @@ export default function RestaurantReservationsPage() {
                     />
                     <h1 className="mt-6 text-3xl font-semibold">Acesso restrito</h1>
                     <p className="mt-3 text-sm leading-6 text-app-cinza">
-                        Esta area e destinada a contas de restaurante.
+                        Esta área é destinada a contas de restaurante.
                     </p>
                     <Link
                         href="/login"
@@ -379,7 +379,7 @@ export default function RestaurantReservationsPage() {
                         <Link
                             href="/restaurante/notificacoes"
                             className="flex h-9 w-9 items-center justify-center rounded-[8px] text-app-cafe-profundo transition hover:bg-app-chantilly hover:text-app-caramelo-torrado"
-                            aria-label="Notificacoes"
+                            aria-label="Notificações"
                         >
                             <Icon type="bell" />
                         </Link>
@@ -489,7 +489,7 @@ export default function RestaurantReservationsPage() {
                                             </div>
                                             <div>
                                                 <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">
-                                                    Horario
+                                                    Horário
                                                 </p>
                                                 <p className="mt-1 text-lg font-semibold text-app-cafe-profundo">
                                                     {reserva.horario_inicio}
@@ -527,7 +527,7 @@ export default function RestaurantReservationsPage() {
                                                     <strong className="mt-1 block text-app-cafe-profundo">{reserva.mesas?.numero_mesa ?? "-"}</strong>
                                                 </div>
                                                 <div className="rounded-[10px] bg-white px-4 py-3 ring-1 ring-app-baunilha-dourada/55">
-                                                    <span className="block text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">Consumo minimo</span>
+                                                    <span className="block text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">Consumo mínimo</span>
                                                     <strong className="mt-1 block text-app-cafe-profundo">{formatarMoeda(reserva.valor_minimo_total)}</strong>
                                                 </div>
                                             </div>
@@ -648,7 +648,7 @@ export default function RestaurantReservationsPage() {
                                 {reservaParaCancelar.clientes?.nome ?? "Cliente"}
                             </p>
                             <p className="mt-1 text-xs text-app-cinza">
-                                {reservaParaCancelar.data_reserva} - {reservaParaCancelar.horario_inicio} ate {reservaParaCancelar.horario_fim} - {reservaParaCancelar.quantidade_pessoas} pessoas
+                                {reservaParaCancelar.data_reserva} - {reservaParaCancelar.horario_inicio} até {reservaParaCancelar.horario_fim} - {reservaParaCancelar.quantidade_pessoas} pessoas
                             </p>
                         </div>
                         <div className="mt-6 grid gap-3 sm:grid-cols-2">
@@ -677,7 +677,7 @@ export default function RestaurantReservationsPage() {
                 open={Boolean(reservaParaExcluir)}
                 eyebrow="Excluir da lista"
                 title="Remover esta reserva da lista?"
-                description="A reserva sera ocultada da tela operacional do restaurante. O historico e os registros financeiros continuam preservados."
+                description="A reserva será ocultada da tela operacional do restaurante. O histórico e os registros financeiros continuam preservados."
                 confirmLabel="Excluir"
                 cancelLabel="Manter"
                 loading={excluindoReserva}
@@ -704,7 +704,7 @@ export default function RestaurantReservationsPage() {
                     />
                     <nav className="flex flex-wrap justify-center gap-8 text-[10px] font-bold uppercase text-app-baunilha-dourada">
                         <Link href="#" className="transition hover:text-app-chantilly">
-                            Politica de Privacidade
+                            Política de Privacidade
                         </Link>
                         <Link href="#" className="transition hover:text-app-chantilly">
                             Termos de Uso

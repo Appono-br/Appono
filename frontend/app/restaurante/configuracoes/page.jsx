@@ -25,25 +25,25 @@ const initialForm = {
 const navItems = [
     { label: "Home", href: "/restaurante/home" },
     { label: "Dashboard", href: "/restaurante/dashboard" },
-    { label: "Gestao de cardapio", href: "/restaurante/cardapio" },
+    { label: "Gestão de cardápio", href: "/restaurante/cardapio" },
     { label: "Desempenho", href: "/restaurante/desempenho" },
-    { label: "Relatorio financeiro", href: "/restaurante/financeiro" },
+    { label: "Relatório financeiro", href: "/restaurante/financeiro" },
     { label: "Reservas", href: "/restaurante/reservas" },
     { label: "Cozinha", href: "/restaurante/pedidos" },
-    { label: "Historico", href: "/restaurante/historico-pedidos" },
+    { label: "Histórico", href: "/restaurante/historico-pedidos" },
     { label: "Mensagens", href: "/restaurante/mensagens" },
-    { label: "Configuracoes", href: "/restaurante/configuracoes" },
+    { label: "Configurações", href: "/restaurante/configuracoes" },
 ];
 const settingsItems = [
-    { label: "Informacoes da loja", icon: "store", href: "/restaurante/configuracoes" },
-    { label: "Endereco da loja", icon: "map-pin", href: "/restaurante/configuracoes/endereco" },
+    { label: "Informações da loja", icon: "store", href: "/restaurante/configuracoes" },
+    { label: "Endereço da loja", icon: "map-pin", href: "/restaurante/configuracoes/endereco" },
     {
-        label: "Preferencias de notificacao",
+        label: "Preferências de notificação",
         icon: "bell",
         href: "/restaurante/configuracoes/notificacoes",
     },
     {
-        label: "Seguranca e acesso",
+        label: "Segurança e acesso",
         icon: "shield",
         href: "/restaurante/configuracoes/seguranca",
     },
@@ -53,7 +53,7 @@ const settingsItems = [
         href: "/restaurante/financeiro",
     },
     {
-        label: "Operacao & logistica",
+        label: "Operação & logística",
         icon: "settings",
         href: "/restaurante/configuracoes/operacao",
     },
@@ -114,7 +114,7 @@ export default function RestaurantSettingsPage() {
             catch (error) {
                 setMessage(error instanceof Error
                     ? error.message
-                    : "Nao foi possivel carregar os dados cadastrados.");
+                    : "Não foi possível carregar os dados cadastrados.");
             }
         }
         carregarDadosCadastrados();
@@ -157,10 +157,10 @@ export default function RestaurantSettingsPage() {
                 setNovaImagem(null);
             }
             atualizarNomeSessao(resposta.perfil.nome);
-            setMessage(resposta.message ?? "Alteracoes salvas com sucesso.");
+            setMessage(resposta.message ?? "Alterações salvas com sucesso.");
         }
         catch (error) {
-            setMessage(error instanceof Error ? error.message : "Nao foi possivel salvar as alteracoes.");
+            setMessage(error instanceof Error ? error.message : "Não foi possível salvar as alterações.");
         }
         finally {
             setSalvando(false);
@@ -179,7 +179,7 @@ export default function RestaurantSettingsPage() {
           <Image src="/brand/appono-mark.svg" alt="Appono" width={88} height={88} className="mx-auto h-20 w-20" priority/>
           <h1 className="mt-6 text-3xl font-semibold">Acesso restrito</h1>
           <p className="mt-3 text-sm leading-6 text-app-cinza">
-            Esta area e destinada a contas de restaurante.
+            Esta área é destinada a contas de restaurante.
           </p>
           <Link href="/login" className="mt-6 inline-flex h-11 items-center justify-center rounded-[8px] bg-app-dourado-mel px-6 text-sm font-bold text-white transition hover:bg-app-caramelo-torrado">
             Entrar
@@ -227,10 +227,10 @@ export default function RestaurantSettingsPage() {
                 Perfil
               </p>
               <h1 className="mt-3 text-3xl font-medium italic leading-tight text-app-cafe-profundo">
-                Configuracoes do Perfil
+                Configurações do Perfil
               </h1>
               <p className="mt-5 text-sm leading-6 text-app-mocha">
-                Gerencie as informacoes da loja e dados fiscais do
+                Gerencie as informações da loja e dados fiscais do
                 estabelecimento.
               </p>
             </section>
@@ -255,7 +255,7 @@ export default function RestaurantSettingsPage() {
                   Dados Cadastrais
                 </h2>
                 <p className="mt-2 max-w-md text-sm leading-6 text-app-mocha">
-                  Preencha as informacoes fiscais e de contato da sua loja.
+                  Preencha as informações fiscais e de contato da sua loja.
                 </p>
               </div>
 
@@ -291,20 +291,20 @@ export default function RestaurantSettingsPage() {
             <section className="mt-8 grid gap-6 sm:grid-cols-2">
               <Field label="Nome da loja" value={form.storeName} onChange={(value) => updateField("storeName", value)}/>
               <Field label="CNPJ" value={form.document} onChange={(value) => updateField("document", value)} disabled/>
-              <Field label="Razao social" value={form.legalName} onChange={(value) => updateField("legalName", value)} disabled/>
+              <Field label="Razão social" value={form.legalName} onChange={(value) => updateField("legalName", value)} disabled/>
               <Field label="Telefone de contato" value={form.phone} onChange={(value) => updateField("phone", value)}/>
               <Field label="Email comercial" value={form.email} onChange={(value) => updateField("email", value)} className="sm:col-span-2"/>
-              <Field label="Consumo minimo por pessoa (R$)" value={form.minimumReservationValue} onChange={(value) => updateField("minimumReservationValue", value.replace(/[^\d.,]/g, "").replace(",", "."))} className="sm:col-span-2"/>
+              <Field label="Consumo mínimo por pessoa (R$)" value={form.minimumReservationValue} onChange={(value) => updateField("minimumReservationValue", value.replace(/[^\d.,]/g, "").replace(",", "."))} className="sm:col-span-2"/>
             </section>
 
             <section className="mt-8 border-t border-app-baunilha-dourada/60 pt-8">
               <h3 className="flex items-center gap-2 text-2xl font-medium italic text-app-cafe-profundo">
                 <Icon type="map-pin" className="h-5 w-5"/>
-                Localizacao
+                Localização
               </h3>
 
               <div className="mt-6 grid gap-6 sm:grid-cols-[1fr_0.42fr]">
-                <Field label="Endereco" value={form.address} onChange={(value) => updateField("address", value)}/>
+                <Field label="Endereço" value={form.address} onChange={(value) => updateField("address", value)}/>
                 <Field label="CEP" value={form.postalCode} onChange={(value) => updateField("postalCode", value)}/>
               </div>
             </section>
@@ -317,7 +317,7 @@ export default function RestaurantSettingsPage() {
                 Descartar
               </button>
               <button type="submit" disabled={salvando} className="h-11 rounded-[8px] bg-app-dourado-mel px-8 text-xs font-bold uppercase text-white transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-60">
-                {salvando ? "Salvando..." : "Salvar alteracoes"}
+                {salvando ? "Salvando..." : "Salvar alterações"}
               </button>
             </div>
 
@@ -337,8 +337,8 @@ export default function RestaurantSettingsPage() {
                 Precisa alterar dados restritos?
               </h2>
               <p className="mt-3 max-w-md text-sm leading-6 text-app-mocha">
-                Algumas informacoes cadastrais requerem validacao manual para
-                garantir a seguranca da plataforma.
+                Algumas informações cadastrais requerem validação manual para
+                garantir a segurança da plataforma.
               </p>
               <button type="button" className="mt-5 text-xs font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado transition hover:text-app-cafe-profundo">
                 Falar com consultor
@@ -362,7 +362,7 @@ export default function RestaurantSettingsPage() {
           <Image src="/brand/appono-mark.svg" alt="Appono" width={80} height={80} className="h-14 w-14 brightness-0 invert"/>
           <nav className="flex flex-wrap justify-center gap-8 text-[10px] font-bold uppercase text-app-baunilha-dourada">
             <Link href="#" className="transition hover:text-app-chantilly">
-              Politica de Privacidade
+              Política de Privacidade
             </Link>
             <Link href="#" className="transition hover:text-app-chantilly">
               Termos de Uso

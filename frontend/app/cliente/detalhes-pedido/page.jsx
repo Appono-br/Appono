@@ -54,7 +54,7 @@ export default function PedidosClientePage() {
             }));
             setPedidoParaExcluir(null);
         } catch (error) {
-            setErro(error instanceof Error ? error.message : "Nao foi possivel remover o pedido da lista.");
+            setErro(error instanceof Error ? error.message : "Não foi possível remover o pedido da lista.");
         } finally {
             setPedidoExcluindo(null);
         }
@@ -124,8 +124,8 @@ export default function PedidosClientePage() {
             <ConfirmationDialog
                 open={Boolean(pedidoParaExcluir)}
                 eyebrow="Excluir pedido"
-                title="Remover este pedido do historico?"
-                description="O pedido sera ocultado apenas da sua lista. Pagamentos, reembolsos e registros operacionais continuam preservados."
+                title="Remover este pedido do histórico?"
+                description="O pedido será ocultado apenas da sua lista. Pagamentos, reembolsos e registros operacionais continuam preservados."
                 confirmLabel="Excluir"
                 cancelLabel="Manter"
                 loading={pedidoExcluindo === pedidoParaExcluir?.id_pedido}

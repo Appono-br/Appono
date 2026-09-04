@@ -15,7 +15,7 @@ function formatarMoeda(valor) {
 
 function formatarData(data) {
     if (!data) {
-        return "Nao informado";
+        return "Não informado";
     }
     return new Date(`${data}T12:00:00`).toLocaleDateString("pt-BR", {
         day: "2-digit",
@@ -40,7 +40,7 @@ function Icon({ type, className = "h-5 w-5" }) {
 
 export default function PaginaPagamentoPedido({ params }) {
     const [pedidoId, setPedidoId] = useState(null);
-    const [preferencia, setPreferencia] = useState(null);
+    const [preferência, setPreferência] = useState(null);
     const [mensagem, setMensagem] = useState("Preparando checkout seguro...");
 
     useEffect(() => {
@@ -51,21 +51,21 @@ export default function PaginaPagamentoPedido({ params }) {
         if (!pedidoId) {
             return;
         }
-        apiRequest(`/pagamentos/pedido/${pedidoId}/preferencia`, {
+        apiRequest(`/pagamentos/pedido/${pedidoId}/preferência`, {
             method: "POST",
         })
             .then((resposta) => {
-                setPreferencia(resposta);
+                setPreferência(resposta);
                 setMensagem("");
             })
             .catch((error) => {
-                setMensagem(error instanceof Error ? error.message : "Nao foi possivel preparar o pagamento.");
+                setMensagem(error instanceof Error ? error.message : "Não foi possível preparar o pagamento.");
             });
     }, [pedidoId]);
 
-    const pedido = preferencia?.pedido;
-    const preferenceId = preferencia?.preference_id;
-    const checkoutUrl = preferencia?.checkout_url;
+    const pedido = preferência?.pedido;
+    const preferenceId = preferência?.preference_id;
+    const checkoutUrl = preferência?.checkout_url;
     const hrefDetalhesPedido = pedidoId ? `/cliente/pedidos/${pedidoId}` : "/cliente/detalhes-pedido";
 
     return (
@@ -85,7 +85,7 @@ export default function PaginaPagamentoPedido({ params }) {
                             Finalize o pagamento do pedido antecipado
                         </h1>
                         <p className="mt-4 max-w-xl text-sm leading-6 text-app-mocha">
-                            O pagamento e processado pelo Mercado Pago. Depois da aprovacao, a Appono confirma o pedido para o restaurante preparar no horario da sua reserva.
+                            O pagamento é processado pelo Mercado Pago. Depois da aprovação, a Appono confirma o pedido para o restaurante preparar no horário da sua reserva.
                         </p>
 
                         <div className="mt-8 grid gap-3 rounded-[12px] bg-white p-5 ring-1 ring-app-baunilha-dourada/60 sm:grid-cols-2">
@@ -100,7 +100,7 @@ export default function PaginaPagamentoPedido({ params }) {
                             <div>
                                 <p className="text-[10px] font-bold uppercase text-app-cinza">Reserva</p>
                                 <p className="mt-1 font-semibold">
-                                    {formatarData(pedido?.reservas?.data_reserva)} as {pedido?.reservas?.horario_inicio?.slice(0, 5) ?? "--"}
+                                    {formatarData(pedido?.reservas?.data_reserva)} às {pedido?.reservas?.horario_inicio?.slice(0, 5) ?? "--"}
                                 </p>
                             </div>
                             <div>
@@ -125,7 +125,7 @@ export default function PaginaPagamentoPedido({ params }) {
                             </div>
 
                             <p className="mt-5 text-sm leading-6 text-app-creme-suave">
-                                Clique no botao oficial abaixo para abrir o Checkout Pro com cartao, Pix, boleto e saldo Mercado Pago, conforme disponibilidade da sua conta.
+                                Clique no botão oficial abaixo para abrir o Checkout Pro com cartão, Pix, boleto e saldo Mercado Pago, conforme disponibilidade da sua conta.
                             </p>
 
                             <div className="mt-6 rounded-[14px] bg-app-cacau-intenso/45 p-4 ring-1 ring-app-baunilha-dourada/20">
@@ -147,7 +147,7 @@ export default function PaginaPagamentoPedido({ params }) {
                                     </a>
                                 ) : (
                                     <p className="text-center text-sm font-semibold text-app-caramelo-torrado">
-                                        {mensagem || "Carregando botao de pagamento..."}
+                                        {mensagem || "Carregando botão de pagamento..."}
                                     </p>
                                 )}
                                 {preferenceId ? (
@@ -164,7 +164,7 @@ export default function PaginaPagamentoPedido({ params }) {
                                 </p>
                                 <p className="flex items-center gap-2">
                                     <Icon type="check" className="h-4 w-4 text-app-baunilha-dourada" />
-                                    O pedido sera confirmado automaticamente apos aprovacao.
+                                    O pedido será confirmado automaticamente após aprovação.
                                 </p>
                             </div>
                         </div>

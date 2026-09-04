@@ -160,7 +160,7 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
       setMessage(
         error instanceof Error
           ? error.message
-          : "CNPJ invalido."
+          : "CNPJ inválido."
       );
     }
   }
@@ -191,7 +191,7 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
       setMessage(
         error instanceof Error
           ? error.message
-          : "CEP invalido."
+          : "CEP inválido."
       );
     }
   }
@@ -232,7 +232,7 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
             await enviarImagemRestaurante(imagem, session);
           } catch (error) {
             console.warn(
-              "Nao foi possivel enviar a imagem do restaurante.",
+              "Não foi possível enviar a imagem do restaurante.",
               error
             );
           }
@@ -250,7 +250,7 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
       setMessage(
         error instanceof Error
           ? error.message
-          : "Nao foi possivel criar a conta do restaurante."
+          : "Não foi possível criar a conta do restaurante."
       );
     } finally {
       setIsSubmitting(false);

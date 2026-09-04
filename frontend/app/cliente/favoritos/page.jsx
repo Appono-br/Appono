@@ -21,7 +21,7 @@ export default function FavoritosPage() {
             })
             .catch((error) => {
                 if (error?.name !== "AbortError") {
-                    setMensagem(error instanceof Error ? error.message : "Nao foi possivel carregar favoritos.");
+                    setMensagem(error instanceof Error ? error.message : "Não foi possível carregar favoritos.");
                 }
             });
 
@@ -41,7 +41,7 @@ export default function FavoritosPage() {
             setRestaurantes((items) => items.map((item) => item.id_restaurante === restaurante.id_restaurante ? { ...item, favorito_cliente: false } : item));
             setFavoritoParaRemover(null);
         } catch (error) {
-            setMensagem(error instanceof Error ? error.message : "Nao foi possivel remover o favorito.");
+            setMensagem(error instanceof Error ? error.message : "Não foi possível remover o favorito.");
         } finally {
             setAtualizando("");
         }
@@ -75,7 +75,7 @@ export default function FavoritosPage() {
                             <div className="p-5">
                                 <h2 className="text-xl font-bold">{restaurante.nome}</h2>
                                 <p className="mt-2 text-sm text-app-cinza">
-                                    {restaurante.avaliacao_media?.toFixed(1) ?? "Novo"} · {restaurante.total_avaliacoes ?? 0} avaliacoes
+                                    {restaurante.avaliacao_media?.toFixed(1) ?? "Novo"} · {restaurante.total_avaliacoes ?? 0} avaliações
                                 </p>
                                 <div className="mt-5 flex gap-3">
                                     <Link href={`/cliente/restaurantes/${restaurante.id_restaurante}`} className="flex h-10 flex-1 items-center justify-center rounded-[8px] bg-app-dourado-mel text-xs font-bold uppercase text-white">

@@ -53,7 +53,7 @@ function NumberField({ label, value, onChange, helper, className = "" }) {
       {helper ? <span className="text-xs leading-5 text-app-cinza">{helper}</span> : null}
     </label>);
 }
-function resumirHorarioFuncionamento(days) {
+function resumirHorárioFuncionamento(days) {
     const diasAtivos = days
         .filter((day) => day.enabled && day.shifts.some((shift) => shift.open && shift.close))
         .map((day) => {
@@ -65,18 +65,18 @@ function resumirHorarioFuncionamento(days) {
     });
     return diasAtivos.length ? diasAtivos.join(" | ") : "A definir";
 }
-function turnoTemHorarioValido(shift) {
+function turnoTemHorárioValido(shift) {
     return Boolean(shift.open && shift.close && shift.open < shift.close);
 }
 function diaTemTurnoValido(day) {
-    return day.enabled && day.shifts.some(turnoTemHorarioValido);
+    return day.enabled && day.shifts.some(turnoTemHorárioValido);
 }
 function obterResumoCliente(days) {
     return days
         .filter(diaTemTurnoValido)
         .map((day) => {
         const turnos = day.shifts
-            .filter(turnoTemHorarioValido)
+            .filter(turnoTemHorárioValido)
             .map((shift) => `${shift.open} as ${shift.close}`)
             .join(", ");
         return `${day.label}: ${turnos}`;
@@ -85,7 +85,7 @@ function obterResumoCliente(days) {
 export default function RestaurantOperationSettingsPage() {
     const { sessao, sessaoCarregada } = useSessaoLocal();
     const [form, setForm] = useState(initialForm);
-    const [message, setMessage] = useState("Carregando configuracoes...");
+    const [message, setMessage] = useState("Carregando configurações...");
     const [salvando, setSalvando] = useState(false);
     useEffect(() => {
         if (!sessaoCarregada || sessao?.type !== "restaurant") {
@@ -103,7 +103,7 @@ export default function RestaurantOperationSettingsPage() {
             });
             setMessage("");
         })
-            .catch((error) => setMessage(error instanceof Error ? error.message : "Nao foi possivel carregar as configuracoes."));
+            .catch((error) => setMessage(error instanceof Error ? error.message : "Não foi possível carregar as configurações."));
     }, [sessao, sessaoCarregada]);
     function updateField(field, value) {
         setForm((current) => ({ ...current, [field]: value }));
@@ -122,13 +122,13 @@ export default function RestaurantOperationSettingsPage() {
             shifts: day.shifts.map((shift, shiftIndex) => shiftIndex === index ? { ...shift, [field]: value } : shift),
         }));
     }
-    function copiarHorarioParaDiasUteis() {
-        const origem = form.days.find((day) => day.shifts.some(turnoTemHorarioValido));
+    function copiarHorárioParaDiasUteis() {
+        const origem = form.days.find((day) => day.shifts.some(turnoTemHorárioValido));
         if (!origem) {
-            setMessage("Configure ao menos um turno valido antes de copiar para os dias uteis.");
+            setMessage("Configure ao menos um turno válido antes de copiar para os dias uteis.");
             return;
         }
-        const turnosValidos = origem.shifts.filter(turnoTemHorarioValido).map((shift) => ({ ...shift }));
+        const turnosValidos = origem.shifts.filter(turnoTemHorárioValido).map((shift) => ({ ...shift }));
         const diasUteis = new Set(["monday", "tuesday", "wednesday", "thursday", "friday"]);
         setForm((current) => ({
             ...current,
@@ -136,18 +136,18 @@ export default function RestaurantOperationSettingsPage() {
                 ? { ...day, enabled: true, shifts: turnosValidos.map((shift) => ({ ...shift })) }
                 : day),
         }));
-        setMessage("Horario copiado para os dias uteis.");
+        setMessage("Horário copiado para os dias uteis.");
     }
     async function submitForm(event) {
         event.preventDefault();
         const resumoCliente = obterResumoCliente(form.days);
-        const possuiTurnoInvalido = form.days.some((day) => day.enabled && day.shifts.some((shift) => (shift.open || shift.close) && !turnoTemHorarioValido(shift)));
+        const possuiTurnoInvalido = form.days.some((day) => day.enabled && day.shifts.some((shift) => (shift.open || shift.close) && !turnoTemHorárioValido(shift)));
         if (!resumoCliente.length) {
-            setMessage("Ative ao menos um dia e configure um turno valido para receber reservas.");
+            setMessage("Ative ao menos um dia e configure um turno válido para receber reservas.");
             return;
         }
         if (possuiTurnoInvalido) {
-            setMessage("Corrija os turnos em que o horario de fechamento esta vazio ou menor que a abertura.");
+            setMessage("Corrija os turnos em que o horário de fechamento está vazio ou menor que a abertura.");
             return;
         }
         setSalvando(true);
@@ -157,15 +157,15 @@ export default function RestaurantOperationSettingsPage() {
                 body: JSON.stringify({
                     nome: form.storeName,
                     telefone: form.phone,
-                    horario_funcionamento: resumirHorarioFuncionamento(form.days),
+                    horario_funcionamento: resumirHorárioFuncionamento(form.days),
                     configuracao_operacao: form,
                 }),
             });
             atualizarNomeSessao(resposta.perfil.nome);
-            setMessage(resposta.message ?? "Configuracoes salvas com sucesso.");
+            setMessage(resposta.message ?? "Configurações salvas com sucesso.");
         }
         catch (error) {
-            setMessage(error instanceof Error ? error.message : "Nao foi possivel salvar as configuracoes.");
+            setMessage(error instanceof Error ? error.message : "Não foi possível salvar as configurações.");
         }
         finally {
             setSalvando(false);
@@ -180,7 +180,7 @@ export default function RestaurantOperationSettingsPage() {
           <Image src="/brand/appono-mark.svg" alt="Appono" width={88} height={88} className="mx-auto h-20 w-20" priority/>
           <h1 className="mt-6 text-3xl font-semibold">Acesso restrito</h1>
           <p className="mt-3 text-sm leading-6 text-app-cinza">
-            Esta area e destinada a contas de restaurante.
+            Esta área é destinada a contas de restaurante.
           </p>
           <Link href="/login" className="mt-6 inline-flex h-11 items-center justify-center rounded-[8px] bg-app-dourado-mel px-6 text-sm font-bold text-white transition hover:bg-app-caramelo-torrado">
             Entrar
@@ -196,11 +196,11 @@ export default function RestaurantOperationSettingsPage() {
             <Image src="/brand/appono-mark.svg" alt="Appono" width={72} height={72} className="h-11 w-11" priority/>
           </div>
           <div className="flex items-center justify-center gap-6">
-            <Link href="/restaurante/configuracoes" className="transition hover:text-app-caramelo-torrado" aria-label="Voltar para configuracoes">
+            <Link href="/restaurante/configuracoes" className="transition hover:text-app-caramelo-torrado" aria-label="Voltar para configurações">
               <Icon type="arrow-left" className="h-5 w-5"/>
             </Link>
             <h1 className="text-lg font-bold uppercase tracking-[0.14em] sm:text-2xl">
-              Configuracoes
+              Configurações
             </h1>
           </div>
           <div className="flex items-center justify-self-end gap-3 text-app-cafe-profundo">
@@ -213,13 +213,13 @@ export default function RestaurantOperationSettingsPage() {
       <section className="mx-auto w-full max-w-7xl flex-1 px-5 py-10 sm:py-14">
         <div className="border-t border-app-baunilha-dourada/60 pt-10">
           <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">
-            Operacao do restaurante
+            Operação do restaurante
           </p>
           <h2 className="mt-3 text-4xl font-medium leading-tight text-app-cafe-profundo sm:text-5xl">
             Disponibilidade
           </h2>
           <p className="mt-4 max-w-3xl text-sm leading-6 text-app-cinza sm:text-base">
-            Defina quando o cliente pode reservar e qual antecedencia minima a equipe precisa para organizar a operacao.
+            Defina quando o cliente pode reservar e qual antecedência mínima a equipe precisa para organizar a operação.
           </p>
         </div>
 
@@ -240,12 +240,12 @@ export default function RestaurantOperationSettingsPage() {
               <div className="mt-6 grid gap-5">
                 <TextField label="Nome exibido" value={form.storeName} onChange={(value) => updateField("storeName", value)}/>
                 <TextField label="Telefone" value={form.phone} onChange={(value) => updateField("phone", aplicarMascaraTelefone(value))}/>
-                <NumberField label="Antecedencia minima" value={form.antecedenciaMinutosReserva} onChange={(value) => updateField("antecedenciaMinutosReserva", value)} helper="Tempo minimo, em minutos, entre o momento atual e a reserva."/>
+                <NumberField label="Antecedência mínima" value={form.antecedenciaMinutosReserva} onChange={(value) => updateField("antecedenciaMinutosReserva", value)} helper="Tempo mínimo, em minutos, entre o momento atual e a reserva."/>
               </div>
 
               <div className="mt-6 rounded-[10px] bg-white p-4 ring-1 ring-app-baunilha-dourada/60">
                 <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">
-                  Visivel ao cliente
+                  Visível ao cliente
                 </p>
                 {resumoCliente.length ? (
                   <div className="mt-3 grid gap-2 text-sm text-app-mocha">
@@ -253,13 +253,13 @@ export default function RestaurantOperationSettingsPage() {
                   </div>
                 ) : (
                   <p className="mt-3 text-sm font-semibold text-app-vermelho-erro">
-                    Nenhum horario valido configurado.
+                    Nenhum horário válido configurado.
                   </p>
                 )}
               </div>
 
               <button type="submit" disabled={salvando} className="mt-6 h-12 w-full rounded-[8px] bg-app-dourado-mel px-8 text-xs font-bold uppercase tracking-wide text-white transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-60">
-                {salvando ? "Salvando..." : "Salvar operacao"}
+                {salvando ? "Salvando..." : "Salvar operação"}
               </button>
               {message ? (<p className="mt-4 text-sm font-semibold text-app-mocha">{message}</p>) : null}
           </aside>
@@ -275,7 +275,7 @@ export default function RestaurantOperationSettingsPage() {
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
-                <button type="button" onClick={copiarHorarioParaDiasUteis} className="rounded-[8px] bg-app-creme-suave px-4 py-2 text-[10px] font-bold uppercase tracking-[0.14em] text-app-mocha transition hover:bg-app-areia-quente">
+                <button type="button" onClick={copiarHorárioParaDiasUteis} className="rounded-[8px] bg-app-creme-suave px-4 py-2 text-[10px] font-bold uppercase tracking-[0.14em] text-app-mocha transition hover:bg-app-areia-quente">
                   Copiar para dias uteis
                 </button>
                 <span className="inline-flex items-center gap-2 rounded-[8px] bg-app-creme-suave px-4 py-2 text-xs font-bold uppercase text-app-mocha">
@@ -306,7 +306,7 @@ export default function RestaurantOperationSettingsPage() {
                           as
                         </span>
                         <input type="time" value={shift.close} onChange={(event) => updateShift(day.id, index, "close", event.target.value)} className="h-11 w-full rounded-[8px] border border-app-baunilha-dourada bg-app-creme-suave px-3 text-sm text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado"/>
-                        {(shift.open || shift.close) && !turnoTemHorarioValido(shift) ? (
+                        {(shift.open || shift.close) && !turnoTemHorárioValido(shift) ? (
                           <p className="text-xs font-semibold text-app-vermelho-erro sm:col-span-3">
                             Informe abertura e fechamento, com fechamento depois da abertura.
                           </p>
@@ -347,7 +347,7 @@ export default function RestaurantOperationSettingsPage() {
           <Image src="/brand/appono-mark.svg" alt="Appono" width={80} height={80} className="h-14 w-14 brightness-0 invert"/>
           <nav className="flex flex-wrap justify-center gap-8 text-[10px] font-bold uppercase text-app-baunilha-dourada">
             <Link href="#" className="transition hover:text-app-chantilly">
-              Politica de Privacidade
+              Política de Privacidade
             </Link>
             <Link href="#" className="transition hover:text-app-chantilly">
               Termos de Uso

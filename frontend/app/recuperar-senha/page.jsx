@@ -10,7 +10,7 @@ export default function RecuperarSenhaPage() {
   const [novaSenha, setNovaSenha] = useState("");
   const [confirmacaoSenha, setConfirmacaoSenha] = useState("");
   const [mostrarSenha, setMostrarSenha] = useState(false);
-  const [mensagem, setMensagem] = useState("Validando seu link de recuperacao...");
+  const [mensagem, setMensagem] = useState("Validando seu link de recuperação...");
   const [linkValido, setLinkValido] = useState(false);
   const [salvando, setSalvando] = useState(false);
   const [senhaAlterada, setSenhaAlterada] = useState(false);
@@ -49,14 +49,14 @@ export default function RecuperarSenhaPage() {
           data: { session },
         } = await supabase.auth.getSession();
         if (!session) {
-          throw new Error("Link invalido ou expirado. Solicite um novo link de recuperacao.");
+          throw new Error("Link inválido ou expirado. Solicite um novo link de recuperação.");
         }
 
         setLinkValido(true);
         setMensagem("Digite sua nova senha para recuperar o acesso.");
       } catch (error) {
         setLinkValido(false);
-        setMensagem(error instanceof Error ? error.message : "Nao foi possivel validar o link de recuperacao.");
+        setMensagem(error instanceof Error ? error.message : "Não foi possível validar o link de recuperação.");
       }
     }
 
@@ -70,7 +70,7 @@ export default function RecuperarSenhaPage() {
       return;
     }
     if (novaSenha !== confirmacaoSenha) {
-      setMensagem("A confirmacao precisa repetir a nova senha.");
+      setMensagem("A confirmação precisa repetir a nova senha.");
       return;
     }
 
@@ -88,7 +88,7 @@ export default function RecuperarSenhaPage() {
       setSenhaAlterada(true);
       setMensagem("Senha alterada com sucesso. Agora entre novamente com sua nova senha.");
     } catch (error) {
-      setMensagem(error instanceof Error ? error.message : "Nao foi possivel alterar sua senha.");
+      setMensagem(error instanceof Error ? error.message : "Não foi possível alterar sua senha.");
     } finally {
       setSalvando(false);
     }

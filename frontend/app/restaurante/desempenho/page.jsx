@@ -7,14 +7,14 @@ import { apiRequest } from "@/lib/api";
 const navItems = [
     { label: "Home", href: "/restaurante/home" },
     { label: "Dashboard", href: "/restaurante/dashboard" },
-    { label: "Gestao de cardapio", href: "/restaurante/cardapio" },
+    { label: "Gestão de cardápio", href: "/restaurante/cardapio" },
     { label: "Desempenho", href: "/restaurante/desempenho" },
-    { label: "Relatorio financeiro", href: "/restaurante/financeiro" },
+    { label: "Relatório financeiro", href: "/restaurante/financeiro" },
     { label: "Reservas", href: "/restaurante/reservas" },
     { label: "Pedidos", href: "/restaurante/pedidos" },
-    { label: "Historico", href: "/restaurante/historico-pedidos" },
+    { label: "Histórico", href: "/restaurante/historico-pedidos" },
     { label: "Mensagens", href: "/restaurante/mensagens" },
-    { label: "Configuracoes", href: "/restaurante/configuracoes" },
+    { label: "Configurações", href: "/restaurante/configuracoes" },
 ];
 function Icon({ type, className = "h-5 w-5", }) {
     const paths = {
@@ -43,7 +43,7 @@ export default function RestaurantPerformancePage() {
         if (!isRestaurant) return;
         const controller = new AbortController();
         apiRequest("/restaurantes/me/avaliacoes?page_size=50", { signal: controller.signal }).then((resposta) => { setDados(resposta); setMensagem(""); }).catch((error) => {
-            if (error?.name !== "AbortError") setMensagem(error instanceof Error ? error.message : "Nao foi possivel carregar as avaliações.");
+            if (error?.name !== "AbortError") setMensagem(error instanceof Error ? error.message : "Não foi possível carregar as avaliações.");
         });
         return () => controller.abort();
     }, [isRestaurant]);
@@ -58,7 +58,7 @@ export default function RestaurantPerformancePage() {
           <Image src="/brand/appono-mark.svg" alt="Appono" width={88} height={88} className="mx-auto h-20 w-20" priority/>
           <h1 className="mt-6 text-3xl font-semibold">Acesso restrito</h1>
           <p className="mt-3 text-sm leading-6 text-app-cinza">
-            Esta area e destinada a contas de restaurante.
+            Esta área é destinada a contas de restaurante.
           </p>
           <Link href="/login" className="mt-6 inline-flex h-11 items-center justify-center rounded-[8px] bg-app-dourado-mel px-6 text-sm font-bold text-white transition hover:bg-app-caramelo-torrado">
             Entrar
@@ -101,13 +101,13 @@ export default function RestaurantPerformancePage() {
       <section className="mx-auto w-full max-w-7xl flex-1 px-5 py-10 sm:py-14">
         <div className="border-t border-app-baunilha-dourada/60 pt-10">
           <p className="text-[10px] font-bold uppercase text-app-caramelo-torrado">
-            Avaliacoes
+            Avaliações
           </p>
           <h1 className="mt-2 text-4xl font-medium leading-tight text-app-cafe-profundo sm:text-5xl">
-            Desempenho & Avaliacoes
+            Desempenho & Avaliações
           </h1>
           <p className="mt-4 max-w-2xl text-sm leading-6 text-app-cinza sm:text-base">
-            Acompanhe a experiencia dos clientes e os principais indicadores de
+            Acompanhe a experiência dos clientes e os principais indicadores de
             atendimento.
           </p>
         </div>
@@ -136,7 +136,7 @@ export default function RestaurantPerformancePage() {
           <article className="rounded-[8px] bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada/45 sm:p-8">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <p className="text-xs font-bold uppercase tracking-[0.18em] text-app-mocha">
-                Volume de avaliacoes
+                Volume de avaliações
               </p>
               <div className="flex gap-4 text-sm font-semibold text-app-cinza">
                 <button type="button" className="text-app-caramelo-torrado">
@@ -169,7 +169,7 @@ export default function RestaurantPerformancePage() {
           <Image src="/brand/appono-mark.svg" alt="Appono" width={80} height={80} className="h-14 w-14 brightness-0 invert"/>
           <nav className="flex flex-wrap justify-center gap-8 text-[10px] font-bold uppercase text-app-baunilha-dourada">
             <Link href="#" className="transition hover:text-app-chantilly">
-              Politica de Privacidade
+              Política de Privacidade
             </Link>
             <Link href="#" className="transition hover:text-app-chantilly">
               Termos de Uso

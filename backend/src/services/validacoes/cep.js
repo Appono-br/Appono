@@ -6,7 +6,7 @@ const cacheCep = new Map();
 async function consultarCepViaCep(valor) {
     const cep = (0, comum_1.somenteNumeros)(valor);
     if (cep.length !== 8) {
-        throw new Error("Informe um CEP valido com 8 digitos.");
+        throw new Error("Informe um CEP válido com 8 dígitos.");
     }
     const resultadoEmCache = (0, comum_1.obterDoCache)(cacheCep, cep);
     if (resultadoEmCache) {
@@ -19,11 +19,11 @@ async function consultarCepViaCep(valor) {
             signal: AbortSignal.timeout(comum_1.TEMPO_LIMITE_REQUISICAO_MS),
         });
         if (!resposta.ok) {
-            throw new Error("O ViaCEP nao respondeu corretamente.");
+            throw new Error("O ViaCEP não respondeu corretamente.");
         }
         const dados = (await resposta.json());
         if (dados.erro) {
-            throw new Error("CEP nao encontrado.");
+            throw new Error("CEP não encontrado.");
         }
         return (0, comum_1.salvarNoCache)(cacheCep, cep, {
             cep,
@@ -34,9 +34,9 @@ async function consultarCepViaCep(valor) {
         });
     }
     catch (erro) {
-        if (erro instanceof Error && erro.message === "CEP nao encontrado.") {
+        if (erro instanceof Error && erro.message === "CEP não encontrado.") {
             throw erro;
         }
-        throw new Error("Nao foi possivel validar o CEP no ViaCEP agora.");
+        throw new Error("Não foi possível validar o CEP no ViaCEP agora.");
     }
 }

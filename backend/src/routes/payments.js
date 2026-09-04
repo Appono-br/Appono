@@ -45,8 +45,8 @@ function marketplaceRealAtivo() {
     return paymentConfig.isRealMarketplace();
 }
 
-function obterCheckoutUrlMercadoPago(preferencia, token) {
-    return paymentConfig.checkoutUrl(preferencia, token);
+function obterCheckoutUrlMercadoPago(preferência, token) {
+    return paymentConfig.checkoutUrl(preferência, token);
 }
 
 function obterPrimeiroValorQuery(valor) {
@@ -368,7 +368,7 @@ async function aplicarPagamentoMercadoPago(pagamentoMercadoPago, fallbackReferen
             .eq("id_pedido", referenciaInfo.id)
             .maybeSingle();
         if (pedidoError || !pedido) {
-            throw new Error(pedidoError?.message ?? "Pedido nao encontrado para conciliacao.");
+            throw new Error(pedidoError?.message ?? "Pedido não encontrado para conciliacao.");
         }
         const resumoFinanceiro = pagamentoExistente
             ? {
@@ -429,14 +429,14 @@ async function aplicarPagamentoMercadoPago(pagamentoMercadoPago, fallbackReferen
                 }),
                 (0, notificacoes_1.notificarRestaurante)(pedido.id_restaurante, {
                     titulo: "Pedido pago",
-                    mensagem: "Um pedido antecipado foi pago e pode ser preparado conforme o horario da reserva.",
+                    mensagem: "Um pedido antecipado foi pago e pode ser preparado conforme o horário da reserva.",
                     tipo_evento: "PAGAMENTO_APROVADO",
                     link_destino: "/restaurante/pedidos",
                     dados: { id_pedido: pedido.id_pedido, id_reserva: pedido.id_reserva },
                 }),
                 (0, notificacoes_1.notificarAdministradores)({
                     titulo: "Pagamento aprovado",
-                    mensagem: `Pedido #${pedido.id_pedido} aprovado no Mercado Pago para conciliacao financeira.`,
+                    mensagem: `Pedido #${pedido.id_pedido} aprovado no Mercado Pago para conciliação financeira.`,
                     tipo_evento: "PAGAMENTO_APROVADO",
                     link_destino: "/admin/financeiro",
                     dados: { id_pedido: pedido.id_pedido, id_reserva: pedido.id_reserva, id_pagamento: pagamento.id_pagamento },
@@ -457,7 +457,7 @@ async function aplicarPagamentoMercadoPago(pagamentoMercadoPago, fallbackReferen
         .eq("id_reserva", referenciaInfo.id)
         .maybeSingle();
     if (reservaError || !reserva) {
-        throw new Error(reservaError?.message ?? "Reserva nao encontrada para conciliacao.");
+        throw new Error(reservaError?.message ?? "Reserva não encontrada para conciliacao.");
     }
     const pagamento = await salvarPagamento({
         id_reserva: reserva.id_reserva,
@@ -569,20 +569,20 @@ exports.paymentsRouter.post("/webhook/mercado-pago", async (req, res) => {
 exports.paymentsRouter.use(auth_1.requireAuth);
 exports.paymentsRouter.use((0, auth_1.requireRole)("cliente"));
 
-exports.paymentsRouter.post("/pedido/:id/preferencia", async (req, res) => {
+exports.paymentsRouter.post("/pedido/:id/preferência", async (req, res) => {
     const pedidoId = Number(req.params.id);
     if (!Number.isInteger(pedidoId) || pedidoId <= 0) {
-        return res.status(400).json({ error: "Pedido invalido." });
+        return res.status(400).json({ error: "Pedido inválido." });
     }
     const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
     try {
         await sincronizarReservasNaoComparecidas();
         const { cliente, pedido } = await obterPedidoDoCliente(supabase, pedidoId, res.locals.user.id);
         if (!cliente || !pedido) {
-            return res.status(404).json({ error: "Pedido nao encontrado para este cliente." });
+            return res.status(404).json({ error: "Pedido não encontrado para este cliente." });
         }
         if (pedido.status_pedido !== "PENDENTE") {
-            return res.status(409).json({ error: "Este pedido nao pode receber pagamento." });
+            return res.status(409).json({ error: "Este pedido não pode receber pagamento." });
         }
         const elegibilidade = paymentEligibility(pedido.reservas);
         if (!elegibilidade.allowed) {
@@ -590,7 +590,7 @@ exports.paymentsRouter.post("/pedido/:id/preferencia", async (req, res) => {
             return res.status(409).json({ error: elegibilidade.message, code: elegibilidade.code });
         }
         if (Number(pedido.valor_total ?? 0) <= 0) {
-            return res.status(400).json({ error: "Valor do pedido invalido." });
+            return res.status(400).json({ error: "Valor do pedido inválido." });
         }
         const conexaoMercadoPagoRestaurante = await obterConexaoMercadoPagoRestaurante(pedido.id_restaurante);
         const conexaoRestaurante = conexaoMercadoPagoRestaurante?.live_mode && !mercadoPagoProducaoPermitida()
@@ -600,7 +600,7 @@ exports.paymentsRouter.post("/pedido/:id/preferencia", async (req, res) => {
             return res.status(409).json({
                 error: conexaoMercadoPagoRestaurante?.live_mode && !mercadoPagoProducaoPermitida()
                     ? "A conta Mercado Pago do restaurante foi conectada em modo producao. Para testar sem transacao real, reconecte uma conta teste ou altere MERCADO_PAGO_MODO_REPASSE para SIMULADO."
-                    : "O restaurante ainda nao conectou uma conta Mercado Pago para receber este pagamento.",
+                    : "O restaurante ainda não conectou uma conta Mercado Pago para receber este pagamento.",
             });
         }
         if (!mercadoPagoProducaoPermitida() && !(0, mercado_pago_1.obterAccessTokenMercadoPago)()) {
@@ -613,7 +613,7 @@ exports.paymentsRouter.post("/pedido/:id/preferencia", async (req, res) => {
             : (0, mercado_pago_1.obterAccessTokenMercadoPago)();
         if (!token) {
             return res.status(409).json({
-                error: "MERCADO_PAGO_ACCESS_TOKEN ainda nao esta configurado no backend.",
+                error: "MERCADO_PAGO_ACCESS_TOKEN ainda não está configurado no backend.",
             });
         }
         const resumoFinanceiro = calcularResumoFinanceiro(pedido.valor_total, conexaoRestaurante);
@@ -686,22 +686,22 @@ exports.paymentsRouter.post("/pedido/:id/preferencia", async (req, res) => {
         if (urlPermiteRetornoAutomatico(backendPublicUrl)) {
             body.notification_url = `${backendPublicUrl}/api/pagamentos/webhook/mercado-pago`;
         }
-        const clientePreferencia = (0, mercado_pago_1.criarPreferenciaMercadoPago)(token);
-        if (!clientePreferencia) {
+        const clientePreferência = (0, mercado_pago_1.criarPreferênciaMercadoPago)(token);
+        if (!clientePreferência) {
             return res.status(409).json({
-                error: "Nao foi possivel inicializar o SDK do Mercado Pago.",
+                error: "Não foi possível inicializar o SDK do Mercado Pago.",
             });
         }
-        const preferencia = await clientePreferencia.create({ body }).catch((error) => {
+        const preferência = await clientePreferência.create({ body }).catch((error) => {
             const causa = Array.isArray(error?.cause) && error.cause.length
                 ? ` ${error.cause.map((item) => item.description ?? item.message).filter(Boolean).join(" ")}`
                 : "";
-            throw new Error(`${error?.message ?? "Nao foi possivel criar a preferencia de pagamento."}${causa}`.trim());
+            throw new Error(`${error?.message ?? "Nao foi possivel criar a preferência de pagamento."}${causa}`.trim());
         });
-        const checkoutUrl = obterCheckoutUrlMercadoPago(preferencia, token);
+        const checkoutUrl = obterCheckoutUrlMercadoPago(preferência, token);
         if (!checkoutUrl) {
             return res.status(502).json({
-                error: "O Mercado Pago criou a preferencia, mas nao retornou a URL do checkout.",
+                error: "O Mercado Pago criou a preferência, mas não retornou a URL do checkout.",
             });
         }
         const pagamento = await salvarPagamento({
@@ -710,7 +710,7 @@ exports.paymentsRouter.post("/pedido/:id/preferencia", async (req, res) => {
             valor_pago: Number(pedido.valor_total),
             status_pagamento: "PENDENTE",
             referencia_externa: referencia,
-            mercado_pago_preference_id: preferencia.id,
+            mercado_pago_preference_id: preferência.id,
             checkout_url: checkoutUrl,
             ...resumoFinanceiro,
         });
@@ -719,7 +719,7 @@ exports.paymentsRouter.post("/pedido/:id/preferencia", async (req, res) => {
             id_pedido: pedido.id_pedido,
             id_reserva: pedido.id_reserva,
             tipo_evento: "PAGAMENTO_CRIADO",
-            descricao: "Preferencia de pagamento criada no Mercado Pago.",
+            descricao: "Preferência de pagamento criada no Mercado Pago.",
             valor: Number(pedido.valor_total),
         });
         return res.status(201).json({
@@ -728,13 +728,13 @@ exports.paymentsRouter.post("/pedido/:id/preferencia", async (req, res) => {
             checkout_url: checkoutUrl,
             return_url: backUrl,
             auto_return: body.auto_return ?? null,
-            preference_id: preferencia.id,
+            preference_id: preferência.id,
             financeiro: resumoFinanceiro,
         });
     }
     catch (error) {
         return res.status(400).json({
-            error: error instanceof Error ? error.message : "Nao foi possivel iniciar o pagamento.",
+            error: error instanceof Error ? error.message : "Não foi possível iniciar o pagamento.",
         });
     }
 });
@@ -742,13 +742,13 @@ exports.paymentsRouter.post("/pedido/:id/preferencia", async (req, res) => {
 exports.paymentsRouter.get("/pedido/:id/status", async (req, res) => {
     const pedidoId = Number(req.params.id);
     if (!Number.isInteger(pedidoId) || pedidoId <= 0) {
-        return res.status(400).json({ error: "Pedido invalido." });
+        return res.status(400).json({ error: "Pedido inválido." });
     }
     const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
     try {
         const { pedido } = await obterPedidoDoCliente(supabase, pedidoId, res.locals.user.id);
         if (!pedido) {
-            return res.status(404).json({ error: "Pedido nao encontrado para este cliente." });
+            return res.status(404).json({ error: "Pedido não encontrado para este cliente." });
         }
         const paymentId = obterPaymentIdRetornoMercadoPago(req.query);
         const merchantOrderId = obterPrimeiroValorQuery(req.query.merchant_order_id);
@@ -773,10 +773,10 @@ exports.paymentsRouter.get("/pedido/:id/status", async (req, res) => {
         }
         if (!pagamentoMercadoPago?.status) {
             if (pagamentoExistente?.mercado_pago_preference_id) {
-                pagamentoMercadoPago = await (0, mercado_pago_1.consultarPagamentoPorPreferenciaMercadoPago)(pagamentoExistente.mercado_pago_preference_id, tokenPedido ?? undefined);
+                pagamentoMercadoPago = await (0, mercado_pago_1.consultarPagamentoPorPreferênciaMercadoPago)(pagamentoExistente.mercado_pago_preference_id, tokenPedido ?? undefined);
             }
             if (!pagamentoMercadoPago?.status && pagamentoExistente?.mercado_pago_preference_id && tokenPedido) {
-                pagamentoMercadoPago = await (0, mercado_pago_1.consultarPagamentoPorPreferenciaMercadoPago)(pagamentoExistente.mercado_pago_preference_id);
+                pagamentoMercadoPago = await (0, mercado_pago_1.consultarPagamentoPorPreferênciaMercadoPago)(pagamentoExistente.mercado_pago_preference_id);
             }
         }
         if (!pagamentoMercadoPago?.status &&
@@ -800,13 +800,13 @@ exports.paymentsRouter.get("/pedido/:id/status", async (req, res) => {
         let statusPagamento = "PENDENTE";
         if (pagamentoMercadoPago?.status) {
             const conciliacao = await aplicarPagamentoMercadoPago(pagamentoMercadoPago, referencia);
-            pagamento = conciliacao?.pagamento ?? null;
-            statusPagamento = conciliacao?.status_pagamento ?? "PENDENTE";
-            if (conciliacao?.pedido) {
+            pagamento = conciliação?.pagamento ?? null;
+            statusPagamento = conciliação?.status_pagamento ?? "PENDENTE";
+            if (conciliação?.pedido) {
                 pedido.status_pedido = conciliacao.pedido.status_pedido;
             }
         }
-        // Parametros da URL de retorno nao sao fonte confiavel para aprovar ou
+        // Parametros da URL de retorno não são fonte confiavel para aprovar ou
         // cancelar pagamentos. Sem confirmacao da API, preservamos o estado local
         // ate que o webhook ou uma consulta posterior confirme o resultado.
         if (!pagamento) {
@@ -827,7 +827,7 @@ exports.paymentsRouter.get("/pedido/:id/status", async (req, res) => {
     }
     catch (error) {
         return res.status(400).json({
-            error: error instanceof Error ? error.message : "Nao foi possivel consultar o pagamento.",
+            error: error instanceof Error ? error.message : "Não foi possível consultar o pagamento.",
         });
     }
 });
@@ -841,7 +841,7 @@ exports.paymentsRouter.get("/reserva/:id/status", async (req, res) => {
     try {
         const { reserva } = await obterReservaDoCliente(supabase, reservaId, res.locals.user.id);
         if (!reserva) {
-            return res.status(404).json({ error: "Reserva nao encontrada para este cliente." });
+            return res.status(404).json({ error: "Reserva não encontrada para este cliente." });
         }
         return res.json({
             reserva,
@@ -851,7 +851,7 @@ exports.paymentsRouter.get("/reserva/:id/status", async (req, res) => {
     }
     catch (error) {
         return res.status(400).json({
-            error: error instanceof Error ? error.message : "Nao foi possivel consultar a reserva.",
+            error: error instanceof Error ? error.message : "Não foi possível consultar a reserva.",
         });
     }
 });

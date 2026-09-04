@@ -77,7 +77,7 @@ app.use(cors({
             return callback(null, true);
         }
 
-        return callback(new Error("Origem nao autorizada pelo CORS."));
+        return callback(new Error("Origem não autorizada pelo CORS."));
     },
 }));
 app.use(express.json());
@@ -143,11 +143,11 @@ app.use((error, _req, res, _next) => {
     const erroDeConexao = /fetch failed|unable to verify|certificate|econnreset|enotfound/i.test(mensagem);
     if (erroDeConexao) {
         return res.status(503).json({
-            error: "Nao foi possivel acessar um servico externo. Verifique a conexao e tente novamente.",
+            error: "Não foi possível acessar um serviço externo. Verifique a conexão e tente novamente.",
         });
     }
-    console.error("Erro nao tratado na API:", mensagem || error);
-    return res.status(500).json({ error: "Nao foi possivel concluir a operacao agora." });
+    console.error("Erro não tratado na API:", mensagem || error);
+    return res.status(500).json({ error: "Não foi possível concluir a operação agora." });
 });
 
 if (require.main === module) {

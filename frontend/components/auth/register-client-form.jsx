@@ -64,7 +64,7 @@ export function RegisterClientForm({ googleFlow = false }) {
   async function enviarFormulario(event) {
     event.preventDefault();
     if (!cpfEstaCompleto(form.cpf)) {
-      setMessage("Informe um CPF completo e valido.");
+      setMessage("Informe um CPF completo e válido.");
       return;
     }
     setIsSubmitting(true);
@@ -91,7 +91,7 @@ export function RegisterClientForm({ googleFlow = false }) {
       }
 
       setMessage(
-        error instanceof Error ? error.message : "Nao foi possivel criar a conta."
+        error instanceof Error ? error.message : "Não foi possível criar a conta."
       );
     } finally {
       setIsSubmitting(false);
@@ -162,7 +162,7 @@ export function RegisterClientForm({ googleFlow = false }) {
               try {
                 await apiRequest(`/validacoes/cpf/${somenteNumeros(form.cpf)}`, { auth: false });
               } catch (error) {
-                setMessage(error instanceof Error ? error.message : "CPF invalido.");
+                setMessage(error instanceof Error ? error.message : "CPF inválido.");
               }
             }}
             placeholder="000.000.000-00"

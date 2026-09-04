@@ -28,7 +28,7 @@ function validarCnpj(valor) {
 async function consultarCnpjReceitaWs(valor) {
     const cnpj = (0, comum_1.somenteNumeros)(valor);
     if (!validarCnpj(cnpj)) {
-        throw new Error("Informe um CNPJ valido.");
+        throw new Error("Informe um CNPJ válido.");
     }
     const resultadoEmCache = (0, comum_1.obterDoCache)(cacheCnpj, cnpj);
     if (resultadoEmCache) {
@@ -41,11 +41,11 @@ async function consultarCnpjReceitaWs(valor) {
             signal: AbortSignal.timeout(comum_1.TEMPO_LIMITE_REQUISICAO_MS),
         });
         if (!resposta.ok) {
-            throw new Error("A ReceitaWS nao respondeu corretamente.");
+            throw new Error("A ReceitaWS não respondeu corretamente.");
         }
         const dados = (await resposta.json());
         if (dados.status?.toUpperCase() === "ERROR") {
-            throw new Error(dados.message ?? "CNPJ nao encontrado.");
+            throw new Error(dados.message ?? "CNPJ não encontrado.");
         }
         return (0, comum_1.salvarNoCache)(cacheCnpj, cnpj, {
             cnpj,
@@ -58,6 +58,6 @@ async function consultarCnpjReceitaWs(valor) {
         if (erro instanceof Error && erro.message.includes("CNPJ")) {
             throw erro;
         }
-        throw new Error("Nao foi possivel validar o CNPJ na ReceitaWS agora.");
+        throw new Error("Não foi possível validar o CNPJ na ReceitaWS agora.");
     }
 }

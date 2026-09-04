@@ -8,14 +8,14 @@ import { TelaCarregandoSessao, useSessaoLocal } from "@/lib/use-sessao-local";
 const navItems = [
     { label: "Home", href: "/restaurante/home" },
     { label: "Dashboard", href: "/restaurante/dashboard" },
-    { label: "Gestao de cardapio", href: "/restaurante/cardapio" },
+    { label: "Gestão de cardápio", href: "/restaurante/cardapio" },
     { label: "Desempenho", href: "/restaurante/desempenho" },
-    { label: "Relatorio financeiro", href: "/restaurante/financeiro" },
+    { label: "Relatório financeiro", href: "/restaurante/financeiro" },
     { label: "Reservas", href: "/restaurante/reservas" },
     { label: "Cozinha", href: "/restaurante/pedidos" },
-    { label: "Historico", href: "/restaurante/historico-pedidos" },
+    { label: "Histórico", href: "/restaurante/historico-pedidos" },
     { label: "Mensagens", href: "/restaurante/mensagens" },
-    { label: "Configuracoes", href: "/restaurante/configuracoes" },
+    { label: "Configurações", href: "/restaurante/configuracoes" },
 ];
 function Icon({ type, className = "h-5 w-5", }) {
     const paths = {
@@ -110,7 +110,7 @@ export default function RestaurantDashboardPage() {
           <Image src="/brand/appono-mark.svg" alt="Appono" width={88} height={88} className="mx-auto h-20 w-20" priority/>
           <h1 className="mt-6 text-3xl font-semibold">Acesso restrito</h1>
           <p className="mt-3 text-sm leading-6 text-app-cinza">
-            Esta area e destinada a contas de restaurante.
+            Esta área é destinada a contas de restaurante.
           </p>
           <Link href="/login" className="mt-6 inline-flex h-11 items-center justify-center rounded-[8px] bg-app-dourado-mel px-6 text-sm font-bold text-white transition hover:bg-app-caramelo-torrado">
             Entrar
@@ -222,7 +222,7 @@ export default function RestaurantDashboardPage() {
                     <p className="mt-1 text-xs text-app-baunilha-dourada">
                       {(pedido.itens_pedido ?? []).slice(0, 2).map((item) => `${item.quantidade}x ${item.produtos?.nome ?? "Item"}`).join(" | ")}
                     </p>
-                  </div>)) : (<EmptyPanel dark title="Nenhum pedido antecipado" description="Quando o cliente pedir antes da reserva, o pedido aparecera aqui."/>)} 
+                  </div>)) : (<EmptyPanel dark title="Nenhum pedido antecipado" description="Quando o cliente pedir antes da reserva, o pedido aparecerá aqui."/>)}
             </div>
             <Link href="/restaurante/pedidos" className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-app-baunilha-dourada transition hover:text-app-chantilly">
               Ver cozinha
@@ -234,17 +234,17 @@ export default function RestaurantDashboardPage() {
         <section className="mt-6 grid gap-6 lg:grid-cols-[0.95fr_1fr]">
           <article className="rounded-[8px] bg-app-creme-leve p-5 shadow-sm ring-1 ring-app-baunilha-dourada/60 sm:p-6">
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">
-              Destaque do cardapio
+              Destaque do cardápio
             </p>
             <div className="mt-5">
               {produtoDestaque ? (
                 <div className="rounded-[10px] bg-white p-5 ring-1 ring-app-baunilha-dourada/50">
                   <h3 className="text-xl font-semibold text-app-cafe-profundo">{produtoDestaque.nome}</h3>
-                  <p className="mt-2 text-sm leading-6 text-app-cinza">{produtoDestaque.descricao ?? "Item destacado no cardapio."}</p>
+                  <p className="mt-2 text-sm leading-6 text-app-cinza">{produtoDestaque.descricao ?? "Item destacado no cardápio."}</p>
                   <strong className="mt-4 block text-app-caramelo-torrado">{formatarMoeda(produtoDestaque.preco)}</strong>
                 </div>
               ) : (
-                <EmptyPanel title="Nenhum item em destaque" description="Selecione um item para destacar no cardapio."/>
+                <EmptyPanel title="Nenhum item em destaque" description="Selecione um item para destacar no cardápio."/>
               )}
             </div>
           </article>
@@ -275,7 +275,7 @@ export default function RestaurantDashboardPage() {
           <Image src="/brand/appono-mark.svg" alt="Appono" width={80} height={80} className="h-14 w-14 brightness-0 invert"/>
           <nav className="flex flex-wrap justify-center gap-8 text-[10px] font-bold uppercase text-app-baunilha-dourada">
             <Link href="#" className="transition hover:text-app-chantilly">
-              Politica de Privacidade
+              Política de Privacidade
             </Link>
             <Link href="#" className="transition hover:text-app-chantilly">
               Termos de Uso

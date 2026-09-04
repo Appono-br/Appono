@@ -86,7 +86,7 @@ exports.notificationsRouter.patch("/limpar", async (_req, res) => {
 exports.notificationsRouter.patch("/:id/lida", async (req, res) => {
     const notificationId = Number(req.params.id);
     if (!Number.isFinite(notificationId)) {
-        return res.status(400).json({ error: "Notificacao invalida." });
+        return res.status(400).json({ error: "Notificação invalida." });
     }
     const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
     const { data, error } = await supabase
@@ -106,7 +106,7 @@ exports.notificationsRouter.patch("/:id/favorita", async (req, res) => {
     const notificationId = Number(req.params.id);
     const favoritada = Boolean(req.body?.favoritada);
     if (!Number.isFinite(notificationId)) {
-        return res.status(400).json({ error: "Notificacao invalida." });
+        return res.status(400).json({ error: "Notificação invalida." });
     }
     const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
     const { data, error } = await supabase
@@ -125,7 +125,7 @@ exports.notificationsRouter.patch("/:id/favorita", async (req, res) => {
 exports.notificationsRouter.patch("/:id/apagar", async (req, res) => {
     const notificationId = Number(req.params.id);
     if (!Number.isFinite(notificationId)) {
-        return res.status(400).json({ error: "Notificacao invalida." });
+        return res.status(400).json({ error: "Notificação invalida." });
     }
     const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
     const { data, error } = await supabase

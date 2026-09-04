@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const publishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-const missingSupabaseConfigMessage = 'Nao conseguimos conectar sua conta agora. Tente novamente em alguns instantes.';
+const missingSupabaseConfigMessage = 'Não conseguimos conectar sua conta agora. Tente novamente em alguns instantes.';
 function hasSupabasePlaceholder(value) {
     return (!value ||
         value.includes('seu-projeto') ||

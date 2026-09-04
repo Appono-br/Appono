@@ -4,6 +4,7 @@ exports.restaurantsRouter = void 0;
 const express_1 = require("express");
 const supabase_1 = require("../lib/supabase");
 const auth_1 = require("../middleware/auth");
+const geolocalizacao_1 = require("../services/geolocalizacao");
 exports.restaurantsRouter = (0, express_1.Router)();
 function obterClienteLeituraPublica() {
     return supabase_1.supabaseAdmin ?? supabase_1.supabaseAuth;
@@ -12,11 +13,6 @@ function numeroValido(valor) {
     if (valor === null || valor === undefined || valor === "") return null;
     const numero = Number(valor);
     return Number.isFinite(numero) ? numero : null;
-}
-function coordenadaValida(latitude, longitude) {
-    return latitude !== null && longitude !== null &&
-        latitude >= -90 && latitude <= 90 &&
-        longitude >= -180 && longitude <= 180;
 }
 function calcularDistanciaKm(origemLatitude, origemLongitude, destinoLatitude, destinoLongitude) {
     const raioTerraKm = 6371;
@@ -29,60 +25,6 @@ function calcularDistanciaKm(origemLatitude, origemLongitude, destinoLatitude, d
             Math.sin(deltaLongitude / 2) ** 2;
     return raioTerraKm * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
-function removerComplementoEndereco(endereco) {
-    return String(endereco ?? "")
-        .replace(/,\s*(apto|apartamento|sala|bloco|cj|conjunto|loja)\b[^,]*/gi, "")
-        .replace(/\s{2,}/g, " ")
-        .trim();
-}
-async function geocodificarLocalizacao(texto) {
-    const consulta = String(texto ?? "").trim();
-    if (!consulta) return null;
-    try {
-        const url = new URL("https://nominatim.openstreetmap.org/search");
-        url.searchParams.set("format", "jsonv2");
-        url.searchParams.set("limit", "1");
-        url.searchParams.set("countrycodes", "br");
-        url.searchParams.set("q", `${consulta}, Brasil`);
-        const resposta = await fetch(url, {
-            headers: {
-                "Accept": "application/json",
-                "User-Agent": "Appono MVP contato@appono.com.br",
-            },
-        });
-        if (!resposta.ok) return null;
-        const resultados = await resposta.json();
-        const resultado = Array.isArray(resultados) ? resultados[0] : null;
-        const latitude = numeroValido(resultado?.lat);
-        const longitude = numeroValido(resultado?.lon);
-        if (!coordenadaValida(latitude, longitude)) return null;
-        return {
-            latitude,
-            longitude,
-            nome: resultado?.display_name ?? consulta,
-        };
-    }
-    catch {
-        return null;
-    }
-}
-async function geocodificarEnderecoRestaurante(restaurante) {
-    const endereco = String(restaurante?.endereco ?? "").trim();
-    const enderecoSemComplemento = removerComplementoEndereco(endereco);
-    const consultas = [
-        [endereco, restaurante?.cep].filter(Boolean).join(", "),
-        enderecoSemComplemento !== endereco
-            ? [enderecoSemComplemento, restaurante?.cep].filter(Boolean).join(", ")
-            : "",
-        enderecoSemComplemento,
-        restaurante?.cep,
-    ].filter(Boolean);
-    for (const consulta of [...new Set(consultas)]) {
-        const coordenadas = await geocodificarLocalizacao(consulta);
-        if (coordenadas) return coordenadas;
-    }
-    return null;
-}
 async function preencherCoordenadasAusentes(restaurantes) {
     if (!supabase_1.supabaseAdmin || !Array.isArray(restaurantes) || !restaurantes.length) {
         return restaurantes;
@@ -91,11 +33,11 @@ async function preencherCoordenadasAusentes(restaurantes) {
     for (const restaurante of restaurantes) {
         const latitudeAtual = numeroValido(restaurante.latitude);
         const longitudeAtual = numeroValido(restaurante.longitude);
-        if (coordenadaValida(latitudeAtual, longitudeAtual)) {
+        if ((0, geolocalizacao_1.coordenadaValida)(latitudeAtual, longitudeAtual)) {
             resultado.push(restaurante);
             continue;
         }
-        const coordenadas = await geocodificarEnderecoRestaurante(restaurante);
+        const coordenadas = await (0, geolocalizacao_1.geocodificarEnderecoRestaurante)(restaurante);
         if (!coordenadas) {
             resultado.push(restaurante);
             continue;
@@ -295,7 +237,7 @@ function montarHorariosOperacionais({ restaurante, dataReserva, pessoas, reserva
         return {
             operacao_configurada: false,
             horarios: [],
-            motivo: "Restaurante ainda nao configurou horarios de funcionamento.",
+            motivo: "Restaurante ainda não configurou horários de funcionamento.",
         };
     }
     const dia = obterDiaOperacao(configuracao, dataReserva);
@@ -323,7 +265,7 @@ function montarHorariosOperacionais({ restaurante, dataReserva, pessoas, reserva
             const fim = minuto + duracaoReserva;
             let motivo = null;
             if (minuto < minimoMesmoDia) {
-                motivo = "antecedencia minima";
+                motivo = "antecedência mínima";
             }
             else if (!mesasCompativeis.length) {
                 motivo = "sem mesa para este grupo";
@@ -349,7 +291,7 @@ function montarHorariosOperacionais({ restaurante, dataReserva, pessoas, reserva
         operacao_configurada: true,
         antecedencia_minima_minutos: antecedenciaMinima,
         horarios,
-        motivo: horarios.length ? null : "Nao ha turnos validos nesta data.",
+        motivo: horarios.length ? null : "Não há turnos válidos nesta data.",
     };
 }
 exports.restaurantsRouter.get("/", async (req, res) => {
@@ -357,10 +299,10 @@ exports.restaurantsRouter.get("/", async (req, res) => {
         const termoBusca = normalizarBusca(req.query.q);
         let latitudeCliente = numeroValido(req.query.latitude);
         let longitudeCliente = numeroValido(req.query.longitude);
-        let origemDistancia = coordenadaValida(latitudeCliente, longitudeCliente) ? "navegador" : null;
+        let origemDistancia = (0, geolocalizacao_1.coordenadaValida)(latitudeCliente, longitudeCliente) ? "navegador" : null;
         let localizacaoResolvida = null;
         if (!origemDistancia && req.query.localizacao) {
-            localizacaoResolvida = await geocodificarLocalizacao(req.query.localizacao);
+            localizacaoResolvida = await (0, geolocalizacao_1.geocodificarLocalizacao)(req.query.localizacao);
             if (localizacaoResolvida) {
                 latitudeCliente = localizacaoResolvida.latitude;
                 longitudeCliente = localizacaoResolvida.longitude;
@@ -387,7 +329,7 @@ exports.restaurantsRouter.get("/", async (req, res) => {
         const resposta = restaurantesComGeolocalizacao.map((item) => {
             const latitudeRestaurante = numeroValido(item.latitude);
             const longitudeRestaurante = numeroValido(item.longitude);
-            const distanciaKm = podeCalcularDistancia && coordenadaValida(latitudeRestaurante, longitudeRestaurante)
+            const distanciaKm = podeCalcularDistancia && (0, geolocalizacao_1.coordenadaValida)(latitudeRestaurante, longitudeRestaurante)
                 ? Number(calcularDistanciaKm(latitudeCliente, longitudeCliente, latitudeRestaurante, longitudeRestaurante).toFixed(1))
                 : null;
             return {
@@ -412,7 +354,7 @@ exports.restaurantsRouter.get("/", async (req, res) => {
     }
     catch (error) {
         return res.status(400).json({
-            error: error instanceof Error ? error.message : "Nao foi possivel listar restaurantes.",
+            error: error instanceof Error ? error.message : "Não foi possível listar restaurantes.",
         });
     }
 });
@@ -433,7 +375,7 @@ exports.restaurantsRouter.get("/:id/disponibilidade", async (req, res) => {
     const dataReserva = String(req.query.data ?? "");
     const pessoas = Math.max(1, Number(req.query.pessoas ?? 1));
     if (!Number.isFinite(restaurantId) || !/^\d{4}-\d{2}-\d{2}$/.test(dataReserva) || !Number.isFinite(pessoas)) {
-        return res.status(400).json({ error: "Parametros de disponibilidade invalidos." });
+        return res.status(400).json({ error: "Parametros de disponibilidade inválidos." });
     }
     const cliente = obterClienteLeituraPublica();
     const { data: restaurante, error: restauranteError } = await cliente
@@ -443,7 +385,7 @@ exports.restaurantsRouter.get("/:id/disponibilidade", async (req, res) => {
         .eq("ativo", true)
         .single();
     if (restauranteError || !restaurante) {
-        return res.status(404).json({ error: "Restaurante nao encontrado." });
+        return res.status(404).json({ error: "Restaurante não encontrado." });
     }
     const [{ data: mesas, error: mesasError }, { data: reservas, error: reservasError }] = await Promise.all([
         cliente
@@ -471,7 +413,7 @@ exports.restaurantsRouter.get("/:id/disponibilidade", async (req, res) => {
 exports.restaurantsRouter.get("/:id", async (req, res) => {
     const restaurantId = Number(req.params.id);
     if (!Number.isFinite(restaurantId)) {
-        return res.status(400).json({ error: "Restaurante invalido." });
+        return res.status(400).json({ error: "Restaurante inválido." });
     }
     try {
         const usuario = await obterUsuarioOpcional(req);
@@ -493,7 +435,7 @@ exports.restaurantsRouter.get("/:id", async (req, res) => {
                 : Promise.resolve({ data: null }),
         ]);
         if (error) {
-            return res.status(404).json({ error: "Restaurante nao encontrado." });
+            return res.status(404).json({ error: "Restaurante não encontrado." });
         }
         return res.json({
             ...data,
@@ -504,18 +446,18 @@ exports.restaurantsRouter.get("/:id", async (req, res) => {
     }
     catch (error) {
         return res.status(400).json({
-            error: error instanceof Error ? error.message : "Nao foi possivel carregar o restaurante.",
+            error: error instanceof Error ? error.message : "Não foi possível carregar o restaurante.",
         });
     }
 });
 exports.restaurantsRouter.patch("/:id/favorito", auth_1.requireAuth, (0, auth_1.requireRole)("cliente"), async (req, res) => {
     const restaurantId = Number(req.params.id);
     if (!Number.isInteger(restaurantId) || restaurantId <= 0 || typeof req.body?.favorito !== "boolean") {
-        return res.status(400).json({ error: "Restaurante ou estado de favorito invalido." });
+        return res.status(400).json({ error: "Restaurante ou estado de favorito inválido." });
     }
     const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
     const { data: restaurante } = await supabase.from("restaurantes").select("id_restaurante").eq("id_restaurante", restaurantId).eq("ativo", true).maybeSingle();
-    if (!restaurante) return res.status(404).json({ error: "Restaurante nao encontrado." });
+    if (!restaurante) return res.status(404).json({ error: "Restaurante não encontrado." });
     const operacao = req.body.favorito
         ? supabase.from("restaurantes_favoritos").upsert({ id_cliente: res.locals.profileId, id_restaurante: restaurantId }, { onConflict: "id_cliente,id_restaurante" })
         : supabase.from("restaurantes_favoritos").delete().eq("id_cliente", res.locals.profileId).eq("id_restaurante", restaurantId);
@@ -527,7 +469,7 @@ exports.restaurantsRouter.patch("/:id/favorito", auth_1.requireAuth, (0, auth_1.
 exports.restaurantsRouter.get("/:id/minha-avaliacao", auth_1.requireAuth, (0, auth_1.requireRole)("cliente"), async (req, res) => {
     const restaurantId = Number(req.params.id);
     if (!Number.isFinite(restaurantId)) {
-        return res.status(400).json({ error: "Restaurante invalido." });
+        return res.status(400).json({ error: "Restaurante inválido." });
     }
     const { data, error } = await obterClienteLeituraPublica()
         .from("avaliacoes_restaurante")
@@ -580,7 +522,7 @@ exports.restaurantsRouter.post("/:id/avaliacoes", auth_1.requireAuth, (0, auth_1
 exports.restaurantsRouter.get("/:id/cardapio", async (req, res) => {
     const restaurantId = Number(req.params.id);
     if (!Number.isFinite(restaurantId)) {
-        return res.status(400).json({ error: "Restaurante invalido." });
+        return res.status(400).json({ error: "Restaurante inválido." });
     }
     const { data: cardapios, error: cardapiosError } = await obterClienteLeituraPublica()
         .from("cardapios")

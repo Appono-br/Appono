@@ -6,17 +6,17 @@ const cnpj_1 = require("./cnpj");
 const cpf_1 = require("./cpf");
 function validarDadosBancarios(dados) {
     const codigoBanco = (0, comum_1.somenteNumeros)(dados.bankCode);
-    const agencia = (0, comum_1.somenteNumeros)(dados.agency);
+    const agência = (0, comum_1.somenteNumeros)(dados.agency);
     const conta = (dados.checkingAccount ?? "").trim();
     const chavePix = (dados.pixKey ?? "").trim();
     if (codigoBanco && codigoBanco.length !== 3) {
-        return "O codigo do banco deve possuir 3 digitos.";
+        return "O codigo do banco deve possuir 3 dígitos.";
     }
-    if (agencia && (agencia.length < 1 || agencia.length > 5)) {
-        return "A agencia deve possuir entre 1 e 5 digitos.";
+    if (agência && (agência.length < 1 || agência.length > 5)) {
+        return "A agência deve possuir entre 1 e 5 dígitos.";
     }
     if (conta && !/^\d{1,20}(-[\dXx])?$/.test(conta)) {
-        return "A conta deve possuir ate 20 numeros e, opcionalmente, um digito apos o hifen. Exemplo: 12345-6.";
+        return "A conta deve possuir até 20 números e, opcionalmente, um dígito após o hífen. Exemplo: 12345-6.";
     }
     if (chavePix && !validarChavePix(chavePix)) {
         return "Informe uma chave Pix valida.";

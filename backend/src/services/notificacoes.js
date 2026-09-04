@@ -47,7 +47,7 @@ async function buscarAuthCliente(idCliente) {
         .eq("id_cliente", idCliente)
         .maybeSingle();
     if (error) {
-        console.warn("Falha ao buscar auth do cliente para notificacao:", error.message);
+        console.warn("Falha ao buscar auth do cliente para notificação:", error.message);
         return null;
     }
     return data?.id_auth ?? null;
@@ -63,7 +63,7 @@ async function buscarAuthRestaurante(idRestaurante) {
         .eq("id_restaurante", idRestaurante)
         .maybeSingle();
     if (error) {
-        console.warn("Falha ao buscar auth do restaurante para notificacao:", error.message);
+        console.warn("Falha ao buscar auth do restaurante para notificação:", error.message);
         return null;
     }
     return data?.id_auth ?? null;
@@ -79,7 +79,7 @@ async function buscarPreferenciasRestaurante(idRestaurante) {
         .eq("id_restaurante", idRestaurante)
         .maybeSingle();
     if (error) {
-        console.warn("Falha ao buscar preferencias de notificacao:", error.message);
+        console.warn("Falha ao buscar preferências de notificação:", error.message);
         return null;
     }
     return data?.preferencias_notificacao ?? null;
@@ -110,7 +110,7 @@ async function criarNotificacao(dados) {
             .eq("dedupe_key", dedupeKey)
             .maybeSingle();
         if (buscaError) {
-            console.warn("Falha ao verificar notificacao duplicada:", buscaError.message);
+            console.warn("Falha ao verificar notificação duplicada:", buscaError.message);
         }
         if (existente) {
             return existente;
@@ -131,7 +131,7 @@ async function criarNotificacao(dados) {
         .select("*")
         .single();
     if (error) {
-        console.warn("Falha ao criar notificacao:", error.message);
+        console.warn("Falha ao criar notificação:", error.message);
         return null;
     }
     return data;
@@ -169,7 +169,7 @@ async function notificarAdministradores(dados) {
     }
     const { data, error } = await supabaseAdmin.auth.admin.listUsers();
     if (error) {
-        console.warn("Falha ao listar administradores para notificacao:", error.message);
+        console.warn("Falha ao listar administradores para notificação:", error.message);
         return [];
     }
     const admins = (data?.users ?? []).filter((user) => emails.includes(String(user.email ?? "").toLowerCase()));

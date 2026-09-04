@@ -7,7 +7,7 @@ import { useParams } from "next/navigation";
 const conversations = [];
 const emptyConversation = {
     id: "",
-    customer: "Conversa indisponivel",
+    customer: "Conversa indisponível",
     initials: "--",
     online: false,
     segment: "Aguardando atendimento",
@@ -74,7 +74,7 @@ export default function RestaurantConversationPage() {
           <Image src="/brand/appono-mark.svg" alt="Appono" width={88} height={88} className="mx-auto h-20 w-20" priority/>
           <h1 className="mt-6 text-3xl font-semibold">Acesso restrito</h1>
           <p className="mt-3 text-sm leading-6 text-app-cinza">
-            Esta area e destinada a contas de restaurante.
+            Esta área é destinada a contas de restaurante.
           </p>
           <Link href="/login" className="mt-6 inline-flex h-11 items-center justify-center rounded-[8px] bg-app-dourado-mel px-6 text-sm font-bold text-white transition hover:bg-app-caramelo-torrado">
             Entrar
@@ -112,7 +112,7 @@ export default function RestaurantConversationPage() {
             <div>
               <h2 className="text-base font-semibold">{conversation.customer}</h2>
               <p className="mt-1 text-xs font-bold uppercase tracking-[0.18em] text-emerald-400">
-                {conversation.online ? "Online" : "Ultima interacao recente"}
+                {conversation.online ? "Online" : "Última interação recente"}
               </p>
             </div>
           </div>
@@ -123,7 +123,7 @@ export default function RestaurantConversationPage() {
             <button type="button" aria-label="Videochamada" className="transition hover:text-app-chantilly">
               <Icon type="video"/>
             </button>
-            <button type="button" aria-label="Mais opcoes" className="transition hover:text-app-chantilly">
+            <button type="button" aria-label="Mais opções" className="transition hover:text-app-chantilly">
               <Icon type="more"/>
             </button>
           </div>
@@ -160,11 +160,11 @@ export default function RestaurantConversationPage() {
                   <Icon type="paperclip"/>
                 </span>
                 <h2 className="mt-5 text-xl font-semibold text-app-cafe-profundo">
-                  Historico indisponivel
+                  Histórico indisponível
                 </h2>
                 <p className="mt-2 max-w-md text-sm leading-6 text-app-cinza">
-                  As mensagens desta conversa serao exibidas assim que houver
-                  interacoes registradas.
+                  As mensagens desta conversa serão exibidas assim que houver
+                  interações registradas.
                 </p>
               </div>)}
           </div>
@@ -198,12 +198,12 @@ export default function RestaurantConversationPage() {
 
           <section className="p-8">
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-cinza">
-              Informacoes de reserva
+              Informações de reserva
             </p>
             <div className="mt-5 rounded-[8px] bg-white p-5">
               {[
             ["Data", conversation.reservation.date],
-            ["Horario", conversation.reservation.time],
+            ["Horário", conversation.reservation.time],
             ["Pessoas", conversation.reservation.people],
         ].map(([label, value]) => (<div key={label} className="flex items-center justify-between gap-4 py-2 text-sm">
                   <span className="text-app-mocha">{label}:</span>
@@ -212,14 +212,14 @@ export default function RestaurantConversationPage() {
             </div>
 
             <p className="mt-8 text-[10px] font-bold uppercase tracking-[0.2em] text-app-cinza">
-              Preferencias
+              Preferências
             </p>
             <div className="mt-4 flex flex-wrap gap-3">
               {conversation.preferences.map((preference) => (<span key={preference} className="rounded-[8px] bg-white px-4 py-2 text-xs font-semibold text-app-mocha">
                   {preference}
                 </span>))}
               {conversation.preferences.length === 0 ? (<span className="rounded-[8px] bg-white px-4 py-2 text-xs font-semibold text-app-cinza">
-                  Sem preferencias carregadas
+                  Sem preferências carregadas
                 </span>) : null}
             </div>
 
@@ -246,7 +246,7 @@ export default function RestaurantConversationPage() {
           <Image src="/brand/appono-mark.svg" alt="Appono" width={80} height={80} className="h-14 w-14 brightness-0 invert"/>
           <nav className="flex flex-wrap justify-center gap-8 text-[10px] font-bold uppercase text-app-baunilha-dourada">
             <Link href="#" className="transition hover:text-app-chantilly">
-              Politica de Privacidade
+              Política de Privacidade
             </Link>
             <Link href="#" className="transition hover:text-app-chantilly">
               Termos de Uso

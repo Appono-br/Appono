@@ -86,7 +86,7 @@ export async function apiRequest(path, options = {}) {
         }
         catch (error) {
             if (error?.name === "AbortError") throw error;
-            throw new Error("Nao conseguimos acessar o servico agora. Tente novamente em alguns instantes.");
+            throw new Error("Não conseguimos acessar o serviço agora. Tente novamente em alguns instantes.");
         }
         let body = await response.json().catch(() => null);
         if (auth && response.status === 401 && obterTokensAutenticacao()?.refreshToken) {
@@ -97,7 +97,7 @@ export async function apiRequest(path, options = {}) {
             }
         }
         if (!response.ok) {
-            const error = new Error(body?.error ?? "Nao conseguimos concluir agora.");
+            const error = new Error(body?.error ?? "Não conseguimos concluir agora.");
             error.status = response.status;
             error.code = body?.code;
             throw error;

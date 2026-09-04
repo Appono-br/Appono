@@ -18,14 +18,14 @@ import { TelaCarregandoSessao, useSessaoLocal } from "@/lib/use-sessao-local";
 const navItems = [
     { label: "Home", href: "/restaurante/home" },
     { label: "Dashboard", href: "/restaurante/dashboard" },
-    { label: "Gestao de cardapio", href: "/restaurante/cardapio" },
+    { label: "Gestão de cardápio", href: "/restaurante/cardapio" },
     { label: "Desempenho", href: "/restaurante/desempenho" },
-    { label: "Relatorio financeiro", href: "/restaurante/financeiro" },
+    { label: "Relatório financeiro", href: "/restaurante/financeiro" },
     { label: "Reservas", href: "/restaurante/reservas" },
     { label: "Cozinha", href: "/restaurante/pedidos" },
-    { label: "Historico", href: "/restaurante/historico-pedidos" },
+    { label: "Histórico", href: "/restaurante/historico-pedidos" },
     { label: "Mensagens", href: "/restaurante/mensagens" },
-    { label: "Configuracoes", href: "/restaurante/configuracoes" },
+    { label: "Configurações", href: "/restaurante/configuracoes" },
 ];
 function Icon({ type, className = "h-5 w-5", }) {
     const paths = {
@@ -120,7 +120,7 @@ export default function RestaurantHomePage() {
           <Image src="/brand/appono-mark.svg" alt="Appono" width={88} height={88} className="mx-auto h-20 w-20" priority/>
           <h1 className="mt-6 text-3xl font-semibold">Acesso restrito</h1>
           <p className="mt-3 text-sm leading-6 text-app-cinza">
-            Esta area e destinada a contas de restaurante.
+            Esta área é destinada a contas de restaurante.
           </p>
           <Link href="/login" className="mt-6 inline-flex h-11 items-center justify-center rounded-[8px] bg-app-dourado-mel px-6 text-sm font-bold text-white transition hover:bg-app-caramelo-torrado">
             Entrar
@@ -189,7 +189,7 @@ export default function RestaurantHomePage() {
 
         <section className="mt-12">
           <p className="text-[10px] font-bold uppercase text-app-caramelo-torrado">
-            Operacao
+            Operação
           </p>
           <h2 className="mt-2 text-4xl font-medium text-app-cafe-profundo sm:text-5xl">
             Desempenho Mensal
@@ -199,7 +199,7 @@ export default function RestaurantHomePage() {
             {metricas.desempenhoMensal.map((metric, index) => (<PerformanceCard key={metric.label} metric={metric} index={index}/>))}
           </div>
           <p className="mt-5 text-sm font-semibold text-app-mocha">
-            {metricas.itensVendidos} itens vendidos em pedidos validos no periodo.
+            {metricas.itensVendidos} itens vendidos em pedidos válidos no período.
           </p>
         </section>
       </section>
@@ -209,7 +209,7 @@ export default function RestaurantHomePage() {
           <Image src="/brand/appono-mark.svg" alt="Appono" width={80} height={80} className="h-14 w-14 brightness-0 invert"/>
           <nav className="flex flex-wrap justify-center gap-8 text-[10px] font-bold uppercase text-app-baunilha-dourada">
             <Link href="#" className="transition hover:text-app-chantilly">
-              Politica de Privacidade
+              Política de Privacidade
             </Link>
             <Link href="#" className="transition hover:text-app-chantilly">
               Termos de Uso

@@ -61,7 +61,7 @@ function PagamentoRetornoContent() {
             setMensagem("");
         }
         catch (erro) {
-            setMensagem(erro instanceof Error ? erro.message : "Nao foi possivel consultar o pagamento.");
+            setMensagem(erro instanceof Error ? erro.message : "Não foi possível consultar o pagamento.");
         }
         finally {
             setConsultando(false);
@@ -90,7 +90,7 @@ function PagamentoRetornoContent() {
             }
             catch (erro) {
                 if (!ignorarResposta) {
-                    setMensagem(erro instanceof Error ? erro.message : "Nao foi possivel consultar o pagamento.");
+                    setMensagem(erro instanceof Error ? erro.message : "Não foi possível consultar o pagamento.");
                 }
             }
             finally {
@@ -108,7 +108,7 @@ function PagamentoRetornoContent() {
         };
     }, [endpointStatus]);
     const tipoPagamento = pedidoId ? "pedido" : "reserva";
-    const mensagemVisivel = pedidoId || reservaId ? mensagem : "Pedido ou reserva nao informado no retorno do pagamento.";
+    const mensagemVisivel = pedidoId || reservaId ? mensagem : "Pedido ou reserva não informado no retorno do pagamento.";
     const idPedidoDetalhe = pedidoId ?? dados?.pedido?.id_pedido ?? null;
 
     const estado = useMemo(() => {
@@ -118,18 +118,18 @@ function PagamentoRetornoContent() {
                 icon: "check",
                 title: "Pagamento aprovado",
                 description: tipoPagamento === "pedido"
-                    ? "Pagamento aprovado. Seu pedido antecipado foi confirmado e enviado ao restaurante para preparo no horario combinado."
-                    : "Sua reserva foi confirmada e ja aparece para o restaurante.",
+                    ? "Pagamento aprovado. Seu pedido antecipado foi confirmado e enviado ao restaurante para preparo no horário combinado."
+                    : "Sua reserva foi confirmada e já aparece para o restaurante.",
                 className: "bg-app-cafe-profundo text-app-creme-leve",
             };
         }
         if (["RECUSADO", "ESTORNADO"].includes(status)) {
             return {
                 icon: "x",
-                title: "Pagamento nao aprovado",
+                title: "Pagamento não aprovado",
                 description: tipoPagamento === "pedido"
-                    ? "O pedido nao foi confirmado. Sua reserva continua ativa e voce pode tentar montar outro pedido."
-                    : "A reserva foi marcada como cancelada. Voce pode tentar reservar novamente.",
+                    ? "O pedido não foi confirmado. Sua reserva continua ativa e você pode tentar montar outro pedido."
+                    : "A reserva foi marcada como cancelada. Você pode tentar reservar novamente.",
                 className: "bg-app-vermelho-erro text-white",
             };
         }
@@ -137,8 +137,8 @@ function PagamentoRetornoContent() {
             icon: "clock",
             title: "Pagamento pendente",
             description: tipoPagamento === "pedido"
-                ? "Seu pedido antecipado ainda nao foi confirmado. Assim que o Mercado Pago aprovar o pagamento, a Appono confirma o pedido para o restaurante."
-                : "Sua reserva ainda aguarda a confirmacao do Mercado Pago.",
+                ? "Seu pedido antecipado ainda não foi confirmado. Assim que o Mercado Pago aprovar o pagamento, a Appono confirma o pedido para o restaurante."
+                : "Sua reserva ainda aguarda a confirmação do Mercado Pago.",
             className: "bg-app-baunilha-dourada text-app-cafe-profundo",
         };
     }, [dados, tipoPagamento]);
@@ -158,8 +158,8 @@ function PagamentoRetornoContent() {
                     <p className="mx-auto mt-4 max-w-xl text-sm leading-6 text-app-mocha">{mensagemVisivel ? "Aguarde alguns instantes." : estado.description}</p>
                     {dados?.status_pagamento === "PENDENTE" ? (
                         <div className="mx-auto mt-6 max-w-xl rounded-[12px] bg-app-baunilha-dourada/35 p-4 text-left text-sm leading-6 text-app-mocha ring-1 ring-app-baunilha-dourada/70">
-                            <strong className="block text-app-cafe-profundo">O pedido ainda nao foi enviado para preparo.</strong>
-                            Pagamentos por Pix, boleto ou analise de cartao podem levar alguns instantes. Voce pode atualizar o status por aqui ou voltar aos detalhes do pedido depois.
+                            <strong className="block text-app-cafe-profundo">O pedido ainda não foi enviado para preparo.</strong>
+                            Pagamentos por Pix, boleto ou análise de cartão podem levar alguns instantes. Você pode atualizar o status por aqui ou voltar aos detalhes do pedido depois.
                         </div>
                     ) : null}
 

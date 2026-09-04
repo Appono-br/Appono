@@ -2,7 +2,7 @@
 
 export function ConfirmationDialog({
     open,
-    eyebrow = "Confirmacao",
+    eyebrow = "Confirmação",
     title,
     description,
     details,

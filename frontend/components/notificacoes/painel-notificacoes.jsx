@@ -10,7 +10,7 @@ import { dispararAtualizacaoNotificacoes } from "./contador-notificacoes";
 
 const filtros = [
     { chave: "todas", rotulo: "Todas" },
-    { chave: "nao_lidas", rotulo: "Nao lidas" },
+    { chave: "nao_lidas", rotulo: "Não lidas" },
     { chave: "favoritas", rotulo: "Favoritas" },
     { chave: "reservas", rotulo: "Reservas" },
     { chave: "pedidos", rotulo: "Pedidos" },
@@ -82,11 +82,11 @@ export function PainelNotificacoes({ modulo, voltarHref, dashboardHref }) {
             const resposta = await apiRequest(`/notificacoes${consulta}`);
             setNotificacoes(resposta ?? []);
             if (mostrarCarregando) {
-                exibirMensagem("Notificacoes atualizadas.", "sucesso");
+                exibirMensagem("Notificações atualizadas.", "sucesso");
             }
         }
         catch (error) {
-            exibirMensagem(error instanceof Error ? error.message : "Nao foi possivel carregar as notificacoes.", "erro");
+            exibirMensagem(error instanceof Error ? error.message : "Não foi possível carregar as notificações.", "erro");
         }
         finally {
             setCarregando(false);
@@ -104,7 +104,7 @@ export function PainelNotificacoes({ modulo, voltarHref, dashboardHref }) {
             })
             .catch((error) => {
                 if (ativo) {
-                    exibirMensagem(error instanceof Error ? error.message : "Nao foi possivel carregar as notificacoes.", "erro");
+                    exibirMensagem(error instanceof Error ? error.message : "Não foi possível carregar as notificações.", "erro");
                 }
             })
             .finally(() => {
@@ -134,10 +134,10 @@ export function PainelNotificacoes({ modulo, voltarHref, dashboardHref }) {
             const atualizada = await apiRequest(`/notificacoes/${id}/lida`, { method: "PATCH" });
             setNotificacoes((atuais) => atuais.map((notificacao) => notificacao.id_notificacao === id ? atualizada : notificacao));
             dispararAtualizacaoNotificacoes();
-            exibirMensagem("Notificacao marcada como lida.", "sucesso");
+            exibirMensagem("Notificação marcada como lida.", "sucesso");
         }
         catch (error) {
-            exibirMensagem(error instanceof Error ? error.message : "Nao foi possivel atualizar a notificacao.", "erro");
+            exibirMensagem(error instanceof Error ? error.message : "Não foi possível atualizar a notificação.", "erro");
         }
     }
 
@@ -150,10 +150,10 @@ export function PainelNotificacoes({ modulo, voltarHref, dashboardHref }) {
                 lida_em: notificacao.lida_em ?? new Date().toISOString(),
             })));
             dispararAtualizacaoNotificacoes();
-            exibirMensagem("Todas as notificacoes foram marcadas como lidas.", "sucesso");
+            exibirMensagem("Todas as notificações foram marcadas como lidas.", "sucesso");
         }
         catch (error) {
-            exibirMensagem(error instanceof Error ? error.message : "Nao foi possivel marcar as notificacoes como lidas.", "erro");
+            exibirMensagem(error instanceof Error ? error.message : "Não foi possível marcar as notificações como lidas.", "erro");
         }
     }
 
@@ -164,29 +164,29 @@ export function PainelNotificacoes({ modulo, voltarHref, dashboardHref }) {
                 body: JSON.stringify({ favoritada: !notificacao.favoritada }),
             });
             setNotificacoes((atuais) => atuais.map((item) => item.id_notificacao === notificacao.id_notificacao ? atualizada : item));
-            exibirMensagem(atualizada.favoritada ? "Notificacao adicionada aos favoritos." : "Notificacao removida dos favoritos.", "sucesso");
+            exibirMensagem(atualizada.favoritada ? "Notificação adicionada aos favoritos." : "Notificação removida dos favoritos.", "sucesso");
         }
         catch (error) {
-            exibirMensagem(error instanceof Error ? error.message : "Nao foi possivel favoritar a notificacao.", "erro");
+            exibirMensagem(error instanceof Error ? error.message : "Não foi possível favoritar a notificação.", "erro");
         }
     }
 
-    function solicitarApagarNotificacao(notificacao) {
+    function solicitarApagarNotificação(notificacao) {
         setConfirmacao({
             tipo: "apagar",
-            titulo: "Apagar notificacao?",
-            mensagem: "Esta notificacao sera removida da sua central. O historico tecnico continua preservado no sistema.",
-            acao: "Apagar notificacao",
+            titulo: "Apagar notificação?",
+            mensagem: "Esta notificação será removida da sua central. O histórico técnico continua preservado no sistema.",
+            acao: "Apagar notificação",
             notificacao,
         });
     }
 
-    function solicitarLimparNotificacoes() {
+    function solicitarLimparNotificações() {
         setConfirmacao({
             tipo: "limpar",
-            titulo: "Limpar notificacoes?",
-            mensagem: "Todas as notificacoes nao favoritadas serao removidas da sua central. As favoritas continuarao salvas.",
-            acao: "Limpar notificacoes",
+            titulo: "Limpar notificações?",
+            mensagem: "Todas as notificações não favoritadas serão removidas da sua central. As favoritas continuarão salvas.",
+            acao: "Limpar notificações",
         });
     }
 
@@ -200,18 +200,18 @@ export function PainelNotificacoes({ modulo, voltarHref, dashboardHref }) {
                 await apiRequest(`/notificacoes/${confirmacao.notificacao.id_notificacao}/apagar`, { method: "PATCH" });
                 setNotificacoes((atuais) => atuais.filter((item) => item.id_notificacao !== confirmacao.notificacao.id_notificacao));
                 dispararAtualizacaoNotificacoes();
-                exibirMensagem("Notificacao apagada da sua central.", "sucesso");
+                exibirMensagem("Notificação apagada da sua central.", "sucesso");
             }
             if (confirmacao.tipo === "limpar") {
                 await apiRequest("/notificacoes/limpar", { method: "PATCH" });
                 setNotificacoes((atuais) => atuais.filter((notificacao) => notificacao.favoritada));
                 dispararAtualizacaoNotificacoes();
-                exibirMensagem("Notificacoes nao favoritadas foram limpas.", "sucesso");
+                exibirMensagem("Notificações não favoritadas foram limpas.", "sucesso");
             }
             setConfirmacao(null);
         }
         catch (error) {
-            exibirMensagem(error instanceof Error ? error.message : "Nao foi possivel concluir a acao.", "erro");
+            exibirMensagem(error instanceof Error ? error.message : "Não foi possível concluir a ação.", "erro");
         }
         finally {
             setProcessandoConfirmacao(false);
@@ -229,10 +229,10 @@ export function PainelNotificacoes({ modulo, voltarHref, dashboardHref }) {
                     <div className="rounded-[22px] bg-app-creme-leve p-6 shadow-sm ring-1 ring-app-baunilha-dourada/60 sm:rounded-[28px] sm:p-9">
                         <Image src="/brand/appono-mark.svg" alt="Appono" width={76} height={76} className="h-14 w-14" priority />
                         <p className="mt-8 text-[10px] font-bold uppercase tracking-[0.22em] text-app-caramelo-torrado">
-                            Central de notificacoes
+                            Central de notificações
                         </p>
                         <h1 className="mt-3 text-3xl font-semibold leading-tight sm:text-5xl">
-                            Acompanhe o que muda na sua operacao
+                            Acompanhe o que muda na sua operação
                         </h1>
                         <p className="mt-4 max-w-2xl text-sm leading-6 text-app-mocha sm:text-base">
                             Aqui ficam os avisos importantes de reservas, pedidos, pagamentos e cancelamentos do modulo {modulo}.
@@ -242,12 +242,12 @@ export function PainelNotificacoes({ modulo, voltarHref, dashboardHref }) {
                     <aside className="rounded-[24px] bg-app-cafe-profundo p-6 text-app-creme-leve shadow-sm">
                         <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-baunilha-dourada">Resumo</p>
                         <strong className="mt-4 block text-4xl">{naoLidas}</strong>
-                        <p className="mt-2 text-sm text-app-creme-suave">notificacao(oes) ainda nao lida(s).</p>
+                        <p className="mt-2 text-sm text-app-creme-suave">notificação(ões) ainda não lida(s).</p>
                         <button type="button" onClick={marcarTodasComoLidas} disabled={!naoLidas} className="mt-6 w-full rounded-full bg-app-baunilha-dourada px-5 py-3 text-xs font-bold uppercase tracking-[0.12em] text-app-cafe-profundo transition hover:bg-app-dourado-mel hover:text-white disabled:cursor-not-allowed disabled:opacity-50">
                             Marcar todas como lidas
                         </button>
-                        <button type="button" onClick={solicitarLimparNotificacoes} disabled={!notificacoes.some((notificacao) => !notificacao.favoritada)} className="mt-3 w-full rounded-full border border-app-baunilha-dourada/70 px-5 py-3 text-xs font-bold uppercase tracking-[0.12em] text-app-creme-leve transition hover:bg-app-baunilha-dourada/15 disabled:cursor-not-allowed disabled:opacity-50">
-                            Limpar nao favoritas
+                        <button type="button" onClick={solicitarLimparNotificações} disabled={!notificacoes.some((notificacao) => !notificacao.favoritada)} className="mt-3 w-full rounded-full border border-app-baunilha-dourada/70 px-5 py-3 text-xs font-bold uppercase tracking-[0.12em] text-app-creme-leve transition hover:bg-app-baunilha-dourada/15 disabled:cursor-not-allowed disabled:opacity-50">
+                            Limpar não favoritas
                         </button>
                     </aside>
                 </div>
@@ -263,8 +263,8 @@ export function PainelNotificacoes({ modulo, voltarHref, dashboardHref }) {
                 <section className="mt-8 rounded-[22px] bg-app-creme-leve p-4 shadow-sm ring-1 ring-app-baunilha-dourada/60 sm:rounded-[28px] sm:p-6">
                     <div className="flex flex-col gap-3 border-b border-app-baunilha-dourada/55 pb-5 sm:flex-row sm:items-end sm:justify-between">
                         <div>
-                            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">Historico</p>
-                            <h2 className="mt-2 text-2xl font-semibold">Notificacoes recentes</h2>
+                            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">Histórico</p>
+                            <h2 className="mt-2 text-2xl font-semibold">Notificações recentes</h2>
                         </div>
                         <button type="button" onClick={carregarNotificacoes} className="w-fit rounded-full border border-app-caramelo-torrado px-5 py-2 text-xs font-bold uppercase tracking-[0.12em] text-app-caramelo-torrado transition hover:bg-app-caramelo-torrado hover:text-white">
                             Atualizar
@@ -286,7 +286,7 @@ export function PainelNotificacoes({ modulo, voltarHref, dashboardHref }) {
                     </div>
 
                     {carregando ? (
-                        <p className="py-12 text-center text-sm text-app-cinza">Carregando notificacoes...</p>
+                        <p className="py-12 text-center text-sm text-app-cinza">Carregando notificações...</p>
                     ) : notificacoes.length ? (
                         <div className="mt-5 grid gap-4">
                             {notificacoes.map((notificacao) => (
@@ -315,7 +315,7 @@ export function PainelNotificacoes({ modulo, voltarHref, dashboardHref }) {
                                         <div className="flex flex-wrap gap-2 sm:min-w-52 sm:justify-end">
                                             <button type="button" onClick={() => alternarFavorita(notificacao)} className={`inline-flex h-9 w-9 items-center justify-center rounded-full border transition ${notificacao.favoritada
                                                 ? "border-app-dourado-mel bg-app-dourado-mel text-app-cafe-profundo hover:bg-app-baunilha-dourada"
-                                                : "border-app-baunilha-dourada text-app-mocha hover:bg-app-baunilha-dourada hover:text-app-cafe-profundo"}`} aria-label={notificacao.favoritada ? "Remover dos favoritos" : "Favoritar notificacao"} title={notificacao.favoritada ? "Remover dos favoritos" : "Favoritar"}>
+                                                : "border-app-baunilha-dourada text-app-mocha hover:bg-app-baunilha-dourada hover:text-app-cafe-profundo"}`} aria-label={notificacao.favoritada ? "Remover dos favoritos" : "Favoritar notificação"} title={notificacao.favoritada ? "Remover dos favoritos" : "Favoritar"}>
                                                 <IconeEstrela preenchida={Boolean(notificacao.favoritada)} />
                                             </button>
                                             {notificacao.link_destino ? (
@@ -328,7 +328,7 @@ export function PainelNotificacoes({ modulo, voltarHref, dashboardHref }) {
                                                     Marcar lida
                                                 </button>
                                             ) : null}
-                                            <button type="button" onClick={() => solicitarApagarNotificacao(notificacao)} className="rounded-full border border-app-vermelho-erro/35 px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-app-vermelho-erro transition hover:bg-app-vermelho-erro hover:text-white">
+                                            <button type="button" onClick={() => solicitarApagarNotificação(notificacao)} className="rounded-full border border-app-vermelho-erro/35 px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-app-vermelho-erro transition hover:bg-app-vermelho-erro hover:text-white">
                                                 Apagar
                                             </button>
                                         </div>
@@ -338,9 +338,9 @@ export function PainelNotificacoes({ modulo, voltarHref, dashboardHref }) {
                         </div>
                     ) : (
                         <div className="py-14 text-center">
-                            <h3 className="text-2xl font-semibold">Nenhuma notificacao por enquanto</h3>
+                            <h3 className="text-2xl font-semibold">Nenhuma notificação por enquanto</h3>
                             <p className="mx-auto mt-3 max-w-lg text-sm leading-6 text-app-cinza">
-                                Quando acontecer uma reserva, pedido, pagamento ou cancelamento, o aviso aparecera aqui.
+                                Quando acontecer uma reserva, pedido, pagamento ou cancelamento, o aviso aparecerá aqui.
                             </p>
                             <BotaoVoltar href={dashboardHref} className="mt-7 rounded-full bg-app-caramelo-torrado px-6 py-3 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-app-mocha">
                                 Voltar ao painel
@@ -352,7 +352,7 @@ export function PainelNotificacoes({ modulo, voltarHref, dashboardHref }) {
             {confirmacao ? (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 px-5 backdrop-blur-[2px]" role="dialog" aria-modal="true" aria-labelledby="titulo-confirmacao-notificacao">
                     <section className="w-full max-w-md rounded-[24px] bg-white p-6 text-app-cafe-profundo shadow-2xl ring-1 ring-black/10">
-                        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">Confirmacao</p>
+                        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">Confirmação</p>
                         <h2 id="titulo-confirmacao-notificacao" className="mt-3 text-2xl font-semibold">{confirmacao.titulo}</h2>
                         <p className="mt-3 text-sm leading-6 text-app-mocha">{confirmacao.mensagem}</p>
                         <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">

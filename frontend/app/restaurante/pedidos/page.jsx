@@ -10,14 +10,14 @@ import { filtrarOrdenarPorBusca, textoBusca } from "@/lib/busca-avancada";
 const navItems = [
     { label: "Home", href: "/restaurante/home" },
     { label: "Dashboard", href: "/restaurante/dashboard" },
-    { label: "Gestao de cardapio", href: "/restaurante/cardapio" },
+    { label: "Gestão de cardápio", href: "/restaurante/cardapio" },
     { label: "Desempenho", href: "/restaurante/desempenho" },
-    { label: "Relatorio financeiro", href: "/restaurante/financeiro" },
+    { label: "Relatório financeiro", href: "/restaurante/financeiro" },
     { label: "Reservas", href: "/restaurante/reservas" },
     { label: "Cozinha", href: "/restaurante/pedidos" },
-    { label: "Historico", href: "/restaurante/historico-pedidos" },
+    { label: "Histórico", href: "/restaurante/historico-pedidos" },
     { label: "Mensagens", href: "/restaurante/mensagens" },
-    { label: "Configuracoes", href: "/restaurante/configuracoes" },
+    { label: "Configurações", href: "/restaurante/configuracoes" },
 ];
 
 const filtrosPedido = [
@@ -215,7 +215,7 @@ export default function RestaurantOrdersPage() {
         apiRequest("/pedidos/historico/restaurante?fila=cozinha")
             .then((pedidosOperacionais) => setReservas(agruparPedidosPorReserva(pedidosOperacionais ?? [])))
             .catch((erro) =>
-                setMensagem(erro instanceof Error ? erro.message : "Nao foi possivel carregar os pedidos."),
+                setMensagem(erro instanceof Error ? erro.message : "Não foi possível carregar os pedidos."),
             );
     }, [isRestaurant]);
 
@@ -259,7 +259,7 @@ export default function RestaurantOrdersPage() {
             );
             setMensagem("Status do pedido atualizado.");
         } catch (erro) {
-            setMensagem(erro instanceof Error ? erro.message : "Nao foi possivel atualizar o pedido.");
+            setMensagem(erro instanceof Error ? erro.message : "Não foi possível atualizar o pedido.");
         }
     }
 
@@ -282,10 +282,10 @@ export default function RestaurantOrdersPage() {
                     ),
                 })),
             );
-            setMensagem("Pedido removido da fila da cozinha. O historico continua preservado.");
+            setMensagem("Pedido removido da fila da cozinha. O histórico continua preservado.");
             setPedidoParaRemover(null);
         } catch (erro) {
-            setMensagem(erro instanceof Error ? erro.message : "Nao foi possivel remover o pedido da cozinha.");
+            setMensagem(erro instanceof Error ? erro.message : "Não foi possível remover o pedido da cozinha.");
         } finally {
             setRemovendoPedido(false);
         }
@@ -305,7 +305,7 @@ export default function RestaurantOrdersPage() {
                     />
                     <h1 className="mt-6 text-3xl font-semibold">Acesso restrito</h1>
                     <p className="mt-3 text-sm leading-6 text-app-cinza">
-                        Esta area e destinada a contas de restaurante.
+                        Esta área é destinada a contas de restaurante.
                     </p>
                     <Link
                         href="/login"
@@ -349,7 +349,7 @@ export default function RestaurantOrdersPage() {
                         <Link
                             href="/restaurante/notificacoes"
                             className="flex h-9 w-9 items-center justify-center rounded-[8px] text-app-cafe-profundo transition hover:bg-app-chantilly hover:text-app-caramelo-torrado"
-                            aria-label="Notificacoes"
+                            aria-label="Notificações"
                         >
                             <Icon type="bell" />
                         </Link>
@@ -405,7 +405,7 @@ export default function RestaurantOrdersPage() {
                         <input
                             value={busca}
                             onChange={(event) => setBusca(event.target.value)}
-                            placeholder="Buscar por cliente, pedido, mesa, status, item ou horario..."
+                            placeholder="Buscar por cliente, pedido, mesa, status, item ou horário..."
                             className="input-busca-app h-full min-w-0 flex-1 bg-transparent text-sm text-app-cafe-profundo placeholder:text-app-cinza/60"
                         />
                     </label>
@@ -521,7 +521,7 @@ export default function RestaurantOrdersPage() {
 
                                                 {pedido.observacoes ? (
                                                     <p className="mt-4 rounded-[10px] bg-app-creme-suave px-4 py-3 text-sm text-app-mocha">
-                                                        Observacao geral: {pedido.observacoes}
+                                                        Observação geral: {pedido.observacoes}
                                                     </p>
                                                 ) : null}
                                             </div>
@@ -552,7 +552,7 @@ export default function RestaurantOrdersPage() {
                                                         </button>
                                                     ) : (
                                                         <p className="rounded-[10px] bg-app-creme-leve px-4 py-3 text-sm font-semibold text-app-cinza ring-1 ring-app-baunilha-dourada/45">
-                                                            Nenhuma acao pendente para este pedido.
+                                                            Nenhuma ação pendente para este pedido.
                                                         </p>
                                                     )}
 
@@ -595,7 +595,7 @@ export default function RestaurantOrdersPage() {
                             Tirar pedido #{pedidoParaRemover.id_pedido} da fila?
                         </h2>
                         <p className="mt-3 text-sm leading-6 text-app-cinza">
-                            Esta acao remove o pedido apenas da tela operacional da cozinha. O registro continua salvo no historico, no financeiro e nas reservas.
+                            Esta ação remove o pedido apenas da tela operacional da cozinha. O registro continua salvo no histórico, no financeiro e nas reservas.
                         </p>
                         <div className="mt-6 grid gap-3 sm:grid-cols-2">
                             <button

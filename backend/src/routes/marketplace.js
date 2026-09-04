@@ -131,7 +131,7 @@ exports.marketplaceRouter.get("/mercado-pago/status", auth_1.requireAuth, (0, au
         });
     }
     catch (error) {
-        return res.status(400).json({ error: error instanceof Error ? error.message : "Nao foi possivel consultar a conexao." });
+        return res.status(400).json({ error: error instanceof Error ? error.message : "Não foi possível consultar a conexão." });
     }
 });
 
@@ -269,7 +269,7 @@ exports.marketplaceRouter.get("/financeiro/resumo", auth_1.requireAuth, (0, auth
         });
     }
     catch (error) {
-        return res.status(400).json({ error: error instanceof Error ? error.message : "Nao foi possivel consultar o financeiro." });
+        return res.status(400).json({ error: error instanceof Error ? error.message : "Não foi possível consultar o financeiro." });
     }
 });
 
@@ -311,7 +311,7 @@ exports.marketplaceRouter.post("/mercado-pago/conectar", auth_1.requireAuth, (0,
         });
     }
     catch (error) {
-        return res.status(400).json({ error: error instanceof Error ? error.message : "Nao foi possivel iniciar a conexao." });
+        return res.status(400).json({ error: error instanceof Error ? error.message : "Não foi possível iniciar a conexão." });
     }
 });
 
@@ -349,7 +349,7 @@ exports.marketplaceRouter.post("/mercado-pago/desconectar", auth_1.requireAuth, 
         return res.json({ conexao: sanitizarConexao(data) });
     }
     catch (error) {
-        return res.status(400).json({ error: error instanceof Error ? error.message : "Nao foi possivel desconectar a conta." });
+        return res.status(400).json({ error: error instanceof Error ? error.message : "Não foi possível desconectar a conta." });
     }
 });
 
@@ -373,7 +373,7 @@ exports.marketplaceRouter.get("/mercado-pago/callback", async (req, res) => {
             .eq("oauth_state", state)
             .maybeSingle();
         if (buscaError || !conexaoPendente) {
-            throw new Error(buscaError?.message ?? "Conexao OAuth nao encontrada.");
+            throw new Error(buscaError?.message ?? "Conexão OAuth não encontrada.");
         }
         const usarTokenTeste = !mercadoPagoProducaoPermitida();
         const resposta = await fetch("https://api.mercadopago.com/oauth/token", {
@@ -393,7 +393,7 @@ exports.marketplaceRouter.get("/mercado-pago/callback", async (req, res) => {
         });
         const token = await resposta.json().catch(() => null);
         if (!resposta.ok) {
-            throw new Error(token?.message ?? "Nao foi possivel obter o token OAuth do Mercado Pago.");
+            throw new Error(token?.message ?? "Não foi possível obter o token OAuth do Mercado Pago.");
         }
         if (usarTokenTeste && token?.live_mode === true) {
             await supabase_1.supabaseAdmin

@@ -68,7 +68,7 @@ export default function PaginaPedidoAntecipado({ params }) {
     const [quantidades, setQuantidades] = useState({});
     const [observacoesItens, setObservacoesItens] = useState({});
     const [observacoes, setObservacoes] = useState("");
-    const [mensagem, setMensagem] = useState("Carregando cardapio...");
+    const [mensagem, setMensagem] = useState("Carregando cardápio...");
     const [enviando, setEnviando] = useState(false);
 
     useEffect(() => {
@@ -84,7 +84,7 @@ export default function PaginaPedidoAntecipado({ params }) {
                 setDados(resultado);
                 setMensagem("");
             })
-            .catch((erro) => setMensagem(erro instanceof Error ? erro.message : "Nao foi possivel carregar o cardapio."));
+            .catch((erro) => setMensagem(erro instanceof Error ? erro.message : "Não foi possível carregar o cardápio."));
     }, [reservaId]);
 
     const categorias = useMemo(() => {
@@ -140,11 +140,11 @@ export default function PaginaPedidoAntecipado({ params }) {
             return;
         }
         if (!reservaConfirmada) {
-            setMensagem("O pedido antecipado so pode ser criado para uma reserva confirmada.");
+            setMensagem("O pedido antecipado só pode ser criado para uma reserva confirmada.");
             return;
         }
         if (reservaIniciada) {
-            setMensagem("Nao e possivel adicionar pedido antecipado porque a reserva ja iniciou.");
+            setMensagem("Não é possível adicionar pedido antecipado porque a reserva já iniciou.");
             return;
         }
         const itens = produtosSelecionados.map((produto) => ({
@@ -153,11 +153,11 @@ export default function PaginaPedidoAntecipado({ params }) {
             observacoes: observacoesItens[produto.id_produto]?.trim() || null,
         }));
         if (!itens.length) {
-            setMensagem("Escolha ao menos um item do cardapio.");
+            setMensagem("Escolha ao menos um item do cardápio.");
             return;
         }
         if (faltaParaMinimo > 0) {
-            setMensagem(`O pedido precisa atingir o consumo minimo. Ainda faltam ${formatarMoeda(faltaParaMinimo)}.`);
+            setMensagem(`O pedido precisa atingir o consumo mínimo. Ainda faltam ${formatarMoeda(faltaParaMinimo)}.`);
             return;
         }
         setEnviando(true);
@@ -170,7 +170,7 @@ export default function PaginaPedidoAntecipado({ params }) {
             window.location.assign(`/cliente/pagamentos/pedido/${pedidoCriado.id_pedido}`);
         }
         catch (erro) {
-            setMensagem(erro instanceof Error ? erro.message : "Nao foi possivel criar o pedido.");
+            setMensagem(erro instanceof Error ? erro.message : "Não foi possível criar o pedido.");
         }
         finally {
             setEnviando(false);
@@ -200,7 +200,7 @@ export default function PaginaPedidoAntecipado({ params }) {
                                 {dados.reserva.restaurantes?.nome ?? "Restaurante"}
                             </h1>
                             <p className="mt-3 max-w-3xl text-sm leading-6 text-app-creme-suave">
-                                Escolha os itens antes da sua chegada. O restaurante recebe o pedido vinculado a sua reserva e consegue se preparar para o horario combinado.
+                                Escolha os itens antes da sua chegada. O restaurante recebe o pedido vinculado à sua reserva e consegue se preparar para o horário combinado.
                             </p>
                         </div>
                         <div className="rounded-[12px] bg-white/10 p-4 text-sm ring-1 ring-app-baunilha-dourada/35">
@@ -220,7 +220,7 @@ export default function PaginaPedidoAntecipado({ params }) {
                                     <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">Pedido registrado</p>
                                     <h2 className="mt-2 text-3xl font-bold">Itens escolhidos pelo cliente</h2>
                                     <p className="mt-3 max-w-2xl text-sm leading-6 text-app-mocha">
-                                        Este pedido esta vinculado a reserva. Ele so aparece como confirmado para preparo depois da aprovacao do pagamento.
+                                        Este pedido está vinculado à reserva. Ele só aparece como confirmado para preparo depois da aprovação do pagamento.
                                     </p>
                                 </div>
                                 <span className="rounded-full bg-app-cafe-profundo px-4 py-2 text-xs font-bold uppercase text-app-creme-leve">
@@ -378,7 +378,7 @@ export default function PaginaPedidoAntecipado({ params }) {
 
                             {!produtos.length ? (
                                 <p className="rounded-[12px] bg-white p-8 text-center text-sm font-semibold shadow-sm ring-1 ring-app-baunilha-dourada">
-                                    Este restaurante ainda nao publicou itens no cardapio.
+                                    Este restaurante ainda não publicou itens no cardápio.
                                 </p>
                             ) : null}
                         </section>
@@ -411,7 +411,7 @@ export default function PaginaPedidoAntecipado({ params }) {
                                     </div>
                                 )) : (
                                     <p className="rounded-[8px] bg-white p-4 text-sm text-app-mocha">
-                                        Selecione os itens do cardapio para montar o pedido.
+                                        Selecione os itens do cardápio para montar o pedido.
                                     </p>
                                 )}
                             </div>
@@ -423,7 +423,7 @@ export default function PaginaPedidoAntecipado({ params }) {
 
                             <div className="mt-5 grid gap-3 border-t border-app-baunilha-dourada pt-5">
                                 <div className="flex items-center justify-between text-sm">
-                                    <span className="text-app-mocha">Consumo minimo</span>
+                                    <span className="text-app-mocha">Consumo mínimo</span>
                                     <strong>{formatarMoeda(consumoMinimo)}</strong>
                                 </div>
                                 <div className="flex items-center justify-between">
@@ -439,12 +439,12 @@ export default function PaginaPedidoAntecipado({ params }) {
                             ) : null}
                             {reservaIniciada ? (
                                 <p className="mt-5 rounded-[8px] bg-white p-3 text-sm font-semibold text-app-caramelo-torrado">
-                                    Esta reserva ja iniciou. Para preservar a operacao do restaurante, nao e mais possivel adicionar pedido antecipado.
+                                    Esta reserva já iniciou. Para preservar a operação do restaurante, não é mais possível adicionar pedido antecipado.
                                 </p>
                             ) : null}
                             {faltaParaMinimo > 0 && total > 0 ? (
                                 <p className="mt-5 rounded-[8px] bg-white p-3 text-sm font-semibold text-app-caramelo-torrado">
-                                    Faltam {formatarMoeda(faltaParaMinimo)} para atingir o consumo minimo da reserva.
+                                    Faltam {formatarMoeda(faltaParaMinimo)} para atingir o consumo mínimo da reserva.
                                 </p>
                             ) : null}
                             <button type="button" onClick={criarPedido} disabled={enviando || total <= 0 || !reservaConfirmada || reservaIniciada || faltaParaMinimo > 0} className="mt-5 h-12 w-full rounded-[8px] bg-app-dourado-mel text-xs font-bold uppercase tracking-wide text-white transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-50">
