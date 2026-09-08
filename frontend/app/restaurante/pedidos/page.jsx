@@ -39,6 +39,7 @@ function Icon({ type, className = "h-5 w-5" }) {
     const paths = {
         bell: "M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0",
         menu: "M4 7h16M4 12h16M4 17h16",
+        message: "M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v8z",
         clock: "M12 7v5l3 2M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
         receipt: "M7 3h10a2 2 0 0 1 2 2v16l-3-2-2 2-2-2-2 2-2-2-3 2V5a2 2 0 0 1 2-2Z",
         search: "m21 21-4.35-4.35M11 18a7 7 0 1 1 0-14 7 7 0 0 1 0 14z",
@@ -242,6 +243,7 @@ export default function RestaurantOrdersPage() {
     const [mensagem, setMensagem] = useState("");
     const [pedidoParaRemover, setPedidoParaRemover] = useState(null);
     const [removendoPedido, setRemovendoPedido] = useState(false);
+    const [abrindoChatPedidoId, setAbrindoChatPedidoId] = useState(null);
     const isRestaurant = session?.type === "restaurant";
 
     useEffect(() => {
@@ -325,6 +327,25 @@ export default function RestaurantOrdersPage() {
             setMensagem(erro instanceof Error ? erro.message : "Não foi possível remover o pedido da cozinha.");
         } finally {
             setRemovendoPedido(false);
+        }
+    }
+
+    async function abrirChatPedido(pedido) {
+        setAbrindoChatPedidoId(pedido.id_pedido);
+        setMensagem("");
+        try {
+            const conversa = await apiRequest("/mensagens/conversas", {
+                method: "POST",
+                body: JSON.stringify({
+                    id_pedido: pedido.id_pedido,
+                    assunto: `Pedido #${pedido.id_pedido}`,
+                }),
+            });
+            window.location.assign(`/restaurante/mensagens/${conversa.id_conversa}`);
+        } catch (erro) {
+            setMensagem(erro instanceof Error ? erro.message : "Não foi possível iniciar o chat.");
+        } finally {
+            setAbrindoChatPedidoId(null);
         }
     }
 
@@ -603,6 +624,16 @@ export default function RestaurantOrdersPage() {
                                                             Nenhuma ação pendente para este pedido.
                                                         </p>
                                                     )}
+
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => abrirChatPedido(pedido)}
+                                                        disabled={abrindoChatPedidoId === pedido.id_pedido}
+                                                        className="inline-flex h-11 items-center justify-center gap-2 rounded-[9px] border border-app-caramelo-torrado px-4 text-xs font-bold uppercase tracking-[0.14em] text-app-caramelo-torrado transition hover:bg-app-chantilly disabled:cursor-not-allowed disabled:opacity-60"
+                                                    >
+                                                        <Icon type="message" className="h-4 w-4" />
+                                                        {abrindoChatPedidoId === pedido.id_pedido ? "Abrindo..." : "Falar com cliente"}
+                                                    </button>
 
                                                     {podeRemoverDaCozinha ? (
                                                         <button

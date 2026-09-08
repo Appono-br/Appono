@@ -199,7 +199,7 @@ Testes de concorrência real, RLS entre usuários e webhooks completos precisam 
 
 ## Chat seguro
 
-O chat está disponível para cliente e restaurante em `/cliente/mensagens` e `/restaurante/mensagens`. O cliente pode iniciar conversa pelo perfil público do restaurante, pelo detalhe de uma reserva, pelo detalhe de um pedido ou pela tela de adicionar pedido antecipado. Quando há pedido ou reserva, a conversa carrega esse contexto para reduzir ruído no atendimento.
+O chat está disponível para cliente e restaurante em `/cliente/mensagens` e `/restaurante/mensagens`. O cliente pode iniciar conversa pelo perfil público do restaurante, pelo detalhe de uma reserva, pelo detalhe de um pedido ou pela tela de adicionar pedido antecipado. O restaurante pode abrir conversa pela tela de reservas ou pela cozinha, vinculando automaticamente o atendimento à reserva ou ao pedido. Quando há pedido ou reserva, a conversa carrega esse contexto para reduzir ruído no atendimento.
 
 Rotas principais:
 
@@ -207,7 +207,7 @@ Rotas principais:
 - `POST /api/mensagens/conversas`: cria ou reutiliza uma conversa direta, de reserva ou de pedido.
 - `GET /api/mensagens/:id`: carrega a conversa e marca como lida para o participante.
 - `POST /api/mensagens/:id/mensagens`: envia mensagem para uma conversa aberta.
-- `PATCH /api/mensagens/:id/arquivar`: oculta a conversa apenas para o participante atual.
+- `PATCH /api/mensagens/:id/arquivar`: limpa o histórico da conversa apenas para o participante atual.
 
 Segurança aplicada:
 
@@ -218,12 +218,14 @@ Segurança aplicada:
 - O restaurante não pode criar conversa direta com qualquer cliente sem vínculo operacional.
 - Mensagens vazias, IDs inválidos e mensagens acima de 1200 caracteres são recusados.
 - O envio de mensagem cria notificação interna para o outro participante.
+- A limpeza do histórico é individual: oculta a conversa para quem executou a ação, sem apagar o registro do outro participante nem remover dados necessários para auditoria.
 
 UX atual:
 
 - Enter envia mensagem; Shift + Enter quebra linha.
 - A listagem mostra conversas não lidas, último conteúdo, contexto de pedido/reserva e foto do restaurante quando disponível.
 - A conversa possui estados de carregamento, vazio e erro, mantendo o histórico restrito aos participantes.
+- Listas e telas internas possuem ação de limpar histórico com confirmação antes de executar.
 
 ## Prontidão
 

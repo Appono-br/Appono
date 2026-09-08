@@ -3,9 +3,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 import { apiRequest } from "@/lib/api";
+import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 
 function Icon({ type, className = "h-5 w-5" }) {
   const paths = {
@@ -36,10 +37,13 @@ function AvatarRestaurante({ conversa, size = "h-12 w-12" }) {
 
 export default function ConversationPage() {
   const params = useParams();
+  const router = useRouter();
   const [dados, setDados] = useState(null);
   const [draft, setDraft] = useState("");
   const [mensagem, setMensagem] = useState("");
   const [enviando, setEnviando] = useState(false);
+  const [confirmarLimpeza, setConfirmarLimpeza] = useState(false);
+  const [limpando, setLimpando] = useState(false);
   const fimRef = useRef(null);
 
   useEffect(() => {
@@ -90,6 +94,20 @@ export default function ConversationPage() {
     void enviarConteudo();
   }
 
+  async function limparHistorico() {
+    setLimpando(true);
+    setMensagem("");
+    try {
+      await apiRequest(`/mensagens/${params.conversationId}/arquivar`, { method: "PATCH" });
+      router.replace("/cliente/mensagens");
+    } catch (erro) {
+      setMensagem(erro instanceof Error ? erro.message : "Não foi possível limpar o histórico da conversa.");
+    } finally {
+      setLimpando(false);
+      setConfirmarLimpeza(false);
+    }
+  }
+
   const conversa = dados?.conversa;
   const mensagens = dados?.mensagens ?? [];
 
@@ -121,7 +139,9 @@ export default function ConversationPage() {
               </p>
             </div>
           </div>
-          <Icon type="info" className="h-5 w-5 text-app-cinza" />
+          <button type="button" onClick={() => setConfirmarLimpeza(true)} className="rounded-[8px] border border-red-200 px-4 py-2 text-[10px] font-bold uppercase tracking-[0.12em] text-red-700 transition hover:bg-red-50">
+            Limpar histórico
+          </button>
         </div>
       </section>
 
@@ -157,6 +177,18 @@ export default function ConversationPage() {
           </button>
         </form>
       </section>
+      <ConfirmationDialog
+        open={confirmarLimpeza}
+        eyebrow="Histórico da conversa"
+        title="Limpar esta conversa?"
+        description="A conversa será ocultada apenas para você. O restaurante continuará com o próprio histórico e os registros seguem preservados."
+        confirmLabel="Limpar histórico"
+        cancelLabel="Manter conversa"
+        loading={limpando}
+        onCancel={() => setConfirmarLimpeza(false)}
+        onConfirm={limparHistorico}
+        details={<p className="font-semibold">{conversa?.titulo ?? "Conversa"}</p>}
+      />
     </main>
   );
 }

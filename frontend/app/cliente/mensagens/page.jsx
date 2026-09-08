@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 import { apiRequest } from "@/lib/api";
+import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 
 const navItems = [
   { label: "Início", href: "/cliente/dashboard" },
@@ -54,6 +55,8 @@ export default function MessagesPage() {
   const [busca, setBusca] = useState("");
   const [carregando, setCarregando] = useState(true);
   const [mensagem, setMensagem] = useState("");
+  const [conversaParaArquivar, setConversaParaArquivar] = useState(null);
+  const [arquivando, setArquivando] = useState(false);
 
   useEffect(() => {
     let cancelado = false;
@@ -83,6 +86,21 @@ export default function MessagesPage() {
   }, [busca, conversas]);
 
   const totalNaoLidas = useMemo(() => conversas.filter((conversa) => conversa.nao_lida).length, [conversas]);
+
+  async function arquivarConversa() {
+    if (!conversaParaArquivar) return;
+    setArquivando(true);
+    setMensagem("");
+    try {
+      await apiRequest(`/mensagens/${conversaParaArquivar.id_conversa}/arquivar`, { method: "PATCH" });
+      setConversas((atuais) => atuais.filter((conversa) => conversa.id_conversa !== conversaParaArquivar.id_conversa));
+      setConversaParaArquivar(null);
+    } catch (erro) {
+      setMensagem(erro instanceof Error ? erro.message : "Não foi possível limpar o histórico da conversa.");
+    } finally {
+      setArquivando(false);
+    }
+  }
 
   return (
     <main className="flex min-h-screen flex-col bg-white text-app-cafe-profundo">
@@ -156,23 +174,28 @@ export default function MessagesPage() {
           ) : conversasVisiveis.length ? (
             <div className="grid gap-4">
               {conversasVisiveis.map((conversa) => (
-                <Link key={conversa.id_conversa} href={`/cliente/mensagens/${conversa.id_conversa}`} className="group grid gap-4 rounded-[18px] bg-white p-5 shadow-sm ring-1 ring-app-baunilha-dourada/45 transition hover:-translate-y-0.5 hover:ring-app-caramelo-torrado/45 sm:grid-cols-[auto_1fr_auto] sm:items-center sm:p-6">
-                  <AvatarConversa conversa={conversa} size="h-16 w-16" />
-                  <span className="min-w-0">
-                    <span className="flex flex-wrap items-center gap-2">
-                      <strong className="text-lg font-semibold text-app-cafe-profundo sm:text-xl">{conversa.titulo}</strong>
-                      {conversa.nao_lida ? <span className="rounded-full bg-app-caramelo-torrado px-2.5 py-1 text-[10px] font-bold uppercase text-white">Nova</span> : null}
-                      <span className="rounded-full bg-app-chantilly px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-app-mocha">{obterContextoConversa(conversa)}</span>
+                <article key={conversa.id_conversa} className="group grid gap-4 rounded-[18px] bg-white p-5 shadow-sm ring-1 ring-app-baunilha-dourada/45 transition hover:-translate-y-0.5 hover:ring-app-caramelo-torrado/45 sm:grid-cols-[1fr_auto] sm:items-center sm:p-6">
+                  <Link href={`/cliente/mensagens/${conversa.id_conversa}`} className="grid min-w-0 gap-4 sm:grid-cols-[auto_1fr_auto] sm:items-center">
+                    <AvatarConversa conversa={conversa} size="h-16 w-16" />
+                    <span className="min-w-0">
+                      <span className="flex flex-wrap items-center gap-2">
+                        <strong className="text-lg font-semibold text-app-cafe-profundo sm:text-xl">{conversa.titulo}</strong>
+                        {conversa.nao_lida ? <span className="rounded-full bg-app-caramelo-torrado px-2.5 py-1 text-[10px] font-bold uppercase text-white">Nova</span> : null}
+                        <span className="rounded-full bg-app-chantilly px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-app-mocha">{obterContextoConversa(conversa)}</span>
+                      </span>
+                      <span className="mt-1 line-clamp-2 text-sm leading-6 text-app-cinza">{conversa.ultima_mensagem}</span>
                     </span>
-                    <span className="mt-1 line-clamp-2 text-sm leading-6 text-app-cinza">{conversa.ultima_mensagem}</span>
-                  </span>
-                  <span className="flex items-center justify-between gap-3 text-xs font-semibold text-app-cinza sm:justify-end">
-                    <span>{conversa.atualizado_formatado}</span>
-                    <span className="flex h-9 w-9 items-center justify-center rounded-full border border-app-baunilha-dourada transition group-hover:border-app-caramelo-torrado group-hover:text-app-caramelo-torrado">
-                      <Icon type="chevron-right" className="h-4 w-4" />
+                    <span className="flex items-center justify-between gap-3 text-xs font-semibold text-app-cinza sm:justify-end">
+                      <span>{conversa.atualizado_formatado}</span>
+                      <span className="flex h-9 w-9 items-center justify-center rounded-full border border-app-baunilha-dourada transition group-hover:border-app-caramelo-torrado group-hover:text-app-caramelo-torrado">
+                        <Icon type="chevron-right" className="h-4 w-4" />
+                      </span>
                     </span>
-                  </span>
-                </Link>
+                  </Link>
+                  <button type="button" onClick={() => setConversaParaArquivar(conversa)} className="w-fit rounded-[8px] border border-red-200 px-4 py-2 text-[10px] font-bold uppercase tracking-[0.12em] text-red-700 transition hover:bg-red-50 sm:justify-self-end">
+                    Limpar histórico
+                  </button>
+                </article>
               ))}
             </div>
           ) : (
@@ -186,6 +209,18 @@ export default function MessagesPage() {
           )}
         </div>
       </section>
+      <ConfirmationDialog
+        open={Boolean(conversaParaArquivar)}
+        eyebrow="Histórico da conversa"
+        title="Limpar esta conversa?"
+        description="A conversa será ocultada apenas para você. O outro participante continua com o próprio histórico e os registros seguem preservados."
+        confirmLabel="Limpar histórico"
+        cancelLabel="Manter conversa"
+        loading={arquivando}
+        onCancel={() => setConversaParaArquivar(null)}
+        onConfirm={arquivarConversa}
+        details={conversaParaArquivar ? <p className="font-semibold">{conversaParaArquivar.titulo}</p> : null}
+      />
     </main>
   );
 }

@@ -42,6 +42,7 @@ function Icon({ type, className = "h-5 w-5" }) {
         bell: "M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0",
         filter: "M4 7h16M7 12h10M10 17h4",
         menu: "M4 7h16M4 12h16M4 17h16",
+        message: "M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v8z",
         plus: "M12 5v14M5 12h14",
         search: "m21 21-4.35-4.35M11 18a7 7 0 1 1 0-14 7 7 0 0 1 0 14z",
     };
@@ -243,6 +244,7 @@ export default function RestaurantReservationsPage() {
     const [excluindoReserva, setExcluindoReserva] = useState(false);
     const [registrandoCheckIn, setRegistrandoCheckIn] = useState(null);
     const [finalizandoReserva, setFinalizandoReserva] = useState(null);
+    const [abrindoChatReservaId, setAbrindoChatReservaId] = useState(null);
     const [mensagem, setMensagem] = useState("");
     const isRestaurant = session?.type === "restaurant";
 
@@ -327,6 +329,27 @@ export default function RestaurantReservationsPage() {
             setMensagem(erro instanceof Error ? erro.message : "Não foi possível remover a reserva.");
         } finally {
             setExcluindoReserva(false);
+        }
+    }
+
+    async function abrirChatReserva(reserva) {
+        const pedidoPrincipal = obterPedidoPrincipal(reserva);
+        setAbrindoChatReservaId(reserva.id_reserva);
+        setMensagem("");
+        try {
+            const conversa = await apiRequest("/mensagens/conversas", {
+                method: "POST",
+                body: JSON.stringify({
+                    id_reserva: reserva.id_reserva,
+                    id_pedido: pedidoPrincipal?.id_pedido,
+                    assunto: pedidoPrincipal?.id_pedido ? `Pedido #${pedidoPrincipal.id_pedido}` : `Reserva #${reserva.id_reserva}`,
+                }),
+            });
+            window.location.assign(`/restaurante/mensagens/${conversa.id_conversa}`);
+        } catch (erro) {
+            setMensagem(erro instanceof Error ? erro.message : "Não foi possível iniciar o chat.");
+        } finally {
+            setAbrindoChatReservaId(null);
         }
     }
 
@@ -606,6 +629,16 @@ export default function RestaurantReservationsPage() {
                                         </div>
 
                                         <div className="flex shrink-0 flex-wrap gap-2 border-t border-app-baunilha-dourada/55 bg-white px-5 py-4 lg:flex-col lg:items-stretch lg:justify-center lg:border-l lg:border-t-0">
+                                            <button
+                                                type="button"
+                                                onClick={() => abrirChatReserva(reserva)}
+                                                disabled={abrindoChatReservaId === reserva.id_reserva}
+                                                className="inline-flex h-9 items-center justify-center gap-2 rounded-[8px] border border-app-caramelo-torrado px-3 text-xs font-bold text-app-caramelo-torrado transition hover:bg-app-chantilly disabled:cursor-not-allowed disabled:opacity-60"
+                                            >
+                                                <Icon type="message" className="h-4 w-4" />
+                                                {abrindoChatReservaId === reserva.id_reserva ? "Abrindo..." : "Falar"}
+                                            </button>
+
                                             {reserva.status_reserva === "CONFIRMADA" && !reservaJaTerminou(reserva) ? (
                                                 <div className="grid gap-1">
                                                     <button
