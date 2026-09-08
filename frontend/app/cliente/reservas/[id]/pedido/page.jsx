@@ -40,6 +40,7 @@ function reservaJaIniciou(reserva) {
 function Icon({ type, className = "h-5 w-5" }) {
     const paths = {
         clock: "M12 6v6l4 2M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z",
+        message: "M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v8z",
         minus: "M5 12h14",
         plus: "M12 5v14M5 12h14",
         receipt: "M7 3h10v18l-2-1-2 1-2-1-2 1-2-1V3z M9 8h6M9 12h6M9 16h4",
@@ -70,6 +71,7 @@ export default function PaginaPedidoAntecipado({ params }) {
     const [observacoes, setObservacoes] = useState("");
     const [mensagem, setMensagem] = useState("Carregando cardápio...");
     const [enviando, setEnviando] = useState(false);
+    const [abrindoChat, setAbrindoChat] = useState(false);
 
     useEffect(() => {
         params.then(({ id }) => setReservaId(Number(id)));
@@ -177,6 +179,31 @@ export default function PaginaPedidoAntecipado({ params }) {
         }
     }
 
+    async function abrirChatReserva() {
+        if (!reservaId) {
+            return;
+        }
+        setAbrindoChat(true);
+        setMensagem("");
+        try {
+            const conversa = await apiRequest("/mensagens/conversas", {
+                method: "POST",
+                body: JSON.stringify({
+                    id_reserva: reservaId,
+                    id_pedido: pedidoAtivo?.id_pedido,
+                    assunto: pedidoAtivo?.id_pedido ? `Pedido #${pedidoAtivo.id_pedido}` : `Reserva #${reservaId}`,
+                }),
+            });
+            window.location.assign(`/cliente/mensagens/${conversa.id_conversa}`);
+        }
+        catch (erro) {
+            setMensagem(erro instanceof Error ? erro.message : "Não foi possível iniciar o chat.");
+        }
+        finally {
+            setAbrindoChat(false);
+        }
+    }
+
     if (!dados) {
         return (
             <main className="flex min-h-screen items-center justify-center bg-white px-5 text-app-cafe-profundo">
@@ -203,11 +230,17 @@ export default function PaginaPedidoAntecipado({ params }) {
                                 Escolha os itens antes da sua chegada. O restaurante recebe o pedido vinculado à sua reserva e consegue se preparar para o horário combinado.
                             </p>
                         </div>
-                        <div className="rounded-[12px] bg-white/10 p-4 text-sm ring-1 ring-app-baunilha-dourada/35">
+                        <div className="grid gap-3">
+                          <div className="rounded-[12px] bg-white/10 p-4 text-sm ring-1 ring-app-baunilha-dourada/35">
                             <p className="font-bold">{formatarData(dados.reserva.data_reserva)}</p>
                             <p className="mt-1 text-app-baunilha-dourada">
                                 {dados.reserva.horario_inicio.slice(0, 5)} - reserva confirmada
                             </p>
+                          </div>
+                          <button type="button" onClick={abrirChatReserva} disabled={abrindoChat} className="inline-flex h-11 items-center justify-center gap-2 rounded-[8px] border border-app-baunilha-dourada/45 px-5 text-xs font-bold uppercase tracking-[0.12em] text-app-creme-leve transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60">
+                            <Icon type="message" className="h-4 w-4" />
+                            {abrindoChat ? "Abrindo..." : "Falar com restaurante"}
+                          </button>
                         </div>
                     </div>
                 </header>
@@ -434,7 +467,7 @@ export default function PaginaPedidoAntecipado({ params }) {
 
                             {!reservaConfirmada ? (
                                 <p className="mt-5 rounded-[8px] bg-white p-3 text-sm font-semibold text-app-caramelo-torrado">
-                                    O pedido antecipado fica disponivel apenas para reservas confirmadas.
+                                    O pedido antecipado fica disponível apenas para reservas confirmadas.
                                 </p>
                             ) : null}
                             {reservaIniciada ? (

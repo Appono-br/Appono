@@ -4,7 +4,7 @@ Plataforma gastronômica para descoberta de restaurantes, reserva de mesas, pedi
 
 ## Estado do projeto
 
-O projeto está em estágio de MVP funcional avançado. Cadastro, autenticação, restaurantes, cardápio, reservas, pedidos, notificações, favoritos, avaliações e fluxo Mercado Pago estão implementados. Chat permanece parcial ou simulado.
+O projeto está em estágio de MVP funcional avançado. Cadastro, autenticação, restaurantes, cardápio, reservas, pedidos, notificações, favoritos, avaliações, chat seguro, busca, geolocalização inicial e fluxo Mercado Pago estão implementados.
 
 ## Arquitetura
 
@@ -32,6 +32,7 @@ SUPABASE_URL=
 SUPABASE_PUBLISHABLE_KEY=
 SUPABASE_SECRET_KEY=
 MERCADO_PAGO_ACCESS_TOKEN=
+MERCADO_PAGO_TEST_ACCESS_TOKEN=
 MERCADO_PAGO_APP_ID=
 MERCADO_PAGO_CLIENT_SECRET=
 MERCADO_PAGO_REDIRECT_URI=
@@ -77,6 +78,8 @@ A migration `20260813000100_financial_webhook_idempotency.sql` cria o controle d
 A migration `20260814000100_expire_no_show_reservations.sql` adiciona `NAO_COMPARECEU` e a transição atômica de reservas confirmadas cujo horário final terminou sem check-in. Ela também cancela pedidos pendentes, recusa pagamentos ainda pendentes e registra auditoria. Esta migration precisa ser aplicada antes de executar a versão correspondente do backend.
 
 A migration `20260825000100_add_client_attendance_confirmation.sql` adiciona a confirmação de presença do cliente. A regra do MVP é: o cliente pode confirmar presença ou avisar ausência até 1 hora antes da reserva. Se confirmar, a cozinha passa a receber o pedido pago na fila operacional. Se avisar ausência, a reserva e os pedidos que ainda não entraram em preparo são cancelados, o restaurante é notificado e a Appono registra reembolso parcial. O reembolso é calculado pelo excedente: valor pago menos consumo mínimo da reserva e comissão Appono. O consumo mínimo fica registrado como valor do restaurante, a comissão fica registrada para a Appono e o excedente retorna ao cliente. A comissão padrão é 13%, configurável por `MERCADO_PAGO_MARKETPLACE_FEE_PERCENTUAL`.
+
+A migration `20260908000100_create_secure_chat.sql` cria o chat seguro entre cliente e restaurante. Ela adiciona `conversas_chat` e `mensagens_chat`, habilita RLS, concede acesso apenas ao papel `authenticated` e aplica políticas de propriedade por participante. Conversas diretas podem ser iniciadas pelo cliente a partir do perfil do restaurante. Conversas vinculadas a reserva ou pedido só podem ser abertas pelos participantes reais daquele recurso. As mensagens exigem remetente autenticado, tipo de remetente compatível com o perfil e conteúdo entre 1 e 1200 caracteres.
 
 Aplicar migrations primeiro em testes, depois em homologação e por último em produção. Fazer backup e validar restauração antes de alterações críticas.
 
@@ -194,6 +197,34 @@ No frontend, o dashboard persiste favoritos, `/cliente/favoritos` reúne a sele�
 
 Testes de concorrência real, RLS entre usuários e webhooks completos precisam de um Supabase exclusivo de testes. Não devem criar dados artificiais no banco com dados reais.
 
+## Chat seguro
+
+O chat está disponível para cliente e restaurante em `/cliente/mensagens` e `/restaurante/mensagens`. O cliente pode iniciar conversa pelo perfil público do restaurante, pelo detalhe de uma reserva, pelo detalhe de um pedido ou pela tela de adicionar pedido antecipado. Quando há pedido ou reserva, a conversa carrega esse contexto para reduzir ruído no atendimento.
+
+Rotas principais:
+
+- `GET /api/mensagens`: lista conversas do participante autenticado.
+- `POST /api/mensagens/conversas`: cria ou reutiliza uma conversa direta, de reserva ou de pedido.
+- `GET /api/mensagens/:id`: carrega a conversa e marca como lida para o participante.
+- `POST /api/mensagens/:id/mensagens`: envia mensagem para uma conversa aberta.
+- `PATCH /api/mensagens/:id/arquivar`: oculta a conversa apenas para o participante atual.
+
+Segurança aplicada:
+
+- A API exige autenticação em todas as rotas do chat.
+- O backend resolve o perfil real do usuário em `clientes` ou `restaurantes`; não usa dados editáveis de metadata como fonte de autorização.
+- Antes de abrir, enviar ou arquivar, a API confirma se a conversa pertence ao cliente ou ao restaurante logado.
+- A criação por `id_pedido` ou `id_reserva` valida se o recurso pertence aos participantes.
+- O restaurante não pode criar conversa direta com qualquer cliente sem vínculo operacional.
+- Mensagens vazias, IDs inválidos e mensagens acima de 1200 caracteres são recusados.
+- O envio de mensagem cria notificação interna para o outro participante.
+
+UX atual:
+
+- Enter envia mensagem; Shift + Enter quebra linha.
+- A listagem mostra conversas não lidas, último conteúdo, contexto de pedido/reserva e foto do restaurante quando disponível.
+- A conversa possui estados de carregamento, vazio e erro, mantendo o histórico restrito aos participantes.
+
 ## Prontidão
 
 ### Bloqueadores antes de pagamentos reais ou piloto
@@ -209,7 +240,6 @@ Testes de concorrência real, RLS entre usuários e webhooks completos precisam 
 
 ### Não bloqueia evolução dos módulos
 
-- Chat.
 - Melhorias visuais e skeletons.
 - Paginação adicional enquanto o volume permanece baixo.
 - Refatoração gradual dos arquivos grandes.

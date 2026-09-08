@@ -1,204 +1,194 @@
 "use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
-import { useMemo, useState } from "react";
-const conversations = [];
+import { apiRequest } from "@/lib/api";
+
 const navItems = [
-    { label: "Home", href: "/restaurante/home" },
-    { label: "Dashboard", href: "/restaurante/dashboard" },
-    { label: "Gestão de cardápio", href: "/restaurante/cardapio" },
-    { label: "Desempenho", href: "/restaurante/desempenho" },
-    { label: "Relatório financeiro", href: "/restaurante/financeiro" },
-    { label: "Reservas", href: "/restaurante/reservas" },
-    { label: "Cozinha", href: "/restaurante/pedidos" },
-    { label: "Histórico", href: "/restaurante/historico-pedidos" },
-    { label: "Mensagens", href: "/restaurante/mensagens" },
-    { label: "Configurações", href: "/restaurante/configuracoes" },
+  { label: "Home", href: "/restaurante/home" },
+  { label: "Dashboard", href: "/restaurante/dashboard" },
+  { label: "Gestão de cardápio", href: "/restaurante/cardapio" },
+  { label: "Desempenho", href: "/restaurante/desempenho" },
+  { label: "Relatório financeiro", href: "/restaurante/financeiro" },
+  { label: "Reservas", href: "/restaurante/reservas" },
+  { label: "Cozinha", href: "/restaurante/pedidos" },
+  { label: "Histórico", href: "/restaurante/historico-pedidos" },
+  { label: "Mensagens", href: "/restaurante/mensagens" },
+  { label: "Configurações", href: "/restaurante/configuracoes" },
 ];
-const filterItems = [
-    { id: "all", label: "Todas" },
-    { id: "unread", label: "Não lidas" },
-    { id: "archived", label: "Arquivadas" },
+
+const filtros = [
+  { id: "todas", label: "Todas" },
+  { id: "nao-lidas", label: "Não lidas" },
 ];
-function getStorage() {
-    if (typeof window === "undefined" || !window.localStorage) {
-        return null;
-    }
-    return window.localStorage;
+
+function Icon({ type, className = "h-5 w-5" }) {
+  const paths = {
+    "chevron-right": "m9 18 6-6-6-6",
+    menu: "M4 7h16M4 12h16M4 17h16",
+    message: "M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v8z",
+    search: "m21 21-4.35-4.35M11 18a7 7 0 1 1 0-14 7 7 0 0 1 0 14z",
+  };
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 24" className={className}>
+      <path d={paths[type]} fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" />
+    </svg>
+  );
 }
-function Icon({ type, className = "h-5 w-5", }) {
-    const paths = {
-        "chevron-right": "m9 18 6-6-6-6",
-        menu: "M4 7h16M4 12h16M4 17h16",
-        message: "M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v8z",
-        plus: "M12 5v14M5 12h14",
-    };
-    return (<svg aria-hidden="true" viewBox="0 0 24 24" className={className}>
-      <path d={paths[type]} fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8"/>
-    </svg>);
+
+function obterContextoConversa(conversa) {
+  if (conversa?.pedido) return `Pedido #${conversa.pedido.id_pedido}`;
+  if (conversa?.reserva) return `Reserva #${conversa.reserva.id_reserva}`;
+  return "Conversa direta";
 }
-function StatusBadge({ status }) {
-    const label = {
-        vip: "VIP",
-        reserva: "Reserva",
-        duvida: "Duvida",
-    }[status];
-    return (<span className="rounded-[4px] bg-app-creme-suave px-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-app-mocha">
-      {label}
-    </span>);
-}
+
 export default function RestaurantMessagesPage() {
-    const [session] = useState(() => {
-        if (typeof window === "undefined") {
-            return null;
-        }
-        const storedSession = getStorage()?.getItem("appono:session");
-        return storedSession ? JSON.parse(storedSession) : null;
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [filtro, setFiltro] = useState("todas");
+  const [busca, setBusca] = useState("");
+  const [conversas, setConversas] = useState([]);
+  const [carregando, setCarregando] = useState(true);
+  const [mensagem, setMensagem] = useState("");
+
+  useEffect(() => {
+    let cancelado = false;
+    apiRequest("/mensagens", { cacheTtlMs: 0, forceRefresh: true })
+      .then((dados) => {
+        if (!cancelado) setConversas(dados ?? []);
+      })
+      .catch((erro) => {
+        if (!cancelado) setMensagem(erro instanceof Error ? erro.message : "Não foi possível carregar as conversas.");
+      })
+      .finally(() => {
+        if (!cancelado) setCarregando(false);
+      });
+    return () => {
+      cancelado = true;
+    };
+  }, []);
+
+  const conversasVisiveis = useMemo(() => {
+    const termo = busca.trim().toLowerCase();
+    return conversas.filter((conversa) => {
+      if (filtro === "nao-lidas" && !conversa.nao_lida) return false;
+      if (!termo) return true;
+      return [conversa.titulo, conversa.assunto, conversa.ultima_mensagem, conversa.cliente?.nome]
+        .filter(Boolean)
+        .some((valor) => String(valor).toLowerCase().includes(termo));
     });
-    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-    const [filter, setFilter] = useState("all");
-    const isRestaurant = session?.type === "restaurant";
-    const visibleConversations = useMemo(() => {
-        if (filter === "unread") {
-            return conversations.filter((conversation) => conversation.unread);
-        }
-        if (filter === "archived") {
-            return conversations.filter((conversation) => conversation.archived);
-        }
-        return conversations.filter((conversation) => !conversation.archived);
-    }, [filter]);
-    if (!isRestaurant) {
-        return (<main className="flex min-h-screen items-center justify-center bg-white px-5 text-app-cafe-profundo">
-        <section className="w-full max-w-lg rounded-[8px] bg-app-creme-leve p-8 text-center shadow-sm ring-1 ring-app-baunilha-dourada">
-          <Image src="/brand/appono-mark.svg" alt="Appono" width={88} height={88} className="mx-auto h-20 w-20" priority/>
-          <h1 className="mt-6 text-3xl font-semibold">Acesso restrito</h1>
-          <p className="mt-3 text-sm leading-6 text-app-cinza">
-            Esta área é destinada a contas de restaurante.
-          </p>
-          <Link href="/login" className="mt-6 inline-flex h-11 items-center justify-center rounded-[8px] bg-app-dourado-mel px-6 text-sm font-bold text-white transition hover:bg-app-caramelo-torrado">
-            Entrar
-          </Link>
-        </section>
-      </main>);
-    }
-    return (<main className="flex min-h-screen flex-col bg-white text-app-cafe-profundo">
-      <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-app-creme-leve/90 text-app-cafe-profundo shadow-sm backdrop-blur-md">
+  }, [busca, conversas, filtro]);
+
+  const totalNaoLidas = useMemo(() => conversas.filter((conversa) => conversa.nao_lida).length, [conversas]);
+  const totalComPedido = useMemo(() => conversas.filter((conversa) => conversa.pedido).length, [conversas]);
+
+  return (
+    <main className="flex min-h-screen flex-col bg-white text-app-cafe-profundo">
+      <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-white/90 text-app-cafe-profundo shadow-sm backdrop-blur-md">
         <div className="mx-auto grid h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-5 lg:h-20">
-          <div aria-label="Appono">
-            <Image src="/brand/appono-mark.svg" alt="Appono" width={88} height={88} className="h-11 w-11 lg:h-14 lg:w-14" priority/>
-          </div>
-
+          <Image src="/brand/appono-mark.svg" alt="Appono" width={88} height={88} className="h-11 w-11 lg:h-14 lg:w-14" priority />
           <nav className="hidden items-center justify-self-center gap-6 text-xs font-semibold text-app-cinza xl:flex">
-            {navItems.map((item) => (<Link key={item.label} href={item.href} className={item.href === "/restaurante/mensagens"
-                ? "text-app-cafe-profundo"
-                : "transition hover:text-app-cafe-profundo"}>
+            {navItems.map((item) => (
+              <Link key={item.label} href={item.href} className={item.href === "/restaurante/mensagens" ? "text-app-cafe-profundo" : "transition hover:text-app-cafe-profundo"}>
                 {item.label}
-              </Link>))}
+              </Link>
+            ))}
           </nav>
-
-          <ItemHeaderNotificacoes href="/restaurante/notificacoes" />
-          <button type="button" onClick={() => setMobileMenuOpen((current) => !current)} className="flex h-9 w-9 items-center justify-center justify-self-end rounded-[8px] border border-app-baunilha-dourada bg-white text-app-cafe-profundo xl:hidden" aria-label="Abrir menu" aria-expanded={mobileMenuOpen} aria-controls="restaurant-messages-menu">
-            <Icon type="menu"/>
-          </button>
+          <div className="flex items-center justify-self-end gap-3">
+            <ItemHeaderNotificacoes href="/restaurante/notificacoes" />
+            <button type="button" onClick={() => setMobileMenuOpen((current) => !current)} className="flex h-9 w-9 items-center justify-center rounded-[8px] border border-app-baunilha-dourada bg-white xl:hidden" aria-label="Abrir menu">
+              <Icon type="menu" />
+            </button>
+          </div>
         </div>
-
-        {mobileMenuOpen ? (<nav id="restaurant-messages-menu" className="border-t border-app-baunilha-dourada/55 bg-app-creme-leve px-5 py-3 xl:hidden">
+        {mobileMenuOpen ? (
+          <nav className="border-t border-app-baunilha-dourada/55 bg-white px-5 py-3 xl:hidden">
             <div className="mx-auto grid max-w-7xl gap-2 text-xs font-semibold text-app-cinza">
-              {navItems.map((item) => (<Link key={item.label} href={item.href} onClick={() => setMobileMenuOpen(false)} className={item.href === "/restaurante/mensagens"
-                    ? "text-app-cafe-profundo"
-                    : "transition hover:text-app-cafe-profundo"}>
+              {navItems.map((item) => (
+                <Link key={item.label} href={item.href} onClick={() => setMobileMenuOpen(false)} className={item.href === "/restaurante/mensagens" ? "text-app-cafe-profundo" : "transition hover:text-app-cafe-profundo"}>
                   {item.label}
-                </Link>))}
+                </Link>
+              ))}
             </div>
-          </nav>) : null}
+          </nav>
+        ) : null}
       </header>
 
       <section className="mx-auto w-full max-w-7xl flex-1 px-5 py-10 sm:py-14">
-        <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end">
-          <div>
-            <h1 className="text-5xl font-medium leading-tight text-app-cafe-profundo sm:text-6xl">
-              Mensagens Recebidas
-            </h1>
-            <p className="mt-4 max-w-2xl text-base leading-7 text-app-cinza sm:text-lg">
-              Gerencie as interações com seus clientes. Acompanhe pedidos,
-              reservas e feedbacks em tempo real.
-            </p>
-          </div>
-
-          <div className="grid overflow-hidden rounded-[8px] bg-app-creme-leve p-1 shadow-sm ring-1 ring-app-baunilha-dourada/60 sm:grid-cols-3">
-            {filterItems.map((item) => (<button key={item.id} type="button" onClick={() => setFilter(item.id)} className={`h-10 rounded-[8px] px-7 text-[10px] font-bold uppercase tracking-[0.22em] transition ${filter === item.id
-                ? "bg-app-cafe-profundo text-app-creme-leve"
-                : "text-app-mocha hover:bg-app-baunilha-dourada/45"}`}>
-                {item.label}
-              </button>))}
+        <div className="overflow-hidden rounded-[24px] bg-app-cafe-profundo text-app-creme-leve shadow-sm">
+          <div className="grid gap-8 p-6 sm:p-8 lg:grid-cols-[1fr_420px] lg:items-end">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-app-baunilha-dourada">Atendimento</p>
+              <h1 className="mt-3 text-4xl font-semibold leading-tight sm:text-6xl">Mensagens recebidas</h1>
+              <p className="mt-4 max-w-2xl text-sm leading-6 text-app-creme-suave">Acompanhe conversas de clientes com contexto de reserva, pedido antecipado e horário de atendimento.</p>
+            </div>
+            <div className="grid gap-3 rounded-[18px] bg-white/10 p-3 ring-1 ring-white/10">
+              <label className="flex h-12 items-center gap-3 rounded-[12px] bg-white px-4 text-app-cafe-profundo shadow-sm transition focus-within:ring-2 focus-within:ring-app-dourado-mel/35">
+                <Icon type="search" className="h-4 w-4 text-app-cinza" />
+                <input value={busca} onChange={(event) => setBusca(event.target.value)} placeholder="Buscar cliente ou mensagem" className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-app-cinza/60" />
+              </label>
+              <div className="grid grid-cols-3 gap-3">
+                <div className="rounded-[12px] bg-white/10 px-4 py-3">
+                  <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-app-baunilha-dourada">Total</span>
+                  <strong className="mt-1 block text-2xl">{conversas.length}</strong>
+                </div>
+                <div className="rounded-[12px] bg-white/10 px-4 py-3">
+                  <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-app-baunilha-dourada">Novas</span>
+                  <strong className="mt-1 block text-2xl">{totalNaoLidas}</strong>
+                </div>
+                <div className="rounded-[12px] bg-white/10 px-4 py-3">
+                  <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-app-baunilha-dourada">Pedidos</span>
+                  <strong className="mt-1 block text-2xl">{totalComPedido}</strong>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                {filtros.map((item) => (
+                  <button key={item.id} type="button" onClick={() => setFiltro(item.id)} className={`h-10 rounded-[10px] text-[10px] font-bold uppercase tracking-[0.14em] transition ${filtro === item.id ? "bg-white text-app-cafe-profundo" : "bg-white/10 text-app-creme-leve ring-1 ring-white/10 hover:bg-white/15"}`}>
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
 
-        <section className="mt-10 grid gap-5">
-          {visibleConversations.length ? (visibleConversations.map((conversation) => (<Link key={conversation.id} href={`/restaurante/mensagens/${conversation.id}`} className="grid gap-5 rounded-[8px] bg-white p-5 shadow-sm ring-1 ring-app-baunilha-dourada/40 transition hover:-translate-y-0.5 hover:bg-app-creme-leve sm:grid-cols-[1fr_auto_1fr] sm:items-center sm:p-7">
-                <span className="relative flex h-16 w-16 items-center justify-center rounded-[8px] bg-app-creme-suave text-lg font-bold text-app-mocha ring-1 ring-app-baunilha-dourada">
-                  {conversation.initials}
-                  {conversation.online ? (<span className="absolute -bottom-1 -right-1 h-4 w-4 rounded-full border-2 border-app-chantilly bg-emerald-500"/>) : null}
-                </span>
-                <span>
-                  <span className="flex flex-wrap items-center gap-4">
-                    <strong className="text-2xl font-semibold text-app-cafe-profundo">
-                      {conversation.customer}
-                    </strong>
-                    <StatusBadge status={conversation.status}/>
+        {mensagem ? <p role="status" className="mt-6 rounded-[12px] border border-app-baunilha-dourada bg-white p-4 text-sm font-semibold text-app-caramelo-torrado">{mensagem}</p> : null}
+
+        <section className="mt-8 grid gap-4">
+          {carregando ? (
+            [1, 2, 3].map((item) => <div key={item} className="h-28 animate-pulse rounded-[18px] bg-app-chantilly shadow-sm ring-1 ring-app-baunilha-dourada/40" />)
+          ) : conversasVisiveis.length ? (
+            conversasVisiveis.map((conversa) => (
+              <Link key={conversa.id_conversa} href={`/restaurante/mensagens/${conversa.id_conversa}`} className="group grid gap-4 rounded-[18px] bg-white p-5 shadow-sm ring-1 ring-app-baunilha-dourada/45 transition hover:-translate-y-0.5 hover:ring-app-caramelo-torrado/45 sm:grid-cols-[auto_1fr_auto] sm:items-center sm:p-6">
+                <span className="flex h-16 w-16 items-center justify-center rounded-[16px] bg-app-cafe-profundo text-sm font-bold text-app-creme-leve ring-1 ring-app-baunilha-dourada/60">{conversa.iniciais}</span>
+                <span className="min-w-0">
+                  <span className="flex flex-wrap items-center gap-2">
+                    <strong className="text-xl font-semibold">{conversa.titulo}</strong>
+                    {conversa.nao_lida ? <span className="rounded-full bg-app-caramelo-torrado px-2.5 py-1 text-[10px] font-bold uppercase text-white">Nova</span> : null}
+                    <span className="rounded-full bg-app-chantilly px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-app-mocha">{obterContextoConversa(conversa)}</span>
                   </span>
-                  <span className="mt-2 block text-sm leading-6 text-app-cinza">
-                    &quot;{conversation.preview}&quot;
+                  <span className="mt-1 line-clamp-2 text-sm leading-6 text-app-cinza">{conversa.ultima_mensagem}</span>
+                </span>
+                <span className="flex items-center justify-between gap-3 text-xs font-semibold text-app-cinza sm:justify-end">
+                  <span>{conversa.atualizado_formatado}</span>
+                  <span className="flex h-9 w-9 items-center justify-center rounded-full border border-app-baunilha-dourada transition group-hover:border-app-caramelo-torrado group-hover:text-app-caramelo-torrado">
+                    <Icon type="chevron-right" className="h-4 w-4" />
                   </span>
                 </span>
-                <span className="flex items-center justify-between gap-5 text-sm font-semibold text-app-cinza sm:block sm:text-right">
-                  <span className={conversation.unread
-                ? "text-app-caramelo-torrado"
-                : "text-app-cinza"}>
-                    {conversation.time}
-                  </span>
-                  {conversation.unread ? (<span className="mt-2 block h-2.5 w-2.5 rounded-full bg-app-caramelo-torrado sm:ml-auto"/>) : (<span className="mt-2 block text-app-baunilha-dourada">
-                      <Icon type="chevron-right" className="h-5 w-5"/>
-                    </span>)}
-                </span>
-              </Link>))) : (<div className="flex min-h-[320px] flex-col items-center justify-center rounded-[8px] bg-white px-6 text-center shadow-sm ring-1 ring-app-baunilha-dourada/45">
+              </Link>
+            ))
+          ) : (
+            <div className="flex min-h-[340px] flex-col items-center justify-center rounded-[18px] bg-white px-6 text-center shadow-sm ring-1 ring-app-baunilha-dourada/45">
               <span className="flex h-12 w-12 items-center justify-center rounded-full bg-app-baunilha-dourada text-app-cafe-profundo">
-                <Icon type="message"/>
+                <Icon type="message" />
               </span>
-              <h2 className="mt-5 text-xl font-semibold text-app-cafe-profundo">
-                Nenhuma conversa recebida
-              </h2>
-              <p className="mt-2 max-w-md text-sm leading-6 text-app-cinza">
-                As interações com clientes aparecerão aqui por prioridade e
-                status.
-              </p>
-            </div>)}
+              <h2 className="mt-5 text-xl font-semibold">Nenhuma conversa recebida</h2>
+              <p className="mt-2 max-w-md text-sm leading-6 text-app-cinza">Quando um cliente chamar o restaurante, a conversa aparecerá aqui.</p>
+            </div>
+          )}
         </section>
-
-        <button type="button" className="fixed bottom-8 right-8 flex h-16 w-16 items-center justify-center rounded-[8px] bg-app-areia-quente text-app-cafe-profundo shadow-lg transition hover:-translate-y-0.5 hover:bg-app-dourado-mel hover:text-white" aria-label="Nova conversa">
-          <Icon type="plus" className="h-8 w-8"/>
-        </button>
       </section>
-
-      <footer className="border-t border-app-cacau-intenso/20 bg-app-cafe-profundo px-5 py-7 text-app-creme-leve">
-        <div className="mx-auto flex max-w-7xl flex-col items-center gap-5 text-center sm:flex-row sm:justify-between">
-          <Image src="/brand/appono-mark.svg" alt="Appono" width={80} height={80} className="h-14 w-14 brightness-0 invert"/>
-          <nav className="flex flex-wrap justify-center gap-8 text-[10px] font-bold uppercase text-app-baunilha-dourada">
-            <Link href="#" className="transition hover:text-app-chantilly">
-              Política de Privacidade
-            </Link>
-            <Link href="#" className="transition hover:text-app-chantilly">
-              Termos de Uso
-            </Link>
-            <Link href="#" className="transition hover:text-app-chantilly">
-              Contato
-            </Link>
-          </nav>
-          <p className="text-xs font-semibold text-app-creme-suave">
-            &copy; 2026 APPONO. Todos os direitos reservados.
-          </p>
-        </div>
-      </footer>
-    </main>);
+    </main>
+  );
 }

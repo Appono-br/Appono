@@ -191,8 +191,8 @@ exports.restaurantDashboardRouter.get("/dashboard/resumo", async (_req, res) => 
         metricas: [
             { label: "Pedidos ativos", icon: "orders", value: pedidosAtivos.length },
             { label: "Reservas hoje", icon: "seat", value: reservasHoje.length, highlighted: true },
-            { label: "Ticket medio", icon: "money", value: formatarMoedaResumo(calcularTicketMedio(pedidos30Dias)) },
-            { label: "Clientes no periodo", icon: "user", value: obterClientesUnicos(reservas, pedidos30Dias) },
+            { label: "Ticket médio", icon: "money", value: formatarMoedaResumo(calcularTicketMedio(pedidos30Dias)) },
+            { label: "Clientes no período", icon: "user", value: obterClientesUnicos(reservas, pedidos30Dias) },
         ],
         serieReservas: montarSerieReservas(reservas, 7),
         proximosPedidos,

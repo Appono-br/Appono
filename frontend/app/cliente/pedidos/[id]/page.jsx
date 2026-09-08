@@ -46,6 +46,7 @@ export default function DetalhePedidoPorId({ params }) {
     const [carregandoPedido, setCarregandoPedido] = useState(true);
     const [erro, setErro] = useState("");
     const [processando, setProcessando] = useState(false);
+    const [abrindoChat, setAbrindoChat] = useState(false);
     const [mostrandoReembolso, setMostrandoReembolso] = useState(false);
     const [motivoReembolso, setMotivoReembolso] = useState("");
     const [confirmacaoAcao, setConfirmacaoAcao] = useState(null);
@@ -116,6 +117,25 @@ export default function DetalhePedidoPorId({ params }) {
             setErro(error instanceof Error ? error.message : "Não foi possível remover o pedido da lista.");
         } finally {
             setProcessando(false);
+        }
+    }
+
+    async function abrirChatPedido() {
+        setAbrindoChat(true);
+        setErro("");
+        try {
+            const conversa = await apiRequest("/mensagens/conversas", {
+                method: "POST",
+                body: JSON.stringify({
+                    id_pedido: Number(id),
+                    assunto: `Pedido #${id}`,
+                }),
+            });
+            router.push(`/cliente/mensagens/${conversa.id_conversa}`);
+        } catch (error) {
+            setErro(error instanceof Error ? error.message : "Não foi possível iniciar o chat.");
+        } finally {
+            setAbrindoChat(false);
         }
     }
 
@@ -201,10 +221,11 @@ export default function DetalhePedidoPorId({ params }) {
                 <section className="mt-6 rounded-[18px] bg-white p-5 shadow-sm ring-1 ring-app-baunilha-dourada/70 sm:p-6">
                     <div className="flex flex-wrap gap-3">
                         {pedido.status_pedido === "PENDENTE" && reservaAceitaPagamento(pedido.reservas) ? <Link href={`/cliente/pagamentos/pedido/${pedido.id_pedido}`} className="inline-flex h-11 items-center rounded-[8px] bg-app-dourado-mel px-6 text-xs font-bold uppercase tracking-[0.12em] text-white">Pagar no Mercado Pago</Link> : null}
+                        <button type="button" disabled={abrindoChat} onClick={abrirChatPedido} className="inline-flex h-11 items-center rounded-[8px] border border-app-caramelo-torrado px-6 text-xs font-bold uppercase tracking-[0.12em] text-app-caramelo-torrado transition hover:bg-app-chantilly disabled:cursor-not-allowed disabled:opacity-50">{abrindoChat ? "Abrindo..." : "Falar com restaurante"}</button>
                         {["PENDENTE", "CONFIRMADO"].includes(pedido.status_pedido) ? <button type="button" disabled={processando} onClick={() => setConfirmacaoAcao("cancelar")} className="inline-flex h-11 items-center rounded-[8px] border border-red-300 px-6 text-xs font-bold uppercase tracking-[0.12em] text-red-700 disabled:opacity-50">{processando ? "Cancelando..." : "Cancelar pedido"}</button> : null}
                         {pedido.status_pedido === "ENTREGUE" ? <Link href={`/cliente/pedidos/${pedido.id_pedido}/avaliar`} className="inline-flex h-11 items-center rounded-[8px] border border-app-dourado-mel px-6 text-xs font-bold uppercase tracking-[0.12em] text-app-caramelo-torrado">Avaliar experiência</Link> : null}
                         {pedido.status_pedido !== "PENDENTE" && !reembolsoBloqueiaNovaSolicitacao ? <button type="button" onClick={() => setMostrandoReembolso(true)} className="inline-flex h-11 items-center rounded-[8px] border border-app-caramelo-torrado px-6 text-xs font-bold uppercase tracking-[0.12em] text-app-caramelo-torrado">Solicitar reembolso</button> : null}
-                        {["ENTREGUE", "CANCELADO"].includes(pedido.status_pedido) ? <button type="button" disabled={processando} onClick={() => setConfirmacaoAcao("excluir")} className="inline-flex h-11 items-center rounded-[8px] border border-red-300 px-6 text-xs font-bold uppercase tracking-[0.12em] text-red-700 transition hover:bg-red-50 disabled:opacity-50">Excluir do historico</button> : null}
+                        {["ENTREGUE", "CANCELADO"].includes(pedido.status_pedido) ? <button type="button" disabled={processando} onClick={() => setConfirmacaoAcao("excluir")} className="inline-flex h-11 items-center rounded-[8px] border border-red-300 px-6 text-xs font-bold uppercase tracking-[0.12em] text-red-700 transition hover:bg-red-50 disabled:opacity-50">Excluir do histórico</button> : null}
                     </div>
 
                     {reembolso ? <div className="mt-5 rounded-[12px] bg-white p-4 text-sm ring-1 ring-app-baunilha-dourada/60"><strong>Reembolso: {textoStatusReembolso(reembolso.status_reembolso)}</strong><p className="mt-2 text-app-cinza">{reembolso.motivo}</p>{reembolso.resposta ? <p className="mt-2"><strong>Resposta:</strong> {reembolso.resposta}</p> : null}</div> : null}

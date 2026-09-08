@@ -37,6 +37,7 @@ function Icon({ type, className = "h-5 w-5", }) {
         clock: "M12 7v5l3 2M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z",
         people: "M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2M9.5 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z M22 21v-2a4 4 0 0 0-3-3.9",
         menu: "M4 7h16M4 12h16M4 17h16",
+        message: "M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v8z",
         plus: "M12 5v14M5 12h14",
         wallet: "M4 7h16v12H4V7z M4 7l12-3v3M15 12h5",
     };
@@ -221,6 +222,7 @@ export default function ReservationsPage() {
     const [reservaParaExcluir, setReservaParaExcluir] = useState(null);
     const [cancelandoReserva, setCancelandoReserva] = useState(false);
     const [processandoPresenca, setProcessandoPresenca] = useState(false);
+    const [abrindoChatReservaId, setAbrindoChatReservaId] = useState(null);
     const [mensagemPresenca, setMensagemPresenca] = useState("");
     const [period, setPeriod] = useState({
         month: today.getMonth(),
@@ -375,6 +377,27 @@ export default function ReservationsPage() {
             setCancelandoReserva(false);
         }
     }
+    async function abrirChatReserva(reservation) {
+        setAbrindoChatReservaId(reservation.id);
+        setMensagemPresenca("");
+        try {
+            const conversa = await apiRequest("/mensagens/conversas", {
+                method: "POST",
+                body: JSON.stringify({
+                    id_reserva: Number(reservation.id),
+                    id_pedido: reservation.activeOrder?.id ? Number(reservation.activeOrder.id) : undefined,
+                    assunto: reservation.activeOrder?.id ? `Pedido #${reservation.activeOrder.id}` : `Reserva #${reservation.id}`,
+                }),
+            });
+            window.location.assign(`/cliente/mensagens/${conversa.id_conversa}`);
+        }
+        catch (error) {
+            setMensagemPresenca(error instanceof Error ? error.message : "Não foi possível iniciar o chat.");
+        }
+        finally {
+            setAbrindoChatReservaId(null);
+        }
+    }
     return (<main className="flex min-h-screen flex-col bg-white text-app-cafe-profundo">
       <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-white/90 text-app-cafe-profundo shadow-sm backdrop-blur-md">
         <div className="mx-auto grid h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-5 lg:h-20">
@@ -470,7 +493,7 @@ export default function ReservationsPage() {
               <span className="font-bold text-app-caramelo-torrado">
                 {reservasConfirmadas.length}
               </span>{" "}
-              reservas confirmadas neste periodo.
+              reservas confirmadas neste período.
             </p>
           </aside>
 
@@ -596,6 +619,10 @@ export default function ReservationsPage() {
                             </p>
                           </div>) : null}
                         <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-app-baunilha-dourada/60 pt-4">
+                        <button type="button" disabled={abrindoChatReservaId === reservation.id} onClick={() => abrirChatReserva(reservation)} className="inline-flex items-center gap-2 rounded-[8px] border border-app-caramelo-torrado px-4 py-2 text-xs font-bold text-app-caramelo-torrado transition hover:bg-app-chantilly disabled:cursor-not-allowed disabled:opacity-60">
+                            <Icon type="message" className="h-4 w-4"/>
+                            {abrindoChatReservaId === reservation.id ? "Abrindo..." : "Falar com restaurante"}
+                          </button>
                           {podeResponderPresenca(reservation) ? (<>
                             {reservation.attendanceStatus !== "CONFIRMADA" ? (<button type="button" disabled={processandoPresenca} onClick={() => setReservaParaConfirmarPresenca(reservation)} className="rounded-[8px] bg-app-cafe-profundo px-4 py-2 text-xs font-bold text-app-creme-leve transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-60">
                                 Confirmar presença

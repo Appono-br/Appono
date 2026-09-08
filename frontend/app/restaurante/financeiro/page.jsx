@@ -212,7 +212,7 @@ export default function RestaurantFinancialReportPage() {
 
     async function carregarStatusMercadoPago() {
         const resposta = await apiRequest("/marketplace/mercado-pago/status", { forceRefresh: true });
-        setConexaoMercadoPago(resposta.conexão);
+        setConexaoMercadoPago(resposta.conexao);
         setMensagemMercadoPago("");
         return resposta;
     }
@@ -248,7 +248,7 @@ export default function RestaurantFinancialReportPage() {
         setMensagemMercadoPago("");
         try {
             const resposta = await apiRequest("/marketplace/mercado-pago/desconectar", { method: "POST" });
-            setConexaoMercadoPago(resposta.conexão);
+            setConexaoMercadoPago(resposta.conexao);
             setMensagemMercadoPago("Conta Mercado Pago desconectada.");
             setModalMercadoPago(null);
         }

@@ -28,6 +28,12 @@ const filtrosPedido = [
     { label: "Entregues", value: "ENTREGUE" },
     { label: "Cancelados", value: "CANCELADO" },
 ];
+const ordenacoesPedido = [
+    { label: "Próximos horários", value: "HORARIO" },
+    { label: "Prioridade operacional", value: "PRIORIDADE" },
+    { label: "Pedidos recentes", value: "RECENTES" },
+    { label: "Maior valor", value: "VALOR" },
+];
 
 function Icon({ type, className = "h-5 w-5" }) {
     const paths = {
@@ -128,6 +134,36 @@ function obterProximaAcaoPedido(status) {
 function pedidoPodeSairDaCozinha(status) {
     return ["PRONTO", "ENTREGUE", "CANCELADO"].includes(status);
 }
+function obterDataHoraReservaPedido(pedido) {
+    const reserva = pedido.reserva ?? pedido.reservas ?? {};
+    const data = reserva.data_reserva;
+    const horario = reserva.horario_inicio;
+    const dataHora = data && horario ? new Date(`${data}T${horario}`) : null;
+    return dataHora && !Number.isNaN(dataHora.getTime()) ? dataHora.getTime() : Number.POSITIVE_INFINITY;
+}
+function obterPrioridadeStatusPedido(status) {
+    const prioridade = {
+        PRONTO: 0,
+        EM_PREPARO: 1,
+        CONFIRMADO: 2,
+        ENTREGUE: 3,
+        CANCELADO: 4,
+    };
+    return prioridade[status] ?? 5;
+}
+function ordenarPedidos(pedidos, ordenacao) {
+    const lista = [...pedidos];
+    if (ordenacao === "PRIORIDADE") {
+        return lista.sort((a, b) => obterPrioridadeStatusPedido(a.status_pedido) - obterPrioridadeStatusPedido(b.status_pedido) || obterDataHoraReservaPedido(a) - obterDataHoraReservaPedido(b));
+    }
+    if (ordenacao === "RECENTES") {
+        return lista.sort((a, b) => new Date(b.data_pedido ?? 0) - new Date(a.data_pedido ?? 0));
+    }
+    if (ordenacao === "VALOR") {
+        return lista.sort((a, b) => Number(b.valor_total ?? 0) - Number(a.valor_total ?? 0));
+    }
+    return lista.sort((a, b) => obterDataHoraReservaPedido(a) - obterDataHoraReservaPedido(b));
+}
 
 function agruparPedidosPorReserva(pedidos = []) {
     const reservasPorId = new Map();
@@ -201,6 +237,7 @@ export default function RestaurantOrdersPage() {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [reservas, setReservas] = useState([]);
     const [filtroPedido, setFiltroPedido] = useState("TODOS");
+    const [ordenacaoPedido, setOrdenacaoPedido] = useState("HORARIO");
     const [busca, setBusca] = useState("");
     const [mensagem, setMensagem] = useState("");
     const [pedidoParaRemover, setPedidoParaRemover] = useState(null);
@@ -239,8 +276,8 @@ export default function RestaurantOrdersPage() {
         return pedidos.filter((pedido) => pedido.status_pedido === filtroPedido);
     }, [filtroPedido, pedidos]);
     const pedidosFiltrados = useMemo(() => {
-        return filtrarOrdenarPorBusca(pedidosPorFiltro, busca, obterCamposPedido);
-    }, [busca, pedidosPorFiltro]);
+        return ordenarPedidos(filtrarOrdenarPorBusca(pedidosPorFiltro, busca, obterCamposPedido), ordenacaoPedido);
+    }, [busca, ordenacaoPedido, pedidosPorFiltro]);
 
     async function atualizarStatusPedido(idPedido, statusPedido) {
         try {
@@ -399,30 +436,41 @@ export default function RestaurantOrdersPage() {
                         </p>
                     </div>
 
-                    <label className="campo-busca-app mt-6 flex h-11 w-full max-w-2xl items-center gap-3 rounded-[10px] border border-app-baunilha-dourada/70 bg-white px-4 text-app-mocha shadow-sm transition">
-                        <Icon type="search" className="h-4 w-4 shrink-0" />
-                        <span className="sr-only">Buscar pedidos na cozinha</span>
-                        <input
-                            value={busca}
-                            onChange={(event) => setBusca(event.target.value)}
-                            placeholder="Buscar por cliente, pedido, mesa, status, item ou horário..."
-                            className="input-busca-app h-full min-w-0 flex-1 bg-transparent text-sm text-app-cafe-profundo placeholder:text-app-cinza/60"
-                        />
-                    </label>
+                    <div className="mt-6 rounded-[16px] border border-app-baunilha-dourada/65 bg-white p-4 shadow-sm">
+                        <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-end">
+                            <label className="campo-busca-app flex h-11 items-center gap-3 rounded-[10px] border border-app-baunilha-dourada/70 bg-white px-4 text-app-mocha shadow-sm transition">
+                                <Icon type="search" className="h-4 w-4 shrink-0" />
+                                <span className="sr-only">Buscar pedidos na cozinha</span>
+                                <input
+                                    value={busca}
+                                    onChange={(event) => setBusca(event.target.value)}
+                                    placeholder="Buscar por cliente, pedido, mesa, status, item ou horário..."
+                                    className="input-busca-app h-full min-w-0 flex-1 bg-transparent text-sm text-app-cafe-profundo placeholder:text-app-cinza/60"
+                                />
+                            </label>
 
-                    <div className="mt-4 flex gap-2 overflow-x-auto pb-2">
-                        {filtrosPedido.map((filtro) => (
-                            <button
-                                key={filtro.value}
-                                type="button"
-                                onClick={() => setFiltroPedido(filtro.value)}
-                                className={`inline-flex h-10 shrink-0 items-center justify-center rounded-[8px] border px-4 text-[11px] font-bold uppercase tracking-[0.12em] transition ${filtroPedido === filtro.value
-                                    ? "border-app-caramelo-torrado bg-app-caramelo-torrado text-app-chantilly"
-                                    : "border-app-baunilha-dourada bg-app-creme-leve text-app-mocha hover:border-app-caramelo-torrado hover:bg-app-baunilha-dourada"}`}
-                            >
-                                {filtro.label}
-                            </button>
-                        ))}
+                            <label className="grid gap-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado sm:min-w-56">
+                                Ordenar por
+                                <select value={ordenacaoPedido} onChange={(event) => setOrdenacaoPedido(event.target.value)} className="h-11 rounded-[10px] border border-app-baunilha-dourada bg-white px-3 text-sm font-semibold normal-case tracking-normal text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-caramelo-torrado/15">
+                                    {ordenacoesPedido.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
+                                </select>
+                            </label>
+                        </div>
+
+                        <div className="mt-4 flex gap-2 overflow-x-auto border-t border-app-baunilha-dourada/45 pt-4">
+                            {filtrosPedido.map((filtro) => (
+                                <button
+                                    key={filtro.value}
+                                    type="button"
+                                    onClick={() => setFiltroPedido(filtro.value)}
+                                    className={`inline-flex h-10 shrink-0 items-center justify-center rounded-full px-4 text-[11px] font-bold uppercase tracking-[0.12em] ring-1 transition ${filtroPedido === filtro.value
+                                        ? "bg-app-cafe-profundo text-app-creme-leve ring-app-cafe-profundo"
+                                        : "bg-white text-app-mocha ring-app-baunilha-dourada/70 hover:bg-app-chantilly hover:text-app-cafe-profundo hover:ring-app-caramelo-torrado/45"}`}
+                                >
+                                    {filtro.label}
+                                </button>
+                            ))}
+                        </div>
                     </div>
                 </div>
 
@@ -576,7 +624,7 @@ export default function RestaurantOrdersPage() {
                     ) : (
                         <EmptyPanel
                             title="Nenhum pedido neste filtro"
-                            description="Pedidos pagos aparecem aqui em ordem de reserva. Os mais proximos ficam primeiro para orientar a cozinha."
+                            description="Pedidos pagos aparecem aqui em ordem de reserva. Os mais próximos ficam primeiro para orientar a cozinha."
                         />
                     )}
                 </section>

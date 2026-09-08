@@ -38,10 +38,22 @@ const filtrosReserva = [
 ];
 
 const filtrosPeriodo = [
-    { label: "Todo periodo", value: "TODOS" },
+    { label: "Todo período", value: "TODOS" },
     { label: "Hoje", value: "HOJE" },
     { label: "7 dias", value: "7_DIAS" },
     { label: "30 dias", value: "30_DIAS" },
+];
+const ordenacoesHistoricoPedido = [
+    { label: "Mais recentes", value: "RECENTES" },
+    { label: "Mais antigos", value: "ANTIGOS" },
+    { label: "Maior valor", value: "VALOR" },
+    { label: "Cliente", value: "CLIENTE" },
+];
+const ordenacoesHistoricoReserva = [
+    { label: "Mais recentes", value: "RECENTES" },
+    { label: "Mais antigas", value: "ANTIGOS" },
+    { label: "Cliente", value: "CLIENTE" },
+    { label: "Maior grupo", value: "PESSOAS" },
 ];
 
 function Icon({ type, className = "h-5 w-5" }) {
@@ -85,6 +97,40 @@ function obterDataPedido(pedido) {
 
 function obterDataReserva(reserva) {
     return reserva.data_reserva ? new Date(`${reserva.data_reserva}T12:00:00`) : null;
+}
+function obterTempoPedido(pedido) {
+    const data = obterDataPedido(pedido);
+    return data ? data.getTime() : 0;
+}
+function obterTempoReserva(reserva) {
+    const data = obterDataReserva(reserva);
+    return data ? data.getTime() : 0;
+}
+function ordenarPedidosHistorico(pedidos, ordenacao) {
+    const lista = [...pedidos];
+    if (ordenacao === "ANTIGOS") {
+        return lista.sort((a, b) => obterTempoPedido(a) - obterTempoPedido(b));
+    }
+    if (ordenacao === "VALOR") {
+        return lista.sort((a, b) => Number(b.valor_total ?? 0) - Number(a.valor_total ?? 0));
+    }
+    if (ordenacao === "CLIENTE") {
+        return lista.sort((a, b) => String(a.clientes?.nome ?? "").localeCompare(String(b.clientes?.nome ?? ""), "pt-BR"));
+    }
+    return lista.sort((a, b) => obterTempoPedido(b) - obterTempoPedido(a));
+}
+function ordenarReservasHistorico(reservas, ordenacao) {
+    const lista = [...reservas];
+    if (ordenacao === "ANTIGOS") {
+        return lista.sort((a, b) => obterTempoReserva(a) - obterTempoReserva(b));
+    }
+    if (ordenacao === "CLIENTE") {
+        return lista.sort((a, b) => String(a.clientes?.nome ?? "").localeCompare(String(b.clientes?.nome ?? ""), "pt-BR"));
+    }
+    if (ordenacao === "PESSOAS") {
+        return lista.sort((a, b) => Number(b.quantidade_pessoas ?? 0) - Number(a.quantidade_pessoas ?? 0));
+    }
+    return lista.sort((a, b) => obterTempoReserva(b) - obterTempoReserva(a));
 }
 
 function pedidoPassaPeriodo(pedido, periodo) {
@@ -441,6 +487,8 @@ export default function RestaurantOrderHistoryPage() {
     const [filtro, setFiltro] = useState("TODOS");
     const [filtroReserva, setFiltroReserva] = useState("TODOS");
     const [periodo, setPeriodo] = useState("TODOS");
+    const [ordenacaoPedido, setOrdenacaoPedido] = useState("RECENTES");
+    const [ordenacaoReserva, setOrdenacaoReserva] = useState("RECENTES");
     const [busca, setBusca] = useState("");
     const [pedidosAbertos, setPedidosAbertos] = useState([]);
     const [mensagem, setMensagem] = useState("Carregando histórico operacional...");
@@ -470,8 +518,8 @@ export default function RestaurantOrderHistoryPage() {
             const passaPeriodo = pedidoPassaPeriodo(pedido, periodo);
             return passaFiltro && passaPeriodo;
         });
-        return filtrarOrdenarPorBusca(pedidosPorFiltro, busca, obterCamposPedidoHistórico);
-    }, [busca, filtro, pedidos, periodo]);
+        return ordenarPedidosHistorico(filtrarOrdenarPorBusca(pedidosPorFiltro, busca, obterCamposPedidoHistórico), ordenacaoPedido);
+    }, [busca, filtro, ordenacaoPedido, pedidos, periodo]);
 
     const reservasFiltradas = useMemo(() => {
         const reservasPorFiltro = reservas.filter((reserva) => {
@@ -483,8 +531,8 @@ export default function RestaurantOrderHistoryPage() {
             const passaPeriodo = reservaPassaPeriodo(reserva, periodo);
             return passaFiltro && passaPeriodo;
         });
-        return filtrarOrdenarPorBusca(reservasPorFiltro, busca, obterCamposReservaHistórico);
-    }, [busca, filtroReserva, periodo, reservas]);
+        return ordenarReservasHistorico(filtrarOrdenarPorBusca(reservasPorFiltro, busca, obterCamposReservaHistórico), ordenacaoReserva);
+    }, [busca, filtroReserva, ordenacaoReserva, periodo, reservas]);
 
     const resumo = useMemo(() => {
         const resumoPedidos = pedidosFiltrados.reduce((acc, pedido) => {
@@ -525,7 +573,7 @@ export default function RestaurantOrderHistoryPage() {
     function imprimirPedido(pedido) {
         const janela = window.open("", "_blank", "width=420,height=680");
         if (!janela) {
-            setMensagem("Não foi possível abrir a janela de impressao. Verifique o bloqueador de pop-ups.");
+            setMensagem("Não foi possível abrir a janela de impressão. Verifique o bloqueador de pop-ups.");
             return;
         }
 
@@ -643,18 +691,27 @@ export default function RestaurantOrderHistoryPage() {
                         ))}
                 </section>
 
-                <section className="mt-6 rounded-[14px] bg-app-creme-leve p-4 ring-1 ring-app-baunilha-dourada/65">
-                    <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-center">
+                <section className="mt-6 rounded-[16px] border border-app-baunilha-dourada/65 bg-white p-4 shadow-sm">
+                    <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-end">
                         <label className="campo-busca-app flex h-11 items-center gap-3 rounded-[10px] border border-app-baunilha-dourada/60 bg-white px-4 text-sm text-app-cinza transition">
                             <Icon type="search" className="h-4 w-4" />
                             <input value={busca} onChange={(event) => setBusca(event.target.value)} placeholder={abaAtiva === "PEDIDOS" ? "Buscar por cliente, pedido, data ou item..." : "Buscar por cliente, reserva, data ou mesa..."} className="input-busca-app h-full min-w-0 flex-1 bg-transparent text-app-cafe-profundo placeholder:text-app-cinza/60" />
                         </label>
 
+                        <label className="grid gap-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado sm:min-w-56">
+                            Ordenar por
+                            <select value={abaAtiva === "PEDIDOS" ? ordenacaoPedido : ordenacaoReserva} onChange={(event) => abaAtiva === "PEDIDOS" ? setOrdenacaoPedido(event.target.value) : setOrdenacaoReserva(event.target.value)} className="h-11 rounded-[10px] border border-app-baunilha-dourada bg-white px-3 text-sm font-semibold normal-case tracking-normal text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-caramelo-torrado/15">
+                                {(abaAtiva === "PEDIDOS" ? ordenacoesHistoricoPedido : ordenacoesHistoricoReserva).map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
+                            </select>
+                        </label>
+                    </div>
+
+                    <div className="mt-4 border-t border-app-baunilha-dourada/45 pt-4">
                         <div className="flex flex-wrap gap-2">
                             {(abaAtiva === "PEDIDOS" ? filtros : filtrosReserva).map((item) => {
                                 const ativo = abaAtiva === "PEDIDOS" ? filtro === item.value : filtroReserva === item.value;
                                 return (
-                                    <button key={item.value} type="button" onClick={() => abaAtiva === "PEDIDOS" ? setFiltro(item.value) : setFiltroReserva(item.value)} className={`h-10 rounded-[8px] border px-4 text-[11px] font-bold uppercase tracking-[0.12em] transition ${ativo ? "border-app-caramelo-torrado bg-app-caramelo-torrado text-app-chantilly" : "border-app-baunilha-dourada bg-app-creme-leve text-app-mocha hover:border-app-caramelo-torrado hover:bg-app-baunilha-dourada"}`}>
+                                    <button key={item.value} type="button" onClick={() => abaAtiva === "PEDIDOS" ? setFiltro(item.value) : setFiltroReserva(item.value)} className={`h-10 rounded-full px-4 text-[11px] font-bold uppercase tracking-[0.12em] ring-1 transition ${ativo ? "bg-app-cafe-profundo text-app-creme-leve ring-app-cafe-profundo" : "bg-white text-app-mocha ring-app-baunilha-dourada/70 hover:bg-app-chantilly hover:text-app-cafe-profundo hover:ring-app-caramelo-torrado/45"}`}>
                                         {item.label}
                                     </button>
                                 );

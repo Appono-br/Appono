@@ -30,6 +30,12 @@ const filtrosPedido = [
     { label: "Não compareceu", value: "NAO_COMPARECEU" },
     { label: "Cancelados", value: "CANCELADO" },
 ];
+const ordenacoesReserva = [
+    { label: "Próximos horários", value: "HORARIO" },
+    { label: "Check-in primeiro", value: "CHECK_IN" },
+    { label: "Status operacional", value: "STATUS" },
+    { label: "Maior grupo", value: "PESSOAS" },
+];
 
 function Icon({ type, className = "h-5 w-5" }) {
     const paths = {
@@ -159,6 +165,39 @@ function reservaJaTerminou(reserva) {
     const fim = new Date(`${reserva.data_reserva}T${reserva.horario_fim}`);
     return !Number.isNaN(fim.getTime()) && new Date() >= fim;
 }
+function obterDataHoraReserva(reserva) {
+    const dataHora = new Date(`${reserva.data_reserva}T${reserva.horario_inicio}`);
+    return Number.isNaN(dataHora.getTime()) ? Number.POSITIVE_INFINITY : dataHora.getTime();
+}
+function obterPrioridadeReserva(reserva) {
+    const prioridade = {
+        CHECK_IN: 0,
+        CONFIRMADA: 1,
+        PENDENTE: 2,
+        CONCLUIDA: 3,
+        NAO_COMPARECEU: 4,
+        CANCELADA: 5,
+        RECUSADA: 6,
+    };
+    return prioridade[reserva.status_reserva] ?? 7;
+}
+function ordenarReservas(reservas, ordenacao) {
+    const lista = [...reservas];
+    if (ordenacao === "CHECK_IN") {
+        return lista.sort((a, b) => {
+            const janelaA = obterJanelaCheckIn(a);
+            const janelaB = obterJanelaCheckIn(b);
+            return Number(janelaB.liberado) - Number(janelaA.liberado) || obterDataHoraReserva(a) - obterDataHoraReserva(b);
+        });
+    }
+    if (ordenacao === "STATUS") {
+        return lista.sort((a, b) => obterPrioridadeReserva(a) - obterPrioridadeReserva(b) || obterDataHoraReserva(a) - obterDataHoraReserva(b));
+    }
+    if (ordenacao === "PESSOAS") {
+        return lista.sort((a, b) => Number(b.quantidade_pessoas ?? 0) - Number(a.quantidade_pessoas ?? 0) || obterDataHoraReserva(a) - obterDataHoraReserva(b));
+    }
+    return lista.sort((a, b) => obterDataHoraReserva(a) - obterDataHoraReserva(b));
+}
 function obterCamposReserva(reserva) {
     const pedidosAtivos = obterPedidosAtivos(reserva);
     return [
@@ -196,6 +235,7 @@ export default function RestaurantReservationsPage() {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [reservas, setReservas] = useState([]);
     const [filtroPedido, setFiltroPedido] = useState("TODOS");
+    const [ordenacaoReserva, setOrdenacaoReserva] = useState("HORARIO");
     const [busca, setBusca] = useState("");
     const [reservaParaCancelar, setReservaParaCancelar] = useState(null);
     const [reservaParaExcluir, setReservaParaExcluir] = useState(null);
@@ -318,8 +358,8 @@ export default function RestaurantReservationsPage() {
         return reservas;
     }, [filtroPedido, reservas]);
     const reservasFiltradas = useMemo(() => {
-        return filtrarOrdenarPorBusca(reservasPorFiltro, busca, obterCamposReserva);
-    }, [busca, reservasPorFiltro]);
+        return ordenarReservas(filtrarOrdenarPorBusca(reservasPorFiltro, busca, obterCamposReserva), ordenacaoReserva);
+    }, [busca, ordenacaoReserva, reservasPorFiltro]);
 
     if (!isRestaurant) {
         return (
@@ -426,37 +466,48 @@ export default function RestaurantReservationsPage() {
                         </h1>
                     </div>
 
-                    <label className="campo-busca-app mt-6 flex h-11 w-full max-w-2xl items-center gap-3 rounded-[10px] border border-app-baunilha-dourada/70 bg-white px-4 text-app-mocha shadow-sm transition">
-                        <Icon type="search" className="h-4 w-4 shrink-0" />
-                        <span className="sr-only">Buscar reservas</span>
-                        <input
-                            value={busca}
-                            onChange={(event) => setBusca(event.target.value)}
-                            placeholder="Buscar por cliente, mesa, reserva, pedido, status ou data..."
-                            className="input-busca-app h-full min-w-0 flex-1 bg-transparent text-sm text-app-cafe-profundo placeholder:text-app-cinza/60"
-                        />
-                    </label>
+                    <div className="mt-6 rounded-[16px] border border-app-baunilha-dourada/65 bg-white p-4 shadow-sm">
+                        <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-end">
+                            <label className="campo-busca-app flex h-11 items-center gap-3 rounded-[10px] border border-app-baunilha-dourada/70 bg-white px-4 text-app-mocha shadow-sm transition">
+                                <Icon type="search" className="h-4 w-4 shrink-0" />
+                                <span className="sr-only">Buscar reservas</span>
+                                <input
+                                    value={busca}
+                                    onChange={(event) => setBusca(event.target.value)}
+                                    placeholder="Buscar por cliente, mesa, reserva, pedido, status ou data..."
+                                    className="input-busca-app h-full min-w-0 flex-1 bg-transparent text-sm text-app-cafe-profundo placeholder:text-app-cinza/60"
+                                />
+                            </label>
 
-                    <div className="mt-4 flex gap-2 overflow-x-auto pb-2">
-                        {filtrosPedido.map((filtro) => (
-                            <button
-                                key={filtro.value}
-                                type="button"
-                                onClick={() => setFiltroPedido(filtro.value)}
-                                className={`inline-flex h-10 shrink-0 items-center justify-center rounded-[8px] border px-4 text-[11px] font-bold uppercase tracking-[0.12em] transition ${filtroPedido === filtro.value
-                                    ? "border-app-caramelo-torrado bg-app-caramelo-torrado text-app-chantilly"
-                                    : "border-app-baunilha-dourada bg-app-creme-leve text-app-mocha hover:border-app-caramelo-torrado hover:bg-app-baunilha-dourada"}`}
-                            >
-                                {filtro.label}
-                            </button>
-                        ))}
+                            <label className="grid gap-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado sm:min-w-56">
+                                Ordenar por
+                                <select value={ordenacaoReserva} onChange={(event) => setOrdenacaoReserva(event.target.value)} className="h-11 rounded-[10px] border border-app-baunilha-dourada bg-white px-3 text-sm font-semibold normal-case tracking-normal text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-caramelo-torrado/15">
+                                    {ordenacoesReserva.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
+                                </select>
+                            </label>
+                        </div>
+
+                        <div className="mt-4 flex gap-2 overflow-x-auto border-t border-app-baunilha-dourada/45 pt-4">
+                            {filtrosPedido.map((filtro) => (
+                                <button
+                                    key={filtro.value}
+                                    type="button"
+                                    onClick={() => setFiltroPedido(filtro.value)}
+                                    className={`inline-flex h-10 shrink-0 items-center justify-center rounded-full px-4 text-[11px] font-bold uppercase tracking-[0.12em] ring-1 transition ${filtroPedido === filtro.value
+                                        ? "bg-app-cafe-profundo text-app-creme-leve ring-app-cafe-profundo"
+                                        : "bg-white text-app-mocha ring-app-baunilha-dourada/70 hover:bg-app-chantilly hover:text-app-cafe-profundo hover:ring-app-caramelo-torrado/45"}`}
+                                >
+                                    {filtro.label}
+                                </button>
+                            ))}
+                        </div>
                     </div>
                 </div>
 
                 <section className="mt-10">
                     <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                         <h2 className="text-xs font-bold uppercase tracking-[0.18em] text-app-mocha">
-                            Proximos clientes
+                            Próximos clientes
                         </h2>
                         <p className="text-sm text-app-cinza">
                             {reservasFiltradas.length} de {reservas.length} agendamentos

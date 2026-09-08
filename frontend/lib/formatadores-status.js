@@ -29,6 +29,7 @@ export function textoTipoEvento(tipo) {
         REEMBOLSO_SOLICITADO: "Reembolso solicitado",
         REEMBOLSO_CONCLUIDO: "Reembolso concluído",
         REEMBOLSO_RECUSADO: "Reembolso recusado",
+        MENSAGEM_RECEBIDA: "Mensagem recebida",
         INFORMATIVO: "Informativo",
     };
     return eventos[tipo] ?? formatarCodigoSistema(tipo, "Notificação");

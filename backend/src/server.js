@@ -19,6 +19,7 @@ const { adminRouter } = require("./routes/admin");
 const { notificationsRouter } = require("./routes/notifications");
 const { restaurantDashboardRouter } = require("./routes/restaurant-dashboard");
 const { refundsRouter } = require("./routes/refunds");
+const { messagesRouter } = require("./routes/messages");
 const { requestContext } = require("./middleware/observability");
 
 const app = express();
@@ -137,6 +138,7 @@ app.use("/api/admin", adminRouter);
 app.use("/api/notificacoes", notificationsRouter);
 app.use("/api/restaurante", restaurantDashboardRouter);
 app.use("/api/reembolsos", refundsRouter);
+app.use("/api/mensagens", messagesRouter);
 
 app.use((error, _req, res, _next) => {
     const mensagem = String(error?.message ?? "");

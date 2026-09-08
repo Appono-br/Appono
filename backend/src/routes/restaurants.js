@@ -70,7 +70,7 @@ async function consultarRestaurantesPublicos() {
     const cliente = obterClienteLeituraPublica();
     const consulta = cliente
         .from("restaurantes")
-        .select("id_restaurante, nome, razao_social, telefone, email, cep, endereco, horario_funcionamento, logo_url, valor_minimo_reserva_por_pessoa, latitude, longitude")
+        .select("id_restaurante, nome, razao_social, telefone, email, cep, endereco, horario_funcionamento, logo_url, valor_minimo_reserva_por_pessoa, configuracao_operacao, latitude, longitude")
         .eq("ativo", true)
         .order("nome");
     const resposta = await consulta;
@@ -79,7 +79,7 @@ async function consultarRestaurantesPublicos() {
     }
     return cliente
         .from("restaurantes")
-        .select("id_restaurante, nome, razao_social, telefone, email, cep, endereco, horario_funcionamento, logo_url, valor_minimo_reserva_por_pessoa")
+        .select("id_restaurante, nome, razao_social, telefone, email, cep, endereco, horario_funcionamento, logo_url, valor_minimo_reserva_por_pessoa, configuracao_operacao")
         .eq("ativo", true)
         .order("nome");
 }
@@ -165,32 +165,69 @@ function normalizarBusca(valor) {
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "");
 }
+function textoContemTermo(termo, campos) {
+    if (!termo) return true;
+    const texto = campos.map(normalizarBusca).filter(Boolean).join(" ");
+    return termo.split(/\s+/).filter(Boolean).every((token) => texto.includes(token));
+}
+function adicionarUnico(lista, item, chave) {
+    if (!item?.[chave]) return;
+    if (lista.some((atual) => atual[chave] === item[chave])) return;
+    lista.push(item);
+}
 function restauranteCorrespondeBusca(restaurante, termo) {
     if (!termo) return true;
-    return [
+    return textoContemTermo(termo, [
         restaurante.nome,
         restaurante.razao_social,
         restaurante.endereco,
         restaurante.cep,
         restaurante.horario_funcionamento,
-    ].map(normalizarBusca).join(" ").includes(termo);
+    ]);
 }
-async function obterProdutosCorrespondentes(termo) {
-    if (!termo) return new Map();
+async function obterDadosCardapioBusca(termo) {
     const { data, error } = await obterClienteLeituraPublica()
         .from("produtos")
-        .select("id_restaurante, nome, descricao")
+        .select("id_restaurante, nome, descricao, categorias(nome, descricao, ativo, arquivado, cardapios(nome, descricao, ativo))")
         .eq("disponivel", true)
         .eq("arquivado", false);
-    if (error) return new Map();
-    return (data ?? []).reduce((mapa, produto) => {
-        const conteudo = [produto.nome, produto.descricao].map(normalizarBusca).join(" ");
-        if (!conteudo.includes(termo)) return mapa;
-        const atuais = mapa.get(produto.id_restaurante) ?? [];
-        atuais.push({ nome: produto.nome, descricao: produto.descricao });
-        mapa.set(produto.id_restaurante, atuais.slice(0, 3));
-        return mapa;
-    }, new Map());
+    const correspondencias = new Map();
+    const resumo = new Map();
+    if (error) return { correspondencias, resumo };
+    for (const produto of data ?? []) {
+        const categoria = produto.categorias ?? {};
+        const cardapio = categoria.cardapios ?? {};
+        if (categoria.ativo === false || categoria.arquivado === true || cardapio.ativo === false) continue;
+        const resumoAtual = resumo.get(produto.id_restaurante) ?? {
+            total_itens_cardapio: 0,
+            categorias_publicadas: [],
+        };
+        resumoAtual.total_itens_cardapio += 1;
+        adicionarUnico(resumoAtual.categorias_publicadas, { nome: categoria.nome, descricao: categoria.descricao }, "nome");
+        resumo.set(produto.id_restaurante, resumoAtual);
+        if (!termo || !textoContemTermo(termo, [
+            produto.nome,
+            produto.descricao,
+            categoria.nome,
+            categoria.descricao,
+            cardapio.nome,
+            cardapio.descricao,
+        ])) continue;
+        const atuais = correspondencias.get(produto.id_restaurante) ?? {
+            produtos: [],
+            categorias: [],
+            cardapios: [],
+        };
+        adicionarUnico(atuais.produtos, { nome: produto.nome, descricao: produto.descricao }, "nome");
+        adicionarUnico(atuais.categorias, { nome: categoria.nome, descricao: categoria.descricao }, "nome");
+        adicionarUnico(atuais.cardapios, { nome: cardapio.nome, descricao: cardapio.descricao }, "nome");
+        correspondencias.set(produto.id_restaurante, {
+            produtos: atuais.produtos.slice(0, 3),
+            categorias: atuais.categorias.slice(0, 2),
+            cardapios: atuais.cardapios.slice(0, 2),
+        });
+    }
+    return { correspondencias, resumo };
 }
 const diasSemanaOperacao = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
 function obterDataLocalSaoPaulo() {
@@ -313,15 +350,16 @@ exports.restaurantsRouter.get("/", async (req, res) => {
         const raioKm = numeroValido(req.query.raio_km);
         const usuario = await obterUsuarioOpcional(req);
         const cliente = await obterClientePorUsuario(usuario?.id);
-        const [restaurantesResposta, produtosCorrespondentes] = await Promise.all([
+        const [restaurantesResposta, dadosCardapioBusca] = await Promise.all([
             consultarRestaurantesPublicos(),
-            obterProdutosCorrespondentes(termoBusca),
+            obterDadosCardapioBusca(termoBusca),
         ]);
+        const { correspondencias: correspondenciasBusca, resumo: resumoCardapio } = dadosCardapioBusca;
         if (restaurantesResposta.error) {
             return res.status(400).json({ error: restaurantesResposta.error.message });
         }
         const restaurantesFiltrados = (restaurantesResposta.data ?? []).filter((restaurante) => restauranteCorrespondeBusca(restaurante, termoBusca) ||
-            produtosCorrespondentes.has(restaurante.id_restaurante));
+            correspondenciasBusca.has(restaurante.id_restaurante));
         const restaurantesComGeolocalizacao = podeCalcularDistancia
             ? await preencherCoordenadasAusentes(restaurantesFiltrados)
             : restaurantesFiltrados;
@@ -332,12 +370,20 @@ exports.restaurantsRouter.get("/", async (req, res) => {
             const distanciaKm = podeCalcularDistancia && (0, geolocalizacao_1.coordenadaValida)(latitudeRestaurante, longitudeRestaurante)
                 ? Number(calcularDistanciaKm(latitudeCliente, longitudeCliente, latitudeRestaurante, longitudeRestaurante).toFixed(1))
                 : null;
+            const resumo = resumoCardapio.get(item.id_restaurante) ?? {};
+            const { configuracao_operacao, ...restaurantePublico } = item;
             return {
-                ...item,
+                ...restaurantePublico,
                 distancia_km: distanciaKm,
                 origem_distancia: origemDistancia,
                 localizacao_resolvida: localizacaoResolvida?.nome ?? null,
-                produtos_encontrados: produtosCorrespondentes.get(item.id_restaurante) ?? [],
+                produtos_encontrados: correspondenciasBusca.get(item.id_restaurante)?.produtos ?? [],
+                categorias_encontradas: correspondenciasBusca.get(item.id_restaurante)?.categorias ?? [],
+                cardapios_encontrados: correspondenciasBusca.get(item.id_restaurante)?.cardapios ?? [],
+                categorias_publicadas: resumo.categorias_publicadas ?? [],
+                total_itens_cardapio: resumo.total_itens_cardapio ?? 0,
+                tem_cardapio_publicado: Number(resumo.total_itens_cardapio ?? 0) > 0,
+                aceita_reserva: restauranteTemOperacaoConfigurada(configuracao_operacao),
                 ...metricas.get(item.id_restaurante),
             };
         }).filter((item) => {

@@ -21,7 +21,7 @@ const cardsOperacao = [
     { label: "Restaurantes conectados", key: "restaurantes_conectados" },
     { label: "Reservas", key: "total_reservas" },
     { label: "Pedidos", key: "total_pedidos" },
-    { label: "Ticket medio", key: "ticket_medio", moeda: true },
+    { label: "Ticket médio", key: "ticket_medio", moeda: true },
 ];
 
 const abas = [
@@ -131,7 +131,7 @@ function GraficoFinanceiro({ serie }) {
             <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                     <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">Evolucao financeira</p>
-                    <h2 className="mt-2 text-2xl font-semibold">Movimento por periodo</h2>
+                    <h2 className="mt-2 text-2xl font-semibold">Movimento por período</h2>
                 </div>
                 <p className="text-sm text-app-cinza">Somente pedidos pagos e não cancelados.</p>
             </div>
@@ -319,7 +319,7 @@ export default function AdminFinanceiroPage() {
             <main className="flex min-h-screen items-center justify-center bg-app-chantilly px-5 text-app-cafe-profundo">
                 <section className="w-full max-w-md rounded-[14px] bg-app-creme-leve p-8 text-center shadow-sm ring-1 ring-app-baunilha-dourada">
                     <Image src="/brand/appono-mark.svg" alt="Appono" width={88} height={88} className="mx-auto h-20 w-20" priority />
-                    <h1 className="mt-6 text-3xl font-semibold">Acesso indisponivel</h1>
+                    <h1 className="mt-6 text-3xl font-semibold">Acesso indisponível</h1>
                     <p className="mt-3 text-sm leading-6 text-app-cinza">{erro}</p>
                     <Link href="/login" className="mt-6 inline-flex h-11 items-center justify-center rounded-[8px] bg-app-caramelo-torrado px-6 text-sm font-bold text-white transition hover:bg-app-mocha">
                         Entrar novamente

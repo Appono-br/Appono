@@ -13,6 +13,13 @@ const filters = [
     "Contemporânea",
     "Vegano Fine Dining",
 ];
+const filtrosBusca = [
+    { id: "todos", label: "Todos" },
+    { id: "favoritos", label: "Favoritos" },
+    { id: "bem-avaliados", label: "4+ estrelas" },
+    { id: "reserva", label: "Aceita reserva" },
+    { id: "cardapio", label: "Com cardápio" },
+];
 const navItems = [
     { label: "Início", href: "/cliente/dashboard" },
     { label: "Detalhes do pedido", href: "/cliente/detalhes-pedido" },
@@ -96,7 +103,16 @@ function obterCamposRestaurante(restaurant) {
         restaurant.neighborhood,
         restaurant.openingHours,
         ...(restaurant.matchedProducts ?? []).map((produto) => textoBusca(produto.nome, produto.descricao)),
+        ...(restaurant.matchedCategories ?? []).map((categoria) => textoBusca(categoria.nome, categoria.descricao)),
+        ...(restaurant.matchedMenus ?? []).map((cardapio) => textoBusca(cardapio.nome, cardapio.descricao)),
     ];
+}
+function obterRotulosCorrespondencia(restaurant) {
+    return [
+        ...(restaurant.matchedProducts ?? []).map((produto) => `Prato: ${produto.nome}`),
+        ...(restaurant.matchedCategories ?? []).map((categoria) => `Categoria: ${categoria.nome}`),
+        ...(restaurant.matchedMenus ?? []).map((cardapio) => `Cardápio: ${cardapio.nome}`),
+    ].filter(Boolean).slice(0, 3);
 }
 function mapearRestaurante(restaurant) {
     return {
@@ -111,6 +127,12 @@ function mapearRestaurante(restaurant) {
         favoriteCount: restaurant.total_favoritos ?? 0,
         isFavorite: Boolean(restaurant.favorito_cliente),
         matchedProducts: restaurant.produtos_encontrados ?? [],
+        matchedCategories: restaurant.categorias_encontradas ?? [],
+        matchedMenus: restaurant.cardapios_encontrados ?? [],
+        publishedCategories: restaurant.categorias_publicadas ?? [],
+        menuItemsCount: restaurant.total_itens_cardapio ?? 0,
+        hasMenu: Boolean(restaurant.tem_cardapio_publicado),
+        acceptsReservation: Boolean(restaurant.aceita_reserva),
         distanceKm: restaurant.distancia_km,
         distanceOrigin: restaurant.origem_distancia,
         resolvedLocation: restaurant.localizacao_resolvida,
@@ -118,6 +140,8 @@ function mapearRestaurante(restaurant) {
 }
 export default function DashboardPage() {
     const [activeFilter, setActiveFilter] = useState(filters[0]);
+    const [filtroBusca, setFiltroBusca] = useState("todos");
+    const [ordenacaoBusca, setOrdenacaoBusca] = useState("relevancia");
     const [query, setQuery] = useState("");
     const [debouncedQuery, setDebouncedQuery] = useState("");
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -272,8 +296,22 @@ export default function DashboardPage() {
         if (!query.trim()) {
             return [];
         }
-        return filtrarOrdenarPorBusca(searchRestaurants, query, obterCamposRestaurante).slice(0, 5);
-    }, [query, searchRestaurants]);
+        const resultadosPorRelevancia = filtrarOrdenarPorBusca(searchRestaurants, query, obterCamposRestaurante);
+        const filtrados = resultadosPorRelevancia.filter((restaurant) => {
+            if (filtroBusca === "favoritos") return restaurant.isFavorite;
+            if (filtroBusca === "bem-avaliados") return Number(restaurant.rating ?? 0) >= 4;
+            if (filtroBusca === "reserva") return restaurant.acceptsReservation;
+            if (filtroBusca === "cardapio") return restaurant.hasMenu;
+            return true;
+        });
+        if (ordenacaoBusca === "avaliacao") {
+            return [...filtrados].sort((a, b) => Number(b.rating ?? 0) - Number(a.rating ?? 0)).slice(0, 5);
+        }
+        if (ordenacaoBusca === "curtidos") {
+            return [...filtrados].sort((a, b) => Number(b.favoriteCount ?? 0) - Number(a.favoriteCount ?? 0)).slice(0, 5);
+        }
+        return filtrados.slice(0, 5);
+    }, [filtroBusca, ordenacaoBusca, query, searchRestaurants]);
     const highlightedRestaurants = useMemo(() => [...restaurants]
         .filter((restaurant) => Number(restaurant.favoriteCount) > 0)
         .sort((a, b) => Number(b.favoriteCount) - Number(a.favoriteCount))
@@ -402,19 +440,55 @@ export default function DashboardPage() {
               <button type="button" onClick={() => setQuery("")} className="rounded-[8px] border border-app-baunilha-dourada px-3 py-2 text-[11px] font-bold uppercase text-app-mocha transition hover:bg-app-chantilly">Limpar</button>
             </div>
 
-            {searchResults.length ? (<div className="mt-3 grid gap-2">
-              {searchResults.map((restaurant) => (<Link key={restaurant.id} href={`/cliente/restaurantes/${restaurant.id}`} className="group flex items-center gap-3 rounded-[10px] p-2 transition hover:bg-app-chantilly">
-                <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-[8px] bg-white ring-1 ring-app-baunilha-dourada/55">
-                  {restaurant.imageUrl ? (<Image src={restaurant.imageUrl} alt={restaurant.name} fill sizes="56px" className="object-cover transition group-hover:scale-105"/>) : (<div className="flex h-full items-center justify-center text-[10px] font-semibold text-app-mocha">Appono</div>)}
-                </div>
+            <div className="mt-3 rounded-[12px] border border-app-baunilha-dourada/60 bg-app-chantilly/45 p-3">
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
                 <div className="min-w-0 flex-1">
-                  <h3 className="truncate text-sm font-bold text-app-cafe-profundo">{restaurant.name}</h3>
-                  <p className="mt-1 truncate text-xs text-app-cinza">{restaurant.neighborhood ?? "Endereço em atualização"}</p>
-                  {restaurant.matchedProducts?.length ? (<p className="mt-1 truncate text-xs font-semibold text-app-caramelo-torrado">Cardápio: {restaurant.matchedProducts.map((produto) => produto.nome).join(", ")}</p>) : null}
+                  <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">
+                    Refinar busca
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {filtrosBusca.map((filtro) => (
+                      <button key={filtro.id} type="button" onClick={() => setFiltroBusca(filtro.id)} className={`rounded-full px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.11em] ring-1 transition ${filtroBusca === filtro.id
+                        ? "bg-app-cafe-profundo text-app-creme-leve shadow-sm ring-app-cafe-profundo"
+                        : "bg-white text-app-mocha ring-app-baunilha-dourada/70 hover:bg-app-chantilly hover:text-app-cafe-profundo hover:ring-app-caramelo-torrado/45"}`}>
+                        {filtro.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-                <span className="hidden rounded-full bg-app-cafe-profundo px-3 py-1 text-[10px] font-bold uppercase text-app-creme-leve sm:inline-flex">Ver</span>
-              </Link>))}
-            </div>) : (<p className="px-2 py-5 text-center text-sm text-app-cinza">Tente buscar pelo nome, bairro, endereço ou item do cardápio.</p>)}
+
+                <label className="grid gap-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado sm:min-w-48">
+                  Ordenar por
+                  <select value={ordenacaoBusca} onChange={(event) => setOrdenacaoBusca(event.target.value)} className="h-10 rounded-[10px] border border-app-baunilha-dourada/70 bg-white px-3 text-xs font-semibold normal-case tracking-normal text-app-cafe-profundo shadow-sm outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-caramelo-torrado/15">
+                    <option value="relevancia">Relevância</option>
+                    <option value="avaliacao">Avaliação</option>
+                    <option value="curtidos">Mais curtidos</option>
+                  </select>
+                </label>
+              </div>
+            </div>
+
+            {searchResults.length ? (<div className="mt-3 grid gap-2">
+              {searchResults.map((restaurant) => {
+                const correspondencias = obterRotulosCorrespondencia(restaurant);
+                return (
+                  <Link key={restaurant.id} href={`/cliente/restaurantes/${restaurant.id}`} className="group flex items-center gap-3 rounded-[10px] p-2 transition hover:bg-app-chantilly">
+                    <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-[8px] bg-white ring-1 ring-app-baunilha-dourada/55">
+                      {restaurant.imageUrl ? (<Image src={restaurant.imageUrl} alt={restaurant.name} fill sizes="56px" className="object-contain p-1.5 transition group-hover:scale-105"/>) : (<div className="flex h-full items-center justify-center text-[10px] font-semibold text-app-mocha">Appono</div>)}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="truncate text-sm font-bold text-app-cafe-profundo">{restaurant.name}</h3>
+                      <p className="mt-1 truncate text-xs text-app-cinza">{restaurant.neighborhood ?? "Endereço em atualização"}</p>
+                      {correspondencias.length ? (<p className="mt-1 truncate text-xs font-semibold text-app-caramelo-torrado">{correspondencias.join(" | ")}</p>) : null}
+                    </div>
+                    <span className="hidden rounded-full bg-app-cafe-profundo px-3 py-1 text-[10px] font-bold uppercase text-app-creme-leve sm:inline-flex">Ver</span>
+                  </Link>
+                );
+              })}
+              <Link href={`/cliente/busca?q=${encodeURIComponent(query.trim())}`} className="mt-1 flex h-11 items-center justify-center rounded-[10px] border border-app-baunilha-dourada bg-white text-[10px] font-bold uppercase tracking-[0.14em] text-app-caramelo-torrado transition hover:bg-app-chantilly hover:text-app-cafe-profundo">
+                Ver todos os resultados
+              </Link>
+            </div>) : (<p className="px-2 py-5 text-center text-sm text-app-cinza">Tente buscar por restaurante, bairro, endereço, categoria ou prato do cardápio.</p>)}
           </section>) : null}
         </div>
       </section>

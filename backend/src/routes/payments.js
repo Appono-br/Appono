@@ -605,7 +605,7 @@ exports.paymentsRouter.post("/pedido/:id/preferência", async (req, res) => {
         }
         if (!mercadoPagoProducaoPermitida() && !(0, mercado_pago_1.obterAccessTokenMercadoPago)()) {
             return res.status(409).json({
-                error: "Configure MERCADO_PAGO_TEST_ACCESS_TOKEN com as credenciais de teste do Mercado Pago para realizar pagamentos sem transacao real.",
+                error: "Configure MERCADO_PAGO_TEST_ACCESS_TOKEN com a credencial de teste do Mercado Pago. Evite usar credencial de produção no ambiente local.",
             });
         }
         const token = marketplaceRealAtivo()
@@ -613,7 +613,7 @@ exports.paymentsRouter.post("/pedido/:id/preferência", async (req, res) => {
             : (0, mercado_pago_1.obterAccessTokenMercadoPago)();
         if (!token) {
             return res.status(409).json({
-                error: "MERCADO_PAGO_ACCESS_TOKEN ainda não está configurado no backend.",
+                error: "Token Mercado Pago não configurado para o modo atual do backend.",
             });
         }
         const resumoFinanceiro = calcularResumoFinanceiro(pedido.valor_total, conexaoRestaurante);
@@ -696,7 +696,7 @@ exports.paymentsRouter.post("/pedido/:id/preferência", async (req, res) => {
             const causa = Array.isArray(error?.cause) && error.cause.length
                 ? ` ${error.cause.map((item) => item.description ?? item.message).filter(Boolean).join(" ")}`
                 : "";
-            throw new Error(`${error?.message ?? "Nao foi possivel criar a preferência de pagamento."}${causa}`.trim());
+            throw new Error(`${error?.message ?? "Não foi possível criar a preferência de pagamento."}${causa}`.trim());
         });
         const checkoutUrl = obterCheckoutUrlMercadoPago(preferência, token);
         if (!checkoutUrl) {

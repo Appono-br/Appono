@@ -41,6 +41,7 @@ function Icon({ type, className = "h-5 w-5" }) {
   const paths = {
     clock: "M12 6v6l4 2M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z",
     heart: "M12 20.25 4.35 12.9A4.65 4.65 0 0 1 10.93 6.3L12 7.38l1.07-1.08a4.65 4.65 0 0 1 6.58 6.6L12 20.25z",
+    message: "M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v8z",
     minus: "M5 12h14",
     plus: "M12 5v14M5 12h14",
     receipt: "M7 3h10v18l-2-1-2 1-2-1-2 1-2-1V3z M9 8h6M9 12h6M9 16h4",
@@ -117,6 +118,7 @@ export default function PaginaRestaurante({ params }) {
   const [disponibilidade, setDisponibilidade] = useState({ operacao_configurada: false, horarios: [], motivo: "" });
   const [enviando, setEnviando] = useState(false);
   const [favoritando, setFavoritando] = useState(false);
+  const [abrindoChat, setAbrindoChat] = useState(false);
 
   useEffect(() => {
     params.then(({ id }) => setRestauranteId(Number(id)));
@@ -249,6 +251,26 @@ export default function PaginaRestaurante({ params }) {
     }
   }
 
+  async function abrirChatRestaurante() {
+    if (!restaurante || abrindoChat) return;
+    setAbrindoChat(true);
+    setMensagem("");
+    try {
+      const conversa = await apiRequest("/mensagens/conversas", {
+        method: "POST",
+        body: JSON.stringify({
+          id_restaurante: restaurante.id_restaurante,
+          assunto: `Atendimento - ${restaurante.nome}`,
+        }),
+      });
+      window.location.assign(`/cliente/mensagens/${conversa.id_conversa}`);
+    } catch (erro) {
+      setMensagem(erro instanceof Error ? erro.message : "Não foi possível iniciar o chat.");
+    } finally {
+      setAbrindoChat(false);
+    }
+  }
+
   async function reservar(event) {
     event.preventDefault();
     if (!restaurante) return;
@@ -348,15 +370,26 @@ export default function PaginaRestaurante({ params }) {
                     <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-app-caramelo-torrado">Restaurante</p>
                     <h1 className="mt-2 break-words text-3xl font-semibold leading-tight text-app-cafe-profundo sm:text-4xl">{restaurante.nome}</h1>
                   </div>
-                  <button
-                    type="button"
-                    disabled={favoritando}
-                    onClick={alternarFavorito}
-                    className="inline-flex h-10 items-center gap-2 rounded-full border border-app-caramelo-torrado px-4 text-xs font-bold uppercase tracking-[0.08em] text-app-caramelo-torrado transition hover:bg-app-caramelo-torrado hover:text-white disabled:opacity-50"
-                  >
-                    <Icon type="heart" className="h-4 w-4" />
-                    {restaurante.favorito_cliente ? "Favorito" : "Favoritar"}
-                  </button>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      disabled={abrindoChat}
+                      onClick={abrirChatRestaurante}
+                      className="inline-flex h-10 items-center gap-2 rounded-full border border-app-baunilha-dourada px-4 text-xs font-bold uppercase tracking-[0.08em] text-app-cafe-profundo transition hover:bg-app-chantilly disabled:opacity-50"
+                    >
+                      <Icon type="message" className="h-4 w-4" />
+                      {abrindoChat ? "Abrindo..." : "Falar"}
+                    </button>
+                    <button
+                      type="button"
+                      disabled={favoritando}
+                      onClick={alternarFavorito}
+                      className="inline-flex h-10 items-center gap-2 rounded-full border border-app-caramelo-torrado px-4 text-xs font-bold uppercase tracking-[0.08em] text-app-caramelo-torrado transition hover:bg-app-caramelo-torrado hover:text-white disabled:opacity-50"
+                    >
+                      <Icon type="heart" className="h-4 w-4" />
+                      {restaurante.favorito_cliente ? "Favorito" : "Favoritar"}
+                    </button>
+                  </div>
                 </div>
                 <p className="mt-3 max-w-xl break-words text-sm leading-6 text-app-mocha">{resumirEndereco(restaurante.endereco)}</p>
                 <div className="mt-4 flex flex-wrap gap-2">

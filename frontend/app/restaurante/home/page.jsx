@@ -103,8 +103,8 @@ export default function RestaurantHomePage() {
                 { label: "Pessoas esperadas", value: reservasHoje.reduce((soma, reserva) => soma + Number(reserva.quantidade_pessoas ?? 0), 0) },
             ],
             desempenhoMensal: [
-                { label: "Pedidos no periodo", value: pedidos30Dias.length },
-                { label: "Ticket medio", value: formatarMoedaResumo(calcularTicketMedio(pedidos30Dias)) },
+                { label: "Pedidos no período", value: pedidos30Dias.length },
+                { label: "Ticket médio", value: formatarMoedaResumo(calcularTicketMedio(pedidos30Dias)) },
                 { label: "Pedidos pagos", value: financeiro?.resumo?.quantidade_pagamentos ?? 0 },
                 { label: "Clientes atendidos", value: obterClientesUnicos(reservas30Dias, pedidos30Dias) },
             ],

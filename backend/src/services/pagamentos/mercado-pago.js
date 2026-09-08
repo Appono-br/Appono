@@ -7,10 +7,14 @@ const MERCADO_PAGO_API = "https://api.mercadopago.com";
 function obterAccessTokenMercadoPago() {
     const producaoPermitida = String(process.env.MERCADO_PAGO_PERMITIR_PRODUCAO ?? "false").toLowerCase() === "true";
     const tokenTeste = process.env.MERCADO_PAGO_TEST_ACCESS_TOKEN?.trim();
+    const tokenPadrao = process.env.MERCADO_PAGO_ACCESS_TOKEN?.trim() ?? "";
     if (!producaoPermitida && tokenTeste) {
         return tokenTeste;
     }
-    return process.env.MERCADO_PAGO_ACCESS_TOKEN?.trim() ?? "";
+    if (!producaoPermitida) {
+        return /^TEST-/i.test(tokenPadrao) ? tokenPadrao : "";
+    }
+    return tokenPadrao;
 }
 
 function criarClienteMercadoPago(accessToken = obterAccessTokenMercadoPago()) {
