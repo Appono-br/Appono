@@ -1,0 +1,107 @@
+[
+  {
+    "name": "01-home-cliente",
+    "finalUrl": "http://localhost:3000/cliente/dashboard",
+    "bytes": 109957,
+    "loading": false,
+    "preview": "Buscar restaurantes PROXIMA RESERVA Nenhuma reserva ativa Escolha um restaurante para agendar sua proxima experiencia. VER RESERVAS OS FAVORITOS DA COMUNID"
+  },
+  {
+    "name": "02-restaurante-outback",
+    "finalUrl": "http://localhost:3000/cliente/restaurantes/19",
+    "bytes": 3899,
+    "loading": false,
+    "preview": "Carregando restaurante..."
+  },
+  {
+    "name": "03-restaurante-subway",
+    "finalUrl": "http://localhost:3000/cliente/restaurantes/64",
+    "bytes": 147420,
+    "loading": false,
+    "preview": "Carregando restaurante..."
+  },
+  {
+    "name": "04-reservas",
+    "finalUrl": "http://localhost:3000/cliente/reservas",
+    "bytes": 57101,
+    "loading": false,
+    "preview": "9+ RESERVAS Meus Agendamentos Gerencie suas próximas experiências gastronômicas. PERÍODO Setembro 2026 Calendário do Mês D S T Q Q S S 30 31 1 2 3 4 5 6 7"
+  },
+  {
+    "name": "05-todos-pedidos",
+    "finalUrl": "http://localhost:3000/cliente/detalhes-pedido",
+    "bytes": 50973,
+    "loading": false,
+    "preview": "← Voltar ao início PEDIDOS Todos os seus pedidos A listagem carrega apenas o resumo. Itens, acompanhamento e ações são buscados quando você abre um pedido. "
+  },
+  {
+    "name": "06-detalhe-pedido-54",
+    "finalUrl": "http://localhost:3000/cliente/pedidos/54",
+    "bytes": 54812,
+    "loading": false,
+    "preview": ""
+  },
+  {
+    "name": "07-avaliar-pedido-54",
+    "finalUrl": "http://localhost:3000/cliente/pedidos/54/avaliar",
+    "bytes": 2931,
+    "loading": false,
+    "preview": ""
+  },
+  {
+    "name": "08-pagamento-pedido-54",
+    "finalUrl": "http://localhost:3000/cliente/pagamentos/pedido/54",
+    "bytes": 64560,
+    "loading": false,
+    "preview": "Voltar aos detalhes do pedido CHECKOUT PRO Finalize o pagamento do pedido antecipado O pagamento e processado pelo Mercado Pago. Depois da aprovacao, a Appon"
+  },
+  {
+    "name": "09-retorno-pagamento",
+    "finalUrl": "http://localhost:3000/cliente/pagamentos/retorno",
+    "bytes": 28973,
+    "loading": false,
+    "preview": "MERCADO PAGO Pedido ou reserva nao informado no retorno do pagamento. Aguarde alguns instantes. VER MINHAS RESERVAS ATUALIZAR STATUS VOLTAR AO INICIO"
+  },
+  {
+    "name": "10-favoritos",
+    "finalUrl": "http://localhost:3000/cliente/favoritos",
+    "bytes": 5099,
+    "loading": false,
+    "preview": "← Voltar SUA SELECAO Restaurantes favoritos Carregando favoritos..."
+  },
+  {
+    "name": "11-notificacoes",
+    "finalUrl": "http://localhost:3000/cliente/notificacoes",
+    "bytes": 261926,
+    "loading": false,
+    "preview": "VOLTAR CENTRAL DE NOTIFICACOES Acompanhe o que muda na sua operacao Aqui ficam os avisos importantes de reservas, pedidos, pagamentos e cancelamentos do modu"
+  },
+  {
+    "name": "12-mensagens",
+    "finalUrl": "http://localhost:3000/cliente/mensagens",
+    "bytes": 26418,
+    "loading": false,
+    "preview": "CONVERSAS Mensagens Nenhuma conversa disponível As mensagens trocadas com restaurantes aparecerão aqui. POLÍTICA DE PRIVACIDADE TERMOS DE USO CONTATO © 2026"
+  },
+  {
+    "name": "13-configuracoes",
+    "finalUrl": "http://localhost:3000/cliente/configuracoes",
+    "bytes": 55360,
+    "loading": false,
+    "preview": "9+ PREFERÊNCIAS E SEGURANÇA Configurações Davi Garcia Conta de cliente Conta Atualize suas informações pessoais e foto de perfil Idioma Escolha o idioma de "
+  },
+  {
+    "name": "14-config-conta",
+    "finalUrl": "http://localhost:3000/cliente/configuracoes/conta",
+    "bytes": 58302,
+    "loading": false,
+    "preview": "CONFIGURAÇÕES CONTA Detalhes Pessoais Atualize suas informações de contato. Data de nascimento e documento permanecem bloqueados por segurança. NOME COMPLET"
+  },
+  {
+    "name": "15-config-pagamentos",
+    "finalUrl": "http://localhost:3000/cliente/configuracoes",
+    "bytes": 55332,
+    "loading": false,
+    "preview": "PREFERÊNCIAS E SEGURANÇA Configurações Davi Garcia Conta de cliente Conta Atualize suas informações pessoais e foto de perfil Idioma Escolha o idioma de uso "
+  }
+]

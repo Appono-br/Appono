@@ -1,11 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { BotaoVoltar } from "@/components/botao-voltar";
 import { apiRequest } from "@/lib/api";
-import { calcularTempoPreparoItens } from "@/lib/tempo-preparo";
 
 const LIMITE_UNIDADES_POR_ITEM = 10;
 
@@ -35,13 +33,15 @@ function obterDataLimiteReserva() {
 }
 
 function adicionarDuasHoras(horario) {
-  const [hora, minuto] = horario.split(":").map(Number);
+  const [hora, minuto] = String(horario ?? "00:00").split(":").map(Number);
   return `${String((hora + 2) % 24).padStart(2, "0")}:${String(minuto).padStart(2, "0")}`;
 }
 
 function Icon({ type, className = "h-5 w-5" }) {
   const paths = {
     clock: "M12 6v6l4 2M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z",
+    heart: "M12 20.25 4.35 12.9A4.65 4.65 0 0 1 10.93 6.3L12 7.38l1.07-1.08a4.65 4.65 0 0 1 6.58 6.6L12 20.25z",
+    message: "M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v8z",
     minus: "M5 12h14",
     plus: "M12 5v14M5 12h14",
     receipt: "M7 3h10v18l-2-1-2 1-2-1-2 1-2-1V3z M9 8h6M9 12h6M9 16h4",
@@ -51,41 +51,36 @@ function Icon({ type, className = "h-5 w-5" }) {
 
   return (
     <svg aria-hidden="true" viewBox="0 0 24 24" className={className}>
-      <path d={paths[type]} fill={type === "star" ? "currentColor" : "none"} stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" />
+      <path
+        d={paths[type]}
+        fill={type === "star" || type === "heart" ? "currentColor" : "none"}
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="1.8"
+      />
     </svg>
   );
 }
 
 function obterProdutosSelecionados(produtos, quantidades) {
   return produtos
-    .map((produto) => ({
-      ...produto,
-      quantidade: quantidades[produto.id_produto] ?? 0,
-    }))
+    .map((produto) => ({ ...produto, quantidade: quantidades[produto.id_produto] ?? 0 }))
     .filter((produto) => produto.quantidade > 0);
 }
 
 function resumirEndereco(endereco) {
-  if (!endereco) {
-    return "Endereco em atualizacao";
-  }
+  if (!endereco) return "Endereço em atualização";
   return String(endereco).split(",").slice(0, 3).join(",").trim();
 }
 
 function obterLinhasHorarioFuncionamento(horarioFuncionamento) {
-  if (!horarioFuncionamento || horarioFuncionamento === "A definir") {
-    return ["A definir"];
-  }
-  return String(horarioFuncionamento)
-    .split("|")
-    .map((linha) => linha.trim())
-    .filter(Boolean);
+  if (!horarioFuncionamento || horarioFuncionamento === "A definir") return ["A definir"];
+  return String(horarioFuncionamento).split("|").map((linha) => linha.trim()).filter(Boolean);
 }
 
 function formatarDataAvaliacao(data) {
-  if (!data) {
-    return "";
-  }
+  if (!data) return "";
   return new Date(data).toLocaleDateString("pt-BR", {
     day: "2-digit",
     month: "short",
@@ -113,7 +108,7 @@ export default function PaginaRestaurante({ params }) {
   const [restaurante, setRestaurante] = useState(null);
   const [cardapios, setCardapios] = useState([]);
   const [data, setData] = useState(obterDataPermitida);
-  const [horario, setHorario] = useState("19:00");
+  const [horario, setHorario] = useState("");
   const [pessoas, setPessoas] = useState(2);
   const [observacoesReserva, setObservacoesReserva] = useState("");
   const [observacoesPedido, setObservacoesPedido] = useState("");
@@ -122,15 +117,15 @@ export default function PaginaRestaurante({ params }) {
   const [mensagem, setMensagem] = useState("Carregando restaurante...");
   const [disponibilidade, setDisponibilidade] = useState({ operacao_configurada: false, horarios: [], motivo: "" });
   const [enviando, setEnviando] = useState(false);
+  const [favoritando, setFavoritando] = useState(false);
+  const [abrindoChat, setAbrindoChat] = useState(false);
 
   useEffect(() => {
     params.then(({ id }) => setRestauranteId(Number(id)));
   }, [params]);
 
   useEffect(() => {
-    if (!restauranteId) {
-      return;
-    }
+    if (!restauranteId) return;
 
     Promise.all([
       apiRequest(`/restaurantes/${restauranteId}`),
@@ -141,7 +136,7 @@ export default function PaginaRestaurante({ params }) {
         setCardapios(dadosCardapio ?? []);
         setMensagem("");
       })
-      .catch((erro) => setMensagem(erro instanceof Error ? erro.message : "Nao foi possivel carregar o restaurante."));
+      .catch((erro) => setMensagem(erro instanceof Error ? erro.message : "Não foi possível carregar o restaurante."));
   }, [restauranteId]);
 
   const valorMinimoPorPessoa = Number(restaurante?.valor_minimo_reserva_por_pessoa ?? 0);
@@ -161,25 +156,16 @@ export default function PaginaRestaurante({ params }) {
 
   const produtos = useMemo(() => {
     return produtosPorCategoria.flatMap((categoria) =>
-      categoria.produtos.map((produto) => ({
-        ...produto,
-        categoria: categoria.nome,
-      })),
+      categoria.produtos.map((produto) => ({ ...produto, categoria: categoria.nome })),
     );
   }, [produtosPorCategoria]);
 
-  const produtosDestaque = useMemo(() => {
-    return produtos
-      .filter((produto) => produto.destaque === true)
-      .slice(0, 3);
-  }, [produtos]);
-
+  const produtosDestaque = useMemo(() => produtos.filter((produto) => produto.destaque === true).slice(0, 3), [produtos]);
   const produtosSelecionados = useMemo(() => obterProdutosSelecionados(produtos, quantidades), [produtos, quantidades]);
   const totalItens = produtosSelecionados.reduce((soma, produto) => soma + produto.quantidade, 0);
   const totalPedido = produtosSelecionados.reduce((soma, produto) => soma + Number(produto.preco ?? 0) * produto.quantidade, 0);
   const temPedidoAntecipado = totalItens > 0;
   const faltaParaMinimo = temPedidoAntecipado ? Math.max(0, valorMinimoTotal - totalPedido) : 0;
-  const tempoEstimado = calcularTempoPreparoItens(produtosSelecionados);
   const horariosComStatus = disponibilidade.horarios ?? [];
   const horariosDisponiveis = horariosComStatus.filter((item) => item.disponivel);
   const slotSelecionado = horariosDisponiveis.find((item) => item.horario === horario) ?? horariosDisponiveis[0] ?? null;
@@ -190,43 +176,54 @@ export default function PaginaRestaurante({ params }) {
   const avaliacaoMedia = Number(restaurante?.avaliacao_media ?? 0);
   const totalAvaliacoes = Number(restaurante?.total_avaliacoes ?? 0);
   const avaliacoesRecentes = restaurante?.avaliacoes_recentes ?? [];
-  const menorTempoCardapio = produtos.length
-    ? Math.min(...produtos.map((produto) => Number(produto.tempo_preparo_minutos ?? 30)))
-    : 0;
   const linhasHorarioFuncionamento = obterLinhasHorarioFuncionamento(restaurante?.horario_funcionamento);
+  const chaveHorariosDisponiveis = horariosDisponiveis.map((slot) => slot.horario).join("|");
+  const primeiroHorarioDisponivel = horariosDisponiveis[0]?.horario ?? "";
+  const horarioEstaDisponivel = horariosDisponiveis.some((slot) => slot.horario === horario);
 
   useEffect(() => {
-    if (!restauranteId || !restaurante) {
-      return;
-    }
+    if (!restauranteId || !restaurante) return;
 
-    const params = new URLSearchParams({
+    const parametros = new URLSearchParams({
       data,
       pessoas: String(pessoas),
-      tempo_preparo: String(temPedidoAntecipado ? tempoEstimado : 0),
     });
 
-    apiRequest(`/restaurantes/${restauranteId}/disponibilidade?${params.toString()}`)
+    apiRequest(`/restaurantes/${restauranteId}/disponibilidade?${parametros.toString()}`)
       .then((resultado) => setDisponibilidade(resultado))
-      .catch((erro) => setDisponibilidade({
-        operacao_configurada: false,
-        horarios: [],
-        motivo: erro instanceof Error ? erro.message : "Nao foi possivel carregar os horarios.",
-      }));
-  }, [data, pessoas, restaurante, restauranteId, temPedidoAntecipado, tempoEstimado]);
+      .catch((erro) =>
+        setDisponibilidade({
+          operacao_configurada: false,
+          horarios: [],
+          motivo: erro instanceof Error ? erro.message : "Não foi possível carregar os horários.",
+        }),
+      );
+  }, [data, pessoas, restaurante, restauranteId]);
+
+  useEffect(() => {
+    if (!chaveHorariosDisponiveis) {
+      if (horario) {
+        queueMicrotask(() => setHorario(""));
+      }
+      return;
+    }
+    if (!horarioEstaDisponivel) {
+      queueMicrotask(() => setHorario(primeiroHorarioDisponivel));
+    }
+  }, [chaveHorariosDisponiveis, horario, horarioEstaDisponivel, primeiroHorarioDisponivel]);
 
   function alterarQuantidade(produtoId, diferenca) {
     if (diferenca > 0 && !restaurante?.pedidos_antecipados_habilitados) {
-      setMensagem("Este restaurante ainda nao habilitou pedidos antecipados pelo Mercado Pago. A reserva simples continua disponivel.");
+      setMensagem("Este restaurante ainda não hábilitou pedidos antecipados pelo Mercado Pago. A reserva simples continua disponível.");
       return;
     }
     setMensagem("");
     setQuantidades((atuais) => {
       const proximaQuantidade = Math.min(LIMITE_UNIDADES_POR_ITEM, Math.max(0, (atuais[produtoId] ?? 0) + diferenca));
-      return {
-        ...atuais,
-        [produtoId]: proximaQuantidade,
-      };
+      const proximas = { ...atuais };
+      if (proximaQuantidade > 0) proximas[produtoId] = proximaQuantidade;
+      else delete proximas[produtoId];
+      return proximas;
     });
   }
 
@@ -238,21 +235,55 @@ export default function PaginaRestaurante({ params }) {
     }));
   }
 
+  async function alternarFavorito() {
+    if (!restaurante || favoritando) return;
+    setFavoritando(true);
+    try {
+      const resposta = await apiRequest(`/restaurantes/${restaurante.id_restaurante}/favorito`, {
+        method: "PATCH",
+        body: JSON.stringify({ favorito: !restaurante.favorito_cliente }),
+      });
+      setRestaurante((atual) => ({ ...atual, ...resposta }));
+    } catch (erro) {
+      setMensagem(erro instanceof Error ? erro.message : "Não foi possível atualizar o favorito.");
+    } finally {
+      setFavoritando(false);
+    }
+  }
+
+  async function abrirChatRestaurante() {
+    if (!restaurante || abrindoChat) return;
+    setAbrindoChat(true);
+    setMensagem("");
+    try {
+      const conversa = await apiRequest("/mensagens/conversas", {
+        method: "POST",
+        body: JSON.stringify({
+          id_restaurante: restaurante.id_restaurante,
+          assunto: `Atendimento - ${restaurante.nome}`,
+        }),
+      });
+      window.location.assign(`/cliente/mensagens/${conversa.id_conversa}`);
+    } catch (erro) {
+      setMensagem(erro instanceof Error ? erro.message : "Não foi possível iniciar o chat.");
+    } finally {
+      setAbrindoChat(false);
+    }
+  }
+
   async function reservar(event) {
     event.preventDefault();
-    if (!restaurante) {
-      return;
-    }
+    if (!restaurante) return;
     if (!operacaoConfigurada) {
-      setMensagem("Este restaurante ainda nao configurou horarios de funcionamento para receber reservas.");
+      setMensagem("Este restaurante ainda não configurou horários de funcionamento para receber reservas.");
       return;
     }
     if (!horarioSelecionado) {
-      setMensagem("Escolha um horario disponivel dentro do funcionamento do restaurante.");
+      setMensagem("Escolha um horário disponível dentro do funcionamento do restaurante.");
       return;
     }
     if (temPedidoAntecipado && faltaParaMinimo > 0) {
-      setMensagem(`Para reservar com pedido antecipado, ainda faltam ${formatarMoeda(faltaParaMinimo)} para atingir o consumo minimo.`);
+      setMensagem(`Para reservar com pedido antecipado, ainda faltam ${formatarMoeda(faltaParaMinimo)} para atingir o consumo mínimo.`);
       return;
     }
 
@@ -296,7 +327,7 @@ export default function PaginaRestaurante({ params }) {
       });
       window.location.assign(`/cliente/pagamentos/pedido/${fluxoCriado.pedido.id_pedido}`);
     } catch (erro) {
-      setMensagem(erro instanceof Error ? erro.message : "Nao foi possivel concluir a reserva.");
+      setMensagem(erro instanceof Error ? erro.message : "Não foi possível concluir a reserva.");
     } finally {
       setEnviando(false);
     }
@@ -304,22 +335,22 @@ export default function PaginaRestaurante({ params }) {
 
   if (!restaurante) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-app-chantilly px-5 text-app-cafe-profundo">
+      <main className="flex min-h-screen items-center justify-center bg-white px-5 text-app-cafe-profundo">
         <p className="text-sm font-semibold">{mensagem}</p>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-app-chantilly px-4 py-6 text-app-cafe-profundo sm:px-5 sm:py-8">
+    <main className="min-h-screen bg-white px-4 py-6 text-app-cafe-profundo sm:px-5 sm:py-8">
       <div className="mx-auto max-w-6xl">
         <BotaoVoltar href="/cliente/dashboard" className="text-sm font-bold text-app-caramelo-torrado transition hover:text-app-cafe-profundo">
           Voltar aos restaurantes
         </BotaoVoltar>
 
-        <section className="mt-5 overflow-hidden rounded-[18px] bg-app-creme-leve shadow-[0_18px_55px_rgba(74,44,10,0.10)] ring-1 ring-app-baunilha-dourada">
+        <section className="mt-5 overflow-hidden rounded-[18px] bg-white shadow-[0_18px_55px_rgba(74,44,10,0.10)] ring-1 ring-app-baunilha-dourada">
           <div className="grid lg:grid-cols-[0.72fr_1fr]">
-            <div className="relative flex min-h-44 items-center justify-center bg-app-chantilly p-5 sm:min-h-52 lg:min-h-[280px]">
+            <div className="relative flex min-h-44 items-center justify-center bg-white p-5 sm:min-h-52 lg:min-h-[280px]">
               {restaurante.logo_url ? (
                 <Image src={restaurante.logo_url} alt={restaurante.nome} fill priority sizes="(min-width: 1024px) 360px, 100vw" className="object-contain p-6" />
               ) : (
@@ -327,49 +358,58 @@ export default function PaginaRestaurante({ params }) {
                   <Icon type="utensils" className="h-12 w-12" />
                 </div>
               )}
-              <span className="absolute bottom-4 left-4 rounded-full bg-app-creme-leve/95 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-app-caramelo-torrado shadow-sm">
+              <span className="absolute bottom-4 left-4 rounded-full bg-white/95 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-app-caramelo-torrado shadow-sm">
                 Parceiro Appono
               </span>
             </div>
 
             <div className="flex min-w-0 flex-col justify-between p-5 sm:p-6 lg:p-7">
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-app-caramelo-torrado">
-                  Restaurante
-                </p>
-                <h1 className="mt-2 break-words text-3xl font-semibold leading-tight text-app-cafe-profundo sm:text-4xl">
-                  {restaurante.nome}
-                </h1>
-                <p className="mt-3 max-w-xl break-words text-sm leading-6 text-app-mocha">
-                  {resumirEndereco(restaurante.endereco)}
-                </p>
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-app-caramelo-torrado">Restaurante</p>
+                    <h1 className="mt-2 break-words text-3xl font-semibold leading-tight text-app-cafe-profundo sm:text-4xl">{restaurante.nome}</h1>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      disabled={abrindoChat}
+                      onClick={abrirChatRestaurante}
+                      className="inline-flex h-10 items-center gap-2 rounded-full border border-app-baunilha-dourada px-4 text-xs font-bold uppercase tracking-[0.08em] text-app-cafe-profundo transition hover:bg-app-chantilly disabled:opacity-50"
+                    >
+                      <Icon type="message" className="h-4 w-4" />
+                      {abrindoChat ? "Abrindo..." : "Falar"}
+                    </button>
+                    <button
+                      type="button"
+                      disabled={favoritando}
+                      onClick={alternarFavorito}
+                      className="inline-flex h-10 items-center gap-2 rounded-full border border-app-caramelo-torrado px-4 text-xs font-bold uppercase tracking-[0.08em] text-app-caramelo-torrado transition hover:bg-app-caramelo-torrado hover:text-white disabled:opacity-50"
+                    >
+                      <Icon type="heart" className="h-4 w-4" />
+                      {restaurante.favorito_cliente ? "Favorito" : "Favoritar"}
+                    </button>
+                  </div>
+                </div>
+                <p className="mt-3 max-w-xl break-words text-sm leading-6 text-app-mocha">{resumirEndereco(restaurante.endereco)}</p>
                 <div className="mt-4 flex flex-wrap gap-2">
-                  <span className={`rounded-full px-3 py-1 text-xs font-bold ${operacaoConfigurada ? "bg-app-cafe-profundo text-app-creme-leve" : "bg-app-creme-suave text-app-caramelo-torrado"}`}>
-                    {operacaoConfigurada ? "Reservas disponiveis" : "Operacao em configuracao"}
+                  <span className={`rounded-full px-3 py-1 text-xs font-bold ${operacaoConfigurada ? "bg-app-cafe-profundo text-app-creme-leve" : "bg-white text-app-caramelo-torrado"}`}>
+                    {operacaoConfigurada ? "Reservas disponíveis" : "Operação em configuracao"}
                   </span>
-                  <span className="rounded-full bg-app-creme-suave px-3 py-1 text-xs font-bold text-app-mocha">
-                    {resumoCardapio}
-                  </span>
-                  {menorTempoCardapio ? (
-                    <span className="rounded-full bg-app-creme-suave px-3 py-1 text-xs font-bold text-app-mocha">
-                      A partir de {menorTempoCardapio} min
-                    </span>
-                  ) : null}
-                  <span className="inline-flex items-center gap-2 rounded-full bg-app-creme-suave px-3 py-1 text-xs font-bold text-app-mocha">
+                  <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-app-mocha">{resumoCardapio}</span>
+                  <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-xs font-bold text-app-mocha">
                     {totalAvaliacoes ? <EstrelasNota nota={avaliacaoMedia} /> : <Icon type="star" className="h-3.5 w-3.5 text-app-dourado-mel" />}
                     {totalAvaliacoes ? `${avaliacaoMedia.toFixed(1)} (${totalAvaliacoes})` : "Novo na Appono"}
                   </span>
                 </div>
               </div>
 
-              <div className="mt-5 rounded-[14px] bg-app-chantilly p-3 ring-1 ring-app-baunilha-dourada/60">
-                <div className="min-w-0 rounded-[10px] bg-app-creme-leve px-3 py-3 ring-1 ring-app-baunilha-dourada/45">
-                  <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-app-cinza">Horario</p>
+              <div className="mt-5 rounded-[14px] bg-white p-3 ring-1 ring-app-baunilha-dourada/60">
+                <div className="min-w-0 rounded-[10px] bg-white px-3 py-3 ring-1 ring-app-baunilha-dourada/45">
+                  <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-app-cinza">Horário</p>
                   <div className="mt-2 grid gap-1.5">
                     {linhasHorarioFuncionamento.map((linha) => (
-                      <span key={linha} className="break-words text-[11px] font-semibold leading-4 text-app-cafe-profundo">
-                        {linha}
-                      </span>
+                      <span key={linha} className="break-words text-[11px] font-semibold leading-4 text-app-cafe-profundo">{linha}</span>
                     ))}
                   </div>
                 </div>
@@ -380,13 +420,13 @@ export default function PaginaRestaurante({ params }) {
 
         <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
           <section className="grid gap-6">
-            <section className="rounded-[18px] bg-app-creme-leve p-5 shadow-sm ring-1 ring-app-baunilha-dourada sm:p-6">
+            <section className="rounded-[18px] bg-white p-5 shadow-sm ring-1 ring-app-baunilha-dourada sm:p-6">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">Avaliações</p>
-                  <h2 className="mt-1 text-2xl font-bold">Experiências de clientes</h2>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">Avaliacoes</p>
+                  <h2 className="mt-1 text-2xl font-bold">Experiencias de clientes</h2>
                 </div>
-                <div className="flex w-fit items-center gap-2 rounded-full bg-app-chantilly px-4 py-2 text-sm font-bold text-app-cafe-profundo ring-1 ring-app-baunilha-dourada/60">
+                <div className="flex w-fit items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-bold text-app-cafe-profundo ring-1 ring-app-baunilha-dourada/60">
                   {totalAvaliacoes ? <EstrelasNota nota={avaliacaoMedia} /> : <Icon type="star" className="h-4 w-4 text-app-dourado-mel" />}
                   {totalAvaliacoes ? `${avaliacaoMedia.toFixed(1)} de 5` : "Sem avaliações"}
                 </div>
@@ -394,10 +434,10 @@ export default function PaginaRestaurante({ params }) {
               {avaliacoesRecentes.length ? (
                 <div className="mt-5 grid gap-3 md:grid-cols-2">
                   {avaliacoesRecentes.map((avaliacao) => (
-                    <article key={avaliacao.id_avaliacao} className="rounded-[12px] bg-app-chantilly p-4 ring-1 ring-app-baunilha-dourada/60">
+                    <article key={avaliacao.id_avaliacao} className="rounded-[12px] bg-white p-4 ring-1 ring-app-baunilha-dourada/60">
                       <div className="flex items-center justify-between gap-3">
                         <strong className="truncate text-sm text-app-cafe-profundo">{avaliacao.clientes?.nome ?? "Cliente Appono"}</strong>
-                        <span className="inline-flex items-center gap-2 rounded-full bg-app-creme-suave px-2.5 py-1 text-xs font-bold text-app-caramelo-torrado">
+                        <span className="inline-flex items-center gap-2 rounded-full bg-white px-2.5 py-1 text-xs font-bold text-app-caramelo-torrado">
                           <EstrelasNota nota={avaliacao.nota} />
                           {avaliacao.nota}/5
                         </span>
@@ -408,7 +448,7 @@ export default function PaginaRestaurante({ params }) {
                   ))}
                 </div>
               ) : (
-                <p className="mt-4 rounded-[12px] bg-app-chantilly p-4 text-sm leading-6 text-app-mocha ring-1 ring-app-baunilha-dourada/60">
+                <p className="mt-4 rounded-[12px] bg-white p-4 text-sm leading-6 text-app-mocha ring-1 ring-app-baunilha-dourada/60">
                   As avaliações aparecerão aqui depois que os clientes concluírem reservas ou pedidos.
                 </p>
               )}
@@ -419,15 +459,13 @@ export default function PaginaRestaurante({ params }) {
                 <div className="flex flex-wrap items-end justify-between gap-3">
                   <div>
                     <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-dourado-mel">Selecionados pelo restaurante</p>
-                    <h2 className="mt-1 text-2xl font-bold">Destaques do cardapio</h2>
+                    <h2 className="mt-1 text-2xl font-bold">Destaques do cardápio</h2>
                   </div>
-                  <span className="rounded-full bg-app-mocha px-3 py-1 text-xs font-bold text-app-creme-suave">
-                    Boa pedida para antecipar
-                  </span>
+                  <span className="rounded-full bg-app-mocha px-3 py-1 text-xs font-bold text-app-creme-suave">Boa pedida para antecipar</span>
                 </div>
                 <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                   {produtosDestaque.map((produto) => (
-                    <article key={`destaque-${produto.id_produto}`} className="overflow-hidden rounded-[14px] bg-app-creme-leve text-app-cafe-profundo ring-1 ring-app-baunilha-dourada/45">
+                    <article key={`destaque-${produto.id_produto}`} className="overflow-hidden rounded-[14px] bg-white text-app-cafe-profundo ring-1 ring-app-baunilha-dourada/45">
                       <div className="relative h-24 bg-app-baunilha-dourada/45">
                         {produto.imagem_url ? <Image src={produto.imagem_url} alt={produto.nome} fill className="object-cover" /> : <span className="flex h-full items-center justify-center text-xs font-bold uppercase text-app-caramelo-torrado">Appono</span>}
                       </div>
@@ -444,22 +482,20 @@ export default function PaginaRestaurante({ params }) {
 
             {produtosPorCategoria.length ? (
               produtosPorCategoria.map((categoria) => (
-                <section key={categoria.id_categoria} className="rounded-[18px] bg-app-creme-leve p-5 shadow-sm ring-1 ring-app-baunilha-dourada sm:p-6">
+                <section key={categoria.id_categoria} className="rounded-[18px] bg-white p-5 shadow-sm ring-1 ring-app-baunilha-dourada sm:p-6">
                   <div className="flex flex-wrap items-end justify-between gap-3">
                     <div>
                       <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{categoria.cardapio}</p>
                       <h2 className="mt-1 text-2xl font-bold">{categoria.nome}</h2>
                     </div>
-                    <span className="rounded-full bg-app-creme-suave px-3 py-1 text-xs font-bold text-app-mocha">
-                      {categoria.produtos.length} itens
-                    </span>
+                    <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-app-mocha">{categoria.produtos.length} itens</span>
                   </div>
 
                   <div className="mt-5 grid gap-4">
                     {categoria.produtos.map((produto) => {
                       const quantidade = quantidades[produto.id_produto] ?? 0;
                       return (
-                        <article key={produto.id_produto} className={`grid min-w-0 gap-4 rounded-[14px] p-3 ring-1 transition md:grid-cols-[112px_minmax(0,1fr)] xl:grid-cols-[112px_minmax(0,1fr)_auto] xl:items-center ${quantidade > 0 ? "bg-app-baunilha-dourada/55 ring-app-caramelo-torrado/45" : "bg-app-creme-suave ring-app-baunilha-dourada/55 hover:bg-app-chantilly"}`}>
+                        <article key={produto.id_produto} className={`grid min-w-0 gap-4 rounded-[14px] p-3 ring-1 transition md:grid-cols-[112px_minmax(0,1fr)] xl:grid-cols-[112px_minmax(0,1fr)_auto] xl:items-center ${quantidade > 0 ? "bg-app-baunilha-dourada/55 ring-app-caramelo-torrado/45" : "bg-white ring-app-baunilha-dourada/55 hover:bg-app-chantilly"}`}>
                           <div className="relative h-24 overflow-hidden rounded-[12px] bg-app-baunilha-dourada/45 md:h-24">
                             {produto.imagem_url ? (
                               <Image src={produto.imagem_url} alt={produto.nome} fill className="object-cover" />
@@ -471,22 +507,14 @@ export default function PaginaRestaurante({ params }) {
                           </div>
                           <div className="min-w-0">
                             <div className="flex flex-wrap items-center gap-2">
-                              {produto.destaque ? (
-                                <span className="rounded-full bg-app-cafe-profundo px-2.5 py-1 text-[10px] font-bold uppercase text-app-creme-leve">
-                                  Destaque
-                                </span>
-                              ) : null}
-                              <span className="inline-flex items-center gap-1 text-xs font-semibold text-app-cinza">
-                                <Icon type="clock" className="h-4 w-4" />
-                                {produto.tempo_preparo_minutos ?? 30} min
-                              </span>
+                              {produto.destaque ? <span className="rounded-full bg-app-cafe-profundo px-2.5 py-1 text-[10px] font-bold uppercase text-app-creme-leve">Destaque</span> : null}
                             </div>
                             <h3 className="mt-2 break-words text-base font-bold text-app-cafe-profundo sm:text-lg">{produto.nome}</h3>
                             {produto.descricao ? <p className="mt-1 break-words text-sm leading-6 text-app-mocha">{produto.descricao}</p> : null}
                             <p className="mt-2 text-base font-bold text-app-caramelo-torrado">{formatarMoeda(produto.preco)}</p>
                           </div>
                           <div className="flex items-center justify-between gap-3 md:col-span-2 xl:col-span-1 xl:justify-end">
-                            <button type="button" onClick={() => alterarQuantidade(produto.id_produto, -1)} className="flex h-10 w-10 items-center justify-center rounded-full bg-app-creme-leve text-app-cafe-profundo ring-1 ring-app-baunilha-dourada transition hover:bg-app-baunilha-dourada">
+                            <button type="button" onClick={() => alterarQuantidade(produto.id_produto, -1)} className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-app-cafe-profundo ring-1 ring-app-baunilha-dourada transition hover:bg-app-baunilha-dourada">
                               <Icon type="minus" className="h-4 w-4" />
                             </button>
                             <span className="min-w-8 text-center text-lg font-bold">{quantidade}</span>
@@ -496,10 +524,8 @@ export default function PaginaRestaurante({ params }) {
                           </div>
                           {quantidade > 0 ? (
                             <label className="grid gap-2 md:col-span-2 xl:col-span-3">
-                              <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-app-cinza">
-                                Observacao deste item
-                              </span>
-                              <input value={observacoesItens[produto.id_produto] ?? ""} onChange={(evento) => alterarObservacaoItem(produto.id_produto, evento.target.value)} placeholder="Ex: sem cebola, molho separado, ponto da carne..." className="h-10 rounded-[8px] border border-app-baunilha-dourada bg-app-chantilly px-3 text-sm text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado" />
+                              <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-app-cinza">Observacao deste item</span>
+                              <input value={observacoesItens[produto.id_produto] ?? ""} onChange={(evento) => alterarObservacaoItem(produto.id_produto, evento.target.value)} placeholder="Ex: sem cebola, molho separado, ponto da carne..." className="h-10 rounded-[8px] border border-app-baunilha-dourada bg-white px-3 text-sm text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado" />
                               <span className="text-[11px] text-app-cinza">Limite de {LIMITE_UNIDADES_POR_ITEM} unidades por item.</span>
                             </label>
                           ) : null}
@@ -510,14 +536,14 @@ export default function PaginaRestaurante({ params }) {
                 </section>
               ))
             ) : (
-              <section className="rounded-[18px] bg-app-creme-leve p-6 text-sm leading-6 text-app-mocha shadow-sm ring-1 ring-app-baunilha-dourada">
-                <p className="font-bold text-app-cafe-profundo">Cardapio em atualizacao</p>
-                <p className="mt-1">Este restaurante ainda nao publicou itens. Voce ainda pode reservar uma mesa normalmente.</p>
+              <section className="rounded-[18px] bg-white p-6 text-sm leading-6 text-app-mocha shadow-sm ring-1 ring-app-baunilha-dourada">
+                <p className="font-bold text-app-cafe-profundo">Cardápio em atualização</p>
+                <p className="mt-1">Este restaurante ainda não publicou itens. Você ainda pode reservar uma mesa normalmente.</p>
               </section>
             )}
           </section>
 
-          <aside id="reserva" className="h-fit rounded-[18px] bg-app-creme-leve p-6 shadow-sm ring-1 ring-app-baunilha-dourada lg:sticky lg:top-6">
+          <aside id="reserva" className="h-fit rounded-[18px] bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada lg:sticky lg:top-6">
             <form onSubmit={reservar}>
               <div className="flex items-center gap-3">
                 <span className="flex h-11 w-11 items-center justify-center rounded-[10px] bg-app-baunilha-dourada text-app-cafe-profundo">
@@ -525,42 +551,40 @@ export default function PaginaRestaurante({ params }) {
                 </span>
                 <div>
                   <h2 className="text-xl font-bold">{temPedidoAntecipado ? "Reserva com pedido" : "Reservar mesa"}</h2>
-                  <p className="text-xs text-app-cinza">
-                    {temPedidoAntecipado ? `${totalItens} itens selecionados` : "Pedido antecipado opcional"}
-                  </p>
+                  <p className="text-xs text-app-cinza">{temPedidoAntecipado ? `${totalItens} itens selecionados` : "Pedido antecipado opcional"}</p>
                 </div>
               </div>
 
               <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                <label className="grid gap-1 text-xs font-bold uppercase text-app-cinza">
+                <label className="grid min-w-0 gap-1 text-xs font-bold uppercase text-app-cinza">
                   Data
-                  <input type="date" min={obterDataPermitida()} max={obterDataLimiteReserva()} value={data} onChange={(evento) => setData(evento.target.value)} className="h-11 rounded-[10px] border border-app-baunilha-dourada bg-app-chantilly px-3 text-sm font-normal normal-case text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20" />
+                  <input type="date" min={obterDataPermitida()} max={obterDataLimiteReserva()} value={data} onChange={(evento) => setData(evento.target.value)} className="h-11 w-full min-w-0 rounded-[10px] border border-app-baunilha-dourada bg-white px-3 text-sm font-normal normal-case text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20" />
                 </label>
-                <label className="grid gap-1 text-xs font-bold uppercase text-app-cinza">
-                  Horario
-                  <select value={horarioSelecionado} onChange={(evento) => setHorario(evento.target.value)} disabled={!horariosDisponiveis.length} className="h-11 rounded-[10px] border border-app-baunilha-dourada bg-app-chantilly px-3 text-sm font-normal normal-case text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20 disabled:cursor-not-allowed disabled:opacity-60">
-                    {horariosComStatus.length ? horariosComStatus.map((slot) => (
-                      <option key={slot.horario} value={slot.horario} disabled={!slot.disponivel}>
-                        {slot.disponivel ? slot.horario : `${slot.horario} - ${slot.motivo}`}
+                <label className="grid min-w-0 gap-1 text-xs font-bold uppercase text-app-cinza">
+                  Horário
+                  <select value={horarioSelecionado} onChange={(evento) => setHorario(evento.target.value)} disabled={!horariosDisponiveis.length} className="h-11 w-full min-w-0 rounded-[10px] border border-app-baunilha-dourada bg-white px-3 text-sm font-normal normal-case text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20 disabled:cursor-not-allowed disabled:opacity-60">
+                    {horariosDisponiveis.length ? horariosDisponiveis.map((slot) => (
+                      <option key={slot.horario} value={slot.horario}>
+                        {slot.horario}
                       </option>
                     )) : (
-                      <option value="">Sem horarios</option>
+                      <option value="">Sem horários disponíveis</option>
                     )}
                   </select>
                 </label>
                 <label className="grid gap-1 text-xs font-bold uppercase text-app-cinza sm:col-span-2">
                   Pessoas
-                  <input type="number" min={1} max={30} value={pessoas} onChange={(evento) => setPessoas(Math.max(1, Number(evento.target.value) || 1))} className="h-11 rounded-[10px] border border-app-baunilha-dourada bg-app-chantilly px-3 text-sm font-normal normal-case text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20" />
+                  <input type="number" min={1} max={30} value={pessoas} onChange={(evento) => setPessoas(Math.max(1, Number(evento.target.value) || 1))} className="h-11 rounded-[10px] border border-app-baunilha-dourada bg-white px-3 text-sm font-normal normal-case text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20" />
                 </label>
                 <label className="grid gap-1 text-xs font-bold uppercase text-app-cinza sm:col-span-2">
                   Observacoes da reserva
-                  <textarea value={observacoesReserva} onChange={(evento) => setObservacoesReserva(evento.target.value)} placeholder="Ex: mesa proxima da janela, cadeira infantil..." className="min-h-20 rounded-[10px] border border-app-baunilha-dourada bg-app-chantilly p-3 text-sm font-normal normal-case text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20" />
+                  <textarea value={observacoesReserva} onChange={(evento) => setObservacoesReserva(evento.target.value)} placeholder="Ex: mesa próxima da janela, cadeira infantil..." className="min-h-20 rounded-[10px] border border-app-baunilha-dourada bg-white p-3 text-sm font-normal normal-case text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20" />
                 </label>
               </div>
 
               <div className="mt-5 grid gap-2 border-t border-app-baunilha-dourada pt-5">
                 {produtosSelecionados.length ? produtosSelecionados.map((produto) => (
-                  <div key={produto.id_produto} className="grid grid-cols-[1fr_auto] gap-3 rounded-[10px] bg-app-creme-suave p-3 text-sm">
+                  <div key={produto.id_produto} className="grid grid-cols-[1fr_auto] gap-3 rounded-[10px] bg-white p-3 text-sm">
                     <div>
                       <span><strong>{produto.quantidade}x</strong> {produto.nome}</span>
                       {observacoesItens[produto.id_produto]?.trim() ? <p className="mt-1 text-xs text-app-cinza">Obs.: {observacoesItens[produto.id_produto].trim()}</p> : null}
@@ -568,8 +592,8 @@ export default function PaginaRestaurante({ params }) {
                     <strong>{formatarMoeda(Number(produto.preco ?? 0) * produto.quantidade)}</strong>
                   </div>
                 )) : (
-                  <p className="rounded-[10px] bg-app-creme-suave p-4 text-sm leading-6 text-app-mocha">
-                    Voce pode reservar somente a mesa ou selecionar itens do cardapio para antecipar o pedido.
+                  <p className="rounded-[10px] bg-white p-4 text-sm leading-6 text-app-mocha">
+                    Você pode reservar somente a mesa ou selecionar itens do cardápio para antecipar o pedido.
                   </p>
                 )}
               </div>
@@ -577,25 +601,21 @@ export default function PaginaRestaurante({ params }) {
               {temPedidoAntecipado ? (
                 <label className="mt-5 grid gap-2 text-xs font-bold uppercase text-app-cinza">
                   Observacoes do pedido
-                  <textarea value={observacoesPedido} onChange={(evento) => setObservacoesPedido(evento.target.value)} placeholder="Ex: alergias, ponto da carne, retirar cebola..." className="min-h-20 rounded-[10px] border border-app-baunilha-dourada bg-app-chantilly p-3 text-sm font-normal normal-case text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20" />
+                  <textarea value={observacoesPedido} onChange={(evento) => setObservacoesPedido(evento.target.value)} placeholder="Ex: alergias, ponto da carne, retirar cebola..." className="min-h-20 rounded-[10px] border border-app-baunilha-dourada bg-white p-3 text-sm font-normal normal-case text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20" />
                 </label>
               ) : null}
 
-              <div className="mt-5 grid gap-3 rounded-[14px] bg-app-chantilly p-4 text-sm ring-1 ring-app-baunilha-dourada/60">
-                <p className="rounded-[10px] bg-app-creme-suave px-3 py-2 text-xs leading-5 text-app-mocha">
-                  Pedido antecipado possui consumo minimo de <strong className="text-app-cafe-profundo">{formatarMoeda(valorMinimoPorPessoa)}</strong> por pessoa.
+              <div className="mt-5 grid gap-3 rounded-[14px] bg-white p-4 text-sm ring-1 ring-app-baunilha-dourada/60">
+                <p className="rounded-[10px] bg-white px-3 py-2 text-xs leading-5 text-app-mocha">
+                  Pedido antecipado possui consumo mínimo de <strong className="text-app-cafe-profundo">{formatarMoeda(valorMinimoPorPessoa)}</strong> por pessoa.
                 </p>
                 <div className="flex justify-between gap-4">
-                  <span className="text-app-mocha">Consumo minimo por pessoa</span>
+                  <span className="text-app-mocha">Consumo mínimo por pessoa</span>
                   <strong>{formatarMoeda(valorMinimoPorPessoa)}</strong>
                 </div>
                 <div className="flex justify-between gap-4">
-                  <span className="text-app-mocha">{temPedidoAntecipado ? `Minimo para ${pessoas} pessoa(s)` : "Aplicado somente se houver pedido"}</span>
+                  <span className="text-app-mocha">{temPedidoAntecipado ? `Mínimo para ${pessoas} pessoa(s)` : "Aplicado somente se houver pedido"}</span>
                   <strong>{formatarMoeda(valorMinimoTotal)}</strong>
-                </div>
-                <div className="flex justify-between gap-4">
-                  <span className="text-app-mocha">Tempo estimado</span>
-                  <strong>{temPedidoAntecipado ? `${tempoEstimado || 0} min` : "Sem pedido"}</strong>
                 </div>
                 <div className="flex items-center justify-between border-t border-app-baunilha-dourada pt-4">
                   <span className="font-bold">{temPedidoAntecipado ? "Total do pedido" : "Total a pagar agora"}</span>
@@ -604,18 +624,18 @@ export default function PaginaRestaurante({ params }) {
               </div>
 
               {temPedidoAntecipado && faltaParaMinimo > 0 ? (
-                <p className="mt-5 rounded-[8px] bg-app-creme-suave p-3 text-sm font-semibold leading-6 text-app-caramelo-torrado">
-                  Faltam {formatarMoeda(faltaParaMinimo)} para atingir o consumo minimo do pedido antecipado.
+                <p className="mt-5 rounded-[8px] bg-white p-3 text-sm font-semibold leading-6 text-app-caramelo-torrado">
+                  Faltam {formatarMoeda(faltaParaMinimo)} para atingir o consumo mínimo do pedido antecipado.
                 </p>
               ) : null}
               {!operacaoConfigurada ? (
-                <p className="mt-5 rounded-[8px] bg-app-creme-suave p-3 text-sm font-semibold leading-6 text-app-caramelo-torrado">
-                  {disponibilidade.motivo ?? "Este restaurante ainda precisa configurar os horarios de funcionamento antes de receber reservas."}
+                <p className="mt-5 rounded-[8px] bg-white p-3 text-sm font-semibold leading-6 text-app-caramelo-torrado">
+                  {disponibilidade.motivo ?? "Este restaurante ainda precisa configurar os horários de funcionamento antes de receber reservas."}
                 </p>
               ) : null}
               {operacaoConfigurada && !horariosDisponiveis.length ? (
-                <p className="mt-5 rounded-[8px] bg-app-creme-suave p-3 text-sm font-semibold leading-6 text-app-caramelo-torrado">
-                  {disponibilidade.motivo ?? "Nao ha horarios disponiveis para esta data considerando funcionamento, antecedencia minima, tempo de preparo e mesas ocupadas."}
+                <p className="mt-5 rounded-[8px] bg-white p-3 text-sm font-semibold leading-6 text-app-caramelo-torrado">
+                  {disponibilidade.motivo ?? "Não há horários disponíveis para esta data considerando funcionamento, antecedência mínima e mesas ocupadas."}
                 </p>
               ) : null}
 
@@ -625,17 +645,12 @@ export default function PaginaRestaurante({ params }) {
               {mensagem ? <p className="mt-3 text-sm font-semibold text-app-caramelo-torrado">{mensagem}</p> : null}
             </form>
 
-            <div className="mt-5 grid gap-3 rounded-[14px] bg-app-creme-suave p-4 text-xs leading-5 text-app-mocha">
-              <p>
-                <strong className="text-app-cafe-profundo">Reserva simples:</strong> nao exige pagamento nem consumo minimo.
+            <section className="mt-5 rounded-[14px] bg-white p-4 text-xs leading-5 text-app-mocha">
+              <h2 className="text-sm font-bold text-app-cafe-profundo">Sobre a experiência</h2>
+              <p className="mt-2">
+                Reserve sua mesa normalmente ou antecipe o pedido. O consumo mínimo só passa a valer quando houver pedido antecipado.
               </p>
-              <p>
-                <strong className="text-app-cafe-profundo">Pedido antecipado:</strong> ao selecionar itens, o pedido e criado junto com a reserva e segue para pagamento.
-              </p>
-              <p>
-                <strong className="text-app-cafe-profundo">Disponibilidade:</strong> horarios dependem da operacao do restaurante, antecedencia minima e mesas livres.
-              </p>
-            </div>
+            </section>
           </aside>
         </div>
       </div>

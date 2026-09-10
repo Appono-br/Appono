@@ -8,14 +8,19 @@ const cnpj_1 = require("../services/validacoes/cnpj");
 const comum_1 = require("../services/validacoes/comum");
 const cpf_1 = require("../services/validacoes/cpf");
 const auth_1 = require("../middleware/auth");
+const geolocalizacao_1 = require("../services/geolocalizacao");
 exports.authRouter = (0, express_1.Router)();
 const frontendOrigin = (process.env.FRONTEND_ORIGIN ?? "http://localhost:3000").replace(/\/$/, "");
 function verificarCamposObrigatorios(body, fields) {
     const missing = fields.filter((field) => !body[field]);
-    return missing.length ? `Campos obrigatorios ausentes: ${missing.join(", ")}` : null;
+    return missing.length ? `Campos obrigatórios ausentes: ${missing.join(", ")}` : null;
 }
 function montarEndereco(...parts) {
     return parts.filter(Boolean).join(", ");
+}
+function erroColunaGeolocalizacaoAusente(error) {
+    const mensagem = String(error?.message ?? "").toLowerCase();
+    return mensagem.includes("latitude") || mensagem.includes("longitude") || mensagem.includes("geocodificado");
 }
 function obterUrlRedirecionamentoEmail() {
     return `${frontendOrigin}/auth/callback`;
@@ -25,11 +30,14 @@ function obterMensagemErroAutenticacao(message) {
         return "Erro ao criar usuario.";
     }
     const normalizedMessage = message.toLowerCase();
+    if (erroAutenticacaoEhUsuarioExistente(message)) {
+        return "Esta conta já existe. Entre com seu e-mail e senha para continuar.";
+    }
     if (normalizedMessage.includes("fetch failed") ||
         normalizedMessage.includes("unable to verify") ||
         normalizedMessage.includes("certificate") ||
         normalizedMessage.includes("network")) {
-        return "Nao foi possivel acessar o servico de autenticacao. Verifique a conexao e tente novamente.";
+        return "Não foi possível acessar o serviço de autenticação. Verifique a conexão e tente novamente.";
     }
     if (normalizedMessage.includes("email rate limit exceeded") ||
         normalizedMessage.includes("rate limit") ||
@@ -37,6 +45,25 @@ function obterMensagemErroAutenticacao(message) {
         return "Limite temporario de envio de e-mails atingido. Aguarde alguns minutos ou tente novamente mais tarde.";
     }
     return message;
+}
+function erroAutenticacaoEhUsuarioExistente(error) {
+    const mensagem = String(error?.message ?? error ?? "").toLowerCase();
+    return mensagem.includes("user already") ||
+        mensagem.includes("already registered") ||
+        mensagem.includes("already exists") ||
+        mensagem.includes("email already") ||
+        mensagem.includes("usuario ja") ||
+        mensagem.includes("e-mail ja") ||
+        mensagem.includes("email ja");
+}
+function usuarioRetornadoEhObfuscado(user) {
+    return Array.isArray(user?.identities) && user.identities.length === 0;
+}
+function responderUsuarioJaExistente(res) {
+    return res.status(409).json({
+        code: "AUTH_USER_ALREADY_EXISTS",
+        error: "Esta conta já existe. Entre com seu e-mail e senha para continuar.",
+    });
 }
 function erroAutenticacaoEhInfraestrutura(error) {
     const mensagem = String(error?.message ?? error ?? "").toLowerCase();
@@ -97,9 +124,45 @@ async function obterPerfil(accessToken, userId) {
 async function obterPerfilDoUsuarioAutenticado(res) {
     return obterPerfil(res.locals.accessToken, res.locals.user.id);
 }
+async function atualizarGeolocalizacaoRestaurantePerfil(profile) {
+    if (!supabase_1.supabaseAdmin || profile?.tipo !== "restaurante" || !profile.perfil) {
+        return profile;
+    }
+    const latitudeAtual = Number(profile.perfil.latitude);
+    const longitudeAtual = Number(profile.perfil.longitude);
+    if ((0, geolocalizacao_1.coordenadaValida)(latitudeAtual, longitudeAtual)) {
+        return profile;
+    }
+    const coordenadas = await (0, geolocalizacao_1.geocodificarEnderecoRestaurante)(profile.perfil.endereco, profile.perfil.cep);
+    if (!coordenadas) {
+        return profile;
+    }
+    const geocodificadoEm = new Date().toISOString();
+    const { error } = await supabase_1.supabaseAdmin
+        .from("restaurantes")
+        .update({
+        latitude: coordenadas.latitude,
+        longitude: coordenadas.longitude,
+        geocodificado_em: geocodificadoEm,
+    })
+        .eq("id_restaurante", profile.perfil.id_restaurante);
+    if (error) {
+        if (erroColunaGeolocalizacaoAusente(error)) return profile;
+        throw new Error(error.message);
+    }
+    return {
+        ...profile,
+        perfil: {
+            ...profile.perfil,
+            latitude: coordenadas.latitude,
+            longitude: coordenadas.longitude,
+            geocodificado_em: geocodificadoEm,
+        },
+    };
+}
 async function criarPerfilClienteGoogle(res, body) {
     if (!supabase_1.supabaseAdmin) {
-        throw new Error("Cadastro com Google indisponivel agora.");
+        throw new Error("Cadastro com Google indisponível agora.");
     }
     const email = String(res.locals.user.email ?? body.email ?? "").trim().toLowerCase();
     const cpf = (0, comum_1.somenteNumeros)(body.cpf);
@@ -122,7 +185,7 @@ async function criarPerfilClienteGoogle(res, body) {
 }
 async function criarPerfilRestauranteGoogle(res, body) {
     if (!supabase_1.supabaseAdmin) {
-        throw new Error("Cadastro com Google indisponivel agora.");
+        throw new Error("Cadastro com Google indisponível agora.");
     }
     const cnpj = (0, comum_1.somenteNumeros)(body.cnpj);
     const cep = (0, comum_1.somenteNumeros)(body.cep);
@@ -207,7 +270,7 @@ async function criarPerfilRestauranteGoogle(res, body) {
             throw new Error(mesasError.message);
         }
     }
-    return { tipo: "restaurante", perfil: restaurante };
+    return atualizarGeolocalizacaoRestaurantePerfil({ tipo: "restaurante", perfil: restaurante });
 }
 async function confirmarEEntrarComUsuarioCriado(userId, email, password) {
     if (!supabase_1.supabaseAdmin) {
@@ -215,7 +278,7 @@ async function confirmarEEntrarComUsuarioCriado(userId, email, password) {
     }
     const { error: confirmError } = await supabase_1.supabaseAdmin.auth.admin.updateUserById(userId, { email_confirm: true });
     if (confirmError) {
-        throw new Error("Nao foi possivel ativar sua conta agora.");
+        throw new Error("Não foi possível ativar sua conta agora.");
     }
     const { data, error } = await supabase_1.supabaseAuth.auth.signInWithPassword({
         email,
@@ -229,7 +292,7 @@ async function confirmarEEntrarComUsuarioCriado(userId, email, password) {
 exports.authRouter.post("/login", async (req, res) => {
     if (!(0, supabase_1.isSupabaseConfigured)()) {
         return res.status(503).json({
-            error: "O acesso esta temporariamente indisponivel. Tente novamente mais tarde.",
+            error: "O acesso está temporariamente indisponível. Tente novamente mais tarde.",
         });
     }
     const email = typeof req.body.email === "string" ? req.body.email.trim().toLowerCase() : "";
@@ -244,7 +307,7 @@ exports.authRouter.post("/login", async (req, res) => {
     if (error || !data.session) {
         if (erroAutenticacaoEhInfraestrutura(error)) {
             return res.status(503).json({
-                error: "Nao foi possivel acessar o servico de autenticacao. Verifique a conexao e tente novamente.",
+                error: "Não foi possível acessar o serviço de autenticação. Verifique a conexão e tente novamente.",
             });
         }
         const mensagemErro = String(error?.message ?? "").toLowerCase();
@@ -256,7 +319,7 @@ exports.authRouter.post("/login", async (req, res) => {
     }
     const profile = await obterPerfil(data.session.access_token, data.user.id);
     if (!profile) {
-        return res.status(404).json({ error: "Perfil nao encontrado para este usuario." });
+        return res.status(404).json({ error: "Perfil não encontrado para este usuario." });
     }
     return res.json({
         ...profile,
@@ -267,7 +330,7 @@ exports.authRouter.post("/login", async (req, res) => {
 exports.authRouter.post("/google/client", auth_1.requireAuth, async (req, res) => {
     if (!(0, supabase_1.isSupabaseConfigured)()) {
         return res.status(503).json({
-            error: "O cadastro esta temporariamente indisponivel. Tente novamente mais tarde.",
+            error: "O cadastro está temporariamente indisponível. Tente novamente mais tarde.",
         });
     }
     const body = req.body;
@@ -284,26 +347,26 @@ exports.authRouter.post("/google/client", auth_1.requireAuth, async (req, res) =
         return res.status(400).json({ error: "A conta Google precisa possuir e-mail." });
     }
     if (!(0, cpf_1.validarCpf)(body.cpf)) {
-        return res.status(400).json({ error: "Informe um CPF valido." });
+        return res.status(400).json({ error: "Informe um CPF válido." });
     }
     try {
         const perfilExistente = await obterPerfilDoUsuarioAutenticado(res);
         if (perfilExistente) {
-            return res.status(409).json({ error: "Esta conta Google ja possui perfil Appono." });
+            return res.status(409).json({ error: "Esta conta Google já possui perfil Appono." });
         }
         const profile = await criarPerfilClienteGoogle(res, body);
         return res.status(201).json({ ...profile, user: res.locals.user });
     }
     catch (error) {
         return res.status(error.statusCode ?? 400).json({
-            error: error instanceof Error ? error.message : "Nao foi possivel completar seu cadastro.",
+            error: error instanceof Error ? error.message : "Não foi possível completar seu cadastro.",
         });
     }
 });
 exports.authRouter.post("/google/restaurant", auth_1.requireAuth, async (req, res) => {
     if (!(0, supabase_1.isSupabaseConfigured)()) {
         return res.status(503).json({
-            error: "O cadastro esta temporariamente indisponivel. Tente novamente mais tarde.",
+            error: "O cadastro está temporariamente indisponível. Tente novamente mais tarde.",
         });
     }
     const body = req.body;
@@ -329,29 +392,29 @@ exports.authRouter.post("/google/restaurant", auth_1.requireAuth, async (req, re
     const cnpj = (0, comum_1.somenteNumeros)(body.cnpj);
     const cep = (0, comum_1.somenteNumeros)(body.cep);
     if (!(0, cnpj_1.validarCnpj)(cnpj)) {
-        return res.status(400).json({ error: "Informe um CNPJ valido." });
+        return res.status(400).json({ error: "Informe um CNPJ válido." });
     }
     if (cep.length !== 8) {
-        return res.status(400).json({ error: "Informe um CEP valido com 8 digitos." });
+        return res.status(400).json({ error: "Informe um CEP válido com 8 dígitos." });
     }
     try {
         const perfilExistente = await obterPerfilDoUsuarioAutenticado(res);
         if (perfilExistente) {
-            return res.status(409).json({ error: "Esta conta Google ja possui perfil Appono." });
+            return res.status(409).json({ error: "Esta conta Google já possui perfil Appono." });
         }
         const profile = await criarPerfilRestauranteGoogle(res, body);
         return res.status(201).json({ ...profile, user: res.locals.user });
     }
     catch (error) {
         return res.status(error.statusCode ?? 400).json({
-            error: error instanceof Error ? error.message : "Nao foi possivel completar o cadastro do restaurante.",
+            error: error instanceof Error ? error.message : "Não foi possível completar o cadastro do restaurante.",
         });
     }
 });
 exports.authRouter.post("/register/client", async (req, res) => {
     if (!(0, supabase_1.isSupabaseConfigured)()) {
         return res.status(503).json({
-            error: "O cadastro esta temporariamente indisponivel. Tente novamente mais tarde.",
+            error: "O cadastro está temporariamente indisponível. Tente novamente mais tarde.",
         });
     }
     const body = req.body;
@@ -367,7 +430,7 @@ exports.authRouter.post("/register/client", async (req, res) => {
         return res.status(400).json({ error: missing });
     }
     if (!(0, cpf_1.validarCpf)(body.cpf)) {
-        return res.status(400).json({ error: "Informe um CPF valido." });
+        return res.status(400).json({ error: "Informe um CPF válido." });
     }
     const cpf = (0, comum_1.somenteNumeros)(body.cpf);
     const { data: authData, error: authError } = await supabase_1.supabaseAuth.auth.signUp({
@@ -388,13 +451,19 @@ exports.authRouter.post("/register/client", async (req, res) => {
         },
     });
     if (authError || !authData.user) {
+        if (erroAutenticacaoEhUsuarioExistente(authError)) {
+            return responderUsuarioJaExistente(res);
+        }
         const status = erroAutenticacaoEhInfraestrutura(authError) ? 503 : 400;
         return res.status(status).json({ error: obterMensagemErroAutenticacao(authError?.message) });
+    }
+    if (usuarioRetornadoEhObfuscado(authData.user)) {
+        return responderUsuarioJaExistente(res);
     }
     if (!authData.session) {
         const confirmedAuthData = await confirmarEEntrarComUsuarioCriado(authData.user.id, body.email, body.password);
         if (confirmedAuthData?.session) {
-            const profile = await obterPerfil(confirmedAuthData.session.access_token, confirmedAuthData.user.id);
+            const profile = await atualizarGeolocalizacaoRestaurantePerfil(await obterPerfil(confirmedAuthData.session.access_token, confirmedAuthData.user.id));
             return res.status(201).json({
                 ...profile,
                 user: confirmedAuthData.user,
@@ -407,7 +476,7 @@ exports.authRouter.post("/register/client", async (req, res) => {
             message: "Conta criada. Confirme o e-mail para ativar o acesso.",
         });
     }
-    const profile = await obterPerfil(authData.session.access_token, authData.user.id);
+    const profile = await atualizarGeolocalizacaoRestaurantePerfil(await obterPerfil(authData.session.access_token, authData.user.id));
     return res.status(201).json({
         ...profile,
         user: authData.user,
@@ -417,7 +486,7 @@ exports.authRouter.post("/register/client", async (req, res) => {
 exports.authRouter.post("/register/restaurant", async (req, res) => {
     if (!(0, supabase_1.isSupabaseConfigured)()) {
         return res.status(503).json({
-            error: "O cadastro esta temporariamente indisponivel. Tente novamente mais tarde.",
+            error: "O cadastro está temporariamente indisponível. Tente novamente mais tarde.",
         });
     }
     const body = req.body;
@@ -442,10 +511,10 @@ exports.authRouter.post("/register/restaurant", async (req, res) => {
     const cnpj = (0, comum_1.somenteNumeros)(body.cnpj);
     const cep = (0, comum_1.somenteNumeros)(body.cep);
     if (!(0, cnpj_1.validarCnpj)(cnpj)) {
-        return res.status(400).json({ error: "Informe um CNPJ valido." });
+        return res.status(400).json({ error: "Informe um CNPJ válido." });
     }
     if (cep.length !== 8) {
-        return res.status(400).json({ error: "Informe um CEP valido com 8 digitos." });
+        return res.status(400).json({ error: "Informe um CEP válido com 8 dígitos." });
     }
     let validatedCnpj = {
         cnpj,
@@ -518,13 +587,19 @@ exports.authRouter.post("/register/restaurant", async (req, res) => {
         },
     });
     if (authError || !authData.user) {
+        if (erroAutenticacaoEhUsuarioExistente(authError)) {
+            return responderUsuarioJaExistente(res);
+        }
         const status = erroAutenticacaoEhInfraestrutura(authError) ? 503 : 400;
         return res.status(status).json({ error: obterMensagemErroAutenticacao(authError?.message) });
+    }
+    if (usuarioRetornadoEhObfuscado(authData.user)) {
+        return responderUsuarioJaExistente(res);
     }
     if (!authData.session) {
         const confirmedAuthData = await confirmarEEntrarComUsuarioCriado(authData.user.id, body.email, body.password);
         if (confirmedAuthData?.session) {
-            const profile = await obterPerfil(confirmedAuthData.session.access_token, confirmedAuthData.user.id);
+            const profile = await atualizarGeolocalizacaoRestaurantePerfil(await obterPerfil(confirmedAuthData.session.access_token, confirmedAuthData.user.id));
             return res.status(201).json({
                 ...profile,
                 user: confirmedAuthData.user,
@@ -537,7 +612,7 @@ exports.authRouter.post("/register/restaurant", async (req, res) => {
             message: "Conta criada. Confirme o e-mail para ativar o acesso.",
         });
     }
-    const profile = await obterPerfil(authData.session.access_token, authData.user.id);
+    const profile = await atualizarGeolocalizacaoRestaurantePerfil(await obterPerfil(authData.session.access_token, authData.user.id));
     return res.status(201).json({
         ...profile,
         user: authData.user,

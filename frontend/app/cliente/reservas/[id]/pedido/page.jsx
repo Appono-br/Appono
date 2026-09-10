@@ -4,7 +4,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { apiRequest } from "@/lib/api";
-import { calcularTempoPreparoItens } from "@/lib/tempo-preparo";
 
 function formatarMoeda(valor) {
     return new Intl.NumberFormat("pt-BR", {
@@ -41,6 +40,7 @@ function reservaJaIniciou(reserva) {
 function Icon({ type, className = "h-5 w-5" }) {
     const paths = {
         clock: "M12 6v6l4 2M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z",
+        message: "M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v8z",
         minus: "M5 12h14",
         plus: "M12 5v14M5 12h14",
         receipt: "M7 3h10v18l-2-1-2 1-2-1-2 1-2-1V3z M9 8h6M9 12h6M9 16h4",
@@ -69,8 +69,9 @@ export default function PaginaPedidoAntecipado({ params }) {
     const [quantidades, setQuantidades] = useState({});
     const [observacoesItens, setObservacoesItens] = useState({});
     const [observacoes, setObservacoes] = useState("");
-    const [mensagem, setMensagem] = useState("Carregando cardapio...");
+    const [mensagem, setMensagem] = useState("Carregando cardápio...");
     const [enviando, setEnviando] = useState(false);
+    const [abrindoChat, setAbrindoChat] = useState(false);
 
     useEffect(() => {
         params.then(({ id }) => setReservaId(Number(id)));
@@ -85,7 +86,7 @@ export default function PaginaPedidoAntecipado({ params }) {
                 setDados(resultado);
                 setMensagem("");
             })
-            .catch((erro) => setMensagem(erro instanceof Error ? erro.message : "Nao foi possivel carregar o cardapio."));
+            .catch((erro) => setMensagem(erro instanceof Error ? erro.message : "Não foi possível carregar o cardápio."));
     }, [reservaId]);
 
     const categorias = useMemo(() => {
@@ -111,13 +112,11 @@ export default function PaginaPedidoAntecipado({ params }) {
     const total = produtosSelecionados.reduce((soma, produto) => soma + Number(produto.preco) * produto.quantidade, 0);
     const consumoMinimo = Number(dados?.reserva?.valor_minimo_total ?? 0);
     const faltaParaMinimo = Math.max(0, consumoMinimo - total);
-    const maiorTempoPreparo = calcularTempoPreparoItens(produtosSelecionados);
     const pedidoAtivo = dados?.reserva.pedidos?.find((pedido) => ["PENDENTE", "CONFIRMADO", "EM_PREPARO", "PRONTO"].includes(pedido.status_pedido));
     const reservaConfirmada = dados?.reserva.status_reserva === "CONFIRMADA";
     const reservaIniciada = reservaJaIniciou(dados?.reserva);
     const itensPedidoAtivo = pedidoAtivo?.itens_pedido ?? [];
     const totalItensPedidoAtivo = itensPedidoAtivo.reduce((soma, item) => soma + Number(item.quantidade ?? 0), 0);
-    const maiorTempoPedidoAtivo = calcularTempoPreparoItens(itensPedidoAtivo);
 
     function alterarQuantidade(produtoId, diferenca) {
         setMensagem("");
@@ -143,11 +142,11 @@ export default function PaginaPedidoAntecipado({ params }) {
             return;
         }
         if (!reservaConfirmada) {
-            setMensagem("O pedido antecipado so pode ser criado para uma reserva confirmada.");
+            setMensagem("O pedido antecipado só pode ser criado para uma reserva confirmada.");
             return;
         }
         if (reservaIniciada) {
-            setMensagem("Nao e possivel adicionar pedido antecipado porque a reserva ja iniciou.");
+            setMensagem("Não é possível adicionar pedido antecipado porque a reserva já iniciou.");
             return;
         }
         const itens = produtosSelecionados.map((produto) => ({
@@ -156,11 +155,11 @@ export default function PaginaPedidoAntecipado({ params }) {
             observacoes: observacoesItens[produto.id_produto]?.trim() || null,
         }));
         if (!itens.length) {
-            setMensagem("Escolha ao menos um item do cardapio.");
+            setMensagem("Escolha ao menos um item do cardápio.");
             return;
         }
         if (faltaParaMinimo > 0) {
-            setMensagem(`O pedido precisa atingir o consumo minimo. Ainda faltam ${formatarMoeda(faltaParaMinimo)}.`);
+            setMensagem(`O pedido precisa atingir o consumo mínimo. Ainda faltam ${formatarMoeda(faltaParaMinimo)}.`);
             return;
         }
         setEnviando(true);
@@ -173,23 +172,48 @@ export default function PaginaPedidoAntecipado({ params }) {
             window.location.assign(`/cliente/pagamentos/pedido/${pedidoCriado.id_pedido}`);
         }
         catch (erro) {
-            setMensagem(erro instanceof Error ? erro.message : "Nao foi possivel criar o pedido.");
+            setMensagem(erro instanceof Error ? erro.message : "Não foi possível criar o pedido.");
         }
         finally {
             setEnviando(false);
         }
     }
 
+    async function abrirChatReserva() {
+        if (!reservaId) {
+            return;
+        }
+        setAbrindoChat(true);
+        setMensagem("");
+        try {
+            const conversa = await apiRequest("/mensagens/conversas", {
+                method: "POST",
+                body: JSON.stringify({
+                    id_reserva: reservaId,
+                    id_pedido: pedidoAtivo?.id_pedido,
+                    assunto: pedidoAtivo?.id_pedido ? `Pedido #${pedidoAtivo.id_pedido}` : `Reserva #${reservaId}`,
+                }),
+            });
+            window.location.assign(`/cliente/mensagens/${conversa.id_conversa}`);
+        }
+        catch (erro) {
+            setMensagem(erro instanceof Error ? erro.message : "Não foi possível iniciar o chat.");
+        }
+        finally {
+            setAbrindoChat(false);
+        }
+    }
+
     if (!dados) {
         return (
-            <main className="flex min-h-screen items-center justify-center bg-app-chantilly px-5 text-app-cafe-profundo">
+            <main className="flex min-h-screen items-center justify-center bg-white px-5 text-app-cafe-profundo">
                 <p className="text-sm font-semibold">{mensagem}</p>
             </main>
         );
     }
 
     return (
-        <main className="min-h-screen bg-app-chantilly px-5 py-8 text-app-cafe-profundo">
+        <main className="min-h-screen bg-white px-5 py-8 text-app-cafe-profundo">
             <div className="mx-auto max-w-7xl">
                 <Link href="/cliente/reservas" className="text-sm font-bold text-app-caramelo-torrado">
                     Voltar para reservas
@@ -203,27 +227,33 @@ export default function PaginaPedidoAntecipado({ params }) {
                                 {dados.reserva.restaurantes?.nome ?? "Restaurante"}
                             </h1>
                             <p className="mt-3 max-w-3xl text-sm leading-6 text-app-creme-suave">
-                                Escolha os itens antes da sua chegada. O restaurante recebe o pedido vinculado a sua reserva e consegue se preparar para o horario combinado.
+                                Escolha os itens antes da sua chegada. O restaurante recebe o pedido vinculado à sua reserva e consegue se preparar para o horário combinado.
                             </p>
                         </div>
-                        <div className="rounded-[12px] bg-app-creme-leve/10 p-4 text-sm ring-1 ring-app-baunilha-dourada/35">
+                        <div className="grid gap-3">
+                          <div className="rounded-[12px] bg-white/10 p-4 text-sm ring-1 ring-app-baunilha-dourada/35">
                             <p className="font-bold">{formatarData(dados.reserva.data_reserva)}</p>
                             <p className="mt-1 text-app-baunilha-dourada">
                                 {dados.reserva.horario_inicio.slice(0, 5)} - reserva confirmada
                             </p>
+                          </div>
+                          <button type="button" onClick={abrirChatReserva} disabled={abrindoChat} className="inline-flex h-11 items-center justify-center gap-2 rounded-[8px] border border-app-baunilha-dourada/45 px-5 text-xs font-bold uppercase tracking-[0.12em] text-app-creme-leve transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60">
+                            <Icon type="message" className="h-4 w-4" />
+                            {abrindoChat ? "Abrindo..." : "Falar com restaurante"}
+                          </button>
                         </div>
                     </div>
                 </header>
 
                 {pedidoAtivo ? (
                     <section className="mt-6 grid gap-6 lg:grid-cols-[1fr_340px]">
-                        <div className="rounded-[14px] bg-app-creme-leve p-6 shadow-sm ring-1 ring-app-baunilha-dourada sm:p-8">
+                        <div className="rounded-[14px] bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada sm:p-8">
                             <div className="flex flex-wrap items-start justify-between gap-4">
                                 <div>
                                     <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">Pedido registrado</p>
                                     <h2 className="mt-2 text-3xl font-bold">Itens escolhidos pelo cliente</h2>
                                     <p className="mt-3 max-w-2xl text-sm leading-6 text-app-mocha">
-                                        Este pedido esta vinculado a reserva. Ele so aparece como confirmado para preparo depois da aprovacao do pagamento.
+                                        Este pedido está vinculado à reserva. Ele só aparece como confirmado para preparo depois da aprovação do pagamento.
                                     </p>
                                 </div>
                                 <span className="rounded-full bg-app-cafe-profundo px-4 py-2 text-xs font-bold uppercase text-app-creme-leve">
@@ -237,7 +267,7 @@ export default function PaginaPedidoAntecipado({ params }) {
                                     const subtotal = Number(item.subtotal ?? 0) || Number(item.preco_unitario ?? 0) * Number(item.quantidade ?? 0);
 
                                     return (
-                                        <article key={`${produto.nome ?? "item"}-${indice}`} className="grid gap-4 rounded-[12px] bg-app-creme-suave p-4 ring-1 ring-app-baunilha-dourada/55 sm:grid-cols-[120px_1fr_auto] sm:items-center">
+                                        <article key={`${produto.nome ?? "item"}-${indice}`} className="grid gap-4 rounded-[12px] bg-white p-4 ring-1 ring-app-baunilha-dourada/55 sm:grid-cols-[120px_1fr_auto] sm:items-center">
                                             <div className="relative h-28 overflow-hidden rounded-[10px] bg-app-baunilha-dourada/45">
                                                 {produto.imagem_url ? (
                                                     <Image src={produto.imagem_url} alt={produto.nome ?? "Item do pedido"} fill className="object-cover" />
@@ -251,10 +281,11 @@ export default function PaginaPedidoAntecipado({ params }) {
                                                 <p className="text-xs font-bold uppercase text-app-caramelo-torrado">{item.quantidade} unidade(s)</p>
                                                 <h3 className="mt-1 text-xl font-bold text-app-cafe-profundo">{produto.nome ?? "Item"}</h3>
                                                 {produto.descricao ? <p className="mt-2 text-sm leading-6 text-app-mocha">{produto.descricao}</p> : null}
-                                                <div className="mt-2 flex flex-wrap gap-3 text-xs font-semibold text-app-cinza">
-                                                    <span>Tempo: {produto.tempo_preparo_minutos ?? "--"} min</span>
-                                                    {item.observacoes ? <span>Obs: {item.observacoes}</span> : null}
-                                                </div>
+                                                {item.observacoes ? (
+                                                    <div className="mt-2 text-xs font-semibold text-app-cinza">
+                                                        <span>Obs: {item.observacoes}</span>
+                                                    </div>
+                                                ) : null}
                                             </div>
                                             <div className="text-left sm:text-right">
                                                 <p className="text-xs font-semibold text-app-cinza">Subtotal</p>
@@ -269,7 +300,7 @@ export default function PaginaPedidoAntecipado({ params }) {
                             </div>
                         </div>
 
-                        <aside className="h-fit rounded-[14px] bg-app-creme-leve p-6 shadow-sm ring-1 ring-app-baunilha-dourada lg:sticky lg:top-6">
+                        <aside className="h-fit rounded-[14px] bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada lg:sticky lg:top-6">
                             <div className="flex items-center gap-3">
                                 <span className="flex h-11 w-11 items-center justify-center rounded-[10px] bg-app-baunilha-dourada text-app-cafe-profundo">
                                     <Icon type="receipt" />
@@ -284,16 +315,6 @@ export default function PaginaPedidoAntecipado({ params }) {
                                     <span className="text-app-mocha">Status</span>
                                     <strong>{statusPedido[pedidoAtivo.status_pedido] ?? pedidoAtivo.status_pedido}</strong>
                                 </div>
-                                <div className="flex justify-between gap-4">
-                                    <span className="text-app-mocha">Tempo estimado</span>
-                                    <strong>{maiorTempoPedidoAtivo || "--"} min</strong>
-                                </div>
-                                {pedidoAtivo.iniciar_preparo_em ? (
-                                    <div className="flex justify-between gap-4">
-                                        <span className="text-app-mocha">Iniciar preparo</span>
-                                        <strong>{String(pedidoAtivo.iniciar_preparo_em).slice(11, 16)}</strong>
-                                    </div>
-                                ) : null}
                                 {pedidoAtivo.horario_entrega_previsto ? (
                                     <div className="flex justify-between gap-4">
                                         <span className="text-app-mocha">Previsao</span>
@@ -306,7 +327,7 @@ export default function PaginaPedidoAntecipado({ params }) {
                                 </div>
                             </div>
                             {pedidoAtivo.observacoes ? (
-                                <p className="mt-5 rounded-[8px] bg-app-creme-suave p-4 text-sm leading-6 text-app-mocha">
+                                <p className="mt-5 rounded-[8px] bg-white p-4 text-sm leading-6 text-app-mocha">
                                     <strong>Observacoes:</strong> {pedidoAtivo.observacoes}
                                 </p>
                             ) : null}
@@ -316,13 +337,13 @@ export default function PaginaPedidoAntecipado({ params }) {
                     <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_360px]">
                         <section className="grid gap-6">
                             {categorias.map((categoria) => (
-                                <article key={categoria.id_categoria} className="rounded-[14px] bg-app-creme-leve p-5 shadow-sm ring-1 ring-app-baunilha-dourada sm:p-6">
+                                <article key={categoria.id_categoria} className="rounded-[14px] bg-white p-5 shadow-sm ring-1 ring-app-baunilha-dourada sm:p-6">
                                     <div className="flex flex-wrap items-end justify-between gap-3">
                                         <div>
                                             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{categoria.cardapio}</p>
                                             <h2 className="mt-1 text-2xl font-bold">{categoria.nome}</h2>
                                         </div>
-                                        <span className="rounded-full bg-app-creme-suave px-3 py-1 text-xs font-bold text-app-mocha">
+                                        <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-app-mocha">
                                             {(categoria.produtos ?? []).length} itens
                                         </span>
                                     </div>
@@ -332,7 +353,7 @@ export default function PaginaPedidoAntecipado({ params }) {
                                             const quantidade = quantidades[produto.id_produto] ?? 0;
 
                                             return (
-                                                <div key={produto.id_produto} className="grid gap-4 rounded-[12px] bg-app-creme-suave p-3 ring-1 ring-app-baunilha-dourada/55 sm:grid-cols-[128px_1fr_auto] sm:items-center">
+                                                <div key={produto.id_produto} className="grid gap-4 rounded-[12px] bg-white p-3 ring-1 ring-app-baunilha-dourada/55 sm:grid-cols-[128px_1fr_auto] sm:items-center">
                                                     <div className="relative h-28 overflow-hidden rounded-[10px] bg-app-baunilha-dourada/45">
                                                         {produto.imagem_url ? (
                                                             <Image src={produto.imagem_url} alt={produto.nome} fill className="object-cover" />
@@ -350,10 +371,6 @@ export default function PaginaPedidoAntecipado({ params }) {
                                                                     Destaque
                                                                 </span>
                                                             ) : null}
-                                                            <span className="inline-flex items-center gap-1 text-xs font-semibold text-app-cinza">
-                                                                <Icon type="clock" className="h-4 w-4" />
-                                                                {produto.tempo_preparo_minutos ?? 30} min
-                                                            </span>
                                                         </div>
                                                         <h3 className="mt-2 text-lg font-bold text-app-cafe-profundo">{produto.nome}</h3>
                                                         {produto.descricao ? <p className="mt-1 text-sm leading-6 text-app-mocha">{produto.descricao}</p> : null}
@@ -361,7 +378,7 @@ export default function PaginaPedidoAntecipado({ params }) {
                                                     </div>
 
                                                     <div className="flex items-center justify-between gap-3 sm:justify-end">
-                                                        <button type="button" onClick={() => alterarQuantidade(produto.id_produto, -1)} className="flex h-10 w-10 items-center justify-center rounded-full bg-app-creme-leve text-app-cafe-profundo ring-1 ring-app-baunilha-dourada transition hover:bg-app-baunilha-dourada">
+                                                        <button type="button" onClick={() => alterarQuantidade(produto.id_produto, -1)} className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-app-cafe-profundo ring-1 ring-app-baunilha-dourada transition hover:bg-app-baunilha-dourada">
                                                             <Icon type="minus" className="h-4 w-4" />
                                                         </button>
                                                         <span className="min-w-8 text-center text-lg font-bold">{quantidade}</span>
@@ -378,7 +395,7 @@ export default function PaginaPedidoAntecipado({ params }) {
                                                                 value={observacoesItens[produto.id_produto] ?? ""}
                                                                 onChange={(evento) => alterarObservacaoItem(produto.id_produto, evento.target.value)}
                                                                 placeholder="Ex: sem cebola, molho separado, ponto da carne..."
-                                                                className="h-10 rounded-[8px] border border-app-baunilha-dourada bg-app-chantilly px-3 text-sm text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado"
+                                                                className="h-10 rounded-[8px] border border-app-baunilha-dourada bg-white px-3 text-sm text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado"
                                                             />
                                                             <span className="text-[11px] text-app-cinza">
                                                                 Limite de {LIMITE_UNIDADES_POR_ITEM} unidades por item.
@@ -393,13 +410,13 @@ export default function PaginaPedidoAntecipado({ params }) {
                             ))}
 
                             {!produtos.length ? (
-                                <p className="rounded-[12px] bg-app-creme-leve p-8 text-center text-sm font-semibold shadow-sm ring-1 ring-app-baunilha-dourada">
-                                    Este restaurante ainda nao publicou itens no cardapio.
+                                <p className="rounded-[12px] bg-white p-8 text-center text-sm font-semibold shadow-sm ring-1 ring-app-baunilha-dourada">
+                                    Este restaurante ainda não publicou itens no cardápio.
                                 </p>
                             ) : null}
                         </section>
 
-                        <aside className="h-fit rounded-[14px] bg-app-creme-leve p-6 shadow-sm ring-1 ring-app-baunilha-dourada lg:sticky lg:top-6">
+                        <aside className="h-fit rounded-[14px] bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada lg:sticky lg:top-6">
                             <div className="flex items-center gap-3">
                                 <span className="flex h-11 w-11 items-center justify-center rounded-[10px] bg-app-baunilha-dourada text-app-cafe-profundo">
                                     <Icon type="receipt" />
@@ -412,7 +429,7 @@ export default function PaginaPedidoAntecipado({ params }) {
 
                             <div className="mt-5 grid gap-2">
                                 {produtosSelecionados.length ? produtosSelecionados.map((produto) => (
-                                    <div key={produto.id_produto} className="grid grid-cols-[1fr_auto] gap-3 rounded-[8px] bg-app-creme-suave p-3 text-sm">
+                                    <div key={produto.id_produto} className="grid grid-cols-[1fr_auto] gap-3 rounded-[8px] bg-white p-3 text-sm">
                                         <div>
                                             <span>
                                                 <strong>{produto.quantidade}x</strong> {produto.nome}
@@ -426,25 +443,21 @@ export default function PaginaPedidoAntecipado({ params }) {
                                         <strong>{formatarMoeda(Number(produto.preco) * produto.quantidade)}</strong>
                                     </div>
                                 )) : (
-                                    <p className="rounded-[8px] bg-app-creme-suave p-4 text-sm text-app-mocha">
-                                        Selecione os itens do cardapio para montar o pedido.
+                                    <p className="rounded-[8px] bg-white p-4 text-sm text-app-mocha">
+                                        Selecione os itens do cardápio para montar o pedido.
                                     </p>
                                 )}
                             </div>
 
                             <label className="mt-5 grid gap-2 text-xs font-bold uppercase text-app-cinza">
                                 Observacoes
-                                <textarea value={observacoes} onChange={(evento) => setObservacoes(evento.target.value)} placeholder="Ex: retirar cebola, ponto da carne, alergias..." className="min-h-24 rounded-[8px] border border-app-baunilha-dourada bg-app-chantilly p-3 text-sm font-normal normal-case text-app-cafe-profundo outline-none focus:border-app-caramelo-torrado" />
+                                <textarea value={observacoes} onChange={(evento) => setObservacoes(evento.target.value)} placeholder="Ex: retirar cebola, ponto da carne, alergias..." className="min-h-24 rounded-[8px] border border-app-baunilha-dourada bg-white p-3 text-sm font-normal normal-case text-app-cafe-profundo outline-none focus:border-app-caramelo-torrado" />
                             </label>
 
                             <div className="mt-5 grid gap-3 border-t border-app-baunilha-dourada pt-5">
                                 <div className="flex items-center justify-between text-sm">
-                                    <span className="text-app-mocha">Consumo minimo</span>
+                                    <span className="text-app-mocha">Consumo mínimo</span>
                                     <strong>{formatarMoeda(consumoMinimo)}</strong>
-                                </div>
-                                <div className="flex items-center justify-between text-sm">
-                                    <span className="text-app-mocha">Tempo estimado</span>
-                                    <strong>{maiorTempoPreparo || 0} min</strong>
                                 </div>
                                 <div className="flex items-center justify-between">
                                     <span className="font-bold">Total</span>
@@ -453,18 +466,18 @@ export default function PaginaPedidoAntecipado({ params }) {
                             </div>
 
                             {!reservaConfirmada ? (
-                                <p className="mt-5 rounded-[8px] bg-app-creme-suave p-3 text-sm font-semibold text-app-caramelo-torrado">
-                                    O pedido antecipado fica disponivel apenas para reservas confirmadas.
+                                <p className="mt-5 rounded-[8px] bg-white p-3 text-sm font-semibold text-app-caramelo-torrado">
+                                    O pedido antecipado fica disponível apenas para reservas confirmadas.
                                 </p>
                             ) : null}
                             {reservaIniciada ? (
-                                <p className="mt-5 rounded-[8px] bg-app-creme-suave p-3 text-sm font-semibold text-app-caramelo-torrado">
-                                    Esta reserva ja iniciou. Para preservar a operacao do restaurante, nao e mais possivel adicionar pedido antecipado.
+                                <p className="mt-5 rounded-[8px] bg-white p-3 text-sm font-semibold text-app-caramelo-torrado">
+                                    Esta reserva já iniciou. Para preservar a operação do restaurante, não é mais possível adicionar pedido antecipado.
                                 </p>
                             ) : null}
                             {faltaParaMinimo > 0 && total > 0 ? (
-                                <p className="mt-5 rounded-[8px] bg-app-creme-suave p-3 text-sm font-semibold text-app-caramelo-torrado">
-                                    Faltam {formatarMoeda(faltaParaMinimo)} para atingir o consumo minimo da reserva.
+                                <p className="mt-5 rounded-[8px] bg-white p-3 text-sm font-semibold text-app-caramelo-torrado">
+                                    Faltam {formatarMoeda(faltaParaMinimo)} para atingir o consumo mínimo da reserva.
                                 </p>
                             ) : null}
                             <button type="button" onClick={criarPedido} disabled={enviando || total <= 0 || !reservaConfirmada || reservaIniciada || faltaParaMinimo > 0} className="mt-5 h-12 w-full rounded-[8px] bg-app-dourado-mel text-xs font-bold uppercase tracking-wide text-white transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-50">

@@ -10,7 +10,7 @@ exports.rotasValidacoes = (0, express_1.Router)();
 exports.rotasValidacoes.get("/cpf/:cpf", (req, res) => {
     const cpf = (0, comum_1.somenteNumeros)(req.params.cpf);
     if (!(0, cpf_1.validarCpf)(cpf)) {
-        return res.status(400).json({ error: "CPF invalido." });
+        return res.status(400).json({ error: "CPF inválido." });
     }
     return res.json({ valid: true, cpf });
 });
@@ -20,7 +20,7 @@ exports.rotasValidacoes.get("/cep/:cep", async (req, res) => {
     }
     catch (error) {
         return res.status(400).json({
-            error: error instanceof Error ? error.message : "CEP invalido.",
+            error: error instanceof Error ? error.message : "CEP inválido.",
         });
     }
 });
@@ -30,7 +30,7 @@ exports.rotasValidacoes.get("/cnpj/:cnpj", async (req, res) => {
     }
     catch (error) {
         return res.status(400).json({
-            error: error instanceof Error ? error.message : "CNPJ invalido.",
+            error: error instanceof Error ? error.message : "CNPJ inválido.",
         });
     }
 });

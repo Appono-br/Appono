@@ -5,19 +5,19 @@ import Link from "next/link";
 import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 import { useEffect, useMemo, useState } from "react";
 import { apiRequest } from "@/lib/api";
-import { calcularTempoPreparoItens, formatarHorarioPreparo, preparoEstaLiberado } from "@/lib/tempo-preparo";
+import { filtrarOrdenarPorBusca, textoBusca } from "@/lib/busca-avancada";
 
 const navItems = [
-    { label: "Home", href: "/restaurante/home" },
+    
     { label: "Dashboard", href: "/restaurante/dashboard" },
-    { label: "Gestao de cardapio", href: "/restaurante/cardapio" },
+    { label: "Gestão de cardápio", href: "/restaurante/cardapio" },
     { label: "Desempenho", href: "/restaurante/desempenho" },
-    { label: "Relatorio financeiro", href: "/restaurante/financeiro" },
+    { label: "Relatório financeiro", href: "/restaurante/financeiro" },
     { label: "Reservas", href: "/restaurante/reservas" },
     { label: "Cozinha", href: "/restaurante/pedidos" },
-    { label: "Historico", href: "/restaurante/historico-pedidos" },
+    { label: "Histórico", href: "/restaurante/historico-pedidos" },
     { label: "Mensagens", href: "/restaurante/mensagens" },
-    { label: "Configuracoes", href: "/restaurante/configuracoes" },
+    { label: "Configurações", href: "/restaurante/configuracoes" },
 ];
 
 const filtrosPedido = [
@@ -28,13 +28,21 @@ const filtrosPedido = [
     { label: "Entregues", value: "ENTREGUE" },
     { label: "Cancelados", value: "CANCELADO" },
 ];
+const ordenacoesPedido = [
+    { label: "Próximos horários", value: "HORARIO" },
+    { label: "Prioridade operacional", value: "PRIORIDADE" },
+    { label: "Pedidos recentes", value: "RECENTES" },
+    { label: "Maior valor", value: "VALOR" },
+];
 
 function Icon({ type, className = "h-5 w-5" }) {
     const paths = {
         bell: "M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0",
         menu: "M4 7h16M4 12h16M4 17h16",
+        message: "M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v8z",
         clock: "M12 7v5l3 2M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
         receipt: "M7 3h10a2 2 0 0 1 2 2v16l-3-2-2 2-2-2-2 2-2-2-3 2V5a2 2 0 0 1 2-2Z",
+        search: "m21 21-4.35-4.35M11 18a7 7 0 1 1 0-14 7 7 0 0 1 0 14z",
         user: "M20 21a8 8 0 0 0-16 0M12 13a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z",
         trash: "M4 7h16M10 11v6M14 11v6M6 7l1 14h10l1-14M9 7V4h6v3",
     };
@@ -127,6 +135,84 @@ function obterProximaAcaoPedido(status) {
 function pedidoPodeSairDaCozinha(status) {
     return ["PRONTO", "ENTREGUE", "CANCELADO"].includes(status);
 }
+function obterDataHoraReservaPedido(pedido) {
+    const reserva = pedido.reserva ?? pedido.reservas ?? {};
+    const data = reserva.data_reserva;
+    const horario = reserva.horario_inicio;
+    const dataHora = data && horario ? new Date(`${data}T${horario}`) : null;
+    return dataHora && !Number.isNaN(dataHora.getTime()) ? dataHora.getTime() : Number.POSITIVE_INFINITY;
+}
+function obterPrioridadeStatusPedido(status) {
+    const prioridade = {
+        PRONTO: 0,
+        EM_PREPARO: 1,
+        CONFIRMADO: 2,
+        ENTREGUE: 3,
+        CANCELADO: 4,
+    };
+    return prioridade[status] ?? 5;
+}
+function ordenarPedidos(pedidos, ordenacao) {
+    const lista = [...pedidos];
+    if (ordenacao === "PRIORIDADE") {
+        return lista.sort((a, b) => obterPrioridadeStatusPedido(a.status_pedido) - obterPrioridadeStatusPedido(b.status_pedido) || obterDataHoraReservaPedido(a) - obterDataHoraReservaPedido(b));
+    }
+    if (ordenacao === "RECENTES") {
+        return lista.sort((a, b) => new Date(b.data_pedido ?? 0) - new Date(a.data_pedido ?? 0));
+    }
+    if (ordenacao === "VALOR") {
+        return lista.sort((a, b) => Number(b.valor_total ?? 0) - Number(a.valor_total ?? 0));
+    }
+    return lista.sort((a, b) => obterDataHoraReservaPedido(a) - obterDataHoraReservaPedido(b));
+}
+
+function agruparPedidosPorReserva(pedidos = []) {
+    const reservasPorId = new Map();
+
+    pedidos.forEach((pedido) => {
+        const reservaOrigem = pedido.reservas ?? {};
+        const idReserva = pedido.id_reserva ?? reservaOrigem.id_reserva ?? `pedido-${pedido.id_pedido}`;
+        const reserva = reservasPorId.get(idReserva) ?? {
+            ...reservaOrigem,
+            id_reserva: idReserva,
+            clientes: pedido.clientes,
+            pedidos: [],
+        };
+
+        reserva.clientes = reserva.clientes ?? pedido.clientes;
+        reserva.pedidos.push(pedido);
+        reservasPorId.set(idReserva, reserva);
+    });
+
+    return Array.from(reservasPorId.values());
+}
+function obterCamposPedido(pedido) {
+    const reserva = pedido.reserva ?? pedido.reservas ?? {};
+    return [
+        `pedido ${pedido.id_pedido}`,
+        pedido.id_pedido,
+        pedido.status_pedido,
+        obterStatusPedido(pedido.status_pedido),
+        pedido.observacoes,
+        pedido.valor_total,
+        reserva.clientes?.nome,
+        reserva.clientes?.telefone,
+        pedido.clientes?.nome,
+        pedido.clientes?.telefone,
+        reserva.id_reserva ? `reserva ${reserva.id_reserva}` : "",
+        reserva.data_reserva,
+        reserva.horario_inicio,
+        reserva.horario_fim,
+        reserva.mesas?.numero_mesa ? `mesa ${reserva.mesas.numero_mesa}` : "",
+        reserva.quantidade_pessoas ? `${reserva.quantidade_pessoas} pessoas` : "",
+        ...(pedido.itens_pedido ?? []).map((item) => textoBusca(
+            item.produtos?.nome,
+            item.produtos?.descricao,
+            item.observacoes,
+            item.quantidade ? `${item.quantidade}x` : "",
+        )),
+    ];
+}
 
 function EmptyPanel({ title, description }) {
     return (
@@ -152,9 +238,12 @@ export default function RestaurantOrdersPage() {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [reservas, setReservas] = useState([]);
     const [filtroPedido, setFiltroPedido] = useState("TODOS");
+    const [ordenacaoPedido, setOrdenacaoPedido] = useState("HORARIO");
+    const [busca, setBusca] = useState("");
     const [mensagem, setMensagem] = useState("");
     const [pedidoParaRemover, setPedidoParaRemover] = useState(null);
     const [removendoPedido, setRemovendoPedido] = useState(false);
+    const [abrindoChatPedidoId, setAbrindoChatPedidoId] = useState(null);
     const isRestaurant = session?.type === "restaurant";
 
     useEffect(() => {
@@ -162,10 +251,10 @@ export default function RestaurantOrdersPage() {
             return;
         }
 
-        apiRequest("/reservas")
-            .then(setReservas)
+        apiRequest("/pedidos/historico/restaurante?fila=cozinha")
+            .then((pedidosOperacionais) => setReservas(agruparPedidosPorReserva(pedidosOperacionais ?? [])))
             .catch((erro) =>
-                setMensagem(erro instanceof Error ? erro.message : "Nao foi possivel carregar os pedidos."),
+                setMensagem(erro instanceof Error ? erro.message : "Não foi possível carregar os pedidos."),
             );
     }, [isRestaurant]);
 
@@ -181,13 +270,16 @@ export default function RestaurantOrdersPage() {
         );
     }, [reservas]);
 
-    const pedidosFiltrados = useMemo(() => {
+    const pedidosPorFiltro = useMemo(() => {
         if (filtroPedido === "TODOS") {
             return pedidos;
         }
 
         return pedidos.filter((pedido) => pedido.status_pedido === filtroPedido);
     }, [filtroPedido, pedidos]);
+    const pedidosFiltrados = useMemo(() => {
+        return ordenarPedidos(filtrarOrdenarPorBusca(pedidosPorFiltro, busca, obterCamposPedido), ordenacaoPedido);
+    }, [busca, ordenacaoPedido, pedidosPorFiltro]);
 
     async function atualizarStatusPedido(idPedido, statusPedido) {
         try {
@@ -206,7 +298,7 @@ export default function RestaurantOrdersPage() {
             );
             setMensagem("Status do pedido atualizado.");
         } catch (erro) {
-            setMensagem(erro instanceof Error ? erro.message : "Nao foi possivel atualizar o pedido.");
+            setMensagem(erro instanceof Error ? erro.message : "Não foi possível atualizar o pedido.");
         }
     }
 
@@ -229,18 +321,37 @@ export default function RestaurantOrdersPage() {
                     ),
                 })),
             );
-            setMensagem("Pedido removido da fila da cozinha. O historico continua preservado.");
+            setMensagem("Pedido removido da fila da cozinha. O histórico continua preservado.");
             setPedidoParaRemover(null);
         } catch (erro) {
-            setMensagem(erro instanceof Error ? erro.message : "Nao foi possivel remover o pedido da cozinha.");
+            setMensagem(erro instanceof Error ? erro.message : "Não foi possível remover o pedido da cozinha.");
         } finally {
             setRemovendoPedido(false);
         }
     }
 
+    async function abrirChatPedido(pedido) {
+        setAbrindoChatPedidoId(pedido.id_pedido);
+        setMensagem("");
+        try {
+            const conversa = await apiRequest("/mensagens/conversas", {
+                method: "POST",
+                body: JSON.stringify({
+                    id_pedido: pedido.id_pedido,
+                    assunto: `Pedido #${pedido.id_pedido}`,
+                }),
+            });
+            window.location.assign(`/restaurante/mensagens/${conversa.id_conversa}`);
+        } catch (erro) {
+            setMensagem(erro instanceof Error ? erro.message : "Não foi possível iniciar o chat.");
+        } finally {
+            setAbrindoChatPedidoId(null);
+        }
+    }
+
     if (!isRestaurant) {
         return (
-            <main className="flex min-h-screen items-center justify-center bg-app-chantilly px-5 text-app-cafe-profundo">
+            <main className="flex min-h-screen items-center justify-center bg-white px-5 text-app-cafe-profundo">
                 <section className="w-full max-w-lg rounded-[8px] bg-app-creme-leve p-8 text-center shadow-sm ring-1 ring-app-baunilha-dourada">
                     <Image
                         src="/brand/appono-mark.svg"
@@ -252,7 +363,7 @@ export default function RestaurantOrdersPage() {
                     />
                     <h1 className="mt-6 text-3xl font-semibold">Acesso restrito</h1>
                     <p className="mt-3 text-sm leading-6 text-app-cinza">
-                        Esta area e destinada a contas de restaurante.
+                        Esta área é destinada a contas de restaurante.
                     </p>
                     <Link
                         href="/login"
@@ -266,7 +377,7 @@ export default function RestaurantOrdersPage() {
     }
 
     return (
-        <main className="flex min-h-screen flex-col bg-app-chantilly text-app-cafe-profundo">
+        <main className="flex min-h-screen flex-col bg-white text-app-cafe-profundo">
             <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-app-creme-leve/90 text-app-cafe-profundo shadow-sm backdrop-blur-md">
                 <div className="mx-auto grid h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-5 lg:h-20">
                     <div aria-label="Appono">
@@ -296,7 +407,7 @@ export default function RestaurantOrdersPage() {
                         <Link
                             href="/restaurante/notificacoes"
                             className="flex h-9 w-9 items-center justify-center rounded-[8px] text-app-cafe-profundo transition hover:bg-app-chantilly hover:text-app-caramelo-torrado"
-                            aria-label="Notificacoes"
+                            aria-label="Notificações"
                         >
                             <Icon type="bell" />
                         </Link>
@@ -304,7 +415,7 @@ export default function RestaurantOrdersPage() {
                         <button
                             type="button"
                             onClick={() => setMobileMenuOpen((current) => !current)}
-                            className="flex h-9 w-9 items-center justify-center rounded-[8px] border border-app-baunilha-dourada bg-app-chantilly text-app-cafe-profundo xl:hidden"
+                            className="flex h-9 w-9 items-center justify-center rounded-[8px] border border-app-baunilha-dourada bg-white text-app-cafe-profundo xl:hidden"
                             aria-label="Abrir menu"
                             aria-expanded={mobileMenuOpen}
                             aria-controls="restaurant-orders-menu"
@@ -342,23 +453,45 @@ export default function RestaurantOrdersPage() {
                             Cozinha
                         </h1>
                         <p className="mt-4 max-w-2xl text-sm leading-6 text-app-cinza sm:text-base">
-                            Acompanhe os pedidos pagos, os horarios de preparo e as entregas vinculadas as reservas.
+                            Acompanhe os pedidos pagos, a ordem das reservas e as entregas vinculadas ao atendimento.
                         </p>
                     </div>
 
-                    <div className="mt-6 flex gap-2 overflow-x-auto pb-2">
-                        {filtrosPedido.map((filtro) => (
-                            <button
-                                key={filtro.value}
-                                type="button"
-                                onClick={() => setFiltroPedido(filtro.value)}
-                                className={`inline-flex h-10 shrink-0 items-center justify-center rounded-[8px] border px-4 text-[11px] font-bold uppercase tracking-[0.12em] transition ${filtroPedido === filtro.value
-                                    ? "border-app-caramelo-torrado bg-app-caramelo-torrado text-app-chantilly"
-                                    : "border-app-baunilha-dourada bg-app-creme-leve text-app-mocha hover:border-app-caramelo-torrado hover:bg-app-baunilha-dourada"}`}
-                            >
-                                {filtro.label}
-                            </button>
-                        ))}
+                    <div className="mt-6 rounded-[16px] border border-app-baunilha-dourada/65 bg-white p-4 shadow-sm">
+                        <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-end">
+                            <label className="campo-busca-app flex h-11 items-center gap-3 rounded-[10px] border border-app-baunilha-dourada/70 bg-white px-4 text-app-mocha shadow-sm transition">
+                                <Icon type="search" className="h-4 w-4 shrink-0" />
+                                <span className="sr-only">Buscar pedidos na cozinha</span>
+                                <input
+                                    value={busca}
+                                    onChange={(event) => setBusca(event.target.value)}
+                                    placeholder="Buscar por cliente, pedido, mesa, status, item ou horário..."
+                                    className="input-busca-app h-full min-w-0 flex-1 bg-transparent text-sm text-app-cafe-profundo placeholder:text-app-cinza/60"
+                                />
+                            </label>
+
+                            <label className="grid gap-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado sm:min-w-56">
+                                Ordenar por
+                                <select value={ordenacaoPedido} onChange={(event) => setOrdenacaoPedido(event.target.value)} className="h-11 rounded-[10px] border border-app-baunilha-dourada bg-white px-3 text-sm font-semibold normal-case tracking-normal text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-caramelo-torrado/15">
+                                    {ordenacoesPedido.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
+                                </select>
+                            </label>
+                        </div>
+
+                        <div className="mt-4 flex gap-2 overflow-x-auto border-t border-app-baunilha-dourada/45 pt-4">
+                            {filtrosPedido.map((filtro) => (
+                                <button
+                                    key={filtro.value}
+                                    type="button"
+                                    onClick={() => setFiltroPedido(filtro.value)}
+                                    className={`inline-flex h-10 shrink-0 items-center justify-center rounded-full px-4 text-[11px] font-bold uppercase tracking-[0.12em] ring-1 transition ${filtroPedido === filtro.value
+                                        ? "bg-app-cafe-profundo text-app-creme-leve ring-app-cafe-profundo"
+                                        : "bg-white text-app-mocha ring-app-baunilha-dourada/70 hover:bg-app-chantilly hover:text-app-cafe-profundo hover:ring-app-caramelo-torrado/45"}`}
+                                >
+                                    {filtro.label}
+                                </button>
+                            ))}
+                        </div>
                     </div>
                 </div>
 
@@ -379,11 +512,7 @@ export default function RestaurantOrdersPage() {
                             {pedidosFiltrados.map((pedido) => {
                                 const reserva = pedido.reserva;
                                 const acao = obterProximaAcaoPedido(pedido.status_pedido);
-                                const preparoLiberado = preparoEstaLiberado(pedido.iniciar_preparo_em);
-                                const inicioPreparo = formatarHorarioPreparo(pedido.iniciar_preparo_em);
-                                const acaoBloqueada = acao?.status === "EM_PREPARO" && !preparoLiberado;
                                 const totalItensPedido = (pedido.itens_pedido ?? []).reduce((soma, item) => soma + Number(item.quantidade ?? 0), 0);
-                                const tempoEstimadoPedido = calcularTempoPreparoItens(pedido.itens_pedido ?? []);
                                 const podeRemoverDaCozinha = pedidoPodeSairDaCozinha(pedido.status_pedido);
 
                                 return (
@@ -392,7 +521,7 @@ export default function RestaurantOrdersPage() {
                                         className="overflow-hidden rounded-[14px] bg-app-creme-leve shadow-sm ring-1 ring-app-baunilha-dourada/75"
                                     >
                                         <div className="grid lg:grid-cols-[220px_minmax(0,1fr)_250px]">
-                                            <div className="flex items-center justify-between gap-4 border-b border-app-baunilha-dourada/55 bg-app-chantilly px-5 py-4 lg:flex-col lg:items-start lg:justify-center lg:border-b-0 lg:border-r">
+                                            <div className="flex items-center justify-between gap-4 border-b border-app-baunilha-dourada/55 bg-white px-5 py-4 lg:flex-col lg:items-start lg:justify-center lg:border-b-0 lg:border-r">
                                                 <div>
                                                     <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">
                                                         Pedido
@@ -421,38 +550,26 @@ export default function RestaurantOrdersPage() {
                                                     </strong>
                                                 </div>
 
-                                                <div className="mt-5 grid gap-3 text-sm text-app-mocha sm:grid-cols-4">
-                                                    <div className="rounded-[10px] bg-app-chantilly px-3 py-3 ring-1 ring-app-baunilha-dourada/45">
+                                                <div className="mt-5 grid gap-3 text-sm text-app-mocha sm:grid-cols-3">
+                                                    <div className="rounded-[10px] bg-white px-3 py-3 ring-1 ring-app-baunilha-dourada/45">
                                                         <span className="block text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">Reserva</span>
                                                         <strong className="mt-1 block text-app-cafe-profundo">{reserva.data_reserva} as {reserva.horario_inicio?.slice(0, 5)}</strong>
                                                     </div>
-                                                    <div className="rounded-[10px] bg-app-chantilly px-3 py-3 ring-1 ring-app-baunilha-dourada/45">
+                                                    <div className="rounded-[10px] bg-white px-3 py-3 ring-1 ring-app-baunilha-dourada/45">
                                                         <span className="block text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">Mesa</span>
                                                         <strong className="mt-1 block text-app-cafe-profundo">{reserva.mesas?.numero_mesa ?? "-"}</strong>
                                                     </div>
-                                                    <div className="rounded-[10px] bg-app-chantilly px-3 py-3 ring-1 ring-app-baunilha-dourada/45">
+                                                    <div className="rounded-[10px] bg-white px-3 py-3 ring-1 ring-app-baunilha-dourada/45">
                                                         <span className="block text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">Pessoas</span>
                                                         <strong className="mt-1 block text-app-cafe-profundo">{reserva.quantidade_pessoas}</strong>
                                                     </div>
-                                                    <div className="rounded-[10px] bg-app-chantilly px-3 py-3 ring-1 ring-app-baunilha-dourada/45">
-                                                        <span className="block text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">Preparo</span>
-                                                        <strong className="mt-1 block text-app-cafe-profundo">{tempoEstimadoPedido || "--"} min</strong>
-                                                    </div>
                                                 </div>
-
-                                                {pedido.iniciar_preparo_em ? (
-                                                    <p className={`mt-4 rounded-[10px] px-4 py-3 text-sm font-semibold ring-1 ${preparoLiberado ? "bg-app-dourado-mel/20 text-app-cafe-profundo ring-app-dourado-mel/40" : "bg-app-cafe-profundo text-app-creme-leve ring-app-cafe-profundo"}`}>
-                                                        {preparoLiberado
-                                                            ? "Preparo liberado. A cozinha ja pode iniciar este pedido."
-                                                            : `Iniciar preparo as ${inicioPreparo}.`}
-                                                    </p>
-                                                ) : null}
 
                                                 <div className="mt-5 grid gap-3">
                                                     {pedido.itens_pedido?.map((item, indice) => (
                                                         <div
                                                             key={`${item.produtos?.nome ?? "item"}-${indice}`}
-                                                            className="flex items-start justify-between gap-4 rounded-[10px] bg-app-chantilly px-4 py-3 text-sm text-app-mocha ring-1 ring-app-baunilha-dourada/45"
+                                                            className="flex items-start justify-between gap-4 rounded-[10px] bg-white px-4 py-3 text-sm text-app-mocha ring-1 ring-app-baunilha-dourada/45"
                                                         >
                                                             <div className="min-w-0">
                                                                 <p className="font-semibold text-app-cafe-profundo">
@@ -473,12 +590,12 @@ export default function RestaurantOrdersPage() {
 
                                                 {pedido.observacoes ? (
                                                     <p className="mt-4 rounded-[10px] bg-app-creme-suave px-4 py-3 text-sm text-app-mocha">
-                                                        Observacao geral: {pedido.observacoes}
+                                                        Observação geral: {pedido.observacoes}
                                                     </p>
                                                 ) : null}
                                             </div>
 
-                                            <aside className="flex flex-col justify-between border-t border-app-baunilha-dourada/55 bg-app-chantilly px-5 py-4 text-app-cafe-profundo lg:border-l lg:border-t-0">
+                                            <aside className="flex flex-col justify-between border-t border-app-baunilha-dourada/55 bg-white px-5 py-4 text-app-cafe-profundo lg:border-l lg:border-t-0">
                                                 <div>
                                                     <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-app-caramelo-torrado">
                                                         Entrega
@@ -487,9 +604,6 @@ export default function RestaurantOrdersPage() {
                                                         {formatarHoraPrevista(pedido.horario_entrega_previsto, reserva.horario_inicio)}
                                                     </p>
                                                     <div className="mt-4 grid gap-2 text-sm text-app-mocha">
-                                                        <span className="rounded-[8px] bg-app-creme-leve px-3 py-2 ring-1 ring-app-baunilha-dourada/45">
-                                                            Inicio: {inicioPreparo}
-                                                        </span>
                                                         <span className="rounded-[8px] bg-app-creme-leve px-3 py-2 ring-1 ring-app-baunilha-dourada/45">
                                                             {totalItensPedido} item(ns)
                                                         </span>
@@ -500,17 +614,26 @@ export default function RestaurantOrdersPage() {
                                                     {acao ? (
                                                         <button
                                                             type="button"
-                                                            disabled={acaoBloqueada}
                                                             onClick={() => atualizarStatusPedido(pedido.id_pedido, acao.status)}
                                                             className={`h-11 rounded-[9px] px-4 text-xs font-bold uppercase tracking-[0.14em] text-white transition disabled:cursor-not-allowed disabled:bg-app-cinza/45 disabled:text-app-creme-suave ${acao.classe}`}
                                                         >
-                                                            {acaoBloqueada ? `Liberado as ${inicioPreparo}` : acao.texto}
+                                                            {acao.texto}
                                                         </button>
                                                     ) : (
                                                         <p className="rounded-[10px] bg-app-creme-leve px-4 py-3 text-sm font-semibold text-app-cinza ring-1 ring-app-baunilha-dourada/45">
-                                                            Nenhuma acao pendente para este pedido.
+                                                            Nenhuma ação pendente para este pedido.
                                                         </p>
                                                     )}
+
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => abrirChatPedido(pedido)}
+                                                        disabled={abrindoChatPedidoId === pedido.id_pedido}
+                                                        className="inline-flex h-11 items-center justify-center gap-2 rounded-[9px] border border-app-caramelo-torrado px-4 text-xs font-bold uppercase tracking-[0.14em] text-app-caramelo-torrado transition hover:bg-app-chantilly disabled:cursor-not-allowed disabled:opacity-60"
+                                                    >
+                                                        <Icon type="message" className="h-4 w-4" />
+                                                        {abrindoChatPedidoId === pedido.id_pedido ? "Abrindo..." : "Falar com cliente"}
+                                                    </button>
 
                                                     {podeRemoverDaCozinha ? (
                                                         <button
@@ -532,15 +655,15 @@ export default function RestaurantOrdersPage() {
                     ) : (
                         <EmptyPanel
                             title="Nenhum pedido neste filtro"
-                            description="Quando o cliente pagar um pedido antecipado, ele aparecera aqui para a cozinha acompanhar o preparo no horario correto."
+                            description="Pedidos pagos aparecem aqui em ordem de reserva. Os mais próximos ficam primeiro para orientar a cozinha."
                         />
                     )}
                 </section>
             </section>
 
             {pedidoParaRemover ? (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-app-cafe-profundo/60 px-5 py-8 backdrop-blur-sm">
-                    <section className="w-full max-w-md rounded-[18px] bg-app-creme-leve p-6 text-app-cafe-profundo shadow-xl ring-1 ring-app-baunilha-dourada">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 px-5 py-8 backdrop-blur-[2px]">
+                    <section className="w-full max-w-md rounded-[18px] bg-white p-6 text-app-cafe-profundo shadow-2xl ring-1 ring-black/10">
                         <div className="flex h-12 w-12 items-center justify-center rounded-full bg-app-cafe-profundo text-app-creme-leve">
                             <Icon type="trash" />
                         </div>
@@ -551,7 +674,7 @@ export default function RestaurantOrdersPage() {
                             Tirar pedido #{pedidoParaRemover.id_pedido} da fila?
                         </h2>
                         <p className="mt-3 text-sm leading-6 text-app-cinza">
-                            Esta acao remove o pedido apenas da tela operacional da cozinha. O registro continua salvo no historico, no financeiro e nas reservas.
+                            Esta ação remove o pedido apenas da tela operacional da cozinha. O registro continua salvo no histórico, no financeiro e nas reservas.
                         </p>
                         <div className="mt-6 grid gap-3 sm:grid-cols-2">
                             <button
@@ -566,7 +689,7 @@ export default function RestaurantOrdersPage() {
                                 type="button"
                                 onClick={removerPedidoDaCozinha}
                                 disabled={removendoPedido}
-                                className="h-11 rounded-[10px] bg-app-caramelo-torrado px-4 text-xs font-bold uppercase tracking-[0.14em] text-white transition hover:bg-app-cacau-intenso disabled:cursor-not-allowed disabled:opacity-60"
+                                className="botao-acao-critica h-11 rounded-[10px] px-4 text-xs font-bold uppercase tracking-[0.14em] transition disabled:cursor-not-allowed disabled:opacity-60"
                             >
                                 {removendoPedido ? "Removendo..." : "Remover"}
                             </button>

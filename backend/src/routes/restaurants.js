@@ -4,33 +4,136 @@ exports.restaurantsRouter = void 0;
 const express_1 = require("express");
 const supabase_1 = require("../lib/supabase");
 const auth_1 = require("../middleware/auth");
+const geolocalizacao_1 = require("../services/geolocalizacao");
 exports.restaurantsRouter = (0, express_1.Router)();
 function obterClienteLeituraPublica() {
     return supabase_1.supabaseAdmin ?? supabase_1.supabaseAuth;
 }
+function numeroValido(valor) {
+    if (valor === null || valor === undefined || valor === "") return null;
+    const numero = Number(valor);
+    return Number.isFinite(numero) ? numero : null;
+}
+function calcularDistanciaKm(origemLatitude, origemLongitude, destinoLatitude, destinoLongitude) {
+    const raioTerraKm = 6371;
+    const paraRadianos = (valor) => (valor * Math.PI) / 180;
+    const deltaLatitude = paraRadianos(destinoLatitude - origemLatitude);
+    const deltaLongitude = paraRadianos(destinoLongitude - origemLongitude);
+    const a = Math.sin(deltaLatitude / 2) ** 2 +
+        Math.cos(paraRadianos(origemLatitude)) *
+            Math.cos(paraRadianos(destinoLatitude)) *
+            Math.sin(deltaLongitude / 2) ** 2;
+    return raioTerraKm * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+async function preencherCoordenadasAusentes(restaurantes) {
+    if (!supabase_1.supabaseAdmin || !Array.isArray(restaurantes) || !restaurantes.length) {
+        return restaurantes;
+    }
+    const resultado = [];
+    for (const restaurante of restaurantes) {
+        const latitudeAtual = numeroValido(restaurante.latitude);
+        const longitudeAtual = numeroValido(restaurante.longitude);
+        if ((0, geolocalizacao_1.coordenadaValida)(latitudeAtual, longitudeAtual)) {
+            resultado.push(restaurante);
+            continue;
+        }
+        const coordenadas = await (0, geolocalizacao_1.geocodificarEnderecoRestaurante)(restaurante);
+        if (!coordenadas) {
+            resultado.push(restaurante);
+            continue;
+        }
+        const geocodificadoEm = new Date().toISOString();
+        const { error } = await supabase_1.supabaseAdmin
+            .from("restaurantes")
+            .update({
+            latitude: coordenadas.latitude,
+            longitude: coordenadas.longitude,
+            geocodificado_em: geocodificadoEm,
+        })
+            .eq("id_restaurante", restaurante.id_restaurante);
+        resultado.push(error
+            ? restaurante
+            : {
+                ...restaurante,
+                latitude: coordenadas.latitude,
+                longitude: coordenadas.longitude,
+                geocodificado_em: geocodificadoEm,
+            });
+    }
+    return resultado;
+}
+function erroColunaGeolocalizacaoAusente(error) {
+    const mensagem = String(error?.message ?? "").toLowerCase();
+    return mensagem.includes("latitude") || mensagem.includes("longitude") || mensagem.includes("geocodificado");
+}
+async function consultarRestaurantesPublicos() {
+    const cliente = obterClienteLeituraPublica();
+    const consulta = cliente
+        .from("restaurantes")
+        .select("id_restaurante, nome, razao_social, telefone, email, cep, endereco, horario_funcionamento, logo_url, valor_minimo_reserva_por_pessoa, configuracao_operacao, latitude, longitude")
+        .eq("ativo", true)
+        .order("nome");
+    const resposta = await consulta;
+    if (!resposta.error || !erroColunaGeolocalizacaoAusente(resposta.error)) {
+        return resposta;
+    }
+    return cliente
+        .from("restaurantes")
+        .select("id_restaurante, nome, razao_social, telefone, email, cep, endereco, horario_funcionamento, logo_url, valor_minimo_reserva_por_pessoa, configuracao_operacao")
+        .eq("ativo", true)
+        .order("nome");
+}
+async function consultarRestaurantePublicoPorId(restaurantId) {
+    const cliente = obterClienteLeituraPublica();
+    const resposta = await cliente
+        .from("restaurantes")
+        .select("id_restaurante, nome, telefone, email, endereco, horario_funcionamento, logo_url, valor_minimo_reserva_por_pessoa, configuracao_operacao, latitude, longitude")
+        .eq("id_restaurante", restaurantId)
+        .eq("ativo", true)
+        .single();
+    if (!resposta.error || !erroColunaGeolocalizacaoAusente(resposta.error)) {
+        return resposta;
+    }
+    return cliente
+        .from("restaurantes")
+        .select("id_restaurante, nome, telefone, email, endereco, horario_funcionamento, logo_url, valor_minimo_reserva_por_pessoa, configuracao_operacao")
+        .eq("id_restaurante", restaurantId)
+        .eq("ativo", true)
+        .single();
+}
 async function obterUsuarioOpcional(req) {
     const authorization = req.headers.authorization;
-    if (!authorization?.startsWith("Bearer ")) {
-        return null;
-    }
-    const accessToken = authorization.slice(7);
-    const clienteAutenticacao = supabase_1.supabaseAdmin ?? supabase_1.supabaseAuth;
-    const { data: { user } } = await clienteAutenticacao.auth.getUser(accessToken);
+    if (!authorization?.startsWith("Bearer ")) return null;
+    const { data: { user } } = await supabase_1.supabaseAuth.auth.getUser(authorization.slice(7));
     return user ?? null;
 }
 async function obterClientePorUsuario(userId) {
-    if (!userId) {
-        return null;
+    if (!userId || !supabase_1.supabaseAdmin) return null;
+    const { data, error } = await supabase_1.supabaseAdmin.from("clientes").select("id_cliente").eq("id_auth", userId).maybeSingle();
+    if (error) throw new Error(error.message);
+    return data;
+}
+async function obterMetricas(idsRestaurantes, idCliente = null) {
+    const ids = [...new Set(idsRestaurantes.filter(Boolean))];
+    const resultado = new Map(ids.map((id) => [id, { avaliacao_media: null, total_avaliacoes: 0, total_favoritos: 0, favorito_cliente: false }]));
+    if (!ids.length || !supabase_1.supabaseAdmin) return resultado;
+    const [avaliacoes, favoritos, meusFavoritos] = await Promise.all([
+        supabase_1.supabaseAdmin.from("avaliacoes_restaurante").select("id_restaurante, nota").in("id_restaurante", ids),
+        supabase_1.supabaseAdmin.from("restaurantes_favoritos").select("id_restaurante").in("id_restaurante", ids),
+        idCliente ? supabase_1.supabaseAdmin.from("restaurantes_favoritos").select("id_restaurante").eq("id_cliente", idCliente).in("id_restaurante", ids) : Promise.resolve({ data: [] }),
+    ]);
+    for (const avaliacao of avaliacoes.data ?? []) {
+        const metrica = resultado.get(avaliacao.id_restaurante);
+        metrica.soma_notas = (metrica.soma_notas ?? 0) + Number(avaliacao.nota);
+        metrica.total_avaliacoes += 1;
     }
-    const { data, error } = await obterClienteLeituraPublica()
-        .from("clientes")
-        .select("id_cliente")
-        .eq("id_auth", userId)
-        .maybeSingle();
-    if (error) {
-        throw new Error(error.message);
+    for (const metrica of resultado.values()) {
+        if (metrica.total_avaliacoes) metrica.avaliacao_media = Number((metrica.soma_notas / metrica.total_avaliacoes).toFixed(1));
+        delete metrica.soma_notas;
     }
-    return data ?? null;
+    for (const favorito of favoritos.data ?? []) resultado.get(favorito.id_restaurante).total_favoritos += 1;
+    for (const favorito of meusFavoritos.data ?? []) resultado.get(favorito.id_restaurante).favorito_cliente = true;
+    return resultado;
 }
 function ordenarPorExibicaoENome(a, b) {
     const ordemA = Number(a.ordem_exibicao ?? 0);
@@ -62,101 +165,74 @@ function normalizarBusca(valor) {
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "");
 }
+function textoContemTermo(termo, campos) {
+    if (!termo) return true;
+    const texto = campos.map(normalizarBusca).filter(Boolean).join(" ");
+    return termo.split(/\s+/).filter(Boolean).every((token) => texto.includes(token));
+}
+function adicionarUnico(lista, item, chave) {
+    if (!item?.[chave]) return;
+    if (lista.some((atual) => atual[chave] === item[chave])) return;
+    lista.push(item);
+}
 function restauranteCorrespondeBusca(restaurante, termo) {
-    if (!termo) {
-        return true;
-    }
-    return [
+    if (!termo) return true;
+    return textoContemTermo(termo, [
         restaurante.nome,
         restaurante.razao_social,
         restaurante.endereco,
         restaurante.cep,
         restaurante.horario_funcionamento,
-    ].map(normalizarBusca).join(" ").includes(termo);
+    ]);
 }
-async function obterProdutosCorrespondentes(termo) {
-    if (!termo) {
-        return new Map();
-    }
+async function obterDadosCardapioBusca(termo) {
     const { data, error } = await obterClienteLeituraPublica()
         .from("produtos")
-        .select("id_restaurante, nome, descricao")
+        .select("id_restaurante, nome, descricao, categorias(nome, descricao, ativo, arquivado, cardapios(nome, descricao, ativo))")
         .eq("disponivel", true)
         .eq("arquivado", false);
-    if (error) {
-        return new Map();
+    const correspondencias = new Map();
+    const resumo = new Map();
+    if (error) return { correspondencias, resumo };
+    for (const produto of data ?? []) {
+        const categoria = produto.categorias ?? {};
+        const cardapio = categoria.cardapios ?? {};
+        if (categoria.ativo === false || categoria.arquivado === true || cardapio.ativo === false) continue;
+        const resumoAtual = resumo.get(produto.id_restaurante) ?? {
+            total_itens_cardapio: 0,
+            categorias_publicadas: [],
+        };
+        resumoAtual.total_itens_cardapio += 1;
+        adicionarUnico(resumoAtual.categorias_publicadas, { nome: categoria.nome, descricao: categoria.descricao }, "nome");
+        resumo.set(produto.id_restaurante, resumoAtual);
+        if (!termo || !textoContemTermo(termo, [
+            produto.nome,
+            produto.descricao,
+            categoria.nome,
+            categoria.descricao,
+            cardapio.nome,
+            cardapio.descricao,
+        ])) continue;
+        const atuais = correspondencias.get(produto.id_restaurante) ?? {
+            produtos: [],
+            categorias: [],
+            cardapios: [],
+        };
+        adicionarUnico(atuais.produtos, { nome: produto.nome, descricao: produto.descricao }, "nome");
+        adicionarUnico(atuais.categorias, { nome: categoria.nome, descricao: categoria.descricao }, "nome");
+        adicionarUnico(atuais.cardapios, { nome: cardapio.nome, descricao: cardapio.descricao }, "nome");
+        correspondencias.set(produto.id_restaurante, {
+            produtos: atuais.produtos.slice(0, 3),
+            categorias: atuais.categorias.slice(0, 2),
+            cardapios: atuais.cardapios.slice(0, 2),
+        });
     }
-    return (data ?? []).reduce((mapa, produto) => {
-        const conteudo = [produto.nome, produto.descricao].map(normalizarBusca).join(" ");
-        if (!conteudo.includes(termo)) {
-            return mapa;
-        }
-        const atuais = mapa.get(produto.id_restaurante) ?? [];
-        atuais.push({ nome: produto.nome, descricao: produto.descricao });
-        mapa.set(produto.id_restaurante, atuais.slice(0, 3));
-        return mapa;
-    }, new Map());
+    return { correspondencias, resumo };
 }
-async function obterMetricasRestaurantes(idsRestaurantes, idCliente) {
-    const ids = [...new Set((idsRestaurantes ?? []).filter(Boolean))];
-    const metricas = new Map(ids.map((id) => [id, {
-        avaliacao_media: null,
-        total_avaliacoes: 0,
-        total_favoritos: 0,
-        favorito_cliente: false,
-    }]));
-    if (!ids.length) {
-        return metricas;
-    }
-    const cliente = obterClienteLeituraPublica();
-    const [avaliacoesResposta, favoritosResposta, favoritosClienteResposta] = await Promise.all([
-        cliente.from("avaliacoes_restaurante").select("id_restaurante, nota").in("id_restaurante", ids),
-        cliente.from("restaurantes_favoritos").select("id_restaurante").in("id_restaurante", ids),
-        idCliente
-            ? cliente.from("restaurantes_favoritos").select("id_restaurante").eq("id_cliente", idCliente).in("id_restaurante", ids)
-            : Promise.resolve({ data: [], error: null }),
-    ]);
-    if (!avaliacoesResposta.error) {
-        const agrupadas = new Map();
-        for (const avaliacao of avaliacoesResposta.data ?? []) {
-            const atual = agrupadas.get(avaliacao.id_restaurante) ?? { soma: 0, total: 0 };
-            atual.soma += Number(avaliacao.nota ?? 0);
-            atual.total += 1;
-            agrupadas.set(avaliacao.id_restaurante, atual);
-        }
-        for (const [id, dados] of agrupadas.entries()) {
-            const metrica = metricas.get(id);
-            if (metrica) {
-                metrica.avaliacao_media = Number((dados.soma / dados.total).toFixed(1));
-                metrica.total_avaliacoes = dados.total;
-            }
-        }
-    }
-    if (!favoritosResposta.error) {
-        for (const favorito of favoritosResposta.data ?? []) {
-            const metrica = metricas.get(favorito.id_restaurante);
-            if (metrica) {
-                metrica.total_favoritos += 1;
-            }
-        }
-    }
-    if (!favoritosClienteResposta.error) {
-        for (const favorito of favoritosClienteResposta.data ?? []) {
-            const metrica = metricas.get(favorito.id_restaurante);
-            if (metrica) {
-                metrica.favorito_cliente = true;
-            }
-        }
-    }
-    return metricas;
-}
-
 const diasSemanaOperacao = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
-
 function obterDataLocalSaoPaulo() {
     return new Date(new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
 }
-
 function formatarDataLocal(data) {
     return [
         data.getFullYear(),
@@ -164,52 +240,43 @@ function formatarDataLocal(data) {
         String(data.getDate()).padStart(2, "0"),
     ].join("-");
 }
-
 function converterHoraParaMinutos(horario) {
     const [hora, minuto] = String(horario ?? "").split(":").map(Number);
-    if (!Number.isFinite(hora) || !Number.isFinite(minuto)) {
-        return null;
-    }
+    if (!Number.isFinite(hora) || !Number.isFinite(minuto)) return null;
     return hora * 60 + minuto;
 }
-
 function converterMinutosParaHora(totalMinutos) {
     const hora = Math.floor(totalMinutos / 60);
     const minuto = totalMinutos % 60;
     return `${String(hora).padStart(2, "0")}:${String(minuto).padStart(2, "0")}`;
 }
-
 function obterFimReserva(horarioInicio) {
     const inicio = converterHoraParaMinutos(horarioInicio);
+    if (inicio === null) return null;
     return converterMinutosParaHora((inicio + 120) % (24 * 60));
 }
-
 function intervalosSobrepoem(inicioA, fimA, inicioB, fimB) {
     return inicioA < fimB && fimA > inicioB;
 }
-
 function restauranteTemOperacaoConfigurada(configuracao = {}) {
     return Array.isArray(configuracao.days) &&
         configuracao.days.some((day) => day.enabled === true &&
             Array.isArray(day.shifts) &&
             day.shifts.some((shift) => shift.open && shift.close));
 }
-
 function obterDiaOperacao(configuracao, dataReserva) {
     const data = new Date(`${dataReserva}T12:00:00`);
     return configuracao.days?.find((day) => day.id === diasSemanaOperacao[data.getDay()]);
 }
-
-function montarHorariosOperacionais({ restaurante, dataReserva, pessoas, tempoPreparo, reservas, mesas }) {
+function montarHorariosOperacionais({ restaurante, dataReserva, pessoas, reservas, mesas }) {
     const configuracao = restaurante.configuracao_operacao ?? {};
     if (!restauranteTemOperacaoConfigurada(configuracao)) {
         return {
             operacao_configurada: false,
             horarios: [],
-            motivo: "Restaurante ainda nao configurou horarios de funcionamento.",
+            motivo: "Restaurante ainda não configurou horários de funcionamento.",
         };
     }
-
     const dia = obterDiaOperacao(configuracao, dataReserva);
     if (!dia?.enabled || !Array.isArray(dia.shifts)) {
         return {
@@ -218,49 +285,37 @@ function montarHorariosOperacionais({ restaurante, dataReserva, pessoas, tempoPr
             motivo: "Restaurante fechado nesta data.",
         };
     }
-
     const agora = obterDataLocalSaoPaulo();
     const hoje = formatarDataLocal(agora);
-    const antecedenciaMinima = Math.max(Number(configuracao.antecedenciaMinutosReserva ?? 60), Number(tempoPreparo ?? 0), 0);
+    const antecedenciaMinima = Math.max(Number(configuracao.antecedenciaMinutosReserva ?? 60), 0);
     const minimoMesmoDia = dataReserva === hoje ? agora.getHours() * 60 + agora.getMinutes() + antecedenciaMinima : 0;
     const duracaoReserva = 120;
     const mesasCompativeis = (mesas ?? []).filter((mesa) => Number(mesa.capacidade ?? 0) >= pessoas);
     const horarios = [];
-
     for (const shift of dia.shifts) {
         const abertura = converterHoraParaMinutos(shift.open);
         const fechamento = converterHoraParaMinutos(shift.close);
-        if (abertura === null || fechamento === null || abertura >= fechamento) {
-            continue;
-        }
-
+        if (abertura === null || fechamento === null || abertura >= fechamento) continue;
         const primeiroSlot = Math.ceil(abertura / 30) * 30;
         for (let minuto = primeiroSlot; minuto + duracaoReserva <= fechamento; minuto += 30) {
             const horario = converterMinutosParaHora(minuto);
             const fim = minuto + duracaoReserva;
             let motivo = null;
-
             if (minuto < minimoMesmoDia) {
-                motivo = "antecedencia minima";
+                motivo = "antecedência mínima";
             }
             else if (!mesasCompativeis.length) {
                 motivo = "sem mesa para este grupo";
             }
             else {
                 const mesaLivre = mesasCompativeis.some((mesa) => !(reservas ?? []).some((reserva) => {
-                    if (reserva.id_mesa !== mesa.id_mesa) {
-                        return false;
-                    }
+                    if (reserva.id_mesa !== mesa.id_mesa) return false;
                     const inicioReserva = converterHoraParaMinutos(reserva.horario_inicio);
                     const fimReserva = converterHoraParaMinutos(reserva.horario_fim);
                     return intervalosSobrepoem(minuto, fim, inicioReserva, fimReserva);
                 }));
-
-                if (!mesaLivre) {
-                    motivo = "mesas ocupadas";
-                }
+                if (!mesaLivre) motivo = "mesas ocupadas";
             }
-
             horarios.push({
                 horario,
                 horario_fim: obterFimReserva(horario),
@@ -269,38 +324,79 @@ function montarHorariosOperacionais({ restaurante, dataReserva, pessoas, tempoPr
             });
         }
     }
-
     return {
         operacao_configurada: true,
         antecedencia_minima_minutos: antecedenciaMinima,
         horarios,
-        motivo: horarios.length ? null : "Nao ha turnos validos nesta data.",
+        motivo: horarios.length ? null : "Não há turnos válidos nesta data.",
     };
 }
 exports.restaurantsRouter.get("/", async (req, res) => {
     try {
         const termoBusca = normalizarBusca(req.query.q);
+        let latitudeCliente = numeroValido(req.query.latitude);
+        let longitudeCliente = numeroValido(req.query.longitude);
+        let origemDistancia = (0, geolocalizacao_1.coordenadaValida)(latitudeCliente, longitudeCliente) ? "navegador" : null;
+        let localizacaoResolvida = null;
+        if (!origemDistancia && req.query.localizacao) {
+            localizacaoResolvida = await (0, geolocalizacao_1.geocodificarLocalizacao)(req.query.localizacao);
+            if (localizacaoResolvida) {
+                latitudeCliente = localizacaoResolvida.latitude;
+                longitudeCliente = localizacaoResolvida.longitude;
+                origemDistancia = "busca";
+            }
+        }
+        const podeCalcularDistancia = Boolean(origemDistancia);
+        const raioKm = numeroValido(req.query.raio_km);
         const usuario = await obterUsuarioOpcional(req);
         const cliente = await obterClientePorUsuario(usuario?.id);
-        const [restaurantesResposta, produtosCorrespondentes] = await Promise.all([
-            obterClienteLeituraPublica()
-                .from("restaurantes")
-                .select("id_restaurante, nome, razao_social, telefone, email, cep, endereco, horario_funcionamento, logo_url, valor_minimo_reserva_por_pessoa")
-                .eq("ativo", true)
-                .order("nome"),
-            obterProdutosCorrespondentes(termoBusca),
+        const [restaurantesResposta, dadosCardapioBusca] = await Promise.all([
+            consultarRestaurantesPublicos(),
+            obterDadosCardapioBusca(termoBusca),
         ]);
+        const { correspondencias: correspondenciasBusca, resumo: resumoCardapio } = dadosCardapioBusca;
         if (restaurantesResposta.error) {
             return res.status(400).json({ error: restaurantesResposta.error.message });
         }
         const restaurantesFiltrados = (restaurantesResposta.data ?? []).filter((restaurante) => restauranteCorrespondeBusca(restaurante, termoBusca) ||
-            produtosCorrespondentes.has(restaurante.id_restaurante));
-        const metricas = await obterMetricasRestaurantes(restaurantesFiltrados.map((restaurante) => restaurante.id_restaurante), cliente?.id_cliente);
-        return res.json(restaurantesFiltrados.map((restaurante) => ({
-            ...restaurante,
-            produtos_encontrados: produtosCorrespondentes.get(restaurante.id_restaurante) ?? [],
-            ...(metricas.get(restaurante.id_restaurante) ?? {}),
-        })));
+            correspondenciasBusca.has(restaurante.id_restaurante));
+        const restaurantesComGeolocalizacao = podeCalcularDistancia
+            ? await preencherCoordenadasAusentes(restaurantesFiltrados)
+            : restaurantesFiltrados;
+        const metricas = await obterMetricas(restaurantesComGeolocalizacao.map((item) => item.id_restaurante), cliente?.id_cliente);
+        const resposta = restaurantesComGeolocalizacao.map((item) => {
+            const latitudeRestaurante = numeroValido(item.latitude);
+            const longitudeRestaurante = numeroValido(item.longitude);
+            const distanciaKm = podeCalcularDistancia && (0, geolocalizacao_1.coordenadaValida)(latitudeRestaurante, longitudeRestaurante)
+                ? Number(calcularDistanciaKm(latitudeCliente, longitudeCliente, latitudeRestaurante, longitudeRestaurante).toFixed(1))
+                : null;
+            const resumo = resumoCardapio.get(item.id_restaurante) ?? {};
+            const { configuracao_operacao, ...restaurantePublico } = item;
+            return {
+                ...restaurantePublico,
+                distancia_km: distanciaKm,
+                origem_distancia: origemDistancia,
+                localizacao_resolvida: localizacaoResolvida?.nome ?? null,
+                produtos_encontrados: correspondenciasBusca.get(item.id_restaurante)?.produtos ?? [],
+                categorias_encontradas: correspondenciasBusca.get(item.id_restaurante)?.categorias ?? [],
+                cardapios_encontrados: correspondenciasBusca.get(item.id_restaurante)?.cardapios ?? [],
+                categorias_publicadas: resumo.categorias_publicadas ?? [],
+                total_itens_cardapio: resumo.total_itens_cardapio ?? 0,
+                tem_cardapio_publicado: Number(resumo.total_itens_cardapio ?? 0) > 0,
+                aceita_reserva: restauranteTemOperacaoConfigurada(configuracao_operacao),
+                ...metricas.get(item.id_restaurante),
+            };
+        }).filter((item) => {
+            if (!podeCalcularDistancia || !Number.isFinite(raioKm) || raioKm <= 0) return true;
+            return item.distancia_km !== null && item.distancia_km <= raioKm;
+        }).sort((a, b) => {
+            if (!podeCalcularDistancia) return 0;
+            if (a.distancia_km === null && b.distancia_km === null) return 0;
+            if (a.distancia_km === null) return 1;
+            if (b.distancia_km === null) return -1;
+            return a.distancia_km - b.distancia_km;
+        });
+        return res.json(resposta);
     }
     catch (error) {
         return res.status(400).json({
@@ -308,13 +404,24 @@ exports.restaurantsRouter.get("/", async (req, res) => {
         });
     }
 });
+exports.restaurantsRouter.get("/me/avaliacoes", auth_1.requireAuth, (0, auth_1.requireRole)("restaurante"), async (req, res) => {
+    const page = Math.max(Number.parseInt(req.query.page, 10) || 1, 1);
+    const pageSize = Math.min(Math.max(Number.parseInt(req.query.page_size, 10) || 20, 1), 50);
+    const from = (page - 1) * pageSize;
+    const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
+    const { data, error, count } = await supabase.from("avaliacoes_restaurante")
+        .select("id_avaliacao, nota, comentario, created_at, clientes(nome)", { count: "exact" })
+        .eq("id_restaurante", res.locals.profileId).order("created_at", { ascending: false }).range(from, from + pageSize - 1);
+    if (error) return res.status(400).json({ error: error.message });
+    const metricas = await obterMetricas([res.locals.profileId]);
+    return res.json({ items: data ?? [], page, page_size: pageSize, total: count ?? 0, metricas: metricas.get(res.locals.profileId) });
+});
 exports.restaurantsRouter.get("/:id/disponibilidade", async (req, res) => {
     const restaurantId = Number(req.params.id);
     const dataReserva = String(req.query.data ?? "");
     const pessoas = Math.max(1, Number(req.query.pessoas ?? 1));
-    const tempoPreparo = Math.max(0, Number(req.query.tempo_preparo ?? 0));
     if (!Number.isFinite(restaurantId) || !/^\d{4}-\d{2}-\d{2}$/.test(dataReserva) || !Number.isFinite(pessoas)) {
-        return res.status(400).json({ error: "Parametros de disponibilidade invalidos." });
+        return res.status(400).json({ error: "Parametros de disponibilidade inválidos." });
     }
     const cliente = obterClienteLeituraPublica();
     const { data: restaurante, error: restauranteError } = await cliente
@@ -324,7 +431,7 @@ exports.restaurantsRouter.get("/:id/disponibilidade", async (req, res) => {
         .eq("ativo", true)
         .single();
     if (restauranteError || !restaurante) {
-        return res.status(404).json({ error: "Restaurante nao encontrado." });
+        return res.status(404).json({ error: "Restaurante não encontrado." });
     }
     const [{ data: mesas, error: mesasError }, { data: reservas, error: reservasError }] = await Promise.all([
         cliente
@@ -345,7 +452,6 @@ exports.restaurantsRouter.get("/:id/disponibilidade", async (req, res) => {
         restaurante,
         dataReserva,
         pessoas,
-        tempoPreparo,
         reservas: reservas ?? [],
         mesas: mesas ?? [],
     }));
@@ -353,25 +459,17 @@ exports.restaurantsRouter.get("/:id/disponibilidade", async (req, res) => {
 exports.restaurantsRouter.get("/:id", async (req, res) => {
     const restaurantId = Number(req.params.id);
     if (!Number.isFinite(restaurantId)) {
-        return res.status(400).json({ error: "Restaurante invalido." });
+        return res.status(400).json({ error: "Restaurante inválido." });
     }
     try {
         const usuario = await obterUsuarioOpcional(req);
         const cliente = await obterClientePorUsuario(usuario?.id);
-        const [{ data, error }, metricas, { data: avaliacoes }, conexaoResposta] = await Promise.all([
-            obterClienteLeituraPublica()
-                .from("restaurantes")
-                .select("id_restaurante, nome, telefone, email, endereco, horario_funcionamento, logo_url, valor_minimo_reserva_por_pessoa, configuracao_operacao")
-                .eq("id_restaurante", restaurantId)
-                .eq("ativo", true)
-                .single(),
-            obterMetricasRestaurantes([restaurantId], cliente?.id_cliente),
-            obterClienteLeituraPublica()
-                .from("avaliacoes_restaurante")
+        const [{ data, error }, metricas, avaliacoes, conexaoResposta] = await Promise.all([
+            consultarRestaurantePublicoPorId(restaurantId),
+            obterMetricas([restaurantId], cliente?.id_cliente),
+            obterClienteLeituraPublica().from("avaliacoes_restaurante")
                 .select("id_avaliacao, nota, comentario, created_at, clientes(nome)")
-                .eq("id_restaurante", restaurantId)
-                .order("created_at", { ascending: false })
-                .limit(4),
+                .eq("id_restaurante", restaurantId).order("created_at", { ascending: false }).limit(10),
             supabase_1.supabaseAdmin
                 ? supabase_1.supabaseAdmin
                     .from("mercado_pago_conexoes_restaurante")
@@ -383,13 +481,13 @@ exports.restaurantsRouter.get("/:id", async (req, res) => {
                 : Promise.resolve({ data: null }),
         ]);
         if (error) {
-            return res.status(404).json({ error: "Restaurante nao encontrado." });
+            return res.status(404).json({ error: "Restaurante não encontrado." });
         }
         return res.json({
             ...data,
-            ...(metricas.get(restaurantId) ?? {}),
+            ...metricas.get(restaurantId),
             pedidos_antecipados_habilitados: !["MARKETPLACE_REAL", "REAL", "PRODUCAO"].includes(String(process.env.MERCADO_PAGO_MODO_REPASSE ?? "SIMULADO").trim().toUpperCase()) || Boolean(conexaoResposta.data),
-            avaliacoes_recentes: (avaliacoes ?? []).filter((avaliacao) => avaliacao.comentario),
+            avaliacoes_recentes: (avaliacoes.data ?? []).filter((avaliacao) => avaliacao.comentario),
         });
     }
     catch (error) {
@@ -398,133 +496,79 @@ exports.restaurantsRouter.get("/:id", async (req, res) => {
         });
     }
 });
-exports.restaurantsRouter.patch("/:id/favorito", auth_1.requireAuth, async (req, res) => {
+exports.restaurantsRouter.patch("/:id/favorito", auth_1.requireAuth, (0, auth_1.requireRole)("cliente"), async (req, res) => {
     const restaurantId = Number(req.params.id);
-    const favorito = Boolean(req.body?.favorito);
-    if (!Number.isFinite(restaurantId)) {
-        return res.status(400).json({ error: "Restaurante inválido." });
+    if (!Number.isInteger(restaurantId) || restaurantId <= 0 || typeof req.body?.favorito !== "boolean") {
+        return res.status(400).json({ error: "Restaurante ou estado de favorito inválido." });
     }
-    try {
-        if (!res.locals.user?.id) {
-            return res.status(403).json({ error: "Apenas clientes podem favoritar restaurantes." });
-        }
-        const cliente = await obterClientePorUsuario(res.locals.user?.id);
-        if (!cliente) {
-            return res.status(403).json({ error: "Cliente não encontrado." });
-        }
-        const banco = obterClienteLeituraPublica();
-        if (favorito) {
-            const { error } = await banco
-                .from("restaurantes_favoritos")
-                .upsert({ id_cliente: cliente.id_cliente, id_restaurante: restaurantId }, { onConflict: "id_cliente,id_restaurante" });
-            if (error) {
-                throw new Error(error.message);
-            }
-        }
-        else {
-            const { error } = await banco
-                .from("restaurantes_favoritos")
-                .delete()
-                .eq("id_cliente", cliente.id_cliente)
-                .eq("id_restaurante", restaurantId);
-            if (error) {
-                throw new Error(error.message);
-            }
-        }
-        const metricas = await obterMetricasRestaurantes([restaurantId], cliente.id_cliente);
-        return res.json({ id_restaurante: restaurantId, ...(metricas.get(restaurantId) ?? {}) });
-    }
-    catch (error) {
-        return res.status(400).json({
-            error: error instanceof Error ? error.message : "Não foi possível atualizar favorito.",
-        });
-    }
+    const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
+    const { data: restaurante } = await supabase.from("restaurantes").select("id_restaurante").eq("id_restaurante", restaurantId).eq("ativo", true).maybeSingle();
+    if (!restaurante) return res.status(404).json({ error: "Restaurante não encontrado." });
+    const operacao = req.body.favorito
+        ? supabase.from("restaurantes_favoritos").upsert({ id_cliente: res.locals.profileId, id_restaurante: restaurantId }, { onConflict: "id_cliente,id_restaurante" })
+        : supabase.from("restaurantes_favoritos").delete().eq("id_cliente", res.locals.profileId).eq("id_restaurante", restaurantId);
+    const { error } = await operacao;
+    if (error) return res.status(400).json({ error: error.message });
+    const metricas = await obterMetricas([restaurantId], res.locals.profileId);
+    return res.json({ id_restaurante: restaurantId, ...metricas.get(restaurantId) });
 });
-exports.restaurantsRouter.get("/:id/minha-avaliacao", auth_1.requireAuth, async (req, res) => {
+exports.restaurantsRouter.get("/:id/minha-avaliacao", auth_1.requireAuth, (0, auth_1.requireRole)("cliente"), async (req, res) => {
     const restaurantId = Number(req.params.id);
     if (!Number.isFinite(restaurantId)) {
         return res.status(400).json({ error: "Restaurante inválido." });
     }
-    try {
-        if (!res.locals.user?.id) {
-            return res.status(403).json({ error: "Apenas clientes podem consultar avaliações próprias." });
-        }
-        const cliente = await obterClientePorUsuario(res.locals.user?.id);
-        if (!cliente) {
-            return res.status(403).json({ error: "Cliente não encontrado." });
-        }
-        const { data, error } = await obterClienteLeituraPublica()
-            .from("avaliacoes_restaurante")
-            .select("*")
-            .eq("id_cliente", cliente.id_cliente)
-            .eq("id_restaurante", restaurantId)
-            .maybeSingle();
-        if (error) {
-            throw new Error(error.message);
-        }
-        return res.json(data);
+    const { data, error } = await obterClienteLeituraPublica()
+        .from("avaliacoes_restaurante")
+        .select("*")
+        .eq("id_cliente", res.locals.profileId)
+        .eq("id_restaurante", restaurantId)
+        .maybeSingle();
+    if (error) {
+        return res.status(400).json({ error: error.message });
     }
-    catch (error) {
-        return res.status(400).json({
-            error: error instanceof Error ? error.message : "Não foi possível carregar a avaliação.",
-        });
-    }
+    return res.json(data);
 });
-exports.restaurantsRouter.post("/:id/avaliacoes", auth_1.requireAuth, async (req, res) => {
+exports.restaurantsRouter.post("/:id/avaliacoes", auth_1.requireAuth, (0, auth_1.requireRole)("cliente"), async (req, res) => {
     const restaurantId = Number(req.params.id);
     const nota = Number(req.body?.nota);
     const comentario = String(req.body?.comentario ?? "").trim() || null;
     if (!Number.isFinite(restaurantId) || !Number.isInteger(nota) || nota < 1 || nota > 5) {
         return res.status(400).json({ error: "Informe uma nota de 1 a 5." });
     }
-    try {
-        if (!res.locals.user?.id) {
-            return res.status(403).json({ error: "Apenas clientes podem avaliar restaurantes." });
-        }
-        const cliente = await obterClientePorUsuario(res.locals.user?.id);
-        if (!cliente) {
-            return res.status(403).json({ error: "Cliente não encontrado." });
-        }
-        const banco = obterClienteLeituraPublica();
-        const [reservaResposta, pedidoResposta] = await Promise.all([
-            banco.from("reservas").select("id_reserva").eq("id_cliente", cliente.id_cliente).eq("id_restaurante", restaurantId).eq("status_reserva", "CONCLUIDA").limit(1),
-            banco.from("pedidos").select("id_pedido").eq("id_cliente", cliente.id_cliente).eq("id_restaurante", restaurantId).eq("status_pedido", "ENTREGUE").limit(1),
-        ]);
-        const reserva = reservaResposta.data?.[0] ?? null;
-        const pedido = pedidoResposta.data?.[0] ?? null;
-        if (!reserva && !pedido) {
-            return res.status(403).json({
-                error: "Finalize uma reserva ou receba um pedido antes de avaliar este restaurante.",
-            });
-        }
-        const { data, error } = await banco
-            .from("avaliacoes_restaurante")
-            .upsert({
-                id_cliente: cliente.id_cliente,
-                id_restaurante: restaurantId,
-                id_reserva: reserva?.id_reserva ?? null,
-                id_pedido: pedido?.id_pedido ?? null,
-                nota,
-                comentario,
-            }, { onConflict: "id_cliente,id_restaurante" })
-            .select("*")
-            .single();
-        if (error) {
-            throw new Error(error.message);
-        }
-        const metricas = await obterMetricasRestaurantes([restaurantId], cliente.id_cliente);
-        return res.json({ avaliacao: data, ...(metricas.get(restaurantId) ?? {}) });
-    }
-    catch (error) {
-        return res.status(400).json({
-            error: error instanceof Error ? error.message : "Não foi possível registrar a avaliação.",
+    const banco = obterClienteLeituraPublica();
+    const [reservaResposta, pedidoResposta] = await Promise.all([
+        banco.from("reservas").select("id_reserva").eq("id_cliente", res.locals.profileId).eq("id_restaurante", restaurantId).eq("status_reserva", "CONCLUIDA").limit(1),
+        banco.from("pedidos").select("id_pedido").eq("id_cliente", res.locals.profileId).eq("id_restaurante", restaurantId).eq("status_pedido", "ENTREGUE").limit(1),
+    ]);
+    const reserva = reservaResposta.data?.[0] ?? null;
+    const pedido = pedidoResposta.data?.[0] ?? null;
+    if (!reserva && !pedido) {
+        return res.status(403).json({
+            error: "Finalize uma reserva ou receba um pedido antes de avaliar este restaurante.",
         });
     }
+    const { data, error } = await banco
+        .from("avaliacoes_restaurante")
+        .upsert({
+            id_cliente: res.locals.profileId,
+            id_restaurante: restaurantId,
+            id_reserva: reserva?.id_reserva ?? null,
+            id_pedido: pedido?.id_pedido ?? null,
+            nota,
+            comentario,
+        }, { onConflict: "id_cliente,id_restaurante" })
+        .select("*")
+        .single();
+    if (error) {
+        return res.status(400).json({ error: error.message });
+    }
+    const metricas = await obterMetricas([restaurantId], res.locals.profileId);
+    return res.json({ avaliacao: data, ...metricas.get(restaurantId) });
 });
 exports.restaurantsRouter.get("/:id/cardapio", async (req, res) => {
     const restaurantId = Number(req.params.id);
     if (!Number.isFinite(restaurantId)) {
-        return res.status(400).json({ error: "Restaurante invalido." });
+        return res.status(400).json({ error: "Restaurante inválido." });
     }
     const { data: cardapios, error: cardapiosError } = await obterClienteLeituraPublica()
         .from("cardapios")

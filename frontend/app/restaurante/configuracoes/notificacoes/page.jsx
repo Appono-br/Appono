@@ -16,7 +16,7 @@ const initialRules = [
     },
     {
         key: "reservationChange",
-        title: "Alteracoes e cancelamentos",
+        title: "Alterações e cancelamentos",
         description: "Notifique mudancas que podem afetar salao, fila ou cozinha.",
         required: true,
         channels: { email: false, whatsapp: false, push: true, sms: false },
@@ -30,7 +30,7 @@ const initialRules = [
     {
         key: "lowStock",
         title: "Alertas de disponibilidade",
-        description: "Sinalize itens do cardapio marcados como indisponiveis ou em falta.",
+        description: "Sinalize itens do cardápio marcados como indisponíveis ou em falta.",
         channels: { email: false, whatsapp: false, push: false, sms: false },
     },
     {
@@ -63,13 +63,13 @@ function Icon({ type, className = "h-5 w-5", }) {
 }
 function Toggle({ checked, onChange, label, }) {
     return (<button type="button" onClick={onChange} className={`relative h-8 w-14 rounded-full transition ${checked ? "bg-app-mocha" : "bg-app-cinza/35"}`} aria-label={label}>
-      <span className={`absolute top-1 h-6 w-6 rounded-full bg-app-chantilly transition ${checked ? "left-7" : "left-1"}`}/>
+      <span className={`absolute top-1 h-6 w-6 rounded-full bg-white transition ${checked ? "left-7" : "left-1"}`}/>
     </button>);
 }
 export default function RestaurantNotificationSettingsPage() {
     const { sessao, sessaoCarregada } = useSessaoLocal();
     const [form, setForm] = useState(initialForm);
-    const [message, setMessage] = useState("Carregando preferencias...");
+    const [message, setMessage] = useState("Carregando preferências...");
     const [salvando, setSalvando] = useState(false);
     useEffect(() => {
         if (!sessaoCarregada || sessao?.type !== "restaurant") {
@@ -87,7 +87,7 @@ export default function RestaurantNotificationSettingsPage() {
             });
             setMessage("");
         })
-            .catch((error) => setMessage(error instanceof Error ? error.message : "Nao foi possivel carregar as preferencias."));
+            .catch((error) => setMessage(error instanceof Error ? error.message : "Não foi possível carregar as preferências."));
     }, [sessao, sessaoCarregada]);
     function updateField(field, value) {
         setForm((current) => ({ ...current, [field]: value }));
@@ -117,10 +117,10 @@ export default function RestaurantNotificationSettingsPage() {
                     preferencias_notificacao: form,
                 }),
             });
-            setMessage(resposta.message ?? "Preferencias salvas com sucesso.");
+            setMessage(resposta.message ?? "Preferências salvas com sucesso.");
         }
         catch (error) {
-            setMessage(error instanceof Error ? error.message : "Nao foi possivel salvar as preferencias.");
+            setMessage(error instanceof Error ? error.message : "Não foi possível salvar as preferências.");
         }
         finally {
             setSalvando(false);
@@ -130,12 +130,12 @@ export default function RestaurantNotificationSettingsPage() {
         return <TelaCarregandoSessao />;
     }
     if (sessao?.type !== "restaurant") {
-        return (<main className="flex min-h-screen items-center justify-center bg-app-chantilly px-5 text-app-cafe-profundo">
+        return (<main className="flex min-h-screen items-center justify-center bg-white px-5 text-app-cafe-profundo">
         <section className="w-full max-w-lg rounded-[8px] bg-app-creme-leve p-8 text-center shadow-sm ring-1 ring-app-baunilha-dourada">
           <Image src="/brand/appono-mark.svg" alt="Appono" width={88} height={88} className="mx-auto h-20 w-20" priority/>
           <h1 className="mt-6 text-3xl font-semibold">Acesso restrito</h1>
           <p className="mt-3 text-sm leading-6 text-app-cinza">
-            Esta area e destinada a contas de restaurante.
+            Esta área é destinada a contas de restaurante.
           </p>
           <Link href="/login" className="mt-6 inline-flex h-11 items-center justify-center rounded-[8px] bg-app-dourado-mel px-6 text-sm font-bold text-white transition hover:bg-app-caramelo-torrado">
             Entrar
@@ -143,18 +143,18 @@ export default function RestaurantNotificationSettingsPage() {
         </section>
       </main>);
     }
-    return (<main className="flex min-h-screen flex-col bg-app-chantilly text-app-cafe-profundo">
+    return (<main className="flex min-h-screen flex-col bg-white text-app-cafe-profundo">
       <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-app-creme-leve/90 text-app-cafe-profundo shadow-sm backdrop-blur-md">
         <div className="mx-auto grid min-h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-5 py-2">
           <div aria-label="Appono">
             <Image src="/brand/appono-mark.svg" alt="Appono" width={72} height={72} className="h-11 w-11" priority/>
           </div>
           <div className="flex items-center justify-center gap-6">
-            <Link href="/restaurante/configuracoes" className="transition hover:text-app-caramelo-torrado" aria-label="Voltar para configuracoes">
+            <Link href="/restaurante/configuracoes" className="transition hover:text-app-caramelo-torrado" aria-label="Voltar para configurações">
               <Icon type="arrow-left" className="h-5 w-5"/>
             </Link>
             <h1 className="text-lg font-bold uppercase tracking-[0.14em] sm:text-2xl">
-              Configuracoes
+              Configurações
             </h1>
           </div>
           <div className="flex items-center justify-self-end gap-3 text-app-cafe-profundo">
@@ -167,10 +167,10 @@ export default function RestaurantNotificationSettingsPage() {
       <section className="mx-auto w-full max-w-7xl flex-1 px-5 py-10 sm:py-14">
         <div className="border-t border-app-baunilha-dourada/60 pt-10">
           <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">
-            Comunicacao operacional
+            Comunicação operacional
           </p>
           <h2 className="mt-3 text-4xl font-medium leading-tight text-app-cafe-profundo sm:text-5xl">
-            Preferencias de Notificacao
+            Preferências de Notificação
           </h2>
           <p className="mt-4 max-w-3xl text-sm leading-6 text-app-cinza sm:text-base">
             Defina quais eventos exigem aviso imediato e quais canais a equipe
@@ -202,22 +202,22 @@ export default function RestaurantNotificationSettingsPage() {
                   </span>
                   <span className="relative">
                     <Icon type="mail" className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-app-cinza"/>
-                    <input type="email" value={form.contactEmail} onChange={(event) => updateField("contactEmail", event.target.value)} className="h-12 w-full rounded-[8px] border border-app-baunilha-dourada bg-app-chantilly px-4 pl-10 text-sm outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20"/>
+                    <input type="email" value={form.contactEmail} onChange={(event) => updateField("contactEmail", event.target.value)} className="h-12 w-full rounded-[8px] border border-app-baunilha-dourada bg-white px-4 pl-10 text-sm outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20"/>
                   </span>
                 </label>
                 <label className="grid gap-2">
                   <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-cinza">
-                    Telefone da operacao
+                    Telefone da operação
                   </span>
                   <span className="relative">
                     <Icon type="phone" className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-app-cinza"/>
-                    <input value={form.contactPhone} onChange={(event) => updateField("contactPhone", aplicarMascaraTelefone(event.target.value))} className="h-12 w-full rounded-[8px] border border-app-baunilha-dourada bg-app-chantilly px-4 pl-10 text-sm outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20"/>
+                    <input value={form.contactPhone} onChange={(event) => updateField("contactPhone", aplicarMascaraTelefone(event.target.value))} className="h-12 w-full rounded-[8px] border border-app-baunilha-dourada bg-white px-4 pl-10 text-sm outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20"/>
                   </span>
                 </label>
               </div>
             </section>
 
-            <section className="rounded-[8px] bg-app-chantilly p-6 shadow-sm ring-1 ring-app-baunilha-dourada/45 sm:p-8">
+            <section className="rounded-[8px] bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada/45 sm:p-8">
               <h3 className="text-2xl font-medium text-app-cafe-profundo">
                 Janela silenciosa
               </h3>
@@ -249,18 +249,18 @@ export default function RestaurantNotificationSettingsPage() {
                   Eventos monitorados
                 </h3>
                 <p className="mt-2 text-sm leading-6 text-app-mocha">
-                  Mantenha reservas e repasses com canais confiaveis para cada
+                  Mantenha reservas e repasses com canais confiáveis para cada
                   tipo de aviso.
                 </p>
               </div>
-              <span className="inline-flex items-center gap-2 rounded-[8px] bg-app-chantilly px-4 py-2 text-xs font-bold uppercase text-app-mocha">
+              <span className="inline-flex items-center gap-2 rounded-[8px] bg-white px-4 py-2 text-xs font-bold uppercase text-app-mocha">
                 <Icon type="check" className="h-4 w-4 text-app-caramelo-torrado"/>
                 Rascunho local
               </span>
             </div>
 
             <div className="mt-7 grid gap-4">
-              {form.rules.map((rule) => (<article key={rule.key} className="rounded-[8px] bg-app-chantilly p-5 ring-1 ring-app-baunilha-dourada/50">
+              {form.rules.map((rule) => (<article key={rule.key} className="rounded-[8px] bg-white p-5 ring-1 ring-app-baunilha-dourada/50">
                   <div className="grid gap-4 xl:grid-cols-[1fr_auto] xl:items-start">
                     <div>
                       <div className="flex flex-wrap items-center gap-3">
@@ -297,7 +297,7 @@ export default function RestaurantNotificationSettingsPage() {
                 Cancelar
               </Link>
               <button type="submit" disabled={salvando} className="h-12 rounded-[8px] bg-app-dourado-mel px-8 text-xs font-bold uppercase tracking-wide text-white transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-60">
-                {salvando ? "Salvando..." : "Salvar preferencias"}
+                {salvando ? "Salvando..." : "Salvar preferências"}
               </button>
             </div>
             {message ? <p className="mt-4 text-sm font-semibold text-app-mocha">{message}</p> : null}
@@ -309,7 +309,7 @@ export default function RestaurantNotificationSettingsPage() {
         <div className="mx-auto flex max-w-7xl flex-col items-center gap-5 text-center sm:flex-row sm:justify-between">
           <Image src="/brand/appono-mark.svg" alt="Appono" width={80} height={80} className="h-14 w-14 brightness-0 invert"/>
           <nav className="flex flex-wrap justify-center gap-8 text-[10px] font-bold uppercase text-app-baunilha-dourada">
-            <Link href="#" className="transition hover:text-app-chantilly">Politica de Privacidade</Link>
+            <Link href="#" className="transition hover:text-app-chantilly">Política de Privacidade</Link>
             <Link href="#" className="transition hover:text-app-chantilly">Termos de Uso</Link>
             <Link href="#" className="transition hover:text-app-chantilly">Contato</Link>
           </nav>

@@ -20,7 +20,7 @@ export default function CompleteProfilePage() {
           Complete seu perfil Appono
         </h1>
         <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-app-mocha">
-          Sua conta Google ja foi autenticada. Agora precisamos saber como voce
+          Sua conta Google já foi autenticada. Agora precisamos saber como você
           usara a plataforma para criar o perfil correto.
         </p>
 
@@ -62,7 +62,7 @@ export default function CompleteProfilePage() {
               Sou restaurante
             </strong>
             <span className="mt-2 block text-sm leading-6 text-app-mocha">
-              Quero gerenciar reservas, cozinha, cardapio e recebimentos.
+              Quero gerenciar reservas, cozinha, cardápio e recebimentos.
             </span>
           </Link>
         </div>

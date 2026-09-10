@@ -1,10 +1,11 @@
+
 import { supabase } from "./supabase";
 const authTokensKey = "appono:auth";
 export function getDashboardPath(tipo) {
     if (tipo === "admin") {
         return "/admin/financeiro";
     }
-    return tipo === "restaurante" ? "/restaurante/home" : "/cliente/dashboard";
+    return tipo === "restaurante" ? "/restaurante/dashboard" : "/cliente/dashboard";
 }
 export function getAccessToken() {
     if (typeof window === "undefined") {
@@ -97,16 +98,11 @@ export async function encerrarSessao() {
 }
 export async function persistAuthResponse(response) {
     if (response.session) {
-        salvarTokensAutenticacao(response.session);
-        try {
-            await supabase.auth.setSession({
-                access_token: response.session.access_token,
-                refresh_token: response.session.refresh_token,
-            });
-        }
-        catch {
-            // A sessao propria da Appono ja foi salva; a sincronizacao do SDK e apenas auxiliar.
-        }
+        const { data, error } = await supabase.auth.setSession({
+            access_token: response.session.access_token,
+            refresh_token: response.session.refresh_token,
+        });
+        salvarTokensAutenticacao(!error && data.session ? data.session : response.session);
     }
     if (response.tipo && response.perfil) {
         const sessionType = response.tipo === "admin"

@@ -1,6 +1,6 @@
 import { PainelNotificacoes } from "@/components/notificacoes/painel-notificacoes";
 
-export default function RestauranteNotificacoesPage() {
+export default function RestauranteNotificaçõesPage() {
     return (
         <PainelNotificacoes
             modulo="restaurante"

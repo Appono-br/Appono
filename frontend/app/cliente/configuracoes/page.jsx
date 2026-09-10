@@ -64,8 +64,8 @@ export default function SettingsPage() {
         : session?.type === "client"
             ? "Conta de cliente"
             : "Acesse sua conta para completar o perfil";
-    return (<main className="flex min-h-screen flex-col bg-app-chantilly text-app-cafe-profundo">
-      <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-app-creme-leve/90 text-app-cafe-profundo shadow-sm backdrop-blur-md">
+    return (<main className="flex min-h-screen flex-col bg-white text-app-cafe-profundo">
+      <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-white/90 text-app-cafe-profundo shadow-sm backdrop-blur-md">
         <div className="mx-auto grid h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-5 lg:h-20">
           <div className="shrink-0" aria-label="Appono">
             <Image src="/brand/appono-mark.svg" alt="Appono" width={88} height={88} className="h-11 w-11 lg:h-14 lg:w-14" priority/>
@@ -84,13 +84,13 @@ export default function SettingsPage() {
             <button type="button" className="transition hover:text-app-caramelo-torrado" aria-label="Sacola">
               <Icon type="bag"/>
             </button>
-            <button type="button" onClick={() => setMobileMenuOpen((current) => !current)} className="flex h-9 w-9 items-center justify-center rounded-[8px] border border-app-baunilha-dourada bg-app-creme-leve lg:hidden" aria-label="Abrir menu" aria-expanded={mobileMenuOpen} aria-controls="settings-mobile-menu">
+            <button type="button" onClick={() => setMobileMenuOpen((current) => !current)} className="flex h-9 w-9 items-center justify-center rounded-[8px] border border-app-baunilha-dourada bg-white lg:hidden" aria-label="Abrir menu" aria-expanded={mobileMenuOpen} aria-controls="settings-mobile-menu">
               <Icon type="menu"/>
             </button>
           </div>
         </div>
 
-        {mobileMenuOpen ? (<nav id="settings-mobile-menu" className="border-t border-app-baunilha-dourada/50 bg-app-creme-leve px-5 py-3 lg:hidden">
+        {mobileMenuOpen ? (<nav id="settings-mobile-menu" className="border-t border-app-baunilha-dourada/50 bg-white px-5 py-3 lg:hidden">
             <div className="mx-auto grid max-w-7xl gap-2 text-xs font-semibold text-app-cinza">
               {navItems.map((item, index) => (<Link key={item.label} href={item.href} onClick={() => setMobileMenuOpen(false)} className={index === 4
                     ? "text-app-cafe-profundo"
@@ -111,7 +111,7 @@ export default function SettingsPage() {
           </h1>
         </div>
 
-        <section className="mt-8 rounded-[8px] bg-app-creme-leve p-6 shadow-sm ring-1 ring-app-baunilha-dourada/60 sm:p-8">
+        <section className="mt-8 rounded-[8px] bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada/60 sm:p-8">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-5">
               <div className="relative flex h-20 w-20 shrink-0 items-center justify-center rounded-[8px] bg-app-cafe-profundo text-app-creme-leve ring-4 ring-app-chantilly">
@@ -134,7 +134,7 @@ export default function SettingsPage() {
         </section>
 
         <section className="mt-7 grid gap-5">
-          {settingsItems.map((item) => (<Link key={item.title} href={item.href} className="grid rounded-[8px] bg-app-chantilly p-6 text-left shadow-sm ring-1 ring-app-baunilha-dourada/45 transition hover:-translate-y-0.5 hover:bg-app-creme-leve sm:grid-cols-[1fr_auto_1fr] sm:items-center sm:gap-6 sm:p-8">
+          {settingsItems.map((item) => (<Link key={item.title} href={item.href} className="grid rounded-[8px] bg-white p-6 text-left shadow-sm ring-1 ring-app-baunilha-dourada/45 transition hover:-translate-y-0.5 hover:bg-app-chantilly sm:grid-cols-[1fr_auto_1fr] sm:items-center sm:gap-6 sm:p-8">
               <span className="flex h-14 w-14 items-center justify-center rounded-[8px] bg-app-baunilha-dourada text-app-caramelo-torrado">
                 <Icon type={item.icon}/>
               </span>

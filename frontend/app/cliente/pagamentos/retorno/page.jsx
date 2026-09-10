@@ -30,8 +30,11 @@ function formatarMoeda(valor) {
 
 function PagamentoRetornoContent() {
     const searchParams = useSearchParams();
-    const reservaId = searchParams.get("reserva");
-    const pedidoId = searchParams.get("pedido");
+    const referenciaExterna = searchParams.get("external_reference") ?? "";
+    const referenciaPedido = referenciaExterna.match(/^pedido:(\d+)$/)?.[1] ?? null;
+    const referenciaReserva = referenciaExterna.match(/^reserva:(\d+)$/)?.[1] ?? null;
+    const reservaId = searchParams.get("reserva") ?? referenciaReserva;
+    const pedidoId = searchParams.get("pedido") ?? referenciaPedido;
     const queryString = searchParams.toString();
     const endpointStatus = useMemo(() => {
         if (pedidoId) {
@@ -58,7 +61,7 @@ function PagamentoRetornoContent() {
             setMensagem("");
         }
         catch (erro) {
-            setMensagem(erro instanceof Error ? erro.message : "Nao foi possivel consultar o pagamento.");
+            setMensagem(erro instanceof Error ? erro.message : "Não foi possível consultar o pagamento.");
         }
         finally {
             setConsultando(false);
@@ -80,14 +83,14 @@ function PagamentoRetornoContent() {
                 }
                 setDados(resposta);
                 setMensagem("");
-                const pagamentoFinalizado = ["APROVADO", "RECUSADO", "NAO_APLICAVEL"].includes(resposta.status_pagamento);
+                const pagamentoFinalizado = ["APROVADO", "RECUSADO", "ESTORNADO", "NAO_APLICAVEL"].includes(resposta.status_pagamento);
                 if (!pagamentoFinalizado && tentativa < 5) {
                     temporizador = window.setTimeout(() => consultarAutomaticamente(tentativa + 1), 3000);
                 }
             }
             catch (erro) {
                 if (!ignorarResposta) {
-                    setMensagem(erro instanceof Error ? erro.message : "Nao foi possivel consultar o pagamento.");
+                    setMensagem(erro instanceof Error ? erro.message : "Não foi possível consultar o pagamento.");
                 }
             }
             finally {
@@ -105,7 +108,8 @@ function PagamentoRetornoContent() {
         };
     }, [endpointStatus]);
     const tipoPagamento = pedidoId ? "pedido" : "reserva";
-    const mensagemVisivel = pedidoId || reservaId ? mensagem : "Pedido ou reserva nao informado no retorno do pagamento.";
+    const mensagemVisivel = pedidoId || reservaId ? mensagem : "Pedido ou reserva não informado no retorno do pagamento.";
+    const idPedidoDetalhe = pedidoId ?? dados?.pedido?.id_pedido ?? null;
 
     const estado = useMemo(() => {
         const status = dados?.status_pagamento;
@@ -114,18 +118,18 @@ function PagamentoRetornoContent() {
                 icon: "check",
                 title: "Pagamento aprovado",
                 description: tipoPagamento === "pedido"
-                    ? "Pagamento aprovado. Seu pedido antecipado foi confirmado e enviado ao restaurante para preparo no horario combinado."
-                    : "Sua reserva foi confirmada e ja aparece para o restaurante.",
+                    ? "Pagamento aprovado. Seu pedido antecipado foi confirmado e enviado ao restaurante para preparo no horário combinado."
+                    : "Sua reserva foi confirmada e já aparece para o restaurante.",
                 className: "bg-app-cafe-profundo text-app-creme-leve",
             };
         }
-        if (status === "RECUSADO") {
+        if (["RECUSADO", "ESTORNADO"].includes(status)) {
             return {
                 icon: "x",
-                title: "Pagamento nao aprovado",
+                title: "Pagamento não aprovado",
                 description: tipoPagamento === "pedido"
-                    ? "O pedido nao foi confirmado. Sua reserva continua ativa e voce pode tentar montar outro pedido."
-                    : "A reserva foi marcada como cancelada. Voce pode tentar reservar novamente.",
+                    ? "O pedido não foi confirmado. Sua reserva continua ativa e você pode tentar montar outro pedido."
+                    : "A reserva foi marcada como cancelada. Você pode tentar reservar novamente.",
                 className: "bg-app-vermelho-erro text-white",
             };
         }
@@ -133,17 +137,17 @@ function PagamentoRetornoContent() {
             icon: "clock",
             title: "Pagamento pendente",
             description: tipoPagamento === "pedido"
-                ? "Seu pedido antecipado ainda nao foi confirmado. Assim que o Mercado Pago aprovar o pagamento, a Appono confirma o pedido para o restaurante."
-                : "Sua reserva ainda aguarda a confirmacao do Mercado Pago.",
+                ? "Seu pedido antecipado ainda não foi confirmado. Assim que o Mercado Pago aprovar o pagamento, a Appono confirma o pedido para o restaurante."
+                : "Sua reserva ainda aguarda a confirmação do Mercado Pago.",
             className: "bg-app-baunilha-dourada text-app-cafe-profundo",
         };
     }, [dados, tipoPagamento]);
 
     return (
-        <main className="flex min-h-screen flex-col bg-app-chantilly px-4 py-8 text-app-cafe-profundo sm:px-5">
+        <main className="flex min-h-screen flex-col bg-white px-4 py-8 text-app-cafe-profundo sm:px-5">
             <div className="mx-auto flex w-full max-w-4xl flex-1 flex-col items-center justify-center">
                 <Image src="/brand/appono-mark.svg" alt="Appono" width={92} height={92} className="h-20 w-20" priority />
-                <section className="mt-8 w-full rounded-[18px] bg-app-creme-leve p-5 text-center shadow-sm ring-1 ring-app-baunilha-dourada/70 sm:p-10">
+                <section className="mt-8 w-full rounded-[18px] bg-white p-5 text-center shadow-sm ring-1 ring-app-baunilha-dourada/70 sm:p-10">
                     <div className={`mx-auto flex h-16 w-16 items-center justify-center rounded-full ${estado.className}`}>
                         <Icon type={estado.icon} className="h-7 w-7" />
                     </div>
@@ -154,13 +158,13 @@ function PagamentoRetornoContent() {
                     <p className="mx-auto mt-4 max-w-xl text-sm leading-6 text-app-mocha">{mensagemVisivel ? "Aguarde alguns instantes." : estado.description}</p>
                     {dados?.status_pagamento === "PENDENTE" ? (
                         <div className="mx-auto mt-6 max-w-xl rounded-[12px] bg-app-baunilha-dourada/35 p-4 text-left text-sm leading-6 text-app-mocha ring-1 ring-app-baunilha-dourada/70">
-                            <strong className="block text-app-cafe-profundo">O pedido ainda nao foi enviado para preparo.</strong>
-                            Pagamentos por Pix, boleto ou analise de cartao podem levar alguns instantes. Voce pode atualizar o status por aqui ou voltar aos detalhes do pedido depois.
+                            <strong className="block text-app-cafe-profundo">O pedido ainda não foi enviado para preparo.</strong>
+                            Pagamentos por Pix, boleto ou análise de cartão podem levar alguns instantes. Você pode atualizar o status por aqui ou voltar aos detalhes do pedido depois.
                         </div>
                     ) : null}
 
                     {dados?.reserva ? (
-                        <div className="mx-auto mt-7 grid max-w-xl gap-3 rounded-[12px] bg-app-chantilly p-4 text-left ring-1 ring-app-baunilha-dourada/60 sm:grid-cols-2">
+                        <div className="mx-auto mt-7 grid max-w-xl gap-3 rounded-[12px] bg-white p-4 text-left ring-1 ring-app-baunilha-dourada/60 sm:grid-cols-2">
                             <div>
                                 <p className="text-[10px] font-bold uppercase text-app-cinza">Reserva</p>
                                 <p className="mt-1 font-semibold">#{dados.reserva.id_reserva}</p>
@@ -180,7 +184,7 @@ function PagamentoRetornoContent() {
                         </div>
                     ) : null}
                     {dados?.pedido ? (
-                        <div className="mx-auto mt-7 grid max-w-xl gap-3 rounded-[12px] bg-app-chantilly p-4 text-left ring-1 ring-app-baunilha-dourada/60 sm:grid-cols-2">
+                        <div className="mx-auto mt-7 grid max-w-xl gap-3 rounded-[12px] bg-white p-4 text-left ring-1 ring-app-baunilha-dourada/60 sm:grid-cols-2">
                             <div>
                                 <p className="text-[10px] font-bold uppercase text-app-cinza">Pedido</p>
                                 <p className="mt-1 font-semibold">#{dados.pedido.id_pedido}</p>
@@ -201,8 +205,8 @@ function PagamentoRetornoContent() {
                     ) : null}
 
                     <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-                        {pedidoId ? (
-                            <Link href="/cliente/detalhes-pedido" className="inline-flex h-11 items-center justify-center rounded-[8px] bg-app-dourado-mel px-6 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-app-caramelo-torrado">
+                        {idPedidoDetalhe ? (
+                            <Link href={`/cliente/pedidos/${idPedidoDetalhe}`} className="inline-flex h-11 items-center justify-center rounded-[8px] bg-app-dourado-mel px-6 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-app-caramelo-torrado">
                                 Ver detalhes do pedido
                             </Link>
                         ) : (
@@ -225,7 +229,7 @@ function PagamentoRetornoContent() {
 
 export default function PagamentoRetornoPage() {
     return (
-        <Suspense fallback={<main className="flex min-h-screen items-center justify-center bg-app-chantilly text-app-cafe-profundo">Carregando pagamento...</main>}>
+        <Suspense fallback={<main className="flex min-h-screen items-center justify-center bg-white text-app-cafe-profundo">Carregando pagamento...</main>}>
             <PagamentoRetornoContent />
         </Suspense>
     );

@@ -25,7 +25,7 @@ export function SeletorTema() {
         {
             valor: "escuro",
             titulo: "Modo escuro",
-            descricao: "Fundo profundo, superficies separadas e acento dourado.",
+            descricao: "Fundo profundo, superfícies separadas e acento dourado.",
         },
     ];
 

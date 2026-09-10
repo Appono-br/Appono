@@ -36,7 +36,7 @@ export default function AuthCallbackPage() {
                 }
                 const { data: { session }, } = await supabase.auth.getSession();
                 if (!session) {
-                    throw new Error("Nao foi possivel recuperar a sessao confirmada.");
+                    throw new Error("Não foi possível recuperar a sessão confirmada.");
                 }
                 await persistAuthResponse({ session });
                 setMessage("Buscando seu perfil...");
@@ -54,7 +54,7 @@ export default function AuthCallbackPage() {
                     }
                     throw new Error(error instanceof Error
                         ? error.message
-                        : "Nao foi possivel carregar seu perfil Appono.");
+                        : "Não foi possível carregar seu perfil Appono.");
                 }
                 await persistAuthResponse({ ...profile, session });
                 window.location.replace(getDashboardPath(profile.tipo));
@@ -62,7 +62,7 @@ export default function AuthCallbackPage() {
             catch (error) {
                 setMessage(error instanceof Error
                     ? error.message
-                    : "Nao foi possivel confirmar seu cadastro.");
+                    : "Não foi possível confirmar seu cadastro.");
                 window.setTimeout(() => {
                     window.location.replace("/login");
                 }, 3500);

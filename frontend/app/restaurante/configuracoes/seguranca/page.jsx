@@ -16,7 +16,7 @@ const initialForm = {
     financeApprovalRequired: true,
 };
 const roleLabels = {
-    manager: "Gestao",
+    manager: "Gestão",
     kitchen: "Cozinha",
     host: "Salao",
     finance: "Financeiro",
@@ -42,7 +42,7 @@ function Icon({ type, className = "h-5 w-5", }) {
 }
 function Toggle({ checked, onChange, label, }) {
     return (<button type="button" onClick={onChange} className={`relative h-8 w-14 rounded-full transition ${checked ? "bg-app-mocha" : "bg-app-cinza/35"}`} aria-label={label}>
-      <span className={`absolute top-1 h-6 w-6 rounded-full bg-app-chantilly transition ${checked ? "left-7" : "left-1"}`}/>
+      <span className={`absolute top-1 h-6 w-6 rounded-full bg-white transition ${checked ? "left-7" : "left-1"}`}/>
     </button>);
 }
 function PasswordField({ label, value, onChange, }) {
@@ -78,7 +78,7 @@ export default function RestaurantSecuritySettingsPage() {
     function submitForm(event) {
         event.preventDefault();
         if (!passwordsMatch) {
-            setMessage("A nova senha e a confirmacao precisam ser iguais.");
+            setMessage("A nova senha e a confirmação precisam ser iguais.");
             return;
         }
         const safeDraft = {
@@ -91,15 +91,15 @@ export default function RestaurantSecuritySettingsPage() {
             financeApprovalRequired: form.financeApprovalRequired,
         };
         getStorage()?.setItem("appono:restaurantSecurityDraft", JSON.stringify(safeDraft));
-        setMessage("Configuracoes de seguranca salvas neste navegador.");
+        setMessage("Configurações de segurança salvas neste navegador.");
     }
     if (!isRestaurant) {
-        return (<main className="flex min-h-screen items-center justify-center bg-app-chantilly px-5 text-app-cafe-profundo">
+        return (<main className="flex min-h-screen items-center justify-center bg-white px-5 text-app-cafe-profundo">
         <section className="w-full max-w-lg rounded-[8px] bg-app-creme-leve p-8 text-center shadow-sm ring-1 ring-app-baunilha-dourada">
           <Image src="/brand/appono-mark.svg" alt="Appono" width={88} height={88} className="mx-auto h-20 w-20" priority/>
           <h1 className="mt-6 text-3xl font-semibold">Acesso restrito</h1>
           <p className="mt-3 text-sm leading-6 text-app-cinza">
-            Esta area e destinada a contas de restaurante.
+            Esta área é destinada a contas de restaurante.
           </p>
           <Link href="/login" className="mt-6 inline-flex h-11 items-center justify-center rounded-[8px] bg-app-dourado-mel px-6 text-sm font-bold text-white transition hover:bg-app-caramelo-torrado">
             Entrar
@@ -107,18 +107,18 @@ export default function RestaurantSecuritySettingsPage() {
         </section>
       </main>);
     }
-    return (<main className="flex min-h-screen flex-col bg-app-chantilly text-app-cafe-profundo">
+    return (<main className="flex min-h-screen flex-col bg-white text-app-cafe-profundo">
       <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-app-creme-leve/90 text-app-cafe-profundo shadow-sm backdrop-blur-md">
         <div className="mx-auto grid min-h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-5 py-2">
           <div aria-label="Appono">
             <Image src="/brand/appono-mark.svg" alt="Appono" width={72} height={72} className="h-11 w-11" priority/>
           </div>
           <div className="flex items-center justify-center gap-6">
-            <Link href="/restaurante/configuracoes" className="transition hover:text-app-caramelo-torrado" aria-label="Voltar para configuracoes">
+            <Link href="/restaurante/configuracoes" className="transition hover:text-app-caramelo-torrado" aria-label="Voltar para configurações">
               <Icon type="arrow-left" className="h-5 w-5"/>
             </Link>
             <h1 className="text-lg font-bold uppercase tracking-[0.14em] sm:text-2xl">
-              Configuracoes
+              Configurações
             </h1>
           </div>
           <div className="flex items-center justify-self-end gap-3 text-app-cafe-profundo">
@@ -134,7 +134,7 @@ export default function RestaurantSecuritySettingsPage() {
             Controle administrativo
           </p>
           <h2 className="mt-3 text-4xl font-medium leading-tight text-app-cafe-profundo sm:text-5xl">
-            Seguranca e Acesso
+            Segurança e Acesso
           </h2>
           <p className="mt-4 max-w-3xl text-sm leading-6 text-app-cinza sm:text-base">
             Proteja a conta do restaurante, convide pessoas da equipe e limite
@@ -154,7 +154,7 @@ export default function RestaurantSecuritySettingsPage() {
                     Alterar senha
                   </h3>
                   <p className="mt-1 text-sm text-app-cinza">
-                    A senha nao fica salva no rascunho local.
+                    A senha não fica salva no rascunho local.
                   </p>
                 </div>
               </div>
@@ -164,11 +164,11 @@ export default function RestaurantSecuritySettingsPage() {
                 <PasswordField label="Confirmar nova senha" value={form.confirmPassword} onChange={(value) => updateField("confirmPassword", value)}/>
               </div>
               {!passwordsMatch ? (<p className="mt-3 text-sm font-semibold text-app-vermelho-erro">
-                  A confirmacao precisa repetir a nova senha.
+                  A confirmação precisa repetir a nova senha.
                 </p>) : null}
             </section>
 
-            <section className="rounded-[8px] bg-app-chantilly p-6 shadow-sm ring-1 ring-app-baunilha-dourada/45 sm:p-8">
+            <section className="rounded-[8px] bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada/45 sm:p-8">
               <h3 className="flex items-center gap-3 text-2xl font-medium text-app-cafe-profundo">
                 <Icon type="user-plus" className="h-6 w-6 text-app-caramelo-torrado"/>
                 Convidar equipe
@@ -198,14 +198,14 @@ export default function RestaurantSecuritySettingsPage() {
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div>
                 <h3 className="text-2xl font-medium text-app-cafe-profundo">
-                  Politicas de acesso
+                  Políticas de acesso
                 </h3>
                 <p className="mt-2 text-sm leading-6 text-app-mocha">
                   Restrinja decisoes criticas e reduza risco em turnos com muitos
                   operadores.
                 </p>
               </div>
-              <span className="flex h-12 w-12 items-center justify-center rounded-[8px] bg-app-chantilly text-app-caramelo-torrado">
+              <span className="flex h-12 w-12 items-center justify-center rounded-[8px] bg-white text-app-caramelo-torrado">
                 <Icon type="shield" className="h-6 w-6"/>
               </span>
             </div>
@@ -213,30 +213,30 @@ export default function RestaurantSecuritySettingsPage() {
             <div className="mt-7 grid gap-4">
               {[
             {
-                title: "Autenticacao em duas etapas",
+                title: "Autenticação em duas etapas",
                 description: "Exige uma etapa adicional para acessar o painel administrativo.",
                 checked: form.twoFactorEnabled,
                 action: () => updateField("twoFactorEnabled", !form.twoFactorEnabled),
             },
             {
                 title: "Obrigar 2FA para equipe",
-                description: "Novos convites so ficam ativos quando o colaborador configurar protecao extra.",
+                description: "Novos convites só ficam ativos quando o colaborador configurar proteção extra.",
                 checked: form.requireTwoFactorForTeam,
                 action: () => updateField("requireTwoFactorForTeam", !form.requireTwoFactorForTeam),
             },
             {
-                title: "Aprovar alteracoes de pedido",
-                description: "Mudancas sensiveis em reservas e pedidos exigem perfil de gestao.",
+                title: "Aprovar alterações de pedido",
+                description: "Mudancas sensíveis em reservas e pedidos exigem perfil de gestão.",
                 checked: form.orderApprovalRequired,
                 action: () => updateField("orderApprovalRequired", !form.orderApprovalRequired),
             },
             {
-                title: "Aprovar alteracoes financeiras",
-                description: "Dados bancarios e repasses exigem confirmacao administrativa.",
+                title: "Aprovar alterações financeiras",
+                description: "Dados bancários e repasses exigem confirmação administrativa.",
                 checked: form.financeApprovalRequired,
                 action: () => updateField("financeApprovalRequired", !form.financeApprovalRequired),
             },
-        ].map((item) => (<article key={item.title} className="flex flex-col gap-4 rounded-[8px] bg-app-chantilly p-5 ring-1 ring-app-baunilha-dourada/50 sm:flex-row sm:items-center sm:justify-between">
+        ].map((item) => (<article key={item.title} className="flex flex-col gap-4 rounded-[8px] bg-white p-5 ring-1 ring-app-baunilha-dourada/50 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <h4 className="text-lg font-medium text-app-cafe-profundo">
                       {item.title}
@@ -249,9 +249,9 @@ export default function RestaurantSecuritySettingsPage() {
                 </article>))}
             </div>
 
-            <label className="mt-6 grid gap-2 rounded-[8px] bg-app-chantilly p-5 ring-1 ring-app-baunilha-dourada/50">
+            <label className="mt-6 grid gap-2 rounded-[8px] bg-white p-5 ring-1 ring-app-baunilha-dourada/50">
               <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-cinza">
-                Encerrar sessao apos inatividade
+                Encerrar sessão após inatividade
               </span>
               <select value={form.sessionTimeout} onChange={(event) => updateField("sessionTimeout", event.target.value)} className="h-12 rounded-[8px] border border-app-baunilha-dourada bg-app-creme-suave px-4 text-sm outline-none transition focus:border-app-caramelo-torrado">
                 <option value="15">15 minutos</option>
@@ -266,7 +266,7 @@ export default function RestaurantSecuritySettingsPage() {
                 Cancelar
               </Link>
               <button type="submit" className="h-12 rounded-[8px] bg-app-dourado-mel px-8 text-xs font-bold uppercase tracking-wide text-white transition hover:bg-app-caramelo-torrado">
-                Salvar seguranca
+                Salvar segurança
               </button>
             </div>
             {message ? <p className="mt-4 text-sm font-semibold text-app-mocha">{message}</p> : null}
@@ -278,7 +278,7 @@ export default function RestaurantSecuritySettingsPage() {
         <div className="mx-auto flex max-w-7xl flex-col items-center gap-5 text-center sm:flex-row sm:justify-between">
           <Image src="/brand/appono-mark.svg" alt="Appono" width={80} height={80} className="h-14 w-14 brightness-0 invert"/>
           <nav className="flex flex-wrap justify-center gap-8 text-[10px] font-bold uppercase text-app-baunilha-dourada">
-            <Link href="#" className="transition hover:text-app-chantilly">Politica de Privacidade</Link>
+            <Link href="#" className="transition hover:text-app-chantilly">Política de Privacidade</Link>
             <Link href="#" className="transition hover:text-app-chantilly">Termos de Uso</Link>
             <Link href="#" className="transition hover:text-app-chantilly">Contato</Link>
           </nav>

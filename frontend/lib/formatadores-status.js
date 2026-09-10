@@ -15,6 +15,8 @@ export function textoTipoEvento(tipo) {
         RESERVA_CANCELADA: "Reserva cancelada",
         RESERVA_CHECK_IN: "Check-in realizado",
         RESERVA_CONCLUIDA: "Reserva finalizada",
+        PRESENCA_CONFIRMADA: "Presença confirmada",
+        PRESENCA_RECUSADA: "Ausência informada",
         PEDIDO_CRIADO: "Pedido criado",
         PEDIDO_CANCELADO: "Pedido cancelado",
         STATUS_PEDIDO: "Status do pedido",
@@ -24,21 +26,37 @@ export function textoTipoEvento(tipo) {
         PAGAMENTO_RECUSADO: "Pagamento recusado",
         REPASSE_LIBERADO: "Repasse liberado",
         REPASSE_ESTORNADO: "Repasse estornado",
+        REEMBOLSO_SOLICITADO: "Reembolso solicitado",
+        REEMBOLSO_CONCLUIDO: "Reembolso concluído",
+        REEMBOLSO_RECUSADO: "Reembolso recusado",
+        MENSAGEM_RECEBIDA: "Mensagem recebida",
         INFORMATIVO: "Informativo",
     };
-    return eventos[tipo] ?? formatarCodigoSistema(tipo, "Notificacao");
+    return eventos[tipo] ?? formatarCodigoSistema(tipo, "Notificação");
 }
 
 export function textoStatusRepasse(status) {
     const statusMap = {
         AGUARDANDO_PAGAMENTO: "Aguardando pagamento",
-        AGUARDANDO_ENTREGA: "Retido ate entrega",
+        AGUARDANDO_ENTREGA: "Retido até entrega",
         LIBERADO_PARA_REPASSE: "Liberado para repasse",
         REPASSADO: "Repassado",
         ESTORNADO: "Estornado",
-        NAO_APLICAVEL: "Nao aplicavel",
+        NAO_APLICAVEL: "Não aplicável",
     };
     return statusMap[status] ?? formatarCodigoSistema(status, "Em acompanhamento");
+}
+
+export function textoStatusReembolso(status) {
+    const statusMap = {
+        SOLICITADO: "Solicitado",
+        EM_ANALISE: "Em análise",
+        APROVADO: "Aprovado",
+        RECUSADO: "Recusado",
+        CONCLUIDO: "Concluído (simulado)",
+        CANCELADO: "Cancelado pelo cliente",
+    };
+    return statusMap[status] ?? formatarCodigoSistema(status, "Reembolso");
 }
 
 export function textoStatusPedido(status) {
@@ -60,6 +78,7 @@ export function textoStatusReserva(status) {
         CHECK_IN: "Check-in realizado",
         CANCELADA: "Cancelada",
         CONCLUIDA: "Concluida",
+        NAO_COMPARECEU: "Não compareceu",
     };
     return statusMap[status] ?? formatarCodigoSistema(status, "Reserva");
 }
@@ -69,8 +88,9 @@ export function textoStatusPagamento(status) {
         PENDENTE: "Pendente",
         APROVADO: "Aprovado",
         RECUSADO: "Recusado",
+        ESTORNADO: "Estornado",
         CANCELADO: "Cancelado",
-        NAO_APLICAVEL: "Nao aplicavel",
+        NAO_APLICAVEL: "Não aplicável",
     };
     return statusMap[status] ?? formatarCodigoSistema(status, "Pagamento");
 }

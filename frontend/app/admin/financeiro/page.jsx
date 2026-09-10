@@ -10,7 +10,7 @@ import { encerrarSessao } from "@/lib/session";
 const cardsResumo = [
     { label: "Valor transacionado", key: "valor_transacionado", destaque: true },
     { label: "Receita Appono", key: "receita_app" },
-    { label: "Retido ate entrega", key: "valor_retido" },
+    { label: "Retido até entrega", key: "valor_retido" },
     { label: "Liberado a restaurantes", key: "valor_liberado" },
     { label: "Estornado", key: "valor_estornado" },
 ];
@@ -21,7 +21,7 @@ const cardsOperacao = [
     { label: "Restaurantes conectados", key: "restaurantes_conectados" },
     { label: "Reservas", key: "total_reservas" },
     { label: "Pedidos", key: "total_pedidos" },
-    { label: "Ticket medio", key: "ticket_medio", moeda: true },
+    { label: "Ticket médio", key: "ticket_medio", moeda: true },
 ];
 
 const abas = [
@@ -75,15 +75,15 @@ function formatarReserva(data, horario) {
 
 function textoConexaoMercadoPago(conexao) {
     if (!conexao) {
-        return "Nao conectado";
+        return "Não conectado";
     }
     const statusMap = {
         CONECTADO: "Conectado",
-        AGUARDANDO_AUTORIZACAO: "Aguardando autorizacao",
+        AGUARDANDO_AUTORIZACAO: "Aguardando autorização",
         DESCONECTADO: "Desconectado",
         ERRO: "Erro",
     };
-    return statusMap[conexao.status] ?? conexao.status ?? "Nao conectado";
+    return statusMap[conexao.status] ?? conexao.status ?? "Não conectado";
 }
 
 function CardResumo({ label, value, destaque }) {
@@ -131,9 +131,9 @@ function GraficoFinanceiro({ serie }) {
             <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                     <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">Evolucao financeira</p>
-                    <h2 className="mt-2 text-2xl font-semibold">Movimento por periodo</h2>
+                    <h2 className="mt-2 text-2xl font-semibold">Movimento por período</h2>
                 </div>
-                <p className="text-sm text-app-cinza">Somente pedidos pagos e nao cancelados.</p>
+                <p className="text-sm text-app-cinza">Somente pedidos pagos e não cancelados.</p>
             </div>
             <div className="mt-6 flex h-56 items-end gap-2 overflow-x-auto rounded-[12px] bg-app-chantilly p-4 ring-1 ring-app-baunilha-dourada/45">
                 {pontos.map((ponto) => {
@@ -239,7 +239,7 @@ export default function AdminFinanceiroPage() {
             setDados(resposta);
         }
         catch (error) {
-            setErro(error instanceof Error ? error.message : "Nao foi possivel atualizar o painel administrativo.");
+            setErro(error instanceof Error ? error.message : "Não foi possível atualizar o painel administrativo.");
         }
         finally {
             setAtualizando(false);
@@ -258,7 +258,7 @@ export default function AdminFinanceiroPage() {
                 setDados(resposta);
             }
             catch (error) {
-                setErro(error instanceof Error ? error.message : "Nao foi possivel carregar o painel administrativo.");
+                setErro(error instanceof Error ? error.message : "Não foi possível carregar o painel administrativo.");
             }
             finally {
                 setCarregando(false);
@@ -276,7 +276,7 @@ export default function AdminFinanceiroPage() {
             "Status pedido",
             "Status repasse",
             "Valor pago",
-            "Comissao Appono",
+            "Comissão Appono",
             "Valor restaurante",
         ];
         const linhas = pagamentosFiltrados.map((pagamento) => [
@@ -319,7 +319,7 @@ export default function AdminFinanceiroPage() {
             <main className="flex min-h-screen items-center justify-center bg-app-chantilly px-5 text-app-cafe-profundo">
                 <section className="w-full max-w-md rounded-[14px] bg-app-creme-leve p-8 text-center shadow-sm ring-1 ring-app-baunilha-dourada">
                     <Image src="/brand/appono-mark.svg" alt="Appono" width={88} height={88} className="mx-auto h-20 w-20" priority />
-                    <h1 className="mt-6 text-3xl font-semibold">Acesso indisponivel</h1>
+                    <h1 className="mt-6 text-3xl font-semibold">Acesso indisponível</h1>
                     <p className="mt-3 text-sm leading-6 text-app-cinza">{erro}</p>
                     <Link href="/login" className="mt-6 inline-flex h-11 items-center justify-center rounded-[8px] bg-app-caramelo-torrado px-6 text-sm font-bold text-white transition hover:bg-app-mocha">
                         Entrar novamente
@@ -358,8 +358,11 @@ export default function AdminFinanceiroPage() {
                 <div className="grid gap-8 lg:grid-cols-[1fr_380px] lg:items-start">
                     <div>
                         <p className="text-xs font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">Marketplace financeiro</p>
+                        <Link href="/admin/reembolsos" className="mt-4 inline-flex rounded-full border border-app-caramelo-torrado px-5 py-2 text-xs font-bold uppercase tracking-[0.12em] text-app-caramelo-torrado">
+                            Analisar reembolsos
+                        </Link>
                         <h1 className="mt-3 max-w-3xl text-3xl font-semibold leading-tight sm:text-5xl">
-                            Retencao, comissao e repasses da Appono
+                            Retenção, comissão e repasses da Appono
                         </h1>
                         <p className="mt-4 max-w-3xl text-sm leading-6 text-app-mocha">
                             Painel da plataforma para acompanhar pagamentos, taxa de {Number(dados.politica_financeira?.percentual_comissao_app ?? 13).toLocaleString("pt-BR")}%, valores retidos ate entrega e liberacao de repasses.
@@ -429,7 +432,7 @@ export default function AdminFinanceiroPage() {
                     <section className="mt-8 rounded-[14px] bg-app-creme-leve p-6 shadow-sm ring-1 ring-app-baunilha-dourada/60">
                         <div className="flex flex-col gap-4 border-b border-app-baunilha-dourada/60 pb-5 lg:flex-row lg:items-end lg:justify-between">
                             <div>
-                                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">Conciliacao</p>
+                                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">Conciliação</p>
                                 <h2 className="mt-2 text-2xl font-semibold">Pedidos pagos</h2>
                             </div>
                             <div className="flex flex-col gap-3 sm:items-end">
@@ -487,12 +490,12 @@ export default function AdminFinanceiroPage() {
                                         <strong className="text-sm text-app-cafe-profundo">{textoTipoEvento(evento.tipo_evento)}</strong>
                                         <span className="text-xs text-app-cinza">{formatarDataHora(evento.criado_em)}</span>
                                     </div>
-                                    <p className="mt-2 text-xs leading-5 text-app-mocha">{evento.descricao ?? "Evento registrado na operacao financeira."}</p>
+                                    <p className="mt-2 text-xs leading-5 text-app-mocha">{evento.descricao ?? "Evento registrado na operação financeira."}</p>
                                     <p className="mt-2 text-xs font-semibold text-app-caramelo-torrado">Pedido #{evento.id_pedido ?? "-"} | {formatarMoeda(evento.valor)}</p>
                                 </div>
                             )) : (
                                 <p className="rounded-[12px] bg-app-chantilly p-4 text-sm text-app-cinza ring-1 ring-app-baunilha-dourada/55">
-                                    Os eventos financeiros aparecerao conforme pagamentos, cancelamentos e entregas forem processados.
+                                    Os eventos financeiros aparecerão conforme pagamentos, cancelamentos e entregas forem processados.
                                 </p>
                             )}
                         </div>
@@ -513,7 +516,7 @@ export default function AdminFinanceiroPage() {
                                 <button key={restaurante.id_restaurante} type="button" onClick={() => setRestauranteSelecionado(restaurante)} className="grid gap-4 rounded-[12px] bg-app-chantilly p-4 text-left text-sm ring-1 ring-app-baunilha-dourada/55 transition hover:-translate-y-0.5 hover:bg-app-baunilha-dourada/35 md:grid-cols-[1fr_auto]">
                                     <div>
                                         <strong className="block text-app-cafe-profundo">{restaurante.nome}</strong>
-                                        <span className="text-xs text-app-cinza">{restaurante.email ?? restaurante.telefone ?? "Contato nao informado"}</span>
+                                        <span className="text-xs text-app-cinza">{restaurante.email ?? restaurante.telefone ?? "Contato não informado"}</span>
                                         <div className="mt-3 flex flex-wrap gap-2">
                                             <Pill tone={restaurante.conexao_mercado_pago?.status === "CONECTADO" ? "strong" : "alert"}>
                                                 {textoConexaoMercadoPago(restaurante.conexao_mercado_pago)}
@@ -539,7 +542,7 @@ export default function AdminFinanceiroPage() {
                                     <div>
                                         <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-baunilha-dourada">Detalhe do parceiro</p>
                                         <h3 className="mt-2 text-2xl font-semibold">{restauranteSelecionado.nome}</h3>
-                                        <p className="mt-2 text-sm text-app-creme-suave">{restauranteSelecionado.email ?? restauranteSelecionado.telefone ?? "Contato nao informado"}</p>
+                                        <p className="mt-2 text-sm text-app-creme-suave">{restauranteSelecionado.email ?? restauranteSelecionado.telefone ?? "Contato não informado"}</p>
                                     </div>
                                     <button type="button" onClick={() => setRestauranteSelecionado(null)} className="w-fit rounded-full border border-app-baunilha-dourada/70 px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-app-creme-leve transition hover:bg-app-baunilha-dourada/20">
                                         Fechar

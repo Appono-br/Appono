@@ -1,0 +1,38 @@
+{
+  "cliente": [
+    "01-home-cliente.svg",
+    "02-restaurante-outback.svg",
+    "03-restaurante-subway.svg",
+    "04-reservas.svg",
+    "05-todos-pedidos.svg",
+    "06-detalhe-pedido-54.svg",
+    "08-pagamento-pedido-54.svg",
+    "09-retorno-pagamento.svg",
+    "10-favoritos.svg",
+    "11-notificacoes.svg",
+    "12-mensagens.svg",
+    "13-configuracoes.svg",
+    "14-config-conta.svg",
+    "15-config-pagamentos.svg"
+  ],
+  "restaurante": [
+    "01-home-restaurante.svg",
+    "02-dashboard.svg",
+    "03-reservas.svg",
+    "04-cozinha.svg",
+    "05-historico.svg",
+    "06-financeiro.svg",
+    "07-desempenho.svg",
+    "08-cardapio.svg",
+    "09-editar-cardapio.svg",
+    "10-configuracoes.svg",
+    "11-config-operacao.svg",
+    "12-config-endereco.svg",
+    "13-config-dados-bancarios.svg",
+    "14-config-notificacoes.svg",
+    "15-config-seguranca.svg",
+    "16-reembolsos.svg",
+    "17-notificacoes.svg",
+    "18-mensagens.svg"
+  ]
+}

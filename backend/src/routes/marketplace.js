@@ -32,6 +32,10 @@ function obterMercadoPagoClientSecret() {
     return (process.env.MERCADO_PAGO_CLIENT_SECRET ?? "").trim();
 }
 
+function mercadoPagoProducaoPermitida() {
+    return String(process.env.MERCADO_PAGO_PERMITIR_PRODUCAO ?? "false").trim().toLowerCase() === "true";
+}
+
 function obterRedirectUriMercadoPago() {
     const redirectConfigurado = (process.env.MERCADO_PAGO_REDIRECT_URI ?? "").trim();
     if (redirectConfigurado) {
@@ -104,7 +108,7 @@ function sanitizarConexao(conexao) {
     };
 }
 
-exports.marketplaceRouter.get("/mercado-pago/status", auth_1.requireAuth, async (_req, res) => {
+exports.marketplaceRouter.get("/mercado-pago/status", auth_1.requireAuth, (0, auth_1.requireRole)("restaurante"), async (_req, res) => {
     if (!supabase_1.supabaseAdmin) {
         return res.status(409).json({ error: "SUPABASE_SECRET_KEY precisa estar configurada no backend." });
     }
@@ -127,7 +131,7 @@ exports.marketplaceRouter.get("/mercado-pago/status", auth_1.requireAuth, async 
         });
     }
     catch (error) {
-        return res.status(400).json({ error: error instanceof Error ? error.message : "Nao foi possivel consultar a conexao." });
+        return res.status(400).json({ error: error instanceof Error ? error.message : "Não foi possível consultar a conexão." });
     }
 });
 
@@ -155,7 +159,7 @@ function obterPercentualComissaoAppono() {
     return Number.isFinite(percentual) && percentual >= 0 ? percentual : 13;
 }
 
-exports.marketplaceRouter.get("/financeiro/resumo", auth_1.requireAuth, async (req, res) => {
+exports.marketplaceRouter.get("/financeiro/resumo", auth_1.requireAuth, (0, auth_1.requireRole)("restaurante"), async (req, res) => {
     if (!supabase_1.supabaseAdmin) {
         return res.status(409).json({ error: "SUPABASE_SECRET_KEY precisa estar configurada no backend." });
     }
@@ -184,7 +188,7 @@ exports.marketplaceRouter.get("/financeiro/resumo", auth_1.requireAuth, async (r
                     valor_liquido_recebido: 0,
                     valor_a_receber: 0,
                     valor_liberado: 0,
-                    valor_estornado: 0,
+                    valor_reembolsado: 0,
                     quantidade_pagamentos: 0,
                     quantidade_liberados: 0,
                 },
@@ -197,7 +201,7 @@ exports.marketplaceRouter.get("/financeiro/resumo", auth_1.requireAuth, async (r
         }
         const { data: pagamentos, error: pagamentosError } = await supabase_1.supabaseAdmin
             .from("pagamentos")
-            .select("id_pagamento, id_pedido, valor_pago, valor, status_pagamento, tipo_fluxo_pagamento, percentual_comissao_app, valor_comissao_app, valor_restaurante, status_repasse, atualizado_em, data_pagamento, data_aprovacao")
+            .select("id_pagamento, id_pedido, valor_pago, valor, status_pagamento, tipo_fluxo_pagamento, percentual_comissao_app, valor_comissao_app, valor_restaurante, valor_reembolsado, status_repasse, atualizado_em, data_pagamento, data_aprovacao")
             .in("id_pedido", idsPedidos)
             .order("atualizado_em", { ascending: false });
         if (pagamentosError) {
@@ -216,20 +220,25 @@ exports.marketplaceRouter.get("/financeiro/resumo", auth_1.requireAuth, async (r
         });
         const resumo = pagamentosValidos.reduce((acumulado, pagamento) => {
             const pedido = pedidosPorId.get(pagamento.id_pedido);
-            const foiCancelado = pagamento.status_repasse === "ESTORNADO" || pedido?.status_pedido === "CANCELADO";
+            const valorPago = Number(pagamento.valor_pago ?? pagamento.valor ?? 0);
+            const valorReembolsado = Number(pagamento.valor_reembolsado ?? 0);
+            const valorRestaurante = Number(pagamento.valor_restaurante ?? 0);
+            const valorRecebido = Math.max(0, valorPago - valorReembolsado);
+            const foiCanceladoSemRetencao = pagamento.status_repasse === "ESTORNADO" ||
+                (pedido?.status_pedido === "CANCELADO" && valorRestaurante <= 0);
             acumulado.quantidade_pagamentos += 1;
-            if (foiCancelado) {
-                acumulado.valor_estornado += Number(pagamento.valor_pago ?? pagamento.valor ?? 0);
+            acumulado.valor_reembolsado += valorReembolsado;
+            if (foiCanceladoSemRetencao) {
                 return acumulado;
             }
-            acumulado.valor_bruto += Number(pagamento.valor_pago ?? pagamento.valor ?? 0);
+            acumulado.valor_bruto += valorRecebido;
             acumulado.valor_comissao_app += Number(pagamento.valor_comissao_app ?? 0);
-            acumulado.valor_restaurante += Number(pagamento.valor_restaurante ?? 0);
+            acumulado.valor_restaurante += valorRestaurante;
             if (pagamento.status_repasse === "AGUARDANDO_ENTREGA") {
-                acumulado.valor_a_receber += Number(pagamento.valor_restaurante ?? 0);
+                acumulado.valor_a_receber += valorRestaurante;
             }
             if (pagamento.status_repasse === "LIBERADO_PARA_REPASSE" || pagamento.status_repasse === "REPASSADO") {
-                acumulado.valor_liberado += Number(pagamento.valor_restaurante ?? 0);
+                acumulado.valor_liberado += valorRestaurante;
                 acumulado.quantidade_liberados += 1;
             }
             return acumulado;
@@ -240,7 +249,7 @@ exports.marketplaceRouter.get("/financeiro/resumo", auth_1.requireAuth, async (r
             valor_liquido_recebido: 0,
             valor_a_receber: 0,
             valor_liberado: 0,
-            valor_estornado: 0,
+            valor_reembolsado: 0,
             quantidade_pagamentos: 0,
             quantidade_liberados: 0,
         });
@@ -260,11 +269,11 @@ exports.marketplaceRouter.get("/financeiro/resumo", auth_1.requireAuth, async (r
         });
     }
     catch (error) {
-        return res.status(400).json({ error: error instanceof Error ? error.message : "Nao foi possivel consultar o financeiro." });
+        return res.status(400).json({ error: error instanceof Error ? error.message : "Não foi possível consultar o financeiro." });
     }
 });
 
-exports.marketplaceRouter.post("/mercado-pago/conectar", auth_1.requireAuth, async (_req, res) => {
+exports.marketplaceRouter.post("/mercado-pago/conectar", auth_1.requireAuth, (0, auth_1.requireRole)("restaurante"), async (_req, res) => {
     if (!supabase_1.supabaseAdmin) {
         return res.status(409).json({ error: "SUPABASE_SECRET_KEY precisa estar configurada no backend." });
     }
@@ -302,11 +311,11 @@ exports.marketplaceRouter.post("/mercado-pago/conectar", auth_1.requireAuth, asy
         });
     }
     catch (error) {
-        return res.status(400).json({ error: error instanceof Error ? error.message : "Nao foi possivel iniciar a conexao." });
+        return res.status(400).json({ error: error instanceof Error ? error.message : "Não foi possível iniciar a conexão." });
     }
 });
 
-exports.marketplaceRouter.post("/mercado-pago/desconectar", auth_1.requireAuth, async (_req, res) => {
+exports.marketplaceRouter.post("/mercado-pago/desconectar", auth_1.requireAuth, (0, auth_1.requireRole)("restaurante"), async (_req, res) => {
     if (!supabase_1.supabaseAdmin) {
         return res.status(409).json({ error: "SUPABASE_SECRET_KEY precisa estar configurada no backend." });
     }
@@ -340,7 +349,7 @@ exports.marketplaceRouter.post("/mercado-pago/desconectar", auth_1.requireAuth, 
         return res.json({ conexao: sanitizarConexao(data) });
     }
     catch (error) {
-        return res.status(400).json({ error: error instanceof Error ? error.message : "Nao foi possivel desconectar a conta." });
+        return res.status(400).json({ error: error instanceof Error ? error.message : "Não foi possível desconectar a conta." });
     }
 });
 
@@ -364,8 +373,9 @@ exports.marketplaceRouter.get("/mercado-pago/callback", async (req, res) => {
             .eq("oauth_state", state)
             .maybeSingle();
         if (buscaError || !conexaoPendente) {
-            throw new Error(buscaError?.message ?? "Conexao OAuth nao encontrada.");
+            throw new Error(buscaError?.message ?? "Conexão OAuth não encontrada.");
         }
+        const usarTokenTeste = !mercadoPagoProducaoPermitida();
         const resposta = await fetch("https://api.mercadopago.com/oauth/token", {
             method: "POST",
             headers: {
@@ -378,11 +388,32 @@ exports.marketplaceRouter.get("/mercado-pago/callback", async (req, res) => {
                 client_secret: configuracao.clientSecret,
                 code,
                 redirect_uri: configuracao.redirectUri,
+                test_token: usarTokenTeste ? "true" : "false",
             }),
         });
         const token = await resposta.json().catch(() => null);
         if (!resposta.ok) {
-            throw new Error(token?.message ?? "Nao foi possivel obter o token OAuth do Mercado Pago.");
+            throw new Error(token?.message ?? "Não foi possível obter o token OAuth do Mercado Pago.");
+        }
+        if (usarTokenTeste && token?.live_mode === true) {
+            await supabase_1.supabaseAdmin
+                .from("mercado_pago_conexoes_restaurante")
+                .update({
+                status: "DESCONECTADO",
+                mercado_pago_user_id: null,
+                public_key: null,
+                access_token: null,
+                refresh_token: null,
+                token_type: null,
+                scope: null,
+                live_mode: null,
+                expires_at: null,
+                oauth_state: null,
+                conectado_em: null,
+                desconectado_em: new Date().toISOString(),
+            })
+                .eq("id_conexao", conexaoPendente.id_conexao);
+            return res.redirect(obterUrlRetornoFrontend("erro", "conta-producao"));
         }
         const expiresIn = Number(token.expires_in ?? 0);
         const expiresAt = expiresIn > 0 ? new Date(Date.now() + expiresIn * 1000).toISOString() : null;

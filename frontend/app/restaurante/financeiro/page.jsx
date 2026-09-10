@@ -1,41 +1,41 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { apiRequest } from "@/lib/api";
 import { textoStatusPedido, textoStatusRepasse } from "@/lib/formatadores-status";
 import { TelaCarregandoSessao, useSessaoLocal } from "@/lib/use-sessao-local";
 import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 const navItems = [
-    { label: "Home", href: "/restaurante/home" },
     { label: "Dashboard", href: "/restaurante/dashboard" },
-    { label: "Gestao de cardapio", href: "/restaurante/cardapio" },
+    { label: "Gestão de cardápio", href: "/restaurante/cardapio" },
     { label: "Desempenho", href: "/restaurante/desempenho" },
-    { label: "Relatorio financeiro", href: "/restaurante/financeiro" },
+    { label: "Relatório financeiro", href: "/restaurante/financeiro" },
     { label: "Reservas", href: "/restaurante/reservas" },
     { label: "Cozinha", href: "/restaurante/pedidos" },
-    { label: "Historico", href: "/restaurante/historico-pedidos" },
+    { label: "Histórico", href: "/restaurante/historico-pedidos" },
     { label: "Mensagens", href: "/restaurante/mensagens" },
-    { label: "Configuracoes", href: "/restaurante/configuracoes" },
+    { label: "Configurações", href: "/restaurante/configuracoes" },
 ];
 const financeCards = [
     {
-        label: "Pedidos pagos",
+        label: "Receita considerada",
         key: "valor_bruto",
-        description: "Total aprovado no Mercado Pago, sem pedidos cancelados.",
+        description: "Valor pago menos reembolsos. Entram pedidos entregues, em andamento e ausências com retenção.",
     },
     {
-        label: "Liquido recebido",
+        label: "Valor do restaurante",
         key: "valor_liquido_recebido",
-        description: "Valor do restaurante em pedidos pagos e nao cancelados.",
+        description: "Parte do restaurante depois da taxa Appono e dos reembolsos aplicados.",
     },
     {
-        label: "Retido ate entrega",
+        label: "Retido até entrega",
         key: "valor_a_receber",
         description: "Pedidos pagos que ainda aguardam conclusao.",
     },
 ];
-const tableHeaders = ["Pedido", "Cliente", "Reserva", "Pedido", "Repasse", "Valor liquido"];
+const tableHeaders = ["Pedido", "Cliente", "Reserva", "Pedido", "Repasse", "Reembolso", "Valor restaurante"];
 const periodos = [
     { label: "Hoje", value: "hoje" },
     { label: "7 dias", value: "7d" },
@@ -73,22 +73,26 @@ function formatarReserva(data, horario) {
 }
 
 function obterPrevisaoRepasse(repasse) {
+    const valorRestaurante = Number(repasse.valor_restaurante ?? 0);
+    if (repasse.pedido?.status_pedido === "CANCELADO" && valorRestaurante > 0) {
+        return "Mínimo retido por ausência";
+    }
     if (repasse.pedido?.status_pedido === "CANCELADO") {
         return "Pedido cancelado";
     }
     if (repasse.status_repasse === "LIBERADO_PARA_REPASSE" || repasse.status_repasse === "REPASSADO") {
-        return "Disponivel para repasse";
+        return "Disponível para repasse";
     }
     if (repasse.status_repasse === "ESTORNADO") {
         return "Sem repasse";
     }
-    return "Apos confirmacao de entrega";
+    return "Após confirmação de entrega";
 }
 
 function FinanceCard({ label, value, description, featured = false, }) {
     return (<article className={`min-h-40 rounded-[8px] p-5 shadow-sm ${featured
             ? "bg-app-cafe-profundo text-app-creme-leve"
-            : "bg-app-chantilly text-app-cafe-profundo ring-1 ring-app-baunilha-dourada/45"}`}>
+            : "bg-white text-app-cafe-profundo ring-1 ring-app-baunilha-dourada/45"}`}>
       <p className={`text-xs font-bold uppercase tracking-[0.18em] ${featured ? "text-app-baunilha-dourada" : "text-app-cinza"}`}>
         {label}
       </p>
@@ -100,8 +104,8 @@ function FinanceCard({ label, value, description, featured = false, }) {
 }
 function RepassesTable({ repasses }) {
     if (!repasses.length) {
-        return (<div className="overflow-hidden rounded-[8px] bg-app-chantilly shadow-sm ring-1 ring-app-baunilha-dourada/45">
-      <div className="grid gap-4 bg-app-creme-suave px-6 py-5 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha lg:grid-cols-[1fr_1fr_1.2fr_1fr_1fr_1fr]">
+        return (<div className="overflow-hidden rounded-[8px] bg-white shadow-sm ring-1 ring-app-baunilha-dourada/45">
+      <div className="grid gap-4 bg-app-creme-suave px-6 py-5 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha lg:grid-cols-[0.8fr_1fr_1.1fr_0.9fr_1fr_0.8fr_0.9fr]">
         {tableHeaders.map((header) => (<span key={header}>{header}</span>))}
       </div>
       <div className="flex min-h-56 flex-col justify-center border-t border-app-baunilha-dourada/45 px-6 py-10">
@@ -109,17 +113,21 @@ function RepassesTable({ repasses }) {
           Nenhum repasse registrado
         </h3>
         <p className="mt-3 max-w-md text-sm leading-6 text-app-cinza">
-          Os ciclos financeiros aparecerao nesta tabela apos os pagamentos confirmados.
+          Os ciclos financeiros aparecerão nesta tabela após os pagamentos confirmados.
         </p>
       </div>
     </div>);
     }
-    return (<div className="overflow-hidden rounded-[8px] bg-app-chantilly shadow-sm ring-1 ring-app-baunilha-dourada/45">
-      <div className="hidden gap-4 bg-app-creme-suave px-6 py-5 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha lg:grid lg:grid-cols-[1fr_1fr_1.2fr_1fr_1fr_1fr]">
+    return (<div className="overflow-hidden rounded-[8px] bg-white shadow-sm ring-1 ring-app-baunilha-dourada/45">
+      <div className="hidden gap-4 bg-app-creme-suave px-6 py-5 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha lg:grid lg:grid-cols-[0.8fr_1fr_1.1fr_0.9fr_1fr_0.8fr_0.9fr]">
         {tableHeaders.map((header) => (<span key={header}>{header}</span>))}
       </div>
       <div className="divide-y divide-app-baunilha-dourada/45 border-t border-app-baunilha-dourada/45">
-        {repasses.map((repasse) => (<article key={repasse.id_pagamento} className="grid gap-4 px-6 py-5 text-sm text-app-mocha lg:grid-cols-[1fr_1fr_1.2fr_1fr_1fr_1fr]">
+        {repasses.map((repasse) => {
+          const valorRestaurante = Number(repasse.valor_restaurante ?? 0);
+          const reembolso = Number(repasse.valor_reembolsado ?? 0);
+          const canceladoComRetencao = repasse.pedido?.status_pedido === "CANCELADO" && valorRestaurante > 0;
+          return (<article key={repasse.id_pagamento} className="grid gap-4 px-6 py-5 text-sm text-app-mocha lg:grid-cols-[0.8fr_1fr_1.1fr_0.9fr_1fr_0.8fr_0.9fr]">
           <div>
             <strong className="block text-app-cafe-profundo">Pedido #{repasse.id_pedido}</strong>
             <span className="text-xs text-app-cinza">{formatarData(repasse.data_pagamento ?? repasse.atualizado_em)}</span>
@@ -129,32 +137,35 @@ function RepassesTable({ repasses }) {
           <span>{textoStatusPedido(repasse.pedido?.status_pedido)}</span>
           <div>
             <strong className="block text-app-caramelo-torrado">
-              {repasse.pedido?.status_pedido === "CANCELADO" ? "Sem repasse" : textoStatusRepasse(repasse.status_repasse)}
+              {canceladoComRetencao ? "Retenção por ausência" : repasse.pedido?.status_pedido === "CANCELADO" ? "Sem repasse" : textoStatusRepasse(repasse.status_repasse)}
             </strong>
             <span className="text-xs text-app-cinza">{obterPrevisaoRepasse(repasse)}</span>
           </div>
+          <strong className="block text-app-cafe-profundo">{formatarMoeda(reembolso)}</strong>
           <div>
             <strong className="block text-app-cafe-profundo">{formatarMoeda(repasse.valor_restaurante)}</strong>
             <span className="text-xs text-app-cinza">
               Bruto {formatarMoeda(repasse.valor_pago ?? repasse.valor)}
             </span>
           </div>
-        </article>))}
+        </article>);
+        })}
       </div>
     </div>);
 }
 function obterTextoStatusMercadoPago(status) {
     const statusMap = {
-        NAO_CONECTADO: "Nao conectado",
-        AGUARDANDO_AUTORIZACAO: "Aguardando autorizacao",
+        NAO_CONECTADO: "Não conectado",
+        AGUARDANDO_AUTORIZACAO: "Aguardando autorização",
         CONECTADO: "Conectado",
-        ERRO: "Erro na conexao",
+        ERRO: "Erro na conexão",
         DESCONECTADO: "Desconectado",
     };
-    return statusMap[status] ?? "Nao conectado";
+    return statusMap[status] ?? "Não conectado";
 }
 export default function RestaurantFinancialReportPage() {
     const { sessao: session, sessaoCarregada } = useSessaoLocal();
+    const searchParams = useSearchParams();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [conexaoMercadoPago, setConexaoMercadoPago] = useState(null);
     const [resumoFinanceiro, setResumoFinanceiro] = useState({
@@ -166,16 +177,87 @@ export default function RestaurantFinancialReportPage() {
         quantidade_liberados: 0,
         valor_a_receber: 0,
         valor_liberado: 0,
-        valor_estornado: 0,
+        valor_reembolsado: 0,
     });
     const [repasses, setRepasses] = useState([]);
-    const [mensagemMercadoPago, setMensagemMercadoPago] = useState("Carregando conexao Mercado Pago...");
+    const [mensagemMercadoPago, setMensagemMercadoPago] = useState("Carregando conexão Mercado Pago...");
+    const [acaoMercadoPago, setAcaoMercadoPago] = useState(false);
+    const [modalMercadoPago, setModalMercadoPago] = useState(null);
     const [periodoAtivo, setPeriodoAtivo] = useState("30d");
     const [politicaFinanceira, setPoliticaFinanceira] = useState({
         percentual_comissao_app: 13,
         gatilho_repasse: "ENTREGA_DO_PEDIDO",
     });
     const isRestaurant = session?.type === "restaurant";
+    const mercadoPagoConectado = conexaoMercadoPago?.status === "CONECTADO";
+
+    useEffect(() => {
+        const statusMercadoPago = searchParams.get("mercado_pago");
+        const detalheMercadoPago = searchParams.get("detalhe");
+        let mensagemRetorno = "";
+        if (statusMercadoPago === "erro" && detalheMercadoPago === "conta-producao") {
+            mensagemRetorno = "A conta selecionada no Mercado Pago e de produção. Para testar sem transação real, saia dessa conta no Mercado Pago e conecte uma conta vendedora de teste.";
+        }
+        else if (statusMercadoPago === "conectado") {
+            mensagemRetorno = "Conta Mercado Pago conectada com sucesso.";
+        }
+        else if (statusMercadoPago === "erro") {
+            mensagemRetorno = "Não foi possível concluir a conexão Mercado Pago. Tente novamente com a conta correta.";
+        }
+        if (mensagemRetorno) {
+            queueMicrotask(() => setMensagemMercadoPago(mensagemRetorno));
+        }
+    }, [searchParams]);
+
+    async function carregarStatusMercadoPago() {
+        const resposta = await apiRequest("/marketplace/mercado-pago/status", { forceRefresh: true });
+        setConexaoMercadoPago(resposta.conexao);
+        setMensagemMercadoPago("");
+        return resposta;
+    }
+
+    async function confirmarAcaoMercadoPago() {
+        if (modalMercadoPago === "conectar") {
+            await conectarMercadoPagoOAuth();
+            return;
+        }
+        if (modalMercadoPago === "desconectar") {
+            await desconectarMercadoPago();
+        }
+    }
+
+    async function conectarMercadoPagoOAuth() {
+        setAcaoMercadoPago(true);
+        setMensagemMercadoPago("");
+        try {
+            const resposta = await apiRequest("/marketplace/mercado-pago/conectar", { method: "POST" });
+            if (!resposta.authorization_url) {
+                throw new Error("O Mercado Pago não retornou a URL de autorização.");
+            }
+            window.location.assign(resposta.authorization_url);
+        }
+        catch (error) {
+            setMensagemMercadoPago(error instanceof Error ? error.message : "Não foi possível iniciar a conexão Mercado Pago.");
+            setAcaoMercadoPago(false);
+        }
+    }
+
+    async function desconectarMercadoPago() {
+        setAcaoMercadoPago(true);
+        setMensagemMercadoPago("");
+        try {
+            const resposta = await apiRequest("/marketplace/mercado-pago/desconectar", { method: "POST" });
+            setConexaoMercadoPago(resposta.conexao);
+            setMensagemMercadoPago("Conta Mercado Pago desconectada.");
+            setModalMercadoPago(null);
+        }
+        catch (error) {
+            setMensagemMercadoPago(error instanceof Error ? error.message : "Não foi possível desconectar a conta.");
+        }
+        finally {
+            setAcaoMercadoPago(false);
+        }
+    }
 
     useEffect(() => {
         if (!sessaoCarregada) {
@@ -184,37 +266,35 @@ export default function RestaurantFinancialReportPage() {
         if (!isRestaurant) {
             return;
         }
-        apiRequest("/marketplace/mercado-pago/status")
-            .then((resposta) => {
-                setConexaoMercadoPago(resposta.conexao);
-                setMensagemMercadoPago("");
-            })
-            .catch((error) => {
-                setMensagemMercadoPago(error instanceof Error ? error.message : "Nao foi possivel consultar o Mercado Pago.");
-            });
-        apiRequest(`/marketplace/financeiro/resumo?periodo=${periodoAtivo}`)
-            .then((resposta) => {
-                setResumoFinanceiro(resposta.resumo);
-                setRepasses(resposta.repasses ?? []);
-                if (resposta.politica_financeira) {
-                    setPoliticaFinanceira(resposta.politica_financeira);
-                }
-            })
-            .catch((error) => {
-                setMensagemMercadoPago(error instanceof Error ? error.message : "Nao foi possivel consultar o financeiro.");
-            });
+        queueMicrotask(() => {
+            carregarStatusMercadoPago()
+                .catch((error) => {
+                    setMensagemMercadoPago(error instanceof Error ? error.message : "Não foi possível consultar o Mercado Pago.");
+                });
+            apiRequest(`/marketplace/financeiro/resumo?periodo=${periodoAtivo}`)
+                .then((resposta) => {
+                    setResumoFinanceiro(resposta.resumo);
+                    setRepasses(resposta.repasses ?? []);
+                    if (resposta.politica_financeira) {
+                        setPoliticaFinanceira(resposta.politica_financeira);
+                    }
+                })
+                .catch((error) => {
+                    setMensagemMercadoPago(error instanceof Error ? error.message : "Não foi possível consultar o financeiro.");
+                });
+        });
     }, [isRestaurant, sessaoCarregada, periodoAtivo]);
 
     if (!sessaoCarregada) {
         return <TelaCarregandoSessao />;
     }
     if (!isRestaurant) {
-        return (<main className="flex min-h-screen items-center justify-center bg-app-chantilly px-5 text-app-cafe-profundo">
+        return (<main className="flex min-h-screen items-center justify-center bg-white px-5 text-app-cafe-profundo">
         <section className="w-full max-w-lg rounded-[8px] bg-app-creme-leve p-8 text-center shadow-sm ring-1 ring-app-baunilha-dourada">
           <Image src="/brand/appono-mark.svg" alt="Appono" width={88} height={88} className="mx-auto h-20 w-20" priority/>
           <h1 className="mt-6 text-3xl font-semibold">Acesso restrito</h1>
           <p className="mt-3 text-sm leading-6 text-app-cinza">
-            Esta area e destinada a contas de restaurante.
+            Esta área é destinada a contas de restaurante.
           </p>
           <Link href="/login" className="mt-6 inline-flex h-11 items-center justify-center rounded-[8px] bg-app-dourado-mel px-6 text-sm font-bold text-white transition hover:bg-app-caramelo-torrado">
             Entrar
@@ -222,7 +302,7 @@ export default function RestaurantFinancialReportPage() {
         </section>
       </main>);
     }
-    return (<main className="flex min-h-screen flex-col bg-app-chantilly text-app-cafe-profundo">
+    return (<main className="flex min-h-screen flex-col bg-white text-app-cafe-profundo">
       <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-app-creme-leve/90 text-app-cafe-profundo shadow-sm backdrop-blur-md">
         <div className="mx-auto grid h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-5 lg:h-20">
           <div aria-label="Appono">
@@ -238,7 +318,7 @@ export default function RestaurantFinancialReportPage() {
           </nav>
 
           <ItemHeaderNotificacoes href="/restaurante/notificacoes" />
-          <button type="button" onClick={() => setMobileMenuOpen((current) => !current)} className="flex h-9 w-9 items-center justify-center justify-self-end rounded-[8px] border border-app-baunilha-dourada bg-app-chantilly text-app-cafe-profundo xl:hidden" aria-label="Abrir menu" aria-expanded={mobileMenuOpen} aria-controls="restaurant-finance-menu">
+          <button type="button" onClick={() => setMobileMenuOpen((current) => !current)} className="flex h-9 w-9 items-center justify-center justify-self-end rounded-[8px] border border-app-baunilha-dourada bg-white text-app-cafe-profundo xl:hidden" aria-label="Abrir menu" aria-expanded={mobileMenuOpen} aria-controls="restaurant-finance-menu">
             <Icon type="menu"/>
           </button>
         </div>
@@ -263,8 +343,11 @@ export default function RestaurantFinancialReportPage() {
             <h1 className="mt-2 text-4xl font-medium leading-tight text-app-cafe-profundo sm:text-5xl">
               Relatorio Financeiro
             </h1>
+            <Link href="/restaurante/reembolsos" className="mt-5 inline-flex rounded-[8px] border border-app-caramelo-torrado px-5 py-2.5 text-xs font-bold uppercase tracking-[0.12em] text-app-caramelo-torrado">
+              Analisar reembolsos
+            </Link>
             <p className="mt-4 max-w-2xl text-sm leading-6 text-app-cinza sm:text-base">
-              Acompanhe apenas pedidos pagos e nao cancelados. A Appono retem o valor ate a entrega e libera o repasse conforme o status do pedido.
+              Acompanhe valores pagos, reembolsos e repasses. Ausência avisada pode manter o mínimo do restaurante e devolver apenas o excedente ao cliente.
             </p>
           </div>
 
@@ -291,12 +374,12 @@ export default function RestaurantFinancialReportPage() {
                 Conta de recebimento
               </h2>
               <p className="mt-3 max-w-2xl text-sm leading-6 text-app-mocha">
-                Esta conta recebe os repasses dos pedidos entregues. Pedidos pendentes, em preparo ou cancelados ficam separados para evitar dupla interpretacao.
+                Esta conta recebe os repasses dos pedidos entregues e valores retidos por ausência conforme a regra comercial da Appono.
               </p>
             </div>
-            <div className="rounded-[8px] bg-app-chantilly p-5 text-sm ring-1 ring-app-baunilha-dourada/45 lg:min-w-80">
+            <div className="rounded-[8px] bg-white p-5 text-sm ring-1 ring-app-baunilha-dourada/45 lg:min-w-96">
               <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-app-cinza">
-                Status da conexao
+                Status da conexão
               </p>
               <strong className="mt-2 block text-xl text-app-cafe-profundo">
                 {obterTextoStatusMercadoPago(conexaoMercadoPago?.status)}
@@ -311,9 +394,39 @@ export default function RestaurantFinancialReportPage() {
                   Conectado em {new Date(conexaoMercadoPago.conectado_em).toLocaleDateString("pt-BR")}
                 </p>
               ) : null}
+              {mercadoPagoConectado ? (
+                <button
+                  type="button"
+                  disabled={acaoMercadoPago}
+                  onClick={() => setModalMercadoPago("desconectar")}
+                  className="mt-5 inline-flex h-11 w-full items-center justify-center rounded-[8px] border border-app-caramelo-torrado px-5 text-xs font-bold uppercase tracking-[0.12em] text-app-caramelo-torrado transition hover:bg-app-caramelo-torrado hover:text-app-creme-leve disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {acaoMercadoPago ? "Desconectando..." : "Desconectar conta"}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  disabled={acaoMercadoPago}
+                  onClick={() => setModalMercadoPago("conectar")}
+                  className="mt-5 inline-flex h-11 w-full items-center justify-center rounded-[8px] bg-app-cafe-profundo px-5 text-xs font-bold uppercase tracking-[0.12em] text-app-creme-leve transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {acaoMercadoPago ? "Abrindo login..." : "Conectar Mercado Pago"}
+                </button>
+              )}
             </div>
           </div>
-          <div className="mt-6">
+          <div className="mt-6 grid gap-4">
+            <div className="rounded-[8px] bg-white p-4 text-sm leading-6 text-app-mocha ring-1 ring-app-baunilha-dourada/45">
+              {mercadoPagoConectado ? (
+                <p>
+                  Sua conta Mercado Pago está conectada. Para trocar de vendedor, desconecte a conta atual e conecte novamente pelo login do Mercado Pago.
+                </p>
+              ) : (
+                <p>
+                  Conecte a conta de recebimento do restaurante. A Appono abrira o login seguro do Mercado Pago para autorização.
+                </p>
+              )}
+            </div>
             {mensagemMercadoPago ? (
               <p className="text-sm font-semibold text-app-caramelo-torrado">
                 {mensagemMercadoPago}
@@ -329,24 +442,24 @@ export default function RestaurantFinancialReportPage() {
         <section className="mt-8 grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
           <article className="rounded-[8px] bg-app-creme-leve p-6 shadow-sm ring-1 ring-app-baunilha-dourada/60 sm:p-8">
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-app-cinza">
-              Politica comercial
+              Política comercial
             </p>
             <h2 className="mt-3 text-2xl font-medium text-app-cafe-profundo">
               Taxa da Appono
             </h2>
             <p className="mt-3 text-sm leading-6 text-app-mocha">
-              A taxa e aplicada somente sobre pedidos pagos e validos. Cancelamentos nao entram nos indicadores de venda nem no valor previsto para repasse.
+              A taxa e aplicada somente sobre pedidos pagos e válidos. Cancelamentos não entram nos indicadores de venda nem no valor previsto para repasse.
             </p>
             <div className="mt-6 grid gap-5">
               <div className="flex items-center justify-between gap-5 text-sm">
-                <span className="text-app-mocha">Comissao da plataforma</span>
+                <span className="text-app-mocha">Comissão da plataforma</span>
                 <strong className="text-app-cafe-profundo">
                   {Number(politicaFinanceira.percentual_comissao_app ?? 13).toLocaleString("pt-BR")}% por pedido pago
                 </strong>
               </div>
               <div className="flex items-center justify-between gap-5 text-sm">
-                <span className="text-app-mocha">Liberacao</span>
-                <strong className="text-app-cafe-profundo">Apos entrega</strong>
+                <span className="text-app-mocha">Liberação</span>
+                <strong className="text-app-cafe-profundo">Após entrega</strong>
               </div>
               <div className="flex items-center justify-between gap-5 text-sm">
                 <span className="text-app-mocha">Cancelamentos</span>
@@ -360,20 +473,20 @@ export default function RestaurantFinancialReportPage() {
               Leitura dos valores
             </p>
             <h2 className="mt-3 text-2xl font-medium text-app-cafe-profundo">
-              Como interpretar o relatorio
+              Como interpretar o relatório
             </h2>
             <div className="mt-6 grid gap-3 text-sm leading-6 text-app-mocha">
               <p>
-                <strong className="text-app-cafe-profundo">Pedidos pagos:</strong> mostra o total aprovado pelos clientes no periodo selecionado.
+                <strong className="text-app-cafe-profundo">Receita considerada:</strong> mostra o valor aprovado que permaneceu na operação depois dos reembolsos.
               </p>
               <p>
-                <strong className="text-app-cafe-profundo">Liquido recebido:</strong> mostra a parte do restaurante sobre pedidos pagos e validos, mesmo antes da liberacao do repasse.
+                <strong className="text-app-cafe-profundo">Valor do restaurante:</strong> mostra a parte do restaurante sobre pedidos válidos e ausências com mínimo retido.
               </p>
               <p>
-                <strong className="text-app-cafe-profundo">Retido ate entrega:</strong> valor ainda protegido pela Appono enquanto o pedido nao foi entregue.
+                <strong className="text-app-cafe-profundo">Retido até entrega:</strong> valor ainda protegido pela Appono enquanto o pedido não foi entregue.
               </p>
               <p>
-                <strong className="text-app-cafe-profundo">Liberado para repasse:</strong> valor de pedidos entregues, ja disponivel para conciliacao.
+                <strong className="text-app-cafe-profundo">Reembolso:</strong> aparece na tabela quando parte do pagamento voltou ao cliente.
               </p>
             </div>
           </article>
@@ -385,7 +498,7 @@ export default function RestaurantFinancialReportPage() {
           <Image src="/brand/appono-mark.svg" alt="Appono" width={80} height={80} className="h-14 w-14 brightness-0 invert"/>
           <nav className="flex flex-wrap justify-center gap-8 text-[10px] font-bold uppercase text-app-baunilha-dourada">
             <Link href="#" className="transition hover:text-app-chantilly">
-              Politica de Privacidade
+              Política de Privacidade
             </Link>
             <Link href="#" className="transition hover:text-app-chantilly">
               Termos de Uso
@@ -399,5 +512,31 @@ export default function RestaurantFinancialReportPage() {
           </p>
         </div>
       </footer>
+
+      {modalMercadoPago ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 px-5 backdrop-blur-[2px]" role="dialog" aria-modal="true" aria-labelledby="modal-mercado-pago-titulo">
+          <section className="w-full max-w-lg rounded-[18px] bg-white p-6 text-app-cafe-profundo shadow-2xl ring-1 ring-black/10 sm:p-8">
+            <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-app-caramelo-torrado">
+              Mercado Pago
+            </p>
+            <h2 id="modal-mercado-pago-titulo" className="mt-3 text-2xl font-semibold">
+              {modalMercadoPago === "conectar" ? "Conectar conta Mercado Pago?" : "Desconectar conta Mercado Pago?"}
+            </h2>
+            <p className="mt-4 text-sm leading-6 text-app-mocha">
+              {modalMercadoPago === "conectar"
+                ? "A Appono vai abrir a tela segura do Mercado Pago para login e autorização. Se quiser usar outra conta, saia da conta atual do Mercado Pago ou use uma janela anonima antes de continuar."
+                : "Ao desconectar, este restaurante deixa de ter uma conta Mercado Pago vinculada para recebimento. Você podera conectar novamente depois."}
+            </p>
+            <div className="mt-7 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+              <button type="button" disabled={acaoMercadoPago} onClick={() => setModalMercadoPago(null)} className="inline-flex h-11 items-center justify-center rounded-[8px] border border-app-baunilha-dourada px-5 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:bg-app-chantilly disabled:cursor-not-allowed disabled:opacity-60">
+                Cancelar
+              </button>
+              <button type="button" disabled={acaoMercadoPago} onClick={confirmarAcaoMercadoPago} className={`inline-flex h-11 items-center justify-center rounded-[8px] px-5 text-xs font-bold uppercase tracking-[0.12em] transition disabled:cursor-not-allowed disabled:opacity-60 ${modalMercadoPago === "desconectar" ? "botao-acao-critica" : "bg-app-cafe-profundo text-app-creme-leve hover:bg-app-caramelo-torrado"}`}>
+                {acaoMercadoPago ? "Processando..." : modalMercadoPago === "conectar" ? "Continuar" : "Desconectar"}
+              </button>
+            </div>
+          </section>
+        </div>
+      ) : null}
     </main>);
 }
