@@ -4,7 +4,7 @@ import { RotaProtegida } from "@/components/auth/rota-protegida";
 import { useTemaLocal } from "@/lib/use-tema-local";
 import { TelaCarregandoSessao } from "@/lib/use-sessao-local";
 function inscrever() {
-    return () => { };
+    return () => { };z
 }
 function obterEstadoCliente() {
     return true;

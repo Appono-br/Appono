@@ -6,7 +6,10 @@ import { apiRequest } from "@/lib/api";
 import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 import { TelaCarregandoSessao, useSessaoLocal } from "@/lib/use-sessao-local";
 const navItems = [
+<<<<<<< HEAD
     
+=======
+>>>>>>> f260ad5e162f398fd5ec1bdc77d290b51df89509
     { label: "Dashboard", href: "/restaurante/dashboard" },
     { label: "Gestão de cardápio", href: "/restaurante/cardapio" },
     { label: "Desempenho", href: "/restaurante/desempenho" },

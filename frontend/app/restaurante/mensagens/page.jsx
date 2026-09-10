@@ -8,6 +8,7 @@ import { apiRequest } from "@/lib/api";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 
 const navItems = [
+<<<<<<< HEAD
   
   { label: "Dashboard", href: "/restaurante/dashboard" },
   { label: "Gestão de cardápio", href: "/restaurante/cardapio" },
@@ -18,6 +19,17 @@ const navItems = [
   { label: "Histórico", href: "/restaurante/historico-pedidos" },
   { label: "Mensagens", href: "/restaurante/mensagens" },
   { label: "Configurações", href: "/restaurante/configuracoes" },
+=======
+    { label: "Dashboard", href: "/restaurante/dashboard" },
+    { label: "Gestao de cardapio", href: "/restaurante/cardapio" },
+    { label: "Desempenho", href: "/restaurante/desempenho" },
+    { label: "Relatorio financeiro", href: "/restaurante/financeiro" },
+    { label: "Reservas", href: "/restaurante/reservas" },
+    { label: "Cozinha", href: "/restaurante/pedidos" },
+    { label: "Historico", href: "/restaurante/historico-pedidos" },
+    { label: "Mensagens", href: "/restaurante/mensagens" },
+    { label: "Configuracoes", href: "/restaurante/configuracoes" },
+>>>>>>> f260ad5e162f398fd5ec1bdc77d290b51df89509
 ];
 
 const filtros = [
