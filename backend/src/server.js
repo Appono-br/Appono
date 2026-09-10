@@ -85,11 +85,7 @@ app.use(
         return callback(null, true);
       }
 
-<<<<<<< HEAD
-        return callback(new Error("Origem não autorizada pelo CORS."));
-=======
-      return callback(new Error("Origem nao autorizada pelo CORS."));
->>>>>>> f260ad5e162f398fd5ec1bdc77d290b51df89509
+      return callback(new Error("Origem não autorizada pelo CORS."));
     },
   })
 );
@@ -155,27 +151,15 @@ app.use("/api/reembolsos", refundsRouter);
 app.use("/api/mensagens", messagesRouter);
 
 app.use((error, _req, res, _next) => {
-<<<<<<< HEAD
-    const mensagem = String(error?.message ?? "");
-    const erroDeConexao = /fetch failed|unable to verify|certificate|econnreset|enotfound/i.test(mensagem);
-    if (erroDeConexao) {
-        return res.status(503).json({
-            error: "Não foi possível acessar um serviço externo. Verifique a conexão e tente novamente.",
-        });
-    }
-    console.error("Erro não tratado na API:", mensagem || error);
-    return res.status(500).json({ error: "Não foi possível concluir a operação agora." });
-=======
   const mensagem = String(error?.message ?? "");
   const erroDeConexao = /fetch failed|unable to verify|certificate|econnreset|enotfound/i.test(mensagem);
   if (erroDeConexao) {
     return res.status(503).json({
-      error: "Nao foi possivel acessar um servico externo. Verifique a conexao e tente novamente.",
+      error: "Não foi possível acessar um serviço externo. Verifique a conexão e tente novamente.",
     });
   }
-  console.error("Erro nao tratado na API:", mensagem || error);
-  return res.status(500).json({ error: "Nao foi possivel concluir a operacao agora." });
->>>>>>> f260ad5e162f398fd5ec1bdc77d290b51df89509
+  console.error("Erro não tratado na API:", mensagem || error);
+  return res.status(500).json({ error: "Não foi possível concluir a operação agora." });
 });
 
 if (require.main === module) {

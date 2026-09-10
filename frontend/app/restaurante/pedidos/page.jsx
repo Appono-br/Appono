@@ -8,10 +8,6 @@ import { apiRequest } from "@/lib/api";
 import { filtrarOrdenarPorBusca, textoBusca } from "@/lib/busca-avancada";
 
 const navItems = [
-<<<<<<< HEAD
-    
-=======
->>>>>>> f260ad5e162f398fd5ec1bdc77d290b51df89509
     { label: "Dashboard", href: "/restaurante/dashboard" },
     { label: "Gestão de cardápio", href: "/restaurante/cardapio" },
     { label: "Desempenho", href: "/restaurante/desempenho" },

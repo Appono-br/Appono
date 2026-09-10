@@ -202,86 +202,6 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
       setIsSubmitting(true);
       setMessage("");
 
-<<<<<<< HEAD
-      setMessage(
-        error instanceof Error
-          ? error.message
-          : "CNPJ inválido."
-      );
-    }
-  }
-
-  async function validarCep() {
-    if (!cepEstaCompleto(form.cep)) {
-      return;
-    }
-
-    try {
-      const address = await apiRequest(
-        `/validacoes/cep/${somenteNumeros(form.cep)}`,
-        {
-          auth: false,
-        }
-      );
-
-      setForm((current) => ({
-        ...current,
-        address: address.rua || current.address,
-        neighborhood: address.bairro || current.neighborhood,
-        city: address.cidade || current.city,
-        uf: address.estado || current.uf,
-      }));
-
-      setMessage("");
-    } catch (error) {
-      setMessage(
-        error instanceof Error
-          ? error.message
-          : "CEP inválido."
-      );
-    }
-  }
-
-  async function criarRestaurante() {
-    if (!dadosRestauranteEstaoPreenchidos()) {
-      setMessage(
-        "Preencha os dados do restaurante antes de finalizar."
-      );
-      return;
-    }
-
-    setIsSubmitting(true);
-    setMessage("");
-
-    try {
-      const response = await apiRequest(
-        isGoogleFlow
-          ? "/auth/google/restaurant"
-          : "/auth/register/restaurant",
-        {
-          method: "POST",
-          auth: isGoogleFlow,
-          body: JSON.stringify(form),
-        }
-      );
-
-      const session = response.session ?? googleSession;
-
-      await persistAuthResponse({
-        ...response,
-        session,
-      });
-
-      if (session) {
-        if (imagem) {
-          try {
-            await enviarImagemRestaurante(imagem, session);
-          } catch (error) {
-            console.warn(
-              "Não foi possível enviar a imagem do restaurante.",
-              error
-            );
-=======
       try {
         const response = await apiRequest(
           isGoogleFlow
@@ -291,7 +211,6 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
             method: "POST",
             auth: isGoogleFlow,
             body: JSON.stringify(form),
->>>>>>> f260ad5e162f398fd5ec1bdc77d290b51df89509
           }
         );
 
@@ -336,22 +255,6 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
       } finally {
         setIsSubmitting(false);
       }
-<<<<<<< HEAD
-
-      setMessage(
-        response.message ??
-          "Conta criada. Confirme seu e-mail para entrar direto no painel."
-      );
-    } catch (error) {
-      setMessage(
-        error instanceof Error
-          ? error.message
-          : "Não foi possível criar a conta do restaurante."
-      );
-    } finally {
-      setIsSubmitting(false);
-=======
->>>>>>> f260ad5e162f398fd5ec1bdc77d290b51df89509
     }
 
     return (

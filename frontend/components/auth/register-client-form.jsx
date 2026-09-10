@@ -122,13 +122,9 @@ export function RegisterClientForm({ googleFlow = false }) {
       }
 
       setMessage(
-<<<<<<< HEAD
-        error instanceof Error ? error.message : "Não foi possível criar a conta."
-=======
         error instanceof Error
           ? error.message
-          : "Nao foi possivel criar a conta."
->>>>>>> f260ad5e162f398fd5ec1bdc77d290b51df89509
+          : "Não foi possível criar a conta."
       );
     } finally {
       setIsSubmitting(false);
@@ -232,15 +228,11 @@ export function RegisterClientForm({ googleFlow = false }) {
                   }
                 );
               } catch (error) {
-<<<<<<< HEAD
-                setMessage(error instanceof Error ? error.message : "CPF inválido.");
-=======
                 setMessage(
                   error instanceof Error
                     ? error.message
-                    : "CPF invalido."
+                    : "CPF inválido."
                 );
->>>>>>> f260ad5e162f398fd5ec1bdc77d290b51df89509
               }
             }}
             placeholder="000.000.000-00"
