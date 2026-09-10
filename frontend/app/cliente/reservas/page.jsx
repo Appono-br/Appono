@@ -1,4 +1,5 @@
 "use client";
+import { useInterface } from "@/lib/use-interface";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -14,7 +15,7 @@ const navItems = [
     { label: "Mensagens", href: "/cliente/mensagens" },
     { label: "Configurações", href: "/cliente/configuracoes" },
 ];
-const weekDays = ["D", "S", "T", "Q", "Q", "S", "S"];
+const weekDays = ["Domingo", "Segunda-feira", "Terca-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sabado"];
 const monthNames = [
     "Janeiro",
     "Fevereiro",
@@ -46,12 +47,12 @@ function Icon({ type, className = "h-5 w-5", }) {
       <path d={paths[type]} fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8"/>
     </svg>);
 }
-function formatarDataReserva(data) {
+function formatarDataReserva(data, localeUI = "pt-BR") {
     const dataLocal = new Date(`${data}T12:00:00`);
     return {
         dia: String(dataLocal.getDate()).padStart(2, "0"),
-        mes: dataLocal.toLocaleDateString("pt-BR", { month: "short" }).replace(".", ""),
-        semana: dataLocal.toLocaleDateString("pt-BR", { weekday: "short" }).replace(".", ""),
+        mes: dataLocal.toLocaleDateString(localeUI, { month: "short" }).replace(".", ""),
+        semana: dataLocal.toLocaleDateString(localeUI, { weekday: "short" }).replace(".", ""),
     };
 }
 function formatarHorario(horario) {
@@ -89,8 +90,8 @@ function obterStatusPedido(status) {
     };
     return statusMap[status] ?? status;
 }
-function formatarMoeda(valor) {
-    return new Intl.NumberFormat("pt-BR", {
+function formatarMoeda(valor, localeUI = "pt-BR") {
+    return new Intl.NumberFormat(localeUI, {
         style: "currency",
         currency: "BRL",
     }).format(Number(valor ?? 0));
@@ -113,11 +114,11 @@ function podeResponderPresenca(reservation) {
         reservation.attendanceStatus !== "RECUSADA" &&
         new Date() <= obterPrazoConfirmacaoPresenca(reservation);
 }
-function formatarPrazoPresenca(reservation) {
+function formatarPrazoPresenca(reservation, localeUI = "pt-BR") {
     const prazo = reservation.attendanceDeadline
         ? new Date(reservation.attendanceDeadline)
         : obterPrazoConfirmacaoPresenca(reservation);
-    return prazo.toLocaleTimeString("pt-BR", {
+    return prazo.toLocaleTimeString(localeUI, {
         hour: "2-digit",
         minute: "2-digit",
     });
@@ -131,7 +132,7 @@ function obterTextoConfirmacaoPresenca(status) {
     };
     return statusMap[status] ?? "Aguardando confirmação";
 }
-function obterDescricaoFluxoReserva(reservation) {
+function obterDescricaoFluxoReserva(reservation, localeUI = "pt-BR") {
     if (reservation.attendanceStatus === "CONFIRMADA" && reservation.status === "CONFIRMADA") {
         return "Presença confirmada. O restaurante pode organizar sua experiência com mais segurança.";
     }
@@ -158,7 +159,7 @@ function obterDescricaoFluxoReserva(reservation) {
     }
     if (reservation.status === "CONFIRMADA") {
         return podeResponderPresenca(reservation)
-            ? `Confirme sua presença até ${formatarPrazoPresenca(reservation)} para manter o restaurante alinhado.`
+            ? `Confirme sua presença até ${formatarPrazoPresenca(reservation, localeUI)} para manter o restaurante alinhado.`
             : "Reserva confirmada. O prazo de confirmação de presença encerra 1 hora antes do horário.";
     }
     return "Acompanhe aqui o status da sua reserva.";
@@ -198,22 +199,18 @@ function getCalendarDays(month, year) {
     return days;
 }
 function EmptyReservationPanel() {
+    const { ui } = useInterface();
     return (<section className="flex min-h-[320px] flex-col items-center justify-center rounded-[8px] border border-dashed border-app-caramelo-torrado/35 bg-white px-6 py-12 text-center shadow-sm">
       <div className="flex h-12 w-12 items-center justify-center rounded-full bg-app-baunilha-dourada text-app-cafe-profundo">
         <Icon type="plus" className="h-6 w-6"/>
       </div>
-      <h2 className="mt-6 text-2xl font-semibold text-app-cafe-profundo">
-        Planeje sua próxima visita
-      </h2>
-      <p className="mt-4 max-w-lg text-sm leading-6 text-app-cinza sm:text-base">
-        Você ainda não possui reservas em aberto neste período.
-      </p>
-      <Link href="/cliente/dashboard" className="mt-8 rounded-[8px] bg-app-dourado-mel px-6 py-3 text-xs font-bold uppercase tracking-wide text-white transition hover:bg-app-caramelo-torrado">
-        Reservar agora
-      </Link>
+      <h2 className="mt-6 text-2xl font-semibold text-app-cafe-profundo">{ui("Planeje sua próxima visita")}</h2>
+      <p className="mt-4 max-w-lg text-sm leading-6 text-app-cinza sm:text-base">{ui("Você ainda não possui reservas em aberto neste período.")}</p>
+      <Link href="/cliente/dashboard" className="mt-8 rounded-[8px] bg-app-dourado-mel px-6 py-3 text-xs font-bold uppercase tracking-wide text-white transition hover:bg-app-caramelo-torrado">{ui("Reservar agora")}</Link>
     </section>);
 }
 export default function ReservationsPage() {
+    const { ui , localeUI } = useInterface();
     const today = new Date();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [reservations, setReservations] = useState([]);
@@ -358,7 +355,7 @@ export default function ReservationsPage() {
             setReservaParaRecusarPresenca(null);
             const valor = Number(resposta.reembolso?.valor ?? 0);
             setMensagemPresenca(valor > 0
-                ? `Reserva cancelada. Reembolso parcial registrado: ${formatarMoeda(valor)}.`
+                ? `Reserva cancelada. Reembolso parcial registrado: ${formatarMoeda(valor, localeUI)}.`
                 : "Reserva cancelada.");
         }
         catch (error) {
@@ -402,24 +399,24 @@ export default function ReservationsPage() {
     return (<main className="flex min-h-screen flex-col bg-white text-app-cafe-profundo">
       <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-white/90 text-app-cafe-profundo shadow-sm backdrop-blur-md">
         <div className="mx-auto grid h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-5 lg:h-20">
-          <div className="shrink-0" aria-label="Appono">
-            <Image src="/brand/appono-mark.svg" alt="Appono" width={88} height={88} className="h-11 w-11 lg:h-14 lg:w-14" priority/>
+          <div className="shrink-0" aria-label={ui("Appono")}>
+            <Image src="/brand/appono-mark.svg" alt={ui("Appono")} width={88} height={88} className="h-11 w-11 lg:h-14 lg:w-14" priority/>
           </div>
 
           <nav className="hidden items-center justify-self-center gap-7 text-xs font-semibold text-app-cinza lg:flex">
             {navItems.map((item) => (<Link key={item.label} href={item.href} className={item.href === "/cliente/reservas"
                 ? "text-app-cafe-profundo"
                 : "transition hover:text-app-cafe-profundo"}>
-                {item.label}
+                {ui(item.label)}
               </Link>))}
           </nav>
 
           <div className="flex items-center justify-self-end gap-3 text-app-cafe-profundo">
             <ItemHeaderNotificacoes href="/cliente/notificacoes" />
-            <button type="button" className="transition hover:text-app-caramelo-torrado" aria-label="Sacola">
+            <button type="button" className="transition hover:text-app-caramelo-torrado" aria-label={ui("Sacola")}>
               <Icon type="bag"/>
             </button>
-            <button type="button" onClick={() => setMobileMenuOpen((current) => !current)} className="flex h-9 w-9 items-center justify-center rounded-[8px] border border-app-baunilha-dourada bg-white lg:hidden" aria-label="Abrir menu" aria-expanded={mobileMenuOpen} aria-controls="reservations-mobile-menu">
+            <button type="button" onClick={() => setMobileMenuOpen((current) => !current)} className="flex h-9 w-9 items-center justify-center rounded-[8px] border border-app-baunilha-dourada bg-white lg:hidden" aria-label={ui("Abrir menu")} aria-expanded={mobileMenuOpen} aria-controls="reservations-mobile-menu">
               <Icon type="menu"/>
             </button>
           </div>
@@ -430,7 +427,7 @@ export default function ReservationsPage() {
               {navItems.map((item) => (<Link key={item.label} href={item.href} onClick={() => setMobileMenuOpen(false)} className={item.href === "/cliente/reservas"
                     ? "text-app-cafe-profundo"
                     : "transition hover:text-app-cafe-profundo"}>
-                  {item.label}
+                  {ui(item.label)}
                 </Link>))}
             </div>
           </nav>) : null}
@@ -439,30 +436,22 @@ export default function ReservationsPage() {
       <section className="mx-auto w-full max-w-7xl flex-1 px-5 py-10 sm:py-14">
         <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
           <div>
-            <p className="text-[10px] font-bold uppercase text-app-caramelo-torrado">
-              Reservas
-            </p>
-            <h1 className="mt-2 text-4xl font-medium text-app-cafe-profundo sm:text-5xl">
-              Meus Agendamentos
-            </h1>
-            <p className="mt-3 text-sm leading-6 text-app-mocha sm:text-base">
-              Gerencie suas próximas experiências gastronômicas.
-            </p>
+            <p className="text-[10px] font-bold uppercase text-app-caramelo-torrado">{ui("Reservas")}</p>
+            <h1 className="mt-2 text-4xl font-medium text-app-cafe-profundo sm:text-5xl">{ui("Meus Agendamentos")}</h1>
+            <p className="mt-3 text-sm leading-6 text-app-mocha sm:text-base">{ui("Gerencie suas próximas experiências gastronômicas.")}</p>
           </div>
 
           <div className="flex w-fit items-center gap-5 rounded-[8px] bg-white px-5 py-4 text-app-cafe-profundo shadow-sm ring-1 ring-app-baunilha-dourada/60">
-            <button type="button" onClick={() => changeMonth(-1)} className="transition hover:text-app-caramelo-torrado" aria-label="Período anterior">
+            <button type="button" onClick={() => changeMonth(-1)} className="transition hover:text-app-caramelo-torrado" aria-label={ui("Período anterior")}>
               <Icon type="chevron-left"/>
             </button>
             <div className="min-w-36 text-center">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-app-cinza">
-                Período
-              </p>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-app-cinza">{ui("Período")}</p>
               <p className="mt-1 text-xl">
-                {monthNames[period.month]} {period.year}
+                {ui(monthNames[period.month])} {period.year}
               </p>
             </div>
-            <button type="button" onClick={() => changeMonth(1)} className="transition hover:text-app-caramelo-torrado" aria-label="Próximo período">
+            <button type="button" onClick={() => changeMonth(1)} className="transition hover:text-app-caramelo-torrado" aria-label={ui("Próximo período")}>
               <Icon type="chevron-right"/>
             </button>
           </div>
@@ -470,12 +459,10 @@ export default function ReservationsPage() {
 
         <div className="mt-12 grid gap-8 lg:grid-cols-[0.78fr_1.62fr]">
           <aside className="h-fit rounded-[8px] bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada/60 sm:p-10">
-            <h2 className="text-2xl font-medium text-app-cafe-profundo">
-              Calendário do Mês
-            </h2>
-            <div className="mt-8 grid grid-cols-7 gap-2 text-center text-sm text-app-cinza">
+            <h2 className="text-2xl font-medium text-app-cafe-profundo">{ui("Calendário do Mês")}</h2>
+            <div className="mt-8 grid grid-cols-7 gap-1 text-center text-xs text-app-cinza">
               {weekDays.map((day, index) => (<span key={`${day}-${index}`} className="font-medium">
-                  {day}
+                  {ui(day).slice(0, 3)}
                 </span>))}
               {calendarDays.map((day) => {
             const hasReservation = reservationDates.has(day.date);
@@ -489,19 +476,16 @@ export default function ReservationsPage() {
         })}
             </div>
 
-            <p className="mt-8 text-base leading-7 text-app-mocha">
-              Você possui{" "}
+            <p className="mt-8 text-base leading-7 text-app-mocha">{ui("Você possui")}{ui(" ")}
               <span className="font-bold text-app-caramelo-torrado">
                 {reservasConfirmadas.length}
-              </span>{" "}
-              reservas confirmadas neste período.
-            </p>
+              </span>{ui(" ")}{ui("reservas confirmadas neste período.")}</p>
           </aside>
 
           <section className="grid content-start gap-6 self-start">
             {mensagemPresenca ? (
               <p className="rounded-[10px] bg-white px-4 py-3 text-sm font-semibold text-app-cafe-profundo ring-1 ring-app-baunilha-dourada">
-                {mensagemPresenca}
+                {ui(mensagemPresenca)}
               </p>
             ) : null}
                 {reservations.length ? (<div className="grid auto-rows-max content-start gap-4">
@@ -509,14 +493,14 @@ export default function ReservationsPage() {
                     <div className="grid lg:grid-cols-[86px_minmax(0,1fr)]">
                       <div className="flex items-center gap-4 border-b border-app-baunilha-dourada/60 bg-white px-5 py-4 lg:flex-col lg:justify-center lg:border-b-0 lg:border-r lg:px-4 lg:text-center">
                         <span className="text-3xl font-semibold leading-none text-app-cafe-profundo">
-                          {formatarDataReserva(reservation.date).dia}
+                          {formatarDataReserva(reservation.date, localeUI).dia}
                         </span>
                         <div>
                           <p className="text-xs font-bold uppercase text-app-caramelo-torrado">
-                            {formatarDataReserva(reservation.date).mes}
+                            {formatarDataReserva(reservation.date, localeUI).mes}
                           </p>
                           <p className="mt-0.5 text-xs capitalize text-app-cinza">
-                            {formatarDataReserva(reservation.date).semana}
+                            {formatarDataReserva(reservation.date, localeUI).semana}
                           </p>
                         </div>
                       </div>
@@ -528,11 +512,11 @@ export default function ReservationsPage() {
                               {reservation.restaurant}
                             </h2>
                             <p className="mt-2 max-w-2xl text-sm leading-6 text-app-cinza">
-                              {obterDescricaoFluxoReserva(reservation)}
+                              {ui(obterDescricaoFluxoReserva(reservation, localeUI))}
                             </p>
                           </div>
                           <span className={`w-fit shrink-0 rounded-full px-3 py-1 text-xs font-bold ${obterStatusReserva(reservation.status).classe}`}>
-                            {obterStatusReserva(reservation.status).texto}
+                            {ui(obterStatusReserva(reservation.status).texto)}
                           </span>
                         </div>
                         <div className="mt-4 flex flex-wrap gap-x-5 gap-y-3 text-sm text-app-mocha">
@@ -542,111 +526,89 @@ export default function ReservationsPage() {
                           </span>
                           <span className="flex items-center gap-2">
                             <Icon type="people" className="h-4 w-4 text-app-caramelo-torrado"/>
-                            {reservation.people} {reservation.people === 1 ? "pessoa" : "pessoas"}
+                            {reservation.people} {ui(reservation.people === 1 ? "pessoa" : "pessoas")}
                           </span>
                           <span className="flex items-center gap-2">
-                            <Icon type="wallet" className="h-4 w-4 text-app-caramelo-torrado"/>
-                            Consumo mínimo{" "}
-                            {formatarMoeda(reservation.minimumTotal)}
+                            <Icon type="wallet" className="h-4 w-4 text-app-caramelo-torrado"/>{ui("Consumo mínimo")}{ui(" ")}
+                            {formatarMoeda(reservation.minimumTotal, localeUI)}
                           </span>
                         </div>
                         {["CONFIRMADA", "CANCELADA"].includes(reservation.status) ? (<div className="mt-5 rounded-[12px] border border-app-baunilha-dourada/60 bg-white px-4 py-3 text-sm">
                             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                               <div>
-                                <p className="text-xs font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">
-                                  Confirmação de presença
-                                </p>
+                                <p className="text-xs font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">{ui("Confirmação de presença")}</p>
                                 <p className="mt-1 text-app-mocha">
-                                  {reservation.attendanceStatus === "RECUSADA"
+                                  {ui(reservation.attendanceStatus === "RECUSADA"
                                       ? "Você avisou que não irá comparecer. Restaurante e Appono foram notificados."
-                                      : `Prazo: até ${formatarPrazoPresenca(reservation)}`}
+                                      : `Prazo: até ${formatarPrazoPresenca(reservation, localeUI)}`)}
                                 </p>
                               </div>
                               <span className="w-fit rounded-full bg-app-cafe-profundo px-3 py-1 text-[10px] font-bold uppercase tracking-[0.08em] text-app-creme-leve">
-                                {obterTextoConfirmacaoPresenca(reservation.attendanceStatus)}
+                                {ui(obterTextoConfirmacaoPresenca(reservation.attendanceStatus))}
                               </span>
                             </div>
                             {reservation.attendanceStatus === "RECUSADA" ? (
                               <div className="mt-4 grid gap-3 border-t border-app-baunilha-dourada/60 pt-4 text-xs sm:grid-cols-2">
                                 <p className="rounded-[8px] bg-white px-3 py-2 ring-1 ring-app-baunilha-dourada/60">
-                                  <span className="block font-bold uppercase tracking-[0.12em] text-app-cinza">Retido</span>
-                                  <strong className="mt-1 block text-base text-app-cafe-profundo">{formatarMoeda(reservation.attendanceRetainedValue)}</strong>
+                                  <span className="block font-bold uppercase tracking-[0.12em] text-app-cinza">{ui("Retido")}</span>
+                                  <strong className="mt-1 block text-base text-app-cafe-profundo">{formatarMoeda(reservation.attendanceRetainedValue, localeUI)}</strong>
                                 </p>
                                 <p className="rounded-[8px] bg-white px-3 py-2 ring-1 ring-app-baunilha-dourada/60">
-                                  <span className="block font-bold uppercase tracking-[0.12em] text-app-cinza">Reembolso</span>
-                                  <strong className="mt-1 block text-base text-app-cafe-profundo">{formatarMoeda(reservation.attendanceRefundValue)}</strong>
+                                  <span className="block font-bold uppercase tracking-[0.12em] text-app-cinza">{ui("Reembolso")}</span>
+                                  <strong className="mt-1 block text-base text-app-cafe-profundo">{formatarMoeda(reservation.attendanceRefundValue, localeUI)}</strong>
                                 </p>
                               </div>
                             ) : null}
                           </div>) : null}
                         {reservation.activeOrder ? (<div className="mt-4 rounded-[12px] border border-app-caramelo-torrado/25 bg-white px-4 py-3">
                             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                              <p className="text-xs font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">
-                                Pedido antecipado
-                              </p>
+                              <p className="text-xs font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">{ui("Pedido antecipado")}</p>
                               <span className="w-fit rounded-full bg-app-cafe-profundo px-3 py-1 text-[11px] font-bold text-app-creme-leve">
-                                {obterStatusPedido(reservation.activeOrder.status)}
+                                {ui(obterStatusPedido(reservation.activeOrder.status))}
                               </span>
                             </div>
                             <div className="mt-3 grid gap-2 text-sm text-app-mocha">
                               {reservation.activeOrder.itens.slice(0, 3).map((item, indice) => (<p key={`${item.produtos?.nome ?? "item"}-${indice}`} className="flex items-center justify-between gap-3">
                                   <span className="truncate">
-                                    {item.quantidade}x {item.produtos?.nome ?? "Item do cardápio"}
+                                    {item.quantidade}{ui("x ")}{item.produtos?.nome ?? ui("Item do cardápio")}
                                   </span>
                                   <strong className="shrink-0 text-app-cafe-profundo">
-                                    {formatarMoeda(calcularSubtotalItem(item))}
+                                    {formatarMoeda(calcularSubtotalItem(item), localeUI)}
                                   </strong>
                                 </p>))}
                               {reservation.activeOrder.itens.length > 3 ? (<p className="text-xs font-semibold text-app-caramelo-torrado">
-                                  + {reservation.activeOrder.itens.length - 3} itens no pedido
-                                </p>) : null}
+                                  + {reservation.activeOrder.itens.length - 3}{ui(" itens no pedido")}</p>) : null}
                             </div>
                             <div className="mt-3 flex items-center justify-between border-t border-app-baunilha-dourada/60 pt-3 text-sm">
-                              <span className="font-semibold text-app-mocha">Total do pedido</span>
+                              <span className="font-semibold text-app-mocha">{ui("Total do pedido")}</span>
                               <strong className="text-app-cafe-profundo">
-                                {formatarMoeda(reservation.activeOrder.total)}
+                                {formatarMoeda(reservation.activeOrder.total, localeUI)}
                               </strong>
                             </div>
                           </div>) : null}
                         {!reservation.activeOrder && reservation.canceledOrder ? (<div className="mt-5 rounded-[10px] border border-app-caramelo-torrado/25 bg-white px-4 py-3">
-                            <p className="text-xs font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">
-                              Pedido cancelado
+                            <p className="text-xs font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">{ui("Pedido cancelado")}</p>
+                            <p className="mt-2 text-sm leading-6 text-app-mocha">{ui("O pedido antecipado foi cancelado, mas sua reserva continua ")}{ui(obterStatusReserva(reservation.status).texto.toLowerCase())}.
                             </p>
-                            <p className="mt-2 text-sm leading-6 text-app-mocha">
-                              O pedido antecipado foi cancelado, mas sua reserva continua {obterStatusReserva(reservation.status).texto.toLowerCase()}.
-                            </p>
-                            <p className="mt-2 text-xs font-semibold text-app-cinza">
-                              Pedido #{reservation.canceledOrder.id} - {formatarMoeda(reservation.canceledOrder.total)}
+                            <p className="mt-2 text-xs font-semibold text-app-cinza">{ui("Pedido #")}{reservation.canceledOrder.id} - {formatarMoeda(reservation.canceledOrder.total, localeUI)}
                             </p>
                           </div>) : null}
                         <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-app-baunilha-dourada/60 pt-4">
                         <button type="button" disabled={abrindoChatReservaId === reservation.id} onClick={() => abrirChatReserva(reservation)} className="inline-flex items-center gap-2 rounded-[8px] border border-app-caramelo-torrado px-4 py-2 text-xs font-bold text-app-caramelo-torrado transition hover:bg-app-chantilly disabled:cursor-not-allowed disabled:opacity-60">
                             <Icon type="message" className="h-4 w-4"/>
-                            {abrindoChatReservaId === reservation.id ? "Abrindo..." : "Falar com restaurante"}
+                            {ui(abrindoChatReservaId === reservation.id ? "Abrindo..." : "Falar com restaurante")}
                           </button>
                           {podeResponderPresenca(reservation) ? (<>
-                            {reservation.attendanceStatus !== "CONFIRMADA" ? (<button type="button" disabled={processandoPresenca} onClick={() => setReservaParaConfirmarPresenca(reservation)} className="rounded-[8px] bg-app-cafe-profundo px-4 py-2 text-xs font-bold text-app-creme-leve transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-60">
-                                Confirmar presença
-                              </button>) : null}
+                            {reservation.attendanceStatus !== "CONFIRMADA" ? (<button type="button" disabled={processandoPresenca} onClick={() => setReservaParaConfirmarPresenca(reservation)} className="rounded-[8px] bg-app-cafe-profundo px-4 py-2 text-xs font-bold text-app-creme-leve transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-60">{ui("Confirmar presença")}</button>) : null}
                             <button type="button" disabled={processandoPresenca} onClick={() => setReservaParaRecusarPresenca(reservation)} className="rounded-[8px] border border-app-vermelho-erro/40 px-4 py-2 text-xs font-bold text-app-vermelho-erro transition hover:bg-app-vermelho-erro hover:text-white disabled:cursor-not-allowed disabled:opacity-60">
-                              {reservation.attendanceStatus === "CONFIRMADA" ? "Alterar para ausência" : "Não vou comparecer"}
+                              {ui(reservation.attendanceStatus === "CONFIRMADA" ? "Alterar para ausência" : "Não vou comparecer")}
                             </button>
                           </>) : null}
-                        {["PENDENTE", "CONFIRMADA"].includes(reservation.status) && !reservaJaIniciou(reservation) ? (<button type="button" onClick={() => setReservaParaCancelar(reservation)} className="text-xs font-bold text-app-vermelho-erro transition hover:text-app-cafe-profundo">
-                            Desmarcar reserva
-                          </button>) : null}
-                        {reservation.activeOrder?.status === "PENDENTE" && reservaAceitaPagamento(reservation) ? (<Link href={`/cliente/pagamentos/pedido/${reservation.activeOrder.id}`} className="rounded-[8px] bg-app-dourado-mel px-4 py-2 text-xs font-bold text-white transition hover:bg-app-caramelo-torrado">
-                            Pagar pedido
-                          </Link>) : null}
-                        {reservation.status === "CONFIRMADA" && reservation.activeOrder && reservation.activeOrder.status !== "PENDENTE" ? (<Link href={`/cliente/pedidos/${reservation.activeOrder.id}`} className="rounded-[8px] bg-app-dourado-mel px-4 py-2 text-xs font-bold text-white transition hover:bg-app-caramelo-torrado">
-                            Acompanhar pedido
-                          </Link>) : null}
-                        {reservation.status === "CONFIRMADA" && !reservation.activeOrder && !reservaJaIniciou(reservation) ? (<Link href={`/cliente/reservas/${reservation.id}/pedido`} className="rounded-[8px] bg-app-dourado-mel px-4 py-2 text-xs font-bold text-white transition hover:bg-app-caramelo-torrado">
-                            Adicionar pedido antecipado
-                          </Link>) : null}
-                        {podeExcluirReservaDaLista(reservation) ? (<button type="button" onClick={() => setReservaParaExcluir(reservation)} className="text-xs font-bold text-app-cinza transition hover:text-app-vermelho-erro">
-                            Excluir da lista
-                          </button>) : null}
+                        {["PENDENTE", "CONFIRMADA"].includes(reservation.status) && !reservaJaIniciou(reservation) ? (<button type="button" onClick={() => setReservaParaCancelar(reservation)} className="text-xs font-bold text-app-vermelho-erro transition hover:text-app-cafe-profundo">{ui("Desmarcar reserva")}</button>) : null}
+                        {reservation.activeOrder?.status === "PENDENTE" && reservaAceitaPagamento(reservation) ? (<Link href={`/cliente/pagamentos/pedido/${reservation.activeOrder.id}`} className="rounded-[8px] bg-app-dourado-mel px-4 py-2 text-xs font-bold text-white transition hover:bg-app-caramelo-torrado">{ui("Pagar pedido")}</Link>) : null}
+                        {reservation.status === "CONFIRMADA" && reservation.activeOrder && reservation.activeOrder.status !== "PENDENTE" ? (<Link href={`/cliente/pedidos/${reservation.activeOrder.id}`} className="rounded-[8px] bg-app-dourado-mel px-4 py-2 text-xs font-bold text-white transition hover:bg-app-caramelo-torrado">{ui("Acompanhar pedido")}</Link>) : null}
+                        {reservation.status === "CONFIRMADA" && !reservation.activeOrder && !reservaJaIniciou(reservation) ? (<Link href={`/cliente/reservas/${reservation.id}/pedido`} className="rounded-[8px] bg-app-dourado-mel px-4 py-2 text-xs font-bold text-white transition hover:bg-app-caramelo-torrado">{ui("Adicionar pedido antecipado")}</Link>) : null}
+                        {podeExcluirReservaDaLista(reservation) ? (<button type="button" onClick={() => setReservaParaExcluir(reservation)} className="text-xs font-bold text-app-cinza transition hover:text-app-vermelho-erro">{ui("Excluir da lista")}</button>) : null}
                         </div>
                       </div>
                     </div>
@@ -658,11 +620,11 @@ export default function ReservationsPage() {
 
       <ConfirmationDialog
         open={Boolean(reservaParaConfirmarPresenca)}
-        eyebrow="Confirmação de presença"
-        title="Confirmar sua presença?"
-        description="O restaurante será avisado que você pretende comparecer e poderá organizar a reserva e o pedido vinculado."
-        confirmLabel="Confirmar presença"
-        cancelLabel="Voltar"
+        eyebrow={ui("Confirmação de presença")}
+        title={ui("Confirmar sua presença?")}
+        description={ui("O restaurante será avisado que você pretende comparecer e poderá organizar a reserva e o pedido vinculado.")}
+        confirmLabel={ui("Confirmar presença")}
+        cancelLabel={ui("Voltar")}
         variant="default"
         loading={processandoPresenca}
         onCancel={() => setReservaParaConfirmarPresenca(null)}
@@ -671,7 +633,7 @@ export default function ReservationsPage() {
           <div>
             <p className="font-semibold">{reservaParaConfirmarPresenca.restaurant}</p>
             <p className="mt-1 text-xs text-app-cinza">
-              {formatarDataReserva(reservaParaConfirmarPresenca.date).dia} {formatarDataReserva(reservaParaConfirmarPresenca.date).mes} - {formatarHorario(reservaParaConfirmarPresenca.time)} - {reservaParaConfirmarPresenca.people} {reservaParaConfirmarPresenca.people === 1 ? "pessoa" : "pessoas"}
+              {formatarDataReserva(reservaParaConfirmarPresenca.date, localeUI).dia} {formatarDataReserva(reservaParaConfirmarPresenca.date, localeUI).mes} - {formatarHorario(reservaParaConfirmarPresenca.time)} - {reservaParaConfirmarPresenca.people} {ui(reservaParaConfirmarPresenca.people === 1 ? "pessoa" : "pessoas")}
             </p>
           </div>
         ) : null}
@@ -679,11 +641,11 @@ export default function ReservationsPage() {
 
       <ConfirmationDialog
         open={Boolean(reservaParaExcluir)}
-        eyebrow="Excluir da lista"
-        title="Remover esta reserva do histórico?"
-        description="A reserva será ocultada apenas da sua lista. Os registros operacionais e financeiros continuam preservados para auditoria."
-        confirmLabel="Excluir"
-        cancelLabel="Manter"
+        eyebrow={ui("Excluir da lista")}
+        title={ui("Remover esta reserva do histórico?")}
+        description={ui("A reserva será ocultada apenas da sua lista. Os registros operacionais e financeiros continuam preservados para auditoria.")}
+        confirmLabel={ui("Excluir")}
+        cancelLabel={ui("Manter")}
         loading={cancelandoReserva}
         onCancel={() => setReservaParaExcluir(null)}
         onConfirm={confirmarExclusaoReserva}
@@ -691,7 +653,7 @@ export default function ReservationsPage() {
           <div>
             <p className="font-semibold">{reservaParaExcluir.restaurant}</p>
             <p className="mt-1 text-xs text-app-cinza">
-              {formatarDataReserva(reservaParaExcluir.date).dia} {formatarDataReserva(reservaParaExcluir.date).mes} - {formatarHorario(reservaParaExcluir.time)}
+              {formatarDataReserva(reservaParaExcluir.date, localeUI).dia} {formatarDataReserva(reservaParaExcluir.date, localeUI).mes} - {formatarHorario(reservaParaExcluir.time)}
             </p>
           </div>
         ) : null}
@@ -699,30 +661,20 @@ export default function ReservationsPage() {
 
       {reservaParaCancelar ? (<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 px-5 backdrop-blur-[2px]">
           <section className="w-full max-w-md rounded-[18px] bg-white p-6 text-app-cafe-profundo shadow-2xl ring-1 ring-black/10">
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">
-              Cancelamento de reserva
-            </p>
-            <h2 className="mt-3 text-2xl font-semibold">
-              Deseja desmarcar esta reserva?
-            </h2>
-            <p className="mt-3 text-sm leading-6 text-app-mocha">
-              Ao confirmar, a mesa e o horário reservados serão cancelados. O restaurante passará a ver esta reserva como cancelada.
-            </p>
-            {reservaParaCancelar.activeOrder ? (<p className="mt-3 rounded-[10px] bg-white p-3 text-sm font-semibold leading-6 text-app-cafe-profundo ring-1 ring-app-baunilha-dourada/60">
-                Esta reserva possui pedido antecipado ativo. Se o preparo ainda não tiver iniciado, o pedido também será cancelado pelo sistema.
-              </p>) : null}
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{ui("Cancelamento de reserva")}</p>
+            <h2 className="mt-3 text-2xl font-semibold">{ui("Deseja desmarcar esta reserva?")}</h2>
+            <p className="mt-3 text-sm leading-6 text-app-mocha">{ui("Ao confirmar, a mesa e o horário reservados serão cancelados. O restaurante passará a ver esta reserva como cancelada.")}</p>
+            {reservaParaCancelar.activeOrder ? (<p className="mt-3 rounded-[10px] bg-white p-3 text-sm font-semibold leading-6 text-app-cafe-profundo ring-1 ring-app-baunilha-dourada/60">{ui("Esta reserva possui pedido antecipado ativo. Se o preparo ainda não tiver iniciado, o pedido também será cancelado pelo sistema.")}</p>) : null}
             <div className="mt-6 rounded-[10px] bg-white p-4 ring-1 ring-app-baunilha-dourada/60">
               <p className="text-sm font-semibold">{reservaParaCancelar.restaurant}</p>
               <p className="mt-1 text-xs text-app-cinza">
-                {formatarDataReserva(reservaParaCancelar.date).dia} {formatarDataReserva(reservaParaCancelar.date).mes} - {formatarHorario(reservaParaCancelar.time)} - {reservaParaCancelar.people} {reservaParaCancelar.people === 1 ? "pessoa" : "pessoas"}
+                {formatarDataReserva(reservaParaCancelar.date, localeUI).dia} {formatarDataReserva(reservaParaCancelar.date, localeUI).mes} - {formatarHorario(reservaParaCancelar.time)} - {reservaParaCancelar.people} {ui(reservaParaCancelar.people === 1 ? "pessoa" : "pessoas")}
               </p>
             </div>
             <div className="mt-6 grid gap-3 sm:grid-cols-2">
-              <button type="button" onClick={() => setReservaParaCancelar(null)} disabled={cancelandoReserva} className="h-11 rounded-[8px] border border-app-baunilha-dourada px-4 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:bg-app-chantilly disabled:cursor-not-allowed disabled:text-app-cinza">
-                Manter reserva
-              </button>
+              <button type="button" onClick={() => setReservaParaCancelar(null)} disabled={cancelandoReserva} className="h-11 rounded-[8px] border border-app-baunilha-dourada px-4 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:bg-app-chantilly disabled:cursor-not-allowed disabled:text-app-cinza">{ui("Manter reserva")}</button>
               <button type="button" onClick={() => cancelarReserva(reservaParaCancelar.id)} disabled={cancelandoReserva} className="botao-acao-critica h-11 rounded-[8px] px-4 text-xs font-bold uppercase tracking-[0.12em] transition disabled:cursor-not-allowed disabled:bg-app-cinza/50">
-                {cancelandoReserva ? "Cancelando..." : "Confirmar cancelamento"}
+                {ui(cancelandoReserva ? "Cancelando..." : "Confirmar cancelamento")}
               </button>
             </div>
           </section>
@@ -730,30 +682,23 @@ export default function ReservationsPage() {
 
       {reservaParaRecusarPresenca ? (<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 px-5 backdrop-blur-[2px]">
           <section className="w-full max-w-lg rounded-[18px] bg-white p-6 text-app-cafe-profundo shadow-2xl ring-1 ring-black/10">
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">
-              Confirmar ausência
-            </p>
-            <h2 className="mt-3 text-2xl font-semibold">
-              Você não irá comparecer?
-            </h2>
-            <p className="mt-3 text-sm leading-6 text-app-mocha">
-              Ao confirmar, sua reserva será cancelada, o pedido antecipado vinculado também será cancelado e o restaurante será avisado para não preparar a comanda.
-            </p>
-            {reservaParaRecusarPresenca.activeOrder ? (<p className="mt-3 rounded-[10px] bg-white p-3 text-sm font-semibold leading-6 text-app-cafe-profundo ring-1 ring-app-baunilha-dourada/60">
-                Como existe pedido pago ou vinculado, o reembolso será calculado pelo excedente: valor pago menos consumo mínimo da reserva e comissão Appono de {reservaParaRecusarPresenca.attendanceCommissionPercent}%.
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{ui("Confirmar ausência")}</p>
+            <h2 className="mt-3 text-2xl font-semibold">{ui("Você não irá comparecer?")}</h2>
+            <p className="mt-3 text-sm leading-6 text-app-mocha">{ui("Ao confirmar, sua reserva será cancelada, o pedido antecipado vinculado também será cancelado e o restaurante será avisado para não preparar a comanda.")}</p>
+            {reservaParaRecusarPresenca.activeOrder ? (<p className="mt-3 rounded-[10px] bg-white p-3 text-sm font-semibold leading-6 text-app-cafe-profundo ring-1 ring-app-baunilha-dourada/60">{ui("Como existe pedido pago ou vinculado, o reembolso será calculado pelo excedente: valor pago menos consumo mínimo da reserva e comissão Appono de ")}{reservaParaRecusarPresenca.attendanceCommissionPercent}%.
               </p>) : null}
             {reservaParaRecusarPresenca.activeOrder ? (
               <div className="mt-4 grid gap-3 rounded-[10px] bg-white p-4 text-sm ring-1 ring-app-baunilha-dourada/60 sm:grid-cols-3">
                 <p>
-                  <span className="block text-[10px] font-bold uppercase tracking-[0.14em] text-app-cinza">Pedido</span>
-                  <strong className="mt-1 block text-app-cafe-profundo">{formatarMoeda(reservaParaRecusarPresenca.activeOrder.total)}</strong>
+                  <span className="block text-[10px] font-bold uppercase tracking-[0.14em] text-app-cinza">{ui("Pedido")}</span>
+                  <strong className="mt-1 block text-app-cafe-profundo">{formatarMoeda(reservaParaRecusarPresenca.activeOrder.total, localeUI)}</strong>
                 </p>
                 <p>
-                  <span className="block text-[10px] font-bold uppercase tracking-[0.14em] text-app-cinza">Mínimo</span>
-                  <strong className="mt-1 block text-app-cafe-profundo">{formatarMoeda(reservaParaRecusarPresenca.minimumTotal)}</strong>
+                  <span className="block text-[10px] font-bold uppercase tracking-[0.14em] text-app-cinza">{ui("Mínimo")}</span>
+                  <strong className="mt-1 block text-app-cafe-profundo">{formatarMoeda(reservaParaRecusarPresenca.minimumTotal, localeUI)}</strong>
                 </p>
                 <p>
-                  <span className="block text-[10px] font-bold uppercase tracking-[0.14em] text-app-cinza">Taxa</span>
+                  <span className="block text-[10px] font-bold uppercase tracking-[0.14em] text-app-cinza">{ui("Taxa")}</span>
                   <strong className="mt-1 block text-app-cafe-profundo">{reservaParaRecusarPresenca.attendanceCommissionPercent}%</strong>
                 </p>
               </div>
@@ -761,15 +706,13 @@ export default function ReservationsPage() {
             <div className="mt-6 rounded-[10px] bg-white p-4 ring-1 ring-app-baunilha-dourada/60">
               <p className="text-sm font-semibold">{reservaParaRecusarPresenca.restaurant}</p>
               <p className="mt-1 text-xs text-app-cinza">
-                {formatarDataReserva(reservaParaRecusarPresenca.date).dia} {formatarDataReserva(reservaParaRecusarPresenca.date).mes} - {formatarHorario(reservaParaRecusarPresenca.time)} - {reservaParaRecusarPresenca.people} {reservaParaRecusarPresenca.people === 1 ? "pessoa" : "pessoas"}
+                {formatarDataReserva(reservaParaRecusarPresenca.date, localeUI).dia} {formatarDataReserva(reservaParaRecusarPresenca.date, localeUI).mes} - {formatarHorario(reservaParaRecusarPresenca.time)} - {reservaParaRecusarPresenca.people} {ui(reservaParaRecusarPresenca.people === 1 ? "pessoa" : "pessoas")}
               </p>
             </div>
             <div className="mt-6 grid gap-3 sm:grid-cols-2">
-              <button type="button" onClick={() => setReservaParaRecusarPresenca(null)} disabled={processandoPresenca} className="h-11 rounded-[8px] border border-app-baunilha-dourada px-4 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:bg-app-chantilly disabled:cursor-not-allowed disabled:text-app-cinza">
-                Voltar
-              </button>
+              <button type="button" onClick={() => setReservaParaRecusarPresenca(null)} disabled={processandoPresenca} className="h-11 rounded-[8px] border border-app-baunilha-dourada px-4 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:bg-app-chantilly disabled:cursor-not-allowed disabled:text-app-cinza">{ui("Voltar")}</button>
               <button type="button" onClick={recusarPresenca} disabled={processandoPresenca} className="botao-acao-critica h-11 rounded-[8px] px-4 text-xs font-bold uppercase tracking-[0.12em] transition disabled:cursor-not-allowed disabled:bg-app-cinza/50">
-                {processandoPresenca ? "Processando..." : "Confirmar ausência"}
+                {ui(processandoPresenca ? "Processando..." : "Confirmar ausência")}
               </button>
             </div>
           </section>
@@ -777,21 +720,13 @@ export default function ReservationsPage() {
 
       <footer className="border-t border-app-cacau-intenso/20 bg-app-cafe-profundo px-5 py-7 text-app-creme-leve">
         <div className="mx-auto flex max-w-7xl flex-col items-center gap-5 text-center sm:flex-row sm:justify-between">
-          <Image src="/brand/appono-mark.svg" alt="Appono" width={80} height={80} className="h-14 w-14 brightness-0 invert"/>
+          <Image src="/brand/appono-mark.svg" alt={ui("Appono")} width={80} height={80} className="h-14 w-14 brightness-0 invert"/>
           <nav className="flex flex-wrap justify-center gap-8 text-[10px] font-bold uppercase text-app-baunilha-dourada">
-            <Link href="#" className="transition hover:text-app-chantilly">
-              Política de Privacidade
-            </Link>
-            <Link href="#" className="transition hover:text-app-chantilly">
-              Termos de Uso
-            </Link>
-            <Link href="#" className="transition hover:text-app-chantilly">
-              Contato
-            </Link>
+            <Link href="#" className="transition hover:text-app-chantilly">{ui("Política de Privacidade")}</Link>
+            <Link href="#" className="transition hover:text-app-chantilly">{ui("Termos de Uso")}</Link>
+            <Link href="#" className="transition hover:text-app-chantilly">{ui("Contato")}</Link>
           </nav>
-          <p className="text-xs font-semibold text-app-creme-suave">
-            &copy; 2026 APPONO. Todos os direitos reservados.
-          </p>
+          <p className="text-xs font-semibold text-app-creme-suave">{ui("© 2026 APPONO. Todos os direitos reservados.")}</p>
         </div>
       </footer>
     </main>);

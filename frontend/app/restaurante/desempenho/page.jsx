@@ -1,4 +1,5 @@
 "use client";
+import { useInterface } from "@/lib/use-interface";
 import Image from "next/image";
 import Link from "next/link";
 import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
@@ -27,6 +28,7 @@ function Icon({ type, className = "h-5 w-5", }) {
     </svg>);
 }
 export default function RestaurantPerformancePage() {
+    const { ui, localeUI } = useInterface();
     const [session] = useState(() => {
         if (typeof window === "undefined") {
             return null;
@@ -47,41 +49,37 @@ export default function RestaurantPerformancePage() {
         return () => controller.abort();
     }, [isRestaurant]);
     const volumes = useMemo(() => {
-        const meses = Array.from({ length: 6 }, (_, index) => { const data = new Date(); data.setMonth(data.getMonth() - (5 - index)); return { chave: `${data.getFullYear()}-${data.getMonth()}`, label: data.toLocaleDateString("pt-BR", { month: "short" }), total: 0 }; });
+        const meses = Array.from({ length: 6 }, (_, index) => { const data = new Date(); data.setMonth(data.getMonth() - (5 - index)); return { chave: `${data.getFullYear()}-${data.getMonth()}`, label: data.toLocaleDateString(localeUI, { month: "short" }), total: 0 }; });
         for (const item of dados.items ?? []) { const data = new Date(item.created_at); const ponto = meses.find((mes) => mes.chave === `${data.getFullYear()}-${data.getMonth()}`); if (ponto) ponto.total += 1; }
         return meses;
-    }, [dados.items]);
+    }, [dados.items, localeUI]);
     if (!isRestaurant) {
         return (<main className="flex min-h-screen items-center justify-center bg-white px-5 text-app-cafe-profundo">
         <section className="w-full max-w-lg rounded-[8px] bg-app-creme-leve p-8 text-center shadow-sm ring-1 ring-app-baunilha-dourada">
-          <Image src="/brand/appono-mark.svg" alt="Appono" width={88} height={88} className="mx-auto h-20 w-20" priority/>
-          <h1 className="mt-6 text-3xl font-semibold">Acesso restrito</h1>
-          <p className="mt-3 text-sm leading-6 text-app-cinza">
-            Esta área é destinada a contas de restaurante.
-          </p>
-          <Link href="/login" className="mt-6 inline-flex h-11 items-center justify-center rounded-[8px] bg-app-dourado-mel px-6 text-sm font-bold text-white transition hover:bg-app-caramelo-torrado">
-            Entrar
-          </Link>
+          <Image src="/brand/appono-mark.svg" alt={ui("Appono")} width={88} height={88} className="mx-auto h-20 w-20" priority/>
+          <h1 className="mt-6 text-3xl font-semibold">{ui("Acesso restrito")}</h1>
+          <p className="mt-3 text-sm leading-6 text-app-cinza">{ui("Esta área é destinada a contas de restaurante.")}</p>
+          <Link href="/login" className="mt-6 inline-flex h-11 items-center justify-center rounded-[8px] bg-app-dourado-mel px-6 text-sm font-bold text-white transition hover:bg-app-caramelo-torrado">{ui("Entrar")}</Link>
         </section>
       </main>);
     }
     return (<main className="flex min-h-screen flex-col bg-white text-app-cafe-profundo">
       <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-app-creme-leve/90 text-app-cafe-profundo shadow-sm backdrop-blur-md">
         <div className="mx-auto grid h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-5 lg:h-20">
-          <div aria-label="Appono">
-            <Image src="/brand/appono-mark.svg" alt="Appono" width={88} height={88} className="h-11 w-11 lg:h-14 lg:w-14" priority/>
+          <div aria-label={ui("Appono")}>
+            <Image src="/brand/appono-mark.svg" alt={ui("Appono")} width={88} height={88} className="h-11 w-11 lg:h-14 lg:w-14" priority/>
           </div>
 
           <nav className="hidden items-center justify-self-center gap-6 text-xs font-semibold text-app-cinza xl:flex">
             {navItems.map((item) => (<Link key={item.label} href={item.href} className={item.href === "/restaurante/desempenho"
                 ? "text-app-cafe-profundo"
                 : "transition hover:text-app-cafe-profundo"}>
-                {item.label}
+                {ui(item.label)}
               </Link>))}
           </nav>
 
           <ItemHeaderNotificacoes href="/restaurante/notificacoes" />
-          <button type="button" onClick={() => setMobileMenuOpen((current) => !current)} className="flex h-9 w-9 items-center justify-center justify-self-end rounded-[8px] border border-app-baunilha-dourada bg-white text-app-cafe-profundo xl:hidden" aria-label="Abrir menu" aria-expanded={mobileMenuOpen} aria-controls="restaurant-performance-menu">
+          <button type="button" onClick={() => setMobileMenuOpen((current) => !current)} className="flex h-9 w-9 items-center justify-center justify-self-end rounded-[8px] border border-app-baunilha-dourada bg-white text-app-cafe-profundo xl:hidden" aria-label={ui("Abrir menu")} aria-expanded={mobileMenuOpen} aria-controls="restaurant-performance-menu">
             <Icon type="menu"/>
           </button>
         </div>
@@ -91,7 +89,7 @@ export default function RestaurantPerformancePage() {
               {navItems.map((item) => (<Link key={item.label} href={item.href} onClick={() => setMobileMenuOpen(false)} className={item.href === "/restaurante/desempenho"
                     ? "text-app-cafe-profundo"
                     : "transition hover:text-app-cafe-profundo"}>
-                  {item.label}
+                  {ui(item.label)}
                 </Link>))}
             </div>
           </nav>) : null}
@@ -99,26 +97,17 @@ export default function RestaurantPerformancePage() {
 
       <section className="mx-auto w-full max-w-7xl flex-1 px-5 py-10 sm:py-14">
         <div className="border-t border-app-baunilha-dourada/60 pt-10">
-          <p className="text-[10px] font-bold uppercase text-app-caramelo-torrado">
-            Avaliações
-          </p>
-          <h1 className="mt-2 text-4xl font-medium leading-tight text-app-cafe-profundo sm:text-5xl">
-            Desempenho & Avaliações
-          </h1>
-          <p className="mt-4 max-w-2xl text-sm leading-6 text-app-cinza sm:text-base">
-            Acompanhe a experiência dos clientes e os principais indicadores de
-            atendimento.
-          </p>
+          <p className="text-[10px] font-bold uppercase text-app-caramelo-torrado">{ui("Avaliações")}</p>
+          <h1 className="mt-2 text-4xl font-medium leading-tight text-app-cafe-profundo sm:text-5xl">{ui("Desempenho & Avaliações")}</h1>
+          <p className="mt-4 max-w-2xl text-sm leading-6 text-app-cinza sm:text-base">{ui("Acompanhe a experiência dos clientes e os principais indicadores de atendimento.")}</p>
         </div>
 
         <section className="mt-10 grid gap-8 lg:grid-cols-[0.42fr_1fr]">
           <article className="rounded-[8px] bg-white p-7 shadow-sm ring-1 ring-app-baunilha-dourada/45 sm:p-8">
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-app-mocha">
-              Media geral
-            </p>
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-app-mocha">{ui("Media geral")}</p>
             <div className="mt-8 flex items-end gap-3">
               <strong className="text-6xl font-medium leading-none text-app-cafe-profundo">
-                {dados.metricas?.avaliacao_media?.toFixed(1) ?? "--"}
+                {ui(dados.metricas?.avaliacao_media?.toFixed(1) ?? "--")}
               </strong>
               <span className="pb-2 text-2xl text-app-mocha">/ 5.0</span>
             </div>
@@ -127,59 +116,45 @@ export default function RestaurantPerformancePage() {
             </div>
             <div className="mt-10 rounded-[8px] bg-app-creme-leve p-5">
               <p className="text-sm text-app-cinza">
-                {dados.total ? `${dados.total} avaliação(ões) recebida(s).` : "Nenhuma avaliação recebida até o momento."}
+                {dados.total ? ui("{0} avaliação(ões) recebida(s).", [dados.total]) : ui("Nenhuma avaliação recebida até o momento.")}
               </p>
             </div>
           </article>
 
           <article className="rounded-[8px] bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada/45 sm:p-8">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-              <p className="text-xs font-bold uppercase tracking-[0.18em] text-app-mocha">
-                Volume de avaliações
-              </p>
+              <p className="text-xs font-bold uppercase tracking-[0.18em] text-app-mocha">{ui("Volume de avaliações")}</p>
               <div className="flex gap-4 text-sm font-semibold text-app-cinza">
-                <button type="button" className="text-app-caramelo-torrado">
-                  Mensal
-                </button>
-                <button type="button">Semanal</button>
+                <button type="button" className="text-app-caramelo-torrado">{ui("Mensal")}</button>
+                <button type="button">{ui("Semanal")}</button>
               </div>
             </div>
 
             <div className="mt-10 flex min-h-[280px] items-end gap-3 rounded-[8px] border border-dashed border-app-caramelo-torrado/25 bg-app-creme-leve px-5 py-6 sm:gap-5">
-              {volumes.map((ponto) => (<div key={ponto.chave} className="flex h-full flex-1 flex-col items-center justify-end gap-2"><div title={`${ponto.total} avaliações`} className="w-full rounded-t-[8px] bg-app-caramelo-torrado" style={{ height: `${Math.max(ponto.total * 18, 4)}%` }}/><span className="text-[10px] font-bold text-app-cinza">{ponto.label}</span></div>))}
+              {volumes.map((ponto) => (<div key={ponto.chave} className="flex h-full flex-1 flex-col items-center justify-end gap-2"><div title={ui("{0} avaliações", [ponto.total])} className="w-full rounded-t-[8px] bg-app-caramelo-torrado" style={{ height: `${Math.max(ponto.total * 18, 4)}%` }}/><span className="text-[10px] font-bold text-app-cinza">{ui(ponto.label)}</span></div>))}
             </div>
           </article>
         </section>
 
         <section className="mt-8 rounded-[8px] bg-app-creme-suave p-6 shadow-sm ring-1 ring-app-baunilha-dourada/60 sm:p-8">
-          <h2 className="text-2xl font-medium text-app-cafe-profundo">
-            O que dizem os frequentadores
-          </h2>
+          <h2 className="text-2xl font-medium text-app-cafe-profundo">{ui("O que dizem os frequentadores")}</h2>
 
-          {mensagem ? <p className="mt-6 text-sm font-semibold text-app-mocha">{mensagem}</p> : null}
-          <div className="mt-8 grid gap-4 lg:grid-cols-2">{(dados.items ?? []).filter((item) => item.comentario).map((item) => <article key={item.id_avaliacao} className="rounded-[10px] bg-white p-5 ring-1 ring-app-baunilha-dourada/60"><p className="font-bold text-app-caramelo-torrado">{item.nota}/5</p><p className="mt-2 text-sm leading-6 text-app-mocha">{item.comentario}</p><p className="mt-3 text-xs text-app-cinza">{item.clientes?.nome ?? "Cliente Appono"}</p></article>)}</div>
+          {mensagem ? <p className="mt-6 text-sm font-semibold text-app-mocha">{ui(mensagem)}</p> : null}
+          <div className="mt-8 grid gap-4 lg:grid-cols-2">{(dados.items ?? []).filter((item) => item.comentario).map((item) => <article key={item.id_avaliacao} className="rounded-[10px] bg-white p-5 ring-1 ring-app-baunilha-dourada/60"><p className="font-bold text-app-caramelo-torrado">{item.nota}/5</p><p className="mt-2 text-sm leading-6 text-app-mocha">{item.comentario}</p><p className="mt-3 text-xs text-app-cinza">{item.clientes?.nome ?? ui("Cliente Appono")}</p></article>)}</div>
         </section>
 
-        <p className="mt-8 text-sm text-app-cinza">As notas atuais representam a experiência geral. Categorias detalhadas serão disponibilizadas quando o formulário passar a coletar essas dimensões.</p>
+        <p className="mt-8 text-sm text-app-cinza">{ui("As notas atuais representam a experiência geral. Categorias detalhadas serão disponibilizadas quando o formulário passar a coletar essas dimensões.")}</p>
       </section>
 
       <footer className="border-t border-app-cacau-intenso/20 bg-app-cafe-profundo px-5 py-7 text-app-creme-leve">
         <div className="mx-auto flex max-w-7xl flex-col items-center gap-5 text-center sm:flex-row sm:justify-between">
-          <Image src="/brand/appono-mark.svg" alt="Appono" width={80} height={80} className="h-14 w-14 brightness-0 invert"/>
+          <Image src="/brand/appono-mark.svg" alt={ui("Appono")} width={80} height={80} className="h-14 w-14 brightness-0 invert"/>
           <nav className="flex flex-wrap justify-center gap-8 text-[10px] font-bold uppercase text-app-baunilha-dourada">
-            <Link href="#" className="transition hover:text-app-chantilly">
-              Política de Privacidade
-            </Link>
-            <Link href="#" className="transition hover:text-app-chantilly">
-              Termos de Uso
-            </Link>
-            <Link href="#" className="transition hover:text-app-chantilly">
-              Contato
-            </Link>
+            <Link href="#" className="transition hover:text-app-chantilly">{ui("Política de Privacidade")}</Link>
+            <Link href="#" className="transition hover:text-app-chantilly">{ui("Termos de Uso")}</Link>
+            <Link href="#" className="transition hover:text-app-chantilly">{ui("Contato")}</Link>
           </nav>
-          <p className="text-xs font-semibold text-app-creme-suave">
-            &copy; 2026 APPONO. Todos os direitos reservados.
-          </p>
+          <p className="text-xs font-semibold text-app-creme-suave">{ui("© 2026 APPONO. Todos os direitos reservados.")}</p>
         </div>
       </footer>
     </main>);

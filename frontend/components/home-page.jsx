@@ -71,20 +71,20 @@ export default function HomePage() {
   return (
     <main className={`home-publica min-h-screen bg-white text-app-texto-escuro ${tema === "escuro" ? "tema-escuro" : ""}`}>
       <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-white/95 backdrop-blur">
-  <div className="mx-auto flex h-20 max-w-7xl items-center px-4 sm:pr-8">
-    <div className="flex flex-1 items-center">
+  <div className="mx-auto flex min-h-20 max-w-7xl items-center justify-between gap-2 px-3 py-2 sm:px-6">
+    <div className="flex shrink-0 items-center">
       <Link href="/" className="flex shrink-0 items-center" onClick={closeMenu}>
         <Image
           src="/brand/appono-mark.svg"
           alt="Appono"
           width={90}
           height={72}
-          className="h-16 w-auto transition-transform duration-300 hover:scale-105"
+          className="h-12 w-auto transition-transform duration-300 hover:scale-105 sm:h-16"
         />
       </Link>
     </div>
 
-    <nav className="hidden flex-1 items-center justify-center gap-8 md:flex">
+    <nav className="hidden min-w-0 items-center justify-center gap-2 whitespace-nowrap xl:flex">
       <Link href="#inicio" className="rounded-full px-5 py-2.5 text-base font-semibold text-app-cafe-profundo transition hover:bg-app-chantilly">
         Início
       </Link>
@@ -96,7 +96,7 @@ export default function HomePage() {
       </Link>
     </nav>
 
-    <div className="flex flex-1 items-center justify-end gap-3">
+    <div className="flex min-w-0 items-center justify-end gap-2 sm:gap-3">
       <div className="flex items-center gap-2">
         <button
           type="button"
@@ -114,6 +114,7 @@ export default function HomePage() {
         <button
           type="button"
           onClick={() => atualizarTema(tema === "escuro" ? "claro" : "escuro")}
+          data-appono-sem-traducao
           className="flex h-10 w-10 shrink-0 items-center justify-center whitespace-nowrap rounded-full border border-app-baunilha-dourada text-app-cafe-profundo transition hover:bg-app-chantilly"
           aria-label={tema === "escuro" ? (idioma === "en" ? "Enable light mode" : "Ativar modo claro") : (idioma === "en" ? "Enable dark mode" : "Ativar modo escuro")}
           title={tema === "escuro" ? (idioma === "en" ? "Enable light mode" : "Ativar modo claro") : (idioma === "en" ? "Enable dark mode" : "Ativar modo escuro")}
@@ -148,7 +149,7 @@ export default function HomePage() {
       <button
         type="button"
         onClick={() => setMenuOpen((current) => !current)}
-        className="rounded-full border border-app-baunilha-dourada px-4 py-2 text-sm font-semibold text-app-cafe-profundo md:hidden"
+        className="shrink-0 rounded-full border border-app-baunilha-dourada px-3 py-2 text-sm font-semibold text-app-cafe-profundo xl:hidden"
         aria-expanded={menuOpen}
         aria-controls="mobile-menu"
       >
@@ -158,7 +159,7 @@ export default function HomePage() {
   </div>
 
   {menuOpen ? (
-    <div id="mobile-menu" className="border-t border-app-baunilha-dourada/50 bg-white px-5 py-5 md:hidden">
+    <div id="mobile-menu" className="border-t border-app-baunilha-dourada/50 bg-white px-5 py-5 xl:hidden">
       <nav className="mx-auto flex max-w-7xl flex-col gap-1 text-sm font-semibold text-app-cafe-profundo">
         <Link href="#inicio" onClick={closeMenu} className="rounded-full px-4 py-2.5 transition hover:bg-app-chantilly">
           Início
@@ -184,9 +185,9 @@ export default function HomePage() {
   ) : null}
 </header>
 
-      <section id="inicio" className="relative flex min-h-[620px] items-center justify-center overflow-hidden bg-app-cafe-profundo px-5 py-20 text-white">
+      <section id="inicio" className="home-hero relative flex min-h-[620px] items-center justify-center overflow-hidden bg-app-cafe-profundo px-5 py-20 text-white">
   <Image src={heroImage} alt="Mesa reservada em restaurante elegante" fill priority sizes="100vw" className="absolute inset-0 h-full w-full object-cover opacity-90" />
-  <div className="absolute inset-0 bg-gradient-to-b from-transparent via-app-cafe-profundo/40 to-app-cafe-profundo/85" />
+  <div className="home-hero-overlay absolute inset-0" aria-hidden="true" />
 
   <div className="relative z-10 mx-auto flex max-w-3xl flex-col items-center text-center">
     <h1 className="max-w-2xl text-4xl font-semibold leading-tight text-white sm:text-6xl">
@@ -210,7 +211,7 @@ export default function HomePage() {
       <section id="reserva" className="bg-white py-20">
         <div className="mx-auto max-w-7xl px-6">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 xl:grid-rows-2">
-            <div className="relative overflow-hidden rounded-3xl shadow-lg sm:col-span-2 xl:row-span-2">
+            <div className="relative min-h-64 overflow-hidden rounded-3xl shadow-lg sm:col-span-2 xl:row-span-2">
               <Image
                 src={foodImage}
                 alt="Pratos servidos em mesa"

@@ -1,5 +1,57 @@
 @import "tailwindcss";
 
+/* Cores anteriores preservadas apenas no tema claro. Regras de layout são
+   compartilhadas; a paleta escura centralizada está em tema-escuro.css. */
+
+/* Gradiente fotográfico independente das cores de texto de cada tema. */
+.home-hero-overlay {
+  background: linear-gradient(180deg, rgb(15 11 9 / 0.3), rgb(15 11 9 / 0.6), rgb(15 11 9 / 0.9));
+}
+
+/* Opções longas crescem verticalmente e permanecem dentro do diálogo. */
+[role="dialog"].fixed {
+  overflow-y: auto;
+  padding-block: 1rem;
+}
+[role="dialog"].fixed > :is(section, div) {
+  min-width: 0;
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+  overflow-wrap: anywhere;
+}
+[role="dialog"] :is(button, a, .grid, .flex) {
+  min-width: 0;
+}
+[role="dialog"] button {
+  height: auto;
+  min-height: 2.75rem;
+  white-space: normal;
+}
+.area-autenticada main > header > div:first-child,
+.area-autenticada main > header > div:first-child > nav {
+  flex-wrap: wrap;
+}
+.area-autenticada main > header > div:first-child {
+  display: flex;
+  justify-content: space-between;
+}
+.gestao-cardapio :is(article, form, input, select, h2, h3, p),
+.gestao-cardapio .produto-cardapio > div {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.gestao-cardapio .produto-cardapio :is(button, a) {
+  height: auto;
+  min-height: 2.25rem;
+  padding-block: 0.5rem;
+  white-space: normal;
+}
+.area-autenticada :is(input, select, textarea) { max-width: 100%; }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .area-autenticada main > :is(section, div, form) { animation: none; }
+}
+
 :root {
   --background: #f8f6f2;
   --foreground: #241713;
@@ -76,17 +128,13 @@
   --color-app-botao-aba-ativa: var(--app-botao-aba-ativa);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #f8f6f2;
-    --foreground: #241713;
-  }
+body {
+  font-family: Arial, Helvetica, sans-serif;
 }
 
-body {
+:where(html:not([data-tema=escuro])) body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
 }
 
 /* Mantém uma indicação visual consistente para ações em toda a aplicação. */
@@ -119,43 +167,10 @@ textarea:not(:disabled) {
 
 html {
   scroll-behavior: smooth;
+  color-scheme: light;
 }
 
-.home-publica.tema-escuro {
-  color-scheme: dark;
-  --app-cacau-intenso: #0f0b09;
-  --app-caramelo-torrado: #e0a174;
-  --app-creme-suave: #403329;
-  --app-baunilha-dourada: #9b8068;
-  --app-cafe-profundo: #f3e8da;
-  --app-mocha: #d9c7b5;
-  --app-dourado-mel: #d18452;
-  --app-creme-leve: #2b211b;
-  --app-chantilly: #130f0d;
-  --app-texto-escuro: #fff7ec;
-  --app-cinza: #b4a79d;
-  background-color: var(--app-chantilly);
-}
-
-.home-publica.tema-escuro :is(header, section, article, footer, div)[class*="bg-white"],
-.home-publica.tema-escuro .bg-white,
-.home-publica.tema-escuro .bg-white\/95 {
-  background-color: #211914;
-}
-
-.home-publica.tema-escuro .bg-app-chantilly {
-  background-color: var(--app-creme-leve);
-}
-
-.home-publica.tema-escuro .text-slate-700 {
-  color: var(--app-mocha);
-}
-
-.home-publica.tema-escuro :is(header, footer, section, article)[class*="border-app"] {
-  border-color: color-mix(in srgb, var(--app-baunilha-dourada) 65%, transparent);
-}
-
-.area-autenticada {
+:where(html:not([data-tema=escuro])) .area-autenticada {
   --app-cacau-intenso: #241713;
   --app-caramelo-torrado: #7f4325;
   --app-creme-suave: #ffffff;
@@ -181,6 +196,9 @@ html {
 
 .area-autenticada main {
   position: relative;
+}
+
+:where(html:not([data-tema=escuro])) .area-autenticada main {
   background: var(--app-chantilly);
 }
 
@@ -189,73 +207,9 @@ html {
   display: none;
 }
 
-.area-autenticada main > :not([class*="fixed"]) {
+.area-autenticada main > :not(header):not([class*="fixed"]) {
   position: relative;
   z-index: 1;
-}
-
-.area-autenticada.tema-escuro {
-  color-scheme: dark;
-  --app-cacau-intenso: #050505;
-  --app-caramelo-torrado: #e0a174;
-  --app-creme-suave: #1a1a1a;
-  --app-baunilha-dourada: #c9a878;
-  --app-cafe-profundo: #f3e8da;
-  --app-mocha: #d9c7b5;
-  --app-dourado-mel: #d18452;
-  --app-creme-leve: #141414;
-  --app-areia-quente: #e0a05a;
-  --app-chantilly: #0a0a0a;
-  --app-chantilly-hover: #1f1f1f;
-  --app-texto-escuro: #fff7ec;
-  --app-cinza: #a8a29a;
-  --app-vermelho-erro: #ff9a86;
-  --app-verde-sucesso: #9bc288;
-  --app-verde-sucesso-claro: #22311f;
-  --app-amarelo-alerta: #e4b766;
-  --app-amarelo-alerta-claro: #352612;
-  --app-vermelho-claro: #3a1e19;
-  --app-azul-info: #a7b6c7;
-  --app-azul-info-claro: #1c2730;
-  --app-fundo-destaque: #000000;
-}
-
-.area-autenticada.tema-escuro main {
-  background: var(--app-chantilly);
-}
-
-.area-autenticada.tema-escuro main::before {
-  display: none;
-}
-
-.area-autenticada.tema-escuro .bg-app-cafe-profundo {
-  background-color: #050505 !important;
-}
-
-.area-autenticada.tema-escuro .text-app-creme-leve {
-  color: #fff7ec;
-}
-
-.area-autenticada.tema-escuro .bg-app-dourado-mel {
-  background-color: #d18452;
-}
-
-.area-autenticada.tema-escuro .hover\:bg-app-caramelo-torrado:hover {
-  background-color: #b86d42;
-}
-
-.area-autenticada.tema-escuro input,
-.area-autenticada.tema-escuro textarea,
-.area-autenticada.tema-escuro select {
-  color-scheme: dark;
-}
-
-.area-autenticada.tema-escuro img[src="/brand/appono-mark.svg"] {
-  filter: brightness(0) invert(1) sepia(0.18);
-}
-
-.area-autenticada.tema-escuro footer img[src="/brand/appono-mark.svg"] {
-  filter: brightness(0) invert(1);
 }
 
 .area-autenticada main > header {
@@ -263,10 +217,13 @@ html {
   top: 0;
   z-index: 30;
   border-bottom: 1px solid color-mix(in srgb, var(--app-baunilha-dourada) 58%, transparent);
+  backdrop-filter: blur(16px);
+}
+
+:where(html:not([data-tema=escuro])) .area-autenticada main > header {
   background: color-mix(in srgb, white 88%, var(--app-creme-leve));
   color: var(--app-cafe-profundo);
   box-shadow: 0 8px 30px rgb(36 23 17 / 8%);
-  backdrop-filter: blur(16px);
 }
 
 .area-autenticada button,
@@ -289,210 +246,217 @@ html {
 .area-autenticada input:focus-visible,
 .area-autenticada textarea:focus-visible,
 .area-autenticada select:focus-visible {
-  outline: 2px solid var(--app-dourado-mel);
   outline-offset: 3px;
 }
 
-.bg-white,
-.bg-white\/95,
-.bg-white\/90,
-.bg-white\/80 {
+:where(html:not([data-tema=escuro])) .area-autenticada button:focus-visible,
+:where(html:not([data-tema=escuro])) .area-autenticada a:focus-visible,
+:where(html:not([data-tema=escuro])) .area-autenticada input:focus-visible,
+:where(html:not([data-tema=escuro])) .area-autenticada textarea:focus-visible,
+:where(html:not([data-tema=escuro])) .area-autenticada select:focus-visible {
+  outline: 2px solid var(--app-dourado-mel);
+}
+
+:where(html:not([data-tema=escuro])) .bg-white,
+:where(html:not([data-tema=escuro])) .bg-white\/95,
+:where(html:not([data-tema=escuro])) .bg-white\/90,
+:where(html:not([data-tema=escuro])) .bg-white\/80 {
   background-color: var(--app-creme-leve) !important;
 }
 
-.bg-black,
-.bg-black\/95,
-.bg-black\/90,
-.bg-black\/80 {
+:where(html:not([data-tema=escuro])) .bg-black,
+:where(html:not([data-tema=escuro])) .bg-black\/95,
+:where(html:not([data-tema=escuro])) .bg-black\/90,
+:where(html:not([data-tema=escuro])) .bg-black\/80 {
   background-color: var(--app-cafe-profundo) !important;
 }
 
-.text-black,
-.text-neutral-950,
-.text-zinc-950,
-.text-stone-950,
-.text-slate-950,
-.text-gray-950,
-.text-neutral-900,
-.text-zinc-900,
-.text-stone-900,
-.text-slate-900,
-.text-gray-900 {
+:where(html:not([data-tema=escuro])) .text-black,
+:where(html:not([data-tema=escuro])) .text-neutral-950,
+:where(html:not([data-tema=escuro])) .text-zinc-950,
+:where(html:not([data-tema=escuro])) .text-stone-950,
+:where(html:not([data-tema=escuro])) .text-slate-950,
+:where(html:not([data-tema=escuro])) .text-gray-950,
+:where(html:not([data-tema=escuro])) .text-neutral-900,
+:where(html:not([data-tema=escuro])) .text-zinc-900,
+:where(html:not([data-tema=escuro])) .text-stone-900,
+:where(html:not([data-tema=escuro])) .text-slate-900,
+:where(html:not([data-tema=escuro])) .text-gray-900 {
   color: var(--app-texto-escuro) !important;
 }
 
-.text-neutral-800,
-.text-zinc-800,
-.text-stone-800,
-.text-slate-800,
-.text-gray-800,
-.text-neutral-700,
-.text-zinc-700,
-.text-stone-700,
-.text-slate-700,
-.text-gray-700,
-.text-neutral-600,
-.text-zinc-600,
-.text-stone-600,
-.text-slate-600,
-.text-gray-600,
-.text-neutral-500,
-.text-zinc-500,
-.text-stone-500,
-.text-slate-500,
-.text-gray-500 {
+:where(html:not([data-tema=escuro])) .text-neutral-800,
+:where(html:not([data-tema=escuro])) .text-zinc-800,
+:where(html:not([data-tema=escuro])) .text-stone-800,
+:where(html:not([data-tema=escuro])) .text-slate-800,
+:where(html:not([data-tema=escuro])) .text-gray-800,
+:where(html:not([data-tema=escuro])) .text-neutral-700,
+:where(html:not([data-tema=escuro])) .text-zinc-700,
+:where(html:not([data-tema=escuro])) .text-stone-700,
+:where(html:not([data-tema=escuro])) .text-slate-700,
+:where(html:not([data-tema=escuro])) .text-gray-700,
+:where(html:not([data-tema=escuro])) .text-neutral-600,
+:where(html:not([data-tema=escuro])) .text-zinc-600,
+:where(html:not([data-tema=escuro])) .text-stone-600,
+:where(html:not([data-tema=escuro])) .text-slate-600,
+:where(html:not([data-tema=escuro])) .text-gray-600,
+:where(html:not([data-tema=escuro])) .text-neutral-500,
+:where(html:not([data-tema=escuro])) .text-zinc-500,
+:where(html:not([data-tema=escuro])) .text-stone-500,
+:where(html:not([data-tema=escuro])) .text-slate-500,
+:where(html:not([data-tema=escuro])) .text-gray-500 {
   color: var(--app-cinza) !important;
 }
 
-.bg-gray-50,
-.bg-neutral-50,
-.bg-stone-50,
-.bg-zinc-50,
-.bg-slate-50,
-.bg-gray-100,
-.bg-neutral-100,
-.bg-stone-100,
-.bg-zinc-100,
-.bg-slate-100,
-.bg-gray-200,
-.bg-neutral-200,
-.bg-stone-200,
-.bg-zinc-200,
-.bg-slate-200 {
+:where(html:not([data-tema=escuro])) .bg-gray-50,
+:where(html:not([data-tema=escuro])) .bg-neutral-50,
+:where(html:not([data-tema=escuro])) .bg-stone-50,
+:where(html:not([data-tema=escuro])) .bg-zinc-50,
+:where(html:not([data-tema=escuro])) .bg-slate-50,
+:where(html:not([data-tema=escuro])) .bg-gray-100,
+:where(html:not([data-tema=escuro])) .bg-neutral-100,
+:where(html:not([data-tema=escuro])) .bg-stone-100,
+:where(html:not([data-tema=escuro])) .bg-zinc-100,
+:where(html:not([data-tema=escuro])) .bg-slate-100,
+:where(html:not([data-tema=escuro])) .bg-gray-200,
+:where(html:not([data-tema=escuro])) .bg-neutral-200,
+:where(html:not([data-tema=escuro])) .bg-stone-200,
+:where(html:not([data-tema=escuro])) .bg-zinc-200,
+:where(html:not([data-tema=escuro])) .bg-slate-200 {
   background-color: var(--app-chantilly) !important;
 }
 
-.border-gray-100,
-.border-neutral-100,
-.border-stone-100,
-.border-zinc-100,
-.border-slate-100,
-.border-gray-200,
-.border-neutral-200,
-.border-stone-200,
-.border-zinc-200,
-.border-slate-200,
-.border-gray-300,
-.border-neutral-300,
-.border-stone-300,
-.border-zinc-300,
-.border-slate-300 {
+:where(html:not([data-tema=escuro])) .border-gray-100,
+:where(html:not([data-tema=escuro])) .border-neutral-100,
+:where(html:not([data-tema=escuro])) .border-stone-100,
+:where(html:not([data-tema=escuro])) .border-zinc-100,
+:where(html:not([data-tema=escuro])) .border-slate-100,
+:where(html:not([data-tema=escuro])) .border-gray-200,
+:where(html:not([data-tema=escuro])) .border-neutral-200,
+:where(html:not([data-tema=escuro])) .border-stone-200,
+:where(html:not([data-tema=escuro])) .border-zinc-200,
+:where(html:not([data-tema=escuro])) .border-slate-200,
+:where(html:not([data-tema=escuro])) .border-gray-300,
+:where(html:not([data-tema=escuro])) .border-neutral-300,
+:where(html:not([data-tema=escuro])) .border-stone-300,
+:where(html:not([data-tema=escuro])) .border-zinc-300,
+:where(html:not([data-tema=escuro])) .border-slate-300 {
   border-color: rgb(148 117 83 / 0.5) !important;
 }
 
-.bg-red-50,
-.bg-red-100,
-.bg-rose-50,
-.bg-rose-100 {
+:where(html:not([data-tema=escuro])) .bg-red-50,
+:where(html:not([data-tema=escuro])) .bg-red-100,
+:where(html:not([data-tema=escuro])) .bg-rose-50,
+:where(html:not([data-tema=escuro])) .bg-rose-100 {
   background-color: var(--app-vermelho-claro) !important;
 }
 
-.bg-red-500,
-.bg-red-600,
-.bg-rose-500,
-.bg-rose-600 {
+:where(html:not([data-tema=escuro])) .bg-red-500,
+:where(html:not([data-tema=escuro])) .bg-red-600,
+:where(html:not([data-tema=escuro])) .bg-rose-500,
+:where(html:not([data-tema=escuro])) .bg-rose-600 {
   background-color: var(--app-vermelho-erro) !important;
 }
 
-.text-red-700,
-.text-red-800,
-.text-rose-700,
-.text-rose-800 {
+:where(html:not([data-tema=escuro])) .text-red-700,
+:where(html:not([data-tema=escuro])) .text-red-800,
+:where(html:not([data-tema=escuro])) .text-rose-700,
+:where(html:not([data-tema=escuro])) .text-rose-800 {
   color: var(--app-vermelho-erro) !important;
 }
 
-.border-red-200,
-.border-red-300,
-.border-rose-200,
-.border-rose-300 {
+:where(html:not([data-tema=escuro])) .border-red-200,
+:where(html:not([data-tema=escuro])) .border-red-300,
+:where(html:not([data-tema=escuro])) .border-rose-200,
+:where(html:not([data-tema=escuro])) .border-rose-300 {
   border-color: color-mix(in srgb, var(--app-vermelho-erro) 52%, transparent) !important;
 }
 
-.ring-red-200,
-.ring-rose-200 {
+:where(html:not([data-tema=escuro])) .ring-red-200,
+:where(html:not([data-tema=escuro])) .ring-rose-200 {
   --tw-ring-color: color-mix(in srgb, var(--app-vermelho-erro) 34%, transparent) !important;
 }
 
-.bg-green-50,
-.bg-green-100,
-.bg-emerald-50,
-.bg-emerald-100 {
+:where(html:not([data-tema=escuro])) .bg-green-50,
+:where(html:not([data-tema=escuro])) .bg-green-100,
+:where(html:not([data-tema=escuro])) .bg-emerald-50,
+:where(html:not([data-tema=escuro])) .bg-emerald-100 {
   background-color: var(--app-verde-sucesso-claro) !important;
 }
 
-.bg-green-500,
-.bg-green-600,
-.bg-emerald-400,
-.bg-emerald-500,
-.bg-emerald-600 {
+:where(html:not([data-tema=escuro])) .bg-green-500,
+:where(html:not([data-tema=escuro])) .bg-green-600,
+:where(html:not([data-tema=escuro])) .bg-emerald-400,
+:where(html:not([data-tema=escuro])) .bg-emerald-500,
+:where(html:not([data-tema=escuro])) .bg-emerald-600 {
   background-color: var(--app-verde-sucesso) !important;
 }
 
-.text-green-700,
-.text-green-800,
-.text-emerald-700,
-.text-emerald-800,
-.text-emerald-400 {
+:where(html:not([data-tema=escuro])) .text-green-700,
+:where(html:not([data-tema=escuro])) .text-green-800,
+:where(html:not([data-tema=escuro])) .text-emerald-700,
+:where(html:not([data-tema=escuro])) .text-emerald-800,
+:where(html:not([data-tema=escuro])) .text-emerald-400 {
   color: var(--app-verde-sucesso) !important;
 }
 
-.border-green-200,
-.border-green-300,
-.border-emerald-200,
-.border-emerald-300 {
+:where(html:not([data-tema=escuro])) .border-green-200,
+:where(html:not([data-tema=escuro])) .border-green-300,
+:where(html:not([data-tema=escuro])) .border-emerald-200,
+:where(html:not([data-tema=escuro])) .border-emerald-300 {
   border-color: color-mix(in srgb, var(--app-verde-sucesso) 42%, transparent) !important;
 }
 
-.ring-green-200,
-.ring-emerald-200 {
+:where(html:not([data-tema=escuro])) .ring-green-200,
+:where(html:not([data-tema=escuro])) .ring-emerald-200 {
   --tw-ring-color: color-mix(in srgb, var(--app-verde-sucesso) 28%, transparent) !important;
 }
 
-.bg-yellow-50,
-.bg-yellow-100,
-.bg-amber-50,
-.bg-amber-100,
-.bg-orange-50,
-.bg-orange-100 {
+:where(html:not([data-tema=escuro])) .bg-yellow-50,
+:where(html:not([data-tema=escuro])) .bg-yellow-100,
+:where(html:not([data-tema=escuro])) .bg-amber-50,
+:where(html:not([data-tema=escuro])) .bg-amber-100,
+:where(html:not([data-tema=escuro])) .bg-orange-50,
+:where(html:not([data-tema=escuro])) .bg-orange-100 {
   background-color: var(--app-amarelo-alerta-claro) !important;
 }
 
-.text-yellow-700,
-.text-yellow-800,
-.text-amber-700,
-.text-amber-800,
-.text-orange-700,
-.text-orange-800 {
+:where(html:not([data-tema=escuro])) .text-yellow-700,
+:where(html:not([data-tema=escuro])) .text-yellow-800,
+:where(html:not([data-tema=escuro])) .text-amber-700,
+:where(html:not([data-tema=escuro])) .text-amber-800,
+:where(html:not([data-tema=escuro])) .text-orange-700,
+:where(html:not([data-tema=escuro])) .text-orange-800 {
   color: var(--app-amarelo-alerta) !important;
 }
 
-.border-yellow-200,
-.border-yellow-300,
-.border-amber-200,
-.border-amber-300,
-.border-orange-200,
-.border-orange-300 {
+:where(html:not([data-tema=escuro])) .border-yellow-200,
+:where(html:not([data-tema=escuro])) .border-yellow-300,
+:where(html:not([data-tema=escuro])) .border-amber-200,
+:where(html:not([data-tema=escuro])) .border-amber-300,
+:where(html:not([data-tema=escuro])) .border-orange-200,
+:where(html:not([data-tema=escuro])) .border-orange-300 {
   border-color: color-mix(in srgb, var(--app-amarelo-alerta) 42%, transparent) !important;
 }
 
-.bg-blue-50,
-.bg-blue-100,
-.bg-sky-50,
-.bg-sky-100 {
+:where(html:not([data-tema=escuro])) .bg-blue-50,
+:where(html:not([data-tema=escuro])) .bg-blue-100,
+:where(html:not([data-tema=escuro])) .bg-sky-50,
+:where(html:not([data-tema=escuro])) .bg-sky-100 {
   background-color: var(--app-azul-info-claro) !important;
 }
 
-.text-blue-700,
-.text-blue-800,
-.text-sky-700,
-.text-sky-800 {
+:where(html:not([data-tema=escuro])) .text-blue-700,
+:where(html:not([data-tema=escuro])) .text-blue-800,
+:where(html:not([data-tema=escuro])) .text-sky-700,
+:where(html:not([data-tema=escuro])) .text-sky-800 {
   color: var(--app-azul-info) !important;
 }
 
-.border-blue-200,
-.border-blue-300,
-.border-sky-200,
-.border-sky-300 {
+:where(html:not([data-tema=escuro])) .border-blue-200,
+:where(html:not([data-tema=escuro])) .border-blue-300,
+:where(html:not([data-tema=escuro])) .border-sky-200,
+:where(html:not([data-tema=escuro])) .border-sky-300 {
   border-color: color-mix(in srgb, var(--app-azul-info) 42%, transparent) !important;
 }
 
@@ -509,16 +473,16 @@ html {
   border-radius: 1.25rem;
 }
 
-.area-autenticada article[class*="ring-1"],
-.area-autenticada section[class*="ring-1"],
-.area-autenticada div[class*="ring-1"],
-.area-autenticada form[class*="ring-1"] {
+:where(html:not([data-tema=escuro])) .area-autenticada article[class*="ring-1"],
+:where(html:not([data-tema=escuro])) .area-autenticada section[class*="ring-1"],
+:where(html:not([data-tema=escuro])) .area-autenticada div[class*="ring-1"],
+:where(html:not([data-tema=escuro])) .area-autenticada form[class*="ring-1"] {
   box-shadow: 0 18px 42px rgb(76 48 31 / 14%);
 }
 
-.area-autenticada article[class*="bg-app-cafe-profundo"],
-.area-autenticada section[class*="bg-app-cafe-profundo"],
-.area-autenticada div[class*="bg-app-cafe-profundo"] {
+:where(html:not([data-tema=escuro])) .area-autenticada article[class*="bg-app-cafe-profundo"],
+:where(html:not([data-tema=escuro])) .area-autenticada section[class*="bg-app-cafe-profundo"],
+:where(html:not([data-tema=escuro])) .area-autenticada div[class*="bg-app-cafe-profundo"] {
   background: var(--app-cafe-profundo);
 }
 
@@ -527,6 +491,12 @@ html {
 .area-autenticada button[class*="bg-app-dourado-mel"],
 .area-autenticada a[class*="bg-app-dourado-mel"] {
   border-radius: 999px;
+}
+
+:where(html:not([data-tema=escuro])) .area-autenticada button[class*="bg-app-caramelo-torrado"],
+:where(html:not([data-tema=escuro])) .area-autenticada a[class*="bg-app-caramelo-torrado"],
+:where(html:not([data-tema=escuro])) .area-autenticada button[class*="bg-app-dourado-mel"],
+:where(html:not([data-tema=escuro])) .area-autenticada a[class*="bg-app-dourado-mel"] {
   box-shadow: 0 14px 28px rgb(127 67 37 / 24%);
 }
 
@@ -542,18 +512,18 @@ html {
   text-rendering: geometricPrecision;
 }
 
-.area-autenticada :is(article, section, aside)[class*="bg-app-creme-leve"],
-.area-autenticada :is(article, section, aside)[class*="bg-app-chantilly"],
-.area-autenticada :is(article, section, aside)[class*="bg-app-creme-suave"] {
+:where(html:not([data-tema=escuro])) .area-autenticada :is(article, section, aside)[class*="bg-app-creme-leve"],
+:where(html:not([data-tema=escuro])) .area-autenticada :is(article, section, aside)[class*="bg-app-chantilly"],
+:where(html:not([data-tema=escuro])) .area-autenticada :is(article, section, aside)[class*="bg-app-creme-suave"] {
   border: 1px solid rgb(148 117 83 / 0.18);
 }
 
-.area-autenticada :is(article, section, aside)[class*="bg-app-creme-leve"]:hover,
-.area-autenticada :is(article, section, aside)[class*="bg-app-chantilly"]:hover {
+:where(html:not([data-tema=escuro])) .area-autenticada :is(article, section, aside)[class*="bg-app-creme-leve"]:hover,
+:where(html:not([data-tema=escuro])) .area-autenticada :is(article, section, aside)[class*="bg-app-chantilly"]:hover {
   box-shadow: 0 22px 52px rgb(76 48 31 / 17%);
 }
 
-.area-autenticada :is(input, textarea, select) {
+:where(html:not([data-tema=escuro])) .area-autenticada :is(input, textarea, select) {
   background-color: color-mix(in srgb, white 82%, var(--app-creme-leve));
 }
 
@@ -565,12 +535,15 @@ html {
 
 .area-autenticada .campo-busca-app {
   border-radius: 999px !important;
+}
+
+:where(html:not([data-tema=escuro])) .area-autenticada .campo-busca-app {
   background-color: #fffaf2 !important;
   border-color: rgb(148 117 83 / 0.58) !important;
   box-shadow: 0 10px 24px rgb(76 48 31 / 8%);
 }
 
-.area-autenticada .campo-busca-app:focus-within {
+:where(html:not([data-tema=escuro])) .area-autenticada .campo-busca-app:focus-within {
   border-color: var(--app-caramelo-torrado);
   box-shadow:
     0 12px 28px rgb(76 48 31 / 10%),
@@ -581,90 +554,58 @@ html {
 .area-autenticada .campo-busca-app .input-busca-app:focus,
 .area-autenticada .campo-busca-app .input-busca-app:focus-visible {
   appearance: none;
-  border: 0 !important;
   border-radius: 0 !important;
-  box-shadow: none !important;
-  outline: 0 !important;
   padding: 0 !important;
 }
 
-.area-autenticada:not(.tema-escuro) .shadow-sm {
+:where(html:not([data-tema=escuro])) .area-autenticada .campo-busca-app .input-busca-app,
+:where(html:not([data-tema=escuro])) .area-autenticada .campo-busca-app .input-busca-app:focus,
+:where(html:not([data-tema=escuro])) .area-autenticada .campo-busca-app .input-busca-app:focus-visible {
+  border: 0 !important;
+  box-shadow: none !important;
+  outline: 0 !important;
+}
+
+:where(html:not([data-tema=escuro])) .area-autenticada .shadow-sm {
   box-shadow: 0 18px 40px rgb(76 48 31 / 14%);
 }
 
-.area-autenticada:not(.tema-escuro) .bg-app-creme-leve {
+:where(html:not([data-tema=escuro])) .area-autenticada .bg-app-creme-leve {
   background-color: #fff8ec;
 }
 
-.area-autenticada:not(.tema-escuro) .bg-app-chantilly {
+:where(html:not([data-tema=escuro])) .area-autenticada .bg-app-chantilly {
   background-color: var(--app-chantilly);
 }
 
-.area-autenticada:not(.tema-escuro) .bg-app-creme-suave {
+:where(html:not([data-tema=escuro])) .area-autenticada .bg-app-creme-suave {
   background-color: var(--app-chantilly);
 }
 
-.area-autenticada:not(.tema-escuro) .ring-app-baunilha-dourada,
-.area-autenticada:not(.tema-escuro) .ring-app-baunilha-dourada\/45,
-.area-autenticada:not(.tema-escuro) .ring-app-baunilha-dourada\/50,
-.area-autenticada:not(.tema-escuro) .ring-app-baunilha-dourada\/55,
-.area-autenticada:not(.tema-escuro) .ring-app-baunilha-dourada\/60 {
+:where(html:not([data-tema=escuro])) .area-autenticada .ring-app-baunilha-dourada,
+:where(html:not([data-tema=escuro])) .area-autenticada .ring-app-baunilha-dourada\/45,
+:where(html:not([data-tema=escuro])) .area-autenticada .ring-app-baunilha-dourada\/50,
+:where(html:not([data-tema=escuro])) .area-autenticada .ring-app-baunilha-dourada\/55,
+:where(html:not([data-tema=escuro])) .area-autenticada .ring-app-baunilha-dourada\/60 {
   --tw-ring-color: rgb(148 117 83 / 0.58);
 }
 
-.area-autenticada:not(.tema-escuro) .border-app-baunilha-dourada,
-.area-autenticada:not(.tema-escuro) .border-app-baunilha-dourada\/50,
-.area-autenticada:not(.tema-escuro) .border-app-baunilha-dourada\/55,
-.area-autenticada:not(.tema-escuro) .border-app-baunilha-dourada\/60 {
+:where(html:not([data-tema=escuro])) .area-autenticada .border-app-baunilha-dourada,
+:where(html:not([data-tema=escuro])) .area-autenticada .border-app-baunilha-dourada\/50,
+:where(html:not([data-tema=escuro])) .area-autenticada .border-app-baunilha-dourada\/55,
+:where(html:not([data-tema=escuro])) .area-autenticada .border-app-baunilha-dourada\/60 {
   border-color: rgb(148 117 83 / 0.62);
 }
 
-.area-autenticada:not(.tema-escuro) article,
-.area-autenticada:not(.tema-escuro) section[class*="bg-app-creme-leve"],
-.area-autenticada:not(.tema-escuro) div[class*="bg-app-creme-leve"] {
+:where(html:not([data-tema=escuro])) .area-autenticada article,
+:where(html:not([data-tema=escuro])) .area-autenticada section[class*="bg-app-creme-leve"],
+:where(html:not([data-tema=escuro])) .area-autenticada div[class*="bg-app-creme-leve"] {
   border-color: rgb(127 67 37 / 0.24);
-}
-
-.area-autenticada.tema-escuro .shadow-sm {
-  box-shadow: 0 16px 36px rgb(0 0 0 / 36%);
-}
-
-.area-autenticada.tema-escuro .bg-app-creme-leve {
-  background-color: #2b211b;
-}
-
-.area-autenticada.tema-escuro .bg-app-chantilly {
-  background-color: #17110f;
-}
-
-.area-autenticada.tema-escuro .bg-app-creme-suave {
-  background-color: #3b2d24;
-}
-
-.area-autenticada.tema-escuro .ring-app-baunilha-dourada,
-.area-autenticada.tema-escuro .ring-app-baunilha-dourada\/45,
-.area-autenticada.tema-escuro .ring-app-baunilha-dourada\/50,
-.area-autenticada.tema-escuro .ring-app-baunilha-dourada\/55,
-.area-autenticada.tema-escuro .ring-app-baunilha-dourada\/60 {
-  --tw-ring-color: rgb(155 128 104 / 0.62);
-}
-
-.area-autenticada.tema-escuro .border-app-baunilha-dourada,
-.area-autenticada.tema-escuro .border-app-baunilha-dourada\/50,
-.area-autenticada.tema-escuro .border-app-baunilha-dourada\/55,
-.area-autenticada.tema-escuro .border-app-baunilha-dourada\/60 {
-  border-color: rgb(155 128 104 / 0.64);
-}
-
-.area-autenticada.tema-escuro main > header {
-  border-bottom-color: color-mix(in srgb, var(--app-baunilha-dourada) 62%, transparent);
-  background: color-mix(in srgb, #1f1713 92%, transparent);
-  box-shadow: 0 3px 16px rgb(0 0 0 / 24%);
 }
 
 .area-autenticada main > header > div:first-child {
   min-height: 3.5rem;
-  height: 3.5rem;
+  height: auto;
   gap: 0.75rem;
   padding-top: 0.25rem;
   padding-bottom: 0.25rem;
@@ -719,7 +660,7 @@ html {
 @media (min-width: 1024px) {
   .area-autenticada main > header > div:first-child {
     min-height: 3.75rem;
-    height: 3.75rem;
+    height: auto;
   }
 
   .area-autenticada main > header > div:first-child > div[aria-label="Appono"] img {
@@ -757,77 +698,86 @@ html {
   }
 }
 
-body > div:not(.area-autenticada) :is(form, section, article, div)[class*="bg-white"] {
+:where(html:not([data-tema=escuro])) body > div:not(.area-autenticada) :is(form, section, article, div)[class*="bg-white"] {
   border: 1px solid rgb(148 117 83 / 0.22);
   box-shadow: 0 24px 70px rgb(76 48 31 / 16%);
 }
 
-body > div:not(.area-autenticada) :is(button, a)[class*="rounded-full"] {
+:where(html:not([data-tema=escuro])) body > div:not(.area-autenticada) :is(button, a)[class*="rounded-full"] {
   box-shadow: 0 12px 26px rgb(127 67 37 / 14%);
 }
 
-body > div:not(.area-autenticada) input,
-body > div:not(.area-autenticada) textarea,
-body > div:not(.area-autenticada) select {
+:where(html:not([data-tema=escuro])) body > div:not(.area-autenticada) input,
+:where(html:not([data-tema=escuro])) body > div:not(.area-autenticada) textarea,
+:where(html:not([data-tema=escuro])) body > div:not(.area-autenticada) select {
   background-color: #fffaf2;
 }
 
-.area-restaurante main {
+:where(html:not([data-tema=escuro])) .area-restaurante main {
   background: var(--app-chantilly) !important;
   color: var(--app-cafe-profundo);
 }
 
 .area-restaurante main > header {
+  backdrop-filter: blur(16px);
+}
+
+:where(html:not([data-tema=escuro])) .area-restaurante main > header {
   border-bottom-color: rgb(148 117 83 / 0.5);
   background: rgb(255 255 255 / 0.95) !important;
   color: var(--app-cafe-profundo);
   box-shadow: 0 8px 24px rgb(76 48 31 / 8%);
-  backdrop-filter: blur(16px);
 }
 
-.area-restaurante main > header nav {
+:where(html:not([data-tema=escuro])) .area-restaurante main > header nav {
   background: transparent !important;
 }
 
 .area-restaurante main > header nav a {
   border-radius: 999px;
   padding: 0.4rem 0.75rem;
+}
+
+:where(html:not([data-tema=escuro])) .area-restaurante main > header nav a {
   color: var(--app-cinza);
 }
 
-.area-restaurante main > header nav a:hover {
+:where(html:not([data-tema=escuro])) .area-restaurante main > header nav a:hover {
   background-color: var(--app-chantilly-hover);
   color: var(--app-caramelo-torrado) !important;
 }
 
 .area-restaurante main > header button {
   border-radius: 999px !important;
+}
+
+:where(html:not([data-tema=escuro])) .area-restaurante main > header button {
   border-color: rgb(148 117 83 / 0.55) !important;
   background-color: #ffffff !important;
   color: var(--app-cafe-profundo) !important;
 }
 
-.area-restaurante main > header button:hover {
+:where(html:not([data-tema=escuro])) .area-restaurante main > header button:hover {
   background-color: var(--app-chantilly-hover) !important;
   color: var(--app-caramelo-torrado) !important;
 }
 
-.area-restaurante .bg-white,
-.area-restaurante .bg-white\/95,
-.area-restaurante .bg-white\/90,
-.area-restaurante .bg-white\/80 {
+:where(html:not([data-tema=escuro])) .area-restaurante .bg-white,
+:where(html:not([data-tema=escuro])) .area-restaurante .bg-white\/95,
+:where(html:not([data-tema=escuro])) .area-restaurante .bg-white\/90,
+:where(html:not([data-tema=escuro])) .area-restaurante .bg-white\/80 {
   background-color: #ffffff !important;
 }
 
-.area-restaurante :is(header, nav, section, article, aside, form, div, label, input, textarea, select, span, button)[class*="bg-app-creme-leve"] {
+:where(html:not([data-tema=escuro])) .area-restaurante :is(header, nav, section, article, aside, form, div, label, input, textarea, select, span, button)[class*="bg-app-creme-leve"] {
   background-color: #ffffff !important;
 }
 
-.area-restaurante :is(section, article, aside, form, div)[class*="bg-app-chantilly"] {
+:where(html:not([data-tema=escuro])) .area-restaurante :is(section, article, aside, form, div)[class*="bg-app-chantilly"] {
   background-color: var(--app-chantilly) !important;
 }
 
-.area-restaurante :is(header, nav, section, article, aside, form, div, label, input, textarea, select, span, button)[class*="bg-app-creme-suave"] {
+:where(html:not([data-tema=escuro])) .area-restaurante :is(header, nav, section, article, aside, form, div, label, input, textarea, select, span, button)[class*="bg-app-creme-suave"] {
   background-color: #ffffff !important;
 }
 
@@ -847,334 +797,155 @@ body > div:not(.area-autenticada) select {
   border-radius: 0.9rem;
 }
 
-.area-restaurante :is(section, article, aside, form)[class*="shadow"],
-.area-restaurante :is(section, article, aside, form)[class*="ring-1"] {
+:where(html:not([data-tema=escuro])) .area-restaurante :is(section, article, aside, form)[class*="shadow"],
+:where(html:not([data-tema=escuro])) .area-restaurante :is(section, article, aside, form)[class*="ring-1"] {
   border: 1px solid rgb(148 117 83 / 0.22);
   box-shadow: 0 16px 36px rgb(76 48 31 / 10%);
 }
 
-.area-restaurante :is(article, section, aside)[class*="bg-app-creme-leve"]:hover,
-.area-restaurante :is(article, section, aside)[class*="bg-white"]:hover {
+:where(html:not([data-tema=escuro])) .area-restaurante :is(article, section, aside)[class*="bg-app-creme-leve"]:hover,
+:where(html:not([data-tema=escuro])) .area-restaurante :is(article, section, aside)[class*="bg-white"]:hover {
   box-shadow: 0 20px 46px rgb(76 48 31 / 13%);
 }
 
-.area-restaurante :is(input, textarea, select),
-.area-restaurante .campo-busca-app {
+:where(html:not([data-tema=escuro])) .area-restaurante :is(input, textarea, select),
+:where(html:not([data-tema=escuro])) .area-restaurante .campo-busca-app {
   background-color: #ffffff !important;
   border-color: rgb(148 117 83 / 0.58) !important;
 }
 
-.area-restaurante :is(input, textarea, select):focus,
-.area-restaurante .campo-busca-app:focus-within {
+:where(html:not([data-tema=escuro])) .area-restaurante :is(input, textarea, select):focus,
+:where(html:not([data-tema=escuro])) .area-restaurante .campo-busca-app:focus-within {
   border-color: var(--app-caramelo-torrado) !important;
   box-shadow: 0 0 0 3px rgb(179 95 50 / 0.16) !important;
 }
 
-.area-restaurante :is(button, a)[class*="bg-app-dourado-mel"],
-.area-restaurante :is(button, a)[class*="bg-app-caramelo-torrado"] {
+:where(html:not([data-tema=escuro])) .area-restaurante :is(button, a)[class*="bg-app-dourado-mel"],
+:where(html:not([data-tema=escuro])) .area-restaurante :is(button, a)[class*="bg-app-caramelo-torrado"] {
   background-color: var(--app-caramelo-torrado) !important;
   color: white !important;
 }
 
-.area-restaurante :is(button, a)[class*="bg-app-dourado-mel"]:hover,
-.area-restaurante :is(button, a)[class*="bg-app-caramelo-torrado"]:hover {
+:where(html:not([data-tema=escuro])) .area-restaurante :is(button, a)[class*="bg-app-dourado-mel"]:hover,
+:where(html:not([data-tema=escuro])) .area-restaurante :is(button, a)[class*="bg-app-caramelo-torrado"]:hover {
   background-color: var(--app-cafe-profundo) !important;
 }
 
-.area-restaurante :is(button, a)[class*="bg-app-cafe-profundo"] {
+:where(html:not([data-tema=escuro])) .area-restaurante :is(button, a)[class*="bg-app-cafe-profundo"] {
   background-color: var(--app-cafe-profundo) !important;
   color: var(--app-creme-leve) !important;
 }
 
-.area-restaurante :is(button, a)[class*="border-app"] {
+:where(html:not([data-tema=escuro])) .area-restaurante :is(button, a)[class*="border-app"] {
   background-color: transparent;
 }
 
-.area-restaurante :is(button, a)[class*="border-app"]:hover {
+:where(html:not([data-tema=escuro])) .area-restaurante :is(button, a)[class*="border-app"]:hover {
   background-color: var(--app-creme-suave);
 }
 
-.area-restaurante :is([class*="text-app-vermelho-erro"], [class*="text-red-"]) {
+:where(html:not([data-tema=escuro])) .area-restaurante :is([class*="text-app-vermelho-erro"], [class*="text-red-"]) {
   color: var(--app-vermelho-erro) !important;
 }
 
-.area-restaurante :is([class*="border-red-"], [class*="border-app-vermelho-erro"]) {
+:where(html:not([data-tema=escuro])) .area-restaurante :is([class*="border-red-"], [class*="border-app-vermelho-erro"]) {
   border-color: color-mix(in srgb, var(--app-vermelho-erro) 42%, transparent) !important;
 }
 
-.area-restaurante :is([class*="text-green-"], [class*="text-emerald-"]) {
+:where(html:not([data-tema=escuro])) .area-restaurante :is([class*="text-green-"], [class*="text-emerald-"]) {
   color: var(--app-verde-sucesso) !important;
 }
 
-.area-restaurante :is([class*="border-green-"], [class*="border-emerald-"]) {
+:where(html:not([data-tema=escuro])) .area-restaurante :is([class*="border-green-"], [class*="border-emerald-"]) {
   border-color: color-mix(in srgb, var(--app-verde-sucesso) 42%, transparent) !important;
 }
 
-.area-restaurante :is([class*="text-amber-"], [class*="text-yellow-"], [class*="text-orange-"], [class*="text-app-amarelo-alerta"]) {
+:where(html:not([data-tema=escuro])) .area-restaurante :is([class*="text-amber-"], [class*="text-yellow-"], [class*="text-orange-"], [class*="text-app-amarelo-alerta"]) {
   color: var(--app-amarelo-alerta) !important;
 }
 
-.area-restaurante :is([class*="border-amber-"], [class*="border-yellow-"], [class*="border-orange-"]) {
+:where(html:not([data-tema=escuro])) .area-restaurante :is([class*="border-amber-"], [class*="border-yellow-"], [class*="border-orange-"]) {
   border-color: color-mix(in srgb, var(--app-amarelo-alerta) 42%, transparent) !important;
 }
 
-.area-restaurante :is(button, a, p, span)[class*="bg-red-"],
-.area-restaurante :is(button, a, p, span)[class*="bg-rose-"],
-.area-restaurante :is(button, a, p, span)[class*="bg-green-"],
-.area-restaurante :is(button, a, p, span)[class*="bg-emerald-"],
-.area-restaurante :is(button, a, p, span)[class*="bg-amber-"],
-.area-restaurante :is(button, a, p, span)[class*="bg-yellow-"],
-.area-restaurante :is(button, a, p, span)[class*="bg-orange-"],
-.area-restaurante :is(button, a, p, span)[class*="bg-app-vermelho-erro"],
-.area-restaurante :is(button, a, p, span)[class*="bg-app-dourado-mel/"],
-.area-restaurante :is(button, a, p, span)[class*="bg-app-caramelo-torrado/"] {
+:where(html:not([data-tema=escuro])) .area-restaurante :is(button, a, p, span)[class*="bg-red-"],
+:where(html:not([data-tema=escuro])) .area-restaurante :is(button, a, p, span)[class*="bg-rose-"],
+:where(html:not([data-tema=escuro])) .area-restaurante :is(button, a, p, span)[class*="bg-green-"],
+:where(html:not([data-tema=escuro])) .area-restaurante :is(button, a, p, span)[class*="bg-emerald-"],
+:where(html:not([data-tema=escuro])) .area-restaurante :is(button, a, p, span)[class*="bg-amber-"],
+:where(html:not([data-tema=escuro])) .area-restaurante :is(button, a, p, span)[class*="bg-yellow-"],
+:where(html:not([data-tema=escuro])) .area-restaurante :is(button, a, p, span)[class*="bg-orange-"],
+:where(html:not([data-tema=escuro])) .area-restaurante :is(button, a, p, span)[class*="bg-app-vermelho-erro"],
+:where(html:not([data-tema=escuro])) .area-restaurante :is(button, a, p, span)[class*="bg-app-dourado-mel/"],
+:where(html:not([data-tema=escuro])) .area-restaurante :is(button, a, p, span)[class*="bg-app-caramelo-torrado/"] {
   background-color: transparent !important;
 }
 
-.area-restaurante.tema-escuro {
-  --app-fundo-destaque: #000000;
-  --app-cacau-intenso: #050505;
-  --app-caramelo-torrado: #d89a6f;
-  --app-creme-suave: #1a1a1a;
-  --app-baunilha-dourada: #c9a878;
-  --app-cafe-profundo: #f6eee5;
-  --app-mocha: #d8c5b4;
-  --app-dourado-mel: #cf8150;
-  --app-creme-leve: #0f0f0f;
-  --app-areia-quente: #d29358;
-  --app-chantilly: #050505;
-  --app-chantilly-hover: #1a1a1a;
-  --app-texto-escuro: #fffaf2;
-  --app-cinza: #a8a29a;
-  --app-botao-aba-ativa:#cf8150;
-  --app-botao-aba-ativa-texto: #241713;
-}
-
-.area-restaurante.tema-escuro [class*="text-app-botao-aba-ativa-texto"],
-.area-restaurante.tema-escuro [class*="text-app-botao-aba-ativa-texto"] strong,
-.area-restaurante.tema-escuro [class*="text-app-botao-aba-ativa-texto"] span {
-  color: var(--app-botao-aba-ativa-texto) !important;
-}
-
-.area-restaurante.tema-escuro main {
-  background: var(--app-fundo-destaque) !important;
-  color: var(--app-cafe-profundo);
-}
-
-.area-restaurante.tema-escuro main > header {
-  border-bottom-color: rgb(216 154 111 / 0.18);
-  background: rgb(16 11 9 / 0.86) !important;
-  box-shadow: 0 14px 40px rgb(0 0 0 / 0.36);
-  backdrop-filter: blur(18px) saturate(1.1);
-}
-
-.area-restaurante.tema-escuro :is(h1, h2, h3, strong, label) {
-  color: #fff8ee;
-}
-
-.area-restaurante.tema-escuro :is(p, span, small) {
-  color: inherit;
-}
-
-.area-restaurante.tema-escuro .text-app-cinza {
-  color: #aa998c !important;
-}
-
-.area-restaurante.tema-escuro .text-app-mocha {
-  color: #d8c5b4 !important;
-}
-
-.area-restaurante.tema-escuro .text-app-caramelo-torrado {
-  color: #d89a6f !important;
-}
-
-.area-restaurante.tema-escuro main > header nav a {
-  color: #d8c5b4;
-}
-
-.area-restaurante.tema-escuro main > header nav a:hover,
-.area-restaurante.tema-escuro main > header button:hover,
-.area-restaurante.tema-escuro :is(button, a)[class*="border-app"]:hover {
-  background-color: var(--app-chantilly-hover) !important;
-  color: #f0b487 !important;
-}
-
-.area-restaurante.tema-escuro main > header button,
-.area-restaurante.tema-escuro .bg-white,
-.area-restaurante.tema-escuro .bg-white\/95,
-.area-restaurante.tema-escuro .bg-white\/90,
-.area-restaurante.tema-escuro .bg-white\/80,
-.area-restaurante.tema-escuro :is(header, nav, section, article, aside, form, div, label, input, textarea, select, span, button)[class*="bg-app-creme-leve"],
-.area-restaurante.tema-escuro :is(section, article, aside, form, div)[class*="bg-app-chantilly"],
-.area-restaurante.tema-escuro :is(header, nav, section, article, aside, form, div, label, input, textarea, select, span, button)[class*="bg-app-creme-suave"] {
-  background-color: #18110f !important;
-}
-
-.area-restaurante.tema-escuro :is(section, article, aside, form, div)[class*="bg-white"],
-.area-restaurante.tema-escuro :is(section, article, aside, form, div)[class*="bg-app-creme-leve"],
-.area-restaurante.tema-escuro :is(section, article, aside, form, div)[class*="bg-app-creme-suave"] {
-  background-image: linear-gradient(180deg, rgb(255 255 255 / 0.035), rgb(255 255 255 / 0.012));
-}
-
-.area-restaurante.tema-escuro :is(section, article, aside, form)[class*="shadow"],
-.area-restaurante.tema-escuro :is(section, article, aside, form)[class*="ring-1"],
-.area-restaurante.tema-escuro :is(div, label)[class*="ring-1"] {
-  border-color: rgb(216 154 111 / 0.16);
-  box-shadow:
-    0 18px 46px rgb(0 0 0 / 0.34),
-    inset 0 1px 0 rgb(255 255 255 / 0.035);
-}
-
-.area-restaurante.tema-escuro .ring-app-baunilha-dourada,
-.area-restaurante.tema-escuro .ring-app-baunilha-dourada\/45,
-.area-restaurante.tema-escuro .ring-app-baunilha-dourada\/50,
-.area-restaurante.tema-escuro .ring-app-baunilha-dourada\/55,
-.area-restaurante.tema-escuro .ring-app-baunilha-dourada\/60,
-.area-restaurante.tema-escuro .ring-app-baunilha-dourada\/65,
-.area-restaurante.tema-escuro .ring-app-baunilha-dourada\/70,
-.area-restaurante.tema-escuro .ring-app-baunilha-dourada\/75 {
-  --tw-ring-color: rgb(216 154 111 / 0.18) !important;
-}
-
-.area-restaurante.tema-escuro .border-app-baunilha-dourada,
-.area-restaurante.tema-escuro .border-app-baunilha-dourada\/45,
-.area-restaurante.tema-escuro .border-app-baunilha-dourada\/50,
-.area-restaurante.tema-escuro .border-app-baunilha-dourada\/55,
-.area-restaurante.tema-escuro .border-app-baunilha-dourada\/60,
-.area-restaurante.tema-escuro .border-app-baunilha-dourada\/65,
-.area-restaurante.tema-escuro .border-app-baunilha-dourada\/70 {
-  border-color: rgb(216 154 111 / 0.22) !important;
-}
-
-.area-restaurante.tema-escuro :is(input, textarea, select),
-.area-restaurante.tema-escuro .campo-busca-app {
-  background-color: #201713 !important;
-  border-color: rgb(216 154 111 / 0.22) !important;
-  color: var(--app-cafe-profundo) !important;
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.03);
-}
-
-.area-restaurante.tema-escuro :is(input, textarea, select)::placeholder,
-.area-restaurante.tema-escuro .input-busca-app::placeholder {
-  color: rgb(217 199 181 / 0.55) !important;
-}
-
-.area-restaurante.tema-escuro :is(input, textarea, select):focus,
-.area-restaurante.tema-escuro .campo-busca-app:focus-within {
-  border-color: #d89a6f !important;
-  box-shadow:
-    0 0 0 3px rgb(216 154 111 / 0.16),
-    0 12px 24px rgb(0 0 0 / 0.18) !important;
-}
-
-.area-restaurante.tema-escuro :is(article, section, aside)[class*="bg-app-creme-leve"]:hover,
-.area-restaurante.tema-escuro :is(article, section, aside)[class*="bg-white"]:hover {
-  background-color: #201713 !important;
-  box-shadow:
-    0 24px 56px rgb(0 0 0 / 0.42),
-    inset 0 1px 0 rgb(255 255 255 / 0.05);
-}
-
-.area-restaurante.tema-escuro :is(button, a)[class*="bg-app-dourado-mel"],
-.area-restaurante.tema-escuro :is(button, a)[class*="bg-app-caramelo-torrado"] {
-  background-color: #cf8150 !important;
-  color: #120d0b !important;
-  box-shadow: 0 14px 28px rgb(207 129 80 / 0.18);
-}
-
-.area-restaurante.tema-escuro :is(button, a)[class*="bg-app-dourado-mel"]:hover,
-.area-restaurante.tema-escuro :is(button, a)[class*="bg-app-caramelo-torrado"]:hover {
-  background-color: #e0a174 !important;
-  color: #0f0b09 !important;
-}
-
-.area-restaurante.tema-escuro :is(button, a)[class*="bg-app-cafe-profundo"] {
-  background-color: #f6eee5 !important;
-  color: #130f0d !important;
-}
-
-.area-restaurante.tema-escuro .bg-app-baunilha-dourada,
-.area-restaurante.tema-escuro .bg-app-baunilha-dourada\/25,
-.area-restaurante.tema-escuro .bg-app-baunilha-dourada\/35,
-.area-restaurante.tema-escuro .bg-app-baunilha-dourada\/45,
-.area-restaurante.tema-escuro .bg-app-baunilha-dourada\/55 {
-  background-color: rgb(216 154 111 / 0.12) !important;
-}
-
-.area-restaurante.tema-escuro .hover\:bg-app-baunilha-dourada:hover,
-.area-restaurante.tema-escuro .hover\:bg-app-baunilha-dourada\/45:hover {
-  background-color: rgb(216 154 111 / 0.18) !important;
-}
-
-.area-restaurante.tema-escuro :is(button, a, p, span)[class*="bg-red-"],
-.area-restaurante.tema-escuro :is(button, a, p, span)[class*="bg-rose-"],
-.area-restaurante.tema-escuro :is(button, a, p, span)[class*="bg-green-"],
-.area-restaurante.tema-escuro :is(button, a, p, span)[class*="bg-emerald-"],
-.area-restaurante.tema-escuro :is(button, a, p, span)[class*="bg-amber-"],
-.area-restaurante.tema-escuro :is(button, a, p, span)[class*="bg-yellow-"],
-.area-restaurante.tema-escuro :is(button, a, p, span)[class*="bg-orange-"],
-.area-restaurante.tema-escuro :is(button, a, p, span)[class*="bg-app-vermelho-erro"],
-.area-restaurante.tema-escuro :is(button, a, p, span)[class*="bg-app-dourado-mel/"],
-.area-restaurante.tema-escuro :is(button, a, p, span)[class*="bg-app-caramelo-torrado/"] {
-  background-color: transparent !important;
-}
-
-.area-cliente main {
+:where(html:not([data-tema=escuro])) .area-cliente main {
   background: var(--app-chantilly) !important;
   color: var(--app-cafe-profundo);
 }
 
 .area-cliente main > header {
+  backdrop-filter: blur(16px);
+}
+
+:where(html:not([data-tema=escuro])) .area-cliente main > header {
   border-bottom-color: rgb(148 117 83 / 0.5);
   background: rgb(255 255 255 / 0.95) !important;
   color: var(--app-cafe-profundo);
   box-shadow: 0 8px 24px rgb(76 48 31 / 8%);
-  backdrop-filter: blur(16px);
 }
 
-.area-cliente main > header nav {
+:where(html:not([data-tema=escuro])) .area-cliente main > header nav {
   background: transparent !important;
 }
 
 .area-cliente main > header nav a {
   border-radius: 999px;
   padding: 0.4rem 0.75rem;
+}
+
+:where(html:not([data-tema=escuro])) .area-cliente main > header nav a {
   color: var(--app-cinza);
 }
 
-.area-cliente main > header nav a:hover {
+:where(html:not([data-tema=escuro])) .area-cliente main > header nav a:hover {
   background-color: var(--app-chantilly-hover);
   color: var(--app-caramelo-torrado) !important;
 }
 
 .area-cliente main > header button {
   border-radius: 999px !important;
+}
+
+:where(html:not([data-tema=escuro])) .area-cliente main > header button {
   border-color: rgb(148 117 83 / 0.55) !important;
   background-color: #ffffff !important;
   color: var(--app-cafe-profundo) !important;
 }
 
-.area-cliente main > header button:hover {
+:where(html:not([data-tema=escuro])) .area-cliente main > header button:hover {
   background-color: var(--app-chantilly-hover) !important;
   color: var(--app-caramelo-torrado) !important;
 }
 
-.area-cliente .bg-white,
-.area-cliente .bg-white\/95,
-.area-cliente .bg-white\/90,
-.area-cliente .bg-white\/80 {
+:where(html:not([data-tema=escuro])) .area-cliente .bg-white,
+:where(html:not([data-tema=escuro])) .area-cliente .bg-white\/95,
+:where(html:not([data-tema=escuro])) .area-cliente .bg-white\/90,
+:where(html:not([data-tema=escuro])) .area-cliente .bg-white\/80 {
   background-color: #ffffff !important;
 }
 
-.area-cliente :is(header, nav, section, article, aside, form, div, label, input, textarea, select, span, button)[class*="bg-app-creme-leve"] {
+:where(html:not([data-tema=escuro])) .area-cliente :is(header, nav, section, article, aside, form, div, label, input, textarea, select, span, button)[class*="bg-app-creme-leve"] {
   background-color: #ffffff !important;
 }
 
-.area-cliente :is(section, article, aside, form, div)[class*="bg-app-chantilly"] {
+:where(html:not([data-tema=escuro])) .area-cliente :is(section, article, aside, form, div)[class*="bg-app-chantilly"] {
   background-color: var(--app-chantilly) !important;
 }
 
-.area-cliente :is(header, nav, section, article, aside, form, div, label, input, textarea, select, span, button)[class*="bg-app-creme-suave"] {
+:where(html:not([data-tema=escuro])) .area-cliente :is(header, nav, section, article, aside, form, div, label, input, textarea, select, span, button)[class*="bg-app-creme-suave"] {
   background-color: #ffffff !important;
 }
 
@@ -1194,351 +965,144 @@ body > div:not(.area-autenticada) select {
   border-radius: 0.9rem;
 }
 
-.area-cliente :is(section, article, aside, form)[class*="shadow"],
-.area-cliente :is(section, article, aside, form)[class*="ring-1"] {
+:where(html:not([data-tema=escuro])) .area-cliente :is(section, article, aside, form)[class*="shadow"],
+:where(html:not([data-tema=escuro])) .area-cliente :is(section, article, aside, form)[class*="ring-1"] {
   border: 1px solid rgb(148 117 83 / 0.22);
   box-shadow: 0 16px 36px rgb(76 48 31 / 10%);
 }
 
-.area-cliente :is(article, section, aside)[class*="bg-app-creme-leve"]:hover,
-.area-cliente :is(article, section, aside)[class*="bg-white"]:hover {
+:where(html:not([data-tema=escuro])) .area-cliente :is(article, section, aside)[class*="bg-app-creme-leve"]:hover,
+:where(html:not([data-tema=escuro])) .area-cliente :is(article, section, aside)[class*="bg-white"]:hover {
   box-shadow: 0 20px 46px rgb(76 48 31 / 13%);
 }
 
-.area-cliente :is(input, textarea, select),
-.area-cliente .campo-busca-app {
+:where(html:not([data-tema=escuro])) .area-cliente :is(input, textarea, select),
+:where(html:not([data-tema=escuro])) .area-cliente .campo-busca-app {
   background-color: #ffffff !important;
   border-color: rgb(148 117 83 / 0.58) !important;
 }
 
-.area-cliente :is(input, textarea, select):focus,
-.area-cliente .campo-busca-app:focus-within {
+:where(html:not([data-tema=escuro])) .area-cliente :is(input, textarea, select):focus,
+:where(html:not([data-tema=escuro])) .area-cliente .campo-busca-app:focus-within {
   border-color: var(--app-caramelo-torrado) !important;
   box-shadow: 0 0 0 3px rgb(179 95 50 / 0.16) !important;
 }
 
-.area-cliente :is(button, a)[class*="bg-app-dourado-mel"],
-.area-cliente :is(button, a)[class*="bg-app-caramelo-torrado"] {
+:where(html:not([data-tema=escuro])) .area-cliente :is(button, a)[class*="bg-app-dourado-mel"],
+:where(html:not([data-tema=escuro])) .area-cliente :is(button, a)[class*="bg-app-caramelo-torrado"] {
   background-color: var(--app-caramelo-torrado) !important;
   color: white !important;
 }
 
-.area-cliente :is(button, a)[class*="bg-app-dourado-mel"]:hover,
-.area-cliente :is(button, a)[class*="bg-app-caramelo-torrado"]:hover {
+:where(html:not([data-tema=escuro])) .area-cliente :is(button, a)[class*="bg-app-dourado-mel"]:hover,
+:where(html:not([data-tema=escuro])) .area-cliente :is(button, a)[class*="bg-app-caramelo-torrado"]:hover {
   background-color: var(--app-cafe-profundo) !important;
 }
 
-.area-cliente :is(button, a)[class*="bg-app-cafe-profundo"] {
+:where(html:not([data-tema=escuro])) .area-cliente :is(button, a)[class*="bg-app-cafe-profundo"] {
   background-color: var(--app-cafe-profundo) !important;
   color: var(--app-creme-leve) !important;
 }
 
-.area-cliente :is(button, a)[class*="border-app"] {
+:where(html:not([data-tema=escuro])) .area-cliente :is(button, a)[class*="border-app"] {
   background-color: transparent;
 }
 
-.area-cliente :is(button, a)[class*="border-app"]:hover {
+:where(html:not([data-tema=escuro])) .area-cliente :is(button, a)[class*="border-app"]:hover {
   background-color: var(--app-chantilly-hover);
 }
 
-.area-cliente :is([class*="text-app-vermelho-erro"], [class*="text-red-"]) {
+:where(html:not([data-tema=escuro])) .area-cliente :is([class*="text-app-vermelho-erro"], [class*="text-red-"]) {
   color: var(--app-vermelho-erro) !important;
 }
 
-.area-cliente :is([class*="border-red-"], [class*="border-app-vermelho-erro"]) {
+:where(html:not([data-tema=escuro])) .area-cliente :is([class*="border-red-"], [class*="border-app-vermelho-erro"]) {
   border-color: color-mix(in srgb, var(--app-vermelho-erro) 42%, transparent) !important;
 }
 
-.area-cliente :is([class*="text-green-"], [class*="text-emerald-"]) {
+:where(html:not([data-tema=escuro])) .area-cliente :is([class*="text-green-"], [class*="text-emerald-"]) {
   color: var(--app-verde-sucesso) !important;
 }
 
-.area-cliente :is([class*="border-green-"], [class*="border-emerald-"]) {
+:where(html:not([data-tema=escuro])) .area-cliente :is([class*="border-green-"], [class*="border-emerald-"]) {
   border-color: color-mix(in srgb, var(--app-verde-sucesso) 42%, transparent) !important;
 }
 
-.area-cliente :is([class*="text-amber-"], [class*="text-yellow-"], [class*="text-orange-"], [class*="text-app-amarelo-alerta"]) {
+:where(html:not([data-tema=escuro])) .area-cliente :is([class*="text-amber-"], [class*="text-yellow-"], [class*="text-orange-"], [class*="text-app-amarelo-alerta"]) {
   color: var(--app-amarelo-alerta) !important;
 }
 
-.area-cliente :is([class*="border-amber-"], [class*="border-yellow-"], [class*="border-orange-"]) {
+:where(html:not([data-tema=escuro])) .area-cliente :is([class*="border-amber-"], [class*="border-yellow-"], [class*="border-orange-"]) {
   border-color: color-mix(in srgb, var(--app-amarelo-alerta) 42%, transparent) !important;
 }
 
-.area-cliente :is(button, a, p, span)[class*="bg-red-"],
-.area-cliente :is(button, a, p, span)[class*="bg-rose-"],
-.area-cliente :is(button, a, p, span)[class*="bg-green-"],
-.area-cliente :is(button, a, p, span)[class*="bg-emerald-"],
-.area-cliente :is(button, a, p, span)[class*="bg-amber-"],
-.area-cliente :is(button, a, p, span)[class*="bg-yellow-"],
-.area-cliente :is(button, a, p, span)[class*="bg-orange-"],
-.area-cliente :is(button, a, p, span)[class*="bg-app-vermelho-erro"],
-.area-cliente :is(button, a, p, span)[class*="bg-app-dourado-mel/"],
-.area-cliente :is(button, a, p, span)[class*="bg-app-caramelo-torrado/"] {
+:where(html:not([data-tema=escuro])) .area-cliente :is(button, a, p, span)[class*="bg-red-"],
+:where(html:not([data-tema=escuro])) .area-cliente :is(button, a, p, span)[class*="bg-rose-"],
+:where(html:not([data-tema=escuro])) .area-cliente :is(button, a, p, span)[class*="bg-green-"],
+:where(html:not([data-tema=escuro])) .area-cliente :is(button, a, p, span)[class*="bg-emerald-"],
+:where(html:not([data-tema=escuro])) .area-cliente :is(button, a, p, span)[class*="bg-amber-"],
+:where(html:not([data-tema=escuro])) .area-cliente :is(button, a, p, span)[class*="bg-yellow-"],
+:where(html:not([data-tema=escuro])) .area-cliente :is(button, a, p, span)[class*="bg-orange-"],
+:where(html:not([data-tema=escuro])) .area-cliente :is(button, a, p, span)[class*="bg-app-vermelho-erro"],
+:where(html:not([data-tema=escuro])) .area-cliente :is(button, a, p, span)[class*="bg-app-dourado-mel/"],
+:where(html:not([data-tema=escuro])) .area-cliente :is(button, a, p, span)[class*="bg-app-caramelo-torrado/"] {
   background-color: transparent !important;
 }
 
-.botao-acao-critica {
+:where(html:not([data-tema=escuro])) .botao-acao-critica {
   background-color: #dc2626 !important;
   color: #ffffff !important;
 }
 
-.botao-acao-critica:hover {
+:where(html:not([data-tema=escuro])) .botao-acao-critica:hover {
   background-color: #b91c1c !important;
 }
 
-.area-cliente.tema-escuro {
-  --app-cacau-intenso: #050505;
-  --app-caramelo-torrado: #d89a6f;
-  --app-creme-suave: #1a1a1a;
-  --app-baunilha-dourada: #c9a878;
-  --app-cafe-profundo: #f6eee5;
-  --app-mocha: #d8c5b4;
-  --app-dourado-mel: #cf8150;
-  --app-creme-leve: #0f0f0f;
-  --app-areia-quente: #d29358;
-  --app-chantilly: #050505;
-  --app-chantilly-hover: #1a1a1a;
-  --app-texto-escuro: #fffaf2;
-  --app-cinza: #a8a29a;
-  --app-botao-aba-ativa: #2b1a10;
-  --app-botao-aba-ativa-texto: #241713;
-}
-
-.area-cliente.tema-escuro main {
-  background:
-    radial-gradient(circle at 12% -8%, rgb(207 129 80 / 0.14), transparent 28rem),
-    radial-gradient(circle at 92% 4%, rgb(143 118 98 / 0.12), transparent 26rem),
-    linear-gradient(180deg, #100b09 0%, #15100d 48%, #0d0908 100%) !important;
-  color: var(--app-cafe-profundo);
-}
-
-.area-cliente.tema-escuro main > header {
-  border-bottom-color: rgb(216 154 111 / 0.18);
-  background: rgb(16 11 9 / 0.86) !important;
-  box-shadow: 0 14px 40px rgb(0 0 0 / 0.36);
-  backdrop-filter: blur(18px) saturate(1.1);
-}
-
-.area-cliente.tema-escuro :is(h1, h2, h3, strong, label) {
-  color: #fff8ee;
-}
-
-.area-cliente.tema-escuro :is(p, span, small) {
-  color: inherit;
-}
-
-.area-cliente.tema-escuro .text-app-cinza {
-  color: #aa998c !important;
-}
-
-.area-cliente.tema-escuro .text-app-mocha {
-  color: #d8c5b4 !important;
-}
-
-.area-cliente.tema-escuro .text-app-caramelo-torrado {
-  color: #d89a6f !important;
-}
-
-.area-cliente.tema-escuro main > header nav a {
-  color: #d8c5b4;
-}
-
-.area-cliente.tema-escuro main > header nav a:hover,
-.area-cliente.tema-escuro main > header button:hover,
-.area-cliente.tema-escuro :is(button, a)[class*="border-app"]:hover {
-  background-color: var(--app-chantilly-hover) !important;
-  color: #f0b487 !important;
-}
-
-.area-cliente.tema-escuro main > header button,
-.area-cliente.tema-escuro .bg-white,
-.area-cliente.tema-escuro .bg-white\/95,
-.area-cliente.tema-escuro .bg-white\/90,
-.area-cliente.tema-escuro .bg-white\/80,
-.area-cliente.tema-escuro :is(header, nav, section, article, aside, form, div, label, input, textarea, select, span, button)[class*="bg-app-creme-leve"],
-.area-cliente.tema-escuro :is(section, article, aside, form, div)[class*="bg-app-chantilly"],
-.area-cliente.tema-escuro :is(header, nav, section, article, aside, form, div, label, input, textarea, select, span, button)[class*="bg-app-creme-suave"] {
-  background-color: #18110f !important;
-}
-
-.area-cliente.tema-escuro :is(section, article, aside, form, div)[class*="bg-white"],
-.area-cliente.tema-escuro :is(section, article, aside, form, div)[class*="bg-app-creme-leve"],
-.area-cliente.tema-escuro :is(section, article, aside, form, div)[class*="bg-app-creme-suave"] {
-  background-image: linear-gradient(180deg, rgb(255 255 255 / 0.035), rgb(255 255 255 / 0.012));
-}
-
-.area-cliente.tema-escuro :is(section, article, aside, form)[class*="shadow"],
-.area-cliente.tema-escuro :is(section, article, aside, form)[class*="ring-1"],
-.area-cliente.tema-escuro :is(div, label)[class*="ring-1"] {
-  border-color: rgb(216 154 111 / 0.16);
-  box-shadow:
-    0 18px 46px rgb(0 0 0 / 0.34),
-    inset 0 1px 0 rgb(255 255 255 / 0.035);
-}
-
-.area-cliente.tema-escuro .ring-app-baunilha-dourada,
-.area-cliente.tema-escuro .ring-app-baunilha-dourada\/45,
-.area-cliente.tema-escuro .ring-app-baunilha-dourada\/50,
-.area-cliente.tema-escuro .ring-app-baunilha-dourada\/55,
-.area-cliente.tema-escuro .ring-app-baunilha-dourada\/60,
-.area-cliente.tema-escuro .ring-app-baunilha-dourada\/65,
-.area-cliente.tema-escuro .ring-app-baunilha-dourada\/70,
-.area-cliente.tema-escuro .ring-app-baunilha-dourada\/75 {
-  --tw-ring-color: rgb(216 154 111 / 0.18) !important;
-}
-
-.area-cliente.tema-escuro .border-app-baunilha-dourada,
-.area-cliente.tema-escuro .border-app-baunilha-dourada\/45,
-.area-cliente.tema-escuro .border-app-baunilha-dourada\/50,
-.area-cliente.tema-escuro .border-app-baunilha-dourada\/55,
-.area-cliente.tema-escuro .border-app-baunilha-dourada\/60,
-.area-cliente.tema-escuro .border-app-baunilha-dourada\/65,
-.area-cliente.tema-escuro .border-app-baunilha-dourada\/70 {
-  border-color: rgb(216 154 111 / 0.22) !important;
-}
-
-.area-cliente.tema-escuro :is(input, textarea, select),
-.area-cliente.tema-escuro .campo-busca-app {
-  background-color: #201713 !important;
-  border-color: rgb(216 154 111 / 0.22) !important;
-  color: var(--app-cafe-profundo) !important;
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.03);
-}
-
-.area-cliente.tema-escuro :is(input, textarea, select)::placeholder,
-.area-cliente.tema-escuro .input-busca-app::placeholder {
-  color: rgb(217 199 181 / 0.55) !important;
-}
-
-.area-cliente.tema-escuro :is(input, textarea, select):focus,
-.area-cliente.tema-escuro .campo-busca-app:focus-within {
-  border-color: #d89a6f !important;
-  box-shadow:
-    0 0 0 3px rgb(216 154 111 / 0.16),
-    0 12px 24px rgb(0 0 0 / 0.18) !important;
-}
-
-.area-cliente.tema-escuro :is(article, section, aside)[class*="bg-app-creme-leve"]:hover,
-.area-cliente.tema-escuro :is(article, section, aside)[class*="bg-white"]:hover {
-  background-color: #201713 !important;
-  box-shadow:
-    0 24px 56px rgb(0 0 0 / 0.42),
-    inset 0 1px 0 rgb(255 255 255 / 0.05);
-}
-
-.area-cliente.tema-escuro :is(button, a)[class*="bg-app-dourado-mel"],
-.area-cliente.tema-escuro :is(button, a)[class*="bg-app-caramelo-torrado"] {
-  background-color: #cf8150 !important;
-  color: #120d0b !important;
-  box-shadow: 0 14px 28px rgb(207 129 80 / 0.18);
-}
-
-.area-cliente.tema-escuro :is(button, a)[class*="bg-app-dourado-mel"]:hover,
-.area-cliente.tema-escuro :is(button, a)[class*="bg-app-caramelo-torrado"]:hover {
-  background-color: #e0a174 !important;
-  color: #0f0b09 !important;
-}
-
-.area-cliente.tema-escuro :is(button, a)[class*="bg-app-cafe-profundo"] {
-  background-color: #f6eee5 !important;
-  color: #130f0d !important;
-}
-
-.area-cliente.tema-escuro .bg-app-baunilha-dourada,
-.area-cliente.tema-escuro .bg-app-baunilha-dourada\/25,
-.area-cliente.tema-escuro .bg-app-baunilha-dourada\/35,
-.area-cliente.tema-escuro .bg-app-baunilha-dourada\/45,
-.area-cliente.tema-escuro .bg-app-baunilha-dourada\/55 {
-  background-color: rgb(216 154 111 / 0.12) !important;
-}
-
-.area-cliente.tema-escuro .hover\:bg-app-baunilha-dourada:hover,
-.area-cliente.tema-escuro .hover\:bg-app-baunilha-dourada\/45:hover {
-  background-color: rgb(216 154 111 / 0.18) !important;
-}
-
-.home-publica,
-.home-publica.bg-white,
-.home-publica .bg-white,
-.home-publica .bg-white\/95,
-.home-publica .bg-white\/90,
-.home-publica .bg-white\/80 {
+:where(html:not([data-tema=escuro])) .home-publica,
+:where(html:not([data-tema=escuro])) .home-publica.bg-white,
+:where(html:not([data-tema=escuro])) .home-publica .bg-white,
+:where(html:not([data-tema=escuro])) .home-publica .bg-white\/95,
+:where(html:not([data-tema=escuro])) .home-publica .bg-white\/90,
+:where(html:not([data-tema=escuro])) .home-publica .bg-white\/80 {
   background-color: #ffffff !important;
 }
 
-.home-publica header.bg-white\/95 {
+:where(html:not([data-tema=escuro])) .home-publica header.bg-white\/95 {
   background-color: rgb(255 255 255 / 0.95) !important;
 }
 
-.home-publica .hover\:bg-white\/10:hover {
+:where(html:not([data-tema=escuro])) .home-publica .hover\:bg-white\/10:hover {
   background-color: rgb(255 255 255 / 0.1) !important;
 }
 
 /* As regras públicas acima preservam o visual claro; estas sobrescrevem-nas
    quando o usuário escolhe o tema escuro na página inicial. */
-.home-publica.tema-escuro,
-.home-publica.tema-escuro.bg-white {
-  background-color: #130f0d !important;
-}
 
-.home-publica.tema-escuro .bg-white,
-.home-publica.tema-escuro .bg-white\/90,
-.home-publica.tema-escuro .bg-white\/80 {
-  background-color: #211914 !important;
-}
-
-.home-publica.tema-escuro header.bg-white\/95 {
-  background-color: rgb(33 25 20 / 0.95) !important;
-}
-
-.home-publica.tema-escuro .hover\:bg-white\/10:hover {
-  background-color: rgb(255 247 236 / 0.14) !important;
-}
-
-.home-publica.tema-escuro img[src^="/brand/"] {
-  /* Mantém a marca em dourado sobre as superfícies escuras, sem estourar em branco. */
-  filter: brightness(0) saturate(100%) invert(72%) sepia(31%) saturate(845%) hue-rotate(338deg) brightness(93%) contrast(91%) !important;
-}
-
-.home-publica.tema-escuro #inicio.bg-app-cafe-profundo {
-  background-color: #0f0b09 !important;
-}
-
-.home-publica.tema-escuro #inicio > [class*="bg-gradient-to-b"] {
-  background-image: linear-gradient(to bottom, rgb(15 11 9 / 0.16), rgb(15 11 9 / 0.52), rgb(15 11 9 / 0.9)) !important;
-}
-
-.home-publica.tema-escuro #inicio .bg-white {
-  background-color: #d18452 !important;
-  color: #1b110d !important;
-}
-
-body > div:not(.area-autenticada) .home-publica :is(form, section, article, div)[class*="bg-white"] {
+:where(html:not([data-tema=escuro])) body > div:not(.area-autenticada) .home-publica :is(form, section, article, div)[class*="bg-white"] {
   border-color: rgb(181 154 120 / 0.6);
 }
 
-.auth-publica,
-.auth-publica.bg-white,
-.auth-publica .bg-white,
-.auth-publica .bg-white\/95,
-.auth-publica .bg-white\/90,
-.auth-publica .bg-white\/80 {
+:where(html:not([data-tema=escuro])) .auth-publica,
+:where(html:not([data-tema=escuro])) .auth-publica.bg-white,
+:where(html:not([data-tema=escuro])) .auth-publica .bg-white,
+:where(html:not([data-tema=escuro])) .auth-publica .bg-white\/95,
+:where(html:not([data-tema=escuro])) .auth-publica .bg-white\/90,
+:where(html:not([data-tema=escuro])) .auth-publica .bg-white\/80 {
   background-color: #ffffff !important;
 }
 
-.auth-publica :is(form, section, article, div)[class*="bg-white"],
-body > div:not(.area-autenticada) .auth-publica :is(form, section, article, div)[class*="bg-white"] {
+:where(html:not([data-tema=escuro])) .auth-publica :is(form, section, article, div)[class*="bg-white"],
+:where(html:not([data-tema=escuro])) body > div:not(.area-autenticada) .auth-publica :is(form, section, article, div)[class*="bg-white"] {
   background-color: #ffffff !important;
 }
 
-.auth-publica :is(input, textarea, select)[class*="bg-white"] {
+:where(html:not([data-tema=escuro])) .auth-publica :is(input, textarea, select)[class*="bg-white"] {
   background-color: #ffffff !important;
 }
 
-.hover\:bg-app-chantilly:hover,
-.hover\:bg-app-creme-suave:hover,
-.hover\:bg-app-creme-leve:hover {
+:where(html:not([data-tema=escuro])) .hover\:bg-app-chantilly:hover,
+:where(html:not([data-tema=escuro])) .hover\:bg-app-creme-suave:hover,
+:where(html:not([data-tema=escuro])) .hover\:bg-app-creme-leve:hover {
   background-color: var(--app-chantilly-hover) !important;
 }
 

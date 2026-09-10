@@ -1,5 +1,6 @@
 "use client";
 
+import { useInterface } from "@/lib/use-interface";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -38,13 +39,9 @@ function Icon({ type, className = "h-5 w-5" }) {
   );
 }
 
-function obterContextoConversa(conversa) {
-  if (conversa?.pedido) return `Pedido #${conversa.pedido.id_pedido}`;
-  if (conversa?.reserva) return `Reserva #${conversa.reserva.id_reserva}`;
-  return "Conversa direta";
-}
 
 export default function RestaurantMessagesPage() {
+    const { ui, dataHoraUI } = useInterface();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [filtro, setFiltro] = useState("todas");
   const [busca, setBusca] = useState("");
@@ -104,17 +101,17 @@ export default function RestaurantMessagesPage() {
     <main className="flex min-h-screen flex-col bg-white text-app-cafe-profundo">
       <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-white/90 text-app-cafe-profundo shadow-sm backdrop-blur-md">
         <div className="mx-auto grid h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-5 lg:h-20">
-          <Image src="/brand/appono-mark.svg" alt="Appono" width={88} height={88} className="h-11 w-11 lg:h-14 lg:w-14" priority />
+          <Image src="/brand/appono-mark.svg" alt={ui("Appono")} width={88} height={88} className="h-11 w-11 lg:h-14 lg:w-14" priority />
           <nav className="hidden items-center justify-self-center gap-6 text-xs font-semibold text-app-cinza xl:flex">
             {navItems.map((item) => (
               <Link key={item.label} href={item.href} className={item.href === "/restaurante/mensagens" ? "text-app-cafe-profundo" : "transition hover:text-app-cafe-profundo"}>
-                {item.label}
+                {ui(item.label)}
               </Link>
             ))}
           </nav>
           <div className="flex items-center justify-self-end gap-3">
             <ItemHeaderNotificacoes href="/restaurante/notificacoes" />
-            <button type="button" onClick={() => setMobileMenuOpen((current) => !current)} className="flex h-9 w-9 items-center justify-center rounded-[8px] border border-app-baunilha-dourada bg-white xl:hidden" aria-label="Abrir menu">
+            <button type="button" onClick={() => setMobileMenuOpen((current) => !current)} className="flex h-9 w-9 items-center justify-center rounded-[8px] border border-app-baunilha-dourada bg-white xl:hidden" aria-label={ui("Abrir menu")}>
               <Icon type="menu" />
             </button>
           </div>
@@ -124,7 +121,7 @@ export default function RestaurantMessagesPage() {
             <div className="mx-auto grid max-w-7xl gap-2 text-xs font-semibold text-app-cinza">
               {navItems.map((item) => (
                 <Link key={item.label} href={item.href} onClick={() => setMobileMenuOpen(false)} className={item.href === "/restaurante/mensagens" ? "text-app-cafe-profundo" : "transition hover:text-app-cafe-profundo"}>
-                  {item.label}
+                  {ui(item.label)}
                 </Link>
               ))}
             </div>
@@ -136,33 +133,33 @@ export default function RestaurantMessagesPage() {
         <div className="overflow-hidden rounded-[24px] bg-app-cafe-profundo text-app-creme-leve shadow-sm">
           <div className="grid gap-8 p-6 sm:p-8 lg:grid-cols-[1fr_420px] lg:items-end">
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-app-baunilha-dourada">Atendimento</p>
-              <h1 className="mt-3 text-4xl font-semibold leading-tight sm:text-6xl">Mensagens recebidas</h1>
-              <p className="mt-4 max-w-2xl text-sm leading-6 text-app-creme-suave">Acompanhe conversas de clientes com contexto de reserva, pedido antecipado e horário de atendimento.</p>
+              <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-app-baunilha-dourada">{ui("Atendimento")}</p>
+              <h1 className="mt-3 text-4xl font-semibold leading-tight sm:text-6xl">{ui("Mensagens recebidas")}</h1>
+              <p className="mt-4 max-w-2xl text-sm leading-6 text-app-creme-suave">{ui("Acompanhe conversas de clientes com contexto de reserva, pedido antecipado e horário de atendimento.")}</p>
             </div>
             <div className="grid gap-3 rounded-[18px] bg-white/10 p-3 ring-1 ring-white/10">
               <label className="flex h-12 items-center gap-3 rounded-[12px] bg-white px-4 text-app-cafe-profundo shadow-sm transition focus-within:ring-2 focus-within:ring-app-dourado-mel/35">
                 <Icon type="search" className="h-4 w-4 text-app-cinza" />
-                <input value={busca} onChange={(event) => setBusca(event.target.value)} placeholder="Buscar cliente ou mensagem" className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-app-cinza/60" />
+                <input value={busca} onChange={(event) => setBusca(event.target.value)} placeholder={ui("Buscar cliente ou mensagem")} className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-app-cinza/60" />
               </label>
               <div className="grid grid-cols-3 gap-3">
                 <div className="rounded-[12px] bg-white/10 px-4 py-3">
-                  <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-app-baunilha-dourada">Total</span>
+                  <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-app-baunilha-dourada">{ui("Total")}</span>
                   <strong className="mt-1 block text-2xl">{conversas.length}</strong>
                 </div>
                 <div className="rounded-[12px] bg-white/10 px-4 py-3">
-                  <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-app-baunilha-dourada">Novas</span>
+                  <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-app-baunilha-dourada">{ui("Novas")}</span>
                   <strong className="mt-1 block text-2xl">{totalNaoLidas}</strong>
                 </div>
                 <div className="rounded-[12px] bg-white/10 px-4 py-3">
-                  <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-app-baunilha-dourada">Pedidos</span>
+                  <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-app-baunilha-dourada">{ui("Pedidos")}</span>
                   <strong className="mt-1 block text-2xl">{totalComPedido}</strong>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-2">
                 {filtros.map((item) => (
                   <button key={item.id} type="button" onClick={() => setFiltro(item.id)} className={`h-10 rounded-[10px] text-[10px] font-bold uppercase tracking-[0.14em] transition ${filtro === item.id ? "bg-white text-app-cafe-profundo" : "bg-white/10 text-app-creme-leve ring-1 ring-white/10 hover:bg-white/15"}`}>
-                    {item.label}
+                    {ui(item.label)}
                   </button>
                 ))}
               </div>
@@ -170,7 +167,7 @@ export default function RestaurantMessagesPage() {
           </div>
         </div>
 
-        {mensagem ? <p role="status" className="mt-6 rounded-[12px] border border-app-baunilha-dourada bg-white p-4 text-sm font-semibold text-app-caramelo-torrado">{mensagem}</p> : null}
+        {mensagem ? <p role="status" className="mt-6 rounded-[12px] border border-app-baunilha-dourada bg-white p-4 text-sm font-semibold text-app-caramelo-torrado">{ui(mensagem)}</p> : null}
 
         <section className="mt-8 grid gap-4">
           {carregando ? (
@@ -183,21 +180,19 @@ export default function RestaurantMessagesPage() {
                   <span className="min-w-0">
                     <span className="flex flex-wrap items-center gap-2">
                       <strong className="text-xl font-semibold">{conversa.titulo}</strong>
-                      {conversa.nao_lida ? <span className="rounded-full bg-app-caramelo-torrado px-2.5 py-1 text-[10px] font-bold uppercase text-white">Nova</span> : null}
-                      <span className="rounded-full bg-app-chantilly px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-app-mocha">{obterContextoConversa(conversa)}</span>
+                      {conversa.nao_lida ? <span className="rounded-full bg-app-caramelo-torrado px-2.5 py-1 text-[10px] font-bold uppercase text-white">{ui("Nova")}</span> : null}
+                      <span className="rounded-full bg-app-chantilly px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-app-mocha">{conversa?.pedido ? ui("Pedido #{0}", [conversa.pedido.id_pedido]) : conversa?.reserva ? ui("Reserva #{0}", [conversa.reserva.id_reserva]) : ui("Conversa direta")}</span>
                     </span>
                     <span className="mt-1 line-clamp-2 text-sm leading-6 text-app-cinza">{conversa.ultima_mensagem}</span>
                   </span>
                   <span className="flex items-center justify-between gap-3 text-xs font-semibold text-app-cinza sm:justify-end">
-                    <span>{conversa.atualizado_formatado}</span>
+                    <span>{dataHoraUI(conversa.atualizado_em)}</span>
                     <span className="flex h-9 w-9 items-center justify-center rounded-full border border-app-baunilha-dourada transition group-hover:border-app-caramelo-torrado group-hover:text-app-caramelo-torrado">
                       <Icon type="chevron-right" className="h-4 w-4" />
                     </span>
                   </span>
                 </Link>
-                <button type="button" onClick={() => setConversaParaArquivar(conversa)} className="w-fit rounded-[8px] border border-red-200 px-4 py-2 text-[10px] font-bold uppercase tracking-[0.12em] text-red-700 transition hover:bg-red-50 sm:justify-self-end">
-                  Limpar histórico
-                </button>
+                <button type="button" onClick={() => setConversaParaArquivar(conversa)} className="w-fit rounded-[8px] border border-red-200 px-4 py-2 text-[10px] font-bold uppercase tracking-[0.12em] text-red-700 transition hover:bg-red-50 sm:justify-self-end">{ui("Limpar histórico")}</button>
               </article>
             ))
           ) : (
@@ -205,19 +200,19 @@ export default function RestaurantMessagesPage() {
               <span className="flex h-12 w-12 items-center justify-center rounded-full bg-app-baunilha-dourada text-app-cafe-profundo">
                 <Icon type="message" />
               </span>
-              <h2 className="mt-5 text-xl font-semibold">Nenhuma conversa recebida</h2>
-              <p className="mt-2 max-w-md text-sm leading-6 text-app-cinza">Quando um cliente chamar o restaurante, a conversa aparecerá aqui.</p>
+              <h2 className="mt-5 text-xl font-semibold">{ui("Nenhuma conversa recebida")}</h2>
+              <p className="mt-2 max-w-md text-sm leading-6 text-app-cinza">{ui("Quando um cliente chamar o restaurante, a conversa aparecerá aqui.")}</p>
             </div>
           )}
         </section>
       </section>
       <ConfirmationDialog
         open={Boolean(conversaParaArquivar)}
-        eyebrow="Histórico da conversa"
-        title="Limpar esta conversa?"
-        description="A conversa será ocultada apenas para este restaurante. O cliente continua com o próprio histórico e os registros seguem preservados."
-        confirmLabel="Limpar histórico"
-        cancelLabel="Manter conversa"
+        eyebrow={ui("Histórico da conversa")}
+        title={ui("Limpar esta conversa?")}
+        description={ui("A conversa será ocultada apenas para este restaurante. O cliente continua com o próprio histórico e os registros seguem preservados.")}
+        confirmLabel={ui("Limpar histórico")}
+        cancelLabel={ui("Manter conversa")}
         loading={arquivando}
         onCancel={() => setConversaParaArquivar(null)}
         onConfirm={arquivarConversa}

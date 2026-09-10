@@ -16,7 +16,11 @@ function inscreverIdioma(callback) {
 }
 
 function obterIdiomaDoNavegador() {
-  return window.localStorage.getItem(chaveIdioma) === "en" ? "en" : "pt-BR";
+  try {
+    return window.localStorage.getItem(chaveIdioma) === "en" ? "en" : "pt-BR";
+  } catch {
+    return document.documentElement.lang === "en" ? "en" : "pt-BR";
+  }
 }
 
 function obterIdiomaDoServidor() {
@@ -28,7 +32,7 @@ export function useIdiomaLocal() {
 
   function alternarIdioma() {
     const proximoIdioma = idioma === "pt-BR" ? "en" : "pt-BR";
-    window.localStorage.setItem(chaveIdioma, proximoIdioma);
+    try { window.localStorage.setItem(chaveIdioma, proximoIdioma); } catch { /* Preferência válida nesta aba. */ }
     document.documentElement.lang = proximoIdioma;
     window.dispatchEvent(new Event(eventoIdioma));
   }

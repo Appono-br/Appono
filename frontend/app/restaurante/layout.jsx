@@ -4,7 +4,7 @@ import { RotaProtegida } from "@/components/auth/rota-protegida";
 import { useTemaLocal } from "@/lib/use-tema-local";
 import { TelaCarregandoSessao } from "@/lib/use-sessao-local";
 function inscrever() {
-    return () => { };z
+    return () => { };
 }
 function obterEstadoCliente() {
     return true;
@@ -19,7 +19,7 @@ export default function LayoutRestaurante({ children }) {
         return <TelaCarregandoSessao />;
     }
     return (<RotaProtegida perfisPermitidos={["restaurant"]}>
-      <div className={`area-autenticada area-restaurante min-h-full ${tema === "escuro" ? "tema-escuro" : ""}`}>
+      <div data-appono-sem-traducao className={`area-autenticada area-restaurante min-h-full ${tema === "escuro" ? "tema-escuro" : ""}`}>
         {children}
       </div>
     </RotaProtegida>);

@@ -1,5 +1,6 @@
 "use client";
 
+import { useInterface } from "@/lib/use-interface";
 import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -39,8 +40,8 @@ function Icon({ type, className = "h-5 w-5" }) {
     );
 }
 
-function formatarMoeda(valor) {
-    return new Intl.NumberFormat("pt-BR", {
+function formatarMoeda(valor, localeUI = "pt-BR") {
+    return new Intl.NumberFormat(localeUI, {
         style: "currency",
         currency: "BRL",
     }).format(Number(valor ?? 0));
@@ -75,6 +76,7 @@ const categoriaInicial = {
 };
 
 export default function RestaurantMenuManagementPage() {
+    const { ui , localeUI } = useInterface();
     const { sessao, sessaoCarregada } = useSessaoLocal();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [cardapios, setCardapios] = useState([]);
@@ -251,12 +253,10 @@ export default function RestaurantMenuManagementPage() {
         return (
             <main className="flex min-h-screen items-center justify-center bg-white px-5 text-app-cafe-profundo">
                 <section className="w-full max-w-lg rounded-[8px] bg-app-creme-leve p-8 text-center shadow-sm ring-1 ring-app-baunilha-dourada">
-                    <Image src="/brand/appono-mark.svg" alt="Appono" width={88} height={88} className="mx-auto h-20 w-20" priority />
-                    <h1 className="mt-6 text-3xl font-semibold">Acesso restrito</h1>
-                    <p className="mt-3 text-sm leading-6 text-app-cinza">Esta área é destinada a contas de restaurante.</p>
-                    <Link href="/login" className="mt-6 inline-flex h-11 items-center justify-center rounded-[8px] bg-app-dourado-mel px-6 text-sm font-bold text-white transition hover:bg-app-caramelo-torrado">
-                        Entrar
-                    </Link>
+                    <Image src="/brand/appono-mark.svg" alt={ui("Appono")} width={88} height={88} className="mx-auto h-20 w-20" priority />
+                    <h1 className="mt-6 text-3xl font-semibold">{ui("Acesso restrito")}</h1>
+                    <p className="mt-3 text-sm leading-6 text-app-cinza">{ui("Esta área é destinada a contas de restaurante.")}</p>
+                    <Link href="/login" className="mt-6 inline-flex h-11 items-center justify-center rounded-[8px] bg-app-dourado-mel px-6 text-sm font-bold text-white transition hover:bg-app-caramelo-torrado">{ui("Entrar")}</Link>
                 </section>
             </main>
         );
@@ -265,21 +265,21 @@ export default function RestaurantMenuManagementPage() {
     return (
         <main className="flex min-h-screen flex-col bg-white text-app-cafe-profundo">
             <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-app-creme-leve/90 text-app-cafe-profundo shadow-sm backdrop-blur-md">
-                <div className="mx-auto grid h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-5 lg:h-20">
-                    <div aria-label="Appono">
-                        <Image src="/brand/appono-mark.svg" alt="Appono" width={88} height={88} className="h-11 w-11 lg:h-14 lg:w-14" priority />
+                <div className="mx-auto flex min-h-16 max-w-7xl items-center justify-between gap-3 px-4 lg:min-h-20">
+                    <div aria-label={ui("Appono")}>
+                        <Image src="/brand/appono-mark.svg" alt={ui("Appono")} width={88} height={88} className="h-11 w-11 lg:h-14 lg:w-14" priority />
                     </div>
 
                     <nav className="hidden items-center justify-self-center gap-6 text-xs font-semibold text-app-cinza xl:flex">
                         {navItems.map((item) => (
                             <Link key={item.label} href={item.href} className={item.href === "/restaurante/cardapio" ? "text-app-cafe-profundo" : "transition hover:text-app-cafe-profundo"}>
-                                {item.label}
+                                {ui(item.label)}
                             </Link>
                         ))}
                     </nav>
 
                     <ItemHeaderNotificacoes href="/restaurante/notificacoes" />
-          <button type="button" onClick={() => setMobileMenuOpen((current) => !current)} className="flex h-9 w-9 items-center justify-center justify-self-end rounded-[8px] border border-app-baunilha-dourada bg-white text-app-cafe-profundo xl:hidden" aria-label="Abrir menu">
+          <button type="button" onClick={() => setMobileMenuOpen((current) => !current)} className="flex h-9 w-9 items-center justify-center justify-self-end rounded-[8px] border border-app-baunilha-dourada bg-white text-app-cafe-profundo xl:hidden" aria-label={ui("Abrir menu")}>
                         <Icon type="menu" />
                     </button>
                 </div>
@@ -289,7 +289,7 @@ export default function RestaurantMenuManagementPage() {
                         <div className="mx-auto grid max-w-7xl gap-2 text-xs font-semibold text-app-cinza">
                             {navItems.map((item) => (
                                 <Link key={item.label} href={item.href} onClick={() => setMobileMenuOpen(false)} className={item.href === "/restaurante/cardapio" ? "text-app-cafe-profundo" : "transition hover:text-app-cafe-profundo"}>
-                                    {item.label}
+                                    {ui(item.label)}
                                 </Link>
                             ))}
                         </div>
@@ -297,32 +297,28 @@ export default function RestaurantMenuManagementPage() {
                 ) : null}
             </header>
 
-            <section className="mx-auto w-full max-w-7xl flex-1 px-5 py-10 sm:py-14">
-                <div className="grid gap-6 border-t border-app-baunilha-dourada/60 pt-10 lg:grid-cols-[1fr_auto] lg:items-end">
+            <section className="gestao-cardapio mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6">
+                <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
                     <div>
-                        <p className="text-[10px] font-bold uppercase text-app-caramelo-torrado">Cardápio</p>
-                        <h1 className="mt-2 text-4xl font-medium leading-tight text-app-cafe-profundo sm:text-5xl">Gestão de Cardápio</h1>
-                        <p className="mt-4 max-w-2xl text-sm leading-6 text-app-cinza sm:text-base">
-                            Organize pratos, categorias, preços e disponibilidade. Os itens publicados aparecem para o cliente no restaurante e no pedido antecipado.
-                        </p>
+                        <p className="text-[10px] font-bold uppercase text-app-caramelo-torrado">{ui("Cardápio")}</p>
+                        <h1 className="mt-2 text-3xl font-semibold leading-tight text-app-cafe-profundo sm:text-4xl">{ui("Gestão de Cardápio")}</h1>
+                        <p className="mt-4 max-w-2xl text-sm leading-6 text-app-cinza sm:text-base">{ui("Organize seus produtos, preços e disponibilidade em um só lugar.")}</p>
                     </div>
 
                     <Link href="/restaurante/cardapio/editar" className="inline-flex h-12 items-center justify-center gap-2 rounded-[8px] bg-app-dourado-mel px-7 text-xs font-bold uppercase text-white transition hover:bg-app-caramelo-torrado">
-                        <Icon type="plus" className="h-4 w-4" />
-                        Adicionar item
-                    </Link>
+                        <Icon type="plus" className="h-4 w-4" />{ui("Adicionar item")}</Link>
                 </div>
 
-                <section className="mt-10 grid gap-6 sm:grid-cols-2 xl:grid-cols-5">
+                <dl className="mt-6 grid grid-cols-2 gap-x-5 gap-y-4 rounded-xl border border-app-baunilha-dourada/60 bg-app-creme-leve p-4 sm:grid-cols-3 lg:grid-cols-5">
                     {[
                         ["Total de itens", todosProdutos.length],
                         ["Itens disponíveis", todosProdutos.filter((produto) => produto.disponivel).length],
                         ["Categorias ativas", categoriasAtivas],
                         ["Itens em falta", itensEmFalta],
                         ["Destaques", itensEmDestaque],
-                    ].map(([label, value], index) => (
-                        <article key={label} className={`min-h-32 rounded-[8px] border border-app-baunilha-dourada/60 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-md ${index === 0 ? "xl:col-span-2" : ""}`}>
-                            <p className={`text-xs font-bold uppercase tracking-[0.18em] ${
+                    ].map(([label, value]) => (
+                        <div key={label} className="min-w-0">
+                            <dt className={`text-xs font-semibold ${
                                 label === "Itens disponíveis"
                                     ? "text-green-800"
                                     : label === "Itens em falta"
@@ -330,44 +326,43 @@ export default function RestaurantMenuManagementPage() {
                                       : label === "Destaques"
                                         ? "text-app-amarelo-alerta"
                                         : "text-app-cinza"
-                            }`}>{label}</p>
-                            <strong className="mt-6 block text-3xl font-medium text-app-cafe-profundo">{value}</strong>
-                        </article>
+                            }`}>{ui(label)}</dt>
+                            <dd className="mt-1 text-2xl font-semibold tabular-nums text-app-cafe-profundo">{value}</dd>
+                        </div>
                     ))}
-                </section>
+                </dl>
 
-                <section className="mt-8 grid gap-5 rounded-[12px] bg-app-creme-leve p-5 shadow-sm ring-1 ring-app-baunilha-dourada/55 lg:grid-cols-[0.95fr_1.2fr]">
+                <details className="mt-4 rounded-xl border border-app-baunilha-dourada/55 bg-app-creme-leve">
+                    <summary className="cursor-pointer rounded-xl px-4 py-3 text-sm font-semibold text-app-mocha hover:bg-app-creme-suave">{ui("Gerenciar categorias")}</summary>
+                <div className="grid gap-6 border-t border-app-baunilha-dourada/55 p-4 lg:grid-cols-2">
                     <form onSubmit={salvarCategoria} className="grid gap-3">
                         <div>
-                            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">Categorias</p>
+                            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">{ui("Categorias")}</p>
                             <h2 className="mt-1 text-2xl font-bold text-app-cafe-profundo">
-                                {categoriaForm.id ? "Editar categoria" : "Nova categoria"}
+                                {ui(categoriaForm.id ? "Editar categoria" : "Nova categoria")}
                             </h2>
                         </div>
-                        <input value={categoriaForm.name} onChange={(event) => setCategoriaForm((atual) => ({ ...atual, name: event.target.value }))} placeholder="Nome da categoria" className="h-11 rounded-[8px] border border-app-baunilha-dourada bg-white px-3 text-sm outline-none focus:border-app-caramelo-torrado"/>
-                        <input value={categoriaForm.description} onChange={(event) => setCategoriaForm((atual) => ({ ...atual, description: event.target.value }))} placeholder="Descrição opcional" className="h-11 rounded-[8px] border border-app-baunilha-dourada bg-white px-3 text-sm outline-none focus:border-app-caramelo-torrado"/>
-                        <input value={categoriaForm.displayOrder} onChange={(event) => setCategoriaForm((atual) => ({ ...atual, displayOrder: event.target.value.replace(/\D/g, "") }))} placeholder="Ordem de exibição" inputMode="numeric" className="h-11 rounded-[8px] border border-app-baunilha-dourada bg-white px-3 text-sm outline-none focus:border-app-caramelo-torrado"/>
+                        <input value={categoriaForm.name} onChange={(event) => setCategoriaForm((atual) => ({ ...atual, name: event.target.value }))} placeholder={ui("Nome da categoria")} className="h-11 rounded-[8px] border border-app-baunilha-dourada bg-white px-3 text-sm outline-none focus:border-app-caramelo-torrado"/>
+                        <input value={categoriaForm.description} onChange={(event) => setCategoriaForm((atual) => ({ ...atual, description: event.target.value }))} placeholder={ui("Descrição opcional")} className="h-11 rounded-[8px] border border-app-baunilha-dourada bg-white px-3 text-sm outline-none focus:border-app-caramelo-torrado"/>
+                        <input value={categoriaForm.displayOrder} onChange={(event) => setCategoriaForm((atual) => ({ ...atual, displayOrder: event.target.value.replace(/\D/g, "") }))} placeholder={ui("Ordem de exibição")} inputMode="numeric" className="h-11 rounded-[8px] border border-app-baunilha-dourada bg-white px-3 text-sm outline-none focus:border-app-caramelo-torrado"/>
                         <div className="flex flex-wrap gap-2">
                             <button type="submit" disabled={categoriaAtualizandoId !== null} className="h-10 rounded-[8px] bg-app-dourado-mel px-5 text-xs font-bold uppercase text-white transition hover:bg-app-caramelo-torrado disabled:opacity-60">
-                                {categoriaAtualizandoId !== null ? "Salvando..." : "Salvar categoria"}
+                                {ui(categoriaAtualizandoId !== null ? "Salvando..." : "Salvar categoria")}
                             </button>
                             {categoriaForm.id ? (
-                                <button type="button" onClick={() => setCategoriaForm(categoriaInicial)} className="h-10 rounded-[8px] border border-app-baunilha-dourada px-5 text-xs font-bold uppercase text-app-mocha transition hover:bg-app-creme-suave">
-                                    Cancelar edição
-                                </button>
+                                <button type="button" onClick={() => setCategoriaForm(categoriaInicial)} className="h-10 rounded-[8px] border border-app-baunilha-dourada px-5 text-xs font-bold uppercase text-app-mocha transition hover:bg-app-creme-suave">{ui("Cancelar edição")}</button>
                             ) : null}
                         </div>
                     </form>
 
                     <div className="grid gap-3">
-                        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">Categorias cadastradas</p>
+                        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">{ui("Categorias cadastradas")}</p>
                         <div className="grid max-h-72 gap-2 overflow-auto pr-1">
                             {categorias.length ? categorias.map((categoria) => (
                                 <article key={categoria.id_categoria} className="grid gap-3 rounded-[8px] bg-app-creme-suave p-3 ring-1 ring-app-baunilha-dourada/45 sm:grid-cols-[1fr_auto] sm:items-center">
                                     <div>
                                         <h3 className="text-sm font-bold text-app-cafe-profundo">{categoria.nome}</h3>
-                                        <p className="text-xs text-app-mocha">
-                                            Ordem {categoria.ordem_exibicao ?? 0}{categoria.descricao ? ` - ${categoria.descricao}` : ""}
+                                        <p className="text-xs text-app-mocha">{ui("Ordem ")}{categoria.ordem_exibicao ?? 0}{categoria.descricao ? ` - ${categoria.descricao}` : ""}
                                         </p>
                                     </div>
                                     <div className="flex gap-2">
@@ -376,35 +371,32 @@ export default function RestaurantMenuManagementPage() {
                                             name: categoria.nome ?? "",
                                             description: categoria.descricao ?? "",
                                             displayOrder: String(categoria.ordem_exibicao ?? 0),
-                                        })} className="h-9 rounded-[8px] border border-app-baunilha-dourada px-3 text-xs font-bold uppercase text-app-mocha transition hover:bg-app-creme-leve">
-                                            Editar
-                                        </button>
-                                        <button type="button" onClick={() => setCategoriaParaArquivar(categoria)} disabled={categoriaAtualizandoId === categoria.id_categoria} className="h-9 rounded-[8px] border border-red-300 bg-transparent px-3 text-xs font-bold uppercase text-red-800 transition hover:border-app-vermelho-erro hover:text-app-vermelho-erro disabled:opacity-60">
-                                            Arquivar
-                                        </button>
+                                        })} className="h-9 rounded-[8px] border border-app-baunilha-dourada px-3 text-xs font-bold uppercase text-app-mocha transition hover:bg-app-creme-leve">{ui("Editar")}</button>
+                                        <button type="button" onClick={() => setCategoriaParaArquivar(categoria)} disabled={categoriaAtualizandoId === categoria.id_categoria} className="h-9 rounded-[8px] border border-red-300 bg-transparent px-3 text-xs font-bold uppercase text-red-800 transition hover:border-app-vermelho-erro hover:text-app-vermelho-erro disabled:opacity-60">{ui("Arquivar")}</button>
                                     </div>
                                 </article>
                             )) : (
-                                <p className="rounded-[8px] bg-app-creme-suave p-4 text-sm font-semibold text-app-mocha">Nenhuma categoria criada ainda.</p>
+                                <p className="rounded-[8px] bg-app-creme-suave p-4 text-sm font-semibold text-app-mocha">{ui("Nenhuma categoria criada ainda.")}</p>
                             )}
                         </div>
                     </div>
-                </section>
+                </div>
+                </details>
 
-                <section className="mt-8 grid gap-3 rounded-[12px] bg-app-creme-leve p-5 shadow-sm ring-1 ring-app-baunilha-dourada/55 md:grid-cols-[1fr_auto] md:items-center">
+                <section aria-label={ui("Busca e filtros do cardápio")} className="mt-4 grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
                     <label className="campo-busca-app flex h-11 items-center gap-3 rounded-[8px] border border-app-baunilha-dourada bg-white px-3 text-app-mocha transition">
                         <Icon type="search" className="h-4 w-4 shrink-0" />
-                        <input value={busca} onChange={(event) => setBusca(event.target.value)} placeholder="Buscar por item, descrição ou categoria" className="input-busca-app h-full min-w-0 flex-1 bg-transparent text-sm text-app-cafe-profundo placeholder:text-app-cinza/60"/>
+                        <input value={busca} onChange={(event) => setBusca(event.target.value)} placeholder={ui("Buscar por item, descrição ou categoria")} className="input-busca-app h-full min-w-0 flex-1 bg-transparent text-sm text-app-cafe-profundo placeholder:text-app-cinza/60"/>
                     </label>
-                    <select value={filtro} onChange={(event) => setFiltro(event.target.value)} className="h-11 rounded-[8px] border border-app-baunilha-dourada bg-white px-3 text-sm font-semibold text-app-mocha outline-none focus:border-app-caramelo-torrado">
-                        <option value="todos">Todos os itens</option>
-                        <option value="disponiveis">Disponíveis</option>
-                        <option value="indisponiveis">Indisponíveis</option>
-                        <option value="destaques">Destaques</option>
+                    <select aria-label={ui("Filtrar disponibilidade")} value={filtro} onChange={(event) => setFiltro(event.target.value)} className="h-11 min-w-0 rounded-[8px] border border-app-baunilha-dourada bg-white px-3 text-sm font-semibold text-app-mocha outline-none focus:border-app-caramelo-torrado">
+                        <option value="todos">{ui("Todos os itens")}</option>
+                        <option value="disponiveis">{ui("Disponíveis")}</option>
+                        <option value="indisponiveis">{ui("Indisponíveis")}</option>
+                        <option value="destaques">{ui("Destaques")}</option>
                     </select>
                 </section>
 
-                {mensagem ? <p className="mt-8 rounded-[8px] bg-app-creme-leve p-5 text-sm font-semibold text-app-caramelo-torrado ring-1 ring-app-baunilha-dourada">{mensagem}</p> : null}
+                {mensagem ? <p className="mt-8 rounded-[8px] bg-app-creme-leve p-5 text-sm font-semibold text-app-caramelo-torrado ring-1 ring-app-baunilha-dourada">{ui(mensagem)}</p> : null}
 
                 {produtos.length ? (
                     <section className="mt-10 grid gap-8">
@@ -412,16 +404,16 @@ export default function RestaurantMenuManagementPage() {
                             <div key={categoria} className="grid gap-4">
                                 <div className="flex flex-wrap items-center justify-between gap-3">
                                     <div>
-                                        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">Categoria</p>
+                                        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{ui("Categoria")}</p>
                                         <h2 className="text-2xl font-bold text-app-cafe-profundo">{categoria}</h2>
                                     </div>
                                     <span className="rounded-full bg-app-creme-leve px-4 py-2 text-xs font-bold uppercase text-app-mocha ring-1 ring-app-baunilha-dourada/55">
-                                        {itens.length} {itens.length === 1 ? "item" : "itens"}
+                                        {itens.length} {ui(itens.length === 1 ? "item" : "itens")}
                                     </span>
                                 </div>
 
                                 {itens.map((produto) => (
-                            <article key={produto.id_produto} className={`grid gap-4 rounded-[12px] p-4 shadow-sm ring-1 sm:grid-cols-[120px_1fr_auto] sm:items-center ${produto.destaque ? "bg-app-baunilha-dourada/35 ring-app-caramelo-torrado/35" : "bg-app-creme-leve ring-app-baunilha-dourada/55"}`}>
+                            <article key={produto.id_produto} className={`produto-cardapio grid min-w-0 gap-4 rounded-xl p-4 ring-1 sm:grid-cols-[112px_minmax(0,1fr)] xl:grid-cols-[112px_minmax(0,1fr)_minmax(240px,340px)] sm:items-start ${produto.destaque ? "bg-app-baunilha-dourada/35 ring-app-caramelo-torrado/35" : "bg-app-creme-leve ring-app-baunilha-dourada/55"}`}>
                                 <div className="relative h-28 overflow-hidden rounded-[10px] bg-app-baunilha-dourada/45">
                                     {produto.imagem_url ? (
                                         <Image src={produto.imagem_url} alt={produto.nome} fill className="object-cover" />
@@ -436,35 +428,31 @@ export default function RestaurantMenuManagementPage() {
                                         <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">{produto.cardapio}</p>
                                         {produto.destaque ? (
                                             <span className="inline-flex items-center gap-1 rounded-full border border-app-dourado-mel/40 bg-transparent px-2.5 py-1 text-[10px] font-bold uppercase text-app-amarelo-alerta">
-                                                <Icon type="star" className="h-3 w-3" />
-                                                Destaque
-                                            </span>
+                                                <Icon type="star" className="h-3 w-3" />{ui("Destaque")}</span>
                                         ) : null}
                                     </div>
                                     <h3 className="mt-1 text-xl font-bold text-app-cafe-profundo">{produto.nome}</h3>
                                     {produto.descricao ? <p className="mt-2 text-sm leading-6 text-app-mocha">{produto.descricao}</p> : null}
                                 </div>
-                                <div className="text-left sm:text-right">
-                                    <strong className="text-lg text-app-cafe-profundo">{formatarMoeda(produto.preco)}</strong>
+                                <div className="min-w-0 text-left sm:col-start-2 xl:col-start-auto xl:text-right">
+                                    <strong className="text-lg text-app-cafe-profundo">{formatarMoeda(produto.preco, localeUI)}</strong>
                                     <span className={`mt-2 block rounded-full border bg-transparent px-3 py-1 text-xs font-bold uppercase ${produto.disponivel ? "border-green-200 text-green-800" : "border-red-300 text-red-800"}`}>
-                                        {produto.disponivel ? "Disponível" : "Indisponível"}
+                                        {ui(produto.disponivel ? "Disponível" : "Indisponível")}
                                     </span>
                                     <div className="mt-3 flex flex-wrap gap-2 sm:justify-end">
                                         <button type="button" onClick={() => alterarDisponibilidade(produto)} disabled={produtoAtualizandoId === produto.id_produto} className={`inline-flex h-9 items-center justify-center gap-2 rounded-[8px] border bg-transparent px-3 text-xs font-bold uppercase transition disabled:cursor-not-allowed disabled:opacity-60 ${produto.disponivel ? "border-red-300 text-red-800 hover:border-app-vermelho-erro hover:text-app-vermelho-erro" : "border-green-200 text-green-800 hover:border-app-verde-sucesso hover:text-app-verde-sucesso"}`}>
                                             <Icon type="check" className="h-4 w-4" />
-                                            {produto.disponivel ? "Pausar" : "Ativar"}
+                                            {ui(produto.disponivel ? "Pausar" : "Ativar")}
                                         </button>
                                         <button type="button" onClick={() => alterarDestaque(produto)} disabled={produtoAtualizandoId === produto.id_produto} className="inline-flex h-9 items-center justify-center gap-2 rounded-[8px] border border-app-baunilha-dourada px-3 text-xs font-bold uppercase text-app-mocha transition hover:bg-app-creme-suave disabled:cursor-not-allowed disabled:opacity-60">
                                             <Icon type="star" className="h-4 w-4" />
-                                            {produto.destaque ? "Remover destaque" : "Destacar"}
+                                            {ui(produto.destaque ? "Remover destaque" : "Destacar")}
                                         </button>
                                         <Link href={`/restaurante/cardapio/editar?produto=${produto.id_produto}`} className="inline-flex h-9 items-center justify-center gap-2 rounded-[8px] border border-app-baunilha-dourada px-3 text-xs font-bold uppercase text-app-mocha transition hover:bg-app-creme-suave">
-                                            <Icon type="pencil" className="h-4 w-4" />
-                                            Editar
-                                        </Link>
+                                            <Icon type="pencil" className="h-4 w-4" />{ui("Editar")}</Link>
                                         <button type="button" onClick={() => setProdutoParaExcluir(produto)} disabled={produtoExcluindoId === produto.id_produto} className="inline-flex h-9 items-center justify-center gap-2 rounded-[8px] border border-red-300 bg-transparent px-3 text-xs font-bold uppercase text-red-800 transition hover:border-app-vermelho-erro hover:text-app-vermelho-erro disabled:cursor-not-allowed disabled:opacity-60">
                                             <Icon type="trash" className="h-4 w-4" />
-                                            {produtoExcluindoId === produto.id_produto ? "Excluindo" : "Excluir"}
+                                            {ui(produtoExcluindoId === produto.id_produto ? "Excluindo" : "Excluir")}
                                         </button>
                                     </div>
                                 </div>
@@ -474,21 +462,20 @@ export default function RestaurantMenuManagementPage() {
                         ))}
                     </section>
                 ) : (
-                    <section className="mt-10 overflow-hidden rounded-[14px] bg-app-creme-leve shadow-sm ring-1 ring-app-baunilha-dourada/60">
+                    todosProdutos.length ? <section className="mt-8 rounded-xl bg-app-creme-leve p-6 ring-1 ring-app-baunilha-dourada/60">
+                        <h2 className="text-xl font-semibold">{ui("Nenhum item corresponde aos filtros")}</h2>
+                        <button type="button" onClick={() => { setBusca(""); setFiltro("todos"); }} className="mt-4 rounded-lg border border-app-baunilha-dourada px-4 py-2 text-sm hover:bg-app-creme-suave">{ui("Limpar filtros")}</button>
+                    </section> : <section className="mt-10 overflow-hidden rounded-[14px] bg-app-creme-leve shadow-sm ring-1 ring-app-baunilha-dourada/60">
                         <div className="grid gap-5 p-6 sm:grid-cols-[auto_1fr_auto] sm:items-center sm:p-8">
                             <span className="flex h-14 w-14 items-center justify-center rounded-[12px] bg-app-cafe-profundo text-app-creme-leve">
                                 <Icon type="utensils" />
                             </span>
                             <div>
-                                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">Comece pelo essencial</p>
-                                <h2 className="mt-2 text-2xl font-bold text-app-cafe-profundo">Cadastre seu primeiro item</h2>
-                                <p className="mt-2 max-w-2xl text-sm leading-6 text-app-mocha">
-                                    Adicione nome, categoria, preço e, se quiser, uma imagem. Quando publicado, o item já aparece para o cliente na página do restaurante.
-                                </p>
+                                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{ui("Comece pelo essencial")}</p>
+                                <h2 className="mt-2 text-2xl font-bold text-app-cafe-profundo">{ui("Cadastre seu primeiro item")}</h2>
+                                <p className="mt-2 max-w-2xl text-sm leading-6 text-app-mocha">{ui("Adicione nome, categoria, preço e, se quiser, uma imagem. Quando publicado, o item já aparece para o cliente na página do restaurante.")}</p>
                             </div>
-                            <Link href="/restaurante/cardapio/editar" className="inline-flex h-11 items-center justify-center rounded-[8px] bg-app-dourado-mel px-5 text-xs font-bold uppercase text-white transition hover:bg-app-caramelo-torrado sm:justify-self-end">
-                                Cadastrar item
-                            </Link>
+                            <Link href="/restaurante/cardapio/editar" className="inline-flex h-11 items-center justify-center rounded-[8px] bg-app-dourado-mel px-5 text-xs font-bold uppercase text-white transition hover:bg-app-caramelo-torrado sm:justify-self-end">{ui("Cadastrar item")}</Link>
                         </div>
                     </section>
                 )}
@@ -497,17 +484,13 @@ export default function RestaurantMenuManagementPage() {
             {produtoParaExcluir ? (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 px-5 backdrop-blur-[2px]">
                     <section className="w-full max-w-md rounded-[18px] bg-white p-6 text-app-cafe-profundo shadow-2xl ring-1 ring-black/10">
-                        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">Confirmar exclusão</p>
-                        <h2 className="mt-3 text-2xl font-bold">Remover item do cardápio?</h2>
-                        <p className="mt-3 text-sm leading-6 text-app-mocha">
-                            O item <strong>{produtoParaExcluir.nome}</strong> será excluído se ainda não tiver pedidos. Se já existir histórico, ele será arquivado e deixará de aparecer para o cliente.
-                        </p>
+                        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{ui("Confirmar exclusão")}</p>
+                        <h2 className="mt-3 text-2xl font-bold">{ui("Remover item do cardápio?")}</h2>
+                        <p className="mt-3 text-sm leading-6 text-app-mocha">{ui("O item ")}<strong>{produtoParaExcluir.nome}</strong>{ui(" será excluído se ainda não tiver pedidos. Se já existir histórico, ele será arquivado e deixará de aparecer para o cliente.")}</p>
                         <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-                            <button type="button" onClick={() => setProdutoParaExcluir(null)} className="h-11 rounded-[8px] border border-app-baunilha-dourada px-5 text-xs font-bold uppercase text-app-mocha transition hover:bg-app-creme-suave">
-                                Cancelar
-                            </button>
+                            <button type="button" onClick={() => setProdutoParaExcluir(null)} className="h-11 rounded-[8px] border border-app-baunilha-dourada px-5 text-xs font-bold uppercase text-app-mocha transition hover:bg-app-creme-suave">{ui("Cancelar")}</button>
                             <button type="button" onClick={excluirProduto} disabled={produtoExcluindoId === produtoParaExcluir.id_produto} className="botao-acao-critica h-11 rounded-[8px] px-5 text-xs font-bold uppercase transition disabled:cursor-not-allowed disabled:opacity-60">
-                                {produtoExcluindoId === produtoParaExcluir.id_produto ? "Removendo..." : "Remover item"}
+                                {ui(produtoExcluindoId === produtoParaExcluir.id_produto ? "Removendo..." : "Remover item")}
                             </button>
                         </div>
                     </section>
@@ -515,11 +498,11 @@ export default function RestaurantMenuManagementPage() {
             ) : null}
             <ConfirmationDialog
                 open={Boolean(categoriaParaArquivar)}
-                eyebrow="Arquivar categoria"
-                title="Arquivar esta categoria?"
-                description="A categoria deixará de aparecer no cardápio ativo. Itens e histórico permanecem preservados."
-                confirmLabel="Arquivar"
-                cancelLabel="Voltar"
+                eyebrow={ui("Arquivar categoria")}
+                title={ui("Arquivar esta categoria?")}
+                description={ui("A categoria deixará de aparecer no cardápio ativo. Itens e histórico permanecem preservados.")}
+                confirmLabel={ui("Arquivar")}
+                cancelLabel={ui("Voltar")}
                 loading={categoriaAtualizandoId === categoriaParaArquivar?.id_categoria}
                 onCancel={() => setCategoriaParaArquivar(null)}
                 onConfirm={() => arquivarCategoria(categoriaParaArquivar)}

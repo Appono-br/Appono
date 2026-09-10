@@ -1,5 +1,6 @@
 "use client";
 
+import { useInterface } from "@/lib/use-interface";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { apiRequest } from "@/lib/api";
@@ -17,6 +18,7 @@ function PedidoSkeleton() {
 }
 
 export default function PedidosClientePage() {
+    const { ui } = useInterface();
     const [pagina, setPagina] = useState(1);
     const [resultado, setResultado] = useState({ items: [], pagination: null });
     const [carregando, setCarregando] = useState(true);
@@ -66,20 +68,20 @@ export default function PedidosClientePage() {
     return (
         <main className="min-h-screen bg-white px-5 py-10 text-app-cafe-profundo">
             <section className="mx-auto max-w-6xl">
-                <Link href="/cliente/dashboard" className="text-sm font-bold text-app-caramelo-torrado">← Voltar ao início</Link>
+                <Link href="/cliente/dashboard" className="text-sm font-bold text-app-caramelo-torrado">{ui("← Voltar ao início")}</Link>
                 <header className="mt-8">
-                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">Pedidos</p>
-                    <h1 className="mt-2 text-4xl font-semibold sm:text-5xl">Todos os seus pedidos</h1>
-                    <p className="mt-3 max-w-2xl text-sm leading-6 text-app-cinza">A listagem carrega apenas o resumo. Itens, acompanhamento e ações são buscados quando você abre um pedido.</p>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{ui("Pedidos")}</p>
+                    <h1 className="mt-2 text-4xl font-semibold sm:text-5xl">{ui("Todos os seus pedidos")}</h1>
+                    <p className="mt-3 max-w-2xl text-sm leading-6 text-app-cinza">{ui("A listagem carrega apenas o resumo. Itens, acompanhamento e ações são buscados quando você abre um pedido.")}</p>
                 </header>
 
-                {erro ? <div role="alert" className="mt-8 rounded-[12px] bg-red-50 p-5 text-sm font-semibold text-red-800 ring-1 ring-red-200">{erro}</div> : null}
+                {erro ? <div role="alert" className="mt-8 rounded-[12px] bg-red-50 p-5 text-sm font-semibold text-red-800 ring-1 ring-red-200">{ui(erro)}</div> : null}
                 {carregando ? <div className="mt-8 grid gap-4 sm:grid-cols-2">{[1, 2, 3, 4].map((item) => <PedidoSkeleton key={item} />)}</div> : null}
                 {!carregando && !erro && !pedidos.length ? (
                     <div className="mt-8 rounded-[14px] border border-dashed border-app-baunilha-dourada bg-white p-10 text-center">
-                        <h2 className="text-xl font-bold">Nenhum pedido encontrado</h2>
-                        <p className="mt-2 text-app-cinza">Se você possui uma reserva confirmada, pode adicionar um pedido antecipado.</p>
-                        <Link href="/cliente/reservas" className="mt-6 inline-flex rounded-[8px] bg-app-dourado-mel px-6 py-3 text-xs font-bold uppercase text-white">Ver reservas</Link>
+                        <h2 className="text-xl font-bold">{ui("Nenhum pedido encontrado")}</h2>
+                        <p className="mt-2 text-app-cinza">{ui("Se você possui uma reserva confirmada, pode adicionar um pedido antecipado.")}</p>
+                        <Link href="/cliente/reservas" className="mt-6 inline-flex rounded-[8px] bg-app-dourado-mel px-6 py-3 text-xs font-bold uppercase text-white">{ui("Ver reservas")}</Link>
                     </div>
                 ) : null}
 
@@ -88,22 +90,20 @@ export default function PedidosClientePage() {
                         {pedidos.map((pedido) => (
                             <article key={pedido.id_pedido} className="rounded-[14px] bg-white p-5 shadow-sm ring-1 ring-app-baunilha-dourada/70">
                                 <div className="flex items-start justify-between gap-4">
-                                    <div><p className="text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">Pedido #{pedido.id_pedido}</p><h2 className="mt-2 text-xl font-bold">{pedido.restaurantes?.nome ?? "Restaurante"}</h2></div>
-                                    <span className="rounded-full bg-white px-3 py-1 text-xs font-bold ring-1 ring-app-baunilha-dourada">{textoStatusPedido(pedido.status_pedido)}</span>
+                                    <div><p className="text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">{ui("Pedido #")}{pedido.id_pedido}</p><h2 className="mt-2 text-xl font-bold">{pedido.restaurantes?.nome ?? ui("Restaurante")}</h2></div>
+                                    <span className="rounded-full bg-white px-3 py-1 text-xs font-bold ring-1 ring-app-baunilha-dourada">{ui(textoStatusPedido(pedido.status_pedido))}</span>
                                 </div>
-                                <p className="mt-4 text-sm text-app-cinza">{dataReserva(pedido)} às {String(pedido.reservas?.horario_inicio ?? "--:--").slice(0, 5)}</p>
+                                <p className="mt-4 text-sm text-app-cinza">{dataReserva(pedido)}{ui(" às ")}{String(pedido.reservas?.horario_inicio ?? "--:--").slice(0, 5)}</p>
                                 <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
                                     <strong>{moeda(pedido.valor_total)}</strong>
                                     <div className="flex flex-wrap gap-2">
                                         {pedido.status_pedido === "PENDENTE" && reservaAceitaPagamento(pedido.reservas) ? (
-                                            <Link href={`/cliente/pagamentos/pedido/${pedido.id_pedido}`} className="rounded-[8px] bg-app-dourado-mel px-4 py-2 text-xs font-bold uppercase text-white transition hover:bg-app-caramelo-torrado">
-                                                Pagar
-                                            </Link>
+                                            <Link href={`/cliente/pagamentos/pedido/${pedido.id_pedido}`} className="rounded-[8px] bg-app-dourado-mel px-4 py-2 text-xs font-bold uppercase text-white transition hover:bg-app-caramelo-torrado">{ui("Pagar")}</Link>
                                         ) : null}
-                                        <Link href={`/cliente/pedidos/${pedido.id_pedido}`} className="rounded-[8px] bg-app-cafe-profundo px-4 py-2 text-xs font-bold uppercase text-app-creme-leve transition hover:bg-app-caramelo-torrado">Ver detalhes</Link>
+                                        <Link href={`/cliente/pedidos/${pedido.id_pedido}`} className="rounded-[8px] bg-app-cafe-profundo px-4 py-2 text-xs font-bold uppercase text-app-creme-leve transition hover:bg-app-caramelo-torrado">{ui("Ver detalhes")}</Link>
                                         {["ENTREGUE", "CANCELADO"].includes(pedido.status_pedido) ? (
                                             <button type="button" disabled={pedidoExcluindo === pedido.id_pedido} onClick={() => setPedidoParaExcluir(pedido)} className="rounded-[8px] border border-red-300 px-4 py-2 text-xs font-bold uppercase text-red-700 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50">
-                                                {pedidoExcluindo === pedido.id_pedido ? "Removendo..." : "Excluir"}
+                                                {ui(pedidoExcluindo === pedido.id_pedido ? "Removendo..." : "Excluir")}
                                             </button>
                                         ) : null}
                                     </div>
@@ -114,27 +114,27 @@ export default function PedidosClientePage() {
                 ) : null}
 
                 {paginacao?.totalPages > 1 ? (
-                    <nav aria-label="Paginação dos pedidos" className="mt-8 flex items-center justify-center gap-4">
-                        <button type="button" disabled={pagina <= 1 || carregando} onClick={() => mudarPagina(pagina - 1)} className="rounded-[8px] border border-app-baunilha-dourada px-4 py-2 text-xs font-bold uppercase disabled:opacity-40">Anterior</button>
-                        <span className="text-sm font-semibold">Página {pagina} de {paginacao.totalPages}</span>
-                        <button type="button" disabled={pagina >= paginacao.totalPages || carregando} onClick={() => mudarPagina(pagina + 1)} className="rounded-[8px] border border-app-baunilha-dourada px-4 py-2 text-xs font-bold uppercase disabled:opacity-40">Próxima</button>
+                    <nav aria-label={ui("Paginação dos pedidos")} className="mt-8 flex items-center justify-center gap-4">
+                        <button type="button" disabled={pagina <= 1 || carregando} onClick={() => mudarPagina(pagina - 1)} className="rounded-[8px] border border-app-baunilha-dourada px-4 py-2 text-xs font-bold uppercase disabled:opacity-40">{ui("Anterior")}</button>
+                        <span className="text-sm font-semibold">{ui("Página ")}{pagina}{ui(" de ")}{paginacao.totalPages}</span>
+                        <button type="button" disabled={pagina >= paginacao.totalPages || carregando} onClick={() => mudarPagina(pagina + 1)} className="rounded-[8px] border border-app-baunilha-dourada px-4 py-2 text-xs font-bold uppercase disabled:opacity-40">{ui("Próxima")}</button>
                     </nav>
                 ) : null}
             </section>
             <ConfirmationDialog
                 open={Boolean(pedidoParaExcluir)}
-                eyebrow="Excluir pedido"
-                title="Remover este pedido do histórico?"
-                description="O pedido será ocultado apenas da sua lista. Pagamentos, reembolsos e registros operacionais continuam preservados."
-                confirmLabel="Excluir"
-                cancelLabel="Manter"
+                eyebrow={ui("Excluir pedido")}
+                title={ui("Remover este pedido do histórico?")}
+                description={ui("O pedido será ocultado apenas da sua lista. Pagamentos, reembolsos e registros operacionais continuam preservados.")}
+                confirmLabel={ui("Excluir")}
+                cancelLabel={ui("Manter")}
                 loading={pedidoExcluindo === pedidoParaExcluir?.id_pedido}
                 onCancel={() => setPedidoParaExcluir(null)}
                 onConfirm={() => excluirPedidoDaLista(pedidoParaExcluir)}
                 details={pedidoParaExcluir ? (
                     <div>
-                        <p className="font-semibold">Pedido #{pedidoParaExcluir.id_pedido}</p>
-                        <p className="mt-1 text-xs text-app-cinza">{pedidoParaExcluir.restaurantes?.nome ?? "Restaurante"} - {moeda(pedidoParaExcluir.valor_total)}</p>
+                        <p className="font-semibold">{ui("Pedido #")}{pedidoParaExcluir.id_pedido}</p>
+                        <p className="mt-1 text-xs text-app-cinza">{pedidoParaExcluir.restaurantes?.nome ?? ui("Restaurante")} - {moeda(pedidoParaExcluir.valor_total)}</p>
                     </div>
                 ) : null}
             />

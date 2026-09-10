@@ -1,5 +1,6 @@
 "use client";
 
+import { useInterface } from "@/lib/use-interface";
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { BotaoVoltar } from "@/components/botao-voltar";
@@ -8,8 +9,8 @@ import { useTextoTraduzido } from "@/lib/use-traducao";
 
 const LIMITE_UNIDADES_POR_ITEM = 10;
 
-function formatarMoeda(valor) {
-  return new Intl.NumberFormat("pt-BR", {
+function formatarMoeda(valor, localeUI = "pt-BR") {
+  return new Intl.NumberFormat(localeUI, {
     style: "currency",
     currency: "BRL",
   }).format(Number(valor ?? 0));
@@ -80,9 +81,9 @@ function obterLinhasHorarioFuncionamento(horarioFuncionamento) {
   return String(horarioFuncionamento).split("|").map((linha) => linha.trim()).filter(Boolean);
 }
 
-function formatarDataAvaliacao(data) {
+function formatarDataAvaliacao(data, localeUI = "pt-BR") {
   if (!data) return "";
-  return new Date(data).toLocaleDateString("pt-BR", {
+  return new Date(data).toLocaleDateString(localeUI, {
     day: "2-digit",
     month: "short",
     year: "numeric",
@@ -90,9 +91,10 @@ function formatarDataAvaliacao(data) {
 }
 
 function EstrelasNota({ nota, className = "" }) {
+    const { ui } = useInterface();
   const notaNumerica = Number(nota ?? 0);
   return (
-    <span className={`inline-flex items-center gap-0.5 ${className}`} aria-label={`Nota ${notaNumerica} de 5`}>
+    <span className={`inline-flex items-center gap-0.5 ${className}`} aria-label={ui("Nota {0} de 5", [notaNumerica])}>
       {[1, 2, 3, 4, 5].map((estrela) => (
         <Icon
           key={estrela}
@@ -110,6 +112,7 @@ function TextoDinamicoTraduzido({ texto, className = "", as: Elemento = "span" }
 }
 
 export default function PaginaRestaurante({ params }) {
+    const { ui, localeUI, horarioUI } = useInterface();
   const [restauranteId, setRestauranteId] = useState(null);
   const [restaurante, setRestaurante] = useState(null);
   const [cardapios, setCardapios] = useState([]);
@@ -178,7 +181,7 @@ export default function PaginaRestaurante({ params }) {
   const horarioSelecionado = slotSelecionado?.horario ?? "";
   const horarioFimSelecionado = slotSelecionado?.horario_fim ?? (horarioSelecionado ? adicionarDuasHoras(horarioSelecionado) : "");
   const operacaoConfigurada = disponibilidade.operacao_configurada === true;
-  const resumoCardapio = `${produtos.length} ${produtos.length === 1 ? "item" : "itens"} publicados`;
+  const resumoCardapio = ui(produtos.length === 1 ? "{0} item publicado" : "{0} itens publicados", [produtos.length]);
   const avaliacaoMedia = Number(restaurante?.avaliacao_media ?? 0);
   const totalAvaliacoes = Number(restaurante?.total_avaliacoes ?? 0);
   const avaliacoesRecentes = restaurante?.avaliacoes_recentes ?? [];
@@ -289,7 +292,7 @@ export default function PaginaRestaurante({ params }) {
       return;
     }
     if (temPedidoAntecipado && faltaParaMinimo > 0) {
-      setMensagem(`Para reservar com pedido antecipado, ainda faltam ${formatarMoeda(faltaParaMinimo)} para atingir o consumo mínimo.`);
+      setMensagem(`Para reservar com pedido antecipado, ainda faltam ${formatarMoeda(faltaParaMinimo, localeUI)} para atingir o consumo mínimo.`);
       return;
     }
 
@@ -342,7 +345,7 @@ export default function PaginaRestaurante({ params }) {
   if (!restaurante) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-white px-5 text-app-cafe-profundo">
-        <p className="text-sm font-semibold">{mensagem}</p>
+        <p className="text-sm font-semibold">{ui(mensagem)}</p>
       </main>
     );
   }
@@ -350,9 +353,7 @@ export default function PaginaRestaurante({ params }) {
   return (
     <main className="min-h-screen bg-white px-4 py-6 text-app-cafe-profundo sm:px-5 sm:py-8">
       <div className="mx-auto max-w-6xl">
-        <BotaoVoltar href="/cliente/dashboard" className="text-sm font-bold text-app-caramelo-torrado transition hover:text-app-cafe-profundo">
-          Voltar aos restaurantes
-        </BotaoVoltar>
+        <BotaoVoltar href="/cliente/dashboard" className="text-sm font-bold text-app-caramelo-torrado transition hover:text-app-cafe-profundo">{ui("Voltar aos restaurantes")}</BotaoVoltar>
 
         <section className="mt-5 overflow-hidden rounded-[18px] bg-white shadow-[0_18px_55px_rgba(74,44,10,0.10)] ring-1 ring-app-baunilha-dourada">
           <div className="grid lg:grid-cols-[0.72fr_1fr]">
@@ -364,16 +365,14 @@ export default function PaginaRestaurante({ params }) {
                   <Icon type="utensils" className="h-12 w-12" />
                 </div>
               )}
-              <span className="absolute bottom-4 left-4 rounded-full bg-white/95 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-app-caramelo-torrado shadow-sm">
-                Parceiro Appono
-              </span>
+              <span className="absolute bottom-4 left-4 rounded-full bg-white/95 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-app-caramelo-torrado shadow-sm">{ui("Parceiro Appono")}</span>
             </div>
 
             <div className="flex min-w-0 flex-col justify-between p-5 sm:p-6 lg:p-7">
               <div>
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-app-caramelo-torrado">Restaurante</p>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-app-caramelo-torrado">{ui("Restaurante")}</p>
                     <h1 className="mt-2 break-words text-3xl font-semibold leading-tight text-app-cafe-profundo sm:text-4xl">{restaurante.nome}</h1>
                   </div>
                   <div className="flex flex-wrap gap-2">
@@ -384,7 +383,7 @@ export default function PaginaRestaurante({ params }) {
                       className="inline-flex h-10 items-center gap-2 rounded-full border border-app-baunilha-dourada px-4 text-xs font-bold uppercase tracking-[0.08em] text-app-cafe-profundo transition hover:bg-app-chantilly disabled:opacity-50"
                     >
                       <Icon type="message" className="h-4 w-4" />
-                      {abrindoChat ? "Abrindo..." : "Falar"}
+                      {ui(abrindoChat ? "Abrindo..." : "Falar")}
                     </button>
                     <button
                       type="button"
@@ -393,29 +392,29 @@ export default function PaginaRestaurante({ params }) {
                       className="inline-flex h-10 items-center gap-2 rounded-full border border-app-caramelo-torrado px-4 text-xs font-bold uppercase tracking-[0.08em] text-app-caramelo-torrado transition hover:bg-app-caramelo-torrado hover:text-white disabled:opacity-50"
                     >
                       <Icon type="heart" className="h-4 w-4" />
-                      {restaurante.favorito_cliente ? "Favorito" : "Favoritar"}
+                      {ui(restaurante.favorito_cliente ? "Favorito" : "Favoritar")}
                     </button>
                   </div>
                 </div>
                 <p className="mt-3 max-w-xl break-words text-sm leading-6 text-app-mocha">{resumirEndereco(restaurante.endereco)}</p>
                 <div className="mt-4 flex flex-wrap gap-2">
                   <span className={`rounded-full px-3 py-1 text-xs font-bold ${operacaoConfigurada ? "bg-app-cafe-profundo text-app-creme-leve" : "bg-white text-app-caramelo-torrado"}`}>
-                    {operacaoConfigurada ? "Reservas disponíveis" : "Operação em configuracao"}
+                    {ui(operacaoConfigurada ? "Reservas disponíveis" : "Operação em configuracao")}
                   </span>
                   <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-app-mocha">{resumoCardapio}</span>
                   <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-xs font-bold text-app-mocha">
                     {totalAvaliacoes ? <EstrelasNota nota={avaliacaoMedia} /> : <Icon type="star" className="h-3.5 w-3.5 text-app-dourado-mel" />}
-                    {totalAvaliacoes ? `${avaliacaoMedia.toFixed(1)} (${totalAvaliacoes})` : "Novo na Appono"}
+                    {totalAvaliacoes ? ui("{0} ({1})", [avaliacaoMedia.toFixed(1), totalAvaliacoes]) : ui("Novo na Appono")}
                   </span>
                 </div>
               </div>
 
               <div className="mt-5 rounded-[14px] bg-white p-3 ring-1 ring-app-baunilha-dourada/60">
                 <div className="min-w-0 rounded-[10px] bg-white px-3 py-3 ring-1 ring-app-baunilha-dourada/45">
-                  <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-app-cinza">Horário</p>
+                  <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-app-cinza">{ui("Horário")}</p>
                   <div className="mt-2 grid gap-1.5">
                     {linhasHorarioFuncionamento.map((linha) => (
-                      <span key={linha} className="break-words text-[11px] font-semibold leading-4 text-app-cafe-profundo">{linha}</span>
+                      <span key={horarioUI(linha)} className="break-words text-[11px] font-semibold leading-4 text-app-cafe-profundo">{linha}</span>
                     ))}
                   </div>
                 </div>
@@ -429,12 +428,12 @@ export default function PaginaRestaurante({ params }) {
             <section className="rounded-[18px] bg-white p-5 shadow-sm ring-1 ring-app-baunilha-dourada sm:p-6">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">Avaliacoes</p>
-                  <h2 className="mt-1 text-2xl font-bold">Experiencias de clientes</h2>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{ui("Avaliacoes")}</p>
+                  <h2 className="mt-1 text-2xl font-bold">{ui("Experiencias de clientes")}</h2>
                 </div>
                 <div className="flex w-fit items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-bold text-app-cafe-profundo ring-1 ring-app-baunilha-dourada/60">
                   {totalAvaliacoes ? <EstrelasNota nota={avaliacaoMedia} /> : <Icon type="star" className="h-4 w-4 text-app-dourado-mel" />}
-                  {totalAvaliacoes ? `${avaliacaoMedia.toFixed(1)} de 5` : "Sem avaliações"}
+                  {totalAvaliacoes ? ui("{0} de 5", [avaliacaoMedia.toFixed(1)]) : ui("Sem avaliações")}
                 </div>
               </div>
               {avaliacoesRecentes.length ? (
@@ -442,21 +441,19 @@ export default function PaginaRestaurante({ params }) {
                   {avaliacoesRecentes.map((avaliacao) => (
                     <article key={avaliacao.id_avaliacao} className="rounded-[12px] bg-white p-4 ring-1 ring-app-baunilha-dourada/60">
                       <div className="flex items-center justify-between gap-3">
-                        <strong className="truncate text-sm text-app-cafe-profundo">{avaliacao.clientes?.nome ?? "Cliente Appono"}</strong>
+                        <strong className="truncate text-sm text-app-cafe-profundo">{avaliacao.clientes?.nome ?? ui("Cliente Appono")}</strong>
                         <span className="inline-flex items-center gap-2 rounded-full bg-white px-2.5 py-1 text-xs font-bold text-app-caramelo-torrado">
                           <EstrelasNota nota={avaliacao.nota} />
                           {avaliacao.nota}/5
                         </span>
                       </div>
                       <p className="mt-3 text-sm leading-6 text-app-mocha">{avaliacao.comentario}</p>
-                      <p className="mt-3 text-xs text-app-cinza">{formatarDataAvaliacao(avaliacao.created_at)}</p>
+                      <p className="mt-3 text-xs text-app-cinza">{formatarDataAvaliacao(avaliacao.created_at, localeUI)}</p>
                     </article>
                   ))}
                 </div>
               ) : (
-                <p className="mt-4 rounded-[12px] bg-white p-4 text-sm leading-6 text-app-mocha ring-1 ring-app-baunilha-dourada/60">
-                  As avaliações aparecerão aqui depois que os clientes concluírem reservas ou pedidos.
-                </p>
+                <p className="mt-4 rounded-[12px] bg-white p-4 text-sm leading-6 text-app-mocha ring-1 ring-app-baunilha-dourada/60">{ui("As avaliações aparecerão aqui depois que os clientes concluírem reservas ou pedidos.")}</p>
               )}
             </section>
 
@@ -464,21 +461,21 @@ export default function PaginaRestaurante({ params }) {
               <section className="rounded-[18px] bg-app-cafe-profundo p-5 text-app-creme-leve shadow-sm ring-1 ring-app-baunilha-dourada/50 sm:p-6">
                 <div className="flex flex-wrap items-end justify-between gap-3">
                   <div>
-                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-dourado-mel">Selecionados pelo restaurante</p>
-                    <h2 className="mt-1 text-2xl font-bold">Destaques do cardápio</h2>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-dourado-mel">{ui("Selecionados pelo restaurante")}</p>
+                    <h2 className="mt-1 text-2xl font-bold">{ui("Destaques do cardápio")}</h2>
                   </div>
-                  <span className="rounded-full bg-app-mocha px-3 py-1 text-xs font-bold text-app-creme-suave">Boa pedida para antecipar</span>
+                  <span className="rounded-full bg-app-mocha px-3 py-1 text-xs font-bold text-app-creme-suave">{ui("Boa pedida para antecipar")}</span>
                 </div>
                 <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                   {produtosDestaque.map((produto) => (
                     <article key={`destaque-${produto.id_produto}`} className="overflow-hidden rounded-[14px] bg-white text-app-cafe-profundo ring-1 ring-app-baunilha-dourada/45">
                       <div className="relative h-24 bg-app-baunilha-dourada/45">
-                        {produto.imagem_url ? <Image src={produto.imagem_url} alt={produto.nome} fill className="object-cover" /> : <span className="flex h-full items-center justify-center text-xs font-bold uppercase text-app-caramelo-torrado">Appono</span>}
+                        {produto.imagem_url ? <Image src={produto.imagem_url} alt={produto.nome} fill className="object-cover" /> : <span className="flex h-full items-center justify-center text-xs font-bold uppercase text-app-caramelo-torrado">{ui("Appono")}</span>}
                       </div>
                       <div className="p-3">
                         <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">{produto.categoria}</p>
                         <h3 className="mt-1 line-clamp-2 break-words text-sm font-bold">{produto.nome}</h3>
-                        <strong className="mt-2 block text-sm text-app-caramelo-torrado">{formatarMoeda(produto.preco)}</strong>
+                        <strong className="mt-2 block text-sm text-app-caramelo-torrado">{formatarMoeda(produto.preco, localeUI)}</strong>
                       </div>
                     </article>
                   ))}
@@ -494,7 +491,7 @@ export default function PaginaRestaurante({ params }) {
                       <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{categoria.cardapio}</p>
                       <h2 className="mt-1 text-2xl font-bold">{categoria.nome}</h2>
                     </div>
-                    <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-app-mocha">{categoria.produtos.length} itens</span>
+                    <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-app-mocha">{categoria.produtos.length}{ui(" itens")}</span>
                   </div>
 
                   <div className="mt-5 grid gap-4">
@@ -513,11 +510,11 @@ export default function PaginaRestaurante({ params }) {
                           </div>
                           <div className="min-w-0">
                             <div className="flex flex-wrap items-center gap-2">
-                              {produto.destaque ? <span className="rounded-full bg-app-cafe-profundo px-2.5 py-1 text-[10px] font-bold uppercase text-app-creme-leve">Destaque</span> : null}
+                              {produto.destaque ? <span className="rounded-full bg-app-cafe-profundo px-2.5 py-1 text-[10px] font-bold uppercase text-app-creme-leve">{ui("Destaque")}</span> : null}
                             </div>
                             <TextoDinamicoTraduzido texto={produto.nome} as="h3" className="mt-2 break-words text-base font-bold text-app-cafe-profundo sm:text-lg" />
                             {produto.descricao ? <TextoDinamicoTraduzido texto={produto.descricao} as="p" className="mt-1 break-words text-sm leading-6 text-app-mocha" /> : null}
-                            <p className="mt-2 text-base font-bold text-app-caramelo-torrado">{formatarMoeda(produto.preco)}</p>
+                            <p className="mt-2 text-base font-bold text-app-caramelo-torrado">{formatarMoeda(produto.preco, localeUI)}</p>
                           </div>
                           <div className="flex items-center justify-between gap-3 md:col-span-2 xl:col-span-1 xl:justify-end">
                             <button type="button" onClick={() => alterarQuantidade(produto.id_produto, -1)} className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-app-cafe-profundo ring-1 ring-app-baunilha-dourada transition hover:bg-app-baunilha-dourada">
@@ -530,9 +527,9 @@ export default function PaginaRestaurante({ params }) {
                           </div>
                           {quantidade > 0 ? (
                             <label className="grid gap-2 md:col-span-2 xl:col-span-3">
-                              <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-app-cinza">Observacao deste item</span>
-                              <input value={observacoesItens[produto.id_produto] ?? ""} onChange={(evento) => alterarObservacaoItem(produto.id_produto, evento.target.value)} placeholder="Ex: sem cebola, molho separado, ponto da carne..." className="h-10 rounded-[8px] border border-app-baunilha-dourada bg-white px-3 text-sm text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado" />
-                              <span className="text-[11px] text-app-cinza">Limite de {LIMITE_UNIDADES_POR_ITEM} unidades por item.</span>
+                              <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-app-cinza">{ui("Observacao deste item")}</span>
+                              <input value={observacoesItens[produto.id_produto] ?? ""} onChange={(evento) => alterarObservacaoItem(produto.id_produto, evento.target.value)} placeholder={ui("Ex: sem cebola, molho separado, ponto da carne...")} className="h-10 rounded-[8px] border border-app-baunilha-dourada bg-white px-3 text-sm text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado" />
+                              <span className="text-[11px] text-app-cinza">{ui("Limite de ")}{LIMITE_UNIDADES_POR_ITEM}{ui(" unidades por item.")}</span>
                             </label>
                           ) : null}
                         </article>
@@ -543,8 +540,8 @@ export default function PaginaRestaurante({ params }) {
               ))
             ) : (
               <section className="rounded-[18px] bg-white p-6 text-sm leading-6 text-app-mocha shadow-sm ring-1 ring-app-baunilha-dourada">
-                <p className="font-bold text-app-cafe-profundo">Cardápio em atualização</p>
-                <p className="mt-1">Este restaurante ainda não publicou itens. Você ainda pode reservar uma mesa normalmente.</p>
+                <p className="font-bold text-app-cafe-profundo">{ui("Cardápio em atualização")}</p>
+                <p className="mt-1">{ui("Este restaurante ainda não publicou itens. Você ainda pode reservar uma mesa normalmente.")}</p>
               </section>
             )}
           </section>
@@ -556,35 +553,27 @@ export default function PaginaRestaurante({ params }) {
                   <Icon type="receipt" />
                 </span>
                 <div>
-                  <h2 className="text-xl font-bold">{temPedidoAntecipado ? "Reserva com pedido" : "Reservar mesa"}</h2>
-                  <p className="text-xs text-app-cinza">{temPedidoAntecipado ? `${totalItens} itens selecionados` : "Pedido antecipado opcional"}</p>
+                  <h2 className="text-xl font-bold">{ui(temPedidoAntecipado ? "Reserva com pedido" : "Reservar mesa")}</h2>
+                  <p className="text-xs text-app-cinza">{temPedidoAntecipado ? ui("{0} itens selecionados", [totalItens]) : ui("Pedido antecipado opcional")}</p>
                 </div>
               </div>
 
               <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                <label className="grid min-w-0 gap-1 text-xs font-bold uppercase text-app-cinza">
-                  Data
-                  <input type="date" min={obterDataPermitida()} max={obterDataLimiteReserva()} value={data} onChange={(evento) => setData(evento.target.value)} className="h-11 w-full min-w-0 rounded-[10px] border border-app-baunilha-dourada bg-white px-3 text-sm font-normal normal-case text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20" />
+                <label className="grid min-w-0 gap-1 text-xs font-bold uppercase text-app-cinza">{ui("Data")}<input type="date" min={obterDataPermitida()} max={obterDataLimiteReserva()} value={data} onChange={(evento) => setData(evento.target.value)} className="h-11 w-full min-w-0 rounded-[10px] border border-app-baunilha-dourada bg-white px-3 text-sm font-normal normal-case text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20" />
                 </label>
-                <label className="grid min-w-0 gap-1 text-xs font-bold uppercase text-app-cinza">
-                  Horário
-                  <select value={horarioSelecionado} onChange={(evento) => setHorario(evento.target.value)} disabled={!horariosDisponiveis.length} className="h-11 w-full min-w-0 rounded-[10px] border border-app-baunilha-dourada bg-white px-3 text-sm font-normal normal-case text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20 disabled:cursor-not-allowed disabled:opacity-60">
+                <label className="grid min-w-0 gap-1 text-xs font-bold uppercase text-app-cinza">{ui("Horário")}<select value={horarioSelecionado} onChange={(evento) => setHorario(evento.target.value)} disabled={!horariosDisponiveis.length} className="h-11 w-full min-w-0 rounded-[10px] border border-app-baunilha-dourada bg-white px-3 text-sm font-normal normal-case text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20 disabled:cursor-not-allowed disabled:opacity-60">
                     {horariosDisponiveis.length ? horariosDisponiveis.map((slot) => (
                       <option key={slot.horario} value={slot.horario}>
                         {slot.horario}
                       </option>
                     )) : (
-                      <option value="">Sem horários disponíveis</option>
+                      <option value="">{ui("Sem horários disponíveis")}</option>
                     )}
                   </select>
                 </label>
-                <label className="grid gap-1 text-xs font-bold uppercase text-app-cinza sm:col-span-2">
-                  Pessoas
-                  <input type="number" min={1} max={30} value={pessoas} onChange={(evento) => setPessoas(Math.max(1, Number(evento.target.value) || 1))} className="h-11 rounded-[10px] border border-app-baunilha-dourada bg-white px-3 text-sm font-normal normal-case text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20" />
+                <label className="grid gap-1 text-xs font-bold uppercase text-app-cinza sm:col-span-2">{ui("Pessoas")}<input type="number" min={1} max={30} value={pessoas} onChange={(evento) => setPessoas(Math.max(1, Number(evento.target.value) || 1))} className="h-11 rounded-[10px] border border-app-baunilha-dourada bg-white px-3 text-sm font-normal normal-case text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20" />
                 </label>
-                <label className="grid gap-1 text-xs font-bold uppercase text-app-cinza sm:col-span-2">
-                  Observacoes da reserva
-                  <textarea value={observacoesReserva} onChange={(evento) => setObservacoesReserva(evento.target.value)} placeholder="Ex: mesa próxima da janela, cadeira infantil..." className="min-h-20 rounded-[10px] border border-app-baunilha-dourada bg-white p-3 text-sm font-normal normal-case text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20" />
+                <label className="grid gap-1 text-xs font-bold uppercase text-app-cinza sm:col-span-2">{ui("Observacoes da reserva")}<textarea value={observacoesReserva} onChange={(evento) => setObservacoesReserva(evento.target.value)} placeholder={ui("Ex: mesa próxima da janela, cadeira infantil...")} className="min-h-20 rounded-[10px] border border-app-baunilha-dourada bg-white p-3 text-sm font-normal normal-case text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20" />
                 </label>
               </div>
 
@@ -592,70 +581,60 @@ export default function PaginaRestaurante({ params }) {
                 {produtosSelecionados.length ? produtosSelecionados.map((produto) => (
                   <div key={produto.id_produto} className="grid grid-cols-[1fr_auto] gap-3 rounded-[10px] bg-white p-3 text-sm">
                     <div>
-                      <span><strong>{produto.quantidade}x</strong> {produto.nome}</span>
-                      {observacoesItens[produto.id_produto]?.trim() ? <p className="mt-1 text-xs text-app-cinza">Obs.: {observacoesItens[produto.id_produto].trim()}</p> : null}
+                      <span><strong>{produto.quantidade}{ui("x")}</strong> {produto.nome}</span>
+                      {observacoesItens[produto.id_produto]?.trim() ? <p className="mt-1 text-xs text-app-cinza">{ui("Obs.: ")}{observacoesItens[produto.id_produto].trim()}</p> : null}
                     </div>
-                    <strong>{formatarMoeda(Number(produto.preco ?? 0) * produto.quantidade)}</strong>
+                    <strong>{formatarMoeda(Number(produto.preco ?? 0) * produto.quantidade, localeUI)}</strong>
                   </div>
                 )) : (
-                  <p className="rounded-[10px] bg-white p-4 text-sm leading-6 text-app-mocha">
-                    Você pode reservar somente a mesa ou selecionar itens do cardápio para antecipar o pedido.
-                  </p>
+                  <p className="rounded-[10px] bg-white p-4 text-sm leading-6 text-app-mocha">{ui("Você pode reservar somente a mesa ou selecionar itens do cardápio para antecipar o pedido.")}</p>
                 )}
               </div>
 
               {temPedidoAntecipado ? (
-                <label className="mt-5 grid gap-2 text-xs font-bold uppercase text-app-cinza">
-                  Observacoes do pedido
-                  <textarea value={observacoesPedido} onChange={(evento) => setObservacoesPedido(evento.target.value)} placeholder="Ex: alergias, ponto da carne, retirar cebola..." className="min-h-20 rounded-[10px] border border-app-baunilha-dourada bg-white p-3 text-sm font-normal normal-case text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20" />
+                <label className="mt-5 grid gap-2 text-xs font-bold uppercase text-app-cinza">{ui("Observacoes do pedido")}<textarea value={observacoesPedido} onChange={(evento) => setObservacoesPedido(evento.target.value)} placeholder={ui("Ex: alergias, ponto da carne, retirar cebola...")} className="min-h-20 rounded-[10px] border border-app-baunilha-dourada bg-white p-3 text-sm font-normal normal-case text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20" />
                 </label>
               ) : null}
 
               <div className="mt-5 grid gap-3 rounded-[14px] bg-white p-4 text-sm ring-1 ring-app-baunilha-dourada/60">
-                <p className="rounded-[10px] bg-white px-3 py-2 text-xs leading-5 text-app-mocha">
-                  Pedido antecipado possui consumo mínimo de <strong className="text-app-cafe-profundo">{formatarMoeda(valorMinimoPorPessoa)}</strong> por pessoa.
-                </p>
+                <p className="rounded-[10px] bg-white px-3 py-2 text-xs leading-5 text-app-mocha">{ui("Pedido antecipado possui consumo mínimo de ")}<strong className="text-app-cafe-profundo">{formatarMoeda(valorMinimoPorPessoa, localeUI)}</strong>{ui(" por pessoa.")}</p>
                 <div className="flex justify-between gap-4">
-                  <span className="text-app-mocha">Consumo mínimo por pessoa</span>
-                  <strong>{formatarMoeda(valorMinimoPorPessoa)}</strong>
+                  <span className="text-app-mocha">{ui("Consumo mínimo por pessoa")}</span>
+                  <strong>{formatarMoeda(valorMinimoPorPessoa, localeUI)}</strong>
                 </div>
                 <div className="flex justify-between gap-4">
-                  <span className="text-app-mocha">{temPedidoAntecipado ? `Mínimo para ${pessoas} pessoa(s)` : "Aplicado somente se houver pedido"}</span>
-                  <strong>{formatarMoeda(valorMinimoTotal)}</strong>
+                  <span className="text-app-mocha">{temPedidoAntecipado ? ui("Mínimo para {0} pessoa(s)", [pessoas]) : ui("Aplicado somente se houver pedido")}</span>
+                  <strong>{formatarMoeda(valorMinimoTotal, localeUI)}</strong>
                 </div>
                 <div className="flex items-center justify-between border-t border-app-baunilha-dourada pt-4">
-                  <span className="font-bold">{temPedidoAntecipado ? "Total do pedido" : "Total a pagar agora"}</span>
-                  <strong className="text-2xl text-app-cafe-profundo">{formatarMoeda(temPedidoAntecipado ? totalPedido : 0)}</strong>
+                  <span className="font-bold">{ui(temPedidoAntecipado ? "Total do pedido" : "Total a pagar agora")}</span>
+                  <strong className="text-2xl text-app-cafe-profundo">{formatarMoeda(temPedidoAntecipado ? totalPedido : 0, localeUI)}</strong>
                 </div>
               </div>
 
               {temPedidoAntecipado && faltaParaMinimo > 0 ? (
-                <p className="mt-5 rounded-[8px] bg-white p-3 text-sm font-semibold leading-6 text-app-caramelo-torrado">
-                  Faltam {formatarMoeda(faltaParaMinimo)} para atingir o consumo mínimo do pedido antecipado.
-                </p>
+                <p className="mt-5 rounded-[8px] bg-white p-3 text-sm font-semibold leading-6 text-app-caramelo-torrado">{ui("Faltam ")}{formatarMoeda(faltaParaMinimo, localeUI)}{ui(" para atingir o consumo mínimo do pedido antecipado.")}</p>
               ) : null}
               {!operacaoConfigurada ? (
                 <p className="mt-5 rounded-[8px] bg-white p-3 text-sm font-semibold leading-6 text-app-caramelo-torrado">
-                  {disponibilidade.motivo ?? "Este restaurante ainda precisa configurar os horários de funcionamento antes de receber reservas."}
+                  {ui(disponibilidade.motivo ?? "Este restaurante ainda precisa configurar os horários de funcionamento antes de receber reservas.")}
                 </p>
               ) : null}
               {operacaoConfigurada && !horariosDisponiveis.length ? (
                 <p className="mt-5 rounded-[8px] bg-white p-3 text-sm font-semibold leading-6 text-app-caramelo-torrado">
-                  {disponibilidade.motivo ?? "Não há horários disponíveis para esta data considerando funcionamento, antecedência mínima e mesas ocupadas."}
+                  {ui(disponibilidade.motivo ?? "Não há horários disponíveis para esta data considerando funcionamento, antecedência mínima e mesas ocupadas.")}
                 </p>
               ) : null}
 
               <button type="submit" disabled={enviando || !operacaoConfigurada || !horariosDisponiveis.length || (temPedidoAntecipado && faltaParaMinimo > 0)} className="mt-5 h-12 w-full rounded-[8px] bg-app-dourado-mel text-xs font-bold uppercase tracking-wide text-white transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-50">
-                {enviando ? "Confirmando..." : temPedidoAntecipado ? "Confirmar reserva e pagar pedido" : "Confirmar reserva sem pedido"}
+                {ui(enviando ? "Confirmando..." : temPedidoAntecipado ? "Confirmar reserva e pagar pedido" : "Confirmar reserva sem pedido")}
               </button>
-              {mensagem ? <p className="mt-3 text-sm font-semibold text-app-caramelo-torrado">{mensagem}</p> : null}
+              {mensagem ? <p className="mt-3 text-sm font-semibold text-app-caramelo-torrado">{ui(mensagem)}</p> : null}
             </form>
 
             <section className="mt-5 rounded-[14px] bg-white p-4 text-xs leading-5 text-app-mocha">
-              <h2 className="text-sm font-bold text-app-cafe-profundo">Sobre a experiência</h2>
-              <p className="mt-2">
-                Reserve sua mesa normalmente ou antecipe o pedido. O consumo mínimo só passa a valer quando houver pedido antecipado.
-              </p>
+              <h2 className="text-sm font-bold text-app-cafe-profundo">{ui("Sobre a experiência")}</h2>
+              <p className="mt-2">{ui("Reserve sua mesa normalmente ou antecipe o pedido. O consumo mínimo só passa a valer quando houver pedido antecipado.")}</p>
             </section>
           </aside>
         </div>

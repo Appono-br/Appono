@@ -1,4 +1,5 @@
 "use client";
+import { useInterface } from "@/lib/use-interface";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -62,11 +63,13 @@ function Icon({ type, className = "h-5 w-5", }) {
     </svg>);
 }
 function Toggle({ checked, onChange, label, }) {
-    return (<button type="button" onClick={onChange} className={`relative h-8 w-14 rounded-full transition ${checked ? "bg-app-mocha" : "bg-app-cinza/35"}`} aria-label={label}>
+    const { ui } = useInterface();
+    return (<button type="button" onClick={onChange} className={`relative h-8 w-14 rounded-full transition ${checked ? "bg-app-mocha" : "bg-app-cinza/35"}`} aria-label={ui(label)}>
       <span className={`absolute top-1 h-6 w-6 rounded-full bg-white transition ${checked ? "left-7" : "left-1"}`}/>
     </button>);
 }
 export default function RestaurantNotificationSettingsPage() {
+    const { ui } = useInterface();
     const { sessao, sessaoCarregada } = useSessaoLocal();
     const [form, setForm] = useState(initialForm);
     const [message, setMessage] = useState("Carregando preferências...");
@@ -132,30 +135,24 @@ export default function RestaurantNotificationSettingsPage() {
     if (sessao?.type !== "restaurant") {
         return (<main className="flex min-h-screen items-center justify-center bg-white px-5 text-app-cafe-profundo">
         <section className="w-full max-w-lg rounded-[8px] bg-app-creme-leve p-8 text-center shadow-sm ring-1 ring-app-baunilha-dourada">
-          <Image src="/brand/appono-mark.svg" alt="Appono" width={88} height={88} className="mx-auto h-20 w-20" priority/>
-          <h1 className="mt-6 text-3xl font-semibold">Acesso restrito</h1>
-          <p className="mt-3 text-sm leading-6 text-app-cinza">
-            Esta área é destinada a contas de restaurante.
-          </p>
-          <Link href="/login" className="mt-6 inline-flex h-11 items-center justify-center rounded-[8px] bg-app-dourado-mel px-6 text-sm font-bold text-white transition hover:bg-app-caramelo-torrado">
-            Entrar
-          </Link>
+          <Image src="/brand/appono-mark.svg" alt={ui("Appono")} width={88} height={88} className="mx-auto h-20 w-20" priority/>
+          <h1 className="mt-6 text-3xl font-semibold">{ui("Acesso restrito")}</h1>
+          <p className="mt-3 text-sm leading-6 text-app-cinza">{ui("Esta área é destinada a contas de restaurante.")}</p>
+          <Link href="/login" className="mt-6 inline-flex h-11 items-center justify-center rounded-[8px] bg-app-dourado-mel px-6 text-sm font-bold text-white transition hover:bg-app-caramelo-torrado">{ui("Entrar")}</Link>
         </section>
       </main>);
     }
     return (<main className="flex min-h-screen flex-col bg-white text-app-cafe-profundo">
       <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-app-creme-leve/90 text-app-cafe-profundo shadow-sm backdrop-blur-md">
         <div className="mx-auto grid min-h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-5 py-2">
-          <div aria-label="Appono">
-            <Image src="/brand/appono-mark.svg" alt="Appono" width={72} height={72} className="h-11 w-11" priority/>
+          <div aria-label={ui("Appono")}>
+            <Image src="/brand/appono-mark.svg" alt={ui("Appono")} width={72} height={72} className="h-11 w-11" priority/>
           </div>
           <div className="flex items-center justify-center gap-6">
-            <Link href="/restaurante/configuracoes" className="transition hover:text-app-caramelo-torrado" aria-label="Voltar para configurações">
+            <Link href="/restaurante/configuracoes" className="transition hover:text-app-caramelo-torrado" aria-label={ui("Voltar para configurações")}>
               <Icon type="arrow-left" className="h-5 w-5"/>
             </Link>
-            <h1 className="text-lg font-bold uppercase tracking-[0.14em] sm:text-2xl">
-              Configurações
-            </h1>
+            <h1 className="text-lg font-bold uppercase tracking-[0.14em] sm:text-2xl">{ui("Configurações")}</h1>
           </div>
           <div className="flex items-center justify-self-end gap-3 text-app-cafe-profundo">
             <ItemHeaderNotificacoes href="/restaurante/notificacoes" />
@@ -166,16 +163,9 @@ export default function RestaurantNotificationSettingsPage() {
 
       <section className="mx-auto w-full max-w-7xl flex-1 px-5 py-10 sm:py-14">
         <div className="border-t border-app-baunilha-dourada/60 pt-10">
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">
-            Comunicação operacional
-          </p>
-          <h2 className="mt-3 text-4xl font-medium leading-tight text-app-cafe-profundo sm:text-5xl">
-            Preferências de Notificação
-          </h2>
-          <p className="mt-4 max-w-3xl text-sm leading-6 text-app-cinza sm:text-base">
-            Defina quais eventos exigem aviso imediato e quais canais a equipe
-            deve usar durante o expediente.
-          </p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{ui("Comunicação operacional")}</p>
+          <h2 className="mt-3 text-4xl font-medium leading-tight text-app-cafe-profundo sm:text-5xl">{ui("Preferências de Notificação")}</h2>
+          <p className="mt-4 max-w-3xl text-sm leading-6 text-app-cinza sm:text-base">{ui("Defina quais eventos exigem aviso imediato e quais canais a equipe deve usar durante o expediente.")}</p>
         </div>
 
         <form onSubmit={submitForm} className="mt-10 grid gap-8 lg:grid-cols-[0.72fr_1fr]">
@@ -186,29 +176,21 @@ export default function RestaurantNotificationSettingsPage() {
                   <Icon type="bell" className="h-6 w-6"/>
                 </span>
                 <div>
-                  <h3 className="text-2xl font-medium text-app-cafe-profundo">
-                    Canais principais
-                  </h3>
-                  <p className="mt-1 text-sm text-app-cinza">
-                    Contatos usados para comunicados administrativos.
-                  </p>
+                  <h3 className="text-2xl font-medium text-app-cafe-profundo">{ui("Canais principais")}</h3>
+                  <p className="mt-1 text-sm text-app-cinza">{ui("Contatos usados para comunicados administrativos.")}</p>
                 </div>
               </div>
 
               <div className="mt-7 grid gap-5">
                 <label className="grid gap-2">
-                  <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-cinza">
-                    Email operacional
-                  </span>
+                  <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-cinza">{ui("Email operacional")}</span>
                   <span className="relative">
                     <Icon type="mail" className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-app-cinza"/>
                     <input type="email" value={form.contactEmail} onChange={(event) => updateField("contactEmail", event.target.value)} className="h-12 w-full rounded-[8px] border border-app-baunilha-dourada bg-white px-4 pl-10 text-sm outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20"/>
                   </span>
                 </label>
                 <label className="grid gap-2">
-                  <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-cinza">
-                    Telefone da operação
-                  </span>
+                  <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-cinza">{ui("Telefone da operação")}</span>
                   <span className="relative">
                     <Icon type="phone" className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-app-cinza"/>
                     <input value={form.contactPhone} onChange={(event) => updateField("contactPhone", aplicarMascaraTelefone(event.target.value))} className="h-12 w-full rounded-[8px] border border-app-baunilha-dourada bg-white px-4 pl-10 text-sm outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20"/>
@@ -218,24 +200,15 @@ export default function RestaurantNotificationSettingsPage() {
             </section>
 
             <section className="rounded-[8px] bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada/45 sm:p-8">
-              <h3 className="text-2xl font-medium text-app-cafe-profundo">
-                Janela silenciosa
-              </h3>
-              <p className="mt-2 text-sm leading-6 text-app-cinza">
-                Alertas criticos continuam ativos; comunicados de rotina ficam
-                retidos nesse intervalo.
-              </p>
+              <h3 className="text-2xl font-medium text-app-cafe-profundo">{ui("Janela silenciosa")}</h3>
+              <p className="mt-2 text-sm leading-6 text-app-cinza">{ui("Alertas criticos continuam ativos; comunicados de rotina ficam retidos nesse intervalo.")}</p>
               <div className="mt-6 grid gap-4 sm:grid-cols-2">
                 <label className="grid gap-2">
-                  <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-cinza">
-                    Inicio
-                  </span>
+                  <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-cinza">{ui("Inicio")}</span>
                   <input type="time" value={form.quietStart} onChange={(event) => updateField("quietStart", event.target.value)} className="h-12 rounded-[8px] border border-app-baunilha-dourada bg-app-creme-suave px-4 text-sm outline-none transition focus:border-app-caramelo-torrado"/>
                 </label>
                 <label className="grid gap-2">
-                  <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-cinza">
-                    Fim
-                  </span>
+                  <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-cinza">{ui("Fim")}</span>
                   <input type="time" value={form.quietEnd} onChange={(event) => updateField("quietEnd", event.target.value)} className="h-12 rounded-[8px] border border-app-baunilha-dourada bg-app-creme-suave px-4 text-sm outline-none transition focus:border-app-caramelo-torrado"/>
                 </label>
               </div>
@@ -245,18 +218,11 @@ export default function RestaurantNotificationSettingsPage() {
           <section className="rounded-[8px] bg-app-baunilha-dourada p-5 shadow-sm ring-1 ring-app-caramelo-torrado/15 sm:p-8">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div>
-                <h3 className="text-2xl font-medium text-app-cafe-profundo">
-                  Eventos monitorados
-                </h3>
-                <p className="mt-2 text-sm leading-6 text-app-mocha">
-                  Mantenha reservas e repasses com canais confiáveis para cada
-                  tipo de aviso.
-                </p>
+                <h3 className="text-2xl font-medium text-app-cafe-profundo">{ui("Eventos monitorados")}</h3>
+                <p className="mt-2 text-sm leading-6 text-app-mocha">{ui("Mantenha reservas e repasses com canais confiáveis para cada tipo de aviso.")}</p>
               </div>
               <span className="inline-flex items-center gap-2 rounded-[8px] bg-white px-4 py-2 text-xs font-bold uppercase text-app-mocha">
-                <Icon type="check" className="h-4 w-4 text-app-caramelo-torrado"/>
-                Rascunho local
-              </span>
+                <Icon type="check" className="h-4 w-4 text-app-caramelo-torrado"/>{ui("Rascunho local")}</span>
             </div>
 
             <div className="mt-7 grid gap-4">
@@ -265,14 +231,12 @@ export default function RestaurantNotificationSettingsPage() {
                     <div>
                       <div className="flex flex-wrap items-center gap-3">
                         <h4 className="text-lg font-medium text-app-cafe-profundo">
-                          {rule.title}
+                          {ui(rule.title)}
                         </h4>
-                        {rule.required ? (<span className="rounded-full bg-app-creme-suave px-3 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-app-caramelo-torrado">
-                            Critico
-                          </span>) : null}
+                        {rule.required ? (<span className="rounded-full bg-app-creme-suave px-3 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-app-caramelo-torrado">{ui("Critico")}</span>) : null}
                       </div>
                       <p className="mt-2 text-sm leading-6 text-app-cinza">
-                        {rule.description}
+                        {ui(rule.description)}
                       </p>
                     </div>
                     <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 xl:min-w-[360px]">
@@ -283,9 +247,9 @@ export default function RestaurantNotificationSettingsPage() {
                 ["sms", "SMS"],
             ].map(([channel, label]) => (<div key={channel} className="flex items-center justify-between gap-3 rounded-[8px] bg-app-creme-suave px-3 py-2">
                           <span className="text-xs font-bold uppercase text-app-mocha">
-                            {label}
+                            {ui(label)}
                           </span>
-                          <Toggle checked={rule.channels[channel]} onChange={() => toggleChannel(rule.key, channel)} label={`${rule.channels[channel] ? "Desativar" : "Ativar"} ${label} em ${rule.title}`}/>
+                          <Toggle checked={rule.channels[channel]} onChange={() => toggleChannel(rule.key, channel)} label={ui("{0} {1} em {2}", [rule.channels[channel] ? "Desativar" : "Ativar", label, rule.title])}/>
                         </div>))}
                     </div>
                   </div>
@@ -293,29 +257,25 @@ export default function RestaurantNotificationSettingsPage() {
             </div>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
-              <Link href="/restaurante/configuracoes" className="flex h-12 items-center justify-center rounded-[8px] border border-app-mocha px-8 text-xs font-bold uppercase tracking-wide text-app-mocha transition hover:bg-app-creme-leve">
-                Cancelar
-              </Link>
+              <Link href="/restaurante/configuracoes" className="flex h-12 items-center justify-center rounded-[8px] border border-app-mocha px-8 text-xs font-bold uppercase tracking-wide text-app-mocha transition hover:bg-app-creme-leve">{ui("Cancelar")}</Link>
               <button type="submit" disabled={salvando} className="h-12 rounded-[8px] bg-app-dourado-mel px-8 text-xs font-bold uppercase tracking-wide text-white transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-60">
-                {salvando ? "Salvando..." : "Salvar preferências"}
+                {ui(salvando ? "Salvando..." : "Salvar preferências")}
               </button>
             </div>
-            {message ? <p className="mt-4 text-sm font-semibold text-app-mocha">{message}</p> : null}
+            {message ? <p className="mt-4 text-sm font-semibold text-app-mocha">{ui(message)}</p> : null}
           </section>
         </form>
       </section>
 
       <footer className="border-t border-app-cacau-intenso/20 bg-app-cafe-profundo px-5 py-7 text-app-creme-leve">
         <div className="mx-auto flex max-w-7xl flex-col items-center gap-5 text-center sm:flex-row sm:justify-between">
-          <Image src="/brand/appono-mark.svg" alt="Appono" width={80} height={80} className="h-14 w-14 brightness-0 invert"/>
+          <Image src="/brand/appono-mark.svg" alt={ui("Appono")} width={80} height={80} className="h-14 w-14 brightness-0 invert"/>
           <nav className="flex flex-wrap justify-center gap-8 text-[10px] font-bold uppercase text-app-baunilha-dourada">
-            <Link href="#" className="transition hover:text-app-chantilly">Política de Privacidade</Link>
-            <Link href="#" className="transition hover:text-app-chantilly">Termos de Uso</Link>
-            <Link href="#" className="transition hover:text-app-chantilly">Contato</Link>
+            <Link href="#" className="transition hover:text-app-chantilly">{ui("Política de Privacidade")}</Link>
+            <Link href="#" className="transition hover:text-app-chantilly">{ui("Termos de Uso")}</Link>
+            <Link href="#" className="transition hover:text-app-chantilly">{ui("Contato")}</Link>
           </nav>
-          <p className="text-xs font-semibold text-app-creme-suave">
-            &copy; 2026 APPONO. Todos os direitos reservados.
-          </p>
+          <p className="text-xs font-semibold text-app-creme-suave">{ui("© 2026 APPONO. Todos os direitos reservados.")}</p>
         </div>
       </footer>
     </main>);

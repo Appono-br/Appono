@@ -15,10 +15,15 @@ function deveIgnorar(no) {
 
 function traduzirNoDeTexto(no, idioma) {
   if (deveIgnorar(no) || !no.nodeValue?.trim()) return;
-  if (!textosOriginais.has(no)) textosOriginais.set(no, no.nodeValue);
-  const original = textosOriginais.get(no);
+  let registro = textosOriginais.get(no);
+  if (!registro || no.nodeValue !== registro.ultimo) {
+    registro = { original: no.nodeValue, ultimo: no.nodeValue };
+    textosOriginais.set(no, registro);
+  }
+  const original = registro.original;
   const proximoTexto = idioma === "en" ? traduzirTextoInterface(original, idioma) : original;
   if (no.nodeValue !== proximoTexto) no.nodeValue = proximoTexto;
+  registro.ultimo = proximoTexto;
 }
 
 function traduzirAtributos(elemento, idioma) {
@@ -29,10 +34,15 @@ function traduzirAtributos(elemento, idioma) {
   atributosTraduziveis.forEach((atributo) => {
     const valor = elemento.getAttribute(atributo);
     if (!valor) return;
-    if (!originais.has(atributo)) originais.set(atributo, valor);
-    const original = originais.get(atributo);
+    let registro = originais.get(atributo);
+    if (!registro || valor !== registro.ultimo) {
+      registro = { original: valor, ultimo: valor };
+      originais.set(atributo, registro);
+    }
+    const original = registro.original;
     const proximoValor = idioma === "en" ? traduzirTextoInterface(original, idioma) : original;
     if (valor !== proximoValor) elemento.setAttribute(atributo, proximoValor);
+    registro.ultimo = proximoValor;
   });
 }
 
@@ -42,6 +52,7 @@ function traduzirArvore(no, idioma) {
     return;
   }
   if (!(no instanceof HTMLElement)) return;
+  if (no.closest("[data-appono-sem-traducao]")) return;
   traduzirAtributos(no, idioma);
   no.childNodes.forEach((filho) => traduzirArvore(filho, idioma));
 }

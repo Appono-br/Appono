@@ -1,3 +1,5 @@
+import interfaceEn from "./interface-en.json";
+
 const dicionarios = {
   "pt-BR": {
     settings: {
@@ -240,5 +242,6 @@ export function traduzirTextoInterface(texto, idioma) {
   const espacosIniciais = textoOriginal.match(/^\s*/)?.[0] ?? "";
   const espacosFinais = textoOriginal.match(/\s*$/)?.[0] ?? "";
   const termo = textoOriginal.trim();
-  return `${espacosIniciais}${textosInterfaceEn[termo.toLocaleLowerCase("pt-BR")] ?? termo}${espacosFinais}`;
+  const chave = termo.replace(/\s+/g, " ").toLocaleLowerCase("pt-BR");
+  return `${espacosIniciais}${interfaceEn[chave] ?? textosInterfaceEn[chave] ?? termo}${espacosFinais}`;
 }

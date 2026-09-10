@@ -1,5 +1,6 @@
 "use client";
 
+import { useInterface } from "@/lib/use-interface";
 import Image from "next/image";
 import Link from "next/link";
 import { Suspense, useEffect, useMemo, useState } from "react";
@@ -101,18 +102,20 @@ function mapearRestaurante(restaurant) {
 }
 
 function EmptyState({ title, description }) {
+    const { ui } = useInterface();
   return (
     <div className="rounded-[16px] border border-dashed border-app-baunilha-dourada bg-white p-10 text-center shadow-sm">
       <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-app-chantilly text-app-cafe-profundo">
         <Icon type="search" className="h-5 w-5" />
       </div>
-      <h2 className="mt-4 text-xl font-semibold text-app-cafe-profundo">{title}</h2>
-      <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-app-cinza">{description}</p>
+      <h2 className="mt-4 text-xl font-semibold text-app-cafe-profundo">{ui(title)}</h2>
+      <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-app-cinza">{ui(description)}</p>
     </div>
   );
 }
 
 function BuscaClienteContent() {
+    const { ui } = useInterface();
   const router = useRouter();
   const searchParams = useSearchParams();
   const termoInicial = searchParams.get("q") ?? "";
@@ -249,22 +252,22 @@ function BuscaClienteContent() {
     <main className="min-h-screen bg-white text-app-cafe-profundo">
       <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-white/90 text-app-cafe-profundo shadow-sm backdrop-blur-md">
         <div className="mx-auto grid h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-5 lg:h-20">
-          <Link href="/cliente/dashboard" className="shrink-0" aria-label="Voltar ao início">
-            <Image src="/brand/appono-mark.svg" alt="Appono" width={88} height={88} className="h-11 w-11 lg:h-14 lg:w-14" priority />
+          <Link href="/cliente/dashboard" className="shrink-0" aria-label={ui("Voltar ao início")}>
+            <Image src="/brand/appono-mark.svg" alt={ui("Appono")} width={88} height={88} className="h-11 w-11 lg:h-14 lg:w-14" priority />
           </Link>
           <nav className="hidden items-center justify-self-center gap-7 text-xs font-semibold text-app-cinza lg:flex">
             {navItems.map((item) => (
               <Link key={item.label} href={item.href} className="transition hover:text-app-cafe-profundo">
-                {item.label}
+                {ui(item.label)}
               </Link>
             ))}
           </nav>
           <div className="flex items-center justify-self-end gap-3 text-app-cafe-profundo">
-            <button type="button" className="transition hover:text-app-caramelo-torrado" aria-label="Sacola">
+            <button type="button" className="transition hover:text-app-caramelo-torrado" aria-label={ui("Sacola")}>
               <Icon type="bag" />
             </button>
             <ItemHeaderNotificacoes href="/cliente/notificacoes" />
-            <button type="button" onClick={() => setMobileMenuOpen((current) => !current)} className="flex h-9 w-9 items-center justify-center rounded-[8px] border border-app-baunilha-dourada bg-white lg:hidden" aria-label="Abrir menu">
+            <button type="button" onClick={() => setMobileMenuOpen((current) => !current)} className="flex h-9 w-9 items-center justify-center rounded-[8px] border border-app-baunilha-dourada bg-white lg:hidden" aria-label={ui("Abrir menu")}>
               <Icon type="menu" />
             </button>
           </div>
@@ -274,7 +277,7 @@ function BuscaClienteContent() {
             <div className="mx-auto grid max-w-7xl gap-2 text-xs font-semibold text-app-cinza">
               {navItems.map((item) => (
                 <Link key={item.label} href={item.href} onClick={() => setMobileMenuOpen(false)} className="transition hover:text-app-cafe-profundo">
-                  {item.label}
+                  {ui(item.label)}
                 </Link>
               ))}
             </div>
@@ -285,30 +288,20 @@ function BuscaClienteContent() {
       <section className="border-b border-app-baunilha-dourada/50 bg-app-cafe-profundo px-5 py-10 text-app-creme-leve">
         <div className="mx-auto max-w-7xl">
           <Link href="/cliente/dashboard" className="inline-flex items-center gap-2 text-sm font-bold text-app-baunilha-dourada transition hover:text-white">
-            <Icon type="arrow" className="h-4 w-4" />
-            Voltar ao início
-          </Link>
+            <Icon type="arrow" className="h-4 w-4" />{ui("Voltar ao início")}</Link>
           <div className="mt-8 grid gap-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-end">
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-app-baunilha-dourada">
-                Busca avançada
-              </p>
-              <h1 className="mt-3 max-w-2xl text-4xl font-semibold leading-tight sm:text-5xl">
-                Encontre o restaurante certo para sua próxima reserva.
-              </h1>
-              <p className="mt-4 max-w-xl text-sm leading-6 text-app-creme-suave">
-                Pesquise por restaurante, endereço, categoria ou prato do cardápio.
-              </p>
+              <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-app-baunilha-dourada">{ui("Busca avançada")}</p>
+              <h1 className="mt-3 max-w-2xl text-4xl font-semibold leading-tight sm:text-5xl">{ui("Encontre o restaurante certo para sua próxima reserva.")}</h1>
+              <p className="mt-4 max-w-xl text-sm leading-6 text-app-creme-suave">{ui("Pesquise por restaurante, endereço, categoria ou prato do cardápio.")}</p>
             </div>
 
             <form onSubmit={submeterBusca} className="rounded-[18px] bg-white p-3 text-app-cafe-profundo shadow-xl ring-1 ring-white/20">
               <label className="campo-busca-app flex h-12 items-center gap-3 rounded-[10px] border border-app-baunilha-dourada bg-white px-4 text-app-mocha">
                 <Icon type="search" className="h-5 w-5" />
-                <span className="sr-only">Buscar restaurantes</span>
-                <input value={termo} onChange={(event) => setTermo(event.target.value)} placeholder="Busque por lasanha, bairro, restaurante..." className="input-busca-app h-full min-w-0 flex-1 bg-transparent text-sm text-app-cafe-profundo outline-none placeholder:text-app-cinza" />
-                <button type="submit" className="hidden h-9 rounded-[8px] bg-app-cafe-profundo px-4 text-[10px] font-bold uppercase tracking-[0.14em] text-app-creme-leve transition hover:bg-app-caramelo-torrado sm:inline-flex sm:items-center">
-                  Buscar
-                </button>
+                <span className="sr-only">{ui("Buscar restaurantes")}</span>
+                <input value={termo} onChange={(event) => setTermo(event.target.value)} placeholder={ui("Busque por lasanha, bairro, restaurante...")} className="input-busca-app h-full min-w-0 flex-1 bg-transparent text-sm text-app-cafe-profundo outline-none placeholder:text-app-cinza" />
+                <button type="submit" className="hidden h-9 rounded-[8px] bg-app-cafe-profundo px-4 text-[10px] font-bold uppercase tracking-[0.14em] text-app-creme-leve transition hover:bg-app-caramelo-torrado sm:inline-flex sm:items-center">{ui("Buscar")}</button>
               </label>
             </form>
           </div>
@@ -317,32 +310,28 @@ function BuscaClienteContent() {
 
       <section className="mx-auto grid max-w-7xl gap-6 px-5 py-8 lg:grid-cols-[280px_1fr]">
         <aside className="h-fit rounded-[18px] border border-app-baunilha-dourada/65 bg-white p-4 shadow-sm lg:sticky lg:top-28">
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">Filtros</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{ui("Filtros")}</p>
           <div className="mt-4 grid gap-2">
             {filtrosBusca.map((filtro) => (
               <button key={filtro.id} type="button" onClick={() => setFiltroBusca(filtro.id)} className={`flex h-10 items-center justify-between rounded-[10px] px-3 text-left text-xs font-bold uppercase tracking-[0.1em] transition ${filtroBusca === filtro.id
                 ? "bg-app-cafe-profundo text-app-creme-leve shadow-sm"
                 : "bg-white text-app-mocha ring-1 ring-app-baunilha-dourada/70 hover:bg-app-chantilly hover:text-app-cafe-profundo"}`}>
-                {filtro.label}
+                {ui(filtro.label)}
                 {filtroBusca === filtro.id ? <span className="h-1.5 w-1.5 rounded-full bg-app-baunilha-dourada" /> : null}
               </button>
             ))}
           </div>
 
           <div className="mt-5 grid gap-2 border-t border-app-baunilha-dourada/45 pt-5">
-            <label className="grid gap-2 text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">
-              Ordenar por
-              <select value={ordenacaoBusca} onChange={(event) => setOrdenacaoBusca(event.target.value)} className="h-11 rounded-[10px] border border-app-baunilha-dourada bg-white px-3 text-sm font-semibold normal-case tracking-normal text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-caramelo-torrado/15">
-                <option value="relevancia">Relevância</option>
-                <option value="distancia">Distância</option>
-                <option value="avaliacao">Avaliação</option>
-                <option value="curtidos">Mais curtidos</option>
+            <label className="grid gap-2 text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">{ui("Ordenar por")}<select value={ordenacaoBusca} onChange={(event) => setOrdenacaoBusca(event.target.value)} className="h-11 rounded-[10px] border border-app-baunilha-dourada bg-white px-3 text-sm font-semibold normal-case tracking-normal text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-caramelo-torrado/15">
+                <option value="relevancia">{ui("Relevância")}</option>
+                <option value="distancia">{ui("Distância")}</option>
+                <option value="avaliacao">{ui("Avaliação")}</option>
+                <option value="curtidos">{ui("Mais curtidos")}</option>
               </select>
             </label>
-            <label className="grid gap-2 text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">
-              Raio
-              <select value={raioKm} onChange={(event) => setRaioKm(event.target.value)} className="h-11 rounded-[10px] border border-app-baunilha-dourada bg-white px-3 text-sm font-semibold normal-case tracking-normal text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-caramelo-torrado/15">
-                {opcoesRaio.map((opcao) => <option key={opcao.value} value={opcao.value}>{opcao.label}</option>)}
+            <label className="grid gap-2 text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">{ui("Raio")}<select value={raioKm} onChange={(event) => setRaioKm(event.target.value)} className="h-11 rounded-[10px] border border-app-baunilha-dourada bg-white px-3 text-sm font-semibold normal-case tracking-normal text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-caramelo-torrado/15">
+                {opcoesRaio.map((opcao) => <option key={opcao.value} value={opcao.value}>{ui(opcao.label)}</option>)}
               </select>
             </label>
           </div>
@@ -350,25 +339,23 @@ function BuscaClienteContent() {
           <div className="mt-5 border-t border-app-baunilha-dourada/45 pt-5">
             <button type="button" onClick={solicitarLocalizacao} className="flex h-11 w-full items-center justify-center gap-2 rounded-[10px] bg-app-caramelo-torrado px-4 text-xs font-bold uppercase tracking-[0.12em] text-white shadow-sm transition hover:bg-app-cafe-profundo disabled:opacity-60" disabled={statusLocalizacao === "loading"}>
               <Icon type="pin" className="h-4 w-4" />
-              {statusLocalizacao === "loading" ? "Localizando" : "Usar localização"}
+              {ui(statusLocalizacao === "loading" ? "Localizando" : "Usar localização")}
             </button>
             <form onSubmit={aplicarLocalizacaoManual} className="mt-3 grid gap-2">
-              <input value={localizacaoManual} onChange={(event) => setLocalizacaoManual(event.target.value)} placeholder="Bairro, cidade ou CEP" className="h-11 rounded-[10px] border border-app-baunilha-dourada bg-white px-3 text-sm text-app-cafe-profundo outline-none transition placeholder:text-app-cinza focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-caramelo-torrado/15" />
-              <button type="submit" className="h-10 rounded-[10px] border border-app-baunilha-dourada bg-white text-[10px] font-bold uppercase tracking-[0.14em] text-app-mocha transition hover:bg-app-chantilly hover:text-app-cafe-profundo">
-                Aplicar local
-              </button>
+              <input value={localizacaoManual} onChange={(event) => setLocalizacaoManual(event.target.value)} placeholder={ui("Bairro, cidade ou CEP")} className="h-11 rounded-[10px] border border-app-baunilha-dourada bg-white px-3 text-sm text-app-cafe-profundo outline-none transition placeholder:text-app-cinza focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-caramelo-torrado/15" />
+              <button type="submit" className="h-10 rounded-[10px] border border-app-baunilha-dourada bg-white text-[10px] font-bold uppercase tracking-[0.14em] text-app-mocha transition hover:bg-app-chantilly hover:text-app-cafe-profundo">{ui("Aplicar local")}</button>
             </form>
-            {statusLocalizacao === "denied" ? <p className="mt-3 text-xs leading-5 text-app-caramelo-torrado">Permissão negada no navegador. Informe um local manualmente.</p> : null}
-            {statusLocalizacao === "manual" && localizacaoManualAplicada ? <p className="mt-3 text-xs leading-5 text-app-cinza">Usando: {localizacaoManualAplicada}</p> : null}
+            {statusLocalizacao === "denied" ? <p className="mt-3 text-xs leading-5 text-app-caramelo-torrado">{ui("Permissão negada no navegador. Informe um local manualmente.")}</p> : null}
+            {statusLocalizacao === "manual" && localizacaoManualAplicada ? <p className="mt-3 text-xs leading-5 text-app-cinza">{ui("Usando: ")}{localizacaoManualAplicada}</p> : null}
           </div>
         </aside>
 
         <section>
           <div className="mb-4 flex flex-col gap-3 rounded-[16px] border border-app-baunilha-dourada/60 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">Resultados</p>
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">{ui("Resultados")}</p>
               <h2 className="mt-1 text-2xl font-semibold text-app-cafe-profundo">
-                {carregando ? "Buscando restaurantes" : `${resultados.length} restaurante(s) encontrado(s)`}
+                {carregando ? ui("Buscando restaurantes") : ui("{0} restaurante(s) encontrado(s)", [resultados.length])}
               </h2>
             </div>
             <button type="button" onClick={() => {
@@ -380,12 +367,10 @@ function BuscaClienteContent() {
               setLocalizacaoManualAplicada("");
               setStatusLocalizacao("idle");
               router.replace("/cliente/busca");
-            }} className="h-10 rounded-[10px] border border-app-baunilha-dourada bg-white px-4 text-[10px] font-bold uppercase tracking-[0.14em] text-app-mocha transition hover:bg-app-chantilly hover:text-app-cafe-profundo">
-              Limpar filtros
-            </button>
+            }} className="h-10 rounded-[10px] border border-app-baunilha-dourada bg-white px-4 text-[10px] font-bold uppercase tracking-[0.14em] text-app-mocha transition hover:bg-app-chantilly hover:text-app-cafe-profundo">{ui("Limpar filtros")}</button>
           </div>
 
-          {mensagem ? <p role="status" className="mb-4 rounded-[10px] border border-app-baunilha-dourada bg-white p-3 text-sm font-semibold text-app-caramelo-torrado">{mensagem}</p> : null}
+          {mensagem ? <p role="status" className="mb-4 rounded-[10px] border border-app-baunilha-dourada bg-white p-3 text-sm font-semibold text-app-caramelo-torrado">{ui(mensagem)}</p> : null}
 
           {carregando ? (
             <div className="grid gap-3">
@@ -404,18 +389,18 @@ function BuscaClienteContent() {
                         {restaurant.imageUrl ? (
                           <Image src={restaurant.imageUrl} alt={restaurant.name} fill sizes="128px" className="object-contain p-3 transition duration-300 group-hover:scale-105" />
                         ) : (
-                          <div className="flex h-full items-center justify-center bg-app-chantilly text-xs font-bold uppercase tracking-[0.16em] text-app-mocha">Appono</div>
+                          <div className="flex h-full items-center justify-center bg-app-chantilly text-xs font-bold uppercase tracking-[0.16em] text-app-mocha">{ui("Appono")}</div>
                         )}
                       </Link>
 
                       <Link href={`/cliente/restaurantes/${restaurant.id}`} className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
-                          {restaurant.acceptsReservation ? <span className="rounded-full bg-app-cafe-profundo px-2.5 py-1 text-[10px] font-bold uppercase text-app-creme-leve">Reservas</span> : null}
-                          {restaurant.hasMenu ? <span className="rounded-full border border-app-baunilha-dourada bg-white px-2.5 py-1 text-[10px] font-bold uppercase text-app-caramelo-torrado">{restaurant.menuItemsCount} itens</span> : null}
+                          {restaurant.acceptsReservation ? <span className="rounded-full bg-app-cafe-profundo px-2.5 py-1 text-[10px] font-bold uppercase text-app-creme-leve">{ui("Reservas")}</span> : null}
+                          {restaurant.hasMenu ? <span className="rounded-full border border-app-baunilha-dourada bg-white px-2.5 py-1 text-[10px] font-bold uppercase text-app-caramelo-torrado">{restaurant.menuItemsCount}{ui(" itens")}</span> : null}
                           {Number.isFinite(Number(restaurant.distanceKm)) ? <span className="rounded-full border border-app-baunilha-dourada bg-white px-2.5 py-1 text-[10px] font-bold uppercase text-app-mocha">{formatarDistancia(restaurant.distanceKm)}</span> : null}
                         </div>
                         <h3 className="mt-3 text-2xl font-semibold text-app-cafe-profundo">{restaurant.name}</h3>
-                        <p className="mt-2 line-clamp-1 text-sm text-app-cinza">{restaurant.neighborhood ?? "Endereço em atualização"}</p>
+                        <p className="mt-2 line-clamp-1 text-sm text-app-cinza">{restaurant.neighborhood ?? ui("Endereço em atualização")}</p>
                         {correspondencias.length ? <p className="mt-2 line-clamp-1 text-sm font-semibold text-app-caramelo-torrado">{correspondencias.join(" | ")}</p> : null}
                         {!correspondencias.length && restaurant.publishedCategories?.length ? <p className="mt-2 line-clamp-1 text-sm font-semibold text-app-caramelo-torrado">{restaurant.publishedCategories.map((categoria) => categoria.nome).slice(0, 3).join(" | ")}</p> : null}
                       </Link>
@@ -424,7 +409,7 @@ function BuscaClienteContent() {
                         <div className="flex items-center gap-3 text-sm font-semibold text-app-mocha">
                           <span className="inline-flex items-center gap-1">
                             <Icon type="star" filled className="h-4 w-4 text-app-dourado-mel" />
-                            {restaurant.rating?.toFixed(1) ?? "Novo"}
+                            {ui(restaurant.rating?.toFixed(1) ?? "Novo")}
                           </span>
                           <span className="inline-flex items-center gap-1">
                             <Icon type="heart" filled={restaurant.isFavorite} className={`h-4 w-4 ${restaurant.isFavorite ? "text-app-vermelho-erro" : "text-app-cinza"}`} />
@@ -433,11 +418,9 @@ function BuscaClienteContent() {
                         </div>
                         <div className="mt-0 flex gap-2 md:mt-4">
                           <button type="button" disabled={updatingFavorite === restaurant.id} onClick={() => alternarFavorito(restaurant.id)} className="h-10 rounded-[10px] border border-app-baunilha-dourada bg-white px-3 text-[10px] font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:bg-app-chantilly hover:text-app-vermelho-erro disabled:opacity-50">
-                            {restaurant.isFavorite ? "Remover" : "Favoritar"}
+                            {ui(restaurant.isFavorite ? "Remover" : "Favoritar")}
                           </button>
-                          <Link href={`/cliente/restaurantes/${restaurant.id}`} className="flex h-10 items-center justify-center rounded-[10px] bg-app-caramelo-torrado px-4 text-[10px] font-bold uppercase tracking-[0.12em] text-white transition hover:bg-app-cafe-profundo">
-                            Ver
-                          </Link>
+                          <Link href={`/cliente/restaurantes/${restaurant.id}`} className="flex h-10 items-center justify-center rounded-[10px] bg-app-caramelo-torrado px-4 text-[10px] font-bold uppercase tracking-[0.12em] text-white transition hover:bg-app-cafe-profundo">{ui("Ver")}</Link>
                         </div>
                       </div>
                     </div>
@@ -446,7 +429,7 @@ function BuscaClienteContent() {
               })}
             </div>
           ) : (
-            <EmptyState title="Nenhum restaurante encontrado" description="Ajuste os filtros ou busque por outro prato, endereço, bairro ou restaurante." />
+            <EmptyState title={ui("Nenhum restaurante encontrado")} description={ui("Ajuste os filtros ou busque por outro prato, endereço, bairro ou restaurante.")} />
           )}
         </section>
       </section>
@@ -455,8 +438,9 @@ function BuscaClienteContent() {
 }
 
 export default function BuscaClientePage() {
+    const { ui } = useInterface();
   return (
-    <Suspense fallback={<main className="min-h-screen bg-white px-5 py-10 text-app-cafe-profundo">Carregando busca...</main>}>
+    <Suspense fallback={<main className="min-h-screen bg-white px-5 py-10 text-app-cafe-profundo">{ui("Carregando busca...")}</main>}>
       <BuscaClienteContent />
     </Suspense>
   );

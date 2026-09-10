@@ -1,0 +1,275 @@
+/* Tema único. Os estilos cromáticos legados ficam restritos ao modo claro. */
+html[data-tema="escuro"] {
+  color-scheme: dark;
+  --ui-fundo: #0b0b0b;
+  --ui-header: #241713;
+  --ui-superficie: #241e1a;
+  --ui-superficie-elevada: #302720;
+  --ui-superficie-interna: #382d25;
+  --ui-superficie-destaque: #463426;
+  --ui-texto: #f5ebdd;
+  --ui-texto-secundario: #c9b8a8;
+  --ui-borda: #705a48;
+  --ui-borda-controle: #b89980;
+  --ui-acento: #e0a174;
+  --ui-acento-fundo: #cf8150;
+  --ui-hover: #eadcc8;
+  --ui-texto-inverso: #241713;
+  --ui-perigo: #ff9a86;
+  --ui-perigo-fundo: #3a1e19;
+  --ui-sucesso: #9bc288;
+  --ui-sucesso-fundo: #22311f;
+  --ui-alerta: #e4b766;
+  --ui-alerta-fundo: #352612;
+  --background: var(--ui-fundo);
+  --foreground: var(--ui-texto);
+  /* Compatibilidade dos nomes existentes. Fundos e textos são mapeados abaixo. */
+  --app-cacau-intenso: var(--ui-header);
+  --app-cafe-profundo: var(--ui-texto);
+  --app-mocha: var(--ui-texto-secundario);
+  --app-cinza: var(--ui-texto-secundario);
+  --app-texto-escuro: var(--ui-texto);
+  --app-creme-leve: var(--ui-superficie);
+  --app-creme-suave: var(--ui-superficie-elevada);
+  --app-chantilly: var(--ui-superficie);
+  --app-chantilly-hover: var(--ui-hover);
+  --app-baunilha-dourada: var(--ui-acento);
+  --app-caramelo-torrado: var(--ui-acento);
+  --app-dourado-mel: var(--ui-acento-fundo);
+  --app-areia-quente: var(--ui-acento);
+  --app-fundo-destaque: var(--ui-fundo);
+  --app-botao-aba-ativa: var(--ui-hover);
+  --app-botao-aba-ativa-texto: var(--ui-texto-inverso);
+  --app-vermelho-erro: var(--ui-perigo);
+  --app-vermelho-claro: var(--ui-perigo-fundo);
+  --app-verde-sucesso: var(--ui-sucesso);
+  --app-verde-sucesso-claro: var(--ui-sucesso-fundo);
+  --app-amarelo-alerta: var(--ui-alerta);
+  --app-amarelo-alerta-claro: var(--ui-alerta-fundo);
+  --app-azul-info: #a7c5e2;
+  --app-azul-info-claro: #1c2730;
+  background: var(--ui-fundo);
+  color: var(--ui-texto);
+}
+
+html[data-tema="escuro"] :is(body, .area-autenticada, main) {
+  background: var(--ui-fundo);
+  color: var(--ui-texto);
+}
+
+html[data-tema="escuro"] :is(.bg-white, .bg-white\/95, .bg-white\/90, .bg-white\/80,
+  .bg-app-creme-leve, .bg-app-creme-leve\/90, .bg-app-creme-leve\/95,
+  .bg-app-chantilly, .bg-app-chantilly\/45, .bg-gray-50, .bg-gray-100, .bg-slate-50) {
+  background-color: var(--ui-superficie);
+}
+html[data-tema="escuro"] :is(.bg-app-creme-suave, .bg-white\/70, footer) {
+  background-color: var(--ui-superficie-elevada);
+}
+html[data-tema="escuro"] :is(.bg-app-cafe-profundo, .bg-app-cafe-profundo\/55, .bg-app-mocha, .bg-app-mocha\/55) {
+  background-color: var(--ui-superficie-destaque);
+  color: var(--ui-texto);
+}
+html[data-tema="escuro"] :is(.bg-app-caramelo-torrado, .bg-app-dourado-mel, .bg-app-botao-aba-ativa) {
+  background-color: var(--ui-acento-fundo);
+  color: var(--ui-texto-inverso);
+}
+html[data-tema="escuro"] .bg-app-botao-aba-ativa {
+  background-color: var(--ui-hover);
+}
+html[data-tema="escuro"] :is(.bg-app-baunilha-dourada, [class*="bg-app-baunilha-dourada/"],
+  .bg-app-caramelo-torrado\/15, .bg-app-caramelo-torrado\/35,
+  .bg-app-dourado-mel\/15, .bg-app-dourado-mel\/20) {
+  background-color: var(--ui-superficie-destaque);
+}
+/* Apenas as superfícies de página; os cards continuam separados. */
+html[data-tema="escuro"] :is(main.home-publica, main.auth-publica, main.bg-white),
+html[data-tema="escuro"] .home-publica > section:not(#inicio),
+html[data-tema="escuro"] .auth-publica > section,
+html[data-tema="escuro"] .auth-publica > .flex-1,
+html[data-tema="escuro"] .auth-publica > .flex-1 > section {
+  background-color: var(--ui-fundo);
+}
+html[data-tema="escuro"] :is(header, main > header, .home-publica > header) {
+  background: var(--ui-header);
+  color: var(--ui-texto);
+  border-color: var(--ui-borda);
+  box-shadow: 0 6px 24px #00000040;
+}
+html[data-tema="escuro"] header nav {
+  background: transparent;
+}
+html[data-tema="escuro"] :is(.text-app-cafe-profundo, .text-app-texto-escuro,
+  .text-app-creme-leve, .text-app-creme-suave, .text-app-chantilly,
+  .text-white, .text-black, .text-gray-900, .text-slate-900) {
+  color: var(--ui-texto);
+}
+html[data-tema="escuro"] :is(.text-app-mocha, .text-app-cinza, .text-slate-700) {
+  color: var(--ui-texto-secundario);
+}
+html[data-tema="escuro"] :is(.text-app-caramelo-torrado, .text-app-caramelo-torrado\/70,
+  .text-app-dourado-mel, .text-app-baunilha-dourada, .text-app-areia-quente) {
+  color: var(--ui-acento);
+}
+/* Rótulos e ícones sobre preenchimentos claros seguem a cor do controle. */
+html[data-tema="escuro"] :is(.bg-app-caramelo-torrado, .bg-app-dourado-mel, .bg-app-botao-aba-ativa),
+html[data-tema="escuro"] :is(.bg-app-caramelo-torrado, .bg-app-dourado-mel, .bg-app-botao-aba-ativa) :is(span, strong, p, svg) {
+  color: var(--ui-texto-inverso);
+}
+html[data-tema="escuro"] :is([class*="border-app-baunilha"], .border-app-creme-suave,
+  .border-app-mocha, .border-app-cafe-profundo, .border-gray-200, .border-slate-200) {
+  border-color: var(--ui-borda);
+}
+html[data-tema="escuro"] :is([class*="ring-app-baunilha"], .ring-black\/10, .ring-app-chantilly) {
+  --tw-ring-color: var(--ui-borda);
+}
+html[data-tema="escuro"] :is(.shadow-sm, .shadow-md, .shadow-lg, .shadow-xl, .shadow-2xl) {
+  --tw-shadow-color: #00000060;
+}
+html[data-tema="escuro"] :is(article, section, aside, form)[class*="ring-1"] {
+  border-color: var(--ui-borda);
+}
+
+/* Campos: contorno mais claro que as bordas decorativas para identificar o controle. */
+html[data-tema="escuro"] :is(input, textarea, select, .campo-busca-app) {
+  min-width: 0;
+  background-color: var(--ui-superficie-interna);
+  color: var(--ui-texto);
+  border-color: var(--ui-borda-controle);
+  caret-color: var(--ui-texto);
+  accent-color: var(--ui-acento);
+  color-scheme: dark;
+}
+html[data-tema="escuro"] :is(input, textarea)::placeholder {
+  color: var(--ui-texto-secundario);
+  opacity: 1;
+}
+html[data-tema="escuro"] .auth-publica label > div[class*="border"] {
+  border-color: var(--ui-borda-controle);
+}
+html[data-tema="escuro"] :is(input, textarea):autofill {
+  box-shadow: 0 0 0 1000px var(--ui-superficie-interna) inset;
+  -webkit-text-fill-color: var(--ui-texto);
+}
+html[data-tema="escuro"] input::file-selector-button {
+  background: var(--ui-acento-fundo);
+  color: var(--ui-texto-inverso);
+}
+html[data-tema="escuro"] input::file-selector-button:hover {
+  background: var(--ui-hover);
+}
+html[data-tema="escuro"] :is(button, a, summary, input, textarea, select, [tabindex]):focus-visible {
+  outline: 2px solid var(--ui-acento);
+  outline-offset: 3px;
+}
+html[data-tema="escuro"] .campo-busca-app:focus-within {
+  outline: 2px solid var(--ui-acento);
+  outline-offset: 3px;
+}
+html[data-tema="escuro"] :is(button, a)[class*="border-app"] {
+  border-color: var(--ui-borda-controle);
+}
+/* Seletores exatos para estados, sem confundir hover:bg-* com o fundo normal. */
+html[data-tema="escuro"] :is(button, a, summary, [role="button"], [role="option"], [role="menuitem"]):not(:disabled):not([aria-disabled="true"]):not(:is(.botao-acao-critica, .bg-app-vermelho-erro, .text-app-vermelho-erro, .text-red-700, .text-red-800)):is(
+  [class*="hover:bg-"], [class*="hover:border-"], [class*="hover:brightness"], .bg-app-botao-aba-ativa):hover {
+  background-color: var(--ui-hover);
+  color: var(--ui-texto-inverso);
+  border-color: var(--ui-hover);
+}
+html[data-tema="escuro"] :is(button, a, summary, [role="button"], [role="option"], [role="menuitem"]):not(:disabled):not([aria-disabled="true"]):not(:is(.botao-acao-critica, .bg-app-vermelho-erro, .text-app-vermelho-erro, .text-red-700, .text-red-800)):is(
+  [class*="hover:bg-"], [class*="hover:border-"], [class*="hover:brightness"], .bg-app-botao-aba-ativa):hover :is(span, strong, p, svg, div, small, h2, h3) {
+  color: var(--ui-texto-inverso);
+}
+html[data-tema="escuro"] :is(button, a):is([class*="hover:bg-"], [class*="hover:border-"]):hover :is(.bg-app-chantilly, .bg-app-creme-suave, .bg-app-caramelo-torrado) {
+  background-color: transparent;
+}
+html[data-tema="escuro"] :is(button, a):active:not(:disabled) {
+  transform: translateY(0);
+}
+html[data-tema="escuro"] :is(button, input, select, textarea):disabled {
+  color: var(--ui-texto-secundario);
+  cursor: not-allowed;
+}
+html[data-tema="escuro"] button:disabled[class*="bg-"] {
+  background-color: var(--ui-superficie-destaque);
+}
+html[data-tema="escuro"] button:disabled :is(span, strong, p, svg) {
+  color: var(--ui-texto-secundario);
+}
+html[data-tema="escuro"] label:has(input[type="radio"]:checked) {
+  border-color: var(--ui-acento);
+}
+html[data-tema="escuro"] label:has(input[type="radio"]:focus-visible) {
+  outline: 2px solid var(--ui-acento);
+  outline-offset: 3px;
+}
+
+/* Estados semânticos permanecem distintos, inclusive nos botões destrutivos. */
+html[data-tema="escuro"] :is(.text-app-vermelho-erro, .text-red-700, .text-red-800) { color: var(--ui-perigo); }
+html[data-tema="escuro"] :is(.bg-red-50, .bg-app-vermelho-erro\/10) { background-color: var(--ui-perigo-fundo); }
+html[data-tema="escuro"] :is(.border-red-200, .border-red-300, [class*="border-app-vermelho-erro"]) { border-color: var(--ui-perigo); }
+html[data-tema="escuro"] :is(.text-green-700, .text-green-800) { color: var(--ui-sucesso); }
+html[data-tema="escuro"] .bg-green-50 { background-color: var(--ui-sucesso-fundo); }
+html[data-tema="escuro"] .border-green-200 { border-color: var(--ui-sucesso); }
+html[data-tema="escuro"] .text-app-amarelo-alerta { color: var(--ui-alerta); }
+html[data-tema="escuro"] :is(.botao-acao-critica, button.bg-app-vermelho-erro) {
+  background-color: #a62e24;
+  color: var(--ui-texto);
+}
+html[data-tema="escuro"] :is(.botao-acao-critica, button.bg-app-vermelho-erro):hover:not(:disabled) {
+  background-color: #86251d;
+  color: var(--ui-texto);
+}
+html[data-tema="escuro"] :is(button, a).text-app-vermelho-erro:hover,
+html[data-tema="escuro"] :is(button, a):is(.text-red-700, .text-red-800):hover {
+  background-color: var(--ui-perigo-fundo);
+  color: var(--ui-perigo);
+}
+html[data-tema="escuro"] :is(input, select, textarea)[aria-invalid="true"] {
+  border: 2px solid var(--ui-perigo);
+}
+html[data-tema="escuro"] :is([role="listbox"], [role="menu"], [role="tooltip"]) {
+  background: var(--ui-superficie-elevada);
+  color: var(--ui-texto);
+  border-color: var(--ui-borda);
+}
+html[data-tema="escuro"] :is(button, a):is(.botao-acao-critica, .bg-app-vermelho-erro):hover :is(span, strong, svg) {
+  color: var(--ui-texto);
+}
+html[data-tema="escuro"] :is(button, a):is(.text-app-vermelho-erro, .text-red-700, .text-red-800):hover :is(span, svg, div, strong) {
+  color: var(--ui-perigo);
+}
+
+/* Modais e portais herdam o tema de html; fotografias nunca recebem filtros. */
+html[data-tema="escuro"] [role="dialog"].fixed {
+  background-color: #000000b8;
+}
+html[data-tema="escuro"] [role="dialog"] > :is(section, div) {
+  background-color: var(--ui-superficie-elevada);
+  color: var(--ui-texto);
+  border-color: var(--ui-borda);
+}
+html[data-tema="escuro"] img[src^="/brand/"] {
+  filter: brightness(0) saturate(100%) invert(72%) sepia(31%) saturate(845%) hue-rotate(338deg) brightness(93%) contrast(91%);
+}
+html[data-tema="escuro"] .home-hero {
+  background-color: var(--ui-fundo);
+  --ui-hero-texto: #f5ebdd;
+}
+html[data-tema="escuro"] .home-hero :is(h1, p) { color: var(--ui-hero-texto); }
+html[data-tema="escuro"] .home-hero button.bg-white {
+  background-color: var(--ui-acento-fundo);
+  color: var(--ui-texto-inverso);
+}
+html[data-tema="escuro"] .home-hero button.bg-white:hover {
+  background-color: var(--ui-hover);
+}
+html[data-tema="escuro"] .botao-google {
+  color: var(--ui-texto);
+  border-color: var(--ui-borda-controle);
+}
+
+/* Tabelas e scrollbars mantêm contornos e texto legíveis. */
+html[data-tema="escuro"] thead { background-color: var(--ui-superficie-elevada); color: var(--ui-texto); }
+html[data-tema="escuro"] :is(th, td) { border-color: var(--ui-borda); }
+html[data-tema="escuro"] tbody tr:hover { background-color: var(--ui-superficie-elevada); }
+html[data-tema="escuro"] { scrollbar-color: var(--ui-borda-controle) var(--ui-fundo); }

@@ -1,5 +1,6 @@
 "use client";
 
+import { useInterface } from "@/lib/use-interface";
 import Image from "next/image";
 import Link from "next/link";
 import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
@@ -60,8 +61,8 @@ function Icon({ type, className = "h-5 w-5" }) {
     );
 }
 
-function formatarMoeda(valor) {
-    return new Intl.NumberFormat("pt-BR", {
+function formatarMoeda(valor, localeUI = "pt-BR") {
+    return new Intl.NumberFormat(localeUI, {
         style: "currency",
         currency: "BRL",
     }).format(Number(valor ?? 0));
@@ -214,18 +215,20 @@ function obterCamposPedido(pedido) {
 }
 
 function EmptyPanel({ title, description }) {
+    const { ui } = useInterface();
     return (
         <div className="flex min-h-72 flex-col items-center justify-center rounded-[16px] bg-app-creme-leve px-6 py-10 text-center ring-1 ring-app-baunilha-dourada/70">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-app-cafe-profundo text-app-creme-leve">
                 <Icon type="receipt" />
             </div>
-            <h3 className="mt-5 text-2xl font-semibold">{title}</h3>
-            <p className="mt-3 max-w-md text-sm leading-6 text-app-cinza">{description}</p>
+            <h3 className="mt-5 text-2xl font-semibold">{ui(title)}</h3>
+            <p className="mt-3 max-w-md text-sm leading-6 text-app-cinza">{ui(description)}</p>
         </div>
     );
 }
 
 export default function RestaurantOrdersPage() {
+    const { ui , localeUI } = useInterface();
     const [session] = useState(() => {
         if (typeof window === "undefined") {
             return null;
@@ -354,22 +357,18 @@ export default function RestaurantOrdersPage() {
                 <section className="w-full max-w-lg rounded-[8px] bg-app-creme-leve p-8 text-center shadow-sm ring-1 ring-app-baunilha-dourada">
                     <Image
                         src="/brand/appono-mark.svg"
-                        alt="Appono"
+                        alt={ui("Appono")}
                         width={88}
                         height={88}
                         className="mx-auto h-20 w-20"
                         priority
                     />
-                    <h1 className="mt-6 text-3xl font-semibold">Acesso restrito</h1>
-                    <p className="mt-3 text-sm leading-6 text-app-cinza">
-                        Esta área é destinada a contas de restaurante.
-                    </p>
+                    <h1 className="mt-6 text-3xl font-semibold">{ui("Acesso restrito")}</h1>
+                    <p className="mt-3 text-sm leading-6 text-app-cinza">{ui("Esta área é destinada a contas de restaurante.")}</p>
                     <Link
                         href="/login"
                         className="mt-6 inline-flex h-11 items-center justify-center rounded-[8px] bg-app-dourado-mel px-6 text-sm font-bold text-white transition hover:bg-app-caramelo-torrado"
-                    >
-                        Entrar
-                    </Link>
+                    >{ui("Entrar")}</Link>
                 </section>
             </main>
         );
@@ -379,10 +378,10 @@ export default function RestaurantOrdersPage() {
         <main className="flex min-h-screen flex-col bg-white text-app-cafe-profundo">
             <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-app-creme-leve/90 text-app-cafe-profundo shadow-sm backdrop-blur-md">
                 <div className="mx-auto grid h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-5 lg:h-20">
-                    <div aria-label="Appono">
+                    <div aria-label={ui("Appono")}>
                         <Image
                             src="/brand/appono-mark.svg"
-                            alt="Appono"
+                            alt={ui("Appono")}
                             width={88}
                             height={88}
                             className="h-11 w-11 lg:h-14 lg:w-14"
@@ -397,7 +396,7 @@ export default function RestaurantOrdersPage() {
                                 href={item.href}
                                 className={item.href === "/restaurante/pedidos" ? "text-app-cafe-profundo" : "transition hover:text-app-cafe-profundo"}
                             >
-                                {item.label}
+                                {ui(item.label)}
                             </Link>
                         ))}
                     </nav>
@@ -406,7 +405,7 @@ export default function RestaurantOrdersPage() {
                         <Link
                             href="/restaurante/notificacoes"
                             className="flex h-9 w-9 items-center justify-center rounded-[8px] text-app-cafe-profundo transition hover:bg-app-chantilly hover:text-app-caramelo-torrado"
-                            aria-label="Notificações"
+                            aria-label={ui("Notificações")}
                         >
                             <Icon type="bell" />
                         </Link>
@@ -415,7 +414,7 @@ export default function RestaurantOrdersPage() {
                             type="button"
                             onClick={() => setMobileMenuOpen((current) => !current)}
                             className="flex h-9 w-9 items-center justify-center rounded-[8px] border border-app-baunilha-dourada bg-white text-app-cafe-profundo xl:hidden"
-                            aria-label="Abrir menu"
+                            aria-label={ui("Abrir menu")}
                             aria-expanded={mobileMenuOpen}
                             aria-controls="restaurant-orders-menu"
                         >
@@ -434,7 +433,7 @@ export default function RestaurantOrdersPage() {
                                     onClick={() => setMobileMenuOpen(false)}
                                     className={item.href === "/restaurante/pedidos" ? "text-app-cafe-profundo" : "transition hover:text-app-cafe-profundo"}
                                 >
-                                    {item.label}
+                                    {ui(item.label)}
                                 </Link>
                             ))}
                         </div>
@@ -445,34 +444,26 @@ export default function RestaurantOrdersPage() {
             <section className="mx-auto w-full max-w-7xl flex-1 px-5 py-10 sm:py-14">
                 <div className="border-t border-app-baunilha-dourada/60 pt-10">
                     <div>
-                        <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-app-caramelo-torrado">
-                            Cozinha Appono
-                        </p>
-                        <h1 className="mt-2 whitespace-nowrap text-3xl font-medium leading-tight text-app-cafe-profundo sm:text-4xl lg:text-5xl">
-                            Cozinha
-                        </h1>
-                        <p className="mt-4 max-w-2xl text-sm leading-6 text-app-cinza sm:text-base">
-                            Acompanhe os pedidos pagos, a ordem das reservas e as entregas vinculadas ao atendimento.
-                        </p>
+                        <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-app-caramelo-torrado">{ui("Cozinha Appono")}</p>
+                        <h1 className="mt-2 whitespace-nowrap text-3xl font-medium leading-tight text-app-cafe-profundo sm:text-4xl lg:text-5xl">{ui("Cozinha")}</h1>
+                        <p className="mt-4 max-w-2xl text-sm leading-6 text-app-cinza sm:text-base">{ui("Acompanhe os pedidos pagos, a ordem das reservas e as entregas vinculadas ao atendimento.")}</p>
                     </div>
 
                     <div className="mt-6 rounded-[16px] border border-app-baunilha-dourada/65 bg-white p-4 shadow-sm">
                         <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-end">
                             <label className="campo-busca-app flex h-11 items-center gap-3 rounded-[10px] border border-app-baunilha-dourada/70 bg-white px-4 text-app-mocha shadow-sm transition">
                                 <Icon type="search" className="h-4 w-4 shrink-0" />
-                                <span className="sr-only">Buscar pedidos na cozinha</span>
+                                <span className="sr-only">{ui("Buscar pedidos na cozinha")}</span>
                                 <input
                                     value={busca}
                                     onChange={(event) => setBusca(event.target.value)}
-                                    placeholder="Buscar por cliente, pedido, mesa, status, item ou horário..."
+                                    placeholder={ui("Buscar por cliente, pedido, mesa, status, item ou horário...")}
                                     className="input-busca-app h-full min-w-0 flex-1 bg-transparent text-sm text-app-cafe-profundo placeholder:text-app-cinza/60"
                                 />
                             </label>
 
-                            <label className="grid gap-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado sm:min-w-56">
-                                Ordenar por
-                                <select value={ordenacaoPedido} onChange={(event) => setOrdenacaoPedido(event.target.value)} className="h-11 rounded-[10px] border border-app-baunilha-dourada bg-white px-3 text-sm font-semibold normal-case tracking-normal text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-caramelo-torrado/15">
-                                    {ordenacoesPedido.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
+                            <label className="grid gap-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado sm:min-w-56">{ui("Ordenar por")}<select value={ordenacaoPedido} onChange={(event) => setOrdenacaoPedido(event.target.value)} className="h-11 rounded-[10px] border border-app-baunilha-dourada bg-white px-3 text-sm font-semibold normal-case tracking-normal text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-caramelo-torrado/15">
+                                    {ordenacoesPedido.map((item) => <option key={item.value} value={item.value}>{ui(item.label)}</option>)}
                                 </select>
                             </label>
                         </div>
@@ -487,23 +478,20 @@ export default function RestaurantOrdersPage() {
                                         ? "bg-app-cafe-profundo text-app-creme-leve ring-app-cafe-profundo"
                                         : "bg-white text-app-mocha ring-app-baunilha-dourada/70 hover:bg-app-chantilly hover:text-app-cafe-profundo hover:ring-app-caramelo-torrado/45"}`}
                                 >
-                                    {filtro.label}
+                                    {ui(filtro.label)}
                                 </button>
                             ))}
                         </div>
                     </div>
                 </div>
 
-                {mensagem ? <p className="mt-6 text-sm font-semibold text-app-caramelo-torrado">{mensagem}</p> : null}
+                {mensagem ? <p className="mt-6 text-sm font-semibold text-app-caramelo-torrado">{ui(mensagem)}</p> : null}
 
                 <section className="mt-10">
                     <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                        <h2 className="text-xs font-bold uppercase tracking-[0.18em] text-app-mocha">
-                            Fila de preparo
-                        </h2>
+                        <h2 className="text-xs font-bold uppercase tracking-[0.18em] text-app-mocha">{ui("Fila de preparo")}</h2>
                         <p className="text-sm text-app-cinza">
-                            {pedidosFiltrados.length} de {pedidos.length} pedidos
-                        </p>
+                            {pedidosFiltrados.length}{ui(" de ")}{pedidos.length}{ui(" pedidos")}</p>
                     </div>
 
                     {pedidosFiltrados.length ? (
@@ -522,44 +510,40 @@ export default function RestaurantOrdersPage() {
                                         <div className="grid lg:grid-cols-[220px_minmax(0,1fr)_250px]">
                                             <div className="flex items-center justify-between gap-4 border-b border-app-baunilha-dourada/55 bg-white px-5 py-4 lg:flex-col lg:items-start lg:justify-center lg:border-b-0 lg:border-r">
                                                 <div>
-                                                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">
-                                                        Pedido
-                                                    </p>
+                                                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{ui("Pedido")}</p>
                                                     <p className="mt-1 text-2xl font-semibold text-app-cafe-profundo">
                                                         #{pedido.id_pedido}
                                                     </p>
                                                 </div>
                                                 <span className={`w-full whitespace-nowrap rounded-full px-3 py-1 text-center text-[11px] font-bold uppercase tracking-[0.08em] ring-1 sm:w-fit lg:w-full ${obterClasseStatus(pedido.status_pedido)}`}>
-                                                    {obterStatusPedido(pedido.status_pedido)}
+                                                    {ui(obterStatusPedido(pedido.status_pedido))}
                                                 </span>
                                             </div>
 
                                             <div className="min-w-0 px-5 py-5">
                                                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                                                     <div>
-                                                        <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-app-caramelo-torrado">
-                                                            Reserva vinculada
-                                                        </p>
+                                                        <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-app-caramelo-torrado">{ui("Reserva vinculada")}</p>
                                                         <h3 className="mt-2 text-xl font-semibold text-app-cafe-profundo">
-                                                            {reserva.clientes?.nome ?? "Cliente"}
+                                                            {reserva.clientes?.nome ?? ui("Cliente")}
                                                         </h3>
                                                     </div>
                                                     <strong className="text-xl text-app-cafe-profundo">
-                                                        {formatarMoeda(pedido.valor_total)}
+                                                        {formatarMoeda(pedido.valor_total, localeUI)}
                                                     </strong>
                                                 </div>
 
                                                 <div className="mt-5 grid gap-3 text-sm text-app-mocha sm:grid-cols-3">
                                                     <div className="rounded-[10px] bg-white px-3 py-3 ring-1 ring-app-baunilha-dourada/45">
-                                                        <span className="block text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">Reserva</span>
-                                                        <strong className="mt-1 block text-app-cafe-profundo">{reserva.data_reserva} as {reserva.horario_inicio?.slice(0, 5)}</strong>
+                                                        <span className="block text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">{ui("Reserva")}</span>
+                                                        <strong className="mt-1 block text-app-cafe-profundo">{reserva.data_reserva}{ui(" as ")}{reserva.horario_inicio?.slice(0, 5)}</strong>
                                                     </div>
                                                     <div className="rounded-[10px] bg-white px-3 py-3 ring-1 ring-app-baunilha-dourada/45">
-                                                        <span className="block text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">Mesa</span>
-                                                        <strong className="mt-1 block text-app-cafe-profundo">{reserva.mesas?.numero_mesa ?? "-"}</strong>
+                                                        <span className="block text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">{ui("Mesa")}</span>
+                                                        <strong className="mt-1 block text-app-cafe-profundo">{ui(reserva.mesas?.numero_mesa ?? "-")}</strong>
                                                     </div>
                                                     <div className="rounded-[10px] bg-white px-3 py-3 ring-1 ring-app-baunilha-dourada/45">
-                                                        <span className="block text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">Pessoas</span>
+                                                        <span className="block text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">{ui("Pessoas")}</span>
                                                         <strong className="mt-1 block text-app-cafe-profundo">{reserva.quantidade_pessoas}</strong>
                                                     </div>
                                                 </div>
@@ -572,40 +556,35 @@ export default function RestaurantOrdersPage() {
                                                         >
                                                             <div className="min-w-0">
                                                                 <p className="font-semibold text-app-cafe-profundo">
-                                                                    {item.quantidade}x {item.produtos?.nome ?? "Item"}
+                                                                    {item.quantidade}{ui("x ")}{item.produtos?.nome ?? ui("Item")}
                                                                 </p>
                                                                 {item.observacoes ? (
-                                                                    <p className="mt-1 text-xs text-app-cinza">
-                                                                        Obs.: {item.observacoes}
+                                                                    <p className="mt-1 text-xs text-app-cinza">{ui("Obs.: ")}{item.observacoes}
                                                                     </p>
                                                                 ) : null}
                                                             </div>
                                                             <strong className="shrink-0 text-app-cafe-profundo">
-                                                                {formatarMoeda(calcularSubtotalItem(item))}
+                                                                {formatarMoeda(calcularSubtotalItem(item), localeUI)}
                                                             </strong>
                                                         </div>
                                                     ))}
                                                 </div>
 
                                                 {pedido.observacoes ? (
-                                                    <p className="mt-4 rounded-[10px] bg-app-creme-suave px-4 py-3 text-sm text-app-mocha">
-                                                        Observação geral: {pedido.observacoes}
+                                                    <p className="mt-4 rounded-[10px] bg-app-creme-suave px-4 py-3 text-sm text-app-mocha">{ui("Observação geral: ")}{pedido.observacoes}
                                                     </p>
                                                 ) : null}
                                             </div>
 
                                             <aside className="flex flex-col justify-between border-t border-app-baunilha-dourada/55 bg-white px-5 py-4 text-app-cafe-profundo lg:border-l lg:border-t-0">
                                                 <div>
-                                                    <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-app-caramelo-torrado">
-                                                        Entrega
-                                                    </p>
+                                                    <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-app-caramelo-torrado">{ui("Entrega")}</p>
                                                     <p className="mt-2 text-2xl font-semibold">
                                                         {formatarHoraPrevista(pedido.horario_entrega_previsto, reserva.horario_inicio)}
                                                     </p>
                                                     <div className="mt-4 grid gap-2 text-sm text-app-mocha">
                                                         <span className="rounded-[8px] bg-app-creme-leve px-3 py-2 ring-1 ring-app-baunilha-dourada/45">
-                                                            {totalItensPedido} item(ns)
-                                                        </span>
+                                                            {totalItensPedido}{ui(" item(ns)")}</span>
                                                     </div>
                                                 </div>
 
@@ -616,12 +595,10 @@ export default function RestaurantOrdersPage() {
                                                             onClick={() => atualizarStatusPedido(pedido.id_pedido, acao.status)}
                                                             className={`h-11 rounded-[9px] px-4 text-xs font-bold uppercase tracking-[0.14em] text-white transition disabled:cursor-not-allowed disabled:bg-app-cinza/45 disabled:text-app-creme-suave ${acao.classe}`}
                                                         >
-                                                            {acao.texto}
+                                                            {ui(acao.texto)}
                                                         </button>
                                                     ) : (
-                                                        <p className="rounded-[10px] bg-app-creme-leve px-4 py-3 text-sm font-semibold text-app-cinza ring-1 ring-app-baunilha-dourada/45">
-                                                            Nenhuma ação pendente para este pedido.
-                                                        </p>
+                                                        <p className="rounded-[10px] bg-app-creme-leve px-4 py-3 text-sm font-semibold text-app-cinza ring-1 ring-app-baunilha-dourada/45">{ui("Nenhuma ação pendente para este pedido.")}</p>
                                                     )}
 
                                                     <button
@@ -631,7 +608,7 @@ export default function RestaurantOrdersPage() {
                                                         className="inline-flex h-11 items-center justify-center gap-2 rounded-[9px] border border-app-caramelo-torrado px-4 text-xs font-bold uppercase tracking-[0.14em] text-app-caramelo-torrado transition hover:bg-app-chantilly disabled:cursor-not-allowed disabled:opacity-60"
                                                     >
                                                         <Icon type="message" className="h-4 w-4" />
-                                                        {abrindoChatPedidoId === pedido.id_pedido ? "Abrindo..." : "Falar com cliente"}
+                                                        {ui(abrindoChatPedidoId === pedido.id_pedido ? "Abrindo..." : "Falar com cliente")}
                                                     </button>
 
                                                     {podeRemoverDaCozinha ? (
@@ -640,9 +617,7 @@ export default function RestaurantOrdersPage() {
                                                             onClick={() => setPedidoParaRemover(pedido)}
                                                             className="inline-flex h-11 items-center justify-center gap-2 rounded-[9px] border border-app-baunilha-dourada px-4 text-xs font-bold uppercase tracking-[0.14em] text-app-cafe-profundo transition hover:-translate-y-0.5 hover:border-app-caramelo-torrado hover:bg-app-caramelo-torrado hover:text-white hover:shadow-md focus:outline-none focus:ring-2 focus:ring-app-baunilha-dourada/70"
                                                         >
-                                                            <Icon type="trash" className="h-4 w-4" />
-                                                            Remover da cozinha
-                                                        </button>
+                                                            <Icon type="trash" className="h-4 w-4" />{ui("Remover da cozinha")}</button>
                                                     ) : null}
                                                 </div>
                                             </aside>
@@ -653,8 +628,8 @@ export default function RestaurantOrdersPage() {
                         </div>
                     ) : (
                         <EmptyPanel
-                            title="Nenhum pedido neste filtro"
-                            description="Pedidos pagos aparecem aqui em ordem de reserva. Os mais próximos ficam primeiro para orientar a cozinha."
+                            title={ui("Nenhum pedido neste filtro")}
+                            description={ui("Pedidos pagos aparecem aqui em ordem de reserva. Os mais próximos ficam primeiro para orientar a cozinha.")}
                         />
                     )}
                 </section>
@@ -666,31 +641,23 @@ export default function RestaurantOrdersPage() {
                         <div className="flex h-12 w-12 items-center justify-center rounded-full bg-app-cafe-profundo text-app-creme-leve">
                             <Icon type="trash" />
                         </div>
-                        <p className="mt-5 text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">
-                            Remover da cozinha
-                        </p>
-                        <h2 className="mt-2 text-2xl font-semibold">
-                            Tirar pedido #{pedidoParaRemover.id_pedido} da fila?
-                        </h2>
-                        <p className="mt-3 text-sm leading-6 text-app-cinza">
-                            Esta ação remove o pedido apenas da tela operacional da cozinha. O registro continua salvo no histórico, no financeiro e nas reservas.
-                        </p>
+                        <p className="mt-5 text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{ui("Remover da cozinha")}</p>
+                        <h2 className="mt-2 text-2xl font-semibold">{ui("Tirar pedido #")}{pedidoParaRemover.id_pedido}{ui(" da fila?")}</h2>
+                        <p className="mt-3 text-sm leading-6 text-app-cinza">{ui("Esta ação remove o pedido apenas da tela operacional da cozinha. O registro continua salvo no histórico, no financeiro e nas reservas.")}</p>
                         <div className="mt-6 grid gap-3 sm:grid-cols-2">
                             <button
                                 type="button"
                                 onClick={() => setPedidoParaRemover(null)}
                                 disabled={removendoPedido}
                                 className="h-11 rounded-[10px] border border-app-baunilha-dourada bg-transparent px-4 text-xs font-bold uppercase tracking-[0.14em] text-app-cafe-profundo transition hover:bg-app-chantilly disabled:cursor-not-allowed disabled:opacity-60"
-                            >
-                                Manter pedido
-                            </button>
+                            >{ui("Manter pedido")}</button>
                             <button
                                 type="button"
                                 onClick={removerPedidoDaCozinha}
                                 disabled={removendoPedido}
                                 className="botao-acao-critica h-11 rounded-[10px] px-4 text-xs font-bold uppercase tracking-[0.14em] transition disabled:cursor-not-allowed disabled:opacity-60"
                             >
-                                {removendoPedido ? "Removendo..." : "Remover"}
+                                {ui(removendoPedido ? "Removendo..." : "Remover")}
                             </button>
                         </div>
                     </section>

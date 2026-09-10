@@ -1,4 +1,5 @@
 "use client";
+import { useInterface } from "@/lib/use-interface";
 import Image from "next/image";
 import Link from "next/link";
 import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
@@ -31,6 +32,7 @@ function Icon({ type, className = "h-5 w-5", }) {
     </svg>);
 }
 export default function SettingsPage() {
+    const { ui } = useInterface();
     const { t } = useTraducao();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [session] = useState(() => {
@@ -56,24 +58,24 @@ export default function SettingsPage() {
     return (<main className="flex min-h-screen flex-col bg-white text-app-cafe-profundo">
       <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-white/90 text-app-cafe-profundo shadow-sm backdrop-blur-md">
         <div className="mx-auto grid h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-5 lg:h-20">
-          <div className="shrink-0" aria-label="Appono">
-            <Image src="/brand/appono-mark.svg" alt="Appono" width={88} height={88} className="h-11 w-11 lg:h-14 lg:w-14" priority/>
+          <div className="shrink-0" aria-label={ui("Appono")}>
+            <Image src="/brand/appono-mark.svg" alt={ui("Appono")} width={88} height={88} className="h-11 w-11 lg:h-14 lg:w-14" priority/>
           </div>
 
           <nav className="hidden items-center justify-self-center gap-7 text-xs font-semibold text-app-cinza lg:flex">
             {navItems.map((item) => (<Link key={item.label} href={item.href} className={item.href === "/cliente/configuracoes"
                 ? "text-app-cafe-profundo"
                 : "transition hover:text-app-cafe-profundo"}>
-                {item.label}
+                {ui(item.label)}
               </Link>))}
           </nav>
 
           <div className="flex items-center justify-self-end gap-3 text-app-cafe-profundo">
             <ItemHeaderNotificacoes href="/cliente/notificacoes" />
-            <button type="button" className="transition hover:text-app-caramelo-torrado" aria-label="Sacola">
+            <button type="button" className="transition hover:text-app-caramelo-torrado" aria-label={ui("Sacola")}>
               <Icon type="bag"/>
             </button>
-            <button type="button" onClick={() => setMobileMenuOpen((current) => !current)} className="flex h-9 w-9 items-center justify-center rounded-[8px] border border-app-baunilha-dourada bg-white lg:hidden" aria-label="Abrir menu" aria-expanded={mobileMenuOpen} aria-controls="settings-mobile-menu">
+            <button type="button" onClick={() => setMobileMenuOpen((current) => !current)} className="flex h-9 w-9 items-center justify-center rounded-[8px] border border-app-baunilha-dourada bg-white lg:hidden" aria-label={ui("Abrir menu")} aria-expanded={mobileMenuOpen} aria-controls="settings-mobile-menu">
               <Icon type="menu"/>
             </button>
           </div>
@@ -84,7 +86,7 @@ export default function SettingsPage() {
               {navItems.map((item) => (<Link key={item.label} href={item.href} onClick={() => setMobileMenuOpen(false)} className={item.href === "/cliente/configuracoes"
                     ? "text-app-cafe-profundo"
                     : "transition hover:text-app-cafe-profundo"}>
-                  {item.label}
+                  {ui(item.label)}
                 </Link>))}
             </div>
           </nav>) : null}
@@ -103,7 +105,7 @@ export default function SettingsPage() {
             </span>
             <span className="min-w-0 text-left">
               <strong className="block truncate text-sm text-app-cafe-profundo">{profileName}</strong>
-              <span className="mt-0.5 block text-sm text-app-cinza">{profileType}</span>
+              <span className="mt-0.5 block text-sm text-app-cinza">{ui(profileType)}</span>
             </span>
           </span>
           <span className="inline-flex shrink-0 items-center gap-2 text-xs font-bold uppercase tracking-[0.12em] text-app-caramelo-torrado">
@@ -124,21 +126,13 @@ export default function SettingsPage() {
 
       <footer className="border-t border-app-cacau-intenso/20 bg-app-cafe-profundo px-5 py-7 text-app-creme-leve">
         <div className="mx-auto flex max-w-7xl flex-col items-center gap-5 text-center sm:flex-row sm:justify-between">
-          <Image src="/brand/appono-mark.svg" alt="Appono" width={80} height={80} className="h-14 w-14 brightness-0 invert"/>
+          <Image src="/brand/appono-mark.svg" alt={ui("Appono")} width={80} height={80} className="h-14 w-14 brightness-0 invert"/>
           <nav className="flex flex-wrap justify-center gap-8 text-[10px] font-bold uppercase text-app-baunilha-dourada">
-            <Link href="#" className="transition hover:text-app-chantilly">
-              Política de Privacidade
-            </Link>
-            <Link href="#" className="transition hover:text-app-chantilly">
-              Termos de Uso
-            </Link>
-            <Link href="#" className="transition hover:text-app-chantilly">
-              Contato
-            </Link>
+            <Link href="#" className="transition hover:text-app-chantilly">{ui("Política de Privacidade")}</Link>
+            <Link href="#" className="transition hover:text-app-chantilly">{ui("Termos de Uso")}</Link>
+            <Link href="#" className="transition hover:text-app-chantilly">{ui("Contato")}</Link>
           </nav>
-          <p className="text-xs font-semibold text-app-creme-suave">
-            &copy; 2026 APPONO. Todos os direitos reservados.
-          </p>
+          <p className="text-xs font-semibold text-app-creme-suave">{ui("© 2026 APPONO. Todos os direitos reservados.")}</p>
         </div>
       </footer>
     </main>);

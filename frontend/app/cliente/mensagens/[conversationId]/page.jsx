@@ -1,5 +1,6 @@
 "use client";
 
+import { useInterface } from "@/lib/use-interface";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
@@ -23,19 +24,21 @@ function Icon({ type, className = "h-5 w-5" }) {
 }
 
 function AvatarRestaurante({ conversa, size = "h-12 w-12" }) {
+    const { ui } = useInterface();
   const logoUrl = conversa?.restaurante?.logo_url;
   return (
     <span className={`relative flex ${size} shrink-0 overflow-hidden rounded-[14px] bg-app-cafe-profundo text-xs font-bold text-app-creme-leve ring-1 ring-app-baunilha-dourada/60`}>
       {logoUrl ? (
         <Image src={logoUrl} alt={conversa?.restaurante?.nome ?? conversa?.titulo ?? "Restaurante"} fill sizes="56px" className="object-contain bg-white p-1.5" />
       ) : (
-        <span className="flex h-full w-full items-center justify-center">{conversa?.iniciais ?? "AP"}</span>
+        <span className="flex h-full w-full items-center justify-center">{conversa?.iniciais ?? ui("AP")}</span>
       )}
     </span>
   );
 }
 
 export default function ConversationPage() {
+    const { ui, dataHoraUI } = useInterface();
   const params = useParams();
   const router = useRouter();
   const [dados, setDados] = useState(null);
@@ -115,12 +118,12 @@ export default function ConversationPage() {
     <main className="flex min-h-screen flex-col bg-white text-app-cafe-profundo">
       <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-white/90 shadow-sm backdrop-blur-md">
         <div className="mx-auto grid h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-5">
-          <Image src="/brand/appono-mark.svg" alt="Appono" width={88} height={88} className="h-12 w-12" priority />
+          <Image src="/brand/appono-mark.svg" alt={ui("Appono")} width={88} height={88} className="h-12 w-12" priority />
           <div className="flex items-center justify-center gap-5">
-            <Link href="/cliente/mensagens" className="transition hover:text-app-caramelo-torrado" aria-label="Voltar para mensagens">
+            <Link href="/cliente/mensagens" className="transition hover:text-app-caramelo-torrado" aria-label={ui("Voltar para mensagens")}>
               <Icon type="arrow-left" className="h-5 w-5" />
             </Link>
-            <h1 className="text-lg font-bold uppercase tracking-[0.16em] sm:text-2xl">Chat</h1>
+            <h1 className="text-lg font-bold uppercase tracking-[0.16em] sm:text-2xl">{ui("Chat")}</h1>
           </div>
           <div className="justify-self-end">
             <ItemHeaderNotificacoes href="/cliente/notificacoes" />
@@ -133,20 +136,18 @@ export default function ConversationPage() {
           <div className="flex items-center gap-3">
             <AvatarRestaurante conversa={conversa} />
             <div>
-              <h2 className="text-base font-semibold">{conversa?.titulo ?? "Carregando conversa"}</h2>
+              <h2 className="text-base font-semibold">{conversa?.titulo ?? ui("Carregando conversa")}</h2>
               <p className="mt-1 text-xs font-semibold uppercase tracking-[0.16em] text-app-cinza">
-                {conversa?.pedido ? `Pedido #${conversa.pedido.id_pedido}` : conversa?.reserva ? `Reserva #${conversa.reserva.id_reserva}` : "Atendimento Appono"}
+                {conversa?.pedido ? ui("Pedido #{0}", [conversa.pedido.id_pedido]) : conversa?.reserva ? ui("Reserva #{0}", [conversa.reserva.id_reserva]) : ui("Atendimento Appono")}
               </p>
             </div>
           </div>
-          <button type="button" onClick={() => setConfirmarLimpeza(true)} className="rounded-[8px] border border-red-200 px-4 py-2 text-[10px] font-bold uppercase tracking-[0.12em] text-red-700 transition hover:bg-red-50">
-            Limpar histórico
-          </button>
+          <button type="button" onClick={() => setConfirmarLimpeza(true)} className="rounded-[8px] border border-red-200 px-4 py-2 text-[10px] font-bold uppercase tracking-[0.12em] text-red-700 transition hover:bg-red-50">{ui("Limpar histórico")}</button>
         </div>
       </section>
 
       <section className="mx-auto flex w-full max-w-5xl flex-1 flex-col px-5 py-8">
-        {mensagem ? <p role="status" className="mb-4 rounded-[12px] border border-app-baunilha-dourada bg-white p-4 text-sm font-semibold text-app-caramelo-torrado">{mensagem}</p> : null}
+        {mensagem ? <p role="status" className="mb-4 rounded-[12px] border border-app-baunilha-dourada bg-white p-4 text-sm font-semibold text-app-caramelo-torrado">{ui(mensagem)}</p> : null}
         <div className="flex-1 space-y-4 rounded-[18px] bg-white p-4 shadow-sm ring-1 ring-app-baunilha-dourada/45 sm:p-6">
           {mensagens.length ? mensagens.map((item) => {
             const propria = item.tipo_remetente === "cliente";
@@ -154,7 +155,7 @@ export default function ConversationPage() {
               <article key={item.id_mensagem} className={`flex ${propria ? "justify-end" : "justify-start"}`}>
                 <div className={`max-w-[82%] rounded-[16px] px-4 py-3 shadow-sm ${propria ? "bg-app-cafe-profundo text-app-creme-leve" : "bg-white text-app-cafe-profundo ring-1 ring-app-baunilha-dourada/55"}`}>
                   <p className="whitespace-pre-wrap text-sm leading-6">{item.conteudo}</p>
-                  <p className={`mt-2 text-[10px] font-semibold ${propria ? "text-app-baunilha-dourada" : "text-app-cinza"}`}>{item.criado_formatado}</p>
+                  <p className={`mt-2 text-[10px] font-semibold ${propria ? "text-app-baunilha-dourada" : "text-app-cinza"}`}>{dataHoraUI(item.criado_em)}</p>
                 </div>
               </article>
             );
@@ -163,31 +164,31 @@ export default function ConversationPage() {
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-app-baunilha-dourada text-app-cafe-profundo">
                 <Icon type="message" />
               </div>
-              <h2 className="mt-5 text-xl font-semibold">Conversa iniciada</h2>
-              <p className="mt-2 max-w-md text-sm leading-6 text-app-cinza">Envie uma mensagem para alinhar sua reserva ou pedido com o restaurante.</p>
+              <h2 className="mt-5 text-xl font-semibold">{ui("Conversa iniciada")}</h2>
+              <p className="mt-2 max-w-md text-sm leading-6 text-app-cinza">{ui("Envie uma mensagem para alinhar sua reserva ou pedido com o restaurante.")}</p>
             </div>
           )}
           <div ref={fimRef} />
         </div>
 
         <form onSubmit={enviarMensagem} className="mt-5 flex items-end gap-3 rounded-[16px] bg-white p-3 shadow-sm ring-1 ring-app-baunilha-dourada/60 transition focus-within:ring-app-caramelo-torrado">
-          <textarea value={draft} onChange={(event) => setDraft(event.target.value)} onKeyDown={enviarComEnter} maxLength={1200} placeholder="Escreva sua mensagem..." className="max-h-36 min-h-12 flex-1 resize-none bg-transparent px-2 py-3 text-sm outline-none placeholder:text-app-cinza/60" />
-          <button type="submit" disabled={enviando || !draft.trim()} className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[12px] bg-app-dourado-mel text-white transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-50" aria-label="Enviar mensagem">
+          <textarea value={draft} onChange={(event) => setDraft(event.target.value)} onKeyDown={enviarComEnter} maxLength={1200} placeholder={ui("Escreva sua mensagem...")} className="max-h-36 min-h-12 flex-1 resize-none bg-transparent px-2 py-3 text-sm outline-none placeholder:text-app-cinza/60" />
+          <button type="submit" disabled={enviando || !draft.trim()} className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[12px] bg-app-dourado-mel text-white transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-50" aria-label={ui("Enviar mensagem")}>
             <Icon type="send" />
           </button>
         </form>
       </section>
       <ConfirmationDialog
         open={confirmarLimpeza}
-        eyebrow="Histórico da conversa"
-        title="Limpar esta conversa?"
-        description="A conversa será ocultada apenas para você. O restaurante continuará com o próprio histórico e os registros seguem preservados."
-        confirmLabel="Limpar histórico"
-        cancelLabel="Manter conversa"
+        eyebrow={ui("Histórico da conversa")}
+        title={ui("Limpar esta conversa?")}
+        description={ui("A conversa será ocultada apenas para você. O restaurante continuará com o próprio histórico e os registros seguem preservados.")}
+        confirmLabel={ui("Limpar histórico")}
+        cancelLabel={ui("Manter conversa")}
         loading={limpando}
         onCancel={() => setConfirmarLimpeza(false)}
         onConfirm={limparHistorico}
-        details={<p className="font-semibold">{conversa?.titulo ?? "Conversa"}</p>}
+        details={<p className="font-semibold">{conversa?.titulo ?? ui("Conversa")}</p>}
       />
     </main>
   );

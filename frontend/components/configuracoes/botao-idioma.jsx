@@ -17,7 +17,7 @@ export function BotaoIdioma() {
   const emIngles = idioma === "en";
 
   return (
-    <section className="mt-5 rounded-xl border border-app-baunilha-dourada/60 bg-white p-5 shadow-sm">
+    <section data-appono-sem-traducao className="mt-5 rounded-xl border border-app-baunilha-dourada/60 bg-white p-5 shadow-sm">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
           <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-app-chantilly text-app-caramelo-torrado">
