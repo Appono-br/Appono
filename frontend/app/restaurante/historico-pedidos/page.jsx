@@ -10,7 +10,6 @@ import { textoStatusPedido, textoStatusRepasse, textoStatusReserva } from "@/lib
 import { TelaCarregandoSessao, useSessaoLocal } from "@/lib/use-sessao-local";
 
 const navItems = [
-    { label: "Home", href: "/restaurante/home" },
     { label: "Dashboard", href: "/restaurante/dashboard" },
     { label: "Gestão de cardápio", href: "/restaurante/cardapio" },
     { label: "Desempenho", href: "/restaurante/desempenho" },
@@ -660,6 +659,7 @@ export default function RestaurantOrderHistoryPage() {
                 </div>
 
                 <section className="mt-8 rounded-[14px] bg-app-creme-leve p-2 ring-1 ring-app-baunilha-dourada/65">
+<<<<<<< HEAD
                     <div className="grid gap-2 sm:grid-cols-2">
                         <button type="button" onClick={() => setAbaAtiva("PEDIDOS")} className={`rounded-[11px] px-4 py-3 text-left transition ${abaAtiva === "PEDIDOS" ? "bg-app-cafe-profundo text-app-creme-leve shadow-sm" : "text-app-cafe-profundo hover:bg-app-chantilly"}`}>
                             <span className="block text-[10px] font-bold uppercase tracking-[0.2em] opacity-80">Cozinha</span>
@@ -671,6 +671,19 @@ export default function RestaurantOrderHistoryPage() {
                         </button>
                     </div>
                 </section>
+=======
+    <div className="grid gap-2 sm:grid-cols-2">
+        <button type="button" onClick={() => setAbaAtiva("PEDIDOS")} className={`rounded-lg px-4 py-3 text-left transition ${abaAtiva === "PEDIDOS" ? "bg-app-botao-aba-ativa text-app-botao-aba-ativa-texto shadow-sm" : "text-app-cafe-profundo hover:bg-app-chantilly"}`}>
+            <span className="block text-[10px] font-bold uppercase tracking-[0.2em] opacity-80">Cozinha</span>
+            <strong className="mt-1 block text-lg">Pedidos</strong>
+        </button>
+        <button type="button" onClick={() => setAbaAtiva("RESERVAS")} className={`rounded-lg px-4 py-3 text-left transition ${abaAtiva === "RESERVAS" ? "bg-app-botao-aba-ativa text-app-botao-aba-ativa-texto shadow-sm" : "text-app-cafe-profundo hover:bg-app-chantilly"}`}>
+            <span className="block text-[10px] font-bold uppercase tracking-[0.2em] opacity-80">Recepcao</span>
+            <strong className="mt-1 block text-lg">Reservas</strong>
+        </button>
+    </div>
+</section>
+>>>>>>> f260ad5e162f398fd5ec1bdc77d290b51df89509
 
                 <section className="mt-6 grid gap-3 md:grid-cols-3">
                     {(abaAtiva === "PEDIDOS"

@@ -9,7 +9,6 @@ import { TelaCarregandoSessao, useSessaoLocal } from "@/lib/use-sessao-local";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 
 const navItems = [
-    { label: "Home", href: "/restaurante/home" },
     { label: "Dashboard", href: "/restaurante/dashboard" },
     { label: "Gestão de cardápio", href: "/restaurante/cardapio" },
     { label: "Desempenho", href: "/restaurante/desempenho" },
