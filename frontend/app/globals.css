@@ -74,11 +74,6 @@ select:not(:disabled) {
   cursor: pointer;
 }
 
-button,
-[role="button"] {
-  white-space: nowrap;
-}
-
 button:disabled,
 input:disabled,
 textarea:disabled,

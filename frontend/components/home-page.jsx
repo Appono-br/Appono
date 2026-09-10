@@ -481,7 +481,7 @@ export default function HomePage() {
                   window.location.href =
                     profileDialog === "cadastro" ? "/cadastro/cliente" : "/login";
                 }}
-                className="group relative flex items-center gap-4 rounded-2xl bg-white p-4 text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
+                className="group relative flex min-w-0 items-center gap-4 rounded-2xl bg-white p-4 text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
               >
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-app-chantilly text-app-caramelo-torrado transition group-hover:bg-app-dourado-mel group-hover:text-white">
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -489,7 +489,7 @@ export default function HomePage() {
                     <circle cx="12" cy="7" r="4" />
                   </svg>
                 </div>
-                <div>
+                <div className="min-w-0">
                   <strong className="block text-app-cafe-profundo">Sou cliente</strong>
                   <span className="mt-1 block text-sm leading-6 text-app-mocha">
                     Quero reservar mesa e antecipar meu pedido presencial.
@@ -507,7 +507,7 @@ export default function HomePage() {
                   window.location.href =
                     profileDialog === "cadastro" ? "/cadastro/restaurante" : "/login";
                 }}
-                className="group relative flex items-center gap-4 rounded-2xl bg-white p-4 text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
+                className="group relative flex min-w-0 items-center gap-4 rounded-2xl bg-white p-4 text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
               >
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-app-chantilly text-app-caramelo-torrado transition group-hover:bg-app-dourado-mel group-hover:text-white">
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -519,7 +519,7 @@ export default function HomePage() {
                     <path d="M14 13h1" />
                   </svg>
                 </div>
-                <div>
+                <div className="min-w-0">
                   <strong className="block text-app-cafe-profundo">Sou restaurante</strong>
                   <span className="mt-1 block text-sm leading-6 text-app-mocha">
                     Quero organizar reservas, cardápio e pedidos antecipados.
