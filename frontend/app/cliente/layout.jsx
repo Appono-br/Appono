@@ -1,7 +1,8 @@
 "use client";
-import { useSyncExternalStore } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import { RotaProtegida } from "@/components/auth/rota-protegida";
 import { useTemaLocal } from "@/lib/use-tema-local";
+import { useIdiomaLocal } from "@/lib/use-idioma-local";
 import { TelaCarregandoSessao } from "@/lib/use-sessao-local";
 function inscrever() {
     return () => { };
@@ -14,7 +15,11 @@ function obterEstadoServidor() {
 }
 export default function LayoutCliente({ children }) {
     const { tema } = useTemaLocal();
+    const { idioma } = useIdiomaLocal();
     const estaNoNavegador = useSyncExternalStore(inscrever, obterEstadoCliente, obterEstadoServidor);
+    useEffect(() => {
+        document.documentElement.lang = idioma;
+    }, [idioma]);
     if (!estaNoNavegador) {
         return <TelaCarregandoSessao />;
     }

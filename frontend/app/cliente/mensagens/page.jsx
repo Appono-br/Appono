@@ -11,6 +11,7 @@ const navItems = [
   { label: "Início", href: "/cliente/dashboard" },
   { label: "Pedidos", href: "/cliente/detalhes-pedido" },
   { label: "Reservas", href: "/cliente/reservas" },
+  { label: "Favoritos", href: "/cliente/favoritos" },
   { label: "Mensagens", href: "/cliente/mensagens" },
   { label: "Configurações", href: "/cliente/configuracoes" },
 ];

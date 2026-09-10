@@ -10,6 +10,7 @@ const navItems = [
     { label: "Início", href: "/cliente/dashboard" },
     { label: "Detalhes do pedido", href: "/cliente/detalhes-pedido" },
     { label: "Reservas", href: "/cliente/reservas" },
+    { label: "Favoritos", href: "/cliente/favoritos" },
     { label: "Mensagens", href: "/cliente/mensagens" },
     { label: "Configurações", href: "/cliente/configuracoes" },
 ];
@@ -406,7 +407,7 @@ export default function ReservationsPage() {
           </div>
 
           <nav className="hidden items-center justify-self-center gap-7 text-xs font-semibold text-app-cinza lg:flex">
-            {navItems.map((item, index) => (<Link key={item.label} href={item.href} className={index === 2
+            {navItems.map((item) => (<Link key={item.label} href={item.href} className={item.href === "/cliente/reservas"
                 ? "text-app-cafe-profundo"
                 : "transition hover:text-app-cafe-profundo"}>
                 {item.label}
@@ -426,7 +427,7 @@ export default function ReservationsPage() {
 
         {mobileMenuOpen ? (<nav id="reservations-mobile-menu" className="border-t border-app-baunilha-dourada/50 bg-white px-5 py-3 lg:hidden">
             <div className="mx-auto grid max-w-7xl gap-2 text-xs font-semibold text-app-cinza">
-              {navItems.map((item, index) => (<Link key={item.label} href={item.href} onClick={() => setMobileMenuOpen(false)} className={index === 2
+              {navItems.map((item) => (<Link key={item.label} href={item.href} onClick={() => setMobileMenuOpen(false)} className={item.href === "/cliente/reservas"
                     ? "text-app-cafe-profundo"
                     : "transition hover:text-app-cafe-profundo"}>
                   {item.label}

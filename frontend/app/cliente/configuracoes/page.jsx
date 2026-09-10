@@ -4,27 +4,16 @@ import Link from "next/link";
 import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 import { useEffect, useState } from "react";
 import { SeletorTema } from "@/components/configuracoes/seletor-tema";
+import { BotaoIdioma } from "@/components/configuracoes/botao-idioma";
 import { encerrarSessao } from "@/lib/session";
+import { useTraducao } from "@/lib/use-traducao";
 const navItems = [
     { label: "Início", href: "/cliente/dashboard" },
     { label: "Detalhes do pedido", href: "/cliente/detalhes-pedido" },
     { label: "Reservas", href: "/cliente/reservas" },
+    { label: "Favoritos", href: "/cliente/favoritos" },
     { label: "Mensagens", href: "/cliente/mensagens" },
     { label: "Configurações", href: "/cliente/configuracoes" },
-];
-const settingsItems = [
-    {
-        title: "Conta",
-        description: "Atualize suas informações pessoais e foto de perfil",
-        href: "/cliente/configuracoes/conta",
-        icon: "user",
-    },
-    {
-        title: "Idioma",
-        description: "Escolha o idioma de uso da plataforma",
-        href: "#",
-        icon: "language",
-    },
 ];
 function Icon({ type, className = "h-5 w-5", }) {
     const paths = {
@@ -33,7 +22,6 @@ function Icon({ type, className = "h-5 w-5", }) {
         card: "M4 7h16v10H4V7z M4 10h16M8 14h3",
         "chevron-right": "m9 18 6-6-6-6",
         edit: "M4 20h4l10.5-10.5a2.1 2.1 0 0 0-3-3L5 17v3z M13.5 7.5l3 3",
-        language: "M5 5h8M9 3v2M7 17l4-10M5 17h8M15 19l2.5-6 2.5 6M16 17h3",
         "log-out": "M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9",
         menu: "M4 7h16M4 12h16M4 17h16",
         user: "M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z",
@@ -43,6 +31,7 @@ function Icon({ type, className = "h-5 w-5", }) {
     </svg>);
 }
 export default function SettingsPage() {
+    const { t } = useTraducao();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [session] = useState(() => {
         if (typeof window === "undefined") {
@@ -58,12 +47,12 @@ export default function SettingsPage() {
         await encerrarSessao();
         window.location.assign("/");
     }
-    const profileName = session?.name || "Perfil não identificado";
+    const profileName = session?.name || t("settings.unknownProfile");
     const profileType = session?.type === "restaurant"
         ? "Conta de restaurante"
         : session?.type === "client"
-            ? "Conta de cliente"
-            : "Acesse sua conta para completar o perfil";
+            ? t("settings.clientAccount")
+            : t("settings.completeProfile");
     return (<main className="flex min-h-screen flex-col bg-white text-app-cafe-profundo">
       <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-white/90 text-app-cafe-profundo shadow-sm backdrop-blur-md">
         <div className="mx-auto grid h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-5 lg:h-20">
@@ -72,7 +61,7 @@ export default function SettingsPage() {
           </div>
 
           <nav className="hidden items-center justify-self-center gap-7 text-xs font-semibold text-app-cinza lg:flex">
-            {navItems.map((item, index) => (<Link key={item.label} href={item.href} className={index === 4
+            {navItems.map((item) => (<Link key={item.label} href={item.href} className={item.href === "/cliente/configuracoes"
                 ? "text-app-cafe-profundo"
                 : "transition hover:text-app-cafe-profundo"}>
                 {item.label}
@@ -92,7 +81,7 @@ export default function SettingsPage() {
 
         {mobileMenuOpen ? (<nav id="settings-mobile-menu" className="border-t border-app-baunilha-dourada/50 bg-white px-5 py-3 lg:hidden">
             <div className="mx-auto grid max-w-7xl gap-2 text-xs font-semibold text-app-cinza">
-              {navItems.map((item, index) => (<Link key={item.label} href={item.href} onClick={() => setMobileMenuOpen(false)} className={index === 4
+              {navItems.map((item) => (<Link key={item.label} href={item.href} onClick={() => setMobileMenuOpen(false)} className={item.href === "/cliente/configuracoes"
                     ? "text-app-cafe-profundo"
                     : "transition hover:text-app-cafe-profundo"}>
                   {item.label}
@@ -101,61 +90,34 @@ export default function SettingsPage() {
           </nav>) : null}
       </header>
 
-      <section className="mx-auto w-full max-w-5xl flex-1 px-5 py-10 sm:py-14">
-        <div className="border-t border-app-baunilha-dourada/60 pt-10">
-          <p className="text-[10px] font-bold uppercase text-app-caramelo-torrado">
-            Preferências e segurança
-          </p>
-          <h1 className="mt-2 text-4xl font-medium text-app-cafe-profundo sm:text-5xl">
-            Configurações
-          </h1>
+      <section className="mx-auto w-full max-w-3xl flex-1 px-5 py-10 sm:py-14">
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">{t("settings.eyebrow")}</p>
+          <h1 className="mt-2 text-3xl font-semibold text-app-cafe-profundo sm:text-4xl">{t("settings.title")}</h1>
         </div>
 
-        <section className="mt-8 rounded-[8px] bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada/60 sm:p-8">
-          <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-5">
-              <div className="relative flex h-20 w-20 shrink-0 items-center justify-center rounded-[8px] bg-app-cafe-profundo text-app-creme-leve ring-4 ring-app-chantilly">
-                <Icon type="user" className="h-9 w-9"/>
-                <span className="absolute -bottom-2 -right-2 flex h-8 w-8 items-center justify-center rounded-full bg-app-caramelo-torrado text-app-chantilly ring-4 ring-app-creme-leve">
-                  <Icon type="edit" className="h-4 w-4"/>
-                </span>
-              </div>
-              <div>
-                <h2 className="text-2xl font-medium text-app-cafe-profundo sm:text-3xl">
-                  {profileName}
-                </h2>
-                <p className="mt-1 text-sm text-app-mocha">{profileType}</p>
-              </div>
-            </div>
-            <button type="button" className="flex h-10 w-10 items-center justify-center rounded-[8px] text-app-cinza transition hover:bg-app-baunilha-dourada hover:text-app-cafe-profundo" aria-label="Abrir perfil">
-              <Icon type="chevron-right"/>
-            </button>
-          </div>
-        </section>
+        <Link href="/cliente/configuracoes/conta" className="mt-8 flex items-center justify-between gap-4 rounded-xl border border-app-baunilha-dourada/60 bg-white p-5 shadow-sm transition hover:border-app-caramelo-torrado/60 hover:bg-app-chantilly">
+          <span className="flex min-w-0 items-center gap-3">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-app-cafe-profundo text-app-creme-leve">
+              <Icon type="user" className="h-5 w-5"/>
+            </span>
+            <span className="min-w-0 text-left">
+              <strong className="block truncate text-sm text-app-cafe-profundo">{profileName}</strong>
+              <span className="mt-0.5 block text-sm text-app-cinza">{profileType}</span>
+            </span>
+          </span>
+          <span className="inline-flex shrink-0 items-center gap-2 text-xs font-bold uppercase tracking-[0.12em] text-app-caramelo-torrado">
+            {t("settings.account")} <Icon type="chevron-right" className="h-4 w-4"/>
+          </span>
+        </Link>
 
-        <section className="mt-7 grid gap-5">
-          {settingsItems.map((item) => (<Link key={item.title} href={item.href} className="grid rounded-[8px] bg-white p-6 text-left shadow-sm ring-1 ring-app-baunilha-dourada/45 transition hover:-translate-y-0.5 hover:bg-app-chantilly sm:grid-cols-[1fr_auto_1fr] sm:items-center sm:gap-6 sm:p-8">
-              <span className="flex h-14 w-14 items-center justify-center rounded-[8px] bg-app-baunilha-dourada text-app-caramelo-torrado">
-                <Icon type={item.icon}/>
-              </span>
-              <span className="mt-4 sm:mt-0">
-                <strong className="block text-xl text-app-cafe-profundo">
-                  {item.title}
-                </strong>
-                <span className="mt-2 block text-sm leading-6 text-app-cinza">
-                  {item.description}
-                </span>
-              </span>
-              <Icon type="chevron-right" className="mt-4 h-5 w-5 text-app-baunilha-dourada sm:mt-0"/>
-            </Link>))}
-        </section>
-
+        <BotaoIdioma />
         <SeletorTema />
 
-        <div className="mx-auto mt-7 max-w-md border-t border-app-baunilha-dourada/60 pt-5 text-center">
+        <div className="mt-7 border-t border-app-baunilha-dourada/60 pt-5 text-center">
           <button type="button" onClick={logout} className="inline-flex items-center gap-3 text-sm font-bold text-app-vermelho-erro transition hover:text-app-cafe-profundo">
             <Icon type="log-out"/>
-            Sair da conta
+            {t("settings.logout")}
           </button>
         </div>
       </section>

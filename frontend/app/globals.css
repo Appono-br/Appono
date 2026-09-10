@@ -59,8 +59,75 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/* Mantém uma indicação visual consistente para ações em toda a aplicação. */
+button:not(:disabled),
+a[href],
+[role="button"]:not([aria-disabled="true"]),
+[role="link"]:not([aria-disabled="true"]),
+summary,
+label[for],
+label:has(input:not(:disabled)),
+input[type="checkbox"]:not(:disabled),
+input[type="radio"]:not(:disabled),
+input[type="file"]:not(:disabled),
+select:not(:disabled) {
+  cursor: pointer;
+}
+
+button,
+[role="button"] {
+  white-space: nowrap;
+}
+
+button:disabled,
+input:disabled,
+textarea:disabled,
+select:disabled,
+[aria-disabled="true"] {
+  cursor: not-allowed;
+}
+
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not(:disabled),
+textarea:not(:disabled) {
+  cursor: text;
+}
+
 html {
   scroll-behavior: smooth;
+}
+
+.home-publica.tema-escuro {
+  color-scheme: dark;
+  --app-cacau-intenso: #0f0b09;
+  --app-caramelo-torrado: #e0a174;
+  --app-creme-suave: #403329;
+  --app-baunilha-dourada: #9b8068;
+  --app-cafe-profundo: #f3e8da;
+  --app-mocha: #d9c7b5;
+  --app-dourado-mel: #d18452;
+  --app-creme-leve: #2b211b;
+  --app-chantilly: #130f0d;
+  --app-texto-escuro: #fff7ec;
+  --app-cinza: #b4a79d;
+  background-color: var(--app-chantilly);
+}
+
+.home-publica.tema-escuro :is(header, section, article, footer, div)[class*="bg-white"],
+.home-publica.tema-escuro .bg-white,
+.home-publica.tema-escuro .bg-white\/95 {
+  background-color: #211914;
+}
+
+.home-publica.tema-escuro .bg-app-chantilly {
+  background-color: var(--app-creme-leve);
+}
+
+.home-publica.tema-escuro .text-slate-700 {
+  color: var(--app-mocha);
+}
+
+.home-publica.tema-escuro :is(header, footer, section, article)[class*="border-app"] {
+  border-color: color-mix(in srgb, var(--app-baunilha-dourada) 65%, transparent);
 }
 
 .area-autenticada {
@@ -1373,6 +1440,45 @@ body > div:not(.area-autenticada) select {
 
 .home-publica .hover\:bg-white\/10:hover {
   background-color: rgb(255 255 255 / 0.1) !important;
+}
+
+/* As regras públicas acima preservam o visual claro; estas sobrescrevem-nas
+   quando o usuário escolhe o tema escuro na página inicial. */
+.home-publica.tema-escuro,
+.home-publica.tema-escuro.bg-white {
+  background-color: #130f0d !important;
+}
+
+.home-publica.tema-escuro .bg-white,
+.home-publica.tema-escuro .bg-white\/90,
+.home-publica.tema-escuro .bg-white\/80 {
+  background-color: #211914 !important;
+}
+
+.home-publica.tema-escuro header.bg-white\/95 {
+  background-color: rgb(33 25 20 / 0.95) !important;
+}
+
+.home-publica.tema-escuro .hover\:bg-white\/10:hover {
+  background-color: rgb(255 247 236 / 0.14) !important;
+}
+
+.home-publica.tema-escuro img[src^="/brand/"] {
+  /* Mantém a marca em dourado sobre as superfícies escuras, sem estourar em branco. */
+  filter: brightness(0) saturate(100%) invert(72%) sepia(31%) saturate(845%) hue-rotate(338deg) brightness(93%) contrast(91%) !important;
+}
+
+.home-publica.tema-escuro #inicio.bg-app-cafe-profundo {
+  background-color: #0f0b09 !important;
+}
+
+.home-publica.tema-escuro #inicio > [class*="bg-gradient-to-b"] {
+  background-image: linear-gradient(to bottom, rgb(15 11 9 / 0.16), rgb(15 11 9 / 0.52), rgb(15 11 9 / 0.9)) !important;
+}
+
+.home-publica.tema-escuro #inicio .bg-white {
+  background-color: #d18452 !important;
+  color: #1b110d !important;
 }
 
 body > div:not(.area-autenticada) .home-publica :is(form, section, article, div)[class*="bg-white"] {

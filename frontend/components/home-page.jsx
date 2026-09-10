@@ -2,6 +2,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import { useIdiomaLocal } from "@/lib/use-idioma-local";
+import { useTemaLocal } from "@/lib/use-tema-local";
 
 const heroImage = "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=1800&q=80";
 const foodImage = "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=1200&q=80";
@@ -55,16 +57,19 @@ function Icon({ type, className = "h-5 w-5" }) {
 }
 
 export default function HomePage() {
+  const { idioma, alternarIdioma } = useIdiomaLocal();
+  const { tema, atualizarTema } = useTemaLocal();
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileDialog, setProfileDialog] = useState(null);
   const [activeFaq, setActiveFaq] = useState(0);
+  const idiomaDeDestino = idioma === "en" ? "Português" : "English";
 
   function closeMenu() {
     setMenuOpen(false);
   }
 
   return (
-    <main className="home-publica min-h-screen bg-white text-app-texto-escuro">
+    <main className={`home-publica min-h-screen bg-white text-app-texto-escuro ${tema === "escuro" ? "tema-escuro" : ""}`}>
       <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-white/95 backdrop-blur">
   <div className="mx-auto flex h-20 max-w-7xl items-center px-4 sm:pr-8">
     <div className="flex flex-1 items-center">
@@ -92,11 +97,39 @@ export default function HomePage() {
     </nav>
 
     <div className="flex flex-1 items-center justify-end gap-3">
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={alternarIdioma}
+          className="flex h-10 min-w-[96px] shrink-0 items-center justify-center whitespace-nowrap rounded-full border border-app-baunilha-dourada px-3 text-xs font-bold text-app-cafe-profundo transition hover:bg-app-chantilly"
+          aria-label={idioma === "en" ? "Switch to Portuguese" : "Mudar para inglês"}
+          title={idioma === "en" ? "Switch to Portuguese" : "Mudar para inglês"}
+          data-appono-sem-traducao
+        >
+          <svg aria-hidden="true" viewBox="0 0 24 24" className="mr-1 h-4 w-4">
+            <path d="M5 5h8M9 3v2M7 17l4-10M5 17h8M15 19l2.5-6 2.5 6M16 17h3" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" />
+          </svg>
+          {idiomaDeDestino}
+        </button>
+        <button
+          type="button"
+          onClick={() => atualizarTema(tema === "escuro" ? "claro" : "escuro")}
+          className="flex h-10 w-10 shrink-0 items-center justify-center whitespace-nowrap rounded-full border border-app-baunilha-dourada text-app-cafe-profundo transition hover:bg-app-chantilly"
+          aria-label={tema === "escuro" ? (idioma === "en" ? "Enable light mode" : "Ativar modo claro") : (idioma === "en" ? "Enable dark mode" : "Ativar modo escuro")}
+          title={tema === "escuro" ? (idioma === "en" ? "Enable light mode" : "Ativar modo claro") : (idioma === "en" ? "Enable dark mode" : "Ativar modo escuro")}
+        >
+          {tema === "escuro" ? (
+            <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5"><path d="M12 4V2m0 20v-2m7.1-15.1-1.4-1.4m1.4 16.8-1.4-1.4M20 12h2M2 12h2m.9-7.1-1.4-1.4m1.4 16.8-1.4-1.4M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" /></svg>
+          ) : (
+            <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5"><path d="M21 12.8A8 8 0 1 1 11.2 3a6 6 0 0 0 9.8 9.8Z" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" /></svg>
+          )}
+        </button>
+      </div>
       <div className="hidden items-center gap-3 sm:flex">
         <button
           type="button"
           onClick={() => setProfileDialog("cadastro")}
-          className="rounded-full border border-app-baunilha-dourada px-6 py-2.5 text-sm font-semibold text-app-cafe-profundo transition-all duration-300 hover:-translate-y-0.5 hover:bg-app-chantilly hover:shadow-sm"
+          className="whitespace-nowrap rounded-full border border-app-baunilha-dourada px-6 py-2.5 text-sm font-semibold text-app-cafe-profundo transition-all duration-300 hover:-translate-y-0.5 hover:bg-app-chantilly hover:shadow-sm"
         >
           Criar conta
         </button>
@@ -106,7 +139,7 @@ export default function HomePage() {
           onClick={() => {
             window.location.href = "/login";
           }}
-          className="rounded-full bg-app-caramelo-torrado px-6 py-2.5 text-sm font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-app-cafe-profundo hover:shadow-md"
+          className="whitespace-nowrap rounded-full bg-app-caramelo-torrado px-6 py-2.5 text-sm font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-app-cafe-profundo hover:shadow-md"
         >
           Entrar
         </button>

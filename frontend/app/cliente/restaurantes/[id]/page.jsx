@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { BotaoVoltar } from "@/components/botao-voltar";
 import { apiRequest } from "@/lib/api";
+import { useTextoTraduzido } from "@/lib/use-traducao";
 
 const LIMITE_UNIDADES_POR_ITEM = 10;
 
@@ -101,6 +102,11 @@ function EstrelasNota({ nota, className = "" }) {
       ))}
     </span>
   );
+}
+
+function TextoDinamicoTraduzido({ texto, className = "", as: Elemento = "span" }) {
+  const traducao = useTextoTraduzido(texto);
+  return <Elemento className={className}>{traducao}</Elemento>;
 }
 
 export default function PaginaRestaurante({ params }) {
@@ -509,8 +515,8 @@ export default function PaginaRestaurante({ params }) {
                             <div className="flex flex-wrap items-center gap-2">
                               {produto.destaque ? <span className="rounded-full bg-app-cafe-profundo px-2.5 py-1 text-[10px] font-bold uppercase text-app-creme-leve">Destaque</span> : null}
                             </div>
-                            <h3 className="mt-2 break-words text-base font-bold text-app-cafe-profundo sm:text-lg">{produto.nome}</h3>
-                            {produto.descricao ? <p className="mt-1 break-words text-sm leading-6 text-app-mocha">{produto.descricao}</p> : null}
+                            <TextoDinamicoTraduzido texto={produto.nome} as="h3" className="mt-2 break-words text-base font-bold text-app-cafe-profundo sm:text-lg" />
+                            {produto.descricao ? <TextoDinamicoTraduzido texto={produto.descricao} as="p" className="mt-1 break-words text-sm leading-6 text-app-mocha" /> : null}
                             <p className="mt-2 text-base font-bold text-app-caramelo-torrado">{formatarMoeda(produto.preco)}</p>
                           </div>
                           <div className="flex items-center justify-between gap-3 md:col-span-2 xl:col-span-1 xl:justify-end">
