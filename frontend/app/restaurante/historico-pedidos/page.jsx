@@ -19,6 +19,7 @@ const navItems = [
     { label: "Cozinha", href: "/restaurante/pedidos" },
     { label: "Histórico", href: "/restaurante/historico-pedidos" },
     { label: "Mensagens", href: "/restaurante/mensagens" },
+    { label: "Suporte", href: "/restaurante/suporte" },
     { label: "Configurações", href: "/restaurante/configuracoes" },
 ];
 

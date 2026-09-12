@@ -27,6 +27,7 @@ const navItems = [
     { label: "Reservas", href: "/cliente/reservas" },
     { label: "Favoritos", href: "/cliente/favoritos" },
     { label: "Mensagens", href: "/cliente/mensagens" },
+    { label: "Suporte", href: "/cliente/suporte" },
     { label: "Configurações", href: "/cliente/configuracoes" },
 ];
 function Icon({ type, className = "h-5 w-5", filled = false, }) {

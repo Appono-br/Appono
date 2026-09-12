@@ -361,6 +361,9 @@ export default function AdminFinanceiroPage() {
                         <Link href="/admin/reembolsos" className="mt-4 inline-flex rounded-full border border-app-caramelo-torrado px-5 py-2 text-xs font-bold uppercase tracking-[0.12em] text-app-caramelo-torrado">
                             Analisar reembolsos
                         </Link>
+                        <Link href="/admin/suporte" className="ml-0 mt-3 inline-flex rounded-full border border-app-cafe-profundo px-5 py-2 text-xs font-bold uppercase tracking-[0.12em] text-app-cafe-profundo sm:ml-3">
+                            Central de suporte
+                        </Link>
                         <h1 className="mt-3 max-w-3xl text-3xl font-semibold leading-tight sm:text-5xl">
                             Retenção, comissão e repasses da Appono
                         </h1>

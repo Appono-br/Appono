@@ -17,6 +17,7 @@ const navItems = [
     { label: "Cozinha", href: "/restaurante/pedidos" },
     { label: "Histórico", href: "/restaurante/historico-pedidos" },
     { label: "Mensagens", href: "/restaurante/mensagens" },
+    { label: "Suporte", href: "/restaurante/suporte" },
     { label: "Configurações", href: "/restaurante/configuracoes" },
 ];
 
@@ -610,6 +611,10 @@ export default function RestaurantOrdersPage() {
                                                         <Icon type="message" className="h-4 w-4" />
                                                         {ui(abrindoChatPedidoId === pedido.id_pedido ? "Abrindo..." : "Falar com cliente")}
                                                     </button>
+
+                                                    <Link href="/restaurante/suporte" className="inline-flex h-11 items-center justify-center rounded-[9px] border border-app-baunilha-dourada px-4 text-xs font-bold uppercase tracking-[0.14em] text-app-mocha transition hover:bg-app-chantilly">
+                                                        {ui("Ver suporte")}
+                                                    </Link>
 
                                                     {podeRemoverDaCozinha ? (
                                                         <button

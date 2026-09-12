@@ -2,6 +2,7 @@
 
 import { useInterface } from "@/lib/use-interface";
 import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { BotaoVoltar } from "@/components/botao-voltar";
 import { apiRequest } from "@/lib/api";
@@ -385,6 +386,12 @@ export default function PaginaRestaurante({ params }) {
                       <Icon type="message" className="h-4 w-4" />
                       {ui(abrindoChat ? "Abrindo..." : "Falar")}
                     </button>
+                    <Link
+                      href={`/cliente/suporte?restaurante=${restaurante.id_restaurante}&motivo=ATENDIMENTO`}
+                      className="inline-flex h-10 items-center gap-2 rounded-full border border-app-baunilha-dourada px-4 text-xs font-bold uppercase tracking-[0.08em] text-app-cafe-profundo transition hover:bg-app-chantilly"
+                    >
+                      {ui("Suporte")}
+                    </Link>
                     <button
                       type="button"
                       disabled={favoritando}

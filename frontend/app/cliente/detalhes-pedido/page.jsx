@@ -100,6 +100,7 @@ export default function PedidosClientePage() {
                                         {pedido.status_pedido === "PENDENTE" && reservaAceitaPagamento(pedido.reservas) ? (
                                             <Link href={`/cliente/pagamentos/pedido/${pedido.id_pedido}`} className="rounded-[8px] bg-app-dourado-mel px-4 py-2 text-xs font-bold uppercase text-white transition hover:bg-app-caramelo-torrado">{ui("Pagar")}</Link>
                                         ) : null}
+                                        <Link href={`/cliente/suporte?pedido=${pedido.id_pedido}&motivo=PEDIDO_NAO_PRONTO`} className="rounded-[8px] border border-app-baunilha-dourada px-4 py-2 text-xs font-bold uppercase text-app-mocha transition hover:bg-app-chantilly">{ui("Suporte")}</Link>
                                         <Link href={`/cliente/pedidos/${pedido.id_pedido}`} className="rounded-[8px] bg-app-cafe-profundo px-4 py-2 text-xs font-bold uppercase text-app-creme-leve transition hover:bg-app-caramelo-torrado">{ui("Ver detalhes")}</Link>
                                         {["ENTREGUE", "CANCELADO"].includes(pedido.status_pedido) ? (
                                             <button type="button" disabled={pedidoExcluindo === pedido.id_pedido} onClick={() => setPedidoParaExcluir(pedido)} className="rounded-[8px] border border-red-300 px-4 py-2 text-xs font-bold uppercase text-red-700 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50">

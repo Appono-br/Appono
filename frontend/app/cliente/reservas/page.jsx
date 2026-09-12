@@ -13,6 +13,7 @@ const navItems = [
     { label: "Reservas", href: "/cliente/reservas" },
     { label: "Favoritos", href: "/cliente/favoritos" },
     { label: "Mensagens", href: "/cliente/mensagens" },
+    { label: "Suporte", href: "/cliente/suporte" },
     { label: "Configurações", href: "/cliente/configuracoes" },
 ];
 const weekDays = ["Domingo", "Segunda-feira", "Terca-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sabado"];
@@ -598,6 +599,9 @@ export default function ReservationsPage() {
                             <Icon type="message" className="h-4 w-4"/>
                             {ui(abrindoChatReservaId === reservation.id ? "Abrindo..." : "Falar com restaurante")}
                           </button>
+                          <Link href={`/cliente/suporte?${reservation.activeOrder?.id ? `pedido=${reservation.activeOrder.id}&motivo=PEDIDO_NAO_PRONTO` : `reserva=${reservation.id}&motivo=MESA_INDISPONIVEL`}`} className="rounded-[8px] border border-app-baunilha-dourada px-4 py-2 text-xs font-bold text-app-mocha transition hover:bg-app-chantilly">
+                            {ui("Abrir suporte")}
+                          </Link>
                           {podeResponderPresenca(reservation) ? (<>
                             {reservation.attendanceStatus !== "CONFIRMADA" ? (<button type="button" disabled={processandoPresenca} onClick={() => setReservaParaConfirmarPresenca(reservation)} className="rounded-[8px] bg-app-cafe-profundo px-4 py-2 text-xs font-bold text-app-creme-leve transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-60">{ui("Confirmar presença")}</button>) : null}
                             <button type="button" disabled={processandoPresenca} onClick={() => setReservaParaRecusarPresenca(reservation)} className="rounded-[8px] border border-app-vermelho-erro/40 px-4 py-2 text-xs font-bold text-app-vermelho-erro transition hover:bg-app-vermelho-erro hover:text-white disabled:cursor-not-allowed disabled:opacity-60">

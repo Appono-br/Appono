@@ -4,7 +4,7 @@ Plataforma gastronômica para descoberta de restaurantes, reserva de mesas, pedi
 
 ## Estado do projeto
 
-O projeto está em estágio de MVP funcional avançado. Cadastro, autenticação, restaurantes, cardápio, reservas, pedidos, notificações, favoritos, avaliações, chat seguro, busca, geolocalização inicial e fluxo Mercado Pago estão implementados.
+O projeto está em estágio de MVP funcional avançado. Cadastro, autenticação, restaurantes, cardápio, reservas, pedidos, notificações, favoritos, avaliações, chat seguro, suporte, busca, geolocalização inicial e fluxo Mercado Pago estão implementados.
 
 ## Arquitetura
 
@@ -81,6 +81,8 @@ A migration `20260825000100_add_client_attendance_confirmation.sql` adiciona a c
 
 A migration `20260908000100_create_secure_chat.sql` cria o chat seguro entre cliente e restaurante. Ela adiciona `conversas_chat` e `mensagens_chat`, habilita RLS, concede acesso apenas ao papel `authenticated` e aplica políticas de propriedade por participante. Conversas diretas podem ser iniciadas pelo cliente a partir do perfil do restaurante. Conversas vinculadas a reserva ou pedido só podem ser abertas pelos participantes reais daquele recurso. As mensagens exigem remetente autenticado, tipo de remetente compatível com o perfil e conteúdo entre 1 e 1200 caracteres.
 
+A migration `20260912000100_create_support_complaints.sql` cria o módulo formal de suporte e reclamações. Ela adiciona `chamados_suporte` e `mensagens_suporte`, habilita RLS, limita leitura aos participantes reais e bloqueia chamados ativos duplicados para o mesmo contexto. Chamados podem ser vinculados a restaurante, reserva, pedido e reembolso. O backend usa service role apenas para orquestrar o fluxo validado por autenticação, perfil real e propriedade do recurso.
+
 Aplicar migrations primeiro em testes, depois em homologação e por último em produção. Fazer backup e validar restauração antes de alterações críticas.
 
 ## Segurança de pagamentos
@@ -112,6 +114,45 @@ Fluxo disponível:
 Rotas principais: `POST /api/reembolsos`, `GET /api/reembolsos/pedido/:id`, `GET /api/reembolsos/restaurante`, `GET /api/reembolsos/admin` e `PATCH /api/reembolsos/:id/analisar`.
 
 A migration `20260815000100_create_simulated_refunds.sql` cria a tabela, as políticas de leitura, a unicidade de reembolso ativo e a conclusão transacional. Ela deve ser aplicada antes de testar as telas `/restaurante/reembolsos` e `/admin/reembolsos`.
+
+## Suporte e reclamações
+
+O suporte cria uma camada formal para casos em que chat simples não basta, como pedido não pronto, pedido incorreto, reserva não reconhecida, mesa indisponível, problemas de pagamento, reembolso e atendimento. O cliente abre um chamado com contexto de pedido, reserva ou restaurante, e cliente, restaurante e administração acompanham o protocolo com histórico preservado.
+
+Rotas principais:
+
+- `GET /api/suporte`: lista chamados do perfil autenticado.
+- `POST /api/suporte`: abre chamado para cliente, validando propriedade do pedido, reserva ou restaurante.
+- `GET /api/suporte/:id`: carrega detalhes, mensagens e contexto.
+- `POST /api/suporte/:id/mensagens`: adiciona mensagem e move o chamado para o próximo responsável.
+- `PATCH /api/suporte/:id`: cancela, assume, contesta, resolve ou decide um chamado conforme o perfil.
+
+Regras de negócio:
+
+- Um cliente não pode abrir chamado duplicado ativo para o mesmo pedido, reserva ou restaurante e motivo.
+- Reclamação de pedido não pronto exige pedido vinculado e não é aceita se o pedido ainda aguarda pagamento.
+- Chamados sobre pedido não pronto são bloqueados quando a reserva foi cancelada, marcada como não comparecimento ou teve ausência informada pelo cliente.
+- O prazo padrão para abertura é de 7 dias após a experiência.
+- Somente chamados decididos como procedentes pela Appono impactam o score operacional do restaurante.
+- Se o restaurante assumir responsabilidade, o chamado passa a ser tratado como procedente e entra no fator operacional.
+- Quando o restaurante informa uma solução, o chamado volta para o cliente confirmar se resolveu ou pedir análise da Appono.
+- O impacto é controlado por motivo e pode ser ajustado pelo admin dentro do limite de segurança.
+- Se o cliente solicitar reembolso em um chamado vinculado a pedido elegível, o backend cria uma solicitação em `solicitacoes_reembolso` e vincula o protocolo, reutilizando o fluxo financeiro existente.
+
+Telas disponíveis:
+
+- Cliente: `/cliente/suporte`, com abertura de protocolo e acompanhamento.
+- Restaurante: `/restaurante/suporte`, com resposta, contestação e resolução.
+- Administração: `/admin/suporte`, com decisão de procedência e impacto operacional.
+
+As notificações internas avisam restaurante e administração na abertura, e o cliente quando houver resposta ou decisão final.
+
+Segurança aplicada:
+
+- O frontend usa apenas as rotas Express do suporte.
+- A API resolve o perfil real em `clientes`, `restaurantes` ou `APPONO_ADMIN_EMAILS`; não confia em metadata editável.
+- A migration libera leitura por RLS para participantes reais, mas não concede escrita direta pelo Data API. Abertura, mensagens e decisões passam pelo backend com service role e validações de propriedade.
+- Mensagens de sistema são criadas apenas pelo backend.
 
 ## Pedidos do cliente
 
@@ -179,6 +220,7 @@ Cobertura atual:
 - Matriz de perfis e propriedade de recursos.
 - Conflitos de horários de reservas.
 - Sanitização de dados sensíveis em logs.
+- Regras de abertura, prazo, prioridade e impacto reputacional do suporte.
 
 ## Favoritos e avaliações
 
