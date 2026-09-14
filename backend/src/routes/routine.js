@@ -1,0 +1,600 @@
+"use strict";
+
+const { Router } = require("express");
+const { createUserSupabaseClient, supabaseAdmin } = require("../lib/supabase");
+const { requireAuth, requireRole } = require("../middleware/auth");
+const { gerarPlanejamentoRotina, normalizarDiasSemana, criarCandidatos, horarioCompativel, semanaPlanejamento, validarLimitesRotina } = require("../domain/routine-recommendation");
+const { notificarCliente, notificarRestaurante } = require("../services/notificacoes");
+const paymentConfig = require("../services/pagamentos/config");
+
+const rotinaRouter = Router();
+
+rotinaRouter.use(requireAuth, requireRole("cliente"));
+
+const LIMITE_TEXTO_CURTO = 80;
+const STATUS_CONVERTIDOS = ["CONVERTIDA_RESERVA", "CONVERTIDA_PEDIDO"];
+
+function bancoRotina(res) {
+    if (!supabaseAdmin) {
+        res.status(503).json({ error: "SUPABASE_SECRET_KEY precisa estar configurada para usar o Appono Rotina." });
+        return null;
+    }
+    return supabaseAdmin;
+}
+
+function textoCurto(valor, fallback = "") {
+    const texto = String(valor ?? "").trim();
+    return (texto || fallback).slice(0, LIMITE_TEXTO_CURTO);
+}
+
+function numeroOpcional(valor) {
+    if (valor === null || valor === undefined || valor === "") return null;
+    const numero = Number(valor);
+    return Number.isFinite(numero) ? numero : null;
+}
+
+function horaValida(valor, fallback = null) {
+    const texto = String(valor ?? "").trim();
+    const partes = texto.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+    if (!partes) return fallback;
+    const hora = Number(partes[1]);
+    const minuto = Number(partes[2]);
+    const segundo = Number(partes[3] ?? 0);
+    if (hora < 0 || hora > 23 || minuto < 0 || minuto > 59 || segundo < 0 || segundo > 59) return fallback;
+    return `${String(hora).padStart(2, "0")}:${String(minuto).padStart(2, "0")}:${String(segundo).padStart(2, "0")}`;
+}
+
+function dataValida(valor) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(String(valor ?? ""))) return false;
+    const data = new Date(`${valor}T12:00:00Z`);
+    return Number.isFinite(data.getTime()) && data.toISOString().slice(0, 10) === valor;
+}
+
+function listaTexto(valor) {
+    const lista = Array.isArray(valor) ? valor : String(valor ?? "").split(",");
+    return [...new Set(lista.map((item) => textoCurto(item)).filter(Boolean))].slice(0, 20);
+}
+
+function listaNumerica(valor) {
+    const lista = Array.isArray(valor) ? valor : [];
+    return [...new Set(lista.map(Number).filter((item) => Number.isInteger(item) && item > 0))].slice(0, 50);
+}
+
+function normalizarPerfilEntrada(body, atual = {}) {
+    for (const campo of ["nome", "dias_semana", "tempo_maximo_minutos", "raio_km", "origem_agenda", "eventos_importados", "janelas_disponiveis"]) {
+        if (body[campo] === null) throw new Error(`O campo ${campo} não aceita null.`);
+    }
+    for (const campo of ["horario_inicio", "horario_fim"]) {
+        if (body[campo] !== undefined && !horaValida(body[campo])) throw new Error("Informe horários válidos.");
+    }
+    for (const campo of ["tempo_maximo_minutos", "raio_km", "orcamento_diario", "orcamento_semanal", "latitude", "longitude"]) {
+        const valor = body[campo];
+        if (valor !== undefined && valor !== null && valor !== "" && !Number.isFinite(Number(valor))) throw new Error("Informe valores numéricos válidos.");
+    }
+    const horarioInicio = horaValida(body.horario_inicio ?? atual.horario_inicio, atual.horario_inicio ?? "11:30:00");
+    const horarioFim = horaValida(body.horario_fim ?? atual.horario_fim, atual.horario_fim ?? "14:00:00");
+    if (horarioInicio >= horarioFim) {
+        throw new Error("A janela de almoço precisa ter início antes do fim.");
+    }
+    const tempoMaximo = Number(body.tempo_maximo_minutos ?? atual.tempo_maximo_minutos ?? 60);
+    const raioKm = Number(body.raio_km ?? atual.raio_km ?? 5);
+    validarLimitesRotina({ horario_inicio: horarioInicio, horario_fim: horarioFim, tempo_maximo_minutos: tempoMaximo, raio_km: raioKm,
+        dias_semana: body.dias_semana ?? atual.dias_semana ?? normalizarDiasSemana() });
+    const latitude = numeroOpcional(body.latitude !== undefined ? body.latitude : atual.latitude);
+    const longitude = numeroOpcional(body.longitude !== undefined ? body.longitude : atual.longitude);
+    if ((latitude === null) !== (longitude === null)) {
+        throw new Error("Informe latitude e longitude juntas.");
+    }
+    if (latitude !== null && (Math.abs(latitude) > 90 || Math.abs(longitude) > 180)) throw new Error("Coordenadas inválidas.");
+    if (!Number.isInteger(tempoMaximo)) throw new Error("O tempo disponível deve ser informado em minutos inteiros.");
+    for (const campo of ["orcamento_diario", "orcamento_semanal"]) {
+        if (numeroOpcional(body[campo]) < 0) throw new Error("O orçamento não pode ser negativo.");
+    }
+    return {
+        nome: textoCurto(body.nome ?? atual.nome, "Rotina principal"),
+        endereco_base: String((body.endereco_base !== undefined ? body.endereco_base : atual.endereco_base) ?? "").trim().slice(0, 180) || null,
+        latitude,
+        longitude,
+        dias_semana: normalizarDiasSemana(body.dias_semana ?? atual.dias_semana),
+        horario_inicio: horarioInicio,
+        horario_fim: horarioFim,
+        tempo_maximo_minutos: tempoMaximo,
+        orcamento_diario: numeroOpcional(body.orcamento_diario !== undefined ? body.orcamento_diario : atual.orcamento_diario),
+        orcamento_semanal: numeroOpcional(body.orcamento_semanal !== undefined ? body.orcamento_semanal : atual.orcamento_semanal),
+        raio_km: raioKm,
+        origem_agenda: ["MANUAL", "GOOGLE", "OUTLOOK"].includes(String(body.origem_agenda ?? atual.origem_agenda ?? "MANUAL").toUpperCase())
+            ? String(body.origem_agenda ?? atual.origem_agenda ?? "MANUAL").toUpperCase()
+            : "MANUAL",
+        eventos_importados: Array.isArray(body.eventos_importados) ? body.eventos_importados.slice(0, 100) : atual.eventos_importados ?? [],
+        janelas_disponiveis: Array.isArray(body.janelas_disponiveis) ? body.janelas_disponiveis.slice(0, 100) : atual.janelas_disponiveis ?? [],
+        ativo: true,
+    };
+}
+
+function serializarPerfil(perfil, preferencias = [], restricoes = []) {
+    if (!perfil) return null;
+    return {
+        ...perfil,
+        preferencias: preferencias.filter((item) => item.tipo === "PREFERENCIA").map((item) => item.valor).filter(Boolean),
+        restaurantes_favoritos_rotina: preferencias.filter((item) => item.tipo === "RESTAURANTE_FAVORITO").map((item) => item.id_restaurante).filter(Boolean),
+        pratos_favoritos_rotina: preferencias.filter((item) => item.tipo === "PRATO_FAVORITO").map((item) => item.id_produto).filter(Boolean),
+        restricoes: restricoes.filter((item) => item.tipo === "RESTRICAO").map((item) => item.valor),
+        alergias: restricoes.filter((item) => item.tipo === "ALERGIA").map((item) => item.valor),
+    };
+}
+
+async function buscarPerfilCompleto(banco, idCliente) {
+    const { data: perfil, error } = await banco
+        .from("perfis_rotina_cliente")
+        .select("*, preferencias_rotina_cliente(*), restricoes_rotina_cliente(*)")
+        .eq("id_cliente", idCliente)
+        .eq("ativo", true)
+        .order("atualizado_em", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!perfil) return { perfil: null, preferencias: [], restricoes: [] };
+    const { preferencias_rotina_cliente, restricoes_rotina_cliente, ...campos } = perfil;
+    return {
+        perfil: campos,
+        preferencias: preferencias_rotina_cliente ?? [],
+        restricoes: restricoes_rotina_cliente ?? [],
+    };
+}
+
+function versaoEsperada(body, campo) {
+    const valor = body?.[campo];
+    if (!Number.isSafeInteger(valor) || valor < 0) {
+        throw Object.assign(new Error("Recarregue os dados para obter a versão atual da rotina."), { status: 409 });
+    }
+    return valor;
+}
+
+function conferirVersao(atual, esperada) {
+    if (Number(atual ?? 0) !== esperada) {
+        throw Object.assign(new Error("Os dados mudaram em outra aba. Recarregue antes de continuar. Sua edição não foi salva."), { status: 409 });
+    }
+}
+
+async function mutarRotina(banco, res, body, operacao, entidadeId = null, dados = {}) {
+    const { data, error } = await banco.rpc("mutar_rotina", {
+        actor_id: res.locals.user.id,
+        operacao,
+        versao_perfil: versaoEsperada(body, "versao_perfil"),
+        versao_planejamento: operacao === "PERFIL" ? null : versaoEsperada(body, "versao_planejamento"),
+        entidade_id: entidadeId,
+        dados,
+    });
+    if (error) {
+        const mensagem = error.code === "23503" ? "Uma seleção não está mais disponível. Atualize as opções da rotina."
+            : ["23514", "23502", "22023", "22P02"].includes(error.code) ? "Revise os campos da rotina: há um valor inválido ou obrigatório ausente."
+            : error.message.includes("Gere novas sugestoes") ? "Seu perfil mudou. Gere novas sugestões antes de alterar ou converter este planejamento."
+            : error.message.includes("orcamento semanal") ? "O planejamento ultrapassa o orçamento semanal atual. Revise seu limite."
+            : error.message;
+        throw Object.assign(new Error(mensagem), { status: { PT409: 409, PT404: 404, "42501": 403 }[error.code] ?? 400 });
+    }
+    return data;
+}
+
+async function obterMetricasRestaurantes(banco, idsRestaurantes, idCliente) {
+    const ids = [...new Set(idsRestaurantes.filter(Boolean))];
+    const metricas = new Map(ids.map((id) => [id, {
+        avaliacao_media: null,
+        total_avaliacoes: 0,
+        total_favoritos: 0,
+        favorito_cliente: false,
+        score_operacional: 100,
+    }]));
+    if (!ids.length) return metricas;
+    const [avaliacoes, favoritos, meusFavoritos, suporte] = await Promise.all([
+        banco.from("avaliacoes_restaurante").select("id_restaurante, nota").in("id_restaurante", ids),
+        banco.from("restaurantes_favoritos").select("id_restaurante").in("id_restaurante", ids),
+        banco.from("restaurantes_favoritos").select("id_restaurante").eq("id_cliente", idCliente).in("id_restaurante", ids),
+        banco.from("chamados_suporte").select("id_restaurante, impacto_reputacao").in("id_restaurante", ids).eq("procedencia", "PROCEDENTE").then((resposta) => resposta).catch(() => ({ data: [] })),
+    ]);
+    for (const avaliacao of avaliacoes.data ?? []) {
+        const metrica = metricas.get(avaliacao.id_restaurante);
+        metrica.soma = Number(metrica.soma ?? 0) + Number(avaliacao.nota ?? 0);
+        metrica.total_avaliacoes += 1;
+    }
+    for (const metrica of metricas.values()) {
+        if (metrica.total_avaliacoes) metrica.avaliacao_media = Number((metrica.soma / metrica.total_avaliacoes).toFixed(1));
+        delete metrica.soma;
+    }
+    for (const favorito of favoritos.data ?? []) metricas.get(favorito.id_restaurante).total_favoritos += 1;
+    for (const favorito of meusFavoritos.data ?? []) metricas.get(favorito.id_restaurante).favorito_cliente = true;
+    for (const chamado of suporte.data ?? []) {
+        const metrica = metricas.get(chamado.id_restaurante);
+        if (!metrica) continue;
+        metrica.penalidade_suporte = Number(metrica.penalidade_suporte ?? 0) + Number(chamado.impacto_reputacao ?? 1);
+    }
+    for (const metrica of metricas.values()) {
+        metrica.score_operacional = Math.max(0, Number((100 - Number(metrica.penalidade_suporte ?? 0) * 3).toFixed(1)));
+    }
+    return metricas;
+}
+
+async function carregarRestaurantesParaRotina(banco, idCliente) {
+    const [restaurantesResposta, produtosResposta] = await Promise.all([
+        banco
+            .from("restaurantes")
+            .select("id_restaurante, nome, endereco, logo_url, latitude, longitude, valor_minimo_reserva_por_pessoa, configuracao_operacao")
+            .eq("ativo", true)
+            .order("nome"),
+        banco
+            .from("produtos")
+            .select("id_produto, id_restaurante, nome, descricao, preco, imagem_url, disponivel, arquivado, categorias(nome, descricao, ativo, arquivado, cardapios(nome, descricao, ativo))")
+            .eq("disponivel", true)
+            .eq("arquivado", false),
+    ]);
+    if (restaurantesResposta.error) throw new Error(restaurantesResposta.error.message);
+    if (produtosResposta.error) throw new Error(produtosResposta.error.message);
+    const produtosPorRestaurante = new Map();
+    for (const produto of produtosResposta.data ?? []) {
+        const lista = produtosPorRestaurante.get(produto.id_restaurante) ?? [];
+        lista.push(produto);
+        produtosPorRestaurante.set(produto.id_restaurante, lista);
+    }
+    const ids = (restaurantesResposta.data ?? []).map((restaurante) => restaurante.id_restaurante);
+    const metricas = await obterMetricasRestaurantes(banco, ids, idCliente);
+    return (restaurantesResposta.data ?? []).map((restaurante) => ({
+        ...restaurante,
+        ...metricas.get(restaurante.id_restaurante),
+        produtos: produtosPorRestaurante.get(restaurante.id_restaurante) ?? [],
+    }));
+}
+
+async function buscarPlanejamentoComRefeicoes(banco, idCliente, filtros = {}) {
+    let consulta = banco
+        .from("planejamentos_rotina")
+        .select("*, refeicoes_planejadas(*, restaurantes(id_restaurante, nome, endereco, logo_url, valor_minimo_reserva_por_pessoa), produtos(id_produto, nome, descricao, preco, imagem_url), reservas(id_reserva, status_reserva, data_reserva, horario_inicio), pedidos(id_pedido, status_pedido, valor_total))")
+        .eq("id_cliente", idCliente);
+    if (filtros.id_planejamento_rotina) consulta = consulta.eq("id_planejamento_rotina", filtros.id_planejamento_rotina);
+    if (filtros.semana_inicio) consulta = consulta.eq("semana_inicio", filtros.semana_inicio);
+    const { data: planejamento, error } = await consulta
+        .order("semana_inicio", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!planejamento) return { planejamento: null, refeicoes: [] };
+    const { refeicoes_planejadas: refeicoes, ...campos } = planejamento;
+    return { planejamento: campos, refeicoes: (refeicoes ?? []).sort((a, b) => a.data_refeicao.localeCompare(b.data_refeicao)) };
+}
+
+async function obterRefeicaoDoCliente(banco, idCliente, idRefeicao) {
+    const { data, error } = await banco
+        .from("refeicoes_planejadas")
+        .select("*, planejamentos_rotina(id_perfil_rotina, semana_inicio)")
+        .eq("id_refeicao_planejada", idRefeicao)
+        .eq("id_cliente", idCliente)
+        .maybeSingle();
+    if (error) throw new Error(error.message);
+    return data ?? null;
+}
+
+async function restaurantePodeReceberPedidoPago(banco, restauranteId) {
+    if (!paymentConfig.isRealMarketplace()) return true;
+    const { data, error } = await banco
+        .from("mercado_pago_conexoes_restaurante")
+        .select("id_conexao")
+        .eq("id_restaurante", restauranteId)
+        .eq("status", "CONECTADO")
+        .not("access_token", "is", null)
+        .maybeSingle();
+    if (error) throw new Error(error.message);
+    return Boolean(data);
+}
+
+function mapearErroConversao(mensagem) {
+    if (mensagem.includes("Gere novas sugestoes")) return "Seu perfil mudou. Gere novas sugestões antes de converter esta refeição.";
+    if (mensagem.includes("mesa")) return "Não há mesa disponível para o horário sugerido.";
+    if (mensagem.includes("funcionamento")) return "O horário sugerido está fora do funcionamento do restaurante.";
+    if (mensagem.includes("anteced")) return "O horário sugerido não respeita a antecedência mínima do restaurante.";
+    if (mensagem.includes("consumo minimo") || mensagem.includes("consumo mínimo")) return "O pedido não atingiu o consumo mínimo da reserva.";
+    if (mensagem.includes("indispon")) return "Um item sugerido ficou indisponível no cardápio.";
+    return mensagem;
+}
+
+rotinaRouter.get("/perfil", async (_req, res) => {
+    const banco = bancoRotina(res);
+    if (!banco) return;
+    try {
+        const dados = await buscarPerfilCompleto(banco, res.locals.profileId);
+        return res.json(serializarPerfil(dados.perfil, dados.preferencias, dados.restricoes));
+    } catch (error) {
+        return res.status(400).json({ error: error instanceof Error ? error.message : "Não foi possível carregar a rotina." });
+    }
+});
+
+rotinaRouter.get("/catalogo", async (_req, res) => {
+    const banco = bancoRotina(res);
+    if (!banco) return;
+    try {
+        const restaurantes = await carregarRestaurantesParaRotina(banco, res.locals.profileId);
+        return res.json(restaurantes.map((item) => ({
+            id_restaurante: item.id_restaurante, nome: item.nome, favorito_cliente: item.favorito_cliente,
+            produtos: item.produtos.filter((produto) => produto.categorias?.ativo !== false && produto.categorias?.arquivado !== true && produto.categorias?.cardapios?.ativo !== false)
+                .map((produto) => ({ id_produto: produto.id_produto, nome: produto.nome })),
+        })));
+    } catch (error) {
+        return res.status(400).json({ error: error.message });
+    }
+});
+
+async function salvarPerfil(req, res) {
+    const banco = bancoRotina(res);
+    if (!banco) return;
+    try {
+        const completoAtual = await buscarPerfilCompleto(banco, res.locals.profileId);
+        const atual = completoAtual.perfil;
+        conferirVersao(atual?.versao, versaoEsperada(req.body, "versao_perfil"));
+        const dados = normalizarPerfilEntrada(req.body ?? {}, atual ?? {});
+        for (const campo of ["preferencias", "restricoes", "alergias", "restaurantes_favoritos_rotina", "pratos_favoritos_rotina"]) {
+            if (req.body[campo] === undefined) continue;
+            if (!Array.isArray(req.body[campo])) throw new Error("As seleções devem ser listas. Use uma lista vazia para remover.");
+            dados[campo] = campo.endsWith("_rotina") ? listaNumerica(req.body[campo]) : listaTexto(req.body[campo]);
+        }
+        const completo = await mutarRotina(banco, res, req.body, "PERFIL", null, dados);
+        return res.status(atual ? 200 : 201).json(serializarPerfil(completo.perfil, completo.preferencias, completo.restricoes));
+    } catch (error) {
+        return res.status(error.status ?? 400).json({ error: error instanceof Error ? error.message : "Não foi possível salvar a rotina." });
+    }
+}
+
+rotinaRouter.post("/perfil", salvarPerfil);
+rotinaRouter.patch("/perfil", salvarPerfil);
+
+rotinaRouter.get("/planejamento", async (req, res) => {
+    const banco = bancoRotina(res);
+    if (!banco) return;
+    try {
+        const semanaInicio = dataValida(req.query.semana_inicio) ? String(req.query.semana_inicio) : null;
+        const resposta = await buscarPlanejamentoComRefeicoes(banco, res.locals.profileId, semanaInicio ? { semana_inicio: semanaInicio } : {});
+        return res.json(resposta);
+    } catch (error) {
+        return res.status(400).json({ error: error instanceof Error ? error.message : "Não foi possível carregar o planejamento." });
+    }
+});
+
+rotinaRouter.post("/planejamento/gerar", async (req, res) => {
+    const banco = bancoRotina(res);
+    if (!banco) return;
+    try {
+        const dadosPerfil = await buscarPerfilCompleto(banco, res.locals.profileId);
+        if (!dadosPerfil.perfil) {
+            return res.status(404).json({ error: "Configure sua rotina antes de gerar o planejamento." });
+        }
+        conferirVersao(dadosPerfil.perfil.versao, versaoEsperada(req.body, "versao_perfil"));
+        validarLimitesRotina(dadosPerfil.perfil);
+        const semanaInicio = req.body?.semana_inicio || semanaPlanejamento(new Date(), dadosPerfil.perfil.dias_semana, dadosPerfil.perfil.horario_fim).inicio;
+        if (semanaInicio && !dataValida(semanaInicio)) {
+            return res.status(400).json({ error: "Semana inicial inválida." });
+        }
+        if (new Date(`${semanaInicio}T12:00:00Z`).getUTCDay() !== 1) return res.status(400).json({ error: "A semana deve começar na segunda-feira." });
+        if (dadosPerfil.perfil.latitude === null || dadosPerfil.perfil.longitude === null) return res.status(400).json({ error: "Defina a localização da rotina antes de gerar sugestões por distância." });
+        const anterior = await buscarPlanejamentoComRefeicoes(banco, res.locals.profileId, { semana_inicio: semanaInicio });
+        const versaoExibida = versaoEsperada(req.body, "versao_planejamento");
+        // When the current week ends, generation targets a new, still absent week.
+        const versaoAlvo = req.body.semana_base && req.body.semana_base !== semanaInicio ? 0 : versaoExibida;
+        conferirVersao(anterior.planejamento?.versao, versaoAlvo);
+        const restaurantes = await carregarRestaurantesParaRotina(banco, res.locals.profileId);
+        const favoritosPerfil = dadosPerfil.preferencias
+            .filter((item) => item.tipo === "RESTAURANTE_FAVORITO")
+            .map((item) => item.id_restaurante);
+        const pratosFavoritos = dadosPerfil.preferencias
+            .filter((item) => item.tipo === "PRATO_FAVORITO")
+            .map((item) => item.id_produto);
+        const preferencias = dadosPerfil.preferencias
+            .filter((item) => item.tipo === "PREFERENCIA")
+            .map((item) => item.valor);
+        const restricoes = dadosPerfil.restricoes.filter((item) => item.tipo === "RESTRICAO").map((item) => item.valor);
+        const planejamentoGerado = gerarPlanejamentoRotina({
+            perfil: dadosPerfil.perfil,
+            restaurantes,
+            preferencias,
+            restricoes,
+            alergias: dadosPerfil.restricoes.filter((item) => item.tipo === "ALERGIA").map((item) => item.valor),
+            refeicoesExistentes: anterior.refeicoes.filter((item) => STATUS_CONVERTIDOS.includes(item.status)),
+            favoritosRestaurantes: favoritosPerfil,
+            pratosFavoritos,
+            semanaInicio: semanaInicio || undefined,
+        });
+        const resposta = await mutarRotina(banco, res, { ...req.body, versao_planejamento: versaoAlvo }, "GERAR", null, planejamentoGerado);
+        return res.status(201).json(resposta);
+    } catch (error) {
+        return res.status(error.status ?? 400).json({ error: error instanceof Error ? error.message : "Não foi possível gerar o planejamento." });
+    }
+});
+
+rotinaRouter.post("/planejamento/:id/aprovar", async (req, res) => {
+    const banco = bancoRotina(res);
+    if (!banco) return;
+    const idPlanejamento = Number(req.params.id);
+    if (!Number.isInteger(idPlanejamento) || idPlanejamento <= 0) {
+        return res.status(400).json({ error: "Planejamento inválido." });
+    }
+    try {
+        return res.json(await mutarRotina(banco, res, req.body, "APROVAR_PLANO", idPlanejamento));
+    } catch (error) {
+        return res.status(error.status ?? 400).json({ error: error instanceof Error ? error.message : "Não foi possível aprovar o planejamento." });
+    }
+});
+
+async function opcoesDaRefeicao(banco, idCliente, refeicao, horario = null, versoes = null) {
+    const dados = await buscarPerfilCompleto(banco, idCliente);
+    if (!dados.perfil) throw new Error("Configure sua rotina antes de alterar a refeição.");
+    const perfil = serializarPerfil(dados.perfil, dados.preferencias, dados.restricoes);
+    const semana = await buscarPlanejamentoComRefeicoes(banco, idCliente, { id_planejamento_rotina: refeicao.id_planejamento_rotina });
+    if (versoes) {
+        conferirVersao(dados.perfil.versao, versaoEsperada(versoes, "versao_perfil"));
+        conferirVersao(semana.planejamento?.versao, versaoEsperada(versoes, "versao_planejamento"));
+    }
+    const gasto = semana.refeicoes.filter((item) => item.id_refeicao_planejada !== refeicao.id_refeicao_planejada && !["RECUSADA", "CANCELADA"].includes(item.status))
+        .reduce((total, item) => total + Number(item.preco_estimado ?? 0), 0);
+    const saldo = perfil.orcamento_semanal === null ? Infinity : Number(perfil.orcamento_semanal) - gasto;
+    return criarCandidatos({
+        perfil, restaurantes: await carregarRestaurantesParaRotina(banco, idCliente),
+        preferencias: perfil.preferencias, restricoes: perfil.restricoes, alergias: perfil.alergias,
+        favoritosRestaurantes: new Set(perfil.restaurantes_favoritos_rotina.map(Number)),
+        pratosFavoritos: new Set(perfil.pratos_favoritos_rotina.map(Number)),
+    }).filter((item) => item.preco_estimado <= saldo).flatMap((item) => {
+        const janela = horarioCompativel(item, perfil, refeicao.data_refeicao, new Date(), horario);
+        return janela ? [{
+            id_restaurante: item.restaurante.id_restaurante, restaurante: item.restaurante.nome,
+            id_produto: item.produto?.id_produto ?? null, prato: item.produto?.nome ?? null,
+            preco_estimado: item.preco_estimado, distancia_km: item.distancia_km,
+            pontuacao: item.pontuacao, ...janela,
+        }] : [];
+    });
+}
+
+rotinaRouter.get("/refeicoes/:id/opcoes", async (req, res) => {
+    const banco = bancoRotina(res);
+    if (!banco) return;
+    try {
+        const refeicao = await obterRefeicaoDoCliente(banco, res.locals.profileId, Number(req.params.id));
+        if (!refeicao) return res.status(404).json({ error: "Refeição não encontrada." });
+        return res.json(await opcoesDaRefeicao(banco, res.locals.profileId, refeicao));
+    } catch (error) {
+        return res.status(400).json({ error: error.message });
+    }
+});
+
+rotinaRouter.patch("/refeicoes/:id", async (req, res) => {
+    const banco = bancoRotina(res);
+    if (!banco) return;
+    const idRefeicao = Number(req.params.id);
+    if (!Number.isInteger(idRefeicao) || idRefeicao <= 0) {
+        return res.status(400).json({ error: "Refeição inválida." });
+    }
+    try {
+        const refeicao = await obterRefeicaoDoCliente(banco, res.locals.profileId, idRefeicao);
+        if (!refeicao) return res.status(404).json({ error: "Refeição não encontrada." });
+        if (STATUS_CONVERTIDOS.includes(refeicao.status)) {
+            return res.status(409).json({ error: "Esta refeição já foi convertida." });
+        }
+        const horario = req.body?.horario_sugerido !== undefined ? horaValida(req.body.horario_sugerido) : null;
+        if (req.body?.horario_sugerido !== undefined && !horario) {
+            return res.status(400).json({ error: "Horário inválido." });
+        }
+        const opcoes = await opcoesDaRefeicao(banco, res.locals.profileId, refeicao, horario ?? refeicao.horario_sugerido, req.body);
+        const escolhido = opcoes.find((item) => Number(item.id_restaurante) === Number(req.body?.id_restaurante ?? refeicao.id_restaurante)
+            && Number(item.id_produto) === Number(req.body?.id_produto !== undefined ? req.body.id_produto : refeicao.id_produto));
+        if (!escolhido) return res.status(409).json({ error: "A opção não atende ao horário, orçamento, distância ou restrições da rotina. Consulte as alternativas disponíveis." });
+        const { restaurante: _nomeRestaurante, prato: _nomePrato, ...campos } = escolhido;
+        const atualizacao = { ...campos, status: "ALTERADA", motivo_recomendacao: "Ajustado por você dentro dos critérios da rotina.", metadados: {} };
+        const data = await mutarRotina(banco, res, req.body, "EDITAR", idRefeicao, atualizacao);
+        return res.json(data.refeicao);
+    } catch (error) {
+        return res.status(error.status ?? 400).json({ error: error instanceof Error ? error.message : "Não foi possível alterar a refeição." });
+    }
+});
+
+rotinaRouter.post("/refeicoes/:id/aprovar", async (req, res) => {
+    const banco = bancoRotina(res);
+    if (!banco) return;
+    try {
+        const data = await mutarRotina(banco, res, req.body, "APROVAR", Number(req.params.id));
+        return res.json(data.refeicao);
+    } catch (error) {
+        return res.status(error.status ?? 400).json({ error: error instanceof Error ? error.message : "Não foi possível aprovar a refeição." });
+    }
+});
+
+rotinaRouter.post("/refeicoes/:id/recusar", async (req, res) => {
+    const banco = bancoRotina(res);
+    if (!banco) return;
+    try {
+        const data = await mutarRotina(banco, res, req.body, "RECUSAR", Number(req.params.id));
+        return res.json(data.refeicao);
+    } catch (error) {
+        return res.status(error.status ?? 400).json({ error: error instanceof Error ? error.message : "Não foi possível recusar a refeição." });
+    }
+});
+
+rotinaRouter.post("/refeicoes/:id/converter-reserva", async (req, res) => {
+    const banco = bancoRotina(res);
+    if (!banco) return;
+    const idRefeicao = Number(req.params.id);
+    try {
+        const refeicao = await obterRefeicaoDoCliente(banco, res.locals.profileId, idRefeicao);
+        if (!refeicao) return res.status(404).json({ error: "Refeição não encontrada." });
+        if (!refeicao.id_restaurante) return res.status(409).json({ error: "Esta refeição não possui restaurante sugerido." });
+        if (STATUS_CONVERTIDOS.includes(refeicao.status)) return res.status(409).json({ error: "Esta refeição já foi convertida." });
+        const supabaseUsuario = createUserSupabaseClient(res.locals.accessToken);
+        const { data: conversao, error } = await supabaseUsuario.rpc("converter_refeicao_rotina", {
+            refeicao_id: idRefeicao, com_pedido: false,
+            versao_perfil: versaoEsperada(req.body, "versao_perfil"),
+            versao_planejamento: versaoEsperada(req.body, "versao_planejamento"),
+        });
+        if (error) return res.status(409).json({ error: mapearErroConversao(error.message) });
+        const reservaConfirmada = conversao.reserva;
+        const refeicaoAtualizada = conversao.refeicao;
+        await Promise.allSettled([
+            notificarCliente(res.locals.profileId, {
+                titulo: "Reserva criada pela rotina",
+                mensagem: "Sua sugestão da rotina virou uma reserva confirmada.",
+                tipo_evento: "RESERVA_CONFIRMADA",
+                link_destino: "/cliente/reservas",
+                dados: { id_reserva: reservaConfirmada.id_reserva, id_refeicao_planejada: idRefeicao },
+            }),
+            notificarRestaurante(reservaConfirmada.id_restaurante, {
+                titulo: "Nova reserva recebida",
+                mensagem: "Uma reserva foi criada pelo Appono Rotina.",
+                tipo_evento: "NOVA_RESERVA",
+                link_destino: "/restaurante/reservas",
+                dados: { id_reserva: reservaConfirmada.id_reserva },
+            }),
+        ]);
+        return res.status(201).json({ refeicao: refeicaoAtualizada, reserva: reservaConfirmada });
+    } catch (error) {
+        return res.status(error.status ?? 400).json({ error: error instanceof Error ? error.message : "Não foi possível converter em reserva." });
+    }
+});
+
+rotinaRouter.post("/refeicoes/:id/converter-pedido", async (req, res) => {
+    const banco = bancoRotina(res);
+    if (!banco) return;
+    const idRefeicao = Number(req.params.id);
+    try {
+        const refeicao = await obterRefeicaoDoCliente(banco, res.locals.profileId, idRefeicao);
+        if (!refeicao) return res.status(404).json({ error: "Refeição não encontrada." });
+        if (!refeicao.id_restaurante || !refeicao.id_produto) return res.status(409).json({ error: "Esta refeição precisa de restaurante e item do cardápio." });
+        if (STATUS_CONVERTIDOS.includes(refeicao.status)) return res.status(409).json({ error: "Esta refeição já foi convertida." });
+        if (!(await restaurantePodeReceberPedidoPago(banco, refeicao.id_restaurante))) {
+            return res.status(409).json({ error: "Este restaurante ainda não conectou uma conta Mercado Pago para receber pedidos antecipados." });
+        }
+        const supabaseUsuario = createUserSupabaseClient(res.locals.accessToken);
+        const { data, error } = await supabaseUsuario.rpc("converter_refeicao_rotina", {
+            refeicao_id: idRefeicao, com_pedido: true,
+            versao_perfil: versaoEsperada(req.body, "versao_perfil"),
+            versao_planejamento: versaoEsperada(req.body, "versao_planejamento"),
+        });
+        if (error) return res.status(409).json({ error: mapearErroConversao(error.message) });
+        const reservaCriada = data?.reserva;
+        const pedidoCriado = data?.pedido;
+        if (!reservaCriada?.id_reserva || !pedidoCriado?.id_pedido) {
+            return res.status(400).json({ error: "A reserva e o pedido foram processados, mas a resposta veio incompleta." });
+        }
+        const refeicaoAtualizada = data.refeicao;
+        await Promise.allSettled([
+            notificarCliente(res.locals.profileId, {
+                titulo: "Pedido da rotina criado",
+                mensagem: "Sua refeição planejada virou reserva com pedido antecipado. Falta concluir o pagamento.",
+                tipo_evento: "PEDIDO_CRIADO",
+                link_destino: `/cliente/pagamentos/pedido/${pedidoCriado.id_pedido}`,
+                dados: { id_reserva: reservaCriada.id_reserva, id_pedido: pedidoCriado.id_pedido, id_refeicao_planejada: idRefeicao },
+            }),
+        ]);
+        return res.status(201).json({
+            refeicao: refeicaoAtualizada,
+            reserva: reservaCriada,
+            pedido: pedidoCriado,
+            checkout_href: `/cliente/pagamentos/pedido/${pedidoCriado.id_pedido}`,
+        });
+    } catch (error) {
+        return res.status(error.status ?? 400).json({ error: error instanceof Error ? error.message : "Não foi possível converter em pedido." });
+    }
+});
+
+module.exports = { rotinaRouter };

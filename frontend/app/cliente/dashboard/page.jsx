@@ -23,6 +23,7 @@ const filtrosBusca = [
 ];
 const navItems = [
     { label: "Início", href: "/cliente/dashboard" },
+    { label: "Appono Rotina", href: "/cliente/rotina" },
     { label: "Detalhes do pedido", href: "/cliente/detalhes-pedido" },
     { label: "Reservas", href: "/cliente/reservas" },
     { label: "Favoritos", href: "/cliente/favoritos" },

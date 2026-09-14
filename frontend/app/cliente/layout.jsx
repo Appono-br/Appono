@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useSyncExternalStore } from "react";
 import { RotaProtegida } from "@/components/auth/rota-protegida";
+import { ClienteHeader } from "@/components/cliente/cliente-header";
 import { useTemaLocal } from "@/lib/use-tema-local";
 import { useIdiomaLocal } from "@/lib/use-idioma-local";
 import { TelaCarregandoSessao } from "@/lib/use-sessao-local";
@@ -25,6 +26,7 @@ export default function LayoutCliente({ children }) {
     }
     return (<RotaProtegida perfisPermitidos={["client"]}>
       <div data-appono-sem-traducao className={`area-autenticada area-cliente min-h-full ${tema === "escuro" ? "tema-escuro" : ""}`}>
+        <ClienteHeader />
         {children}
       </div>
     </RotaProtegida>);

@@ -10,6 +10,7 @@ import { encerrarSessao } from "@/lib/session";
 import { useTraducao } from "@/lib/use-traducao";
 const navItems = [
     { label: "Início", href: "/cliente/dashboard" },
+    { label: "Appono Rotina", href: "/cliente/rotina" },
     { label: "Detalhes do pedido", href: "/cliente/detalhes-pedido" },
     { label: "Reservas", href: "/cliente/reservas" },
     { label: "Favoritos", href: "/cliente/favoritos" },
