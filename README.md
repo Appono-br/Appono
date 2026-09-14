@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="frontend/public/brand/appono-logo.svg" alt="Logo do Appono" width="200" />
+</p>
+
 # Appono
 
 **Reservas de mesas, pedidos antecipados e operação de restaurantes em uma plataforma.**
