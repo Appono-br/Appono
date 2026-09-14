@@ -4,9 +4,9 @@
   "description": "Backend API com Node.js, Express e JavaScript",
   "main": "src/server.js",
   "scripts": {
-    "dev": "nodemon --exec \"node --use-system-ca\" src/server.js",
+    "dev": "nodemon --watch src --watch scripts --exec node scripts/start.js",
     "build": "node --check src/server.js",
-    "start": "node --use-system-ca src/server.js",
+    "start": "node scripts/start.js",
     "test": "node --test test/*.test.js"
   },
   "keywords": [],
