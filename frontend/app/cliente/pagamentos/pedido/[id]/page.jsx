@@ -1,23 +1,24 @@
 "use client";
 
+import { useInterface } from "@/lib/use-interface";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { apiRequest } from "@/lib/api";
 import { BotaoVoltar } from "@/components/botao-voltar";
 
-function formatarMoeda(valor) {
-    return new Intl.NumberFormat("pt-BR", {
+function formatarMoeda(valor, localeUI = "pt-BR") {
+    return new Intl.NumberFormat(localeUI, {
         style: "currency",
         currency: "BRL",
     }).format(Number(valor ?? 0));
 }
 
-function formatarData(data) {
+function formatarData(data, localeUI = "pt-BR") {
     if (!data) {
         return "Não informado";
     }
-    return new Date(`${data}T12:00:00`).toLocaleDateString("pt-BR", {
+    return new Date(`${data}T12:00:00`).toLocaleDateString(localeUI, {
         day: "2-digit",
         month: "long",
         year: "numeric",
@@ -39,6 +40,7 @@ function Icon({ type, className = "h-5 w-5" }) {
 }
 
 export default function PaginaPagamentoPedido({ params }) {
+    const { ui , localeUI } = useInterface();
     const [pedidoId, setPedidoId] = useState(null);
     const [preferência, setPreferência] = useState(null);
     const [mensagem, setMensagem] = useState("Preparando checkout seguro...");
@@ -71,41 +73,33 @@ export default function PaginaPagamentoPedido({ params }) {
     return (
         <main className="flex min-h-screen flex-col bg-white px-4 py-8 text-app-cafe-profundo sm:px-5">
             <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col justify-center">
-                <BotaoVoltar href={hrefDetalhesPedido} className="text-sm font-bold text-app-caramelo-torrado transition hover:text-app-cafe-profundo">
-                    Voltar aos detalhes do pedido
-                </BotaoVoltar>
+                <BotaoVoltar href={hrefDetalhesPedido} className="text-sm font-bold text-app-caramelo-torrado transition hover:text-app-cafe-profundo">{ui("Voltar aos detalhes do pedido")}</BotaoVoltar>
 
                 <section className="mt-6 grid overflow-hidden rounded-[18px] bg-white shadow-sm ring-1 ring-app-baunilha-dourada/70 lg:grid-cols-[minmax(0,1fr)_minmax(360px,430px)]">
                     <div className="min-w-0 p-5 sm:p-10">
-                        <Image src="/brand/appono-mark.svg" alt="Appono" width={88} height={88} className="h-16 w-16" priority />
-                        <p className="mt-8 text-[10px] font-bold uppercase tracking-[0.22em] text-app-caramelo-torrado">
-                            Checkout Pro
-                        </p>
-                        <h1 className="mt-2 text-3xl font-bold leading-tight text-app-cafe-profundo sm:text-4xl">
-                            Finalize o pagamento do pedido antecipado
-                        </h1>
-                        <p className="mt-4 max-w-xl text-sm leading-6 text-app-mocha">
-                            O pagamento é processado pelo Mercado Pago. Depois da aprovação, a Appono confirma o pedido para o restaurante preparar no horário da sua reserva.
-                        </p>
+                        <Image src="/brand/appono-mark.svg" alt={ui("Appono")} width={88} height={88} className="h-16 w-16" priority />
+                        <p className="mt-8 text-[10px] font-bold uppercase tracking-[0.22em] text-app-caramelo-torrado">{ui("Checkout Pro")}</p>
+                        <h1 className="mt-2 text-3xl font-bold leading-tight text-app-cafe-profundo sm:text-4xl">{ui("Finalize o pagamento do pedido antecipado")}</h1>
+                        <p className="mt-4 max-w-xl text-sm leading-6 text-app-mocha">{ui("O pagamento é processado pelo Mercado Pago. Depois da aprovação, a Appono confirma o pedido para o restaurante preparar no horário da sua reserva.")}</p>
 
                         <div className="mt-8 grid gap-3 rounded-[12px] bg-white p-5 ring-1 ring-app-baunilha-dourada/60 sm:grid-cols-2">
                             <div>
-                                <p className="text-[10px] font-bold uppercase text-app-cinza">Pedido</p>
-                                <p className="mt-1 font-semibold">#{pedido?.id_pedido ?? pedidoId ?? "--"}</p>
+                                <p className="text-[10px] font-bold uppercase text-app-cinza">{ui("Pedido")}</p>
+                                <p className="mt-1 font-semibold">#{ui(pedido?.id_pedido ?? pedidoId ?? "--")}</p>
                             </div>
                             <div>
-                                <p className="text-[10px] font-bold uppercase text-app-cinza">Restaurante</p>
-                                <p className="mt-1 font-semibold">{pedido?.restaurantes?.nome ?? "Restaurante"}</p>
+                                <p className="text-[10px] font-bold uppercase text-app-cinza">{ui("Restaurante")}</p>
+                                <p className="mt-1 font-semibold">{pedido?.restaurantes?.nome ?? ui("Restaurante")}</p>
                             </div>
                             <div>
-                                <p className="text-[10px] font-bold uppercase text-app-cinza">Reserva</p>
+                                <p className="text-[10px] font-bold uppercase text-app-cinza">{ui("Reserva")}</p>
                                 <p className="mt-1 font-semibold">
-                                    {formatarData(pedido?.reservas?.data_reserva)} às {pedido?.reservas?.horario_inicio?.slice(0, 5) ?? "--"}
+                                    {formatarData(pedido?.reservas?.data_reserva, localeUI)}{ui(" às ")}{ui(pedido?.reservas?.horario_inicio?.slice(0, 5) ?? "--")}
                                 </p>
                             </div>
                             <div>
-                                <p className="text-[10px] font-bold uppercase text-app-cinza">Total</p>
-                                <p className="mt-1 font-semibold">{formatarMoeda(pedido?.valor_total)}</p>
+                                <p className="text-[10px] font-bold uppercase text-app-cinza">{ui("Total")}</p>
+                                <p className="mt-1 font-semibold">{formatarMoeda(pedido?.valor_total, localeUI)}</p>
                             </div>
                         </div>
                     </div>
@@ -117,23 +111,17 @@ export default function PaginaPagamentoPedido({ params }) {
                                     <Icon type="shield" className="h-6 w-6" />
                                 </span>
                                 <div>
-                                    <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-app-baunilha-dourada">
-                                        Mercado Pago
-                                    </p>
-                                    <h2 className="mt-1 text-2xl font-semibold">Pagamento seguro</h2>
+                                    <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-app-baunilha-dourada">{ui("Mercado Pago")}</p>
+                                    <h2 className="mt-1 text-2xl font-semibold">{ui("Pagamento seguro")}</h2>
                                 </div>
                             </div>
 
-                            <p className="mt-5 text-sm leading-6 text-app-creme-suave">
-                                Clique no botão oficial abaixo para abrir o Checkout Pro com cartão, Pix, boleto e saldo Mercado Pago, conforme disponibilidade da sua conta.
-                            </p>
+                            <p className="mt-5 text-sm leading-6 text-app-creme-suave">{ui("Clique no botão oficial abaixo para abrir o Checkout Pro com cartão, Pix, boleto e saldo Mercado Pago, conforme disponibilidade da sua conta.")}</p>
 
                             <div className="mt-6 rounded-[14px] bg-app-cacau-intenso/45 p-4 ring-1 ring-app-baunilha-dourada/20">
-                                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-baunilha-dourada">
-                                    Total a pagar
-                                </p>
+                                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-baunilha-dourada">{ui("Total a pagar")}</p>
                                 <strong className="mt-2 block text-3xl text-app-creme-leve">
-                                    {formatarMoeda(pedido?.valor_total)}
+                                    {formatarMoeda(pedido?.valor_total, localeUI)}
                                 </strong>
                             </div>
 
@@ -142,36 +130,28 @@ export default function PaginaPagamentoPedido({ params }) {
                                     <a
                                         href={checkoutUrl}
                                         className="flex h-12 w-full items-center justify-center rounded-[10px] bg-[#ffe600] px-4 text-sm font-black uppercase tracking-[0.08em] text-[#03264c] shadow-sm transition hover:brightness-95"
-                                    >
-                                        Pagar com Mercado Pago
-                                    </a>
+                                    >{ui("Pagar com Mercado Pago")}</a>
                                 ) : (
                                     <p className="text-center text-sm font-semibold text-app-caramelo-torrado">
-                                        {mensagem || "Carregando botão de pagamento..."}
+                                        {ui(mensagem || "Carregando botão de pagamento...")}
                                     </p>
                                 )}
                                 {preferenceId ? (
-                                    <p className="mt-3 text-center text-[11px] font-semibold text-app-mocha">
-                                        Checkout Pro seguro, processado pelo Mercado Pago.
-                                    </p>
+                                    <p className="mt-3 text-center text-[11px] font-semibold text-app-mocha">{ui("Checkout Pro seguro, processado pelo Mercado Pago.")}</p>
                                 ) : null}
                             </div>
 
                             <div className="mt-5 grid gap-2 text-xs text-app-creme-suave">
                                 <p className="flex items-center gap-2">
-                                    <Icon type="lock" className="h-4 w-4 text-app-baunilha-dourada" />
-                                    Pagamento processado fora da Appono, direto pelo Mercado Pago.
-                                </p>
+                                    <Icon type="lock" className="h-4 w-4 text-app-baunilha-dourada" />{ui("Pagamento processado fora da Appono, direto pelo Mercado Pago.")}</p>
                                 <p className="flex items-center gap-2">
-                                    <Icon type="check" className="h-4 w-4 text-app-baunilha-dourada" />
-                                    O pedido será confirmado automaticamente após aprovação.
-                                </p>
+                                    <Icon type="check" className="h-4 w-4 text-app-baunilha-dourada" />{ui("O pedido será confirmado automaticamente após aprovação.")}</p>
                             </div>
                         </div>
 
                         {mensagem && preferenceId ? (
                             <p className="mt-4 rounded-[8px] bg-white/10 p-3 text-sm text-app-creme-suave">
-                                {mensagem}
+                                {ui(mensagem)}
                             </p>
                         ) : null}
                     </aside>

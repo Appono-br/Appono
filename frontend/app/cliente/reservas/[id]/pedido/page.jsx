@@ -1,19 +1,20 @@
 "use client";
 
+import { useInterface } from "@/lib/use-interface";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { apiRequest } from "@/lib/api";
 
-function formatarMoeda(valor) {
-    return new Intl.NumberFormat("pt-BR", {
+function formatarMoeda(valor, localeUI = "pt-BR") {
+    return new Intl.NumberFormat(localeUI, {
         style: "currency",
         currency: "BRL",
     }).format(Number(valor ?? 0));
 }
 
-function formatarData(data) {
-    return new Intl.DateTimeFormat("pt-BR", {
+function formatarData(data, localeUI = "pt-BR") {
+    return new Intl.DateTimeFormat(localeUI, {
         day: "2-digit",
         month: "long",
         year: "numeric",
@@ -64,6 +65,7 @@ function obterProdutosSelecionados(produtos, quantidades) {
 }
 
 export default function PaginaPedidoAntecipado({ params }) {
+    const { ui , localeUI } = useInterface();
     const [reservaId, setReservaId] = useState(null);
     const [dados, setDados] = useState(null);
     const [quantidades, setQuantidades] = useState({});
@@ -159,7 +161,7 @@ export default function PaginaPedidoAntecipado({ params }) {
             return;
         }
         if (faltaParaMinimo > 0) {
-            setMensagem(`O pedido precisa atingir o consumo mínimo. Ainda faltam ${formatarMoeda(faltaParaMinimo)}.`);
+            setMensagem(`O pedido precisa atingir o consumo mínimo. Ainda faltam ${formatarMoeda(faltaParaMinimo, localeUI)}.`);
             return;
         }
         setEnviando(true);
@@ -207,7 +209,7 @@ export default function PaginaPedidoAntecipado({ params }) {
     if (!dados) {
         return (
             <main className="flex min-h-screen items-center justify-center bg-white px-5 text-app-cafe-profundo">
-                <p className="text-sm font-semibold">{mensagem}</p>
+                <p className="text-sm font-semibold">{ui(mensagem)}</p>
             </main>
         );
     }
@@ -215,31 +217,26 @@ export default function PaginaPedidoAntecipado({ params }) {
     return (
         <main className="min-h-screen bg-white px-5 py-8 text-app-cafe-profundo">
             <div className="mx-auto max-w-7xl">
-                <Link href="/cliente/reservas" className="text-sm font-bold text-app-caramelo-torrado">
-                    Voltar para reservas
-                </Link>
+                <Link href="/cliente/reservas" className="text-sm font-bold text-app-caramelo-torrado">{ui("Voltar para reservas")}</Link>
 
                 <header className="mt-6 overflow-hidden rounded-[14px] bg-app-cafe-profundo text-app-creme-leve shadow-sm ring-1 ring-app-baunilha-dourada/50">
                     <div className="grid gap-6 p-6 sm:p-8 lg:grid-cols-[1fr_auto] lg:items-end">
                         <div>
-                            <p className="text-xs font-bold uppercase tracking-[0.22em] text-app-areia-quente">Pedido antecipado</p>
+                            <p className="text-xs font-bold uppercase tracking-[0.22em] text-app-areia-quente">{ui("Pedido antecipado")}</p>
                             <h1 className="mt-2 text-3xl font-bold sm:text-4xl">
-                                {dados.reserva.restaurantes?.nome ?? "Restaurante"}
+                                {dados.reserva.restaurantes?.nome ?? ui("Restaurante")}
                             </h1>
-                            <p className="mt-3 max-w-3xl text-sm leading-6 text-app-creme-suave">
-                                Escolha os itens antes da sua chegada. O restaurante recebe o pedido vinculado à sua reserva e consegue se preparar para o horário combinado.
-                            </p>
+                            <p className="mt-3 max-w-3xl text-sm leading-6 text-app-creme-suave">{ui("Escolha os itens antes da sua chegada. O restaurante recebe o pedido vinculado à sua reserva e consegue se preparar para o horário combinado.")}</p>
                         </div>
                         <div className="grid gap-3">
                           <div className="rounded-[12px] bg-white/10 p-4 text-sm ring-1 ring-app-baunilha-dourada/35">
-                            <p className="font-bold">{formatarData(dados.reserva.data_reserva)}</p>
+                            <p className="font-bold">{formatarData(dados.reserva.data_reserva, localeUI)}</p>
                             <p className="mt-1 text-app-baunilha-dourada">
-                                {dados.reserva.horario_inicio.slice(0, 5)} - reserva confirmada
-                            </p>
+                                {dados.reserva.horario_inicio.slice(0, 5)}{ui(" - reserva confirmada")}</p>
                           </div>
                           <button type="button" onClick={abrirChatReserva} disabled={abrindoChat} className="inline-flex h-11 items-center justify-center gap-2 rounded-[8px] border border-app-baunilha-dourada/45 px-5 text-xs font-bold uppercase tracking-[0.12em] text-app-creme-leve transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60">
                             <Icon type="message" className="h-4 w-4" />
-                            {abrindoChat ? "Abrindo..." : "Falar com restaurante"}
+                            {ui(abrindoChat ? "Abrindo..." : "Falar com restaurante")}
                           </button>
                         </div>
                     </div>
@@ -250,14 +247,12 @@ export default function PaginaPedidoAntecipado({ params }) {
                         <div className="rounded-[14px] bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada sm:p-8">
                             <div className="flex flex-wrap items-start justify-between gap-4">
                                 <div>
-                                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">Pedido registrado</p>
-                                    <h2 className="mt-2 text-3xl font-bold">Itens escolhidos pelo cliente</h2>
-                                    <p className="mt-3 max-w-2xl text-sm leading-6 text-app-mocha">
-                                        Este pedido está vinculado à reserva. Ele só aparece como confirmado para preparo depois da aprovação do pagamento.
-                                    </p>
+                                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{ui("Pedido registrado")}</p>
+                                    <h2 className="mt-2 text-3xl font-bold">{ui("Itens escolhidos pelo cliente")}</h2>
+                                    <p className="mt-3 max-w-2xl text-sm leading-6 text-app-mocha">{ui("Este pedido está vinculado à reserva. Ele só aparece como confirmado para preparo depois da aprovação do pagamento.")}</p>
                                 </div>
                                 <span className="rounded-full bg-app-cafe-profundo px-4 py-2 text-xs font-bold uppercase text-app-creme-leve">
-                                    {statusPedido[pedidoAtivo.status_pedido] ?? pedidoAtivo.status_pedido}
+                                    {ui(statusPedido[pedidoAtivo.status_pedido] ?? pedidoAtivo.status_pedido)}
                                 </span>
                             </div>
 
@@ -278,20 +273,20 @@ export default function PaginaPedidoAntecipado({ params }) {
                                                 )}
                                             </div>
                                             <div>
-                                                <p className="text-xs font-bold uppercase text-app-caramelo-torrado">{item.quantidade} unidade(s)</p>
-                                                <h3 className="mt-1 text-xl font-bold text-app-cafe-profundo">{produto.nome ?? "Item"}</h3>
+                                                <p className="text-xs font-bold uppercase text-app-caramelo-torrado">{item.quantidade}{ui(" unidade(s)")}</p>
+                                                <h3 className="mt-1 text-xl font-bold text-app-cafe-profundo">{produto.nome ?? ui("Item")}</h3>
                                                 {produto.descricao ? <p className="mt-2 text-sm leading-6 text-app-mocha">{produto.descricao}</p> : null}
                                                 {item.observacoes ? (
                                                     <div className="mt-2 text-xs font-semibold text-app-cinza">
-                                                        <span>Obs: {item.observacoes}</span>
+                                                        <span>{ui("Obs: ")}{item.observacoes}</span>
                                                     </div>
                                                 ) : null}
                                             </div>
                                             <div className="text-left sm:text-right">
-                                                <p className="text-xs font-semibold text-app-cinza">Subtotal</p>
-                                                <strong className="text-xl text-app-cafe-profundo">{formatarMoeda(subtotal)}</strong>
+                                                <p className="text-xs font-semibold text-app-cinza">{ui("Subtotal")}</p>
+                                                <strong className="text-xl text-app-cafe-profundo">{formatarMoeda(subtotal, localeUI)}</strong>
                                                 {item.preco_unitario ? (
-                                                    <p className="mt-1 text-xs text-app-mocha">{formatarMoeda(item.preco_unitario)} cada</p>
+                                                    <p className="mt-1 text-xs text-app-mocha">{formatarMoeda(item.preco_unitario, localeUI)}{ui(" cada")}</p>
                                                 ) : null}
                                             </div>
                                         </article>
@@ -306,29 +301,29 @@ export default function PaginaPedidoAntecipado({ params }) {
                                     <Icon type="receipt" />
                                 </span>
                                 <div>
-                                    <h2 className="text-xl font-bold">Resumo</h2>
-                                    <p className="text-xs text-app-cinza">{totalItensPedidoAtivo} itens no pedido</p>
+                                    <h2 className="text-xl font-bold">{ui("Resumo")}</h2>
+                                    <p className="text-xs text-app-cinza">{totalItensPedidoAtivo}{ui(" itens no pedido")}</p>
                                 </div>
                             </div>
                             <div className="mt-5 grid gap-3 border-t border-app-baunilha-dourada pt-5 text-sm">
                                 <div className="flex justify-between gap-4">
-                                    <span className="text-app-mocha">Status</span>
-                                    <strong>{statusPedido[pedidoAtivo.status_pedido] ?? pedidoAtivo.status_pedido}</strong>
+                                    <span className="text-app-mocha">{ui("Status")}</span>
+                                    <strong>{ui(statusPedido[pedidoAtivo.status_pedido] ?? pedidoAtivo.status_pedido)}</strong>
                                 </div>
                                 {pedidoAtivo.horario_entrega_previsto ? (
                                     <div className="flex justify-between gap-4">
-                                        <span className="text-app-mocha">Previsao</span>
+                                        <span className="text-app-mocha">{ui("Previsao")}</span>
                                         <strong>{String(pedidoAtivo.horario_entrega_previsto).slice(11, 16)}</strong>
                                     </div>
                                 ) : null}
                                 <div className="flex items-center justify-between border-t border-app-baunilha-dourada pt-4">
-                                    <span className="font-bold">Total</span>
-                                    <strong className="text-2xl">{formatarMoeda(pedidoAtivo.valor_total)}</strong>
+                                    <span className="font-bold">{ui("Total")}</span>
+                                    <strong className="text-2xl">{formatarMoeda(pedidoAtivo.valor_total, localeUI)}</strong>
                                 </div>
                             </div>
                             {pedidoAtivo.observacoes ? (
                                 <p className="mt-5 rounded-[8px] bg-white p-4 text-sm leading-6 text-app-mocha">
-                                    <strong>Observacoes:</strong> {pedidoAtivo.observacoes}
+                                    <strong>{ui("Observacoes:")}</strong> {pedidoAtivo.observacoes}
                                 </p>
                             ) : null}
                         </aside>
@@ -344,8 +339,7 @@ export default function PaginaPedidoAntecipado({ params }) {
                                             <h2 className="mt-1 text-2xl font-bold">{categoria.nome}</h2>
                                         </div>
                                         <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-app-mocha">
-                                            {(categoria.produtos ?? []).length} itens
-                                        </span>
+                                            {(categoria.produtos ?? []).length}{ui(" itens")}</span>
                                     </div>
 
                                     <div className="mt-5 grid gap-4">
@@ -367,14 +361,12 @@ export default function PaginaPedidoAntecipado({ params }) {
                                                     <div>
                                                         <div className="flex flex-wrap items-center gap-2">
                                                             {produto.destaque ? (
-                                                                <span className="rounded-full bg-app-cafe-profundo px-2.5 py-1 text-[10px] font-bold uppercase text-app-creme-leve">
-                                                                    Destaque
-                                                                </span>
+                                                                <span className="rounded-full bg-app-cafe-profundo px-2.5 py-1 text-[10px] font-bold uppercase text-app-creme-leve">{ui("Destaque")}</span>
                                                             ) : null}
                                                         </div>
                                                         <h3 className="mt-2 text-lg font-bold text-app-cafe-profundo">{produto.nome}</h3>
                                                         {produto.descricao ? <p className="mt-1 text-sm leading-6 text-app-mocha">{produto.descricao}</p> : null}
-                                                        <p className="mt-2 text-base font-bold text-app-caramelo-torrado">{formatarMoeda(produto.preco)}</p>
+                                                        <p className="mt-2 text-base font-bold text-app-caramelo-torrado">{formatarMoeda(produto.preco, localeUI)}</p>
                                                     </div>
 
                                                     <div className="flex items-center justify-between gap-3 sm:justify-end">
@@ -388,18 +380,14 @@ export default function PaginaPedidoAntecipado({ params }) {
                                                     </div>
                                                     {quantidade > 0 ? (
                                                         <label className="grid gap-2 sm:col-span-3">
-                                                            <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-app-cinza">
-                                                                Observacao deste item
-                                                            </span>
+                                                            <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-app-cinza">{ui("Observacao deste item")}</span>
                                                             <input
                                                                 value={observacoesItens[produto.id_produto] ?? ""}
                                                                 onChange={(evento) => alterarObservacaoItem(produto.id_produto, evento.target.value)}
-                                                                placeholder="Ex: sem cebola, molho separado, ponto da carne..."
+                                                                placeholder={ui("Ex: sem cebola, molho separado, ponto da carne...")}
                                                                 className="h-10 rounded-[8px] border border-app-baunilha-dourada bg-white px-3 text-sm text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado"
                                                             />
-                                                            <span className="text-[11px] text-app-cinza">
-                                                                Limite de {LIMITE_UNIDADES_POR_ITEM} unidades por item.
-                                                            </span>
+                                                            <span className="text-[11px] text-app-cinza">{ui("Limite de ")}{LIMITE_UNIDADES_POR_ITEM}{ui(" unidades por item.")}</span>
                                                         </label>
                                                     ) : null}
                                                 </div>
@@ -410,9 +398,7 @@ export default function PaginaPedidoAntecipado({ params }) {
                             ))}
 
                             {!produtos.length ? (
-                                <p className="rounded-[12px] bg-white p-8 text-center text-sm font-semibold shadow-sm ring-1 ring-app-baunilha-dourada">
-                                    Este restaurante ainda não publicou itens no cardápio.
-                                </p>
+                                <p className="rounded-[12px] bg-white p-8 text-center text-sm font-semibold shadow-sm ring-1 ring-app-baunilha-dourada">{ui("Este restaurante ainda não publicou itens no cardápio.")}</p>
                             ) : null}
                         </section>
 
@@ -422,8 +408,8 @@ export default function PaginaPedidoAntecipado({ params }) {
                                     <Icon type="receipt" />
                                 </span>
                                 <div>
-                                    <h2 className="text-xl font-bold">Resumo do pedido</h2>
-                                    <p className="text-xs text-app-cinza">{totalItens} {totalItens === 1 ? "item selecionado" : "itens selecionados"}</p>
+                                    <h2 className="text-xl font-bold">{ui("Resumo do pedido")}</h2>
+                                    <p className="text-xs text-app-cinza">{totalItens} {ui(totalItens === 1 ? "item selecionado" : "itens selecionados")}</p>
                                 </div>
                             </div>
 
@@ -432,58 +418,47 @@ export default function PaginaPedidoAntecipado({ params }) {
                                     <div key={produto.id_produto} className="grid grid-cols-[1fr_auto] gap-3 rounded-[8px] bg-white p-3 text-sm">
                                         <div>
                                             <span>
-                                                <strong>{produto.quantidade}x</strong> {produto.nome}
+                                                <strong>{produto.quantidade}{ui("x")}</strong> {produto.nome}
                                             </span>
                                             {observacoesItens[produto.id_produto]?.trim() ? (
-                                                <p className="mt-1 text-xs text-app-cinza">
-                                                    Obs.: {observacoesItens[produto.id_produto].trim()}
+                                                <p className="mt-1 text-xs text-app-cinza">{ui("Obs.: ")}{observacoesItens[produto.id_produto].trim()}
                                                 </p>
                                             ) : null}
                                         </div>
-                                        <strong>{formatarMoeda(Number(produto.preco) * produto.quantidade)}</strong>
+                                        <strong>{formatarMoeda(Number(produto.preco) * produto.quantidade, localeUI)}</strong>
                                     </div>
                                 )) : (
-                                    <p className="rounded-[8px] bg-white p-4 text-sm text-app-mocha">
-                                        Selecione os itens do cardápio para montar o pedido.
-                                    </p>
+                                    <p className="rounded-[8px] bg-white p-4 text-sm text-app-mocha">{ui("Selecione os itens do cardápio para montar o pedido.")}</p>
                                 )}
                             </div>
 
-                            <label className="mt-5 grid gap-2 text-xs font-bold uppercase text-app-cinza">
-                                Observacoes
-                                <textarea value={observacoes} onChange={(evento) => setObservacoes(evento.target.value)} placeholder="Ex: retirar cebola, ponto da carne, alergias..." className="min-h-24 rounded-[8px] border border-app-baunilha-dourada bg-white p-3 text-sm font-normal normal-case text-app-cafe-profundo outline-none focus:border-app-caramelo-torrado" />
+                            <label className="mt-5 grid gap-2 text-xs font-bold uppercase text-app-cinza">{ui("Observacoes")}<textarea value={observacoes} onChange={(evento) => setObservacoes(evento.target.value)} placeholder={ui("Ex: retirar cebola, ponto da carne, alergias...")} className="min-h-24 rounded-[8px] border border-app-baunilha-dourada bg-white p-3 text-sm font-normal normal-case text-app-cafe-profundo outline-none focus:border-app-caramelo-torrado" />
                             </label>
 
                             <div className="mt-5 grid gap-3 border-t border-app-baunilha-dourada pt-5">
                                 <div className="flex items-center justify-between text-sm">
-                                    <span className="text-app-mocha">Consumo mínimo</span>
-                                    <strong>{formatarMoeda(consumoMinimo)}</strong>
+                                    <span className="text-app-mocha">{ui("Consumo mínimo")}</span>
+                                    <strong>{formatarMoeda(consumoMinimo, localeUI)}</strong>
                                 </div>
                                 <div className="flex items-center justify-between">
-                                    <span className="font-bold">Total</span>
-                                    <strong className="text-2xl text-app-cafe-profundo">{formatarMoeda(total)}</strong>
+                                    <span className="font-bold">{ui("Total")}</span>
+                                    <strong className="text-2xl text-app-cafe-profundo">{formatarMoeda(total, localeUI)}</strong>
                                 </div>
                             </div>
 
                             {!reservaConfirmada ? (
-                                <p className="mt-5 rounded-[8px] bg-white p-3 text-sm font-semibold text-app-caramelo-torrado">
-                                    O pedido antecipado fica disponível apenas para reservas confirmadas.
-                                </p>
+                                <p className="mt-5 rounded-[8px] bg-white p-3 text-sm font-semibold text-app-caramelo-torrado">{ui("O pedido antecipado fica disponível apenas para reservas confirmadas.")}</p>
                             ) : null}
                             {reservaIniciada ? (
-                                <p className="mt-5 rounded-[8px] bg-white p-3 text-sm font-semibold text-app-caramelo-torrado">
-                                    Esta reserva já iniciou. Para preservar a operação do restaurante, não é mais possível adicionar pedido antecipado.
-                                </p>
+                                <p className="mt-5 rounded-[8px] bg-white p-3 text-sm font-semibold text-app-caramelo-torrado">{ui("Esta reserva já iniciou. Para preservar a operação do restaurante, não é mais possível adicionar pedido antecipado.")}</p>
                             ) : null}
                             {faltaParaMinimo > 0 && total > 0 ? (
-                                <p className="mt-5 rounded-[8px] bg-white p-3 text-sm font-semibold text-app-caramelo-torrado">
-                                    Faltam {formatarMoeda(faltaParaMinimo)} para atingir o consumo mínimo da reserva.
-                                </p>
+                                <p className="mt-5 rounded-[8px] bg-white p-3 text-sm font-semibold text-app-caramelo-torrado">{ui("Faltam ")}{formatarMoeda(faltaParaMinimo, localeUI)}{ui(" para atingir o consumo mínimo da reserva.")}</p>
                             ) : null}
                             <button type="button" onClick={criarPedido} disabled={enviando || total <= 0 || !reservaConfirmada || reservaIniciada || faltaParaMinimo > 0} className="mt-5 h-12 w-full rounded-[8px] bg-app-dourado-mel text-xs font-bold uppercase tracking-wide text-white transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-50">
-                                {enviando ? "Preparando pagamento..." : "Pagar pedido antecipado"}
+                                {ui(enviando ? "Preparando pagamento..." : "Pagar pedido antecipado")}
                             </button>
-                            {mensagem ? <p className="mt-3 text-sm font-semibold text-app-caramelo-torrado">{mensagem}</p> : null}
+                            {mensagem ? <p className="mt-3 text-sm font-semibold text-app-caramelo-torrado">{ui(mensagem)}</p> : null}
                         </aside>
                     </div>
                 )}

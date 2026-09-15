@@ -1,5 +1,6 @@
 "use client";
 
+import { useInterface } from "@/lib/use-interface";
 import { useTemaLocal } from "@/lib/use-tema-local";
 
 function IconeTema({ tema }) {
@@ -15,6 +16,7 @@ function IconeTema({ tema }) {
 }
 
 export function SeletorTema() {
+    const { ui } = useInterface();
     const { tema, atualizarTema } = useTemaLocal();
     const opcoes = [
         {
@@ -31,9 +33,7 @@ export function SeletorTema() {
 
     return (
         <fieldset className="mx-auto mt-7 w-full max-w-xl rounded-[8px] bg-app-chantilly p-5 shadow-sm ring-1 ring-app-baunilha-dourada/45">
-            <legend className="px-2 text-xs font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">
-                Aparencia
-            </legend>
+            <legend className="px-2 text-xs font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">{ui("Aparencia")}</legend>
             <div className="mt-1 grid gap-3 sm:grid-cols-2">
                 {opcoes.map((opcao) => {
                     const selecionado = tema === opcao.valor;
@@ -60,10 +60,10 @@ export function SeletorTema() {
                             </span>
                             <span>
                                 <strong className="block text-sm text-app-cafe-profundo">
-                                    {opcao.titulo}
+                                    {ui(opcao.titulo)}
                                 </strong>
                                 <span className="mt-1 block text-xs leading-5 text-app-cinza">
-                                    {opcao.descricao}
+                                    {ui(opcao.descricao)}
                                 </span>
                             </span>
                         </label>

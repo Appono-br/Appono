@@ -1,5 +1,6 @@
 "use client";
 
+import { useInterface } from "@/lib/use-interface";
 import Image from "next/image";
 import Link from "next/link";
 import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
@@ -11,14 +12,15 @@ import { TelaCarregandoSessao, useSessaoLocal } from "@/lib/use-sessao-local";
 
 const navItems = [
     { label: "Dashboard", href: "/restaurante/dashboard" },
-    { label: "Gestao de cardapio", href: "/restaurante/cardapio" },
+    { label: "Gestão de cardápio", href: "/restaurante/cardapio" },
     { label: "Desempenho", href: "/restaurante/desempenho" },
-    { label: "Relatorio financeiro", href: "/restaurante/financeiro" },
+    { label: "Relatório financeiro", href: "/restaurante/financeiro" },
     { label: "Reservas", href: "/restaurante/reservas" },
     { label: "Cozinha", href: "/restaurante/pedidos" },
-    { label: "Historico", href: "/restaurante/historico-pedidos" },
+    { label: "Histórico", href: "/restaurante/historico-pedidos" },
     { label: "Mensagens", href: "/restaurante/mensagens" },
-    { label: "Configuracoes", href: "/restaurante/configuracoes" },
+    { label: "Suporte", href: "/restaurante/suporte" },
+    { label: "Configurações", href: "/restaurante/configuracoes" },
 ];
 
 const filtros = [
@@ -37,10 +39,22 @@ const filtrosReserva = [
 ];
 
 const filtrosPeriodo = [
-    { label: "Todo periodo", value: "TODOS" },
+    { label: "Todo período", value: "TODOS" },
     { label: "Hoje", value: "HOJE" },
     { label: "7 dias", value: "7_DIAS" },
     { label: "30 dias", value: "30_DIAS" },
+];
+const ordenacoesHistoricoPedido = [
+    { label: "Mais recentes", value: "RECENTES" },
+    { label: "Mais antigos", value: "ANTIGOS" },
+    { label: "Maior valor", value: "VALOR" },
+    { label: "Cliente", value: "CLIENTE" },
+];
+const ordenacoesHistoricoReserva = [
+    { label: "Mais recentes", value: "RECENTES" },
+    { label: "Mais antigas", value: "ANTIGOS" },
+    { label: "Cliente", value: "CLIENTE" },
+    { label: "Maior grupo", value: "PESSOAS" },
 ];
 
 function Icon({ type, className = "h-5 w-5" }) {
@@ -62,19 +76,19 @@ function Icon({ type, className = "h-5 w-5" }) {
     );
 }
 
-function formatarMoeda(valor) {
-    return new Intl.NumberFormat("pt-BR", {
+function formatarMoeda(valor, localeUI = "pt-BR") {
+    return new Intl.NumberFormat(localeUI, {
         style: "currency",
         currency: "BRL",
     }).format(Number(valor ?? 0));
 }
 
-function formatarData(data) {
+function formatarData(data, localeUI = "pt-BR") {
     if (!data) {
         return "Sem data";
     }
 
-    return new Date(`${data}T12:00:00`).toLocaleDateString("pt-BR");
+    return new Date(`${data}T12:00:00`).toLocaleDateString(localeUI);
 }
 
 function obterDataPedido(pedido) {
@@ -84,6 +98,40 @@ function obterDataPedido(pedido) {
 
 function obterDataReserva(reserva) {
     return reserva.data_reserva ? new Date(`${reserva.data_reserva}T12:00:00`) : null;
+}
+function obterTempoPedido(pedido) {
+    const data = obterDataPedido(pedido);
+    return data ? data.getTime() : 0;
+}
+function obterTempoReserva(reserva) {
+    const data = obterDataReserva(reserva);
+    return data ? data.getTime() : 0;
+}
+function ordenarPedidosHistorico(pedidos, ordenacao) {
+    const lista = [...pedidos];
+    if (ordenacao === "ANTIGOS") {
+        return lista.sort((a, b) => obterTempoPedido(a) - obterTempoPedido(b));
+    }
+    if (ordenacao === "VALOR") {
+        return lista.sort((a, b) => Number(b.valor_total ?? 0) - Number(a.valor_total ?? 0));
+    }
+    if (ordenacao === "CLIENTE") {
+        return lista.sort((a, b) => String(a.clientes?.nome ?? "").localeCompare(String(b.clientes?.nome ?? ""), "pt-BR"));
+    }
+    return lista.sort((a, b) => obterTempoPedido(b) - obterTempoPedido(a));
+}
+function ordenarReservasHistorico(reservas, ordenacao) {
+    const lista = [...reservas];
+    if (ordenacao === "ANTIGOS") {
+        return lista.sort((a, b) => obterTempoReserva(a) - obterTempoReserva(b));
+    }
+    if (ordenacao === "CLIENTE") {
+        return lista.sort((a, b) => String(a.clientes?.nome ?? "").localeCompare(String(b.clientes?.nome ?? ""), "pt-BR"));
+    }
+    if (ordenacao === "PESSOAS") {
+        return lista.sort((a, b) => Number(b.quantidade_pessoas ?? 0) - Number(a.quantidade_pessoas ?? 0));
+    }
+    return lista.sort((a, b) => obterTempoReserva(b) - obterTempoReserva(a));
 }
 
 function pedidoPassaPeriodo(pedido, periodo) {
@@ -182,7 +230,7 @@ function obterItensResumo(pedido) {
     const restantes = itens.length > 2 ? ` +${itens.length - 2}` : "";
     return `${principais.join(", ")}${restantes}`;
 }
-function obterCamposPedidoHistorico(pedido) {
+function obterCamposPedidoHistórico(pedido) {
     const pagamento = obterPagamentoPrincipal(pedido);
     return [
         `pedido ${pedido.id_pedido}`,
@@ -209,7 +257,7 @@ function obterCamposPedidoHistorico(pedido) {
         )),
     ];
 }
-function obterCamposReservaHistorico(reserva) {
+function obterCamposReservaHistórico(reserva) {
     const pedidosAtivos = obterPedidosAtivos(reserva);
     return [
         `reserva ${reserva.id_reserva}`,
@@ -248,15 +296,15 @@ function escaparHtml(valor) {
         .replaceAll("'", "&#39;");
 }
 
-function gerarCsvHistorico(pedidos) {
+function gerarCsvHistórico(pedidos, localeUI = "pt-BR") {
     const linhas = [
-        ["Pedido", "Cliente", "Data", "Horario", "Status", "Itens", "Valor total", "Valor pago", "Repasse"].map(escaparCsv).join(";"),
+        ["Pedido", "Cliente", "Data", "Horário", "Status", "Itens", "Valor total", "Valor pago", "Repasse"].map(escaparCsv).join(";"),
         ...pedidos.map((pedido) => {
             const pagamento = obterPagamentoPrincipal(pedido);
             return [
                 pedido.id_pedido,
                 pedido.clientes?.nome ?? "Cliente",
-                formatarData(pedido.reservas?.data_reserva),
+                formatarData(pedido.reservas?.data_reserva, localeUI),
                 pedido.reservas?.horario_inicio?.slice(0, 5) ?? "--:--",
                 textoStatusPedido(pedido.status_pedido),
                 obterItensResumo(pedido),
@@ -269,15 +317,15 @@ function gerarCsvHistorico(pedidos) {
     return linhas.join("\n");
 }
 
-function gerarCsvReservas(reservas) {
+function gerarCsvReservas(reservas, localeUI = "pt-BR") {
     const linhas = [
-        ["Reserva", "Cliente", "Data", "Horario", "Mesa", "Pessoas", "Status", "Tipo"].map(escaparCsv).join(";"),
+        ["Reserva", "Cliente", "Data", "Horário", "Mesa", "Pessoas", "Status", "Tipo"].map(escaparCsv).join(";"),
         ...reservas.map((reserva) => {
             const pedidosAtivos = obterPedidosAtivos(reserva);
             return [
                 reserva.id_reserva,
                 reserva.clientes?.nome ?? "Cliente",
-                formatarData(reserva.data_reserva),
+                formatarData(reserva.data_reserva, localeUI),
                 reserva.horario_inicio?.slice(0, 5) ?? "--:--",
                 reserva.mesas?.numero_mesa ?? "-",
                 reserva.quantidade_pessoas ?? "-",
@@ -289,7 +337,7 @@ function gerarCsvReservas(reservas) {
     return linhas.join("\n");
 }
 
-function montarHtmlComanda(pedido) {
+function montarHtmlComanda(pedido, localeUI = "pt-BR") {
     const itens = pedido.itens_pedido ?? [];
     const pagamento = obterPagamentoPrincipal(pedido);
     const linhasItens = itens.map((item) => `
@@ -298,7 +346,7 @@ function montarHtmlComanda(pedido) {
                 <strong>${escaparHtml(item.quantidade)}x ${escaparHtml(item.produtos?.nome ?? "Item")}</strong>
                 ${item.observacoes ? `<small>Obs.: ${escaparHtml(item.observacoes)}</small>` : ""}
             </td>
-            <td>${escaparHtml(formatarMoeda(calcularSubtotalItem(item)))}</td>
+            <td>${escaparHtml(formatarMoeda(calcularSubtotalItem(item), localeUI))}</td>
         </tr>
     `).join("");
     const fallbackItens = "<tr><td>Sem itens detalhados</td><td>-</td></tr>";
@@ -390,8 +438,8 @@ function montarHtmlComanda(pedido) {
                     <h2>${escaparHtml(pedido.clientes?.nome ?? "Cliente")}</h2>
                     <div class="meta">
                         <div><strong>Status:</strong> ${escaparHtml(textoStatusPedido(pedido.status_pedido))}</div>
-                        <div><strong>Data:</strong> ${escaparHtml(formatarData(pedido.reservas?.data_reserva))}</div>
-                        <div><strong>Horario:</strong> ${escaparHtml(pedido.reservas?.horario_inicio?.slice(0, 5) ?? "--:--")}</div>
+                        <div><strong>Data:</strong> ${escaparHtml(formatarData(pedido.reservas?.data_reserva, localeUI))}</div>
+                        <div><strong>Horário:</strong> ${escaparHtml(pedido.reservas?.horario_inicio?.slice(0, 5) ?? "--:--")}</div>
                         <div><strong>Mesa:</strong> ${escaparHtml(pedido.reservas?.mesas?.numero_mesa ?? "-")}</div>
                         <div><strong>Pessoas:</strong> ${escaparHtml(pedido.reservas?.quantidade_pessoas ?? "-")}</div>
                     </div>
@@ -402,10 +450,10 @@ function montarHtmlComanda(pedido) {
                     </table>
                     <div class="total">
                         <span>Total</span>
-                        <span>${escaparHtml(formatarMoeda(pagamento?.valor_pago ?? pedido.valor_total ?? 0))}</span>
+                        <span>${escaparHtml(formatarMoeda(pagamento?.valor_pago ?? pedido.valor_total ?? 0, localeUI))}</span>
                     </div>
                     ${pedido.observacoes ? `<div class="rodape"><strong>Obs. pedido:</strong> ${escaparHtml(pedido.observacoes)}</div>` : ""}
-                    <div class="rodape">Impresso pela Appono em ${escaparHtml(new Date().toLocaleString("pt-BR"))}</div>
+                    <div class="rodape">Impresso pela Appono em ${escaparHtml(new Date().toLocaleString(localeUI))}</div>
                 </section>
                 <script>
                     window.onload = function() {
@@ -418,20 +466,20 @@ function montarHtmlComanda(pedido) {
 }
 
 function EmptyPanel() {
+    const { ui } = useInterface();
     return (
         <div className="flex min-h-72 flex-col items-center justify-center rounded-[16px] bg-app-creme-leve px-6 py-10 text-center ring-1 ring-app-baunilha-dourada/70">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-app-cafe-profundo text-app-creme-leve">
                 <Icon type="receipt" />
             </div>
-            <h3 className="mt-5 text-2xl font-semibold">Nenhum pedido no historico</h3>
-            <p className="mt-3 max-w-md text-sm leading-6 text-app-cinza">
-                Pedidos entregues, cancelados ou removidos da cozinha aparecem aqui para consulta operacional.
-            </p>
+            <h3 className="mt-5 text-2xl font-semibold">{ui("Nenhum pedido no histórico")}</h3>
+            <p className="mt-3 max-w-md text-sm leading-6 text-app-cinza">{ui("Pedidos entregues, cancelados ou removidos da cozinha aparecem aqui para consulta operacional.")}</p>
         </div>
     );
 }
 
 export default function RestaurantOrderHistoryPage() {
+    const { ui , localeUI } = useInterface();
     const { sessao, sessaoCarregada } = useSessaoLocal();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [abaAtiva, setAbaAtiva] = useState("PEDIDOS");
@@ -440,9 +488,11 @@ export default function RestaurantOrderHistoryPage() {
     const [filtro, setFiltro] = useState("TODOS");
     const [filtroReserva, setFiltroReserva] = useState("TODOS");
     const [periodo, setPeriodo] = useState("TODOS");
+    const [ordenacaoPedido, setOrdenacaoPedido] = useState("RECENTES");
+    const [ordenacaoReserva, setOrdenacaoReserva] = useState("RECENTES");
     const [busca, setBusca] = useState("");
     const [pedidosAbertos, setPedidosAbertos] = useState([]);
-    const [mensagem, setMensagem] = useState("Carregando historico operacional...");
+    const [mensagem, setMensagem] = useState("Carregando histórico operacional...");
 
     useEffect(() => {
         if (!sessaoCarregada || sessao?.type !== "restaurant") {
@@ -458,7 +508,7 @@ export default function RestaurantOrderHistoryPage() {
                 setReservas(respostaReservas ?? []);
                 setMensagem("");
             })
-            .catch((erro) => setMensagem(erro instanceof Error ? erro.message : "Nao foi possivel carregar o historico."));
+            .catch((erro) => setMensagem(erro instanceof Error ? erro.message : "Não foi possível carregar o histórico."));
     }, [sessao, sessaoCarregada]);
 
     const pedidosFiltrados = useMemo(() => {
@@ -469,8 +519,8 @@ export default function RestaurantOrderHistoryPage() {
             const passaPeriodo = pedidoPassaPeriodo(pedido, periodo);
             return passaFiltro && passaPeriodo;
         });
-        return filtrarOrdenarPorBusca(pedidosPorFiltro, busca, obterCamposPedidoHistorico);
-    }, [busca, filtro, pedidos, periodo]);
+        return ordenarPedidosHistorico(filtrarOrdenarPorBusca(pedidosPorFiltro, busca, obterCamposPedidoHistórico), ordenacaoPedido);
+    }, [busca, filtro, ordenacaoPedido, pedidos, periodo]);
 
     const reservasFiltradas = useMemo(() => {
         const reservasPorFiltro = reservas.filter((reserva) => {
@@ -482,8 +532,8 @@ export default function RestaurantOrderHistoryPage() {
             const passaPeriodo = reservaPassaPeriodo(reserva, periodo);
             return passaFiltro && passaPeriodo;
         });
-        return filtrarOrdenarPorBusca(reservasPorFiltro, busca, obterCamposReservaHistorico);
-    }, [busca, filtroReserva, periodo, reservas]);
+        return ordenarReservasHistorico(filtrarOrdenarPorBusca(reservasPorFiltro, busca, obterCamposReservaHistórico), ordenacaoReserva);
+    }, [busca, filtroReserva, ordenacaoReserva, periodo, reservas]);
 
     const resumo = useMemo(() => {
         const resumoPedidos = pedidosFiltrados.reduce((acc, pedido) => {
@@ -510,8 +560,8 @@ export default function RestaurantOrderHistoryPage() {
 
     function exportarCsv() {
         const csv = abaAtiva === "PEDIDOS"
-            ? gerarCsvHistorico(pedidosFiltrados)
-            : gerarCsvReservas(reservasFiltradas);
+            ? gerarCsvHistórico(pedidosFiltrados, localeUI)
+            : gerarCsvReservas(reservasFiltradas, localeUI);
         const blob = new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8;" });
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
@@ -524,12 +574,12 @@ export default function RestaurantOrderHistoryPage() {
     function imprimirPedido(pedido) {
         const janela = window.open("", "_blank", "width=420,height=680");
         if (!janela) {
-            setMensagem("Nao foi possivel abrir a janela de impressao. Verifique o bloqueador de pop-ups.");
+            setMensagem("Não foi possível abrir a janela de impressão. Verifique o bloqueador de pop-ups.");
             return;
         }
 
         janela.document.open();
-        janela.document.write(montarHtmlComanda(pedido));
+        janela.document.write(montarHtmlComanda(pedido, localeUI));
         janela.document.close();
     }
 
@@ -541,12 +591,10 @@ export default function RestaurantOrderHistoryPage() {
         return (
             <main className="flex min-h-screen items-center justify-center bg-white px-5 text-app-cafe-profundo">
                 <section className="w-full max-w-lg rounded-[8px] bg-app-creme-leve p-8 text-center shadow-sm ring-1 ring-app-baunilha-dourada">
-                    <Image src="/brand/appono-mark.svg" alt="Appono" width={88} height={88} className="mx-auto h-20 w-20" priority />
-                    <h1 className="mt-6 text-3xl font-semibold">Acesso restrito</h1>
-                    <p className="mt-3 text-sm leading-6 text-app-cinza">Esta area e destinada a contas de restaurante.</p>
-                    <Link href="/login" className="mt-6 inline-flex h-11 items-center justify-center rounded-[8px] bg-app-dourado-mel px-6 text-sm font-bold text-white transition hover:bg-app-caramelo-torrado">
-                        Entrar
-                    </Link>
+                    <Image src="/brand/appono-mark.svg" alt={ui("Appono")} width={88} height={88} className="mx-auto h-20 w-20" priority />
+                    <h1 className="mt-6 text-3xl font-semibold">{ui("Acesso restrito")}</h1>
+                    <p className="mt-3 text-sm leading-6 text-app-cinza">{ui("Esta área é destinada a contas de restaurante.")}</p>
+                    <Link href="/login" className="mt-6 inline-flex h-11 items-center justify-center rounded-[8px] bg-app-dourado-mel px-6 text-sm font-bold text-white transition hover:bg-app-caramelo-torrado">{ui("Entrar")}</Link>
                 </section>
             </main>
         );
@@ -556,21 +604,21 @@ export default function RestaurantOrderHistoryPage() {
         <main className="flex min-h-screen flex-col bg-white text-app-cafe-profundo">
             <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-app-creme-leve/90 text-app-cafe-profundo shadow-sm backdrop-blur-md">
                 <div className="mx-auto grid h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-5 lg:h-20">
-                    <div aria-label="Appono">
-                        <Image src="/brand/appono-mark.svg" alt="Appono" width={88} height={88} className="h-11 w-11 lg:h-14 lg:w-14" priority />
+                    <div aria-label={ui("Appono")}>
+                        <Image src="/brand/appono-mark.svg" alt={ui("Appono")} width={88} height={88} className="h-11 w-11 lg:h-14 lg:w-14" priority />
                     </div>
 
                     <nav className="hidden items-center justify-self-center gap-5 text-xs font-semibold text-app-cinza xl:flex">
                         {navItems.map((item) => (
                             <Link key={item.label} href={item.href} className={item.href === "/restaurante/historico-pedidos" ? "text-app-cafe-profundo" : "transition hover:text-app-cafe-profundo"}>
-                                {item.label}
+                                {ui(item.label)}
                             </Link>
                         ))}
                     </nav>
 
                     <div className="flex items-center justify-self-end gap-3 text-app-cafe-profundo">
                         <ItemHeaderNotificacoes href="/restaurante/notificacoes" />
-                        <button type="button" onClick={() => setMobileMenuOpen((current) => !current)} className="flex h-9 w-9 items-center justify-center rounded-[8px] border border-app-baunilha-dourada bg-white text-app-cafe-profundo xl:hidden" aria-label="Abrir menu" aria-expanded={mobileMenuOpen} aria-controls="restaurant-history-menu">
+                        <button type="button" onClick={() => setMobileMenuOpen((current) => !current)} className="flex h-9 w-9 items-center justify-center rounded-[8px] border border-app-baunilha-dourada bg-white text-app-cafe-profundo xl:hidden" aria-label={ui("Abrir menu")} aria-expanded={mobileMenuOpen} aria-controls="restaurant-history-menu">
                             <Icon type="menu" />
                         </button>
                     </div>
@@ -581,7 +629,7 @@ export default function RestaurantOrderHistoryPage() {
                         <div className="mx-auto grid max-w-7xl gap-2 text-xs font-semibold text-app-cinza">
                             {navItems.map((item) => (
                                 <Link key={item.label} href={item.href} onClick={() => setMobileMenuOpen(false)} className={item.href === "/restaurante/historico-pedidos" ? "text-app-cafe-profundo" : "transition hover:text-app-cafe-profundo"}>
-                                    {item.label}
+                                    {ui(item.label)}
                                 </Link>
                             ))}
                         </div>
@@ -592,36 +640,32 @@ export default function RestaurantOrderHistoryPage() {
             <section className="mx-auto w-full max-w-7xl flex-1 px-5 py-10 sm:py-14">
                 <div className="grid gap-6 border-t border-app-baunilha-dourada/60 pt-10 lg:grid-cols-[1fr_auto] lg:items-end">
                     <div>
-                        <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-app-caramelo-torrado">Historico operacional</p>
-                        <h1 className="mt-2 text-4xl font-medium leading-tight text-app-cafe-profundo sm:text-5xl">Historico</h1>
-                        <p className="mt-4 max-w-2xl text-sm leading-6 text-app-cinza sm:text-base">
-                            Consulte pedidos e reservas em um unico lugar, separando cozinha e recepcao sem perder rastreabilidade.
-                        </p>
+                        <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-app-caramelo-torrado">{ui("Histórico operacional")}</p>
+                        <h1 className="mt-2 text-4xl font-medium leading-tight text-app-cafe-profundo sm:text-5xl">{ui("Histórico")}</h1>
+                        <p className="mt-4 max-w-2xl text-sm leading-6 text-app-cinza sm:text-base">{ui("Consulte pedidos e reservas em um único lugar, separando cozinha e recepção sem perder rastreabilidade.")}</p>
                     </div>
 
                     <div className="flex flex-wrap gap-2">
                         <button type="button" onClick={exportarCsv} disabled={abaAtiva === "PEDIDOS" ? !pedidosFiltrados.length : !reservasFiltradas.length} className="inline-flex h-10 items-center justify-center gap-2 rounded-[10px] border border-app-baunilha-dourada bg-app-creme-leve px-4 text-[11px] font-bold uppercase tracking-[0.12em] text-app-cafe-profundo transition hover:border-app-caramelo-torrado hover:bg-app-baunilha-dourada disabled:cursor-not-allowed disabled:opacity-50">
-                            <Icon type="download" className="h-4 w-4" />
-                            CSV
-                        </button>
+                            <Icon type="download" className="h-4 w-4" />{ui("CSV")}</button>
                         <Link href={abaAtiva === "PEDIDOS" ? "/restaurante/pedidos" : "/restaurante/reservas"} className="inline-flex h-10 items-center justify-center rounded-[10px] bg-app-cafe-profundo px-4 text-[11px] font-bold uppercase tracking-[0.12em] text-app-creme-leve transition hover:bg-app-caramelo-torrado">
-                            {abaAtiva === "PEDIDOS" ? "Cozinha" : "Reservas"}
+                            {ui(abaAtiva === "PEDIDOS" ? "Cozinha" : "Reservas")}
                         </Link>
                     </div>
                 </div>
 
                 <section className="mt-8 rounded-[14px] bg-app-creme-leve p-2 ring-1 ring-app-baunilha-dourada/65">
-    <div className="grid gap-2 sm:grid-cols-2">
-        <button type="button" onClick={() => setAbaAtiva("PEDIDOS")} className={`rounded-lg px-4 py-3 text-left transition ${abaAtiva === "PEDIDOS" ? "bg-app-botao-aba-ativa text-app-botao-aba-ativa-texto shadow-sm" : "text-app-cafe-profundo hover:bg-app-chantilly"}`}>
-            <span className="block text-[10px] font-bold uppercase tracking-[0.2em] opacity-80">Cozinha</span>
-            <strong className="mt-1 block text-lg">Pedidos</strong>
-        </button>
-        <button type="button" onClick={() => setAbaAtiva("RESERVAS")} className={`rounded-lg px-4 py-3 text-left transition ${abaAtiva === "RESERVAS" ? "bg-app-botao-aba-ativa text-app-botao-aba-ativa-texto shadow-sm" : "text-app-cafe-profundo hover:bg-app-chantilly"}`}>
-            <span className="block text-[10px] font-bold uppercase tracking-[0.2em] opacity-80">Recepcao</span>
-            <strong className="mt-1 block text-lg">Reservas</strong>
-        </button>
-    </div>
-</section>
+                    <div className="grid gap-2 sm:grid-cols-2">
+                        <button type="button" onClick={() => setAbaAtiva("PEDIDOS")} className={`rounded-[11px] px-4 py-3 text-left transition ${abaAtiva === "PEDIDOS" ? "bg-app-cafe-profundo text-app-creme-leve shadow-sm" : "text-app-cafe-profundo hover:bg-app-chantilly"}`}>
+                            <span className="block text-[10px] font-bold uppercase tracking-[0.2em] opacity-80">{ui("Cozinha")}</span>
+                            <strong className="mt-1 block text-lg">{ui("Pedidos")}</strong>
+                        </button>
+                        <button type="button" onClick={() => setAbaAtiva("RESERVAS")} className={`rounded-[11px] px-4 py-3 text-left transition ${abaAtiva === "RESERVAS" ? "bg-app-cafe-profundo text-app-creme-leve shadow-sm" : "text-app-cafe-profundo hover:bg-app-chantilly"}`}>
+                            <span className="block text-[10px] font-bold uppercase tracking-[0.2em] opacity-80">{ui("Recepção")}</span>
+                            <strong className="mt-1 block text-lg">{ui("Reservas")}</strong>
+                        </button>
+                    </div>
+                </section>
 
                 <section className="mt-6 grid gap-3 md:grid-cols-3">
                     {(abaAtiva === "PEDIDOS"
@@ -636,25 +680,32 @@ export default function RestaurantOrderHistoryPage() {
                             ["Canceladas", resumo.reservas.canceladas],
                         ]).map(([label, value]) => (
                             <article key={label} className="rounded-[12px] bg-app-creme-leve px-4 py-3 text-app-cafe-profundo ring-1 ring-app-baunilha-dourada/55">
-                                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-cinza">{label}</p>
+                                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-cinza">{ui(label)}</p>
                                 <strong className="mt-2 block text-xl font-semibold">{value}</strong>
                             </article>
                         ))}
                 </section>
 
-                <section className="mt-6 rounded-[14px] bg-app-creme-leve p-4 ring-1 ring-app-baunilha-dourada/65">
-                    <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-center">
+                <section className="mt-6 rounded-[16px] border border-app-baunilha-dourada/65 bg-white p-4 shadow-sm">
+                    <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-end">
                         <label className="campo-busca-app flex h-11 items-center gap-3 rounded-[10px] border border-app-baunilha-dourada/60 bg-white px-4 text-sm text-app-cinza transition">
                             <Icon type="search" className="h-4 w-4" />
-                            <input value={busca} onChange={(event) => setBusca(event.target.value)} placeholder={abaAtiva === "PEDIDOS" ? "Buscar por cliente, pedido, data ou item..." : "Buscar por cliente, reserva, data ou mesa..."} className="input-busca-app h-full min-w-0 flex-1 bg-transparent text-app-cafe-profundo placeholder:text-app-cinza/60" />
+                            <input value={busca} onChange={(event) => setBusca(event.target.value)} placeholder={ui(abaAtiva === "PEDIDOS" ? "Buscar por cliente, pedido, data ou item..." : "Buscar por cliente, reserva, data ou mesa...")} className="input-busca-app h-full min-w-0 flex-1 bg-transparent text-app-cafe-profundo placeholder:text-app-cinza/60" />
                         </label>
 
+                        <label className="grid gap-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado sm:min-w-56">{ui("Ordenar por")}<select value={abaAtiva === "PEDIDOS" ? ordenacaoPedido : ordenacaoReserva} onChange={(event) => abaAtiva === "PEDIDOS" ? setOrdenacaoPedido(event.target.value) : setOrdenacaoReserva(event.target.value)} className="h-11 rounded-[10px] border border-app-baunilha-dourada bg-white px-3 text-sm font-semibold normal-case tracking-normal text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-caramelo-torrado/15">
+                                {(abaAtiva === "PEDIDOS" ? ordenacoesHistoricoPedido : ordenacoesHistoricoReserva).map((item) => <option key={item.value} value={item.value}>{ui(item.label)}</option>)}
+                            </select>
+                        </label>
+                    </div>
+
+                    <div className="mt-4 border-t border-app-baunilha-dourada/45 pt-4">
                         <div className="flex flex-wrap gap-2">
                             {(abaAtiva === "PEDIDOS" ? filtros : filtrosReserva).map((item) => {
                                 const ativo = abaAtiva === "PEDIDOS" ? filtro === item.value : filtroReserva === item.value;
                                 return (
-                                    <button key={item.value} type="button" onClick={() => abaAtiva === "PEDIDOS" ? setFiltro(item.value) : setFiltroReserva(item.value)} className={`h-10 rounded-[8px] border px-4 text-[11px] font-bold uppercase tracking-[0.12em] transition ${ativo ? "border-app-caramelo-torrado bg-app-caramelo-torrado text-app-chantilly" : "border-app-baunilha-dourada bg-app-creme-leve text-app-mocha hover:border-app-caramelo-torrado hover:bg-app-baunilha-dourada"}`}>
-                                        {item.label}
+                                    <button key={item.value} type="button" onClick={() => abaAtiva === "PEDIDOS" ? setFiltro(item.value) : setFiltroReserva(item.value)} className={`h-10 rounded-full px-4 text-[11px] font-bold uppercase tracking-[0.12em] ring-1 transition ${ativo ? "bg-app-cafe-profundo text-app-creme-leve ring-app-cafe-profundo" : "bg-white text-app-mocha ring-app-baunilha-dourada/70 hover:bg-app-chantilly hover:text-app-cafe-profundo hover:ring-app-caramelo-torrado/45"}`}>
+                                        {ui(item.label)}
                                     </button>
                                 );
                             })}
@@ -664,13 +715,13 @@ export default function RestaurantOrderHistoryPage() {
                     <div className="mt-3 flex flex-wrap gap-2 border-t border-app-baunilha-dourada/55 pt-3">
                         {filtrosPeriodo.map((item) => (
                             <button key={item.value} type="button" onClick={() => setPeriodo(item.value)} className={`h-8 rounded-full border px-3 text-[10px] font-bold uppercase tracking-[0.12em] transition ${periodo === item.value ? "border-app-cafe-profundo bg-app-cafe-profundo text-app-creme-leve" : "border-app-baunilha-dourada bg-white text-app-cinza hover:border-app-caramelo-torrado hover:text-app-cafe-profundo"}`}>
-                                {item.label}
+                                {ui(item.label)}
                             </button>
                         ))}
                     </div>
                 </section>
 
-                {mensagem ? <p className="mt-6 text-sm font-semibold text-app-caramelo-torrado">{mensagem}</p> : null}
+                {mensagem ? <p className="mt-6 text-sm font-semibold text-app-caramelo-torrado">{ui(mensagem)}</p> : null}
 
                 <section className="mt-8">
                     {abaAtiva === "PEDIDOS" ? (
@@ -684,28 +735,25 @@ export default function RestaurantOrderHistoryPage() {
                                             <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                                                 <div className="min-w-0 flex-1">
                                                     <div className="flex flex-wrap items-center gap-2">
-                                                        <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">Pedido #{pedido.id_pedido}</span>
-                                                        <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ring-1 ${obterClasseStatus(pedido.status_pedido)}`}>{textoStatusPedido(pedido.status_pedido)}</span>
-                                                        {pedido.ocultado_cozinha ? <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-bold text-app-cinza ring-1 ring-app-baunilha-dourada/60">Removido</span> : null}
+                                                        <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">{ui("Pedido #")}{pedido.id_pedido}</span>
+                                                        <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ring-1 ${obterClasseStatus(pedido.status_pedido)}`}>{ui(textoStatusPedido(pedido.status_pedido))}</span>
+                                                        {pedido.ocultado_cozinha ? <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-bold text-app-cinza ring-1 ring-app-baunilha-dourada/60">{ui("Removido")}</span> : null}
                                                     </div>
 
-                                                    <h2 className="mt-2 truncate text-xl font-semibold text-app-cafe-profundo">{pedido.clientes?.nome ?? "Cliente"}</h2>
+                                                    <h2 className="mt-2 truncate text-xl font-semibold text-app-cafe-profundo">{pedido.clientes?.nome ?? ui("Cliente")}</h2>
                                                     <p className="mt-1 text-sm text-app-cinza">
-                                                        {formatarData(pedido.reservas?.data_reserva)} - {pedido.reservas?.horario_inicio?.slice(0, 5) ?? "--:--"} - Mesa {pedido.reservas?.mesas?.numero_mesa ?? "-"} - {pedido.reservas?.quantidade_pessoas ?? "-"} pessoas
-                                                    </p>
+                                                        {formatarData(pedido.reservas?.data_reserva, localeUI)} - {ui(pedido.reservas?.horario_inicio?.slice(0, 5) ?? "--:--")}{ui(" - Mesa ")}{ui(pedido.reservas?.mesas?.numero_mesa ?? "-")} - {ui(pedido.reservas?.quantidade_pessoas ?? "-")}{ui(" pessoas")}</p>
                                                     <p className="mt-2 truncate text-sm text-app-mocha">{obterItensResumo(pedido)}</p>
                                                 </div>
 
                                                 <div className="grid gap-2 text-left lg:min-w-72 lg:text-right">
-                                                    <strong className="text-2xl font-semibold text-app-cafe-profundo">{formatarMoeda(pedido.valor_total)}</strong>
-                                                    <span className="text-xs text-app-cinza">Pago {formatarMoeda(pagamento?.valor_pago ?? 0)} - {textoStatusRepasse(pagamento?.status_repasse ?? "NAO_APLICAVEL")}</span>
+                                                    <strong className="text-2xl font-semibold text-app-cafe-profundo">{formatarMoeda(pedido.valor_total, localeUI)}</strong>
+                                                    <span className="text-xs text-app-cinza">{ui("Pago ")}{formatarMoeda(pagamento?.valor_pago ?? 0, localeUI)} - {ui(textoStatusRepasse(pagamento?.status_repasse ?? "NAO_APLICAVEL"))}</span>
                                                     <div className="flex flex-wrap gap-2 lg:justify-end">
                                                         <button type="button" onClick={() => imprimirPedido(pedido)} className="inline-flex h-9 items-center justify-center gap-2 rounded-[10px] bg-app-cafe-profundo px-3 text-[11px] font-bold uppercase tracking-[0.12em] text-app-creme-leve transition hover:bg-app-caramelo-torrado">
-                                                            <Icon type="print" className="h-4 w-4" />
-                                                            Comanda
-                                                        </button>
+                                                            <Icon type="print" className="h-4 w-4" />{ui("Comanda")}</button>
                                                         <button type="button" onClick={() => alternarPedidoAberto(pedido.id_pedido)} className="inline-flex h-9 items-center justify-center gap-2 rounded-[10px] border border-app-baunilha-dourada bg-white px-3 text-[11px] font-bold uppercase tracking-[0.12em] text-app-cafe-profundo transition hover:border-app-caramelo-torrado hover:bg-app-baunilha-dourada">
-                                                            {pedidosAbertos.includes(pedido.id_pedido) ? "Ocultar itens" : `Ver ${totalItens} itens`}
+                                                            {pedidosAbertos.includes(pedido.id_pedido) ? ui("Ocultar itens") : ui("Ver {0} itens", [totalItens])}
                                                             <Icon type="chevron" className={`h-4 w-4 transition ${pedidosAbertos.includes(pedido.id_pedido) ? "rotate-180" : ""}`} />
                                                         </button>
                                                     </div>
@@ -718,17 +766,17 @@ export default function RestaurantOrderHistoryPage() {
                                                         {(pedido.itens_pedido ?? []).map((item, indice) => (
                                                             <div key={`${pedido.id_pedido}-${item.produtos?.nome ?? indice}`} className="flex items-start justify-between gap-4 rounded-[10px] bg-white px-3 py-2 text-sm text-app-mocha ring-1 ring-app-baunilha-dourada/45">
                                                                 <div className="min-w-0">
-                                                                    <p className="font-semibold text-app-cafe-profundo">{item.quantidade}x {item.produtos?.nome ?? "Item"}</p>
-                                                                    {item.observacoes ? <p className="mt-1 text-xs text-app-cinza">Obs.: {item.observacoes}</p> : null}
+                                                                    <p className="font-semibold text-app-cafe-profundo">{item.quantidade}{ui("x ")}{item.produtos?.nome ?? ui("Item")}</p>
+                                                                    {item.observacoes ? <p className="mt-1 text-xs text-app-cinza">{ui("Obs.: ")}{item.observacoes}</p> : null}
                                                                 </div>
-                                                                <strong className="shrink-0 text-app-cafe-profundo">{formatarMoeda(calcularSubtotalItem(item))}</strong>
+                                                                <strong className="shrink-0 text-app-cafe-profundo">{formatarMoeda(calcularSubtotalItem(item), localeUI)}</strong>
                                                             </div>
                                                         ))}
                                                     </div>
                                                     <div className="mt-3 grid gap-2 rounded-[10px] bg-app-cafe-profundo px-3 py-3 text-xs text-app-creme-suave sm:grid-cols-3">
-                                                        <span>Liquido: <strong className="text-app-creme-leve">{formatarMoeda(pagamento?.valor_restaurante ?? 0)}</strong></span>
-                                                        <span>Comissao: <strong className="text-app-creme-leve">{formatarMoeda(pagamento?.valor_comissao_app ?? 0)}</strong></span>
-                                                        <span>Data pagamento: <strong className="text-app-creme-leve">{pagamento?.data_pagamento ? new Date(pagamento.data_pagamento).toLocaleDateString("pt-BR") : "Nao informado"}</strong></span>
+                                                        <span>{ui("Liquido: ")}<strong className="text-app-creme-leve">{formatarMoeda(pagamento?.valor_restaurante ?? 0, localeUI)}</strong></span>
+                                                        <span>{ui("Comissão: ")}<strong className="text-app-creme-leve">{formatarMoeda(pagamento?.valor_comissao_app ?? 0, localeUI)}</strong></span>
+                                                        <span>{ui("Data pagamento: ")}<strong className="text-app-creme-leve">{ui(pagamento?.data_pagamento ? new Date(pagamento.data_pagamento).toLocaleDateString("pt-BR") : "Não informado")}</strong></span>
                                                     </div>
                                                 </div>
                                             ) : null}
@@ -749,22 +797,22 @@ export default function RestaurantOrderHistoryPage() {
                                         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                                             <div className="min-w-0">
                                                 <div className="flex flex-wrap items-center gap-2">
-                                                    <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">Reserva #{reserva.id_reserva}</span>
-                                                    <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ring-1 ${obterClasseStatusReserva(reserva.status_reserva)}`}>{textoStatusReserva(reserva.status_reserva)}</span>
+                                                    <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">{ui("Reserva #")}{reserva.id_reserva}</span>
+                                                    <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ring-1 ${obterClasseStatusReserva(reserva.status_reserva)}`}>{ui(textoStatusReserva(reserva.status_reserva))}</span>
                                                     <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-bold text-app-cinza ring-1 ring-app-baunilha-dourada/60">
-                                                        {pedidosAtivos.length ? "Com pedido" : "Somente reserva"}
+                                                        {ui(pedidosAtivos.length ? "Com pedido" : "Somente reserva")}
                                                     </span>
                                                 </div>
-                                                <h2 className="mt-2 truncate text-xl font-semibold text-app-cafe-profundo">{reserva.clientes?.nome ?? "Cliente"}</h2>
+                                                <h2 className="mt-2 truncate text-xl font-semibold text-app-cafe-profundo">{reserva.clientes?.nome ?? ui("Cliente")}</h2>
                                                 <p className="mt-1 text-sm text-app-cinza">
-                                                    {formatarData(reserva.data_reserva)} - {reserva.horario_inicio?.slice(0, 5) ?? "--:--"} ate {reserva.horario_fim?.slice(0, 5) ?? "--:--"} - Mesa {reserva.mesas?.numero_mesa ?? "-"}
+                                                    {formatarData(reserva.data_reserva, localeUI)} - {ui(reserva.horario_inicio?.slice(0, 5) ?? "--:--")}{ui(" até ")}{ui(reserva.horario_fim?.slice(0, 5) ?? "--:--")}{ui(" - Mesa ")}{ui(reserva.mesas?.numero_mesa ?? "-")}
                                                 </p>
                                             </div>
 
                                             <div className="grid gap-2 text-sm text-app-mocha lg:min-w-72 lg:text-right">
-                                                <strong className="text-lg text-app-cafe-profundo">{reserva.quantidade_pessoas} pessoa(s)</strong>
-                                                <span>Consumo minimo {formatarMoeda(reserva.valor_minimo_total)}</span>
-                                                {pedidoPrincipal ? <span>Pedido #{pedidoPrincipal.id_pedido} - {textoStatusPedido(pedidoPrincipal.status_pedido)}</span> : <span>Sem pedido antecipado</span>}
+                                                <strong className="text-lg text-app-cafe-profundo">{reserva.quantidade_pessoas}{ui(" pessoa(s)")}</strong>
+                                                <span>{ui("Consumo mínimo ")}{formatarMoeda(reserva.valor_minimo_total, localeUI)}</span>
+                                                {pedidoPrincipal ? <span>{ui("Pedido #")}{pedidoPrincipal.id_pedido} - {ui(textoStatusPedido(pedidoPrincipal.status_pedido))}</span> : <span>{ui("Sem pedido antecipado")}</span>}
                                             </div>
                                         </div>
                                     </article>
@@ -776,10 +824,8 @@ export default function RestaurantOrderHistoryPage() {
                             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-app-cafe-profundo text-app-creme-leve">
                                 <Icon type="calendar" />
                             </div>
-                            <h3 className="mt-5 text-2xl font-semibold">Nenhuma reserva no historico</h3>
-                            <p className="mt-3 max-w-md text-sm leading-6 text-app-cinza">
-                                Reservas finalizadas, canceladas e demais registros aparecem aqui para consulta da recepcao.
-                            </p>
+                            <h3 className="mt-5 text-2xl font-semibold">{ui("Nenhuma reserva no histórico")}</h3>
+                            <p className="mt-3 max-w-md text-sm leading-6 text-app-cinza">{ui("Reservas finalizadas, canceladas e demais registros aparecem aqui para consulta da recepção.")}</p>
                         </div>
                     )}
                 </section>

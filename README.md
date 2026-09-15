@@ -1,257 +1,327 @@
+<p align="center">
+  <img src="frontend/public/brand/appono-logo.svg" alt="Logo do Appono" width="200" />
+</p>
+
 # Appono
 
-Plataforma gastronômica para descoberta de restaurantes, reserva de mesas, pedidos antecipados, pagamento pelo Mercado Pago e gestão operacional e financeira.
+**Reservas de mesas, pedidos antecipados e operação de restaurantes em uma plataforma.**
 
-## Estado do projeto
+[![Next.js 16](https://img.shields.io/badge/Next.js-16-000000)](frontend/package.json)
+[![React 19](https://img.shields.io/badge/React-19-149ECA)](frontend/package.json)
+[![Express 5](https://img.shields.io/badge/Express-5-444444)](backend/package.json)
+[![Supabase](https://img.shields.io/badge/Supabase-Auth%20%26%20Postgres-3ECF8E)](backend/src/lib/supabase.js)
 
-O projeto está em estágio de MVP funcional avançado. Cadastro, autenticação, restaurantes, cardápio, reservas, pedidos, notificações, favoritos, avaliações, chat seguro, busca, geolocalização inicial e fluxo Mercado Pago estão implementados.
+O Appono conecta o planejamento do cliente à rotina do restaurante: descobrir um estabelecimento, reservar uma mesa, antecipar o pedido e acompanhar o atendimento. O restaurante gerencia agenda, cardápio, cozinha e financeiro; a administração acompanha suporte e operações financeiras.
 
-## Arquitetura
+O projeto está em desenvolvimento, com módulos implementados e integrações que exigem configuração e validação em ambiente de testes. A execução local utiliza um projeto Supabase com o schema do Appono. **O repositório ainda não contém o schema inicial completo para provisionar um banco vazio.** Consulte a [preparação do Supabase](docs/preparacao-supabase.md) antes da instalação.
 
-- Frontend: Next.js 16, React 19 e Tailwind CSS.
-- Backend: Node.js e Express 5.
-- Dados e autenticação: Supabase/PostgreSQL com Row Level Security.
-- Pagamentos: Checkout Pro e marketplace Mercado Pago.
-- Estrutura: monorepo npm com workspaces `frontend` e `backend`.
+## Sumário
+
+- [Funcionalidades e estado atual](#funcionalidades-e-estado-atual)
+- [Interface](#interface)
+- [Tecnologias e arquitetura](#tecnologias-e-arquitetura)
+- [Estrutura do repositório](#estrutura-do-repositório)
+- [Instalação](#instalação)
+- [Variáveis de ambiente](#variáveis-de-ambiente)
+- [Supabase e migrations](#supabase-e-migrations)
+- [Execução local](#execução-local)
+- [Comandos e verificações](#comandos-e-verificações)
+- [Solução de problemas](#solução-de-problemas)
+- [Documentação complementar](#documentação-complementar)
+- [Contribuição e licença](#contribuição-e-licença)
+
+## Funcionalidades e estado atual
+
+| Área | Recursos presentes no código | Dependências e limites |
+| --- | --- | --- |
+| Contas | Cadastro de cliente e restaurante, login, recuperação de senha e acesso com Google | Supabase Auth e perfis no banco; Google e envio de e-mails exigem configuração externa |
+| Descoberta | Busca, perfis públicos, cardápios, favoritos e avaliações após a entrega | Schema e RLS; geolocalização depende das coordenadas e de consultas externas |
+| Reservas e pedidos | Disponibilidade de mesas, consumo mínimo, pedido antecipado, confirmação de presença e check-in | Funções SQL e migrations; regras operacionais descritas no guia de fluxos |
+| Restaurante | Gestão do cardápio, agenda, fila da cozinha, histórico e indicadores | Perfil autenticado e dados operacionais; a janela da cozinha é definida no código |
+| Pagamentos | Checkout Pro, conexão OAuth de restaurantes, webhook, financeiro e solicitação de reembolso | Credenciais Mercado Pago, URLs de integração e modo financeiro; simulação e estorno no gateway têm comportamentos distintos |
+| Atendimento | Chat entre participantes, notificações internas, chamados e análise administrativa | Migrations de chat e suporte, autenticação e validação de propriedade |
+
+Estão pendentes de validação para um piloto financeiro: concorrência real, matriz RLS entre usuários, webhooks e estornos no sandbox, conciliação periódica independente das telas, alertas externos e restauração de backup. Os documentos de operação e piloto descrevem requisitos; não representam automações já entregues. Veja os [limites e pendências](docs/fluxos-operacionais.md#prontidão).
+
+## Interface
+
+<p align="center">
+  <img src="docs/figma-screenshots/publico/02-login.png" alt="Tela de login do Appono com acesso por e-mail, senha e Google" width="440" />
+</p>
+
+Captura de desenvolvimento já presente no repositório. Outras referências visuais estão em [docs/figma-screenshots](docs/figma-screenshots); podem representar versões anteriores da interface.
+
+## Tecnologias e arquitetura
+
+| Camada | Tecnologias | Responsabilidade |
+| --- | --- | --- |
+| Interface | Next.js 16, React 19, Tailwind CSS 4 | Páginas, componentes e interação dos três perfis |
+| API | Node.js, Express 5, JavaScript | Autorização, regras de negócio e integrações |
+| Dados | Supabase/PostgreSQL, Auth e Storage | Identidade, persistência, funções SQL, RLS e imagens |
+| Pagamentos | SDK Mercado Pago | Checkout Pro, consulta de pagamentos, OAuth e estornos |
+| Desenvolvimento | npm workspaces, concurrently, nodemon, ESLint, `node:test` | Execução do monorepo e verificações locais |
+
+As versões declaradas ficam nos manifests de [frontend](frontend/package.json) e [backend](backend/package.json); o [lockfile](package-lock.json) registra as resoluções das dependências.
+
+```mermaid
+flowchart LR
+    U[Cliente, restaurante e administração] --> F[Frontend Next.js]
+    F -->|HTTP /api + token| B[API Express]
+    F -->|Sessão e OAuth| A[Supabase Auth]
+    F -->|Imagem com RLS| S[Supabase Storage e Data API]
+    B -->|Validação de identidade| A
+    B -->|Consultas e funções SQL| D[Supabase / PostgreSQL]
+    B -->|Checkout, consulta e estorno| M[Mercado Pago]
+    M -->|Webhook| B
+    B --> E[ViaCEP, ReceitaWS e Nominatim]
+```
+
+As regras puras ficam em `backend/src/domain`; rotas coordenam HTTP, autorização e serviços. O frontend usa a API Express nos fluxos de negócio e o cliente Supabase para sessão e upload de imagens. A chave administrativa permanece no backend; operações privilegiadas dependem das verificações de perfil e propriedade da API.
+
+## Estrutura do repositório
+
+Árvore resumida dos arquivos e diretórios usados pela aplicação, configuração, testes e documentação. Inclui os arquivos novos das alterações atuais; módulos repetitivos são agrupados por diretório.
 
 ```text
-Cliente → reserva → pedido antecipado → Mercado Pago
-        → confirmação → preparo → entrega → liberação do repasse
+Appono/
+├── .gitignore                 # Exclusões de arquivos locais e gerados
+├── package.json               # Workspaces e comandos conjuntos
+├── package-lock.json          # Versões resolvidas das dependências
+├── README.md                  # Apresentação e início de uso
+├── backend/
+│   ├── .env.example           # Modelo de configuração da API
+│   ├── .gitignore             # Exclusões específicas do backend
+│   ├── package.json           # Dependências e scripts da API
+│   ├── vercel.json            # Encaminhamento para a entrada da API
+│   ├── api/index.js           # Exporta a aplicação Express para a Vercel
+│   ├── scripts/start.js       # Inicializa o Node com certificados TLS
+│   ├── src/
+│   │   ├── server.js          # Aplicação HTTP, CORS e registro das rotas
+│   │   ├── domain/            # Regras de reservas, pedidos e pagamentos
+│   │   ├── lib/supabase.js    # Clientes Supabase e configuração
+│   │   ├── middleware/        # Autenticação, autorização e logs
+│   │   ├── routes/            # Endpoints por módulo de negócio
+│   │   └── services/
+│   │       ├── pagamentos/    # Mercado Pago, configuração e reembolsos
+│   │       ├── reservas/      # Expiração e sincronização de reservas
+│   │       ├── validacoes/    # Validações e consultas cadastrais
+│   │       ├── geolocalizacao.js # Consulta e normalização de coordenadas
+│   │       └── notificacoes.js   # Criação de notificações internas
+│   └── test/                  # Suíte node:test, agrupada por regra
+│       └── start.test.js      # Regressão da inicialização e certificados
+├── frontend/
+│   ├── .env.example           # Modelo de configuração pública
+│   ├── .gitignore             # Exclusões específicas do frontend
+│   ├── package.json           # Dependências e scripts da interface
+│   ├── next.config.mjs        # Redirecionamentos e configuração de imagens
+│   ├── jsconfig.json          # Alias de imports @/*
+│   ├── postcss.config.mjs     # Integração do Tailwind com PostCSS
+│   ├── eslint.config.mjs      # Regras de análise estática
+│   ├── AGENTS.md              # Instruções locais de desenvolvimento
+│   ├── CLAUDE.md              # Referência às instruções de AGENTS.md
+│   ├── app/                   # Rotas, layouts, loading e metadados do Next.js
+│   │   ├── layout.jsx         # Layout raiz, tema e tradução da interface
+│   │   ├── page.jsx           # Página pública inicial
+│   │   ├── loading.jsx        # Estado de carregamento global
+│   │   ├── globals.css        # Estilos globais
+│   │   ├── tema-escuro.css    # Estilos do tema escuro
+│   │   ├── favicon.ico        # Ícone por convenção do framework
+│   │   ├── login/             # Acesso à conta
+│   │   ├── cadastro/          # Cadastro de cliente e restaurante
+│   │   ├── auth/callback/     # Retorno da autenticação
+│   │   ├── completar-perfil/  # Complemento de cadastro após OAuth
+│   │   ├── recuperar-senha/   # Redefinição de senha
+│   │   ├── cliente/           # Rotas do cliente, incluindo detalhes por ID
+│   │   ├── restaurante/       # Agenda, cozinha, cardápio e gestão
+│   │   └── admin/             # Financeiro, reembolsos e suporte
+│   ├── components/            # Componentes de tela e controles compartilhados
+│   ├── lib/                   # API, sessão, tradução, hooks e validações
+│   ├── public/                # Arquivos servidos diretamente por URL
+│   │   └── brand/             # Logo e marca usados na interface
+│   └── docs/                  # Revisão e orientações do tema escuro
+├── supabase/migrations/       # Histórico SQL incremental, agrupado
+├── docs/                      # Guias de banco, operação, pagamentos e piloto
+│   ├── preparacao-supabase.md # Schema base, Auth, Storage e migrations
+│   ├── fluxos-operacionais.md # Regras, endpoints e limitações dos módulos
+│   └── figma-screenshots/     # Referências visuais e captura usada no README
+└── scripts/                   # Manutenção e geração de documentação, uso manual
 ```
 
-## Configuração
+Dependências instaladas, caches, logs, builds, arquivos temporários, configurações locais com segredos e metadados do sistema operacional, como `desktop.ini`, foram omitidos. Os modelos `.env.example` permanecem visíveis. Exportações visuais auxiliares, arquivos individuais de módulos repetitivos e demais guias não são enumerados nesta visão resumida; sua omissão não indica que possam ser excluídos.
 
-Backend (`backend/.env`):
+Os scripts de limpeza de dados em `scripts/` não fazem parte da instalação.
 
-```env
-PORT=3001
-FRONTEND_ORIGIN=http://localhost:3000
-FRONTEND_PUBLIC_URL=http://localhost:3000
-BACKEND_PUBLIC_URL=http://localhost:3001
-SUPABASE_URL=
-SUPABASE_PUBLISHABLE_KEY=
-SUPABASE_SECRET_KEY=
-MERCADO_PAGO_ACCESS_TOKEN=
-MERCADO_PAGO_TEST_ACCESS_TOKEN=
-MERCADO_PAGO_APP_ID=
-MERCADO_PAGO_CLIENT_SECRET=
-MERCADO_PAGO_REDIRECT_URI=
-MERCADO_PAGO_WEBHOOK_SECRET=
-MERCADO_PAGO_MARKETPLACE_FEE_PERCENTUAL=13
-MERCADO_PAGO_MODO_REPASSE=SIMULADO
-MERCADO_PAGO_PERMITIR_PRODUCAO=false
-APPONO_ADMIN_EMAILS=
-```
+## Instalação
 
-Frontend (`frontend/.env.local`):
+### Pré-requisitos
 
-```env
-NEXT_PUBLIC_API_URL=http://localhost:3001/api
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
-NEXT_PUBLIC_MERCADO_PAGO_PUBLIC_KEY=
-```
+- **Node.js 22 ou superior**, conforme os requisitos das dependências instaladas de `concurrently` e `@supabase/supabase-js`. Não há versão de runtime fixada na raiz.
+- **npm com suporte a workspaces**, disponível na distribuição do Node utilizada no projeto.
+- Uma cópia deste repositório e acesso a um **Supabase de desenvolvimento com o schema base**.
+- Acesso HTTPS ao Supabase. Mercado Pago e os serviços de consulta são necessários nos fluxos que os utilizam.
 
-Não versionar `.env`. Nunca colocar chaves secretas ou access tokens em variáveis `NEXT_PUBLIC_*`.
-
-## Instalação e execução
+Os exemplos de preparação abaixo usam PowerShell. Execute os comandos na raiz `Appono`, onde ficam `package.json` e `package-lock.json`.
 
 ```powershell
-npm install
+node --version
+npm --version
+npm ci
+```
+
+`npm ci` instala as dependências conforme o lockfile. Para uma alteração intencional de dependências, use `npm install` e revise o diff do lockfile.
+
+### Arquivos de configuração
+
+Crie os arquivos locais apenas se ainda não existirem:
+
+```powershell
+if (-not (Test-Path backend/.env)) {
+    Copy-Item backend/.env.example backend/.env
+}
+if (-not (Test-Path frontend/.env.local)) {
+    Copy-Item frontend/.env.example frontend/.env.local
+}
+```
+
+Preencha os valores conforme a seção seguinte e conclua a preparação do Supabase antes de iniciar. As URLs públicas de exemplo não apontam para uma implantação configurada.
+
+## Variáveis de ambiente
+
+### Backend — `backend/.env`
+
+Configuração mínima para os módulos locais:
+
+```dotenv
+PORT=3001
+FRONTEND_ORIGIN=http://localhost:3000
+SUPABASE_URL=https://seu-projeto.supabase.co
+SUPABASE_PUBLISHABLE_KEY=sua-chave-publica
+SUPABASE_SECRET_KEY=sua-chave-secreta-do-backend
+SUPABASE_ALLOW_INSECURE_TLS=false
+MERCADO_PAGO_MODO_REPASSE=SIMULADO
+MERCADO_PAGO_PERMITIR_PRODUCAO=false
+```
+
+| Variável | Necessidade | Uso |
+| --- | --- | --- |
+| `SUPABASE_URL` | Obrigatória | URL do projeto de desenvolvimento |
+| `SUPABASE_PUBLISHABLE_KEY` | Obrigatória | Autenticação e operações com o token do usuário |
+| `SUPABASE_SECRET_KEY` | Obrigatória para o conjunto dos módulos | Operações administrativas, suporte e recuperação/criação de perfis; há fluxos limitados que funcionam sem ela |
+| `PORT` | Opcional; padrão `3001` | Porta da API |
+| `FRONTEND_ORIGIN` | Padrão local `http://localhost:3000` | CORS e construção do callback de cadastro; use uma origem no ambiente local |
+| `SUPABASE_ALLOW_INSECURE_TLS` | Manter `false` | Preserva a validação de certificados |
+| `APPONO_ADMIN_EMAILS` | Para administração | E-mails de contas autorizadas, separados por vírgula; não cria usuários |
+| `FRONTEND_PUBLIC_URL` | Para retornos de pagamento/OAuth | URL do frontend alcançável no fluxo externo |
+| `BACKEND_PUBLIC_URL` | Para integrações externas | URL HTTPS pública da API, sem o sufixo `/api` |
+| `MERCADO_PAGO_TEST_ACCESS_TOKEN` | Para checkout com credencial de teste | Token da conta de testes; tem prioridade quando produção está desabilitada |
+| `MERCADO_PAGO_ACCESS_TOKEN` | Conforme o modo financeiro | Token padrão; com produção desabilitada, só é usado como fallback se começar com `TEST-` |
+| `MERCADO_PAGO_MODO_REPASSE` | Padrão `SIMULADO` | Seleciona o fluxo financeiro; não equivale a comprovação de estorno no gateway |
+| `MERCADO_PAGO_PERMITIR_PRODUCAO` | Manter `false` em desenvolvimento | Controla a permissão de uso do fluxo de produção |
+| `MERCADO_PAGO_MARKETPLACE_FEE_PERCENTUAL` | Opcional; padrão `13` | Percentual da comissão |
+| `MERCADO_PAGO_APP_ID` e `MERCADO_PAGO_CLIENT_SECRET` | Para OAuth do restaurante | Credenciais da aplicação Mercado Pago |
+| `MERCADO_PAGO_REDIRECT_URI` | Para OAuth do restaurante | Callback público com o caminho `/api/marketplace/mercado-pago/callback` |
+| `MERCADO_PAGO_WEBHOOK_SECRET` | Para validar a assinatura do webhook | Segredo configurado no provedor; o código só verifica a assinatura quando ele está preenchido |
+
+O [arquivo de exemplo](backend/.env.example) reúne os campos de configuração. `localhost` é suficiente para abrir a aplicação, mas não é alcançável pelos webhooks do Mercado Pago. A configuração de endpoints públicos pertence ao teste da integração, não à instalação básica.
+
+### Frontend — `frontend/.env.local`
+
+```dotenv
+NEXT_PUBLIC_API_URL=http://localhost:3001/api
+NEXT_PUBLIC_SUPABASE_URL=https://seu-projeto.supabase.co
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sua-chave-publica
+NEXT_PUBLIC_AUTH_CALLBACK_URL=http://localhost:3000/auth/callback
+NEXT_PUBLIC_PASSWORD_RECOVERY_REDIRECT_URL=http://localhost:3000/recuperar-senha
+```
+
+| Variável | Necessidade | Uso |
+| --- | --- | --- |
+| `NEXT_PUBLIC_API_URL` | Padrão local acima | Endereço da API, incluindo `/api` |
+| `NEXT_PUBLIC_SUPABASE_URL` | Obrigatória | Mesmo projeto configurado no backend |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Obrigatória | Chave pública do mesmo projeto |
+| `NEXT_PUBLIC_AUTH_CALLBACK_URL` | Opcional | Sem ela, o callback usa a origem atual do navegador |
+| `NEXT_PUBLIC_PASSWORD_RECOVERY_REDIRECT_URL` | Opcional | Sem ela, a recuperação usa a origem atual do navegador |
+| `NEXT_PUBLIC_MERCADO_PAGO_PUBLIC_KEY` | Para componentes que usam o SDK Mercado Pago | Chave pública correspondente ao ambiente de testes |
+
+Nunca coloque chaves secretas, senhas ou access tokens em variáveis `NEXT_PUBLIC_*`: seus valores são incorporados ao código enviado ao navegador. Os arquivos `.env` locais são ignorados pelo Git. Reinicie os processos após alterá-los; para o frontend compilado, gere um novo build.
+
+## Supabase e migrations
+
+O guia de [preparação do Supabase](docs/preparacao-supabase.md) cobre schema base, Auth, Storage e aplicação incremental das migrations.
+
+- A primeira migration altera tabelas já existentes; aplicar a pasta em um projeto vazio não provisiona o Appono completo.
+- Não há `supabase/config.toml` nem seed versionado. Um ambiente totalmente local com Supabase CLI/Docker ainda precisa de preparação adicional.
+- Configurar Google, recuperação de senha e callbacks exige ajustes no projeto Supabase.
+- **`supabase db push` altera o banco vinculado.** Revise o projeto de destino e as migrations pendentes antes de executar o procedimento do guia.
+
+## Execução local
+
+Com configuração e banco preparados:
+
+```powershell
 npm run dev
 ```
 
-Frontend: `http://localhost:3000`. Backend: `http://localhost:3001`. Saúde: `GET /api/health`.
+| Serviço | Endereço padrão |
+| --- | --- |
+| Aplicação | [http://localhost:3000](http://localhost:3000) |
+| Login | [http://localhost:3000/login](http://localhost:3000/login) |
+| Cadastro de cliente | [http://localhost:3000/cadastro/cliente](http://localhost:3000/cadastro/cliente) |
+| Cadastro de restaurante | [http://localhost:3000/cadastro/restaurante](http://localhost:3000/cadastro/restaurante) |
+| API | `http://localhost:3001/api` — prefixo dos endpoints |
+| Saúde da API | [http://localhost:3001/api/health](http://localhost:3001/api/health) |
 
-Os scripts do backend iniciam o Node com `--use-system-ca`, necessário em redes Windows que inspecionam TLS. Mantenha `SUPABASE_ALLOW_INSECURE_TLS=false`; não desative a validação de certificados.
+O comando inicia backend e frontend em conjunto. Para encerrá-los, use `Ctrl+C` no terminal. Evite iniciar outra instância enquanto a primeira estiver ativa.
 
-## Banco e migrations
+Para executar separadamente, use `npm run dev --workspace backend` e `npm run dev --workspace frontend` em terminais distintos.
 
-As migrations ficam em `supabase/migrations`. Para um projeto vinculado pelo Supabase CLI:
+## Comandos e verificações
 
-```powershell
-npx supabase db push
-```
+Todos os comandos abaixo partem da raiz do repositório.
 
-A migration `20260813000100_financial_webhook_idempotency.sql` cria o controle de webhooks, amplia a auditoria e torna eventos financeiros imutáveis. Em 13/08/2026, uma verificação somente leitura confirmou que ela já está aplicada no Supabase configurado localmente.
+| Comando | Efeito |
+| --- | --- |
+| `npm run dev` | Inicia os dois workspaces com atualização durante o desenvolvimento |
+| `npm test` | Executa `backend/test/*.test.js` com o executor nativo do Node |
+| `npm run lint` | Executa ESLint no frontend |
+| `npm run build` | Verifica a sintaxe da entrada do backend e executa `next build` |
+| `npm run build --workspace backend` | Executa apenas `node --check src/server.js`; não compila nem valida toda a API |
+| `npm start --workspace backend` | Inicia a API com o tratamento de certificados TLS |
+| `npm start --workspace frontend` | Serve um build existente do Next.js |
 
-A migration `20260814000100_expire_no_show_reservations.sql` adiciona `NAO_COMPARECEU` e a transição atômica de reservas confirmadas cujo horário final terminou sem check-in. Ela também cancela pedidos pendentes, recusa pagamentos ainda pendentes e registra auditoria. Esta migration precisa ser aplicada antes de executar a versão correspondente do backend.
+Os testes existentes cobrem regras de pedidos, reservas, fila operacional, pagamentos, reembolsos, autorização, paginação, suporte, sanitização de logs e inicialização TLS. Não há script de testes de interface no frontend. Testes de concorrência, RLS e integrações completas precisam de ambiente isolado; a suíte de regras não comprova esses cenários.
 
-A migration `20260825000100_add_client_attendance_confirmation.sql` adiciona a confirmação de presença do cliente. A regra do MVP é: o cliente pode confirmar presença ou avisar ausência até 1 hora antes da reserva. Se confirmar, a cozinha passa a receber o pedido pago na fila operacional. Se avisar ausência, a reserva e os pedidos que ainda não entraram em preparo são cancelados, o restaurante é notificado e a Appono registra reembolso parcial. O reembolso é calculado pelo excedente: valor pago menos consumo mínimo da reserva e comissão Appono. O consumo mínimo fica registrado como valor do restaurante, a comissão fica registrada para a Appono e o excedente retorna ao cliente. A comissão padrão é 13%, configurável por `MERCADO_PAGO_MARKETPLACE_FEE_PERCENTUAL`.
+## Solução de problemas
 
-A migration `20260908000100_create_secure_chat.sql` cria o chat seguro entre cliente e restaurante. Ela adiciona `conversas_chat` e `mensagens_chat`, habilita RLS, concede acesso apenas ao papel `authenticated` e aplica políticas de propriedade por participante. Conversas diretas podem ser iniciadas pelo cliente a partir do perfil do restaurante. Conversas vinculadas a reserva ou pedido só podem ser abertas pelos participantes reais daquele recurso. As mensagens exigem remetente autenticado, tipo de remetente compatível com o perfil e conteúdo entre 1 e 1200 caracteres.
+| Sintoma | Verificação e ação |
+| --- | --- |
+| `Port 3000 is in use` ou frontend na porta `3002` | Encerre a instância anterior com `Ctrl+C`. No Windows, identifique o dono com `Get-NetTCPConnection -LocalPort 3000 -State Listen` e inspecione seu `OwningProcess` usando `Get-Process -Id`. Encerre apenas o processo identificado e reinicie o frontend. |
+| Erro de CORS após mudar a porta | Ajuste `FRONTEND_ORIGIN`, os callbacks do frontend e a lista de redirecionamentos do Supabase para a origem efetivamente usada. Reinicie os serviços. |
+| Frontend não alcança a API | Abra `/api/health` na porta `3001`; confirme que o backend iniciou e que `NEXT_PUBLIC_API_URL` inclui `/api`. O health check comprova apenas o servidor HTTP, não a conexão com o banco. |
+| `node: bad option: --use-system-ca` | Use os scripts npm atuais, que detectam suporte à opção. Evite comandos antigos que adicionem a flag diretamente. |
+| `UNABLE_TO_VERIFY_LEAF_SIGNATURE`, `fetch failed` ou erro de certificado | Inicie a API pelos scripts npm. No Windows com Node antigo, o inicializador exporta as CAs públicas confiáveis para um PEM temporário e usa `NODE_EXTRA_CA_CERTS`. Em outros ambientes, configure a CA necessária nesse mecanismo do Node. Mantenha a validação TLS ativa. |
+| Login/cadastro indisponível | Confirme os nomes das variáveis, substitua os placeholders e use URL e chave pública do mesmo Supabase nos dois workspaces. Verifique Auth, schema e logs da API. |
+| Relação, coluna ou função SQL ausente | Confira o schema base e o histórico de migrations do projeto correto. Consulte o guia de preparação antes de aplicar alterações. |
+| Google ou recuperação retorna para endereço errado | Confira as URLs permitidas no Supabase e as variáveis de callback. No Google, verifique também se o provedor foi habilitado. |
+| Checkout indisponível ou webhook não chega | Verifique a credencial de testes, as URLs públicas e o evento de pagamento no provedor. Use o guia financeiro para distinguir simulação de integração real. |
 
-Aplicar migrations primeiro em testes, depois em homologação e por último em produção. Fazer backup e validar restauração antes de alterações críticas.
+O [inicializador do backend](backend/scripts/start.js) preserva certificados extras já configurados e remove seu arquivo temporário no encerramento normal. O ajuste não exige desativar a verificação HTTPS nem alterar as chaves do Supabase.
 
-## Segurança de pagamentos
+## Documentação complementar
 
-A Appono não coleta nem armazena número completo de cartão, validade ou CVV. Esses dados são informados exclusivamente no checkout do Mercado Pago. Dados legados são removidos do navegador ao carregar a aplicação.
+| Documento | Conteúdo |
+| --- | --- |
+| [Evolução completa do Appono Rotina](docs/appono-rotina-prompt-evolucao-completa.md) | Prompt executável dos itens 1 a 9, com critérios técnicos, testes e definição de pronto |
+| [Preparação do Supabase](docs/preparacao-supabase.md) | Limitações do schema inicial, Auth, Storage e migrations |
+| [Fluxos operacionais](docs/fluxos-operacionais.md) | Regras e endpoints de reservas, cozinha, pagamentos, reembolsos, chat e suporte |
+| [Operação e implantação](docs/operacao-producao.md) | Requisitos de ambientes, backup, observabilidade e conciliação |
+| [Plano de piloto](docs/piloto-controlado.md) | Etapas, limites propostos e critérios de parada |
+| [Privacidade e incidentes](docs/lgpd-e-incidentes.md) | Base operacional que ainda exige revisão jurídica |
+| [Fluxo Mercado Pago](docs/fluxo-pagamento-mercado-pago.md) | Roteiro anterior de apresentação e testes; confrontar exemplos de URLs e regras com os guias atuais |
+| [Melhorias técnicas](docs/melhorias-tecnicas.md) | Backlog histórico, com itens que já possuem implementação no código |
 
-O webhook usa assinatura quando o segredo está configurado, controle de idempotência e trilha de processamento. Eventos atrasados não regridem pagamento aprovado; estorno e chargeback prevalecem como estados terminais.
+## Contribuição e licença
 
-Pedidos pendentes somente podem iniciar ou reutilizar um checkout enquanto a reserva estiver confirmada e antes do horário marcado. Ao vencer o prazo, o pedido e o pagamento pendentes são encerrados e o evento fica registrado na auditoria. Na conciliação, o backend compara `date_approved` do Mercado Pago — ou `date_created` como fallback controlado — com o horário da reserva; o horário de chegada do webhook não interfere na decisão. Uma aprovação efetivamente tardia solicita estorno real com chave idempotente, e webhooks repetidos não solicitam um segundo estorno.
+Não há `CONTRIBUTING.md` nem política formal de contribuições versionada. As convenções presentes separam regras de domínio, serviços e rotas no backend, com aplicação em JavaScript e workspaces npm. Alterações no frontend também devem observar as instruções locais de [AGENTS.md](frontend/AGENTS.md).
 
-Pagamento aprovado e check-in são estados independentes: o pagamento confirma o pedido, enquanto o check-in registra a presença e só é liberado 15 minutos antes da reserva. O restaurante pode desmarcar uma reserva antes do início; se houver pagamento aprovado, `PATCH /api/reservas/:id/cancelar-restaurante` realiza o estorno real antes de cancelar a reserva e o pedido. Falha no estorno impede o cancelamento.
-
-Quando `MERCADO_PAGO_PERMITIR_PRODUCAO=false`, o backend entrega exclusivamente `sandbox_init_point`; nunca utiliza `init_point`, independentemente do prefixo da credencial. Pagamentos reais legados exigem uma credencial de produção com permissão de pagamentos para serem estornados, ou estorno manual pelo painel Mercado Pago.
-Após um estorno manual, uma nova tentativa de cancelamento consulta o gateway, reconhece o estado `refunded` e sincroniza reserva, pedido e pagamento sem solicitar outro estorno.
-
-## Reembolsos no ambiente atual
-
-O módulo inicial de reembolsos foi preparado para `MERCADO_PAGO_MODO_REPASSE=SIMULADO` e `MERCADO_PAGO_PERMITIR_PRODUCAO=false`. Nesse arranjo, o pagamento é estornado no ambiente de testes do Mercado Pago, enquanto a comissão e o repasse da Appono continuam simulados. O backend consulta `live_mode` e bloqueia a operação se identificar um pagamento real.
-
-Fluxo disponível:
-
-- O cliente solicita o valor total no detalhe de um pedido pago e informa o motivo.
-- Restaurante ou administrador consulta e analisa a solicitação.
-- A aprovação envia um estorno idempotente ao Mercado Pago de teste.
-- Somente depois da confirmação do gateway, pagamento e repasse passam para `ESTORNADO` e o reembolso para `CONCLUIDO`.
-- Recusas exigem justificativa; solicitações recusadas ou canceladas podem ser refeitas.
-- Eventos financeiros e notificações registram solicitação, recusa e conclusão.
-
-Rotas principais: `POST /api/reembolsos`, `GET /api/reembolsos/pedido/:id`, `GET /api/reembolsos/restaurante`, `GET /api/reembolsos/admin` e `PATCH /api/reembolsos/:id/analisar`.
-
-A migration `20260815000100_create_simulated_refunds.sql` cria a tabela, as políticas de leitura, a unicidade de reembolso ativo e a conclusão transacional. Ela deve ser aplicada antes de testar as telas `/restaurante/reembolsos` e `/admin/reembolsos`.
-
-## Pedidos do cliente
-
-`GET /api/pedidos?page=1&limit=12` retorna uma listagem resumida e paginada no formato `{ items, pagination }`; `GET /api/pedidos/:id` carrega relacionamentos e itens somente para o pedido aberto. A tela de pedidos direciona cada registro para `/cliente/pedidos/:id`, onde ficam pagamento, cancelamento e acesso à avaliação. Rotas estáticas, como `/api/pedidos/historico/restaurante`, são declaradas antes da rota dinâmica por ID.
-
-Na página do restaurante, o cliente pode selecionar quantidades diretamente no cardápio. Sem itens, `POST /api/reservas` cria somente a reserva; com itens e o consumo mínimo atingido, `POST /api/reservas/com-pedido` cria reserva e pedido antecipado na mesma transação e direciona ao checkout do pedido.
-
-## Fila operacional de reservas e cozinha
-
-A Appono deve organizar a operação do restaurante por proximidade de horário, e não por uma tentativa rígida de calcular o tempo médio real de preparo de cada prato. O tempo de preparo de uma cozinha depende de fatores variáveis, como equipe disponível, fila interna, quantidade de itens, horário de pico, mise en place e complexidade operacional. Por isso, a regra principal passa a ser a fila operacional.
-
-Regra de negócio proposta:
-
-- Reservas aparecem para o restaurante em ordem de proximidade do horário.
-- A tela de reservas prioriza agendamentos do dia, check-in, finalização e não comparecimento.
-- A cozinha exibe somente pedidos pagos e próximos do horário da reserva.
-- Pedidos muito futuros não devem poluir a fila da cozinha.
-- O pedido antecipado continua vinculado à reserva, mas sua preparação passa a depender da janela operacional configurada pela Appono/restaurante.
-- Para o MVP, a janela inicial recomendada é de 60 minutos antes da reserva.
-- Em evolução futura, essa janela deve ser configurável em `Restaurante > Configurações > Operação`.
-- Na API, a fila da cozinha é carregada por `GET /api/pedidos/historico/restaurante?fila=cozinha`.
-- Na API, a fila operacional de reservas é carregada por `GET /api/reservas?fila=operacional`.
-- As listagens operacionais do restaurante validam o restaurante autenticado e só então usam consulta privilegiada para carregar nome/telefone do cliente, evitando que a interface mostre apenas “Cliente” por limitação de RLS.
-
-Fluxo esperado:
-
-```text
-Cliente reserva mesa
-  ├─ sem pedido antecipado → aparece na fila de reservas
-  └─ com pedido antecipado → paga o pedido → pedido fica confirmado
-                              → entra na fila da cozinha apenas perto do horário
-```
-
-Estados operacionais recomendados:
-
-- Reserva futura: visível na agenda, mas sem destaque operacional.
-- Reserva próxima: aparece no topo da fila de reservas.
-- Pedido confirmado futuro: pago, mas ainda fora da fila de preparo.
-- Pedido liberado para cozinha: dentro da janela operacional, pronto para ser preparado.
-- Pedido em preparo, pronto e entregue: fluxo normal da cozinha.
-
-Essa regra reduz ruído operacional, melhora a experiência do restaurante e evita que a Appono assuma uma responsabilidade difícil de garantir: prever exatamente quando cada prato deve começar a ser preparado.
-
-## Organização e manutenção
-
-O projeto permanece integralmente em JavaScript e Node.js. Regras puras ficam em `backend/src/domain`, configuração e integração financeira em `backend/src/services/pagamentos`, e rotas Express coordenam HTTP, autorização e serviços. No frontend, listagens usam paginação, abortam requisições antigas e carregam detalhes por ID para reduzir consultas, payload e acoplamento entre telas.
-
-## Testes e qualidade
-
-```powershell
-npm test
-npm run lint
-npm run build
-```
-
-Cobertura atual:
-
-- Transições de pedidos.
-- Comissão e valor do restaurante.
-- Eventos financeiros fora de ordem.
-- Estorno e chargeback.
-- Elegibilidade, duplicidade e bloqueio de pagamento real no fluxo de reembolso de teste.
-- Elegibilidade e vencimento do pagamento conforme a reserva.
-- Paginação e limites de listagem.
-- Matriz de perfis e propriedade de recursos.
-- Conflitos de horários de reservas.
-- Sanitização de dados sensíveis em logs.
-
-## Favoritos e avaliações
-
-Endpoints disponíveis:
-
-- `GET /api/restaurantes`: inclui média, quantidade de avaliações, total de favoritos e favorito do cliente autenticado.
-- `GET /api/restaurantes/:id`: inclui métricas e avaliações recentes.
-- `PATCH /api/restaurantes/:id/favorito`: adiciona ou remove favorito; somente cliente.
-- `GET /api/pedidos/:id/avaliacao`: consulta a avaliação vinculada ao pedido do cliente.
-- `POST /api/pedidos/:id/avaliacao`: cria ou atualiza a avaliação somente depois da entrega do pedido.
-- `GET /api/restaurantes/me/avaliacoes`: lista avaliações recebidas pelo restaurante autenticado.
-
-As escritas usam o token do usuário e respeitam RLS; não utilizam `supabaseAdmin` para ignorar autorização.
-
-No frontend, o dashboard persiste favoritos, `/cliente/favoritos` reúne a seleção do cliente, a página pública do restaurante exibe avaliações verificadas sem misturar o formulário com reserva e cardápio, `/cliente/pedidos/:id/avaliar` publica a avaliação pós-entrega e `/restaurante/desempenho` apresenta média, volume e comentários reais.
-
-Testes de concorrência real, RLS entre usuários e webhooks completos precisam de um Supabase exclusivo de testes. Não devem criar dados artificiais no banco com dados reais.
-
-## Chat seguro
-
-O chat está disponível para cliente e restaurante em `/cliente/mensagens` e `/restaurante/mensagens`. O cliente pode iniciar conversa pelo perfil público do restaurante, pelo detalhe de uma reserva, pelo detalhe de um pedido ou pela tela de adicionar pedido antecipado. O restaurante pode abrir conversa pela tela de reservas ou pela cozinha, vinculando automaticamente o atendimento à reserva ou ao pedido. Quando há pedido ou reserva, a conversa carrega esse contexto para reduzir ruído no atendimento.
-
-Rotas principais:
-
-- `GET /api/mensagens`: lista conversas do participante autenticado.
-- `POST /api/mensagens/conversas`: cria ou reutiliza uma conversa direta, de reserva ou de pedido.
-- `GET /api/mensagens/:id`: carrega a conversa e marca como lida para o participante.
-- `POST /api/mensagens/:id/mensagens`: envia mensagem para uma conversa aberta.
-- `PATCH /api/mensagens/:id/arquivar`: limpa o histórico da conversa apenas para o participante atual.
-
-Segurança aplicada:
-
-- A API exige autenticação em todas as rotas do chat.
-- O backend resolve o perfil real do usuário em `clientes` ou `restaurantes`; não usa dados editáveis de metadata como fonte de autorização.
-- Antes de abrir, enviar ou arquivar, a API confirma se a conversa pertence ao cliente ou ao restaurante logado.
-- A criação por `id_pedido` ou `id_reserva` valida se o recurso pertence aos participantes.
-- O restaurante não pode criar conversa direta com qualquer cliente sem vínculo operacional.
-- Mensagens vazias, IDs inválidos e mensagens acima de 1200 caracteres são recusados.
-- O envio de mensagem cria notificação interna para o outro participante.
-- A limpeza do histórico é individual: oculta a conversa para quem executou a ação, sem apagar o registro do outro participante nem remover dados necessários para auditoria.
-
-UX atual:
-
-- Enter envia mensagem; Shift + Enter quebra linha.
-- A listagem mostra conversas não lidas, último conteúdo, contexto de pedido/reserva e foto do restaurante quando disponível.
-- A conversa possui estados de carregamento, vazio e erro, mantendo o histórico restrito aos participantes.
-- Listas e telas internas possuem ação de limpar histórico com confirmação antes de executar.
-
-## Prontidão
-
-### Bloqueadores antes de pagamentos reais ou piloto
-
-- Criar Supabase exclusivo para testes automatizados.
-- Executar concorrência real de reservas e pedidos.
-- Executar matriz RLS autenticada com dois clientes, dois restaurantes e administrador.
-- Validar webhook duplicado, pendente → aprovado e aprovado → estornado no sandbox.
-- Validar estorno real no sandbox Mercado Pago.
-- Implementar conciliação periódica independente das telas.
-- Configurar alertas externos e testar backup/restauração.
-- Revisar termos e política de privacidade juridicamente.
-
-### Não bloqueia evolução dos módulos
-
-- Melhorias visuais e skeletons.
-- Paginação adicional enquanto o volume permanece baixo.
-- Refatoração gradual dos arquivos grandes.
-
-É seguro continuar construindo módulos sem dinheiro real enquanto os bloqueadores são tratados. Não é seguro iniciar o piloto financeiro antes deles.
-
-## Documentação
-
-- [Fluxo Mercado Pago](docs/fluxo-pagamento-mercado-pago.md)
-- [Melhorias técnicas](docs/melhorias-tecnicas.md)
-- [Operação e implantação](docs/operacao-producao.md)
-- [LGPD e incidentes](docs/lgpd-e-incidentes.md)
-- [Piloto controlado](docs/piloto-controlado.md)
+Não há arquivo `LICENSE` na raiz. O manifest do backend declara `ISC`, enquanto os manifests da raiz e do frontend usam `private: true`. Esses metadados não documentam uma licença unificada para o Appono; sua definição depende dos responsáveis pelo projeto.

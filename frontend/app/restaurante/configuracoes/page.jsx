@@ -1,4 +1,5 @@
 "use client";
+import { useInterface } from "@/lib/use-interface";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -24,25 +25,26 @@ const initialForm = {
 };
 const navItems = [
     { label: "Dashboard", href: "/restaurante/dashboard" },
-    { label: "Gestao de cardapio", href: "/restaurante/cardapio" },
+    { label: "Gestão de cardápio", href: "/restaurante/cardapio" },
     { label: "Desempenho", href: "/restaurante/desempenho" },
-    { label: "Relatorio financeiro", href: "/restaurante/financeiro" },
+    { label: "Relatório financeiro", href: "/restaurante/financeiro" },
     { label: "Reservas", href: "/restaurante/reservas" },
     { label: "Cozinha", href: "/restaurante/pedidos" },
-    { label: "Historico", href: "/restaurante/historico-pedidos" },
+    { label: "Histórico", href: "/restaurante/historico-pedidos" },
     { label: "Mensagens", href: "/restaurante/mensagens" },
-    { label: "Configuracoes", href: "/restaurante/configuracoes" },
+    { label: "Suporte", href: "/restaurante/suporte" },
+    { label: "Configurações", href: "/restaurante/configuracoes" },
 ];
 const settingsItems = [
-    { label: "Informacoes da loja", icon: "store", href: "/restaurante/configuracoes" },
-    { label: "Endereco da loja", icon: "map-pin", href: "/restaurante/configuracoes/endereco" },
+    { label: "Informações da loja", icon: "store", href: "/restaurante/configuracoes" },
+    { label: "Endereço da loja", icon: "map-pin", href: "/restaurante/configuracoes/endereco" },
     {
-        label: "Preferencias de notificacao",
+        label: "Preferências de notificação",
         icon: "bell",
         href: "/restaurante/configuracoes/notificacoes",
     },
     {
-        label: "Seguranca e acesso",
+        label: "Segurança e acesso",
         icon: "shield",
         href: "/restaurante/configuracoes/seguranca",
     },
@@ -52,7 +54,7 @@ const settingsItems = [
         href: "/restaurante/financeiro",
     },
     {
-        label: "Operacao & logistica",
+        label: "Operação & logística",
         icon: "settings",
         href: "/restaurante/configuracoes/operacao",
     },
@@ -75,14 +77,16 @@ function Icon({ type, className = "h-5 w-5", }) {
     </svg>);
 }
 function Field({ label, value, onChange, className = "", disabled = false, }) {
+    const { ui } = useInterface();
     return (<label className={`grid gap-2 ${className}`}>
       <span className="text-xs font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">
-        {label}
+        {ui(label)}
       </span>
       <input value={value} onChange={(event) => onChange(event.target.value)} disabled={disabled} className="h-12 rounded-[8px] border border-app-baunilha-dourada bg-app-creme-suave px-4 text-sm text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20 disabled:cursor-not-allowed disabled:opacity-65"/>
     </label>);
 }
 export default function RestaurantSettingsPage() {
+    const { ui } = useInterface();
     const { sessao, sessaoCarregada } = useSessaoLocal();
     const [form, setForm] = useState(initialForm);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -113,7 +117,7 @@ export default function RestaurantSettingsPage() {
             catch (error) {
                 setMessage(error instanceof Error
                     ? error.message
-                    : "Nao foi possivel carregar os dados cadastrados.");
+                    : "Não foi possível carregar os dados cadastrados.");
             }
         }
         carregarDadosCadastrados();
@@ -156,10 +160,10 @@ export default function RestaurantSettingsPage() {
                 setNovaImagem(null);
             }
             atualizarNomeSessao(resposta.perfil.nome);
-            setMessage(resposta.message ?? "Alteracoes salvas com sucesso.");
+            setMessage(resposta.message ?? "Alterações salvas com sucesso.");
         }
         catch (error) {
-            setMessage(error instanceof Error ? error.message : "Nao foi possivel salvar as alteracoes.");
+            setMessage(error instanceof Error ? error.message : "Não foi possível salvar as alterações.");
         }
         finally {
             setSalvando(false);
@@ -175,34 +179,30 @@ export default function RestaurantSettingsPage() {
     if (sessao?.type !== "restaurant") {
         return (<main className="flex min-h-screen items-center justify-center bg-white px-5 text-app-cafe-profundo">
         <section className="w-full max-w-lg rounded-[8px] bg-app-creme-leve p-8 text-center shadow-sm ring-1 ring-app-baunilha-dourada">
-          <Image src="/brand/appono-mark.svg" alt="Appono" width={88} height={88} className="mx-auto h-20 w-20" priority/>
-          <h1 className="mt-6 text-3xl font-semibold">Acesso restrito</h1>
-          <p className="mt-3 text-sm leading-6 text-app-cinza">
-            Esta area e destinada a contas de restaurante.
-          </p>
-          <Link href="/login" className="mt-6 inline-flex h-11 items-center justify-center rounded-[8px] bg-app-dourado-mel px-6 text-sm font-bold text-white transition hover:bg-app-caramelo-torrado">
-            Entrar
-          </Link>
+          <Image src="/brand/appono-mark.svg" alt={ui("Appono")} width={88} height={88} className="mx-auto h-20 w-20" priority/>
+          <h1 className="mt-6 text-3xl font-semibold">{ui("Acesso restrito")}</h1>
+          <p className="mt-3 text-sm leading-6 text-app-cinza">{ui("Esta área é destinada a contas de restaurante.")}</p>
+          <Link href="/login" className="mt-6 inline-flex h-11 items-center justify-center rounded-[8px] bg-app-dourado-mel px-6 text-sm font-bold text-white transition hover:bg-app-caramelo-torrado">{ui("Entrar")}</Link>
         </section>
       </main>);
     }
     return (<main className="flex min-h-screen flex-col bg-white text-app-cafe-profundo">
       <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-app-creme-leve/90 text-app-cafe-profundo shadow-sm backdrop-blur-md">
         <div className="mx-auto grid h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-5 lg:h-20">
-          <div aria-label="Appono">
-            <Image src="/brand/appono-mark.svg" alt="Appono" width={88} height={88} className="h-11 w-11 lg:h-14 lg:w-14" priority/>
+          <div aria-label={ui("Appono")}>
+            <Image src="/brand/appono-mark.svg" alt={ui("Appono")} width={88} height={88} className="h-11 w-11 lg:h-14 lg:w-14" priority/>
           </div>
 
           <nav className="hidden items-center justify-self-center gap-6 text-xs font-semibold text-app-cinza xl:flex">
             {navItems.map((item) => (<Link key={item.label} href={item.href} className={item.href === "/restaurante/configuracoes"
                 ? "text-app-cafe-profundo"
                 : "transition hover:text-app-cafe-profundo"}>
-                {item.label}
+                {ui(item.label)}
               </Link>))}
           </nav>
 
           <ItemHeaderNotificacoes href="/restaurante/notificacoes" />
-          <button type="button" onClick={() => setMobileMenuOpen((current) => !current)} className="flex h-9 w-9 items-center justify-center justify-self-end rounded-[8px] border border-app-baunilha-dourada bg-white text-app-cafe-profundo xl:hidden" aria-label="Abrir menu" aria-expanded={mobileMenuOpen} aria-controls="restaurant-settings-menu">
+          <button type="button" onClick={() => setMobileMenuOpen((current) => !current)} className="flex h-9 w-9 items-center justify-center justify-self-end rounded-[8px] border border-app-baunilha-dourada bg-white text-app-cafe-profundo xl:hidden" aria-label={ui("Abrir menu")} aria-expanded={mobileMenuOpen} aria-controls="restaurant-settings-menu">
             <Icon type="menu"/>
           </button>
         </div>
@@ -212,7 +212,7 @@ export default function RestaurantSettingsPage() {
               {navItems.map((item) => (<Link key={item.label} href={item.href} onClick={() => setMobileMenuOpen(false)} className={item.href === "/restaurante/configuracoes"
                     ? "text-app-cafe-profundo"
                     : "transition hover:text-app-cafe-profundo"}>
-                  {item.label}
+                  {ui(item.label)}
                 </Link>))}
             </div>
           </nav>) : null}
@@ -222,16 +222,9 @@ export default function RestaurantSettingsPage() {
         <div className="grid gap-8 lg:grid-cols-[0.42fr_1fr]">
           <aside className="grid gap-6">
             <section className="rounded-[8px] bg-app-creme-leve p-7 shadow-sm ring-1 ring-app-baunilha-dourada/60 sm:p-8">
-              <p className="text-[10px] font-bold uppercase text-app-caramelo-torrado">
-                Perfil
-              </p>
-              <h1 className="mt-3 text-3xl font-medium italic leading-tight text-app-cafe-profundo">
-                Configuracoes do Perfil
-              </h1>
-              <p className="mt-5 text-sm leading-6 text-app-mocha">
-                Gerencie as informacoes da loja e dados fiscais do
-                estabelecimento.
-              </p>
+              <p className="text-[10px] font-bold uppercase text-app-caramelo-torrado">{ui("Perfil")}</p>
+              <h1 className="mt-3 text-3xl font-medium italic leading-tight text-app-cafe-profundo">{ui("Configurações do Perfil")}</h1>
+              <p className="mt-5 text-sm leading-6 text-app-mocha">{ui("Gerencie as informações da loja e dados fiscais do estabelecimento.")}</p>
             </section>
 
             <nav className="rounded-[8px] bg-white p-2 shadow-sm ring-1 ring-app-baunilha-dourada/45">
@@ -240,7 +233,7 @@ export default function RestaurantSettingsPage() {
                 : "text-app-mocha hover:bg-app-creme-leve"}`}>
                   <span className="flex items-center gap-3">
                     <Icon type={item.icon} className="h-5 w-5"/>
-                    <span className="text-sm font-semibold">{item.label}</span>
+                    <span className="text-sm font-semibold">{ui(item.label)}</span>
                   </span>
                   <Icon type="chevron-right" className="h-4 w-4"/>
                 </Link>))}
@@ -250,12 +243,8 @@ export default function RestaurantSettingsPage() {
           <form onSubmit={submitForm} className="rounded-[8px] bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada/45 sm:p-8">
             <div className="flex flex-col gap-6 border-b border-app-baunilha-dourada/60 pb-7 sm:flex-row sm:items-start sm:justify-between">
               <div>
-                <h2 className="text-3xl font-medium text-app-cafe-profundo">
-                  Dados Cadastrais
-                </h2>
-                <p className="mt-2 max-w-md text-sm leading-6 text-app-mocha">
-                  Preencha as informacoes fiscais e de contato da sua loja.
-                </p>
+                <h2 className="text-3xl font-medium text-app-cafe-profundo">{ui("Dados Cadastrais")}</h2>
+                <p className="mt-2 max-w-md text-sm leading-6 text-app-mocha">{ui("Preencha as informações fiscais e de contato da sua loja.")}</p>
               </div>
             </div>
 
@@ -268,34 +257,27 @@ export default function RestaurantSettingsPage() {
                 <input type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => selecionarImagem(event.target.files?.[0])} className="sr-only"/>
               </label>
               <div>
-                <h3 className="text-lg font-semibold text-app-cafe-profundo">
-                  Logotipo da Loja
-                </h3>
-                <p className="mt-2 text-sm leading-6 text-app-cinza">
-                  Formatos suportados: JPG, PNG. Tamanho recomendado:
-                  500x500px.
-                </p>
+                <h3 className="text-lg font-semibold text-app-cafe-profundo">{ui("Logotipo da Loja")}</h3>
+                <p className="mt-2 text-sm leading-6 text-app-cinza">{ui("Formatos suportados: JPG, PNG. Tamanho recomendado: 500x500px.")}</p>
               </div>
             </section>
 
             <section className="mt-8 grid gap-6 sm:grid-cols-2">
-              <Field label="Nome da loja" value={form.storeName} onChange={(value) => updateField("storeName", value)}/>
-              <Field label="CNPJ" value={form.document} onChange={(value) => updateField("document", value)} disabled/>
-              <Field label="Razao social" value={form.legalName} onChange={(value) => updateField("legalName", value)} disabled/>
-              <Field label="Telefone de contato" value={form.phone} onChange={(value) => updateField("phone", value)}/>
-              <Field label="Email comercial" value={form.email} onChange={(value) => updateField("email", value)} className="sm:col-span-2"/>
-              <Field label="Consumo minimo por pessoa (R$)" value={form.minimumReservationValue} onChange={(value) => updateField("minimumReservationValue", value.replace(/[^\d.,]/g, "").replace(",", "."))} className="sm:col-span-2"/>
+              <Field label={ui("Nome da loja")} value={form.storeName} onChange={(value) => updateField("storeName", value)}/>
+              <Field label={ui("CNPJ")} value={form.document} onChange={(value) => updateField("document", value)} disabled/>
+              <Field label={ui("Razão social")} value={form.legalName} onChange={(value) => updateField("legalName", value)} disabled/>
+              <Field label={ui("Telefone de contato")} value={form.phone} onChange={(value) => updateField("phone", value)}/>
+              <Field label={ui("Email comercial")} value={form.email} onChange={(value) => updateField("email", value)} className="sm:col-span-2"/>
+              <Field label={ui("Consumo mínimo por pessoa (R$)")} value={form.minimumReservationValue} onChange={(value) => updateField("minimumReservationValue", value.replace(/[^\d.,]/g, "").replace(",", "."))} className="sm:col-span-2"/>
             </section>
 
             <section className="mt-8 border-t border-app-baunilha-dourada/60 pt-8">
               <h3 className="flex items-center gap-2 text-2xl font-medium italic text-app-cafe-profundo">
-                <Icon type="map-pin" className="h-5 w-5"/>
-                Localizacao
-              </h3>
+                <Icon type="map-pin" className="h-5 w-5"/>{ui("Localização")}</h3>
 
               <div className="mt-6 grid gap-6 sm:grid-cols-[1fr_0.42fr]">
-                <Field label="Endereco" value={form.address} onChange={(value) => updateField("address", value)}/>
-                <Field label="CEP" value={form.postalCode} onChange={(value) => updateField("postalCode", value)}/>
+                <Field label={ui("Endereço")} value={form.address} onChange={(value) => updateField("address", value)}/>
+                <Field label={ui("CEP")} value={form.postalCode} onChange={(value) => updateField("postalCode", value)}/>
               </div>
             </section>
 
@@ -303,49 +285,48 @@ export default function RestaurantSettingsPage() {
               <button type="button" onClick={() => {
             setForm(initialForm);
             setMessage("");
-        }} className="h-11 rounded-[8px] px-8 text-xs font-bold uppercase tracking-[0.18em] text-app-mocha transition hover:bg-app-creme-leve">
-                Descartar
-              </button>
+        }} className="h-11 rounded-[8px] px-8 text-xs font-bold uppercase tracking-[0.18em] text-app-mocha transition hover:bg-app-creme-leve">{ui("Descartar")}</button>
               <button type="submit" disabled={salvando} className="h-11 rounded-[8px] bg-app-dourado-mel px-8 text-xs font-bold uppercase text-white transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-60">
-                {salvando ? "Salvando..." : "Salvar alteracoes"}
+                {ui(salvando ? "Salvando..." : "Salvar alterações")}
               </button>
             </div>
 
             {message ? (<p className="mt-4 text-sm font-semibold text-app-caramelo-torrado">
-                {message}
+                {ui(message)}
               </p>) : null}
           </form>
         </div>
 
-        
+        <section className="mx-auto mt-10 max-w-4xl rounded-[8px] bg-app-creme-suave p-6 shadow-sm ring-1 ring-app-baunilha-dourada/60 sm:p-8">
+          <div className="grid gap-6 sm:grid-cols-[180px_1fr] sm:items-center">
+            <div className="flex min-h-32 items-center justify-center rounded-[8px] bg-app-cafe-profundo/55 text-app-creme-leve">
+              <Icon type="shield" className="h-10 w-10"/>
+            </div>
+            <div>
+              <h2 className="text-xl font-medium text-app-cafe-profundo">{ui("Precisa alterar dados restritos?")}</h2>
+              <p className="mt-3 max-w-md text-sm leading-6 text-app-mocha">{ui("Algumas informações cadastrais requerem validação manual para garantir a segurança da plataforma.")}</p>
+              <button type="button" className="mt-5 text-xs font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado transition hover:text-app-cafe-profundo">{ui("Falar com consultor")}</button>
+            </div>
+          </div>
+        </section>
 
         <SeletorTema />
 
         <div className="mx-auto mt-7 max-w-md border-t border-app-baunilha-dourada/60 pt-5 text-center">
           <button type="button" onClick={logout} className="inline-flex items-center gap-3 text-sm font-bold text-app-vermelho-erro transition hover:text-app-cafe-profundo">
-            <Icon type="log-out"/>
-            Sair da conta
-          </button>
+            <Icon type="log-out"/>{ui("Sair da conta")}</button>
         </div>
       </section>
 
       <footer className="border-t border-app-cacau-intenso/20 bg-app-cafe-profundo px-5 py-7 text-app-creme-leve">
         <div className="mx-auto flex max-w-7xl flex-col items-center gap-5 text-center sm:flex-row sm:justify-between">
-          <Image src="/brand/appono-mark.svg" alt="Appono" width={80} height={80} className="h-14 w-14 brightness-0 invert"/>
+          <Image src="/brand/appono-mark.svg" alt={ui("Appono")} width={80} height={80} className="h-14 w-14 brightness-0 invert"/>
           <nav className="flex flex-wrap justify-center gap-8 text-[10px] font-bold uppercase text-app-baunilha-dourada">
-            <Link href="#" className="transition hover:text-app-chantilly">
-              Politica de Privacidade
-            </Link>
-            <Link href="#" className="transition hover:text-app-chantilly">
-              Termos de Uso
-            </Link>
-            <Link href="#" className="transition hover:text-app-chantilly">
-              Contato
-            </Link>
+            <Link href="#" className="transition hover:text-app-chantilly">{ui("Política de Privacidade")}</Link>
+            <Link href="#" className="transition hover:text-app-chantilly">{ui("Termos de Uso")}</Link>
+            <Link href="#" className="transition hover:text-app-chantilly">{ui("Contato")}</Link>
           </nav>
-          <p className="text-xs font-semibold text-app-creme-suave">
-            &copy; 2026 APPONO. Todos os direitos reservados.
-          </p>
+          <p className="text-xs font-semibold text-app-creme-suave">{ui("© 2026 APPONO. Todos os direitos reservados.")}</p>
         </div>
       </footer>
     </main>);

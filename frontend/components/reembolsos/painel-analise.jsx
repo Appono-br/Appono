@@ -1,5 +1,6 @@
 "use client";
 
+import { useInterface } from "@/lib/use-interface";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { apiRequest } from "@/lib/api";
@@ -12,6 +13,7 @@ const moeda = (valor) => new Intl.NumberFormat("pt-BR", {
 }).format(Number(valor ?? 0));
 
 export function PainelAnaliseReembolsos({ perfil }) {
+    const { ui } = useInterface();
     const [items, setItems] = useState([]);
     const [erro, setErro] = useState("");
     const [carregando, setCarregando] = useState(true);
@@ -73,23 +75,17 @@ export function PainelAnaliseReembolsos({ perfil }) {
     return (
         <main className="min-h-screen bg-app-chantilly px-5 py-10 text-app-cafe-profundo">
             <section className="mx-auto max-w-6xl">
-                <Link href={perfil === "admin" ? "/admin/financeiro" : "/restaurante/financeiro"} className="text-sm font-bold text-app-caramelo-torrado">
-                    ← Voltar ao financeiro
-                </Link>
+                <Link href={perfil === "admin" ? "/admin/financeiro" : "/restaurante/financeiro"} className="text-sm font-bold text-app-caramelo-torrado">{ui("← Voltar ao financeiro")}</Link>
 
                 <header className="mt-6 rounded-[16px] bg-app-cafe-profundo p-7 text-app-creme-leve">
-                    <p className="text-xs font-bold uppercase tracking-[0.18em] text-app-baunilha-dourada">
-                        Controle financeiro
-                    </p>
-                    <h1 className="mt-2 text-3xl font-semibold">Solicitações de reembolso</h1>
-                    <p className="mt-3 max-w-3xl text-sm text-app-creme-suave">
-                        Analise os pedidos solicitados pelos clientes. Ao aprovar, a Appono marca o pagamento como estornado e remove o valor dos repasses e metricas financeiras.
-                    </p>
+                    <p className="text-xs font-bold uppercase tracking-[0.18em] text-app-baunilha-dourada">{ui("Controle financeiro")}</p>
+                    <h1 className="mt-2 text-3xl font-semibold">{ui("Solicitações de reembolso")}</h1>
+                    <p className="mt-3 max-w-3xl text-sm text-app-creme-suave">{ui("Analise os pedidos solicitados pelos clientes. Ao aprovar, a Appono marca o pagamento como estornado e remove o valor dos repasses e metricas financeiras.")}</p>
                 </header>
 
                 {erro ? (
                     <p role="alert" className="mt-5 rounded-[10px] bg-red-50 p-4 text-sm font-semibold text-red-800 ring-1 ring-red-200">
-                        {erro}
+                        {ui(erro)}
                     </p>
                 ) : null}
 
@@ -97,8 +93,8 @@ export function PainelAnaliseReembolsos({ perfil }) {
 
                 {!carregando && !items.length ? (
                     <section className="mt-6 rounded-[14px] bg-app-creme-leve p-8 text-center ring-1 ring-app-baunilha-dourada/60">
-                        <h2 className="text-xl font-semibold">Nenhuma solicitação</h2>
-                        <p className="mt-2 text-sm text-app-cinza">Os pedidos de reembolso aparecerão aqui.</p>
+                        <h2 className="text-xl font-semibold">{ui("Nenhuma solicitação")}</h2>
+                        <p className="mt-2 text-sm text-app-cinza">{ui("Os pedidos de reembolso aparecerão aqui.")}</p>
                     </section>
                 ) : null}
 
@@ -107,31 +103,27 @@ export function PainelAnaliseReembolsos({ perfil }) {
                         <article key={item.id_reembolso} className="rounded-[14px] bg-app-creme-leve p-6 ring-1 ring-app-baunilha-dourada/60">
                             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                                 <div>
-                                    <p className="text-xs font-bold uppercase text-app-caramelo-torrado">Reembolso #{item.id_reembolso}</p>
-                                    <h2 className="mt-1 text-xl font-semibold">Pedido #{item.id_pedido}</h2>
-                                    <p className="mt-1 text-sm text-app-cinza">{item.clientes?.nome ?? "Cliente"} · {item.restaurantes?.nome ?? "Restaurante"}</p>
+                                    <p className="text-xs font-bold uppercase text-app-caramelo-torrado">{ui("Reembolso #")}{item.id_reembolso}</p>
+                                    <h2 className="mt-1 text-xl font-semibold">{ui("Pedido #")}{item.id_pedido}</h2>
+                                    <p className="mt-1 text-sm text-app-cinza">{item.clientes?.nome ?? ui("Cliente")} · {item.restaurantes?.nome ?? ui("Restaurante")}</p>
                                 </div>
                                 <div className="sm:text-right">
                                     <strong className="block text-xl">{moeda(item.valor_solicitado)}</strong>
                                     <span className="mt-1 inline-block rounded-full bg-app-chantilly px-3 py-1 text-xs font-bold">
-                                        {textoStatusReembolso(item.status_reembolso)}
+                                        {ui(textoStatusReembolso(item.status_reembolso))}
                                     </span>
                                 </div>
                             </div>
 
                             <div className="mt-5 rounded-[10px] bg-app-chantilly p-4 text-sm">
-                                <strong>Motivo:</strong> {item.motivo}
-                                {item.resposta ? <p className="mt-2"><strong>Resposta:</strong> {item.resposta}</p> : null}
+                                <strong>{ui("Motivo:")}</strong> {item.motivo}
+                                {item.resposta ? <p className="mt-2"><strong>{ui("Resposta:")}</strong> {item.resposta}</p> : null}
                             </div>
 
                             {item.status_reembolso === "SOLICITADO" ? (
                                 <div className="mt-5 flex flex-wrap gap-3">
-                                    <button type="button" disabled={processando === item.id_reembolso} onClick={() => setReembolsoParaAprovar(item)} className="rounded-[8px] bg-app-cafe-profundo px-5 py-3 text-xs font-bold uppercase text-white disabled:opacity-50">
-                                        Aprovar reembolso
-                                    </button>
-                                    <button type="button" disabled={processando === item.id_reembolso} onClick={() => analisar(item, "RECUSAR")} className="rounded-[8px] border border-red-300 px-5 py-3 text-xs font-bold uppercase text-red-700 disabled:opacity-50">
-                                        Recusar
-                                    </button>
+                                    <button type="button" disabled={processando === item.id_reembolso} onClick={() => setReembolsoParaAprovar(item)} className="rounded-[8px] bg-app-cafe-profundo px-5 py-3 text-xs font-bold uppercase text-white disabled:opacity-50">{ui("Aprovar reembolso")}</button>
+                                    <button type="button" disabled={processando === item.id_reembolso} onClick={() => analisar(item, "RECUSAR")} className="rounded-[8px] border border-red-300 px-5 py-3 text-xs font-bold uppercase text-red-700 disabled:opacity-50">{ui("Recusar")}</button>
                                 </div>
                             ) : null}
                         </article>
@@ -141,18 +133,17 @@ export function PainelAnaliseReembolsos({ perfil }) {
 
             <ConfirmationDialog
                 open={Boolean(reembolsoParaAprovar)}
-                eyebrow="Aprovar reembolso"
-                title="Aprovar esta solicitação?"
-                description="O valor será removido do repasse e marcado como estornado no controle financeiro da Appono."
-                confirmLabel="Aprovar"
-                cancelLabel="Voltar"
+                eyebrow={ui("Aprovar reembolso")}
+                title={ui("Aprovar esta solicitação?")}
+                description={ui("O valor será removido do repasse e marcado como estornado no controle financeiro da Appono.")}
+                confirmLabel={ui("Aprovar")}
+                cancelLabel={ui("Voltar")}
                 variant="default"
                 loading={processando === reembolsoParaAprovar?.id_reembolso}
                 onCancel={() => setReembolsoParaAprovar(null)}
                 onConfirm={() => analisar(reembolsoParaAprovar, "APROVAR")}
                 details={reembolsoParaAprovar ? (
-                    <p className="font-semibold">
-                        Pedido #{reembolsoParaAprovar.id_pedido} - {moeda(reembolsoParaAprovar.valor_solicitado)}
+                    <p className="font-semibold">{ui("Pedido #")}{reembolsoParaAprovar.id_pedido} - {moeda(reembolsoParaAprovar.valor_solicitado)}
                     </p>
                 ) : null}
             />

@@ -24,7 +24,6 @@ const screens = [
   { module: "Cliente", title: "Mensagens", route: "/cliente/mensagens", blocks: ["Conversas", "Preview", "Status"] },
   { module: "Cliente", title: "Chat cliente", route: "/cliente/mensagens/[conversationId]", blocks: ["Historico", "Campo mensagem", "Anexos"] },
   { module: "Cliente", title: "Configuracoes", route: "/cliente/configuracoes", blocks: ["Conta", "Pagamentos", "Seguranca"] },
-  { module: "Restaurante", title: "Home restaurante", route: "/restaurante/home", blocks: ["Resumo", "Fila", "Indicadores", "Atalhos"] },
   { module: "Restaurante", title: "Dashboard", route: "/restaurante/dashboard", blocks: ["KPIs", "Cozinha", "Destaques", "Agenda"] },
   { module: "Restaurante", title: "Reservas", route: "/restaurante/reservas", blocks: ["Agendamentos", "Fila por horario", "Check-in", "Concluir/cancelar"] },
   { module: "Restaurante", title: "Cozinha", route: "/restaurante/pedidos", blocks: ["Pedidos ordenados", "Itens", "Status", "Iniciar preparo"] },

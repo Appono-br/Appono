@@ -370,7 +370,7 @@ export function LoginForm() {
             type="button"
             onClick={entrarComGoogle}
             disabled={isGoogleSubmitting}
-            className="mt-4 flex h-10 w-full items-center justify-center gap-2 rounded-full border border-[#dadce0] bg-white text-xs font-bold uppercase tracking-wide text-[#3c4043] transition hover:-translate-y-0.5 hover:border-[#c8d3e2] hover:bg-[#f8fafd] focus:outline-none focus:ring-4 focus:ring-[#4285f4]/15"
+            className="botao-google mt-4 flex h-10 w-full items-center justify-center gap-2 rounded-full border border-[#dadce0] bg-white text-xs font-bold uppercase tracking-wide text-[#3c4043] transition hover:-translate-y-0.5 hover:border-[#c8d3e2] hover:bg-[#f8fafd] focus:outline-none focus:ring-4 focus:ring-[#4285f4]/15"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"

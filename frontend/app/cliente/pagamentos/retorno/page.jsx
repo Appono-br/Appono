@@ -1,5 +1,6 @@
 "use client";
 
+import { useInterface } from "@/lib/use-interface";
 import Image from "next/image";
 import Link from "next/link";
 import { Suspense, useEffect, useMemo, useState } from "react";
@@ -21,14 +22,15 @@ function Icon({ type, className = "h-5 w-5" }) {
     );
 }
 
-function formatarMoeda(valor) {
-    return new Intl.NumberFormat("pt-BR", {
+function formatarMoeda(valor, localeUI = "pt-BR") {
+    return new Intl.NumberFormat(localeUI, {
         style: "currency",
         currency: "BRL",
     }).format(Number(valor ?? 0));
 }
 
 function PagamentoRetornoContent() {
+    const { ui , localeUI } = useInterface();
     const searchParams = useSearchParams();
     const referenciaExterna = searchParams.get("external_reference") ?? "";
     const referenciaPedido = referenciaExterna.match(/^pedido:(\d+)$/)?.[1] ?? null;
@@ -146,80 +148,70 @@ function PagamentoRetornoContent() {
     return (
         <main className="flex min-h-screen flex-col bg-white px-4 py-8 text-app-cafe-profundo sm:px-5">
             <div className="mx-auto flex w-full max-w-4xl flex-1 flex-col items-center justify-center">
-                <Image src="/brand/appono-mark.svg" alt="Appono" width={92} height={92} className="h-20 w-20" priority />
+                <Image src="/brand/appono-mark.svg" alt={ui("Appono")} width={92} height={92} className="h-20 w-20" priority />
                 <section className="mt-8 w-full rounded-[18px] bg-white p-5 text-center shadow-sm ring-1 ring-app-baunilha-dourada/70 sm:p-10">
                     <div className={`mx-auto flex h-16 w-16 items-center justify-center rounded-full ${estado.className}`}>
                         <Icon type={estado.icon} className="h-7 w-7" />
                     </div>
-                    <p className="mt-6 text-[10px] font-bold uppercase tracking-[0.22em] text-app-caramelo-torrado">
-                        Mercado Pago
-                    </p>
-                    <h1 className="mt-2 text-2xl font-bold sm:text-4xl">{mensagemVisivel || estado.title}</h1>
-                    <p className="mx-auto mt-4 max-w-xl text-sm leading-6 text-app-mocha">{mensagemVisivel ? "Aguarde alguns instantes." : estado.description}</p>
+                    <p className="mt-6 text-[10px] font-bold uppercase tracking-[0.22em] text-app-caramelo-torrado">{ui("Mercado Pago")}</p>
+                    <h1 className="mt-2 text-2xl font-bold sm:text-4xl">{ui(mensagemVisivel || estado.title)}</h1>
+                    <p className="mx-auto mt-4 max-w-xl text-sm leading-6 text-app-mocha">{ui(mensagemVisivel ? "Aguarde alguns instantes." : estado.description)}</p>
                     {dados?.status_pagamento === "PENDENTE" ? (
                         <div className="mx-auto mt-6 max-w-xl rounded-[12px] bg-app-baunilha-dourada/35 p-4 text-left text-sm leading-6 text-app-mocha ring-1 ring-app-baunilha-dourada/70">
-                            <strong className="block text-app-cafe-profundo">O pedido ainda não foi enviado para preparo.</strong>
-                            Pagamentos por Pix, boleto ou análise de cartão podem levar alguns instantes. Você pode atualizar o status por aqui ou voltar aos detalhes do pedido depois.
-                        </div>
+                            <strong className="block text-app-cafe-profundo">{ui("O pedido ainda não foi enviado para preparo.")}</strong>{ui("Pagamentos por Pix, boleto ou análise de cartão podem levar alguns instantes. Você pode atualizar o status por aqui ou voltar aos detalhes do pedido depois.")}</div>
                     ) : null}
 
                     {dados?.reserva ? (
                         <div className="mx-auto mt-7 grid max-w-xl gap-3 rounded-[12px] bg-white p-4 text-left ring-1 ring-app-baunilha-dourada/60 sm:grid-cols-2">
                             <div>
-                                <p className="text-[10px] font-bold uppercase text-app-cinza">Reserva</p>
+                                <p className="text-[10px] font-bold uppercase text-app-cinza">{ui("Reserva")}</p>
                                 <p className="mt-1 font-semibold">#{dados.reserva.id_reserva}</p>
                             </div>
                             <div>
-                                <p className="text-[10px] font-bold uppercase text-app-cinza">Status</p>
-                                <p className="mt-1 font-semibold">{textoStatusReserva(dados.reserva.status_reserva)}</p>
+                                <p className="text-[10px] font-bold uppercase text-app-cinza">{ui("Status")}</p>
+                                <p className="mt-1 font-semibold">{ui(textoStatusReserva(dados.reserva.status_reserva))}</p>
                             </div>
                             <div>
-                                <p className="text-[10px] font-bold uppercase text-app-cinza">Valor</p>
-                                <p className="mt-1 font-semibold">{formatarMoeda(dados.reserva.valor_minimo_total)}</p>
+                                <p className="text-[10px] font-bold uppercase text-app-cinza">{ui("Valor")}</p>
+                                <p className="mt-1 font-semibold">{formatarMoeda(dados.reserva.valor_minimo_total, localeUI)}</p>
                             </div>
                             <div>
-                                <p className="text-[10px] font-bold uppercase text-app-cinza">Pagamento</p>
-                                <p className="mt-1 font-semibold">{textoStatusPagamento(dados.status_pagamento)}</p>
+                                <p className="text-[10px] font-bold uppercase text-app-cinza">{ui("Pagamento")}</p>
+                                <p className="mt-1 font-semibold">{ui(textoStatusPagamento(dados.status_pagamento))}</p>
                             </div>
                         </div>
                     ) : null}
                     {dados?.pedido ? (
                         <div className="mx-auto mt-7 grid max-w-xl gap-3 rounded-[12px] bg-white p-4 text-left ring-1 ring-app-baunilha-dourada/60 sm:grid-cols-2">
                             <div>
-                                <p className="text-[10px] font-bold uppercase text-app-cinza">Pedido</p>
+                                <p className="text-[10px] font-bold uppercase text-app-cinza">{ui("Pedido")}</p>
                                 <p className="mt-1 font-semibold">#{dados.pedido.id_pedido}</p>
                             </div>
                             <div>
-                                <p className="text-[10px] font-bold uppercase text-app-cinza">Status</p>
-                                <p className="mt-1 font-semibold">{textoStatusPedido(dados.pedido.status_pedido)}</p>
+                                <p className="text-[10px] font-bold uppercase text-app-cinza">{ui("Status")}</p>
+                                <p className="mt-1 font-semibold">{ui(textoStatusPedido(dados.pedido.status_pedido))}</p>
                             </div>
                             <div>
-                                <p className="text-[10px] font-bold uppercase text-app-cinza">Valor</p>
-                                <p className="mt-1 font-semibold">{formatarMoeda(dados.pedido.valor_total)}</p>
+                                <p className="text-[10px] font-bold uppercase text-app-cinza">{ui("Valor")}</p>
+                                <p className="mt-1 font-semibold">{formatarMoeda(dados.pedido.valor_total, localeUI)}</p>
                             </div>
                             <div>
-                                <p className="text-[10px] font-bold uppercase text-app-cinza">Pagamento</p>
-                                <p className="mt-1 font-semibold">{textoStatusPagamento(dados.status_pagamento)}</p>
+                                <p className="text-[10px] font-bold uppercase text-app-cinza">{ui("Pagamento")}</p>
+                                <p className="mt-1 font-semibold">{ui(textoStatusPagamento(dados.status_pagamento))}</p>
                             </div>
                         </div>
                     ) : null}
 
                     <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
                         {idPedidoDetalhe ? (
-                            <Link href={`/cliente/pedidos/${idPedidoDetalhe}`} className="inline-flex h-11 items-center justify-center rounded-[8px] bg-app-dourado-mel px-6 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-app-caramelo-torrado">
-                                Ver detalhes do pedido
-                            </Link>
+                            <Link href={`/cliente/pedidos/${idPedidoDetalhe}`} className="inline-flex h-11 items-center justify-center rounded-[8px] bg-app-dourado-mel px-6 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-app-caramelo-torrado">{ui("Ver detalhes do pedido")}</Link>
                         ) : (
-                            <Link href="/cliente/reservas" className="inline-flex h-11 items-center justify-center rounded-[8px] bg-app-dourado-mel px-6 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-app-caramelo-torrado">
-                                Ver minhas reservas
-                            </Link>
+                            <Link href="/cliente/reservas" className="inline-flex h-11 items-center justify-center rounded-[8px] bg-app-dourado-mel px-6 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-app-caramelo-torrado">{ui("Ver minhas reservas")}</Link>
                         )}
                         <button type="button" onClick={consultarStatus} disabled={consultando || (!reservaId && !pedidoId)} className="inline-flex h-11 items-center justify-center rounded-[8px] border border-app-baunilha-dourada px-6 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:bg-app-chantilly disabled:cursor-not-allowed disabled:opacity-55">
-                            {consultando ? "Atualizando..." : "Atualizar status"}
+                            {ui(consultando ? "Atualizando..." : "Atualizar status")}
                         </button>
-                        <BotaoVoltar href="/cliente/dashboard" className="h-11 justify-center rounded-[8px] border border-app-baunilha-dourada px-6 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:bg-app-chantilly">
-                            Voltar ao inicio
-                        </BotaoVoltar>
+                        <BotaoVoltar href="/cliente/dashboard" className="h-11 justify-center rounded-[8px] border border-app-baunilha-dourada px-6 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:bg-app-chantilly">{ui("Voltar ao inicio")}</BotaoVoltar>
                     </div>
                 </section>
             </div>
@@ -228,8 +220,9 @@ function PagamentoRetornoContent() {
 }
 
 export default function PagamentoRetornoPage() {
+    const { ui } = useInterface();
     return (
-        <Suspense fallback={<main className="flex min-h-screen items-center justify-center bg-white text-app-cafe-profundo">Carregando pagamento...</main>}>
+        <Suspense fallback={<main className="flex min-h-screen items-center justify-center bg-white text-app-cafe-profundo">{ui("Carregando pagamento...")}</main>}>
             <PagamentoRetornoContent />
         </Suspense>
     );

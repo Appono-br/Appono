@@ -4,11 +4,13 @@
   "description": "Backend API com Node.js, Express e JavaScript",
   "main": "src/server.js",
   "scripts": {
-    "dev": "nodemon --exec \"node --use-system-ca\" src/server.js",
-    "build": "node --check src/server.js",
-    "start": "node --use-system-ca src/server.js",
-    "test": "node --test test/*.test.js"
-  },
+  "dev": "nodemon --watch src --watch scripts --exec node scripts/start.js",
+  "build": "node --check src/server.js",
+  "start": "node scripts/start.js",
+  "test": "node --test test/*.test.js",
+  "test:rotina:postgres": "node --test test/integration/routine-postgres.test.js",
+  "test:rotina:supabase": "node test/integration/routine-supabase-smoke.js"
+},
   "keywords": [],
   "author": "",
   "license": "ISC",

@@ -10,8 +10,12 @@ function inscreverTema(callback) {
         window.removeEventListener(eventoTema, callback);
     };
 }
-function obterTemaDoNavegador() {
-    return window.localStorage.getItem(chaveTema) === "dark" ? "escuro" : "claro";
+export function obterTemaDoNavegador() {
+    try {
+        return window.localStorage.getItem(chaveTema) === "dark" ? "escuro" : "claro";
+    } catch {
+        return document.documentElement.dataset.tema === "escuro" ? "escuro" : "claro";
+    }
 }
 function obterTemaDoServidor() {
     return "claro";
@@ -19,7 +23,12 @@ function obterTemaDoServidor() {
 export function useTemaLocal() {
     const tema = useSyncExternalStore(inscreverTema, obterTemaDoNavegador, obterTemaDoServidor);
     function atualizarTema(novoTema) {
-        window.localStorage.setItem(chaveTema, novoTema === "escuro" ? "dark" : "light");
+        document.documentElement.dataset.tema = novoTema === "escuro" ? "escuro" : "claro";
+        try {
+            window.localStorage.setItem(chaveTema, novoTema === "escuro" ? "dark" : "light");
+        } catch {
+            // Mantém a troca visual mesmo quando o navegador bloqueia o storage.
+        }
         window.dispatchEvent(new Event(eventoTema));
     }
     return { tema, atualizarTema };

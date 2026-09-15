@@ -1,5 +1,6 @@
 "use client";
 
+import { useInterface } from "@/lib/use-interface";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { apiRequest } from "@/lib/api";
@@ -28,6 +29,7 @@ function IconeSino({ className = "h-5 w-5" }) {
 }
 
 export function LinkNotificacoes({ href }) {
+    const { ui } = useInterface();
     const [naoLidas, setNaoLidas] = useState(0);
 
     useEffect(() => {
@@ -63,11 +65,11 @@ export function LinkNotificacoes({ href }) {
     }, []);
 
     return (
-        <Link href={href} className="relative transition hover:text-app-caramelo-torrado focus:outline-none focus:ring-2 focus:ring-app-dourado-mel" aria-label={naoLidas ? `${naoLidas} notificações não lidas` : "Notificações"}>
+        <Link href={href} className="relative transition hover:text-app-caramelo-torrado focus:outline-none focus:ring-2 focus:ring-app-dourado-mel" aria-label={ui(naoLidas ? `${naoLidas} notificações não lidas` : "Notificações")}>
             <IconeSino />
             {naoLidas > 0 ? (
                 <span className="absolute -right-2 -top-2 flex h-4 min-w-4 animate-pulse items-center justify-center rounded-full bg-app-vermelho-erro px-1 text-[10px] font-bold leading-none text-white">
-                    {naoLidas > 9 ? "9+" : naoLidas}
+                    {ui(naoLidas > 9 ? "9+" : naoLidas)}
                 </span>
             ) : null}
         </Link>

@@ -1,7 +1,9 @@
 "use client";
-import { useSyncExternalStore } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import { RotaProtegida } from "@/components/auth/rota-protegida";
+import { ClienteHeader } from "@/components/cliente/cliente-header";
 import { useTemaLocal } from "@/lib/use-tema-local";
+import { useIdiomaLocal } from "@/lib/use-idioma-local";
 import { TelaCarregandoSessao } from "@/lib/use-sessao-local";
 function inscrever() {
     return () => { };
@@ -14,12 +16,17 @@ function obterEstadoServidor() {
 }
 export default function LayoutCliente({ children }) {
     const { tema } = useTemaLocal();
+    const { idioma } = useIdiomaLocal();
     const estaNoNavegador = useSyncExternalStore(inscrever, obterEstadoCliente, obterEstadoServidor);
+    useEffect(() => {
+        document.documentElement.lang = idioma;
+    }, [idioma]);
     if (!estaNoNavegador) {
         return <TelaCarregandoSessao />;
     }
     return (<RotaProtegida perfisPermitidos={["client"]}>
-      <div className={`area-autenticada area-cliente min-h-full ${tema === "escuro" ? "tema-escuro" : ""}`}>
+      <div data-appono-sem-traducao className={`area-autenticada area-cliente min-h-full ${tema === "escuro" ? "tema-escuro" : ""}`}>
+        <ClienteHeader />
         {children}
       </div>
     </RotaProtegida>);

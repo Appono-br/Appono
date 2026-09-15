@@ -1,8 +1,12 @@
+"use client";
+
+import { useInterface } from "@/lib/use-interface";
 export function FormField({ label, className = "", ...props }) {
+    const { ui } = useInterface();
   return (
     <label className={`flex flex-col gap-0.5 ${className}`}>
       <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-app-cafe-profundo">
-        {label}
+        {ui(label)}
       </span>
 
       <input
@@ -19,10 +23,11 @@ export function SelectField({
   className = "",
   ...props
 }) {
+    const { ui } = useInterface();
   return (
     <label className={`flex flex-col gap-0.5 ${className}`}>
       <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-app-cafe-profundo">
-        {label}
+        {ui(label)}
       </span>
 
       <select

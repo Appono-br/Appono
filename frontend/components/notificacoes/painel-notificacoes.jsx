@@ -1,5 +1,7 @@
 "use client";
 
+import { useInterface } from "@/lib/use-interface";
+import { mensagemNotificacaoUI } from "@/lib/notificacoes-interface";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -18,11 +20,11 @@ const filtros = [
     { chave: "cancelamentos", rotulo: "Cancelamentos" },
 ];
 
-function formatarDataHora(data) {
+function formatarDataHora(data, localeUI = "pt-BR") {
     if (!data) {
         return "Agora";
     }
-    return new Date(data).toLocaleString("pt-BR", {
+    return new Date(data).toLocaleString(localeUI, {
         day: "2-digit",
         month: "2-digit",
         year: "numeric",
@@ -57,6 +59,7 @@ function IconeEstrela({ preenchida }) {
 }
 
 export function PainelNotificacoes({ modulo, voltarHref, dashboardHref }) {
+    const { ui , localeUI } = useInterface();
     const [notificacoes, setNotificacoes] = useState([]);
     const [carregando, setCarregando] = useState(true);
     const [mensagem, setMensagem] = useState("");
@@ -221,34 +224,23 @@ export function PainelNotificacoes({ modulo, voltarHref, dashboardHref }) {
     return (
         <main className="flex min-h-screen flex-col bg-app-chantilly text-app-cafe-profundo">
             <section className="mx-auto w-full max-w-6xl flex-1 px-5 py-10 sm:py-14">
-                <BotaoVoltar href={voltarHref} className="text-xs font-bold uppercase tracking-[0.12em] text-app-caramelo-torrado transition hover:text-app-cafe-profundo">
-                    Voltar
-                </BotaoVoltar>
+                <BotaoVoltar href={voltarHref} className="text-xs font-bold uppercase tracking-[0.12em] text-app-caramelo-torrado transition hover:text-app-cafe-profundo">{ui("Voltar")}</BotaoVoltar>
 
                 <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_320px] lg:items-start">
                     <div className="rounded-[22px] bg-app-creme-leve p-6 shadow-sm ring-1 ring-app-baunilha-dourada/60 sm:rounded-[28px] sm:p-9">
-                        <Image src="/brand/appono-mark.svg" alt="Appono" width={76} height={76} className="h-14 w-14" priority />
-                        <p className="mt-8 text-[10px] font-bold uppercase tracking-[0.22em] text-app-caramelo-torrado">
-                            Central de notificações
-                        </p>
-                        <h1 className="mt-3 text-3xl font-semibold leading-tight sm:text-5xl">
-                            Acompanhe o que muda na sua operação
-                        </h1>
-                        <p className="mt-4 max-w-2xl text-sm leading-6 text-app-mocha sm:text-base">
-                            Aqui ficam os avisos importantes de reservas, pedidos, pagamentos e cancelamentos do modulo {modulo}.
+                        <Image src="/brand/appono-mark.svg" alt={ui("Appono")} width={76} height={76} className="h-14 w-14" priority />
+                        <p className="mt-8 text-[10px] font-bold uppercase tracking-[0.22em] text-app-caramelo-torrado">{ui("Central de notificações")}</p>
+                        <h1 className="mt-3 text-3xl font-semibold leading-tight sm:text-5xl">{ui("Acompanhe o que muda na sua operação")}</h1>
+                        <p className="mt-4 max-w-2xl text-sm leading-6 text-app-mocha sm:text-base">{ui("Aqui ficam os avisos importantes de reservas, pedidos, pagamentos e cancelamentos do modulo ")}{ui(modulo)}.
                         </p>
                     </div>
 
                     <aside className="rounded-[24px] bg-app-cafe-profundo p-6 text-app-creme-leve shadow-sm">
-                        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-baunilha-dourada">Resumo</p>
+                        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-baunilha-dourada">{ui("Resumo")}</p>
                         <strong className="mt-4 block text-4xl">{naoLidas}</strong>
-                        <p className="mt-2 text-sm text-app-creme-suave">notificação(ões) ainda não lida(s).</p>
-                        <button type="button" onClick={marcarTodasComoLidas} disabled={!naoLidas} className="mt-6 w-full rounded-full bg-app-baunilha-dourada px-5 py-3 text-xs font-bold uppercase tracking-[0.12em] text-app-cafe-profundo transition hover:bg-app-dourado-mel hover:text-white disabled:cursor-not-allowed disabled:opacity-50">
-                            Marcar todas como lidas
-                        </button>
-                        <button type="button" onClick={solicitarLimparNotificações} disabled={!notificacoes.some((notificacao) => !notificacao.favoritada)} className="mt-3 w-full rounded-full border border-app-baunilha-dourada/70 px-5 py-3 text-xs font-bold uppercase tracking-[0.12em] text-app-creme-leve transition hover:bg-app-baunilha-dourada/15 disabled:cursor-not-allowed disabled:opacity-50">
-                            Limpar não favoritas
-                        </button>
+                        <p className="mt-2 text-sm text-app-creme-suave">{ui("notificação(ões) ainda não lida(s).")}</p>
+                        <button type="button" onClick={marcarTodasComoLidas} disabled={!naoLidas} className="mt-6 w-full rounded-full bg-app-baunilha-dourada px-5 py-3 text-xs font-bold uppercase tracking-[0.12em] text-app-cafe-profundo transition hover:bg-app-dourado-mel hover:text-white disabled:cursor-not-allowed disabled:opacity-50">{ui("Marcar todas como lidas")}</button>
+                        <button type="button" onClick={solicitarLimparNotificações} disabled={!notificacoes.some((notificacao) => !notificacao.favoritada)} className="mt-3 w-full rounded-full border border-app-baunilha-dourada/70 px-5 py-3 text-xs font-bold uppercase tracking-[0.12em] text-app-creme-leve transition hover:bg-app-baunilha-dourada/15 disabled:cursor-not-allowed disabled:opacity-50">{ui("Limpar não favoritas")}</button>
                     </aside>
                 </div>
 
@@ -256,19 +248,17 @@ export function PainelNotificacoes({ modulo, voltarHref, dashboardHref }) {
                     <p className={`mt-6 rounded-[14px] px-4 py-3 text-sm font-semibold ring-1 ${tipoMensagem === "sucesso"
                         ? "bg-app-baunilha-dourada/25 text-app-cafe-profundo ring-app-baunilha-dourada/60"
                         : "bg-app-vermelho-erro/10 text-app-vermelho-erro ring-app-vermelho-erro/20"}`}>
-                        {mensagem}
+                        {ui(mensagem)}
                     </p>
                 ) : null}
 
                 <section className="mt-8 rounded-[22px] bg-app-creme-leve p-4 shadow-sm ring-1 ring-app-baunilha-dourada/60 sm:rounded-[28px] sm:p-6">
                     <div className="flex flex-col gap-3 border-b border-app-baunilha-dourada/55 pb-5 sm:flex-row sm:items-end sm:justify-between">
                         <div>
-                            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">Histórico</p>
-                            <h2 className="mt-2 text-2xl font-semibold">Notificações recentes</h2>
+                            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">{ui("Histórico")}</p>
+                            <h2 className="mt-2 text-2xl font-semibold">{ui("Notificações recentes")}</h2>
                         </div>
-                        <button type="button" onClick={carregarNotificacoes} className="w-fit rounded-full border border-app-caramelo-torrado px-5 py-2 text-xs font-bold uppercase tracking-[0.12em] text-app-caramelo-torrado transition hover:bg-app-caramelo-torrado hover:text-white">
-                            Atualizar
-                        </button>
+                        <button type="button" onClick={carregarNotificacoes} className="w-fit rounded-full border border-app-caramelo-torrado px-5 py-2 text-xs font-bold uppercase tracking-[0.12em] text-app-caramelo-torrado transition hover:bg-app-caramelo-torrado hover:text-white">{ui("Atualizar")}</button>
                     </div>
                     <div className="mt-5 flex flex-wrap gap-2">
                         {filtros.map((filtro) => (
@@ -280,13 +270,13 @@ export function PainelNotificacoes({ modulo, voltarHref, dashboardHref }) {
                                     ? "bg-app-cafe-profundo text-app-creme-leve"
                                     : "border border-app-baunilha-dourada bg-app-chantilly text-app-mocha hover:border-app-caramelo-torrado hover:text-app-cafe-profundo"}`}
                             >
-                                {filtro.rotulo}
+                                {ui(filtro.rotulo)}
                             </button>
                         ))}
                     </div>
 
                     {carregando ? (
-                        <p className="py-12 text-center text-sm text-app-cinza">Carregando notificações...</p>
+                        <p className="py-12 text-center text-sm text-app-cinza">{ui("Carregando notificações...")}</p>
                     ) : notificacoes.length ? (
                         <div className="mt-5 grid gap-4">
                             {notificacoes.map((notificacao) => (
@@ -295,22 +285,18 @@ export function PainelNotificacoes({ modulo, voltarHref, dashboardHref }) {
                                         <div>
                                             <div className="flex flex-wrap items-center gap-2">
                                                 {notificacao.favoritada ? (
-                                                    <span className="rounded-full bg-app-dourado-mel px-3 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-app-cafe-profundo">
-                                                        Favorita
-                                                    </span>
+                                                    <span className="rounded-full bg-app-dourado-mel px-3 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-app-cafe-profundo">{ui("Favorita")}</span>
                                                 ) : null}
                                                 {!notificacao.lida ? (
-                                                    <span className="rounded-full bg-app-caramelo-torrado px-3 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-white">
-                                                        Nova
-                                                    </span>
+                                                    <span className="rounded-full bg-app-caramelo-torrado px-3 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-white">{ui("Nova")}</span>
                                                 ) : null}
                                                 <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-app-cinza">
-                                                    {textoTipoEvento(notificacao.tipo_evento)}
+                                                    {ui(textoTipoEvento(notificacao.tipo_evento))}
                                                 </span>
                                             </div>
-                                            <h3 className="mt-3 text-xl font-semibold text-app-cafe-profundo">{notificacao.titulo}</h3>
-                                            <p className="mt-2 max-w-3xl text-sm leading-6 text-app-mocha">{notificacao.mensagem}</p>
-                                            <p className="mt-3 text-xs text-app-cinza">{formatarDataHora(notificacao.criado_em)}</p>
+                                            <h3 className="mt-3 text-xl font-semibold text-app-cafe-profundo">{notificacao.tipo_evento === "INFORMATIVO" ? notificacao.titulo : ui(notificacao.titulo)}</h3>
+                                            <p className="mt-2 max-w-3xl text-sm leading-6 text-app-mocha">{mensagemNotificacaoUI(notificacao, localeUI.startsWith("en") ? "en" : "pt-BR")}</p>
+                                            <p className="mt-3 text-xs text-app-cinza">{formatarDataHora(notificacao.criado_em, localeUI)}</p>
                                         </div>
                                         <div className="flex flex-wrap gap-2 sm:min-w-52 sm:justify-end">
                                             <button type="button" onClick={() => alternarFavorita(notificacao)} className={`inline-flex h-9 w-9 items-center justify-center rounded-full border transition ${notificacao.favoritada
@@ -319,18 +305,12 @@ export function PainelNotificacoes({ modulo, voltarHref, dashboardHref }) {
                                                 <IconeEstrela preenchida={Boolean(notificacao.favoritada)} />
                                             </button>
                                             {notificacao.link_destino ? (
-                                                <Link href={notificacao.link_destino} className="rounded-full bg-app-cafe-profundo px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-app-creme-leve transition hover:bg-app-caramelo-torrado">
-                                                    Abrir
-                                                </Link>
+                                                <Link href={notificacao.link_destino} className="rounded-full bg-app-cafe-profundo px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-app-creme-leve transition hover:bg-app-caramelo-torrado">{ui("Abrir")}</Link>
                                             ) : null}
                                             {!notificacao.lida ? (
-                                                <button type="button" onClick={() => marcarComoLida(notificacao.id_notificacao)} className="rounded-full border border-app-baunilha-dourada px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:bg-app-baunilha-dourada hover:text-app-cafe-profundo">
-                                                    Marcar lida
-                                                </button>
+                                                <button type="button" onClick={() => marcarComoLida(notificacao.id_notificacao)} className="rounded-full border border-app-baunilha-dourada px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:bg-app-baunilha-dourada hover:text-app-cafe-profundo">{ui("Marcar lida")}</button>
                                             ) : null}
-                                            <button type="button" onClick={() => solicitarApagarNotificação(notificacao)} className="rounded-full border border-app-vermelho-erro/35 px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-app-vermelho-erro transition hover:bg-app-vermelho-erro hover:text-white">
-                                                Apagar
-                                            </button>
+                                            <button type="button" onClick={() => solicitarApagarNotificação(notificacao)} className="rounded-full border border-app-vermelho-erro/35 px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-app-vermelho-erro transition hover:bg-app-vermelho-erro hover:text-white">{ui("Apagar")}</button>
                                         </div>
                                     </div>
                                 </article>
@@ -338,13 +318,9 @@ export function PainelNotificacoes({ modulo, voltarHref, dashboardHref }) {
                         </div>
                     ) : (
                         <div className="py-14 text-center">
-                            <h3 className="text-2xl font-semibold">Nenhuma notificação por enquanto</h3>
-                            <p className="mx-auto mt-3 max-w-lg text-sm leading-6 text-app-cinza">
-                                Quando acontecer uma reserva, pedido, pagamento ou cancelamento, o aviso aparecerá aqui.
-                            </p>
-                            <BotaoVoltar href={dashboardHref} className="mt-7 rounded-full bg-app-caramelo-torrado px-6 py-3 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-app-mocha">
-                                Voltar ao painel
-                            </BotaoVoltar>
+                            <h3 className="text-2xl font-semibold">{ui("Nenhuma notificação por enquanto")}</h3>
+                            <p className="mx-auto mt-3 max-w-lg text-sm leading-6 text-app-cinza">{ui("Quando acontecer uma reserva, pedido, pagamento ou cancelamento, o aviso aparecerá aqui.")}</p>
+                            <BotaoVoltar href={dashboardHref} className="mt-7 rounded-full bg-app-caramelo-torrado px-6 py-3 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-app-mocha">{ui("Voltar ao painel")}</BotaoVoltar>
                         </div>
                     )}
                 </section>
@@ -352,15 +328,13 @@ export function PainelNotificacoes({ modulo, voltarHref, dashboardHref }) {
             {confirmacao ? (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 px-5 backdrop-blur-[2px]" role="dialog" aria-modal="true" aria-labelledby="titulo-confirmacao-notificacao">
                     <section className="w-full max-w-md rounded-[24px] bg-white p-6 text-app-cafe-profundo shadow-2xl ring-1 ring-black/10">
-                        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">Confirmação</p>
-                        <h2 id="titulo-confirmacao-notificacao" className="mt-3 text-2xl font-semibold">{confirmacao.titulo}</h2>
-                        <p className="mt-3 text-sm leading-6 text-app-mocha">{confirmacao.mensagem}</p>
+                        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">{ui("Confirmação")}</p>
+                        <h2 id="titulo-confirmacao-notificacao" className="mt-3 text-2xl font-semibold">{ui(confirmacao.titulo)}</h2>
+                        <p className="mt-3 text-sm leading-6 text-app-mocha">{ui(confirmacao.mensagem)}</p>
                         <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-                            <button type="button" onClick={() => setConfirmacao(null)} disabled={processandoConfirmacao} className="rounded-full border border-app-baunilha-dourada px-5 py-3 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:bg-app-baunilha-dourada disabled:cursor-not-allowed disabled:opacity-60">
-                                Cancelar
-                            </button>
+                            <button type="button" onClick={() => setConfirmacao(null)} disabled={processandoConfirmacao} className="rounded-full border border-app-baunilha-dourada px-5 py-3 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:bg-app-baunilha-dourada disabled:cursor-not-allowed disabled:opacity-60">{ui("Cancelar")}</button>
                             <button type="button" onClick={confirmarAcao} disabled={processandoConfirmacao} className="botao-acao-critica rounded-full px-5 py-3 text-xs font-bold uppercase tracking-[0.12em] transition disabled:cursor-not-allowed disabled:opacity-60">
-                                {processandoConfirmacao ? "Processando..." : confirmacao.acao}
+                                {ui(processandoConfirmacao ? "Processando..." : confirmacao.acao)}
                             </button>
                         </div>
                     </section>

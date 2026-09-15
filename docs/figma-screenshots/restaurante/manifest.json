@@ -1,11 +1,5 @@
 [
-  {
-    "name": "01-home-restaurante",
-    "finalUrl": "http://localhost:3000/restaurante/home",
-    "bytes": 58186,
-    "maybeLoading": false,
-    "preview": "RESTAURANTE Bem-vindo (a) de volta! Resumo Diario 0 RESERVAS HOJE 0 PESSOAS ESPERADAS Gerenciar reservas OPERACAO Desempenho Mensal PEDIDOS NO PERIODO 0 PEDIDOS NO PERIOD"
-  },
+
   {
     "name": "02-dashboard",
     "finalUrl": "http://localhost:3000/restaurante/dashboard",

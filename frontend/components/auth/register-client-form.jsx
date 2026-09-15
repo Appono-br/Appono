@@ -82,7 +82,7 @@ export function RegisterClientForm({ googleFlow = false }) {
     event.preventDefault();
 
     if (!cpfEstaCompleto(form.cpf)) {
-      setMessage("Informe um CPF completo e valido.");
+      setMessage("Informe um CPF completo e válido.");
       return;
     }
 
@@ -124,7 +124,7 @@ export function RegisterClientForm({ googleFlow = false }) {
       setMessage(
         error instanceof Error
           ? error.message
-          : "Nao foi possivel criar a conta."
+          : "Não foi possível criar a conta."
       );
     } finally {
       setIsSubmitting(false);
@@ -231,7 +231,7 @@ export function RegisterClientForm({ googleFlow = false }) {
                 setMessage(
                   error instanceof Error
                     ? error.message
-                    : "CPF invalido."
+                    : "CPF inválido."
                 );
               }
             }}

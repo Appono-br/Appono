@@ -2,6 +2,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import { useIdiomaLocal } from "@/lib/use-idioma-local";
+import { useTemaLocal } from "@/lib/use-tema-local";
 
 const heroImage = "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=1800&q=80";
 const foodImage = "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=1200&q=80";
@@ -55,31 +57,34 @@ function Icon({ type, className = "h-5 w-5" }) {
 }
 
 export default function HomePage() {
+  const { idioma, alternarIdioma } = useIdiomaLocal();
+  const { tema, atualizarTema } = useTemaLocal();
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileDialog, setProfileDialog] = useState(null);
   const [activeFaq, setActiveFaq] = useState(0);
+  const idiomaDeDestino = idioma === "en" ? "Português" : "English";
 
   function closeMenu() {
     setMenuOpen(false);
   }
 
   return (
-    <main className="home-publica min-h-screen bg-white text-app-texto-escuro">
+    <main className={`home-publica min-h-screen bg-white text-app-texto-escuro ${tema === "escuro" ? "tema-escuro" : ""}`}>
       <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-white/95 backdrop-blur">
-  <div className="mx-auto flex h-20 max-w-7xl items-center px-4 sm:pr-8">
-    <div className="flex flex-1 items-center">
+  <div className="mx-auto flex min-h-20 max-w-7xl items-center justify-between gap-2 px-3 py-2 sm:px-6">
+    <div className="flex shrink-0 items-center">
       <Link href="/" className="flex shrink-0 items-center" onClick={closeMenu}>
         <Image
           src="/brand/appono-mark.svg"
           alt="Appono"
           width={90}
           height={72}
-          className="h-16 w-auto transition-transform duration-300 hover:scale-105"
+          className="h-12 w-auto transition-transform duration-300 hover:scale-105 sm:h-16"
         />
       </Link>
     </div>
 
-    <nav className="hidden flex-1 items-center justify-center gap-8 md:flex">
+    <nav className="hidden min-w-0 items-center justify-center gap-2 whitespace-nowrap xl:flex">
       <Link href="#inicio" className="rounded-full px-5 py-2.5 text-base font-semibold text-app-cafe-profundo transition hover:bg-app-chantilly">
         Início
       </Link>
@@ -91,12 +96,41 @@ export default function HomePage() {
       </Link>
     </nav>
 
-    <div className="flex flex-1 items-center justify-end gap-3">
+    <div className="flex min-w-0 items-center justify-end gap-2 sm:gap-3">
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={alternarIdioma}
+          className="flex h-10 min-w-[96px] shrink-0 items-center justify-center whitespace-nowrap rounded-full border border-app-baunilha-dourada px-3 text-xs font-bold text-app-cafe-profundo transition hover:bg-app-chantilly"
+          aria-label={idioma === "en" ? "Switch to Portuguese" : "Mudar para inglês"}
+          title={idioma === "en" ? "Switch to Portuguese" : "Mudar para inglês"}
+          data-appono-sem-traducao
+        >
+          <svg aria-hidden="true" viewBox="0 0 24 24" className="mr-1 h-4 w-4">
+            <path d="M5 5h8M9 3v2M7 17l4-10M5 17h8M15 19l2.5-6 2.5 6M16 17h3" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" />
+          </svg>
+          {idiomaDeDestino}
+        </button>
+        <button
+          type="button"
+          onClick={() => atualizarTema(tema === "escuro" ? "claro" : "escuro")}
+          data-appono-sem-traducao
+          className="flex h-10 w-10 shrink-0 items-center justify-center whitespace-nowrap rounded-full border border-app-baunilha-dourada text-app-cafe-profundo transition hover:bg-app-chantilly"
+          aria-label={tema === "escuro" ? (idioma === "en" ? "Enable light mode" : "Ativar modo claro") : (idioma === "en" ? "Enable dark mode" : "Ativar modo escuro")}
+          title={tema === "escuro" ? (idioma === "en" ? "Enable light mode" : "Ativar modo claro") : (idioma === "en" ? "Enable dark mode" : "Ativar modo escuro")}
+        >
+          {tema === "escuro" ? (
+            <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5"><path d="M12 4V2m0 20v-2m7.1-15.1-1.4-1.4m1.4 16.8-1.4-1.4M20 12h2M2 12h2m.9-7.1-1.4-1.4m1.4 16.8-1.4-1.4M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" /></svg>
+          ) : (
+            <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5"><path d="M21 12.8A8 8 0 1 1 11.2 3a6 6 0 0 0 9.8 9.8Z" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" /></svg>
+          )}
+        </button>
+      </div>
       <div className="hidden items-center gap-3 sm:flex">
         <button
           type="button"
           onClick={() => setProfileDialog("cadastro")}
-          className="rounded-full border border-app-baunilha-dourada px-6 py-2.5 text-sm font-semibold text-app-cafe-profundo transition-all duration-300 hover:-translate-y-0.5 hover:bg-app-chantilly hover:shadow-sm"
+          className="whitespace-nowrap rounded-full border border-app-baunilha-dourada px-6 py-2.5 text-sm font-semibold text-app-cafe-profundo transition-all duration-300 hover:-translate-y-0.5 hover:bg-app-chantilly hover:shadow-sm"
         >
           Criar conta
         </button>
@@ -106,7 +140,7 @@ export default function HomePage() {
           onClick={() => {
             window.location.href = "/login";
           }}
-          className="rounded-full bg-app-caramelo-torrado px-6 py-2.5 text-sm font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-app-cafe-profundo hover:shadow-md"
+          className="whitespace-nowrap rounded-full bg-app-caramelo-torrado px-6 py-2.5 text-sm font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-app-cafe-profundo hover:shadow-md"
         >
           Entrar
         </button>
@@ -115,7 +149,7 @@ export default function HomePage() {
       <button
         type="button"
         onClick={() => setMenuOpen((current) => !current)}
-        className="rounded-full border border-app-baunilha-dourada px-4 py-2 text-sm font-semibold text-app-cafe-profundo md:hidden"
+        className="shrink-0 rounded-full border border-app-baunilha-dourada px-3 py-2 text-sm font-semibold text-app-cafe-profundo xl:hidden"
         aria-expanded={menuOpen}
         aria-controls="mobile-menu"
       >
@@ -125,7 +159,7 @@ export default function HomePage() {
   </div>
 
   {menuOpen ? (
-    <div id="mobile-menu" className="border-t border-app-baunilha-dourada/50 bg-white px-5 py-5 md:hidden">
+    <div id="mobile-menu" className="border-t border-app-baunilha-dourada/50 bg-white px-5 py-5 xl:hidden">
       <nav className="mx-auto flex max-w-7xl flex-col gap-1 text-sm font-semibold text-app-cafe-profundo">
         <Link href="#inicio" onClick={closeMenu} className="rounded-full px-4 py-2.5 transition hover:bg-app-chantilly">
           Início
@@ -151,9 +185,9 @@ export default function HomePage() {
   ) : null}
 </header>
 
-      <section id="inicio" className="relative flex min-h-[620px] items-center justify-center overflow-hidden bg-app-cafe-profundo px-5 py-20 text-white">
+      <section id="inicio" className="home-hero relative flex min-h-[620px] items-center justify-center overflow-hidden bg-app-cafe-profundo px-5 py-20 text-white">
   <Image src={heroImage} alt="Mesa reservada em restaurante elegante" fill priority sizes="100vw" className="absolute inset-0 h-full w-full object-cover opacity-90" />
-  <div className="absolute inset-0 bg-gradient-to-b from-transparent via-app-cafe-profundo/40 to-app-cafe-profundo/85" />
+  <div className="home-hero-overlay absolute inset-0" aria-hidden="true" />
 
   <div className="relative z-10 mx-auto flex max-w-3xl flex-col items-center text-center">
     <h1 className="max-w-2xl text-4xl font-semibold leading-tight text-white sm:text-6xl">
@@ -177,7 +211,7 @@ export default function HomePage() {
       <section id="reserva" className="bg-white py-20">
         <div className="mx-auto max-w-7xl px-6">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 xl:grid-rows-2">
-            <div className="relative overflow-hidden rounded-3xl shadow-lg sm:col-span-2 xl:row-span-2">
+            <div className="relative min-h-64 overflow-hidden rounded-3xl shadow-lg sm:col-span-2 xl:row-span-2">
               <Image
                 src={foodImage}
                 alt="Pratos servidos em mesa"
@@ -448,7 +482,7 @@ export default function HomePage() {
                   window.location.href =
                     profileDialog === "cadastro" ? "/cadastro/cliente" : "/login";
                 }}
-                className="group relative flex items-center gap-4 rounded-2xl bg-white p-4 text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
+                className="group relative flex min-w-0 items-center gap-4 rounded-2xl bg-white p-4 text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
               >
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-app-chantilly text-app-caramelo-torrado transition group-hover:bg-app-dourado-mel group-hover:text-white">
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -456,7 +490,7 @@ export default function HomePage() {
                     <circle cx="12" cy="7" r="4" />
                   </svg>
                 </div>
-                <div>
+                <div className="min-w-0">
                   <strong className="block text-app-cafe-profundo">Sou cliente</strong>
                   <span className="mt-1 block text-sm leading-6 text-app-mocha">
                     Quero reservar mesa e antecipar meu pedido presencial.
@@ -474,7 +508,7 @@ export default function HomePage() {
                   window.location.href =
                     profileDialog === "cadastro" ? "/cadastro/restaurante" : "/login";
                 }}
-                className="group relative flex items-center gap-4 rounded-2xl bg-white p-4 text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
+                className="group relative flex min-w-0 items-center gap-4 rounded-2xl bg-white p-4 text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
               >
                 <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-app-chantilly text-app-caramelo-torrado transition group-hover:bg-app-dourado-mel group-hover:text-white">
                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -486,7 +520,7 @@ export default function HomePage() {
                     <path d="M14 13h1" />
                   </svg>
                 </div>
-                <div>
+                <div className="min-w-0">
                   <strong className="block text-app-cafe-profundo">Sou restaurante</strong>
                   <span className="mt-1 block text-sm leading-6 text-app-mocha">
                     Quero organizar reservas, cardápio e pedidos antecipados.

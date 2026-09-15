@@ -115,12 +115,13 @@ async function obterClientePorUsuario(userId) {
 }
 async function obterMetricas(idsRestaurantes, idCliente = null) {
     const ids = [...new Set(idsRestaurantes.filter(Boolean))];
-    const resultado = new Map(ids.map((id) => [id, { avaliacao_media: null, total_avaliacoes: 0, total_favoritos: 0, favorito_cliente: false }]));
+    const resultado = new Map(ids.map((id) => [id, { avaliacao_media: null, total_avaliacoes: 0, total_favoritos: 0, favorito_cliente: false, total_chamados_procedentes: 0, score_operacional: 100 }]));
     if (!ids.length || !supabase_1.supabaseAdmin) return resultado;
-    const [avaliacoes, favoritos, meusFavoritos] = await Promise.all([
+    const [avaliacoes, favoritos, meusFavoritos, suporte] = await Promise.all([
         supabase_1.supabaseAdmin.from("avaliacoes_restaurante").select("id_restaurante, nota").in("id_restaurante", ids),
         supabase_1.supabaseAdmin.from("restaurantes_favoritos").select("id_restaurante").in("id_restaurante", ids),
         idCliente ? supabase_1.supabaseAdmin.from("restaurantes_favoritos").select("id_restaurante").eq("id_cliente", idCliente).in("id_restaurante", ids) : Promise.resolve({ data: [] }),
+        supabase_1.supabaseAdmin.from("chamados_suporte").select("id_restaurante, impacto_reputacao").in("id_restaurante", ids).eq("procedencia", "PROCEDENTE").then((resposta) => resposta).catch(() => ({ data: [] })),
     ]);
     for (const avaliacao of avaliacoes.data ?? []) {
         const metrica = resultado.get(avaliacao.id_restaurante);
@@ -133,6 +134,16 @@ async function obterMetricas(idsRestaurantes, idCliente = null) {
     }
     for (const favorito of favoritos.data ?? []) resultado.get(favorito.id_restaurante).total_favoritos += 1;
     for (const favorito of meusFavoritos.data ?? []) resultado.get(favorito.id_restaurante).favorito_cliente = true;
+    for (const chamado of suporte?.data ?? []) {
+        const metrica = resultado.get(chamado.id_restaurante);
+        if (!metrica) continue;
+        metrica.total_chamados_procedentes += 1;
+        metrica.penalidade_suporte = Number(metrica.penalidade_suporte ?? 0) + Number(chamado.impacto_reputacao ?? 1);
+    }
+    for (const metrica of resultado.values()) {
+        metrica.penalidade_suporte = Number((metrica.penalidade_suporte ?? 0).toFixed(2));
+        metrica.score_operacional = Math.max(0, Number((100 - metrica.penalidade_suporte * 3).toFixed(1)));
+    }
     return resultado;
 }
 function ordenarPorExibicaoENome(a, b) {
