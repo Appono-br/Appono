@@ -36,7 +36,7 @@ export async function enviarImagemCardapio(arquivo) {
             refresh_token: tokens.refreshToken,
         });
         if (error) {
-            throw new Error("Nao foi possivel autenticar o envio da imagem.");
+            throw new Error("Não foi possível autenticar o envio da imagem.");
         }
     }
 
@@ -90,7 +90,7 @@ export async function excluirImagemCardapioPorUrl(url) {
             refresh_token: tokens.refreshToken,
         });
         if (error) {
-            throw new Error("Nao foi possivel autenticar a exclusao da imagem anterior.");
+            throw new Error("Não foi possível autenticar a exclusão da imagem anterior.");
         }
     }
     const { error } = await supabase.storage

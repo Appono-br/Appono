@@ -20,7 +20,7 @@ export default function AvaliarPedidoPage({ params }) {
             setNota(Number(response.avaliacao?.nota ?? 0));
             setComentario(response.avaliacao?.comentario ?? "");
         }).catch((error) => {
-            if (error?.name !== "AbortError") setErro(error instanceof Error ? error.message : "Nao foi possivel carregar a avaliacao.");
+            if (error?.name !== "AbortError") setErro(error instanceof Error ? error.message : "Não foi possível carregar a avaliação.");
         });
         return () => controller.abort();
     }, [id]);
@@ -35,7 +35,7 @@ export default function AvaliarPedidoPage({ params }) {
             setDados((atual) => ({ ...atual, avaliacao }));
             setSalvo(true);
         } catch (error) {
-            setErro(error instanceof Error ? error.message : "Nao foi possivel publicar a avaliacao.");
+            setErro(error instanceof Error ? error.message : "Não foi possível publicar a avaliação.");
         } finally {
             setSalvando(false);
         }

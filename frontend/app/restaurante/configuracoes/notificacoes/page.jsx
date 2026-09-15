@@ -16,7 +16,7 @@ const initialRules = [
     },
     {
         key: "reservationChange",
-        title: "Alteracoes e cancelamentos",
+        title: "Alterações e cancelamentos",
         description: "Notifique mudancas que podem afetar salao, fila ou cozinha.",
         required: true,
         channels: { email: false, whatsapp: false, push: true, sms: false },
@@ -30,7 +30,7 @@ const initialRules = [
     {
         key: "lowStock",
         title: "Alertas de disponibilidade",
-        description: "Sinalize itens do cardapio marcados como indisponiveis ou em falta.",
+        description: "Sinalize itens do cardápio marcados como indisponíveis ou em falta.",
         channels: { email: false, whatsapp: false, push: false, sms: false },
     },
     {
@@ -69,7 +69,7 @@ function Toggle({ checked, onChange, label, }) {
 export default function RestaurantNotificationSettingsPage() {
     const { sessao, sessaoCarregada } = useSessaoLocal();
     const [form, setForm] = useState(initialForm);
-    const [message, setMessage] = useState("Carregando preferencias...");
+    const [message, setMessage] = useState("Carregando preferências...");
     const [salvando, setSalvando] = useState(false);
     useEffect(() => {
         if (!sessaoCarregada || sessao?.type !== "restaurant") {
@@ -87,7 +87,7 @@ export default function RestaurantNotificationSettingsPage() {
             });
             setMessage("");
         })
-            .catch((error) => setMessage(error instanceof Error ? error.message : "Nao foi possivel carregar as preferencias."));
+            .catch((error) => setMessage(error instanceof Error ? error.message : "Não foi possível carregar as preferências."));
     }, [sessao, sessaoCarregada]);
     function updateField(field, value) {
         setForm((current) => ({ ...current, [field]: value }));
@@ -117,10 +117,10 @@ export default function RestaurantNotificationSettingsPage() {
                     preferencias_notificacao: form,
                 }),
             });
-            setMessage(resposta.message ?? "Preferencias salvas com sucesso.");
+            setMessage(resposta.message ?? "Preferências salvas com sucesso.");
         }
         catch (error) {
-            setMessage(error instanceof Error ? error.message : "Nao foi possivel salvar as preferencias.");
+            setMessage(error instanceof Error ? error.message : "Não foi possível salvar as preferências.");
         }
         finally {
             setSalvando(false);
@@ -135,7 +135,7 @@ export default function RestaurantNotificationSettingsPage() {
           <Image src="/brand/appono-mark.svg" alt="Appono" width={88} height={88} className="mx-auto h-20 w-20" priority/>
           <h1 className="mt-6 text-3xl font-semibold">Acesso restrito</h1>
           <p className="mt-3 text-sm leading-6 text-app-cinza">
-            Esta area e destinada a contas de restaurante.
+            Esta área é destinada a contas de restaurante.
           </p>
           <Link href="/login" className="mt-6 inline-flex h-11 items-center justify-center rounded-[8px] bg-app-dourado-mel px-6 text-sm font-bold text-white transition hover:bg-app-caramelo-torrado">
             Entrar
@@ -150,11 +150,11 @@ export default function RestaurantNotificationSettingsPage() {
             <Image src="/brand/appono-mark.svg" alt="Appono" width={72} height={72} className="h-11 w-11" priority/>
           </div>
           <div className="flex items-center justify-center gap-6">
-            <Link href="/restaurante/configuracoes" className="transition hover:text-app-caramelo-torrado" aria-label="Voltar para configuracoes">
+            <Link href="/restaurante/configuracoes" className="transition hover:text-app-caramelo-torrado" aria-label="Voltar para configurações">
               <Icon type="arrow-left" className="h-5 w-5"/>
             </Link>
             <h1 className="text-lg font-bold uppercase tracking-[0.14em] sm:text-2xl">
-              Configuracoes
+              Configurações
             </h1>
           </div>
           <div className="flex items-center justify-self-end gap-3 text-app-cafe-profundo">
@@ -167,10 +167,10 @@ export default function RestaurantNotificationSettingsPage() {
       <section className="mx-auto w-full max-w-7xl flex-1 px-5 py-10 sm:py-14">
         <div className="border-t border-app-baunilha-dourada/60 pt-10">
           <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">
-            Comunicacao operacional
+            Comunicação operacional
           </p>
           <h2 className="mt-3 text-4xl font-medium leading-tight text-app-cafe-profundo sm:text-5xl">
-            Preferencias de Notificacao
+            Preferências de Notificação
           </h2>
           <p className="mt-4 max-w-3xl text-sm leading-6 text-app-cinza sm:text-base">
             Defina quais eventos exigem aviso imediato e quais canais a equipe
@@ -207,7 +207,7 @@ export default function RestaurantNotificationSettingsPage() {
                 </label>
                 <label className="grid gap-2">
                   <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-cinza">
-                    Telefone da operacao
+                    Telefone da operação
                   </span>
                   <span className="relative">
                     <Icon type="phone" className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-app-cinza"/>
@@ -249,7 +249,7 @@ export default function RestaurantNotificationSettingsPage() {
                   Eventos monitorados
                 </h3>
                 <p className="mt-2 text-sm leading-6 text-app-mocha">
-                  Mantenha reservas e repasses com canais confiaveis para cada
+                  Mantenha reservas e repasses com canais confiáveis para cada
                   tipo de aviso.
                 </p>
               </div>
@@ -297,7 +297,7 @@ export default function RestaurantNotificationSettingsPage() {
                 Cancelar
               </Link>
               <button type="submit" disabled={salvando} className="h-12 rounded-[8px] bg-app-dourado-mel px-8 text-xs font-bold uppercase tracking-wide text-white transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-60">
-                {salvando ? "Salvando..." : "Salvar preferencias"}
+                {salvando ? "Salvando..." : "Salvar preferências"}
               </button>
             </div>
             {message ? <p className="mt-4 text-sm font-semibold text-app-mocha">{message}</p> : null}
@@ -309,7 +309,7 @@ export default function RestaurantNotificationSettingsPage() {
         <div className="mx-auto flex max-w-7xl flex-col items-center gap-5 text-center sm:flex-row sm:justify-between">
           <Image src="/brand/appono-mark.svg" alt="Appono" width={80} height={80} className="h-14 w-14 brightness-0 invert"/>
           <nav className="flex flex-wrap justify-center gap-8 text-[10px] font-bold uppercase text-app-baunilha-dourada">
-            <Link href="#" className="transition hover:text-app-chantilly">Politica de Privacidade</Link>
+            <Link href="#" className="transition hover:text-app-chantilly">Política de Privacidade</Link>
             <Link href="#" className="transition hover:text-app-chantilly">Termos de Uso</Link>
             <Link href="#" className="transition hover:text-app-chantilly">Contato</Link>
           </nav>

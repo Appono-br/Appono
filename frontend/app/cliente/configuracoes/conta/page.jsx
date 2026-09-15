@@ -47,7 +47,7 @@ export default function AccountSettingsPage() {
             setMessage("");
         })
             .catch((error) => {
-            setMessage(error instanceof Error ? error.message : "Nao foi possivel carregar os dados.");
+            setMessage(error instanceof Error ? error.message : "Não foi possível carregar os dados.");
         });
     }, [sessao, sessaoCarregada]);
     function atualizarCampo(field, value) {

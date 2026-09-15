@@ -42,7 +42,7 @@ function Field({ label, value, onChange, className = "", placeholder, }) {
 export default function RestaurantAddressSettingsPage() {
     const { sessao, sessaoCarregada } = useSessaoLocal();
     const [form, setForm] = useState(initialForm);
-    const [message, setMessage] = useState("Carregando endereco cadastrado...");
+    const [message, setMessage] = useState("Carregando endereço cadastrado...");
     const [salvando, setSalvando] = useState(false);
     useEffect(() => {
         if (!sessaoCarregada || sessao?.type !== "restaurant") {
@@ -56,7 +56,7 @@ export default function RestaurantAddressSettingsPage() {
             });
             setMessage("");
         })
-            .catch((error) => setMessage(error instanceof Error ? error.message : "Nao foi possivel carregar o endereco."));
+            .catch((error) => setMessage(error instanceof Error ? error.message : "Não foi possível carregar o endereço."));
     }, [sessao, sessaoCarregada]);
     function updateField(field, value) {
         setForm((current) => ({ ...current, [field]: value }));
@@ -80,10 +80,10 @@ export default function RestaurantAddressSettingsPage() {
                 method: "PATCH",
                 body: JSON.stringify({ cep: form.postalCode, endereco }),
             });
-            setMessage(resposta.message ?? "Endereco salvo com sucesso.");
+            setMessage(resposta.message ?? "Endereço salvo com sucesso.");
         }
         catch (error) {
-            setMessage(error instanceof Error ? error.message : "Nao foi possivel salvar o endereco.");
+            setMessage(error instanceof Error ? error.message : "Não foi possível salvar o endereço.");
         }
         finally {
             setSalvando(false);
@@ -98,7 +98,7 @@ export default function RestaurantAddressSettingsPage() {
           <Image src="/brand/appono-mark.svg" alt="Appono" width={88} height={88} className="mx-auto h-20 w-20" priority/>
           <h1 className="mt-6 text-3xl font-semibold">Acesso restrito</h1>
           <p className="mt-3 text-sm leading-6 text-app-cinza">
-            Esta area e destinada a contas de restaurante.
+            Esta área é destinada a contas de restaurante.
           </p>
           <Link href="/login" className="mt-6 inline-flex h-11 items-center justify-center rounded-[8px] bg-app-dourado-mel px-6 text-sm font-bold text-white transition hover:bg-app-caramelo-torrado">
             Entrar
@@ -113,11 +113,11 @@ export default function RestaurantAddressSettingsPage() {
             <Image src="/brand/appono-mark.svg" alt="Appono" width={72} height={72} className="h-11 w-11" priority/>
           </div>
           <div className="flex items-center justify-center gap-6">
-            <Link href="/restaurante/configuracoes" className="transition hover:text-app-caramelo-torrado" aria-label="Voltar para configuracoes">
+            <Link href="/restaurante/configuracoes" className="transition hover:text-app-caramelo-torrado" aria-label="Voltar para configurações">
               <Icon type="arrow-left" className="h-5 w-5"/>
             </Link>
             <h1 className="text-lg font-bold uppercase tracking-[0.14em] sm:text-2xl">
-              Configuracoes
+              Configurações
             </h1>
           </div>
           <div className="hidden items-center justify-self-end gap-3 text-right sm:flex">
@@ -142,10 +142,10 @@ export default function RestaurantAddressSettingsPage() {
           </span>
           <div>
             <h2 className="text-3xl font-medium italic leading-tight text-app-cafe-profundo">
-              Endereco da Loja
+              Endereço da Loja
             </h2>
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-app-mocha">
-              Localizacao fisica e fiscal
+              Localização fisica e fiscal
             </p>
           </div>
         </div>
@@ -156,12 +156,12 @@ export default function RestaurantAddressSettingsPage() {
           <div className="grid gap-6 sm:grid-cols-[0.48fr_1fr] sm:items-end">
             <Field label="CEP" value={form.postalCode} onChange={(value) => updateField("postalCode", aplicarMascaraCep(value))} placeholder="00000-000"/>
             <p className="pb-3 text-sm font-semibold text-app-caramelo-torrado">
-              Consulte seu CEP automaticamente quando a integracao estiver ativa.
+              Consulte seu CEP automaticamente quando a integração estiver ativa.
             </p>
           </div>
 
           <div className="mt-8 grid gap-6 sm:grid-cols-2">
-            <Field label="Endereco (rua, avenida)" value={form.street} onChange={(value) => updateField("street", value)} className="sm:col-span-2"/>
+            <Field label="Endereço (rua, avenida)" value={form.street} onChange={(value) => updateField("street", value)} className="sm:col-span-2"/>
             <Field label="Numero" value={form.number} onChange={(value) => updateField("number", value)}/>
             <Field label="Complemento" value={form.complement} onChange={(value) => updateField("complement", value)}/>
             <Field label="Bairro" value={form.district} onChange={(value) => updateField("district", value)} className="sm:col-span-2"/>
@@ -212,7 +212,7 @@ export default function RestaurantAddressSettingsPage() {
 
           <div className="mt-10 flex flex-col gap-3 sm:flex-row">
             <button type="submit" disabled={salvando} className="h-12 rounded-[8px] bg-app-dourado-mel px-8 text-xs font-bold uppercase tracking-wide text-white transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-60">
-              {salvando ? "Salvando..." : "Salvar endereco"}
+              {salvando ? "Salvando..." : "Salvar endereço"}
             </button>
             <Link href="/restaurante/configuracoes" className="flex h-12 items-center justify-center rounded-[8px] border border-app-mocha px-8 text-xs font-bold uppercase tracking-wide text-app-mocha transition hover:bg-app-creme-leve">
               Cancelar
@@ -234,11 +234,11 @@ export default function RestaurantAddressSettingsPage() {
           </div>
           <div className="p-6">
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">
-              Dica de configuracao
+              Dica de configuração
             </p>
             <p className="mt-3 text-sm leading-6 text-app-mocha">
-              A posicao exata do marcador sera ajustada quando o servico de mapa
-              estiver disponivel.
+              A posição exata do marcador será ajustada quando o serviço de mapa
+              estiver disponível.
             </p>
           </div>
         </aside>
@@ -249,7 +249,7 @@ export default function RestaurantAddressSettingsPage() {
           <Image src="/brand/appono-mark.svg" alt="Appono" width={56} height={56} className="h-10 w-10 brightness-0 invert"/>
           <nav className="flex flex-wrap justify-center gap-6 text-[10px] font-bold uppercase text-app-baunilha-dourada">
             <Link href="#" className="transition hover:text-app-chantilly">
-              Politica de Privacidade
+              Política de Privacidade
             </Link>
             <Link href="#" className="transition hover:text-app-chantilly">
               Termos de Uso

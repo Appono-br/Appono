@@ -315,7 +315,7 @@ exports.adminRouter.get("/financeiro/resumo", async (req, res) => {
         const serie_financeira = criarSerieFinanceira(pagamentosComPedido, periodo);
         const pendencias = {
             abertos: pagamentosComPedido.filter((pagamento) => pagamento.status_repasse === "AGUARDANDO_ENTREGA").length,
-            prioridade: "Operacao financeira",
+            prioridade: "Operação financeira",
             descricao: "Acompanhamento administrativo de pagamentos, repasses e divergencias.",
             itens: pagamentosComPedido
                 .filter((pagamento) => ["AGUARDANDO_ENTREGA", "ESTORNADO"].includes(pagamento.status_repasse) ||
@@ -351,6 +351,6 @@ exports.adminRouter.get("/financeiro/resumo", async (req, res) => {
         });
     }
     catch (error) {
-        return res.status(400).json({ error: error instanceof Error ? error.message : "Nao foi possivel consultar o financeiro administrativo." });
+        return res.status(400).json({ error: error instanceof Error ? error.message : "Não foi possível consultar o financeiro administrativo." });
     }
 });

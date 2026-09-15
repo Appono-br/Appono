@@ -92,7 +92,7 @@ async function cancelarReservaSemConfirmacao(reserva, agoraIso, statusPermitidos
             id_pedido: pagamento.id_pedido,
             id_reserva: reserva.id_reserva,
             tipo_evento: "PAGAMENTO_RECUSADO_PRESENCA_EXPIRADA",
-            descricao: "Checkout pendente encerrado porque o prazo de confirmacao de presenca expirou.",
+            descricao: "Checkout pendente encerrado porque o prazo de confirmação de presença expirou.",
             valor: pagamento.valor_pago ?? pagamento.valor ?? 0,
             origem: "SISTEMA",
         });
@@ -133,8 +133,8 @@ async function cancelarReservaSemConfirmacao(reserva, agoraIso, statusPermitidos
                 id_cliente: reserva.id_cliente,
                 id_restaurante: reserva.id_restaurante,
                 valor_solicitado: valorReembolso,
-                motivo: "Prazo de confirmacao de presenca expirado sem resposta do cliente.",
-                resposta: "Reembolso parcial processado automaticamente: valor pago menos consumo minimo da reserva e comissao Appono.",
+                motivo: "Prazo de confirmação de presença expirado sem resposta do cliente.",
+                resposta: "Reembolso parcial processado automaticamente: valor pago menos consumo mínimo da reserva e comissão Appono.",
                 status_reembolso: "CONCLUIDO",
                 modo_execucao: paymentConfig.productionAllowed() ? "MERCADO_PAGO_PRODUCAO" : "MERCADO_PAGO_TESTE",
                 analisado_em: agoraIso,
@@ -181,7 +181,7 @@ async function cancelarReservaSemConfirmacao(reserva, agoraIso, statusPermitidos
             percentual_comissao_ausencia: percentualComissaoAppono,
             valor_retido_ausencia: arredondarMoeda(totalRetido),
             valor_reembolso_ausencia: arredondarMoeda(totalReembolsado),
-            motivo_confirmacao_presenca: "Prazo de confirmacao de presenca expirado sem resposta do cliente.",
+            motivo_confirmacao_presenca: "Prazo de confirmação de presença expirado sem resposta do cliente.",
         })
         .eq("id_reserva", reserva.id_reserva)
         .in("status_reserva", statusPermitidos)
@@ -196,20 +196,20 @@ async function cancelarReservaSemConfirmacao(reserva, agoraIso, statusPermitidos
             titulo: "Reserva cancelada",
             mensagem: totalReembolsado > 0
                 ? `O prazo de confirmacao expirou e um reembolso parcial de R$ ${arredondarMoeda(totalReembolsado).toFixed(2).replace(".", ",")} foi processado.`
-                : "O prazo de confirmacao expirou e sua reserva foi cancelada.",
+                : "O prazo de confirmação expirou e sua reserva foi cancelada.",
             tipo_evento: "PRESENCA_EXPIRADA",
             link_destino: "/cliente/reservas",
             dados: { id_reserva: reserva.id_reserva, valor_reembolso: arredondarMoeda(totalReembolsado) },
         }),
         notificarRestaurante(reserva.id_restaurante, {
             titulo: "Reserva cancelada automaticamente",
-            mensagem: "O cliente nao confirmou presenca dentro do prazo. A reserva e pedidos vinculados foram cancelados.",
+            mensagem: "O cliente nao confirmou presença dentro do prazo. A reserva e pedidos vinculados foram cancelados.",
             tipo_evento: "PRESENCA_EXPIRADA",
             link_destino: "/restaurante/reservas",
             dados: { id_reserva: reserva.id_reserva },
         }),
         notificarAdministradores({
-            titulo: "Presenca expirada",
+            titulo: "Presença expirada",
             mensagem: `Reserva #${reserva.id_reserva} cancelada automaticamente por falta de confirmacao de presenca.`,
             tipo_evento: "PRESENCA_EXPIRADA",
             link_destino: "/admin/financeiro",

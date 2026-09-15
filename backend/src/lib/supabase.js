@@ -17,7 +17,7 @@ if (process.env.NODE_ENV !== "production" &&
 const supabaseUrl = process.env.SUPABASE_URL;
 const publishableKey = process.env.SUPABASE_PUBLISHABLE_KEY;
 const secretKey = process.env.SUPABASE_SECRET_KEY;
-const missingSupabaseConfigMessage = "O acesso esta temporariamente indisponivel. Tente novamente mais tarde.";
+const missingSupabaseConfigMessage = "O acesso está temporariamente indisponível. Tente novamente mais tarde.";
 function hasSupabasePlaceholder(value) {
     return (!value ||
         value.includes("seu-projeto") ||

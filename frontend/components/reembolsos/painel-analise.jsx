@@ -26,7 +26,7 @@ export function PainelAnaliseReembolsos({ perfil }) {
             const response = await apiRequest(endpoint);
             setItems(response.items ?? []);
         } catch (error) {
-            setErro(error instanceof Error ? error.message : "Nao foi possivel carregar os reembolsos.");
+            setErro(error instanceof Error ? error.message : "Não foi possível carregar os reembolsos.");
         } finally {
             setCarregando(false);
         }
@@ -38,7 +38,7 @@ export function PainelAnaliseReembolsos({ perfil }) {
             .then((response) => setItems(response.items ?? []))
             .catch((error) => {
                 if (error?.name !== "AbortError") {
-                    setErro(error instanceof Error ? error.message : "Nao foi possivel carregar os reembolsos.");
+                    setErro(error instanceof Error ? error.message : "Não foi possível carregar os reembolsos.");
                 }
             })
             .finally(() => setCarregando(false));
@@ -50,7 +50,7 @@ export function PainelAnaliseReembolsos({ perfil }) {
         let resposta = "";
 
         if (decisao === "RECUSAR") {
-            resposta = window.prompt("Informe o motivo da recusa (minimo de 10 caracteres):") ?? "";
+            resposta = window.prompt("Informe o motivo da recusa (mínimo de 10 caracteres):") ?? "";
             if (!resposta) return;
         }
 
@@ -64,7 +64,7 @@ export function PainelAnaliseReembolsos({ perfil }) {
             setReembolsoParaAprovar(null);
             await carregar();
         } catch (error) {
-            setErro(error instanceof Error ? error.message : "Nao foi possivel analisar o reembolso.");
+            setErro(error instanceof Error ? error.message : "Não foi possível analisar o reembolso.");
         } finally {
             setProcessando(null);
         }
@@ -81,7 +81,7 @@ export function PainelAnaliseReembolsos({ perfil }) {
                     <p className="text-xs font-bold uppercase tracking-[0.18em] text-app-baunilha-dourada">
                         Controle financeiro
                     </p>
-                    <h1 className="mt-2 text-3xl font-semibold">Solicitacoes de reembolso</h1>
+                    <h1 className="mt-2 text-3xl font-semibold">Solicitações de reembolso</h1>
                     <p className="mt-3 max-w-3xl text-sm text-app-creme-suave">
                         Analise os pedidos solicitados pelos clientes. Ao aprovar, a Appono marca o pagamento como estornado e remove o valor dos repasses e metricas financeiras.
                     </p>
@@ -97,8 +97,8 @@ export function PainelAnaliseReembolsos({ perfil }) {
 
                 {!carregando && !items.length ? (
                     <section className="mt-6 rounded-[14px] bg-app-creme-leve p-8 text-center ring-1 ring-app-baunilha-dourada/60">
-                        <h2 className="text-xl font-semibold">Nenhuma solicitacao</h2>
-                        <p className="mt-2 text-sm text-app-cinza">Os pedidos de reembolso aparecerao aqui.</p>
+                        <h2 className="text-xl font-semibold">Nenhuma solicitação</h2>
+                        <p className="mt-2 text-sm text-app-cinza">Os pedidos de reembolso aparecerão aqui.</p>
                     </section>
                 ) : null}
 
@@ -142,8 +142,8 @@ export function PainelAnaliseReembolsos({ perfil }) {
             <ConfirmationDialog
                 open={Boolean(reembolsoParaAprovar)}
                 eyebrow="Aprovar reembolso"
-                title="Aprovar esta solicitacao?"
-                description="O valor sera removido do repasse e marcado como estornado no controle financeiro da Appono."
+                title="Aprovar esta solicitação?"
+                description="O valor será removido do repasse e marcado como estornado no controle financeiro da Appono."
                 confirmLabel="Aprovar"
                 cancelLabel="Voltar"
                 variant="default"

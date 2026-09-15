@@ -7,10 +7,14 @@ const MERCADO_PAGO_API = "https://api.mercadopago.com";
 function obterAccessTokenMercadoPago() {
     const producaoPermitida = String(process.env.MERCADO_PAGO_PERMITIR_PRODUCAO ?? "false").toLowerCase() === "true";
     const tokenTeste = process.env.MERCADO_PAGO_TEST_ACCESS_TOKEN?.trim();
+    const tokenPadrao = process.env.MERCADO_PAGO_ACCESS_TOKEN?.trim() ?? "";
     if (!producaoPermitida && tokenTeste) {
         return tokenTeste;
     }
-    return process.env.MERCADO_PAGO_ACCESS_TOKEN?.trim() ?? "";
+    if (!producaoPermitida) {
+        return /^TEST-/i.test(tokenPadrao) ? tokenPadrao : "";
+    }
+    return tokenPadrao;
 }
 
 function criarClienteMercadoPago(accessToken = obterAccessTokenMercadoPago()) {
@@ -20,7 +24,7 @@ function criarClienteMercadoPago(accessToken = obterAccessTokenMercadoPago()) {
     return new MercadoPagoConfig({ accessToken });
 }
 
-function criarPreferenciaMercadoPago(accessToken) {
+function criarPreferênciaMercadoPago(accessToken) {
     const cliente = criarClienteMercadoPago(accessToken);
     return cliente ? new Preference(cliente) : null;
 }
@@ -120,7 +124,7 @@ async function consultarPagamentoPorOrdemMercadoPago(merchantOrderId, accessToke
     return pagamentoDaOrdemMercadoPago(ordem);
 }
 
-async function consultarPagamentoPorPreferenciaMercadoPago(preferenceId, accessToken = obterAccessTokenMercadoPago()) {
+async function consultarPagamentoPorPreferênciaMercadoPago(preferenceId, accessToken = obterAccessTokenMercadoPago()) {
     const token = accessToken?.trim?.() ?? "";
     if (!token || !preferenceId) {
         return null;
@@ -158,7 +162,7 @@ async function estornarPagamentoMercadoPago(paymentId, accessToken = obterAccess
     if (!resposta.ok) {
         const message = String(responseBody?.message ?? "");
         if (resposta.status === 401 && /live credentials/i.test(message)) {
-            throw new Error("A credencial Mercado Pago atual consulta o pagamento, mas nao possui permissao para estornar pagamentos reais. Gere uma credencial de producao com escopo de pagamentos ou estorne esta venda pelo painel do Mercado Pago.");
+            throw new Error("A credencial Mercado Pago atual consulta o pagamento, mas não possui permissão para estornar pagamentos reais. Gere uma credencial de produção com escopo de pagamentos ou estorne esta venda pelo painel do Mercado Pago.");
         }
         throw new Error(message || "Mercado Pago recusou o estorno.");
     }
@@ -168,11 +172,11 @@ async function estornarPagamentoMercadoPago(paymentId, accessToken = obterAccess
 module.exports = {
     consultarPagamentoMercadoPago,
     consultarPagamentoPorOrdemMercadoPago,
-    consultarPagamentoPorPreferenciaMercadoPago,
+    consultarPagamentoPorPreferênciaMercadoPago,
     consultarPagamentoPorReferenciaMercadoPago,
     criarClienteMercadoPago,
     criarPagamentoMercadoPago,
-    criarPreferenciaMercadoPago,
+    criarPreferênciaMercadoPago,
     estornarPagamentoMercadoPago,
     mapearStatusMercadoPago,
     obterAccessTokenMercadoPago,

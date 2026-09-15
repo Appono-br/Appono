@@ -76,7 +76,7 @@ function validarFormularioCardapio(form) {
         return "Selecione a categoria do item.";
     }
     if (!Number.isFinite(preco) || preco <= 0) {
-        return "Informe um preco valido maior que zero.";
+        return "Informe um preço válido maior que zero.";
     }
     return "";
 }
@@ -129,7 +129,7 @@ function RestaurantMenuItemEditorContent() {
                 setMessage("");
             })
             .catch((error) => {
-                setMessage(error instanceof Error ? error.message : "Nao foi possivel carregar o item.");
+                setMessage(error instanceof Error ? error.message : "Não foi possível carregar o item.");
             });
     }, [produtoId, sessao, sessaoCarregada]);
 
@@ -170,13 +170,13 @@ function RestaurantMenuItemEditorContent() {
                 method: produtoId ? "PUT" : "POST",
                 body: JSON.stringify({ ...form, imageUrl }),
             });
-            setMessage(resposta.message ?? (produtoId ? "Item atualizado no cardapio." : "Item publicado no cardapio."));
+            setMessage(resposta.message ?? (produtoId ? "Item atualizado no cardápio." : "Item publicado no cardápio."));
             window.setTimeout(() => {
                 window.location.href = "/restaurante/cardapio";
             }, 700);
         }
         catch (error) {
-            setMessage(error instanceof Error ? error.message : "Nao foi possivel publicar o item.");
+            setMessage(error instanceof Error ? error.message : "Não foi possível publicar o item.");
         }
         finally {
             setIsSubmitting(false);
@@ -193,7 +193,7 @@ function RestaurantMenuItemEditorContent() {
                 <section className="w-full max-w-lg rounded-[8px] bg-app-creme-leve p-8 text-center shadow-sm ring-1 ring-app-baunilha-dourada">
                     <Image src="/brand/appono-mark.svg" alt="Appono" width={88} height={88} className="mx-auto h-20 w-20" priority />
                     <h1 className="mt-6 text-3xl font-semibold">Acesso restrito</h1>
-                    <p className="mt-3 text-sm leading-6 text-app-cinza">Esta area e destinada a contas de restaurante.</p>
+                    <p className="mt-3 text-sm leading-6 text-app-cinza">Esta área é destinada a contas de restaurante.</p>
                     <Link href="/login" className="mt-6 inline-flex h-11 items-center justify-center rounded-[8px] bg-app-dourado-mel px-6 text-sm font-bold text-white transition hover:bg-app-caramelo-torrado">
                         Entrar
                     </Link>
@@ -210,7 +210,7 @@ function RestaurantMenuItemEditorContent() {
                         <Image src="/brand/appono-mark.svg" alt="Appono" width={88} height={88} className="h-12 w-12" priority />
                     </div>
                     <div className="flex items-center justify-center gap-6">
-                        <Link href="/restaurante/cardapio" className="transition hover:text-app-caramelo-torrado" aria-label="Voltar para gestao de cardapio">
+                        <Link href="/restaurante/cardapio" className="transition hover:text-app-caramelo-torrado" aria-label="Voltar para gestão de cardápio">
                             <Icon type="arrow-left" className="h-5 w-5" />
                         </Link>
                         <h1 className="text-lg font-bold uppercase tracking-[0.16em] sm:text-2xl">Menu</h1>
@@ -223,12 +223,12 @@ function RestaurantMenuItemEditorContent() {
 
             <section className="mx-auto w-full max-w-6xl flex-1 px-5 py-10 sm:py-14">
                 <div className="mx-auto max-w-4xl">
-                    <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-app-caramelo-torrado">Cardapio</p>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-app-caramelo-torrado">Cardápio</p>
                     <h2 className="mt-2 text-4xl font-medium leading-tight text-app-cafe-profundo sm:text-5xl">
                         {produtoId ? "Editar Item" : "Criar Novo Item"}
                     </h2>
                     <p className="mt-4 max-w-3xl text-sm leading-6 text-app-cinza sm:text-base">
-                        Publique pratos que o cliente conseguira visualizar na pagina do restaurante e selecionar no pedido antecipado.
+                        Publique pratos que o cliente conseguirá visualizar na página do restaurante e selecionar no pedido antecipado.
                     </p>
                 </div>
 
@@ -250,7 +250,7 @@ function RestaurantMenuItemEditorContent() {
                                 <Icon type="chevron-down" className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-app-cinza" />
                             </span>
                         </label>
-                        <Field label="Preco (R$)" value={form.price} onChange={(value) => updateField("price", normalizarPrecoDigitado(value))} inputMode="decimal" placeholder="Ex: 49,90" required />
+                        <Field label="Preço (R$)" value={form.price} onChange={(value) => updateField("price", normalizarPrecoDigitado(value))} inputMode="decimal" placeholder="Ex: 49,90" required />
                         <Field label="Ordem" value={form.displayOrder} onChange={(value) => updateField("displayOrder", value.replace(/\D/g, "").slice(0, 4))} inputMode="numeric" placeholder="0" />
                     </div>
 
@@ -273,7 +273,7 @@ function RestaurantMenuItemEditorContent() {
                             </span>
                             <span className="grid gap-2">
                                 <span className="text-sm leading-6 text-app-mocha">
-                                    A imagem aparecera para o cliente na pagina do restaurante. Use JPG, PNG ou WebP de ate 5 MB.
+                                    A imagem aparecerá para o cliente na página do restaurante. Use JPG, PNG ou WebP de até 5 MB.
                                 </span>
                                 <input type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => selecionarImagem(event.target.files?.[0])} className="text-xs text-app-mocha file:mr-3 file:rounded-[8px] file:border-0 file:bg-app-dourado-mel file:px-4 file:py-2 file:text-xs file:font-bold file:uppercase file:text-white" />
                             </span>
@@ -284,14 +284,14 @@ function RestaurantMenuItemEditorContent() {
                         <span className={`flex h-5 w-5 items-center justify-center rounded-[4px] border border-app-baunilha-dourada bg-white ${form.available ? "text-app-caramelo-torrado" : "text-transparent"}`}>
                             <Icon type="check" className="h-3 w-3" />
                         </span>
-                        Item disponivel para pedidos
+                        Item disponível para pedidos
                     </button>
 
                     <button type="button" onClick={() => updateField("featured", !form.featured)} className="inline-flex w-fit items-center gap-3 rounded-full bg-app-cafe-profundo px-4 py-2 text-sm font-semibold text-app-creme-leve transition hover:bg-app-caramelo-torrado">
                         <span className={`flex h-5 w-5 items-center justify-center rounded-[4px] border border-app-baunilha-dourada bg-white ${form.featured ? "text-app-caramelo-torrado" : "text-transparent"}`}>
                             <Icon type="check" className="h-3 w-3" />
                         </span>
-                        Marcar como destaque do cardapio
+                        Marcar como destaque do cardápio
                     </button>
 
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
@@ -299,7 +299,7 @@ function RestaurantMenuItemEditorContent() {
                             Cancelar
                         </Link>
                         <button type="submit" disabled={isSubmitting} className="h-12 rounded-[8px] bg-app-dourado-mel px-8 text-sm font-bold uppercase tracking-wide text-white transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-60">
-                            {isSubmitting ? (produtoId ? "Salvando..." : "Publicando...") : (produtoId ? "Salvar alteracoes" : "Publicar item")}
+                            {isSubmitting ? (produtoId ? "Salvando..." : "Publicando...") : (produtoId ? "Salvar alterações" : "Publicar item")}
                         </button>
                     </div>
 

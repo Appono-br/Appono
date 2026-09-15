@@ -10,14 +10,14 @@ import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 
 const navItems = [
     { label: "Dashboard", href: "/restaurante/dashboard" },
-    { label: "Gestao de cardapio", href: "/restaurante/cardapio" },
+    { label: "Gestão de cardápio", href: "/restaurante/cardapio" },
     { label: "Desempenho", href: "/restaurante/desempenho" },
-    { label: "Relatorio financeiro", href: "/restaurante/financeiro" },
+    { label: "Relatório financeiro", href: "/restaurante/financeiro" },
     { label: "Reservas", href: "/restaurante/reservas" },
     { label: "Cozinha", href: "/restaurante/pedidos" },
-    { label: "Historico", href: "/restaurante/historico-pedidos" },
+    { label: "Histórico", href: "/restaurante/historico-pedidos" },
     { label: "Mensagens", href: "/restaurante/mensagens" },
-    { label: "Configuracoes", href: "/restaurante/configuracoes" },
+    { label: "Configurações", href: "/restaurante/configuracoes" },
 ];
 const filtrosPedido = [
     { label: "Todos", value: "TODOS" },
@@ -29,12 +29,19 @@ const filtrosPedido = [
     { label: "Não compareceu", value: "NAO_COMPARECEU" },
     { label: "Cancelados", value: "CANCELADO" },
 ];
+const ordenacoesReserva = [
+    { label: "Próximos horários", value: "HORARIO" },
+    { label: "Check-in primeiro", value: "CHECK_IN" },
+    { label: "Status operacional", value: "STATUS" },
+    { label: "Maior grupo", value: "PESSOAS" },
+];
 
 function Icon({ type, className = "h-5 w-5" }) {
     const paths = {
         bell: "M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0",
         filter: "M4 7h16M7 12h10M10 17h4",
         menu: "M4 7h16M4 12h16M4 17h16",
+        message: "M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v8z",
         plus: "M12 5v14M5 12h14",
         search: "m21 21-4.35-4.35M11 18a7 7 0 1 1 0-14 7 7 0 0 1 0 14z",
     };
@@ -113,8 +120,8 @@ function obterClasseStatusReserva(status) {
 function obterStatusConfirmacaoPresenca(status) {
     const statusMap = {
         PENDENTE: "Aguardando cliente",
-        CONFIRMADA: "Presenca confirmada",
-        RECUSADA: "Ausencia informada",
+        CONFIRMADA: "Presença confirmada",
+        RECUSADA: "Ausência informada",
         EXPIRADA: "Prazo expirado",
     };
     return statusMap[status] ?? "Aguardando cliente";
@@ -158,6 +165,39 @@ function reservaJaTerminou(reserva) {
     const fim = new Date(`${reserva.data_reserva}T${reserva.horario_fim}`);
     return !Number.isNaN(fim.getTime()) && new Date() >= fim;
 }
+function obterDataHoraReserva(reserva) {
+    const dataHora = new Date(`${reserva.data_reserva}T${reserva.horario_inicio}`);
+    return Number.isNaN(dataHora.getTime()) ? Number.POSITIVE_INFINITY : dataHora.getTime();
+}
+function obterPrioridadeReserva(reserva) {
+    const prioridade = {
+        CHECK_IN: 0,
+        CONFIRMADA: 1,
+        PENDENTE: 2,
+        CONCLUIDA: 3,
+        NAO_COMPARECEU: 4,
+        CANCELADA: 5,
+        RECUSADA: 6,
+    };
+    return prioridade[reserva.status_reserva] ?? 7;
+}
+function ordenarReservas(reservas, ordenacao) {
+    const lista = [...reservas];
+    if (ordenacao === "CHECK_IN") {
+        return lista.sort((a, b) => {
+            const janelaA = obterJanelaCheckIn(a);
+            const janelaB = obterJanelaCheckIn(b);
+            return Number(janelaB.liberado) - Number(janelaA.liberado) || obterDataHoraReserva(a) - obterDataHoraReserva(b);
+        });
+    }
+    if (ordenacao === "STATUS") {
+        return lista.sort((a, b) => obterPrioridadeReserva(a) - obterPrioridadeReserva(b) || obterDataHoraReserva(a) - obterDataHoraReserva(b));
+    }
+    if (ordenacao === "PESSOAS") {
+        return lista.sort((a, b) => Number(b.quantidade_pessoas ?? 0) - Number(a.quantidade_pessoas ?? 0) || obterDataHoraReserva(a) - obterDataHoraReserva(b));
+    }
+    return lista.sort((a, b) => obterDataHoraReserva(a) - obterDataHoraReserva(b));
+}
 function obterCamposReserva(reserva) {
     const pedidosAtivos = obterPedidosAtivos(reserva);
     return [
@@ -195,6 +235,7 @@ export default function RestaurantReservationsPage() {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [reservas, setReservas] = useState([]);
     const [filtroPedido, setFiltroPedido] = useState("TODOS");
+    const [ordenacaoReserva, setOrdenacaoReserva] = useState("HORARIO");
     const [busca, setBusca] = useState("");
     const [reservaParaCancelar, setReservaParaCancelar] = useState(null);
     const [reservaParaExcluir, setReservaParaExcluir] = useState(null);
@@ -202,6 +243,7 @@ export default function RestaurantReservationsPage() {
     const [excluindoReserva, setExcluindoReserva] = useState(false);
     const [registrandoCheckIn, setRegistrandoCheckIn] = useState(null);
     const [finalizandoReserva, setFinalizandoReserva] = useState(null);
+    const [abrindoChatReservaId, setAbrindoChatReservaId] = useState(null);
     const [mensagem, setMensagem] = useState("");
     const isRestaurant = session?.type === "restaurant";
 
@@ -213,7 +255,7 @@ export default function RestaurantReservationsPage() {
         apiRequest("/reservas?fila=operacional")
             .then(setReservas)
             .catch((erro) =>
-                setMensagem(erro instanceof Error ? erro.message : "Nao foi possivel carregar as reservas."),
+                setMensagem(erro instanceof Error ? erro.message : "Não foi possível carregar as reservas."),
             );
     }, [isRestaurant]);
 
@@ -230,7 +272,7 @@ export default function RestaurantReservationsPage() {
             setMensagem("Reserva desmarcada.");
             setReservaParaCancelar(null);
         } catch (erro) {
-            setMensagem(erro instanceof Error ? erro.message : "Nao foi possivel desmarcar a reserva.");
+            setMensagem(erro instanceof Error ? erro.message : "Não foi possível desmarcar a reserva.");
         }
         finally {
             setCancelandoReserva(false);
@@ -249,7 +291,7 @@ export default function RestaurantReservationsPage() {
             );
             setMensagem("Check-in registrado. A reserva entrou em atendimento.");
         } catch (erro) {
-            setMensagem(erro instanceof Error ? erro.message : "Nao foi possivel registrar o check-in.");
+            setMensagem(erro instanceof Error ? erro.message : "Não foi possível registrar o check-in.");
         }
         finally {
             setRegistrandoCheckIn(null);
@@ -268,7 +310,7 @@ export default function RestaurantReservationsPage() {
             );
             setMensagem("Reserva finalizada com sucesso.");
         } catch (erro) {
-            setMensagem(erro instanceof Error ? erro.message : "Nao foi possivel finalizar a reserva.");
+            setMensagem(erro instanceof Error ? erro.message : "Não foi possível finalizar a reserva.");
         }
         finally {
             setFinalizandoReserva(null);
@@ -283,9 +325,30 @@ export default function RestaurantReservationsPage() {
             setMensagem("Reserva removida da lista.");
             setReservaParaExcluir(null);
         } catch (erro) {
-            setMensagem(erro instanceof Error ? erro.message : "Nao foi possivel remover a reserva.");
+            setMensagem(erro instanceof Error ? erro.message : "Não foi possível remover a reserva.");
         } finally {
             setExcluindoReserva(false);
+        }
+    }
+
+    async function abrirChatReserva(reserva) {
+        const pedidoPrincipal = obterPedidoPrincipal(reserva);
+        setAbrindoChatReservaId(reserva.id_reserva);
+        setMensagem("");
+        try {
+            const conversa = await apiRequest("/mensagens/conversas", {
+                method: "POST",
+                body: JSON.stringify({
+                    id_reserva: reserva.id_reserva,
+                    id_pedido: pedidoPrincipal?.id_pedido,
+                    assunto: pedidoPrincipal?.id_pedido ? `Pedido #${pedidoPrincipal.id_pedido}` : `Reserva #${reserva.id_reserva}`,
+                }),
+            });
+            window.location.assign(`/restaurante/mensagens/${conversa.id_conversa}`);
+        } catch (erro) {
+            setMensagem(erro instanceof Error ? erro.message : "Não foi possível iniciar o chat.");
+        } finally {
+            setAbrindoChatReservaId(null);
         }
     }
 
@@ -317,8 +380,8 @@ export default function RestaurantReservationsPage() {
         return reservas;
     }, [filtroPedido, reservas]);
     const reservasFiltradas = useMemo(() => {
-        return filtrarOrdenarPorBusca(reservasPorFiltro, busca, obterCamposReserva);
-    }, [busca, reservasPorFiltro]);
+        return ordenarReservas(filtrarOrdenarPorBusca(reservasPorFiltro, busca, obterCamposReserva), ordenacaoReserva);
+    }, [busca, ordenacaoReserva, reservasPorFiltro]);
 
     if (!isRestaurant) {
         return (
@@ -334,7 +397,7 @@ export default function RestaurantReservationsPage() {
                     />
                     <h1 className="mt-6 text-3xl font-semibold">Acesso restrito</h1>
                     <p className="mt-3 text-sm leading-6 text-app-cinza">
-                        Esta area e destinada a contas de restaurante.
+                        Esta área é destinada a contas de restaurante.
                     </p>
                     <Link
                         href="/login"
@@ -378,7 +441,7 @@ export default function RestaurantReservationsPage() {
                         <Link
                             href="/restaurante/notificacoes"
                             className="flex h-9 w-9 items-center justify-center rounded-[8px] text-app-cafe-profundo transition hover:bg-app-chantilly hover:text-app-caramelo-torrado"
-                            aria-label="Notificacoes"
+                            aria-label="Notificações"
                         >
                             <Icon type="bell" />
                         </Link>
@@ -425,37 +488,48 @@ export default function RestaurantReservationsPage() {
                         </h1>
                     </div>
 
-                    <label className="campo-busca-app mt-6 flex h-11 w-full max-w-2xl items-center gap-3 rounded-[10px] border border-app-baunilha-dourada/70 bg-white px-4 text-app-mocha shadow-sm transition">
-                        <Icon type="search" className="h-4 w-4 shrink-0" />
-                        <span className="sr-only">Buscar reservas</span>
-                        <input
-                            value={busca}
-                            onChange={(event) => setBusca(event.target.value)}
-                            placeholder="Buscar por cliente, mesa, reserva, pedido, status ou data..."
-                            className="input-busca-app h-full min-w-0 flex-1 bg-transparent text-sm text-app-cafe-profundo placeholder:text-app-cinza/60"
-                        />
-                    </label>
+                    <div className="mt-6 rounded-[16px] border border-app-baunilha-dourada/65 bg-white p-4 shadow-sm">
+                        <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-end">
+                            <label className="campo-busca-app flex h-11 items-center gap-3 rounded-[10px] border border-app-baunilha-dourada/70 bg-white px-4 text-app-mocha shadow-sm transition">
+                                <Icon type="search" className="h-4 w-4 shrink-0" />
+                                <span className="sr-only">Buscar reservas</span>
+                                <input
+                                    value={busca}
+                                    onChange={(event) => setBusca(event.target.value)}
+                                    placeholder="Buscar por cliente, mesa, reserva, pedido, status ou data..."
+                                    className="input-busca-app h-full min-w-0 flex-1 bg-transparent text-sm text-app-cafe-profundo placeholder:text-app-cinza/60"
+                                />
+                            </label>
 
-                    <div className="mt-4 flex gap-2 overflow-x-auto pb-2">
-                        {filtrosPedido.map((filtro) => (
-                            <button
-                                key={filtro.value}
-                                type="button"
-                                onClick={() => setFiltroPedido(filtro.value)}
-                                className={`inline-flex h-10 shrink-0 items-center justify-center rounded-[8px] border px-4 text-[11px] font-bold uppercase tracking-[0.12em] transition ${filtroPedido === filtro.value
-                                    ? "border-app-caramelo-torrado bg-app-caramelo-torrado text-app-chantilly"
-                                    : "border-app-baunilha-dourada bg-app-creme-leve text-app-mocha hover:border-app-caramelo-torrado hover:bg-app-baunilha-dourada"}`}
-                            >
-                                {filtro.label}
-                            </button>
-                        ))}
+                            <label className="grid gap-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado sm:min-w-56">
+                                Ordenar por
+                                <select value={ordenacaoReserva} onChange={(event) => setOrdenacaoReserva(event.target.value)} className="h-11 rounded-[10px] border border-app-baunilha-dourada bg-white px-3 text-sm font-semibold normal-case tracking-normal text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-caramelo-torrado/15">
+                                    {ordenacoesReserva.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
+                                </select>
+                            </label>
+                        </div>
+
+                        <div className="mt-4 flex gap-2 overflow-x-auto border-t border-app-baunilha-dourada/45 pt-4">
+                            {filtrosPedido.map((filtro) => (
+                                <button
+                                    key={filtro.value}
+                                    type="button"
+                                    onClick={() => setFiltroPedido(filtro.value)}
+                                    className={`inline-flex h-10 shrink-0 items-center justify-center rounded-full px-4 text-[11px] font-bold uppercase tracking-[0.12em] ring-1 transition ${filtroPedido === filtro.value
+                                        ? "bg-app-cafe-profundo text-app-creme-leve ring-app-cafe-profundo"
+                                        : "bg-white text-app-mocha ring-app-baunilha-dourada/70 hover:bg-app-chantilly hover:text-app-cafe-profundo hover:ring-app-caramelo-torrado/45"}`}
+                                >
+                                    {filtro.label}
+                                </button>
+                            ))}
+                        </div>
                     </div>
                 </div>
 
                 <section className="mt-10">
                     <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                         <h2 className="text-xs font-bold uppercase tracking-[0.18em] text-app-mocha">
-                            Proximos clientes
+                            Próximos clientes
                         </h2>
                         <p className="text-sm text-app-cinza">
                             {reservasFiltradas.length} de {reservas.length} agendamentos
@@ -488,7 +562,7 @@ export default function RestaurantReservationsPage() {
                                             </div>
                                             <div>
                                                 <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">
-                                                    Horario
+                                                    Horário
                                                 </p>
                                                 <p className="mt-1 text-lg font-semibold text-app-cafe-profundo">
                                                     {reserva.horario_inicio}
@@ -526,7 +600,7 @@ export default function RestaurantReservationsPage() {
                                                     <strong className="mt-1 block text-app-cafe-profundo">{reserva.mesas?.numero_mesa ?? "-"}</strong>
                                                 </div>
                                                 <div className="rounded-[10px] bg-white px-4 py-3 ring-1 ring-app-baunilha-dourada/55">
-                                                    <span className="block text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">Consumo minimo</span>
+                                                    <span className="block text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">Consumo mínimo</span>
                                                     <strong className="mt-1 block text-app-cafe-profundo">{formatarMoeda(reserva.valor_minimo_total)}</strong>
                                                 </div>
                                             </div>
@@ -554,6 +628,16 @@ export default function RestaurantReservationsPage() {
                                         </div>
 
                                         <div className="flex shrink-0 flex-wrap gap-2 border-t border-app-baunilha-dourada/55 bg-white px-5 py-4 lg:flex-col lg:items-stretch lg:justify-center lg:border-l lg:border-t-0">
+                                            <button
+                                                type="button"
+                                                onClick={() => abrirChatReserva(reserva)}
+                                                disabled={abrindoChatReservaId === reserva.id_reserva}
+                                                className="inline-flex h-9 items-center justify-center gap-2 rounded-[8px] border border-app-caramelo-torrado px-3 text-xs font-bold text-app-caramelo-torrado transition hover:bg-app-chantilly disabled:cursor-not-allowed disabled:opacity-60"
+                                            >
+                                                <Icon type="message" className="h-4 w-4" />
+                                                {abrindoChatReservaId === reserva.id_reserva ? "Abrindo..." : "Falar"}
+                                            </button>
+
                                             {reserva.status_reserva === "CONFIRMADA" && !reservaJaTerminou(reserva) ? (
                                                 <div className="grid gap-1">
                                                     <button
@@ -647,7 +731,7 @@ export default function RestaurantReservationsPage() {
                                 {reservaParaCancelar.clientes?.nome ?? "Cliente"}
                             </p>
                             <p className="mt-1 text-xs text-app-cinza">
-                                {reservaParaCancelar.data_reserva} - {reservaParaCancelar.horario_inicio} ate {reservaParaCancelar.horario_fim} - {reservaParaCancelar.quantidade_pessoas} pessoas
+                                {reservaParaCancelar.data_reserva} - {reservaParaCancelar.horario_inicio} até {reservaParaCancelar.horario_fim} - {reservaParaCancelar.quantidade_pessoas} pessoas
                             </p>
                         </div>
                         <div className="mt-6 grid gap-3 sm:grid-cols-2">
@@ -676,7 +760,7 @@ export default function RestaurantReservationsPage() {
                 open={Boolean(reservaParaExcluir)}
                 eyebrow="Excluir da lista"
                 title="Remover esta reserva da lista?"
-                description="A reserva sera ocultada da tela operacional do restaurante. O historico e os registros financeiros continuam preservados."
+                description="A reserva será ocultada da tela operacional do restaurante. O histórico e os registros financeiros continuam preservados."
                 confirmLabel="Excluir"
                 cancelLabel="Manter"
                 loading={excluindoReserva}
@@ -703,7 +787,7 @@ export default function RestaurantReservationsPage() {
                     />
                     <nav className="flex flex-wrap justify-center gap-8 text-[10px] font-bold uppercase text-app-baunilha-dourada">
                         <Link href="#" className="transition hover:text-app-chantilly">
-                            Politica de Privacidade
+                            Política de Privacidade
                         </Link>
                         <Link href="#" className="transition hover:text-app-chantilly">
                             Termos de Uso

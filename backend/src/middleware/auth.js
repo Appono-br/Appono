@@ -33,7 +33,7 @@ function requireRole(...roles) {
             supabase.from("restaurantes").select("id_restaurante").eq("id_auth", res.locals.user.id).maybeSingle(),
         ]);
         const role = resolveRole({ clientId: cliente?.id_cliente, restaurantId: restaurante?.id_restaurante });
-        if (!isRoleAllowed(role, permitidos)) return res.status(403).json({ error: "Perfil sem permissao para este recurso." });
+        if (!isRoleAllowed(role, permitidos)) return res.status(403).json({ error: "Perfil sem permissão para este recurso." });
         res.locals.role = role;
         res.locals.profileId = cliente?.id_cliente ?? restaurante?.id_restaurante;
         return next();

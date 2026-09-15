@@ -9,14 +9,14 @@ import { filtrarOrdenarPorBusca, textoBusca } from "@/lib/busca-avancada";
 
 const navItems = [
     { label: "Dashboard", href: "/restaurante/dashboard" },
-    { label: "Gestao de cardapio", href: "/restaurante/cardapio" },
+    { label: "Gestão de cardápio", href: "/restaurante/cardapio" },
     { label: "Desempenho", href: "/restaurante/desempenho" },
-    { label: "Relatorio financeiro", href: "/restaurante/financeiro" },
+    { label: "Relatório financeiro", href: "/restaurante/financeiro" },
     { label: "Reservas", href: "/restaurante/reservas" },
     { label: "Cozinha", href: "/restaurante/pedidos" },
-    { label: "Historico", href: "/restaurante/historico-pedidos" },
+    { label: "Histórico", href: "/restaurante/historico-pedidos" },
     { label: "Mensagens", href: "/restaurante/mensagens" },
-    { label: "Configuracoes", href: "/restaurante/configuracoes" },
+    { label: "Configurações", href: "/restaurante/configuracoes" },
 ];
 
 const filtrosPedido = [
@@ -27,11 +27,18 @@ const filtrosPedido = [
     { label: "Entregues", value: "ENTREGUE" },
     { label: "Cancelados", value: "CANCELADO" },
 ];
+const ordenacoesPedido = [
+    { label: "Próximos horários", value: "HORARIO" },
+    { label: "Prioridade operacional", value: "PRIORIDADE" },
+    { label: "Pedidos recentes", value: "RECENTES" },
+    { label: "Maior valor", value: "VALOR" },
+];
 
 function Icon({ type, className = "h-5 w-5" }) {
     const paths = {
         bell: "M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0",
         menu: "M4 7h16M4 12h16M4 17h16",
+        message: "M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v8z",
         clock: "M12 7v5l3 2M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
         receipt: "M7 3h10a2 2 0 0 1 2 2v16l-3-2-2 2-2-2-2 2-2-2-3 2V5a2 2 0 0 1 2-2Z",
         search: "m21 21-4.35-4.35M11 18a7 7 0 1 1 0-14 7 7 0 0 1 0 14z",
@@ -127,6 +134,36 @@ function obterProximaAcaoPedido(status) {
 function pedidoPodeSairDaCozinha(status) {
     return ["PRONTO", "ENTREGUE", "CANCELADO"].includes(status);
 }
+function obterDataHoraReservaPedido(pedido) {
+    const reserva = pedido.reserva ?? pedido.reservas ?? {};
+    const data = reserva.data_reserva;
+    const horario = reserva.horario_inicio;
+    const dataHora = data && horario ? new Date(`${data}T${horario}`) : null;
+    return dataHora && !Number.isNaN(dataHora.getTime()) ? dataHora.getTime() : Number.POSITIVE_INFINITY;
+}
+function obterPrioridadeStatusPedido(status) {
+    const prioridade = {
+        PRONTO: 0,
+        EM_PREPARO: 1,
+        CONFIRMADO: 2,
+        ENTREGUE: 3,
+        CANCELADO: 4,
+    };
+    return prioridade[status] ?? 5;
+}
+function ordenarPedidos(pedidos, ordenacao) {
+    const lista = [...pedidos];
+    if (ordenacao === "PRIORIDADE") {
+        return lista.sort((a, b) => obterPrioridadeStatusPedido(a.status_pedido) - obterPrioridadeStatusPedido(b.status_pedido) || obterDataHoraReservaPedido(a) - obterDataHoraReservaPedido(b));
+    }
+    if (ordenacao === "RECENTES") {
+        return lista.sort((a, b) => new Date(b.data_pedido ?? 0) - new Date(a.data_pedido ?? 0));
+    }
+    if (ordenacao === "VALOR") {
+        return lista.sort((a, b) => Number(b.valor_total ?? 0) - Number(a.valor_total ?? 0));
+    }
+    return lista.sort((a, b) => obterDataHoraReservaPedido(a) - obterDataHoraReservaPedido(b));
+}
 
 function agruparPedidosPorReserva(pedidos = []) {
     const reservasPorId = new Map();
@@ -200,10 +237,12 @@ export default function RestaurantOrdersPage() {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [reservas, setReservas] = useState([]);
     const [filtroPedido, setFiltroPedido] = useState("TODOS");
+    const [ordenacaoPedido, setOrdenacaoPedido] = useState("HORARIO");
     const [busca, setBusca] = useState("");
     const [mensagem, setMensagem] = useState("");
     const [pedidoParaRemover, setPedidoParaRemover] = useState(null);
     const [removendoPedido, setRemovendoPedido] = useState(false);
+    const [abrindoChatPedidoId, setAbrindoChatPedidoId] = useState(null);
     const isRestaurant = session?.type === "restaurant";
 
     useEffect(() => {
@@ -214,7 +253,7 @@ export default function RestaurantOrdersPage() {
         apiRequest("/pedidos/historico/restaurante?fila=cozinha")
             .then((pedidosOperacionais) => setReservas(agruparPedidosPorReserva(pedidosOperacionais ?? [])))
             .catch((erro) =>
-                setMensagem(erro instanceof Error ? erro.message : "Nao foi possivel carregar os pedidos."),
+                setMensagem(erro instanceof Error ? erro.message : "Não foi possível carregar os pedidos."),
             );
     }, [isRestaurant]);
 
@@ -238,8 +277,8 @@ export default function RestaurantOrdersPage() {
         return pedidos.filter((pedido) => pedido.status_pedido === filtroPedido);
     }, [filtroPedido, pedidos]);
     const pedidosFiltrados = useMemo(() => {
-        return filtrarOrdenarPorBusca(pedidosPorFiltro, busca, obterCamposPedido);
-    }, [busca, pedidosPorFiltro]);
+        return ordenarPedidos(filtrarOrdenarPorBusca(pedidosPorFiltro, busca, obterCamposPedido), ordenacaoPedido);
+    }, [busca, ordenacaoPedido, pedidosPorFiltro]);
 
     async function atualizarStatusPedido(idPedido, statusPedido) {
         try {
@@ -258,7 +297,7 @@ export default function RestaurantOrdersPage() {
             );
             setMensagem("Status do pedido atualizado.");
         } catch (erro) {
-            setMensagem(erro instanceof Error ? erro.message : "Nao foi possivel atualizar o pedido.");
+            setMensagem(erro instanceof Error ? erro.message : "Não foi possível atualizar o pedido.");
         }
     }
 
@@ -281,12 +320,31 @@ export default function RestaurantOrdersPage() {
                     ),
                 })),
             );
-            setMensagem("Pedido removido da fila da cozinha. O historico continua preservado.");
+            setMensagem("Pedido removido da fila da cozinha. O histórico continua preservado.");
             setPedidoParaRemover(null);
         } catch (erro) {
-            setMensagem(erro instanceof Error ? erro.message : "Nao foi possivel remover o pedido da cozinha.");
+            setMensagem(erro instanceof Error ? erro.message : "Não foi possível remover o pedido da cozinha.");
         } finally {
             setRemovendoPedido(false);
+        }
+    }
+
+    async function abrirChatPedido(pedido) {
+        setAbrindoChatPedidoId(pedido.id_pedido);
+        setMensagem("");
+        try {
+            const conversa = await apiRequest("/mensagens/conversas", {
+                method: "POST",
+                body: JSON.stringify({
+                    id_pedido: pedido.id_pedido,
+                    assunto: `Pedido #${pedido.id_pedido}`,
+                }),
+            });
+            window.location.assign(`/restaurante/mensagens/${conversa.id_conversa}`);
+        } catch (erro) {
+            setMensagem(erro instanceof Error ? erro.message : "Não foi possível iniciar o chat.");
+        } finally {
+            setAbrindoChatPedidoId(null);
         }
     }
 
@@ -304,7 +362,7 @@ export default function RestaurantOrdersPage() {
                     />
                     <h1 className="mt-6 text-3xl font-semibold">Acesso restrito</h1>
                     <p className="mt-3 text-sm leading-6 text-app-cinza">
-                        Esta area e destinada a contas de restaurante.
+                        Esta área é destinada a contas de restaurante.
                     </p>
                     <Link
                         href="/login"
@@ -348,7 +406,7 @@ export default function RestaurantOrdersPage() {
                         <Link
                             href="/restaurante/notificacoes"
                             className="flex h-9 w-9 items-center justify-center rounded-[8px] text-app-cafe-profundo transition hover:bg-app-chantilly hover:text-app-caramelo-torrado"
-                            aria-label="Notificacoes"
+                            aria-label="Notificações"
                         >
                             <Icon type="bell" />
                         </Link>
@@ -398,30 +456,41 @@ export default function RestaurantOrdersPage() {
                         </p>
                     </div>
 
-                    <label className="campo-busca-app mt-6 flex h-11 w-full max-w-2xl items-center gap-3 rounded-[10px] border border-app-baunilha-dourada/70 bg-white px-4 text-app-mocha shadow-sm transition">
-                        <Icon type="search" className="h-4 w-4 shrink-0" />
-                        <span className="sr-only">Buscar pedidos na cozinha</span>
-                        <input
-                            value={busca}
-                            onChange={(event) => setBusca(event.target.value)}
-                            placeholder="Buscar por cliente, pedido, mesa, status, item ou horario..."
-                            className="input-busca-app h-full min-w-0 flex-1 bg-transparent text-sm text-app-cafe-profundo placeholder:text-app-cinza/60"
-                        />
-                    </label>
+                    <div className="mt-6 rounded-[16px] border border-app-baunilha-dourada/65 bg-white p-4 shadow-sm">
+                        <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-end">
+                            <label className="campo-busca-app flex h-11 items-center gap-3 rounded-[10px] border border-app-baunilha-dourada/70 bg-white px-4 text-app-mocha shadow-sm transition">
+                                <Icon type="search" className="h-4 w-4 shrink-0" />
+                                <span className="sr-only">Buscar pedidos na cozinha</span>
+                                <input
+                                    value={busca}
+                                    onChange={(event) => setBusca(event.target.value)}
+                                    placeholder="Buscar por cliente, pedido, mesa, status, item ou horário..."
+                                    className="input-busca-app h-full min-w-0 flex-1 bg-transparent text-sm text-app-cafe-profundo placeholder:text-app-cinza/60"
+                                />
+                            </label>
 
-                    <div className="mt-4 flex gap-2 overflow-x-auto pb-2">
-                        {filtrosPedido.map((filtro) => (
-                            <button
-                                key={filtro.value}
-                                type="button"
-                                onClick={() => setFiltroPedido(filtro.value)}
-                                className={`inline-flex h-10 shrink-0 items-center justify-center rounded-[8px] border px-4 text-[11px] font-bold uppercase tracking-[0.12em] transition ${filtroPedido === filtro.value
-                                    ? "border-app-caramelo-torrado bg-app-caramelo-torrado text-app-chantilly"
-                                    : "border-app-baunilha-dourada bg-app-creme-leve text-app-mocha hover:border-app-caramelo-torrado hover:bg-app-baunilha-dourada"}`}
-                            >
-                                {filtro.label}
-                            </button>
-                        ))}
+                            <label className="grid gap-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado sm:min-w-56">
+                                Ordenar por
+                                <select value={ordenacaoPedido} onChange={(event) => setOrdenacaoPedido(event.target.value)} className="h-11 rounded-[10px] border border-app-baunilha-dourada bg-white px-3 text-sm font-semibold normal-case tracking-normal text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-caramelo-torrado/15">
+                                    {ordenacoesPedido.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
+                                </select>
+                            </label>
+                        </div>
+
+                        <div className="mt-4 flex gap-2 overflow-x-auto border-t border-app-baunilha-dourada/45 pt-4">
+                            {filtrosPedido.map((filtro) => (
+                                <button
+                                    key={filtro.value}
+                                    type="button"
+                                    onClick={() => setFiltroPedido(filtro.value)}
+                                    className={`inline-flex h-10 shrink-0 items-center justify-center rounded-full px-4 text-[11px] font-bold uppercase tracking-[0.12em] ring-1 transition ${filtroPedido === filtro.value
+                                        ? "bg-app-cafe-profundo text-app-creme-leve ring-app-cafe-profundo"
+                                        : "bg-white text-app-mocha ring-app-baunilha-dourada/70 hover:bg-app-chantilly hover:text-app-cafe-profundo hover:ring-app-caramelo-torrado/45"}`}
+                                >
+                                    {filtro.label}
+                                </button>
+                            ))}
+                        </div>
                     </div>
                 </div>
 
@@ -520,7 +589,7 @@ export default function RestaurantOrdersPage() {
 
                                                 {pedido.observacoes ? (
                                                     <p className="mt-4 rounded-[10px] bg-app-creme-suave px-4 py-3 text-sm text-app-mocha">
-                                                        Observacao geral: {pedido.observacoes}
+                                                        Observação geral: {pedido.observacoes}
                                                     </p>
                                                 ) : null}
                                             </div>
@@ -551,9 +620,19 @@ export default function RestaurantOrdersPage() {
                                                         </button>
                                                     ) : (
                                                         <p className="rounded-[10px] bg-app-creme-leve px-4 py-3 text-sm font-semibold text-app-cinza ring-1 ring-app-baunilha-dourada/45">
-                                                            Nenhuma acao pendente para este pedido.
+                                                            Nenhuma ação pendente para este pedido.
                                                         </p>
                                                     )}
+
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => abrirChatPedido(pedido)}
+                                                        disabled={abrindoChatPedidoId === pedido.id_pedido}
+                                                        className="inline-flex h-11 items-center justify-center gap-2 rounded-[9px] border border-app-caramelo-torrado px-4 text-xs font-bold uppercase tracking-[0.14em] text-app-caramelo-torrado transition hover:bg-app-chantilly disabled:cursor-not-allowed disabled:opacity-60"
+                                                    >
+                                                        <Icon type="message" className="h-4 w-4" />
+                                                        {abrindoChatPedidoId === pedido.id_pedido ? "Abrindo..." : "Falar com cliente"}
+                                                    </button>
 
                                                     {podeRemoverDaCozinha ? (
                                                         <button
@@ -575,7 +654,7 @@ export default function RestaurantOrdersPage() {
                     ) : (
                         <EmptyPanel
                             title="Nenhum pedido neste filtro"
-                            description="Pedidos pagos aparecem aqui em ordem de reserva. Os mais proximos ficam primeiro para orientar a cozinha."
+                            description="Pedidos pagos aparecem aqui em ordem de reserva. Os mais próximos ficam primeiro para orientar a cozinha."
                         />
                     )}
                 </section>
@@ -594,7 +673,7 @@ export default function RestaurantOrdersPage() {
                             Tirar pedido #{pedidoParaRemover.id_pedido} da fila?
                         </h2>
                         <p className="mt-3 text-sm leading-6 text-app-cinza">
-                            Esta acao remove o pedido apenas da tela operacional da cozinha. O registro continua salvo no historico, no financeiro e nas reservas.
+                            Esta ação remove o pedido apenas da tela operacional da cozinha. O registro continua salvo no histórico, no financeiro e nas reservas.
                         </p>
                         <div className="mt-6 grid gap-3 sm:grid-cols-2">
                             <button

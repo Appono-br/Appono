@@ -8,14 +8,14 @@ function reservationDateTime(reservation) {
 }
 
 function paymentEligibility(reservation, now = new Date()) {
-    if (!reservation) return { allowed: false, code: "RESERVA_AUSENTE", message: "A reserva vinculada ao pedido nao foi encontrada." };
+    if (!reservation) return { allowed: false, code: "RESERVA_AUSENTE", message: "A reserva vinculada ao pedido não foi encontrada." };
     if (!["PENDENTE", "CONFIRMADA"].includes(reservation.status_reserva)) {
-        return { allowed: false, code: "RESERVA_INATIVA", message: "O pagamento so esta disponivel para reservas aguardando pagamento ou confirmadas." };
+        return { allowed: false, code: "RESERVA_INATIVA", message: "O pagamento só está disponível para reservas aguardando pagamento ou confirmadas." };
     }
     const deadline = reservationDateTime(reservation);
-    if (!deadline) return { allowed: false, code: "HORARIO_INVALIDO", message: "O horario da reserva e invalido." };
+    if (!deadline) return { allowed: false, code: "HORARIO_INVALIDO", message: "O horário da reserva e inválido." };
     if (now.getTime() >= deadline.getTime()) {
-        return { allowed: false, code: "RESERVA_VENCIDA", message: "O prazo de pagamento terminou porque o horario da reserva ja passou.", deadline };
+        return { allowed: false, code: "RESERVA_VENCIDA", message: "O prazo de pagamento terminou porque o horário da reserva já passou.", deadline };
     }
     return { allowed: true, code: "PAGAMENTO_DISPONIVEL", deadline };
 }
@@ -38,13 +38,13 @@ function lateApprovalDecision({ gatewayStatus, existingStatus, reservation, paym
     if (existingStatus === "ESTORNADO") return { finalStatus: "ESTORNADO", shouldRefund: false, reason: "JA_ESTORNADO" };
     const paymentDate = gatewayPaymentDate(payment);
     if (!paymentDate) {
-        const error = new Error("O Mercado Pago nao informou uma data valida para a aprovacao.");
+        const error = new Error("O Mercado Pago não informou uma data valida para a aprovação.");
         error.code = "DATA_APROVACAO_AUSENTE";
         throw error;
     }
     const deadline = reservationDateTime(reservation);
     if (!deadline) {
-        const error = new Error("A reserva nao possui horario valido para conciliar o pagamento.");
+        const error = new Error("A reserva não possui horário válido para conciliar o pagamento.");
         error.code = "HORARIO_RESERVA_INVALIDO";
         throw error;
     }

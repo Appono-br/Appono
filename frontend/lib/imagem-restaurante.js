@@ -29,7 +29,7 @@ export async function enviarImagemRestaurante(arquivo, sessao) {
             refresh_token: tokens.refreshToken,
         });
         if (error) {
-            throw new Error("Nao foi possivel autenticar o envio da imagem.");
+            throw new Error("Não foi possível autenticar o envio da imagem.");
         }
     }
     const { data: usuario, error: erroUsuario } = await supabase.auth.getUser();
