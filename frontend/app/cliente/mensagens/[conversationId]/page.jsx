@@ -5,7 +5,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 import { apiRequest } from "@/lib/api";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 
@@ -116,24 +115,12 @@ export default function ConversationPage() {
 
   return (
     <main className="flex min-h-screen flex-col bg-white text-app-cafe-profundo">
-      <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-white/90 shadow-sm backdrop-blur-md">
-        <div className="mx-auto grid h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-5">
-          <Image src="/brand/appono-mark.svg" alt={ui("Appono")} width={88} height={88} className="h-12 w-12" priority />
-          <div className="flex items-center justify-center gap-5">
-            <Link href="/cliente/mensagens" className="transition hover:text-app-caramelo-torrado" aria-label={ui("Voltar para mensagens")}>
-              <Icon type="arrow-left" className="h-5 w-5" />
-            </Link>
-            <h1 className="text-lg font-bold uppercase tracking-[0.16em] sm:text-2xl">{ui("Chat")}</h1>
-          </div>
-          <div className="justify-self-end">
-            <ItemHeaderNotificacoes href="/cliente/notificacoes" />
-          </div>
-        </div>
-      </header>
-
       <section className="border-b border-app-baunilha-dourada/45 bg-white px-5 py-4">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
           <div className="flex items-center gap-3">
+            <Link href="/cliente/mensagens" className="mr-1 rounded-md p-2 transition hover:bg-app-chantilly hover:text-app-caramelo-torrado" aria-label={ui("Voltar para mensagens")}>
+              <Icon type="arrow-left" className="h-5 w-5" />
+            </Link>
             <AvatarRestaurante conversa={conversa} />
             <div>
               <h2 className="text-base font-semibold">{conversa?.titulo ?? ui("Carregando conversa")}</h2>

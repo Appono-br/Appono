@@ -100,6 +100,7 @@ export async function apiRequest(path, options = {}) {
             const error = new Error(body?.error ?? "Não conseguimos concluir agora.");
             error.status = response.status;
             error.code = body?.code;
+            error.details = body;
             throw error;
         }
         if (metodo !== "GET") {

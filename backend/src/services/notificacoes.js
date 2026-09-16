@@ -1,6 +1,7 @@
 "use strict";
 
 const { supabaseAdmin } = require("../lib/supabase");
+const { enfileirarEmail } = require("./email-outbox");
 
 const mapaEventosPreferenciasRestaurante = {
     NOVA_RESERVA: "newReservation",
@@ -138,6 +139,15 @@ async function criarNotificacao(dados) {
         console.warn("Falha ao criar notificação:", error.message);
         return null;
     }
+    await enfileirarEmail({
+        idAuth: dados.id_auth_destinatario,
+        tipoEvento: dados.tipo_evento ?? "INFORMATIVO",
+        titulo: dados.titulo,
+        mensagem: dados.mensagem,
+        linkDestino: dados.link_destino,
+        dados: dados.dados ?? {},
+        chaveIdempotencia: dedupeKey,
+    });
     return data;
 }
 

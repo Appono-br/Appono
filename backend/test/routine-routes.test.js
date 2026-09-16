@@ -36,6 +36,7 @@ async function ambiente(t, { role = "cliente", dono = 7, erroRpc = null, erroCod
                     if (tabela === "refeicoes_planejadas") return { data: dono === filtros.id_cliente ? refeicao : null };
                     if (tabela === "perfis_rotina_cliente") return { data: {
                         id_perfil_rotina: 1, id_cliente: 7, versao: 1, nome: "Rotina teste", endereco_base: "Escritorio",
+                        latitude: -23.5617, longitude: -46.6559,
                         horario_inicio: "12:00:00", horario_fim: "14:00:00", tempo_maximo_minutos: 60, raio_km: 5,
                         dias_semana: ["monday"], preferencias_rotina_cliente: [{tipo:"PREFERENCIA",valor:"Massa"}], restricoes_rotina_cliente: [],
                     } };
@@ -127,16 +128,31 @@ test("conversao exige versoes e nao repete sem precondicao", async (t) => {
     assert.equal(ctx.chamadas[0].parametros.versao_planejamento, 1);
 });
 
+test("feedback exige a funcao controlada e nao aceita dados de outro cliente", async (t) => {
+    const ctx = await ambiente(t);
+    const resposta = await ctx.requisitar("/refeicoes/1/feedback", true, {
+        gostou: true, repetiria: true, motivo: "Funcionou bem", tags: ["perto"], consentiu_personalizacao: true,
+    });
+    assert.equal(resposta.status, 201);
+    assert.equal(ctx.chamadas[0].nome, "registrar_feedback_rotina");
+    assert.equal(ctx.chamadas[0].parametros.p_id_refeicao, 1);
+    assert.equal(ctx.chamadas[0].parametros.id_cliente, undefined);
+    const exclusao = await ctx.requisitar("/refeicoes/1/feedback", true, {}, "DELETE");
+    assert.equal(exclusao.status, 204);
+    assert.equal(ctx.chamadas[1].nome, "excluir_feedback_rotina");
+});
+
 test("PATCH de perfil usa um RPC atomico, identidade verificada e listas omitidas intactas", async (t) => {
     const ctx=await ambiente(t);
-    const response=await ctx.requisitar("/perfil",true,{versao_perfil:1,endereco_base:null,id_cliente:99,actor_id:"invasor"},"PATCH");
+    const response=await ctx.requisitar("/perfil",true,{versao_perfil:1,nome:"Rotina revisada",latitude:0,longitude:0,id_cliente:99,actor_id:"invasor"},"PATCH");
     assert.equal(response.status,200);
     assert.equal((await response.json()).versao,2);
     assert.equal(ctx.chamadas.length,1);
     const params=ctx.chamadas[0].parametros;
     assert.equal(ctx.chamadas[0].nome,"mutar_rotina");
     assert.equal(params.actor_id,"auth-cliente"); assert.equal(params.operacao,"PERFIL");
-    assert.equal(params.dados.endereco_base,null); assert.equal(params.dados.nome,"Rotina teste");
+    assert.equal(params.dados.endereco_base,"Escritorio"); assert.equal(params.dados.nome,"Rotina revisada");
+    assert.equal(params.dados.latitude,-23.5617); assert.equal(params.dados.longitude,-46.6559);
     assert.equal(params.dados.preferencias,undefined); assert.equal(params.dados.id_cliente,undefined);
 });
 test("PATCH lista vazia remove e null em campo obrigatorio e rejeitado", async (t) => {

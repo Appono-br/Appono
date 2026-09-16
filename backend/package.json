@@ -8,6 +8,7 @@
   "build": "node --check src/server.js",
   "start": "node scripts/start.js",
   "test": "node --test test/*.test.js",
+  "security:migrate-mercado-pago-tokens": "node scripts/migrate-mercado-pago-tokens.js",
   "test:rotina:postgres": "node --test test/integration/routine-postgres.test.js",
   "test:rotina:supabase": "node test/integration/routine-supabase-smoke.js"
 },

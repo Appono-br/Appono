@@ -4,14 +4,15 @@ const { isRealMarketplace } = require("./config");
 const { productionAllowed } = require("./config");
 const { consultarPagamentoMercadoPago, estornarPagamentoMercadoPago, obterAccessTokenMercadoPago } = require("./mercado-pago");
 const { testGatewayRefundEligibility } = require("../../domain/refund-state");
+const { decifrarTokenMercadoPago } = require("./credenciais-restaurante");
 
 async function paymentTokenForRestaurant(restaurantId) {
     if (!isRealMarketplace()) return obterAccessTokenMercadoPago();
     if (!supabaseAdmin) throw new Error("Supabase administrativo indisponível para localizar a conta Mercado Pago.");
     const { data, error } = await supabaseAdmin.from("mercado_pago_conexoes_restaurante")
-        .select("access_token").eq("id_restaurante", restaurantId).eq("status", "CONECTADO").maybeSingle();
-    if (error || !data?.access_token) throw new Error(error?.message ?? "Conta Mercado Pago do restaurante não encontrada.");
-    return data.access_token;
+        .select("access_token_cifrado").eq("id_restaurante", restaurantId).eq("status", "CONECTADO").maybeSingle();
+    if (error || !data?.access_token_cifrado) throw new Error(error?.message ?? "Conta Mercado Pago do restaurante não encontrada ou precisa ser reconectada.");
+    return decifrarTokenMercadoPago(data.access_token_cifrado);
 }
 
 function shouldRefundViaGateway(payment) {

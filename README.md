@@ -40,6 +40,7 @@ O projeto está em desenvolvimento, com módulos implementados e integrações q
 | Restaurante | Gestão do cardápio, agenda, fila da cozinha, histórico e indicadores | Perfil autenticado e dados operacionais; a janela da cozinha é definida no código |
 | Pagamentos | Checkout Pro, conexão OAuth de restaurantes, webhook, financeiro e solicitação de reembolso | Credenciais Mercado Pago, URLs de integração e modo financeiro; simulação e estorno no gateway têm comportamentos distintos |
 | Atendimento | Chat entre participantes, notificações internas, chamados e análise administrativa | Migrations de chat e suporte, autenticação e validação de propriedade |
+| Appono Rotina | Perfil, endereço geocodificado, até oito janelas alimentares, planejamento, agenda, recomendações explicáveis, segurança alimentar, feedback privado e conversão em reserva ou pedido | Escritas transacionais, controle de concorrência, RLS e feature flags; integrações externas continuam evolutivas |
 
 Estão pendentes de validação para um piloto financeiro: concorrência real, matriz RLS entre usuários, webhooks e estornos no sandbox, conciliação periódica independente das telas, alertas externos e restauração de backup. Os documentos de operação e piloto descrevem requisitos; não representam automações já entregues. Veja os [limites e pendências](docs/fluxos-operacionais.md#prontidão).
 
@@ -220,7 +221,33 @@ MERCADO_PAGO_PERMITIR_PRODUCAO=false
 | `MERCADO_PAGO_MARKETPLACE_FEE_PERCENTUAL` | Opcional; padrão `13` | Percentual da comissão |
 | `MERCADO_PAGO_APP_ID` e `MERCADO_PAGO_CLIENT_SECRET` | Para OAuth do restaurante | Credenciais da aplicação Mercado Pago |
 | `MERCADO_PAGO_REDIRECT_URI` | Para OAuth do restaurante | Callback público com o caminho `/api/marketplace/mercado-pago/callback` |
-| `MERCADO_PAGO_WEBHOOK_SECRET` | Para validar a assinatura do webhook | Segredo configurado no provedor; o código só verifica a assinatura quando ele está preenchido |
+| `MERCADO_PAGO_WEBHOOK_SECRET` | Para validar a assinatura do webhook | Obrigatório em produção; um webhook sem assinatura válida é rejeitado |
+| `MERCADO_PAGO_WEBHOOK_SIGNATURE_REQUIRED` | Reforço de webhook | Mantenha `true` em homologação e produção para rejeitar chamadas sem segredo/assinatura |
+| `APPONO_MERCADO_PAGO_TOKEN_ENCRYPTION_KEY` | Para OAuth do restaurante | Chave de 32 bytes em Base64 ou 64 caracteres hexadecimais, exclusiva do backend; cifra os tokens OAuth do restaurante |
+| `CORS_ALLOW_VERCEL_PREVIEWS` | CORS | Padrão `false`; habilite somente para previews explicitamente desejados |
+| `APPONO_TRUST_PROXY` | IP do cliente | Mantenha `false` localmente; habilite somente atrás de proxy confiável para rate limiting correto |
+| `APPONO_CALENDAR_TOKEN_ENCRYPTION_KEY` | Para conexão de agenda | Chave de 32 bytes em Base64 ou 64 caracteres hexadecimais, disponível somente no backend |
+| `APPONO_ROTINA_AGENDA_GOOGLE_ENABLED` | Padrão `false` | Libera o fluxo Google somente depois da configuração completa |
+| `GOOGLE_CALENDAR_CLIENT_ID`, `GOOGLE_CALENDAR_CLIENT_SECRET` e `GOOGLE_CALENDAR_REDIRECT_URI` | Para Google Agenda | OAuth com callback `/api/rotina/agenda/google/callback` |
+| `APPONO_ROTINA_AGENDA_OUTLOOK_ENABLED` | Padrão `false` | Libera o fluxo Outlook somente depois da configuração completa |
+| `MICROSOFT_CALENDAR_CLIENT_ID`, `MICROSOFT_CALENDAR_CLIENT_SECRET` e `MICROSOFT_CALENDAR_REDIRECT_URI` | Para Outlook | OAuth com callback `/api/rotina/agenda/outlook/callback` |
+| `APPONO_EMAIL_ENABLED` | Padrão `false` | Ativa o envio real de e-mails fora da transação principal |
+| `APPONO_ROTINA_GROUPS_ENABLED` | Padrão `false` | Reserva o rollout da futura experiência de almoço em grupo |
+| `APPONO_ROTINA_INSIGHTS_ENABLED` | Padrão `false` | Ativa métricas agregadas da Rotina para o restaurante |
+| `RESEND_API_KEY` e `RESEND_FROM_EMAIL` | Para envio Resend | Credenciais exclusivas do backend; necessárias somente com e-mail habilitado |
+| `APPONO_CRON_SECRET` | Para worker de e-mail | Protege `POST /api/cron/emails` com o header `X-Appono-Cron-Secret` |
+
+### Endurecimento Mercado Pago
+
+Antes de habilitar `MERCADO_PAGO_PERMITIR_PRODUCAO=true`, configure `MERCADO_PAGO_WEBHOOK_SECRET`, `MERCADO_PAGO_WEBHOOK_SIGNATURE_REQUIRED=true` e uma chave exclusiva em `APPONO_MERCADO_PAGO_TOKEN_ENCRYPTION_KEY`. A API recusa webhook sem assinatura quando a assinatura é obrigatória e grava novos tokens OAuth somente cifrados com AES-256-GCM.
+
+Após aplicar a migration `20260915214739_harden_mercado_pago_security.sql`, migre os tokens legados uma única vez, no backend e com uma cópia de segurança validada:
+
+```powershell
+npm.cmd run security:migrate-mercado-pago-tokens --workspace backend
+```
+
+O script cifra os tokens legados, limpa as colunas antigas e informa apenas a quantidade de conexões tratadas. Não o execute sem `SUPABASE_SECRET_KEY` e `APPONO_MERCADO_PAGO_TOKEN_ENCRYPTION_KEY` configuradas. Para conexões que não puderem ser migradas, desconecte e conecte novamente a conta do restaurante.
 
 O [arquivo de exemplo](backend/.env.example) reúne os campos de configuração. `localhost` é suficiente para abrir a aplicação, mas não é alcançável pelos webhooks do Mercado Pago. A configuração de endpoints públicos pertence ao teste da integração, não à instalação básica.
 
@@ -253,6 +280,8 @@ O guia de [preparação do Supabase](docs/preparacao-supabase.md) cobre schema b
 - Não há `supabase/config.toml` nem seed versionado. Um ambiente totalmente local com Supabase CLI/Docker ainda precisa de preparação adicional.
 - Configurar Google, recuperação de senha e callbacks exige ajustes no projeto Supabase.
 - **`supabase db push` altera o banco vinculado.** Revise o projeto de destino e as migrations pendentes antes de executar o procedimento do guia.
+- A migration `20260915205452_routine_meal_windows_and_geocoding.sql` adiciona geocodificação server-side via Nominatim, endereço normalizado e janelas de café, almoço, jantar ou personalizadas. Cada planejamento passa a identificar a janela da refeição, permitindo mais de uma sugestão por dia sem duplicar conversões.
+- Antes de aplicá-la em um projeto que recebeu migrations manualmente pelo Dashboard, reconcilie o histórico local com `supabase migration repair` para cada versão já aplicada. Só então revise `supabase migration list --linked` e aplique a nova migration no ambiente autorizado.
 
 ## Execução local
 
@@ -312,6 +341,8 @@ O [inicializador do backend](backend/scripts/start.js) preserva certificados ext
 | Documento | Conteúdo |
 | --- | --- |
 | [Evolução completa do Appono Rotina](docs/appono-rotina-prompt-evolucao-completa.md) | Prompt executável dos itens 1 a 9, com critérios técnicos, testes e definição de pronto |
+| [Progresso do Appono Rotina](docs/appono-rotina-evolucao.md) | Checklist de implementação, decisões, evidências, riscos e pendências das nove fases |
+| [Credenciais do Appono Rotina](docs/appono-rotina-credenciais.md) | Passo a passo seguro para Supabase, Mercado Pago, Resend, Google Agenda, Outlook e geocodificação |
 | [Preparação do Supabase](docs/preparacao-supabase.md) | Limitações do schema inicial, Auth, Storage e migrations |
 | [Fluxos operacionais](docs/fluxos-operacionais.md) | Regras e endpoints de reservas, cozinha, pagamentos, reembolsos, chat e suporte |
 | [Operação e implantação](docs/operacao-producao.md) | Requisitos de ambientes, backup, observabilidade e conciliação |

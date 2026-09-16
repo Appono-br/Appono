@@ -22,10 +22,19 @@ const { refundsRouter } = require("./routes/refunds");
 const { messagesRouter } = require("./routes/messages");
 const { supportRouter } = require("./routes/support");
 const { rotinaRouter } = require("./routes/routine");
+const { agendaRotinaRouter } = require("./routes/routine-calendar");
+const { rotinaInsightsRouter } = require("./routes/routine-insights");
+const { rotinaGroupsRouter } = require("./routes/routine-groups");
 const { requestContext } = require("./middleware/observability");
+const { criarRateLimiter } = require("./middleware/rate-limit");
+const crypto = require("node:crypto");
+const { processarEmailsOutbox } = require("./services/email-outbox");
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+const emProducao = String(process.env.NODE_ENV ?? "development").toLowerCase() === "production";
+const confiarNoProxy = String(process.env.APPONO_TRUST_PROXY ?? "false").trim().toLowerCase() === "true";
+app.set("trust proxy", confiarNoProxy);
 
 const FRONTEND_ORIGIN =
   process.env.FRONTEND_ORIGIN ?? "http://localhost:3000";
@@ -34,7 +43,7 @@ const allowedOrigins = FRONTEND_ORIGIN.split(",")
   .map((origin) => origin.trim())
   .filter(Boolean);
 
-const allowVercelPreviews = String(process.env.CORS_ALLOW_VERCEL_PREVIEWS ?? "true").toLowerCase() !== "false";
+const allowVercelPreviews = String(process.env.CORS_ALLOW_VERCEL_PREVIEWS ?? "false").trim().toLowerCase() === "true";
 const vercelPreviewProjectHint = String(process.env.CORS_VERCEL_PROJECT_HINT ?? "appono").toLowerCase();
 
 function isVercelPreviewOrigin(origin) {
@@ -79,9 +88,9 @@ app.use(
     origin: (origin, callback) => {
       if (
         !origin ||
-        allowedOrigins.includes("*") ||
+        (!emProducao && allowedOrigins.includes("*")) ||
         allowedOrigins.includes(origin) ||
-        isLocalDevelopmentOrigin(origin) ||
+        (!emProducao && isLocalDevelopmentOrigin(origin)) ||
         isVercelPreviewOrigin(origin)
       ) {
         return callback(null, true);
@@ -127,6 +136,8 @@ app.get("/api/health/config", (req, res) => {
       publicReturnUrl: Boolean(process.env.FRONTEND_PUBLIC_URL),
       backendPublicUrl: Boolean(process.env.BACKEND_PUBLIC_URL),
       webhookSecret: Boolean(process.env.MERCADO_PAGO_WEBHOOK_SECRET),
+      webhookSignatureRequired: String(process.env.MERCADO_PAGO_WEBHOOK_SIGNATURE_REQUIRED ?? "false").toLowerCase() === "true",
+      tokenEncryptionKey: Boolean(process.env.APPONO_MERCADO_PAGO_TOKEN_ENCRYPTION_KEY),
       modoRepasse: process.env.MERCADO_PAGO_MODO_REPASSE ?? "SIMULADO",
       producaoPermitida: String(process.env.MERCADO_PAGO_PERMITIR_PRODUCAO ?? "false").toLowerCase() === "true",
     },
@@ -137,7 +148,26 @@ app.get("/api/health/config", (req, res) => {
   });
 });
 
-app.use("/api/auth", authRouter);
+const limitarAutenticacao = criarRateLimiter({ janelaMs: 15 * 60_000, limite: 20 });
+const limitarOperacoesAdministrativas = criarRateLimiter({ janelaMs: 60_000, limite: 30 });
+const limitarMarketplace = criarRateLimiter({ janelaMs: 60_000, limite: 30 });
+const limitarSuporte = criarRateLimiter({ janelaMs: 60_000, limite: 30 });
+const limitarCron = criarRateLimiter({ janelaMs: 60_000, limite: 10 });
+
+app.post("/api/cron/emails", limitarCron, async (req, res) => {
+  const esperado = String(process.env.APPONO_CRON_SECRET ?? "");
+  const recebido = String(req.headers["x-appono-cron-secret"] ?? "");
+  const autorizado = esperado.length > 0 && recebido.length === esperado.length && crypto.timingSafeEqual(Buffer.from(recebido), Buffer.from(esperado));
+  if (!autorizado) return res.status(401).json({ error: "Não autorizado." });
+  try {
+    return res.json(await processarEmailsOutbox({ limite: Number(req.query.limite ?? 20) }));
+  }
+  catch (error) {
+    return res.status(503).json({ error: "Não foi possível processar os e-mails agora." });
+  }
+});
+
+app.use("/api/auth", limitarAutenticacao, authRouter);
 app.use("/api/me", meRouter);
 app.use("/api/restaurantes", restaurantsRouter);
 app.use("/api/reservas", reservationsRouter);
@@ -145,13 +175,16 @@ app.use("/api/pedidos", ordersRouter);
 app.use("/api/validacoes", rotasValidacoes);
 app.use("/api/cardapio", menuRouter);
 app.use("/api/pagamentos", paymentsRouter);
-app.use("/api/marketplace", marketplaceRouter);
-app.use("/api/admin", adminRouter);
+app.use("/api/marketplace", limitarMarketplace, marketplaceRouter);
+app.use("/api/admin", limitarOperacoesAdministrativas, adminRouter);
 app.use("/api/notificacoes", notificationsRouter);
 app.use("/api/restaurante", restaurantDashboardRouter);
-app.use("/api/reembolsos", refundsRouter);
+app.use("/api/reembolsos", limitarOperacoesAdministrativas, refundsRouter);
 app.use("/api/mensagens", messagesRouter);
-app.use("/api/suporte", supportRouter);
+app.use("/api/suporte", limitarSuporte, supportRouter);
+app.use("/api/rotina/agenda", agendaRotinaRouter);
+app.use("/api/rotina/insights", rotinaInsightsRouter);
+app.use("/api/rotina/grupos", rotinaGroupsRouter);
 app.use("/api/rotina", rotinaRouter);
 
 app.use((error, _req, res, _next) => {

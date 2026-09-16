@@ -3,9 +3,10 @@
 const { Router } = require("express");
 const { createUserSupabaseClient, supabaseAdmin } = require("../lib/supabase");
 const { requireAuth, requireRole } = require("../middleware/auth");
-const { gerarPlanejamentoRotina, normalizarDiasSemana, criarCandidatos, horarioCompativel, semanaPlanejamento, validarLimitesRotina } = require("../domain/routine-recommendation");
+const { gerarPlanejamentoRotina, normalizarDiasSemana, criarCandidatos, horarioCompativel, janelasLivresDia, motivoRecomendacao, semanaPlanejamento, validarLimitesRotina } = require("../domain/routine-recommendation");
 const { notificarCliente, notificarRestaurante } = require("../services/notificacoes");
 const paymentConfig = require("../services/pagamentos/config");
+const { geocodificarEnderecoRotina } = require("../services/geolocalizacao");
 
 const rotinaRouter = Router();
 
@@ -67,7 +68,7 @@ function normalizarPerfilEntrada(body, atual = {}) {
     for (const campo of ["horario_inicio", "horario_fim"]) {
         if (body[campo] !== undefined && !horaValida(body[campo])) throw new Error("Informe horários válidos.");
     }
-    for (const campo of ["tempo_maximo_minutos", "raio_km", "orcamento_diario", "orcamento_semanal", "latitude", "longitude"]) {
+    for (const campo of ["tempo_maximo_minutos", "raio_km", "orcamento_diario", "orcamento_semanal"]) {
         const valor = body[campo];
         if (valor !== undefined && valor !== null && valor !== "" && !Number.isFinite(Number(valor))) throw new Error("Informe valores numéricos válidos.");
     }
@@ -80,12 +81,9 @@ function normalizarPerfilEntrada(body, atual = {}) {
     const raioKm = Number(body.raio_km ?? atual.raio_km ?? 5);
     validarLimitesRotina({ horario_inicio: horarioInicio, horario_fim: horarioFim, tempo_maximo_minutos: tempoMaximo, raio_km: raioKm,
         dias_semana: body.dias_semana ?? atual.dias_semana ?? normalizarDiasSemana() });
-    const latitude = numeroOpcional(body.latitude !== undefined ? body.latitude : atual.latitude);
-    const longitude = numeroOpcional(body.longitude !== undefined ? body.longitude : atual.longitude);
-    if ((latitude === null) !== (longitude === null)) {
-        throw new Error("Informe latitude e longitude juntas.");
-    }
-    if (latitude !== null && (Math.abs(latitude) > 90 || Math.abs(longitude) > 180)) throw new Error("Coordenadas inválidas.");
+    // Coordenadas da rotina sao definidas apenas pelo geocodificador do servidor.
+    const latitude = atual.latitude ?? null;
+    const longitude = atual.longitude ?? null;
     if (!Number.isInteger(tempoMaximo)) throw new Error("O tempo disponível deve ser informado em minutos inteiros.");
     for (const campo of ["orcamento_diario", "orcamento_semanal"]) {
         if (numeroOpcional(body[campo]) < 0) throw new Error("O orçamento não pode ser negativo.");
@@ -111,7 +109,7 @@ function normalizarPerfilEntrada(body, atual = {}) {
     };
 }
 
-function serializarPerfil(perfil, preferencias = [], restricoes = []) {
+function serializarPerfil(perfil, preferencias = [], restricoes = [], janelas = []) {
     if (!perfil) return null;
     return {
         ...perfil,
@@ -120,25 +118,27 @@ function serializarPerfil(perfil, preferencias = [], restricoes = []) {
         pratos_favoritos_rotina: preferencias.filter((item) => item.tipo === "PRATO_FAVORITO").map((item) => item.id_produto).filter(Boolean),
         restricoes: restricoes.filter((item) => item.tipo === "RESTRICAO").map((item) => item.valor),
         alergias: restricoes.filter((item) => item.tipo === "ALERGIA").map((item) => item.valor),
+        janelas_alimentacao: janelas,
     };
 }
 
 async function buscarPerfilCompleto(banco, idCliente) {
     const { data: perfil, error } = await banco
         .from("perfis_rotina_cliente")
-        .select("*, preferencias_rotina_cliente(*), restricoes_rotina_cliente(*)")
+        .select("*, preferencias_rotina_cliente(*), restricoes_rotina_cliente(*), janelas_alimentacao_rotina(*)")
         .eq("id_cliente", idCliente)
         .eq("ativo", true)
         .order("atualizado_em", { ascending: false })
         .limit(1)
         .maybeSingle();
     if (error) throw new Error(error.message);
-    if (!perfil) return { perfil: null, preferencias: [], restricoes: [] };
-    const { preferencias_rotina_cliente, restricoes_rotina_cliente, ...campos } = perfil;
+    if (!perfil) return { perfil: null, preferencias: [], restricoes: [], janelas: [] };
+    const { preferencias_rotina_cliente, restricoes_rotina_cliente, janelas_alimentacao_rotina, ...campos } = perfil;
     return {
         perfil: campos,
         preferencias: preferencias_rotina_cliente ?? [],
         restricoes: restricoes_rotina_cliente ?? [],
+        janelas: (janelas_alimentacao_rotina ?? []).sort((a, b) => a.ordem - b.ordem || a.id_janela_alimentacao - b.id_janela_alimentacao),
     };
 }
 
@@ -223,7 +223,7 @@ async function carregarRestaurantesParaRotina(banco, idCliente) {
             .order("nome"),
         banco
             .from("produtos")
-            .select("id_produto, id_restaurante, nome, descricao, preco, imagem_url, disponivel, arquivado, categorias(nome, descricao, ativo, arquivado, cardapios(nome, descricao, ativo))")
+            .select("id_produto, id_restaurante, nome, descricao, preco, imagem_url, disponivel, arquivado, categorias(nome, descricao, ativo, arquivado, cardapios(nome, descricao, ativo)), seguranca_alimentar_produto(status, versao), alergenos_produto(tipo, alergenos_catalogo(codigo, nome))")
             .eq("disponivel", true)
             .eq("arquivado", false),
     ]);
@@ -258,7 +258,21 @@ async function buscarPlanejamentoComRefeicoes(banco, idCliente, filtros = {}) {
     if (error) throw new Error(error.message);
     if (!planejamento) return { planejamento: null, refeicoes: [] };
     const { refeicoes_planejadas: refeicoes, ...campos } = planejamento;
-    return { planejamento: campos, refeicoes: (refeicoes ?? []).sort((a, b) => a.data_refeicao.localeCompare(b.data_refeicao)) };
+    const refeicoesOrdenadas = (refeicoes ?? []).sort((a, b) => a.data_refeicao.localeCompare(b.data_refeicao));
+    const idsRefeicoes = refeicoesOrdenadas.map((item) => item.id_refeicao_planejada).filter(Boolean);
+    if (!idsRefeicoes.length) return { planejamento: campos, refeicoes: refeicoesOrdenadas };
+    const { data: feedbacks, error: erroFeedback } = await banco
+        .from("feedback_rotina_cliente")
+        .select("id_feedback_rotina,id_refeicao_planejada,gostou,repetiria,motivo,tags,consentiu_personalizacao,versao_modelo,criado_em,atualizado_em")
+        .eq("id_cliente", idCliente)
+        .in("id_refeicao_planejada", idsRefeicoes)
+        .is("excluido_em", null);
+    if (erroFeedback) throw new Error(erroFeedback.message);
+    const feedbackPorRefeicao = new Map((feedbacks ?? []).map((item) => [item.id_refeicao_planejada, item]));
+    return {
+        planejamento: campos,
+        refeicoes: refeicoesOrdenadas.map((item) => ({ ...item, feedback_rotina: feedbackPorRefeicao.get(item.id_refeicao_planejada) ?? null })),
+    };
 }
 
 async function obterRefeicaoDoCliente(banco, idCliente, idRefeicao) {
@@ -279,7 +293,7 @@ async function restaurantePodeReceberPedidoPago(banco, restauranteId) {
         .select("id_conexao")
         .eq("id_restaurante", restauranteId)
         .eq("status", "CONECTADO")
-        .not("access_token", "is", null)
+        .not("access_token_cifrado", "is", null)
         .maybeSingle();
     if (error) throw new Error(error.message);
     return Boolean(data);
@@ -300,7 +314,7 @@ rotinaRouter.get("/perfil", async (_req, res) => {
     if (!banco) return;
     try {
         const dados = await buscarPerfilCompleto(banco, res.locals.profileId);
-        return res.json(serializarPerfil(dados.perfil, dados.preferencias, dados.restricoes));
+        return res.json(serializarPerfil(dados.perfil, dados.preferencias, dados.restricoes, dados.janelas));
     } catch (error) {
         return res.status(400).json({ error: error instanceof Error ? error.message : "Não foi possível carregar a rotina." });
     }
@@ -329,13 +343,34 @@ async function salvarPerfil(req, res) {
         const atual = completoAtual.perfil;
         conferirVersao(atual?.versao, versaoEsperada(req.body, "versao_perfil"));
         const dados = normalizarPerfilEntrada(req.body ?? {}, atual ?? {});
+        const enderecoMudou = dados.endereco_base !== (atual?.endereco_base ?? null);
+        const precisaGeocodificar = enderecoMudou || dados.latitude === null || dados.longitude === null;
+        if (precisaGeocodificar) {
+            if (!dados.endereco_base) {
+                return res.status(422).json({ code: "ROUTINE_ADDRESS_REQUIRED", error: "Informe seu endereço-base para calcular restaurantes próximos." });
+            }
+            const candidatos = await geocodificarEnderecoRotina(dados.endereco_base);
+            const selecionado = candidatos.find((item) => item.place_id === String(req.body?.geocodificacao_selecionada ?? ""));
+            if (candidatos.length > 1 && !selecionado) {
+                return res.status(422).json({ code: "ROUTINE_ADDRESS_AMBIGUOUS", error: "Escolha o endereço correspondente para continuar.", candidatos: candidatos.map(({ place_id, nome }) => ({ place_id, nome })) });
+            }
+            const local = selecionado ?? candidatos[0];
+            if (!local) return res.status(422).json({ code: "ROUTINE_ADDRESS_NOT_FOUND", error: "Não foi possível localizar esse endereço. Revise os dados e tente novamente." });
+            Object.assign(dados, { latitude: local.latitude, longitude: local.longitude, endereco_normalizado: local.nome, status_geocodificacao: "CONFIRMADO", geocodificado_em: new Date().toISOString() });
+        }
         for (const campo of ["preferencias", "restricoes", "alergias", "restaurantes_favoritos_rotina", "pratos_favoritos_rotina"]) {
             if (req.body[campo] === undefined) continue;
             if (!Array.isArray(req.body[campo])) throw new Error("As seleções devem ser listas. Use uma lista vazia para remover.");
             dados[campo] = campo.endsWith("_rotina") ? listaNumerica(req.body[campo]) : listaTexto(req.body[campo]);
         }
-        const completo = await mutarRotina(banco, res, req.body, "PERFIL", null, dados);
-        return res.status(atual ? 200 : 201).json(serializarPerfil(completo.perfil, completo.preferencias, completo.restricoes));
+        if (req.body?.janelas_alimentacao !== undefined && !Array.isArray(req.body.janelas_alimentacao)) {
+            throw new Error("As janelas alimentares devem ser uma lista.");
+        }
+        const janelas = Array.isArray(req.body?.janelas_alimentacao) ? req.body.janelas_alimentacao : null;
+        const completo = janelas
+            ? await banco.rpc("salvar_rotina_com_janelas", { p_actor: res.locals.user.id, p_versao_perfil: versaoEsperada(req.body, "versao_perfil"), p_dados: dados, p_janelas: janelas }).then(({ data, error }) => { if (error) throw new Error(error.message); return data; })
+            : await mutarRotina(banco, res, req.body, "PERFIL", null, dados);
+        return res.status(atual ? 200 : 201).json(serializarPerfil(completo.perfil, completo.preferencias, completo.restricoes, completo.janelas_alimentacao));
     } catch (error) {
         return res.status(error.status ?? 400).json({ error: error instanceof Error ? error.message : "Não foi possível salvar a rotina." });
     }
@@ -388,8 +423,40 @@ rotinaRouter.post("/planejamento/gerar", async (req, res) => {
             .filter((item) => item.tipo === "PREFERENCIA")
             .map((item) => item.valor);
         const restricoes = dadosPerfil.restricoes.filter((item) => item.tipo === "RESTRICAO").map((item) => item.valor);
+        const semanaFim = new Date(`${semanaInicio}T23:59:59-03:00`);
+        semanaFim.setDate(semanaFim.getDate() + 6);
+        const { data: janelasOcupadas, error: erroAgenda } = await banco.from("janelas_ocupadas_rotina")
+            .select("inicio_em,fim_em")
+            .eq("id_cliente", res.locals.profileId)
+            .lt("inicio_em", semanaFim.toISOString())
+            .gt("fim_em", new Date(`${semanaInicio}T00:00:00-03:00`).toISOString());
+        if (erroAgenda) throw erroAgenda;
+        const inicioHistorico = new Date(`${semanaInicio}T00:00:00-03:00`);
+        inicioHistorico.setDate(inicioHistorico.getDate() - 60);
+        const { data: historicoRecente, error: erroHistorico } = await banco.from("refeicoes_planejadas")
+            .select("id_restaurante,id_produto,data_refeicao")
+            .eq("id_cliente", res.locals.profileId)
+            .in("status", STATUS_CONVERTIDOS)
+            .gte("data_refeicao", inicioHistorico.toISOString().slice(0, 10))
+            .lt("data_refeicao", semanaInicio)
+            .order("data_refeicao", { ascending: false }).limit(100);
+        if (erroHistorico) throw erroHistorico;
+        const { data: feedbacks, error: erroFeedback } = await banco.from("feedback_rotina_cliente")
+            .select("gostou,consentiu_personalizacao,refeicoes_planejadas!inner(id_restaurante,id_produto)")
+            .eq("id_cliente", res.locals.profileId)
+            .eq("consentiu_personalizacao", true)
+            .is("excluido_em", null)
+            .limit(100);
+        if (erroFeedback) throw erroFeedback;
+        const feedbacksParaRanking = (feedbacks ?? []).map((item) => ({
+            gostou: item.gostou,
+            consentiu_personalizacao: item.consentiu_personalizacao,
+            id_restaurante: item.refeicoes_planejadas?.id_restaurante,
+            id_produto: item.refeicoes_planejadas?.id_produto,
+        }));
         const planejamentoGerado = gerarPlanejamentoRotina({
             perfil: dadosPerfil.perfil,
+            janelasAlimentacao: dadosPerfil.janelas,
             restaurantes,
             preferencias,
             restricoes,
@@ -398,6 +465,9 @@ rotinaRouter.post("/planejamento/gerar", async (req, res) => {
             favoritosRestaurantes: favoritosPerfil,
             pratosFavoritos,
             semanaInicio: semanaInicio || undefined,
+            janelasOcupadas: janelasOcupadas ?? [],
+            historicoRecente: historicoRecente ?? [],
+            feedbacks: feedbacksParaRanking,
         });
         const resposta = await mutarRotina(banco, res, { ...req.body, versao_planejamento: versaoAlvo }, "GERAR", null, planejamentoGerado);
         return res.status(201).json(resposta);
@@ -432,20 +502,33 @@ async function opcoesDaRefeicao(banco, idCliente, refeicao, horario = null, vers
     const gasto = semana.refeicoes.filter((item) => item.id_refeicao_planejada !== refeicao.id_refeicao_planejada && !["RECUSADA", "CANCELADA"].includes(item.status))
         .reduce((total, item) => total + Number(item.preco_estimado ?? 0), 0);
     const saldo = perfil.orcamento_semanal === null ? Infinity : Number(perfil.orcamento_semanal) - gasto;
-    return criarCandidatos({
+    const { data: ocupadas, error: erroAgenda } = await banco.from("janelas_ocupadas_rotina").select("inicio_em,fim_em")
+        .eq("id_cliente", idCliente)
+        .lt("inicio_em", new Date(`${refeicao.data_refeicao}T23:59:59-03:00`).toISOString())
+        .gt("fim_em", new Date(`${refeicao.data_refeicao}T00:00:00-03:00`).toISOString());
+    if (erroAgenda) throw erroAgenda;
+    const janelasLivres = janelasLivresDia(perfil, refeicao.data_refeicao, ocupadas ?? []);
+    const opcoes = criarCandidatos({
         perfil, restaurantes: await carregarRestaurantesParaRotina(banco, idCliente),
         preferencias: perfil.preferencias, restricoes: perfil.restricoes, alergias: perfil.alergias,
         favoritosRestaurantes: new Set(perfil.restaurantes_favoritos_rotina.map(Number)),
         pratosFavoritos: new Set(perfil.pratos_favoritos_rotina.map(Number)),
     }).filter((item) => item.preco_estimado <= saldo).flatMap((item) => {
-        const janela = horarioCompativel(item, perfil, refeicao.data_refeicao, new Date(), horario);
+        const janela = janelasLivres.map((livre) => horarioCompativel(item, { ...perfil, ...livre }, refeicao.data_refeicao, new Date(), horario)).find(Boolean);
         return janela ? [{
             id_restaurante: item.restaurante.id_restaurante, restaurante: item.restaurante.nome,
             id_produto: item.produto?.id_produto ?? null, prato: item.produto?.nome ?? null,
             preco_estimado: item.preco_estimado, distancia_km: item.distancia_km,
-            pontuacao: item.pontuacao, ...janela,
+            pontuacao: item.pontuacao, motivo_recomendacao: motivoRecomendacao(item),
+            metadados: { pesos: item.pesos, modelo_recomendacao: "deterministico-v2" }, ...janela,
         }] : [];
     });
+    const referencia = opcoes[0];
+    return opcoes.map((item) => ({ ...item, comparacao: referencia ? {
+        diferenca_preco: Number((item.preco_estimado - referencia.preco_estimado).toFixed(2)),
+        diferenca_distancia_km: item.distancia_km === null || referencia.distancia_km === null ? null : Number((item.distancia_km - referencia.distancia_km).toFixed(2)),
+        diferenca_aderencia: Number((item.pontuacao - referencia.pontuacao).toFixed(2)),
+    } : null }));
 }
 
 rotinaRouter.get("/refeicoes/:id/opcoes", async (req, res) => {
@@ -482,11 +565,31 @@ rotinaRouter.patch("/refeicoes/:id", async (req, res) => {
             && Number(item.id_produto) === Number(req.body?.id_produto !== undefined ? req.body.id_produto : refeicao.id_produto));
         if (!escolhido) return res.status(409).json({ error: "A opção não atende ao horário, orçamento, distância ou restrições da rotina. Consulte as alternativas disponíveis." });
         const { restaurante: _nomeRestaurante, prato: _nomePrato, ...campos } = escolhido;
-        const atualizacao = { ...campos, status: "ALTERADA", motivo_recomendacao: "Ajustado por você dentro dos critérios da rotina.", metadados: {} };
+        const atualizacao = { ...campos, status: "ALTERADA", motivo_recomendacao: "Ajustado por você dentro dos critérios da rotina." };
         const data = await mutarRotina(banco, res, req.body, "EDITAR", idRefeicao, atualizacao);
         return res.json(data.refeicao);
     } catch (error) {
         return res.status(error.status ?? 400).json({ error: error instanceof Error ? error.message : "Não foi possível alterar a refeição." });
+    }
+});
+
+rotinaRouter.post("/refeicoes/:id/outra-sugestao", async (req, res) => {
+    const banco = bancoRotina(res);
+    if (!banco) return;
+    const idRefeicao = Number(req.params.id);
+    try {
+        const refeicao = await obterRefeicaoDoCliente(banco, res.locals.profileId, idRefeicao);
+        if (!refeicao) return res.status(404).json({ code: "ROUTINE_MEAL_NOT_FOUND", error: "Refeição não encontrada." });
+        if (STATUS_CONVERTIDOS.includes(refeicao.status)) return res.status(409).json({ code: "ROUTINE_MEAL_ALREADY_CONVERTED", error: "Esta refeição já foi convertida." });
+        const opcoes = await opcoesDaRefeicao(banco, res.locals.profileId, refeicao, null, req.body);
+        const alternativa = opcoes.find((item) => Number(item.id_restaurante) !== Number(refeicao.id_restaurante)
+            || Number(item.id_produto) !== Number(refeicao.id_produto));
+        if (!alternativa) return res.status(409).json({ code: "ROUTINE_NO_ALTERNATIVE", error: "Não há outra sugestão compatível para este dia." });
+        const { restaurante: _restaurante, prato: _prato, comparacao: _comparacao, ...dados } = alternativa;
+        const resultado = await mutarRotina(banco, res, req.body, "EDITAR", idRefeicao, { ...dados, status: "ALTERADA" });
+        return res.json(resultado.refeicao);
+    } catch (error) {
+        return res.status(error.status ?? 400).json({ code: error.code ?? "ROUTINE_ALTERNATIVE_FAILED", error: error.message });
     }
 });
 
@@ -498,6 +601,70 @@ rotinaRouter.post("/refeicoes/:id/aprovar", async (req, res) => {
         return res.json(data.refeicao);
     } catch (error) {
         return res.status(error.status ?? 400).json({ error: error instanceof Error ? error.message : "Não foi possível aprovar a refeição." });
+    }
+});
+
+function validarFeedbackEntrada(body = {}) {
+    if (typeof body.gostou !== "boolean") {
+        throw Object.assign(new Error("Informe se a sugestão foi útil."), { status: 400 });
+    }
+    if (body.repetiria !== undefined && body.repetiria !== null && typeof body.repetiria !== "boolean") {
+        throw Object.assign(new Error("Informe se você repetiria a sugestão."), { status: 400 });
+    }
+    const motivo = body.motivo === undefined || body.motivo === null ? null : String(body.motivo).trim();
+    if (motivo && (motivo.length < 2 || motivo.length > 500)) {
+        throw Object.assign(new Error("O comentário deve ter entre 2 e 500 caracteres."), { status: 422 });
+    }
+    const tags = Array.isArray(body.tags) ? [...new Set(body.tags.map((item) => textoCurto(item)).filter(Boolean))].slice(0, 8) : [];
+    if (Array.isArray(body.tags) && tags.length !== body.tags.length) {
+        throw Object.assign(new Error("Revise as tags do feedback."), { status: 422 });
+    }
+    return {
+        gostou: body.gostou,
+        repetiria: body.repetiria ?? null,
+        motivo: motivo || null,
+        tags,
+        consentiu_personalizacao: body.consentiu_personalizacao === true,
+    };
+}
+
+rotinaRouter.post("/refeicoes/:id/feedback", async (req, res) => {
+    const idRefeicao = Number(req.params.id);
+    if (!Number.isInteger(idRefeicao) || idRefeicao <= 0) return res.status(400).json({ code: "ROUTINE_MEAL_INVALID", error: "Refeição inválida." });
+    try {
+        const entrada = validarFeedbackEntrada(req.body);
+        const supabaseUsuario = createUserSupabaseClient(res.locals.accessToken);
+        const { data, error } = await supabaseUsuario.rpc("registrar_feedback_rotina", {
+            p_id_refeicao: idRefeicao,
+            p_gostou: entrada.gostou,
+            p_repetiria: entrada.repetiria,
+            p_motivo: entrada.motivo,
+            p_tags: entrada.tags,
+            p_consentiu: entrada.consentiu_personalizacao,
+        });
+        if (error) {
+            const status = error.code === "PT404" ? 404 : error.code === "PT409" ? 409 : error.code === "PT401" ? 401 : 422;
+            return res.status(status).json({ code: "ROUTINE_FEEDBACK_REJECTED", error: error.message });
+        }
+        return res.status(201).json({ feedback: data });
+    } catch (error) {
+        return res.status(error.status ?? 400).json({ code: "ROUTINE_FEEDBACK_INVALID", error: error instanceof Error ? error.message : "Não foi possível registrar o feedback." });
+    }
+});
+
+rotinaRouter.delete("/refeicoes/:id/feedback", async (req, res) => {
+    const idRefeicao = Number(req.params.id);
+    if (!Number.isInteger(idRefeicao) || idRefeicao <= 0) return res.status(400).json({ code: "ROUTINE_MEAL_INVALID", error: "Refeição inválida." });
+    try {
+        const supabaseUsuario = createUserSupabaseClient(res.locals.accessToken);
+        const { error } = await supabaseUsuario.rpc("excluir_feedback_rotina", { p_id_refeicao: idRefeicao });
+        if (error) {
+            const status = error.code === "PT404" ? 404 : error.code === "PT401" ? 401 : 400;
+            return res.status(status).json({ code: "ROUTINE_FEEDBACK_DELETE_FAILED", error: error.message });
+        }
+        return res.status(204).end();
+    } catch (error) {
+        return res.status(400).json({ code: "ROUTINE_FEEDBACK_DELETE_FAILED", error: error instanceof Error ? error.message : "Não foi possível excluir o feedback." });
     }
 });
 

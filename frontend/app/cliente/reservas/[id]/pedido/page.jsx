@@ -366,6 +366,10 @@ export default function PaginaPedidoAntecipado({ params }) {
                                                         </div>
                                                         <h3 className="mt-2 text-lg font-bold text-app-cafe-profundo">{produto.nome}</h3>
                                                         {produto.descricao ? <p className="mt-1 text-sm leading-6 text-app-mocha">{produto.descricao}</p> : null}
+                                                        {(() => {
+                                                            const seguranca = Array.isArray(produto.seguranca_alimentar_produto) ? produto.seguranca_alimentar_produto[0] : produto.seguranca_alimentar_produto;
+                                                            return <p className={`mt-2 text-[11px] font-semibold ${seguranca?.status === "REVISADA" ? "text-emerald-700" : "text-amber-800"}`}>{ui(seguranca?.status === "REVISADA" ? "Informação alimentar revisada" : "Informação alimentar incompleta")}</p>;
+                                                        })()}
                                                         <p className="mt-2 text-base font-bold text-app-caramelo-torrado">{formatarMoeda(produto.preco, localeUI)}</p>
                                                     </div>
 
