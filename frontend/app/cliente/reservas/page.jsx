@@ -4,19 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { apiRequest } from "@/lib/api";
-import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 import { reservaAceitaPagamento } from "@/lib/elegibilidade-pagamento";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
-const navItems = [
-    { label: "Início", href: "/cliente/dashboard" },
-    { label: "Appono Rotina", href: "/cliente/rotina" },
-    { label: "Detalhes do pedido", href: "/cliente/detalhes-pedido" },
-    { label: "Reservas", href: "/cliente/reservas" },
-    { label: "Favoritos", href: "/cliente/favoritos" },
-    { label: "Mensagens", href: "/cliente/mensagens" },
-    { label: "Suporte", href: "/cliente/suporte" },
-    { label: "Configurações", href: "/cliente/configuracoes" },
-];
 const weekDays = ["Domingo", "Segunda-feira", "Terca-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sabado"];
 const monthNames = [
     "Janeiro",
@@ -214,7 +203,6 @@ function EmptyReservationPanel() {
 export default function ReservationsPage() {
     const { ui , localeUI } = useInterface();
     const today = new Date();
-    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [reservations, setReservations] = useState([]);
     const [reservaParaCancelar, setReservaParaCancelar] = useState(null);
     const [reservaParaConfirmarPresenca, setReservaParaConfirmarPresenca] = useState(null);
@@ -399,42 +387,6 @@ export default function ReservationsPage() {
         }
     }
     return (<main className="flex min-h-screen flex-col bg-white text-app-cafe-profundo">
-      <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-white/90 text-app-cafe-profundo shadow-sm backdrop-blur-md">
-        <div className="mx-auto grid h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-5 lg:h-20">
-          <div className="shrink-0" aria-label={ui("Appono")}>
-            <Image src="/brand/appono-mark.svg" alt={ui("Appono")} width={88} height={88} className="h-11 w-11 lg:h-14 lg:w-14" priority/>
-          </div>
-
-          <nav className="hidden items-center justify-self-center gap-7 text-xs font-semibold text-app-cinza lg:flex">
-            {navItems.map((item) => (<Link key={item.label} href={item.href} className={item.href === "/cliente/reservas"
-                ? "text-app-cafe-profundo"
-                : "transition hover:text-app-cafe-profundo"}>
-                {ui(item.label)}
-              </Link>))}
-          </nav>
-
-          <div className="flex items-center justify-self-end gap-3 text-app-cafe-profundo">
-            <ItemHeaderNotificacoes href="/cliente/notificacoes" />
-            <button type="button" className="transition hover:text-app-caramelo-torrado" aria-label={ui("Sacola")}>
-              <Icon type="bag"/>
-            </button>
-            <button type="button" onClick={() => setMobileMenuOpen((current) => !current)} className="flex h-9 w-9 items-center justify-center rounded-[8px] border border-app-baunilha-dourada bg-white lg:hidden" aria-label={ui("Abrir menu")} aria-expanded={mobileMenuOpen} aria-controls="reservations-mobile-menu">
-              <Icon type="menu"/>
-            </button>
-          </div>
-        </div>
-
-        {mobileMenuOpen ? (<nav id="reservations-mobile-menu" className="border-t border-app-baunilha-dourada/50 bg-white px-5 py-3 lg:hidden">
-            <div className="mx-auto grid max-w-7xl gap-2 text-xs font-semibold text-app-cinza">
-              {navItems.map((item) => (<Link key={item.label} href={item.href} onClick={() => setMobileMenuOpen(false)} className={item.href === "/cliente/reservas"
-                    ? "text-app-cafe-profundo"
-                    : "transition hover:text-app-cafe-profundo"}>
-                  {ui(item.label)}
-                </Link>))}
-            </div>
-          </nav>) : null}
-      </header>
-
       <section className="mx-auto w-full max-w-7xl flex-1 px-5 py-10 sm:py-14">
         <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
           <div>

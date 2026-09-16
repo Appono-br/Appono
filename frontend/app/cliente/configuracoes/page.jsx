@@ -2,22 +2,11 @@
 import { useInterface } from "@/lib/use-interface";
 import Image from "next/image";
 import Link from "next/link";
-import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 import { useEffect, useState } from "react";
 import { SeletorTema } from "@/components/configuracoes/seletor-tema";
 import { BotaoIdioma } from "@/components/configuracoes/botao-idioma";
 import { encerrarSessao } from "@/lib/session";
 import { useTraducao } from "@/lib/use-traducao";
-const navItems = [
-    { label: "Início", href: "/cliente/dashboard" },
-    { label: "Appono Rotina", href: "/cliente/rotina" },
-    { label: "Detalhes do pedido", href: "/cliente/detalhes-pedido" },
-    { label: "Reservas", href: "/cliente/reservas" },
-    { label: "Favoritos", href: "/cliente/favoritos" },
-    { label: "Mensagens", href: "/cliente/mensagens" },
-    { label: "Suporte", href: "/cliente/suporte" },
-    { label: "Configurações", href: "/cliente/configuracoes" },
-];
 function Icon({ type, className = "h-5 w-5", }) {
     const paths = {
         bag: "M6 7h12l-1 14H7L6 7z M9 7a3 3 0 0 1 6 0",
@@ -36,7 +25,6 @@ function Icon({ type, className = "h-5 w-5", }) {
 export default function SettingsPage() {
     const { ui } = useInterface();
     const { t } = useTraducao();
-    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [session] = useState(() => {
         if (typeof window === "undefined") {
             return null;
@@ -58,42 +46,6 @@ export default function SettingsPage() {
             ? t("settings.clientAccount")
             : t("settings.completeProfile");
     return (<main className="flex min-h-screen flex-col bg-white text-app-cafe-profundo">
-      <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-white/90 text-app-cafe-profundo shadow-sm backdrop-blur-md">
-        <div className="mx-auto grid h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-5 lg:h-20">
-          <div className="shrink-0" aria-label={ui("Appono")}>
-            <Image src="/brand/appono-mark.svg" alt={ui("Appono")} width={88} height={88} className="h-11 w-11 lg:h-14 lg:w-14" priority/>
-          </div>
-
-          <nav className="hidden items-center justify-self-center gap-7 text-xs font-semibold text-app-cinza lg:flex">
-            {navItems.map((item) => (<Link key={item.label} href={item.href} className={item.href === "/cliente/configuracoes"
-                ? "text-app-cafe-profundo"
-                : "transition hover:text-app-cafe-profundo"}>
-                {ui(item.label)}
-              </Link>))}
-          </nav>
-
-          <div className="flex items-center justify-self-end gap-3 text-app-cafe-profundo">
-            <ItemHeaderNotificacoes href="/cliente/notificacoes" />
-            <button type="button" className="transition hover:text-app-caramelo-torrado" aria-label={ui("Sacola")}>
-              <Icon type="bag"/>
-            </button>
-            <button type="button" onClick={() => setMobileMenuOpen((current) => !current)} className="flex h-9 w-9 items-center justify-center rounded-[8px] border border-app-baunilha-dourada bg-white lg:hidden" aria-label={ui("Abrir menu")} aria-expanded={mobileMenuOpen} aria-controls="settings-mobile-menu">
-              <Icon type="menu"/>
-            </button>
-          </div>
-        </div>
-
-        {mobileMenuOpen ? (<nav id="settings-mobile-menu" className="border-t border-app-baunilha-dourada/50 bg-white px-5 py-3 lg:hidden">
-            <div className="mx-auto grid max-w-7xl gap-2 text-xs font-semibold text-app-cinza">
-              {navItems.map((item) => (<Link key={item.label} href={item.href} onClick={() => setMobileMenuOpen(false)} className={item.href === "/cliente/configuracoes"
-                    ? "text-app-cafe-profundo"
-                    : "transition hover:text-app-cafe-profundo"}>
-                  {ui(item.label)}
-                </Link>))}
-            </div>
-          </nav>) : null}
-      </header>
-
       <section className="mx-auto w-full max-w-3xl flex-1 px-5 py-10 sm:py-14">
         <div>
           <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">{t("settings.eyebrow")}</p>

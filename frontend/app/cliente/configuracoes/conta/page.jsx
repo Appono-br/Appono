@@ -4,7 +4,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { apiRequest } from "@/lib/api";
-import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 import { atualizarNomeSessao } from "@/lib/session";
 import { TelaCarregandoSessao, useSessaoLocal } from "@/lib/use-sessao-local";
 import { aplicarMascaraCpf } from "@/lib/validacoes/cpf";
@@ -82,24 +81,10 @@ export default function AccountSettingsPage() {
         return <TelaCarregandoSessao />;
     }
     return (<main className="flex min-h-screen flex-col bg-white text-app-cafe-profundo">
-      <header className="border-b border-app-baunilha-dourada/50 bg-white">
-        <div className="mx-auto grid h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-5">
-          <div aria-label={ui("Appono")}>
-            <Image src="/brand/appono-mark.svg" alt={ui("Appono")} width={72} height={72} className="h-11 w-11" priority/>
-          </div>
-          <div className="flex items-center justify-center gap-6">
-            <Link href="/cliente/configuracoes" className="transition hover:text-app-caramelo-torrado" aria-label={ui("Voltar para configurações")}>
-              <Icon type="arrow-left" className="h-5 w-5"/>
-            </Link>
-            <h1 className="text-lg font-bold uppercase tracking-[0.14em] sm:text-2xl">{ui("Configurações")}</h1>
-          </div>
-          <div className="justify-self-end text-app-cafe-profundo">
-            <ItemHeaderNotificacoes href="/cliente/notificacoes" />
-          </div>
-        </div>
-      </header>
-
       <section className="mx-auto w-full max-w-4xl flex-1 px-5 py-10 sm:py-14">
+        <Link href="/cliente/configuracoes" className="inline-flex min-h-10 items-center gap-2 rounded-full px-1 text-sm font-bold text-app-caramelo-torrado transition hover:text-app-cafe-profundo">
+          <Icon type="arrow-left" className="h-4 w-4" />{ui("Voltar para configurações")}
+        </Link>
         <div>
           <p className="text-[10px] font-bold uppercase text-app-caramelo-torrado">{ui("Conta")}</p>
           <h2 className="mt-2 text-4xl font-medium text-app-cafe-profundo sm:text-5xl">{ui("Detalhes Pessoais")}</h2>

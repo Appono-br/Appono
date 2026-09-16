@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { apiRequest } from "@/lib/api";
 import { filtrarOrdenarPorBusca, textoBusca } from "@/lib/busca-avancada";
-import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 const specialties = [];
 const filters = [
     "Todas Especialidades",
@@ -20,16 +19,6 @@ const filtrosBusca = [
     { id: "bem-avaliados", label: "4+ estrelas" },
     { id: "reserva", label: "Aceita reserva" },
     { id: "cardapio", label: "Com cardápio" },
-];
-const navItems = [
-    { label: "Início", href: "/cliente/dashboard" },
-    { label: "Appono Rotina", href: "/cliente/rotina" },
-    { label: "Detalhes do pedido", href: "/cliente/detalhes-pedido" },
-    { label: "Reservas", href: "/cliente/reservas" },
-    { label: "Favoritos", href: "/cliente/favoritos" },
-    { label: "Mensagens", href: "/cliente/mensagens" },
-    { label: "Suporte", href: "/cliente/suporte" },
-    { label: "Configurações", href: "/cliente/configuracoes" },
 ];
 function Icon({ type, className = "h-5 w-5", filled = false, }) {
     const paths = {
@@ -149,7 +138,6 @@ export default function DashboardPage() {
     const [ordenacaoBusca, setOrdenacaoBusca] = useState("relevancia");
     const [query, setQuery] = useState("");
     const [debouncedQuery, setDebouncedQuery] = useState("");
-    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [restaurants, setRestaurants] = useState([]);
     const [searchRestaurants, setSearchRestaurants] = useState([]);
     const [nearbyRestaurantItems, setNearbyRestaurantItems] = useState([]);
@@ -381,42 +369,6 @@ export default function DashboardPage() {
         }
     }
     return (<main className="min-h-screen bg-white text-app-cafe-profundo">
-      <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-white/90 text-app-cafe-profundo shadow-sm backdrop-blur-md">
-        <div className="mx-auto grid h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-5 lg:h-20">
-          <div className="shrink-0" aria-label={ui("Appono")}>
-            <Image src="/brand/appono-mark.svg" alt={ui("Appono")} width={88} height={88} className="h-11 w-11 lg:h-14 lg:w-14" priority/>
-          </div>
-
-          <nav className="hidden items-center justify-self-center gap-7 text-xs font-semibold text-app-cinza lg:flex">
-            {navItems.map((item, index) => (<Link key={item.label} href={item.href} className={index === 0
-                ? "text-app-cafe-profundo"
-                : "transition hover:text-app-cafe-profundo"}>
-                {ui(item.label)}
-              </Link>))}
-          </nav>
-
-          <div className="flex items-center justify-self-end gap-3 text-app-cafe-profundo">
-            <button type="button" className="transition hover:text-app-caramelo-torrado" aria-label={ui("Sacola")}>
-              <Icon type="bag"/>
-            </button>
-            <ItemHeaderNotificacoes href="/cliente/notificacoes" />
-          <button type="button" onClick={() => setMobileMenuOpen((current) => !current)} className="flex h-9 w-9 items-center justify-center rounded-[8px] border border-app-baunilha-dourada bg-white lg:hidden" aria-label={ui("Abrir menu")} aria-expanded={mobileMenuOpen} aria-controls="client-mobile-menu">
-              <Icon type="menu"/>
-            </button>
-          </div>
-        </div>
-
-        {mobileMenuOpen ? (<nav id="client-mobile-menu" className="border-t border-app-baunilha-dourada/50 bg-white px-5 py-3 lg:hidden">
-            <div className="mx-auto grid max-w-7xl gap-2 text-xs font-semibold text-app-cinza">
-              {navItems.map((item, index) => (<Link key={item.label} href={item.href} onClick={() => setMobileMenuOpen(false)} className={index === 0
-                    ? "text-app-cafe-profundo"
-                    : "transition hover:text-app-cafe-profundo"}>
-                  {ui(item.label)}
-                </Link>))}
-            </div>
-          </nav>) : null}
-      </header>
-
       <section className="border-b border-app-baunilha-dourada/50 bg-white px-5 py-5">
         <div className="mx-auto max-w-7xl">
           <label className="campo-busca-app mx-auto flex h-12 max-w-xl items-center gap-3 rounded-[8px] border border-app-baunilha-dourada bg-white px-4 text-app-mocha shadow-sm">

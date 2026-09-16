@@ -1,10 +1,8 @@
 "use client";
 
 import { useInterface } from "@/lib/use-interface";
-import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 
 const CHAVES_PAGAMENTO_LEGADAS = ["appono:paymentDraft", "appono:paymentMethod", "appono:card", "appono:cartao"];
 
@@ -22,17 +20,8 @@ export default function PaymentSettingsPage() {
 
     return (
         <main className="flex min-h-screen flex-col bg-white text-app-cafe-profundo">
-            <header className="border-b border-app-baunilha-dourada/50 bg-white">
-                <div className="mx-auto grid h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-5">
-                    <Image src="/brand/appono-mark.svg" alt={ui("Appono")} width={72} height={72} className="h-11 w-11" priority />
-                    <div className="flex items-center justify-center gap-5">
-                        <Link href="/cliente/configuracoes" aria-label={ui("Voltar para configurações")} className="text-2xl transition hover:text-app-caramelo-torrado">←</Link>
-                        <h1 className="text-lg font-bold uppercase tracking-[0.14em] sm:text-2xl">{ui("Configurações")}</h1>
-                    </div>
-                    <div className="justify-self-end"><ItemHeaderNotificacoes href="/cliente/notificacoes" /></div>
-                </div>
-            </header>
             <section className="mx-auto w-full max-w-4xl flex-1 px-5 py-12 sm:py-16">
+                <Link href="/cliente/configuracoes" className="inline-flex min-h-10 items-center gap-2 rounded-full px-1 text-sm font-bold text-app-caramelo-torrado transition hover:text-app-cafe-profundo">← {ui("Voltar para configurações")}</Link>
                 <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{ui("Pagamentos seguros")}</p>
                 <h2 className="mt-3 text-4xl font-medium sm:text-5xl">{ui("Seus dados ficam com o Mercado Pago")}</h2>
                 <p className="mt-5 max-w-3xl text-base leading-7 text-app-mocha">{ui("A Appono não coleta, armazena nem processa número de cartão, validade ou CVV. Ao pagar, você será direcionado ao checkout seguro do Mercado Pago.")}</p>

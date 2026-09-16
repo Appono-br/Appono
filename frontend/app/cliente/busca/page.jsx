@@ -5,7 +5,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 import { apiRequest } from "@/lib/api";
 import { filtrarOrdenarPorBusca, textoBusca } from "@/lib/busca-avancada";
 
@@ -23,17 +22,6 @@ const opcoesRaio = [
   { value: "10", label: "Até 10 km" },
   { value: "20", label: "Até 20 km" },
   { value: "todos", label: "Qualquer distância" },
-];
-
-const navItems = [
-  { label: "Início", href: "/cliente/dashboard" },
-  { label: "Appono Rotina", href: "/cliente/rotina" },
-  { label: "Detalhes do pedido", href: "/cliente/detalhes-pedido" },
-  { label: "Reservas", href: "/cliente/reservas" },
-  { label: "Favoritos", href: "/cliente/favoritos" },
-  { label: "Mensagens", href: "/cliente/mensagens" },
-  { label: "Suporte", href: "/cliente/suporte" },
-  { label: "Configurações", href: "/cliente/configuracoes" },
 ];
 
 function Icon({ type, className = "h-5 w-5", filled = false }) {
@@ -121,7 +109,6 @@ function BuscaClienteContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const termoInicial = searchParams.get("q") ?? "";
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [termo, setTermo] = useState(termoInicial);
   const [debouncedTermo, setDebouncedTermo] = useState(termoInicial);
   const [filtroBusca, setFiltroBusca] = useState("todos");
@@ -252,41 +239,6 @@ function BuscaClienteContent() {
 
   return (
     <main className="min-h-screen bg-white text-app-cafe-profundo">
-      <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-white/90 text-app-cafe-profundo shadow-sm backdrop-blur-md">
-        <div className="mx-auto grid h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-5 lg:h-20">
-          <Link href="/cliente/dashboard" className="shrink-0" aria-label={ui("Voltar ao início")}>
-            <Image src="/brand/appono-mark.svg" alt={ui("Appono")} width={88} height={88} className="h-11 w-11 lg:h-14 lg:w-14" priority />
-          </Link>
-          <nav className="hidden items-center justify-self-center gap-7 text-xs font-semibold text-app-cinza lg:flex">
-            {navItems.map((item) => (
-              <Link key={item.label} href={item.href} className="transition hover:text-app-cafe-profundo">
-                {ui(item.label)}
-              </Link>
-            ))}
-          </nav>
-          <div className="flex items-center justify-self-end gap-3 text-app-cafe-profundo">
-            <button type="button" className="transition hover:text-app-caramelo-torrado" aria-label={ui("Sacola")}>
-              <Icon type="bag" />
-            </button>
-            <ItemHeaderNotificacoes href="/cliente/notificacoes" />
-            <button type="button" onClick={() => setMobileMenuOpen((current) => !current)} className="flex h-9 w-9 items-center justify-center rounded-[8px] border border-app-baunilha-dourada bg-white lg:hidden" aria-label={ui("Abrir menu")}>
-              <Icon type="menu" />
-            </button>
-          </div>
-        </div>
-        {mobileMenuOpen ? (
-          <nav className="border-t border-app-baunilha-dourada/50 bg-white px-5 py-3 lg:hidden">
-            <div className="mx-auto grid max-w-7xl gap-2 text-xs font-semibold text-app-cinza">
-              {navItems.map((item) => (
-                <Link key={item.label} href={item.href} onClick={() => setMobileMenuOpen(false)} className="transition hover:text-app-cafe-profundo">
-                  {ui(item.label)}
-                </Link>
-              ))}
-            </div>
-          </nav>
-        ) : null}
-      </header>
-
       <section className="border-b border-app-baunilha-dourada/50 bg-app-cafe-profundo px-5 py-10 text-app-creme-leve">
         <div className="mx-auto max-w-7xl">
           <Link href="/cliente/dashboard" className="inline-flex items-center gap-2 text-sm font-bold text-app-baunilha-dourada transition hover:text-white">
