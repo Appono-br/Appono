@@ -36,42 +36,64 @@ function extrairEnderecoEstruturado(endereco, cep) {
     };
 }
 
-async function consultarNominatim(params) {
+const cacheGeocodificacao = new Map();
+let proximaConsultaEm = 0;
+
+async function consultarNominatimResultados(params, limite = 1) {
+    const chave = JSON.stringify({ params, limite });
+    const emCache = cacheGeocodificacao.get(chave);
+    if (emCache && emCache.expiraEm > Date.now()) return emCache.resultados;
     try {
+        const espera = Math.max(0, proximaConsultaEm - Date.now());
+        if (espera) await new Promise((resolve) => setTimeout(resolve, espera));
+        proximaConsultaEm = Date.now() + 1100;
         const url = new URL("https://nominatim.openstreetmap.org/search");
         url.searchParams.set("format", "jsonv2");
-        url.searchParams.set("limit", "1");
+        url.searchParams.set("limit", String(Math.min(Math.max(limite, 1), 5)));
         url.searchParams.set("countrycodes", "br");
         Object.entries(params).forEach(([chave, valor]) => {
             if (valor) url.searchParams.set(chave, valor);
         });
+        const controller = new AbortController();
+        const temporizador = setTimeout(() => controller.abort(), 6000);
         const resposta = await fetch(url, {
             headers: {
                 Accept: "application/json",
                 "User-Agent": "Appono MVP contato@appono.com.br",
             },
+            signal: controller.signal,
         });
-        if (!resposta.ok) return null;
+        clearTimeout(temporizador);
+        if (!resposta.ok) return [];
         const resultados = await resposta.json();
-        const resultado = Array.isArray(resultados) ? resultados[0] : null;
-        const latitude = numeroValido(resultado?.lat);
-        const longitude = numeroValido(resultado?.lon);
-        if (!coordenadaValida(latitude, longitude)) return null;
-        return {
-            latitude,
-            longitude,
-            nome: resultado?.display_name ?? params.q ?? params.street ?? null,
-        };
+        const normalizados = (Array.isArray(resultados) ? resultados : []).map((resultado) => {
+            const latitude = numeroValido(resultado?.lat);
+            const longitude = numeroValido(resultado?.lon);
+            if (!coordenadaValida(latitude, longitude)) return null;
+            return { place_id: String(resultado.place_id ?? ""), latitude, longitude, nome: resultado.display_name ?? params.q ?? params.street ?? null };
+        }).filter(Boolean);
+        cacheGeocodificacao.set(chave, { resultados: normalizados, expiraEm: Date.now() + 24 * 60 * 60 * 1000 });
+        return normalizados;
     }
     catch {
-        return null;
+        return [];
     }
+}
+
+async function consultarNominatim(params) {
+    return (await consultarNominatimResultados(params, 1))[0] ?? null;
 }
 
 async function geocodificarLocalizacao(texto) {
     const consulta = String(texto ?? "").trim();
     if (!consulta) return null;
     return consultarNominatim({ q: `${consulta}, Brasil` });
+}
+
+async function geocodificarEnderecoRotina(endereco) {
+    const consulta = String(endereco ?? "").trim();
+    if (consulta.length < 6) return [];
+    return consultarNominatimResultados({ q: `${consulta}, Brasil` }, 5);
 }
 
 async function geocodificarEnderecoRestaurante(restauranteOuEndereco, cepInformado) {
@@ -102,5 +124,6 @@ async function geocodificarEnderecoRestaurante(restauranteOuEndereco, cepInforma
 module.exports = {
     coordenadaValida,
     geocodificarEnderecoRestaurante,
+    geocodificarEnderecoRotina,
     geocodificarLocalizacao,
 };

@@ -32,7 +32,7 @@ async function restaurantePodeReceberPedidoPago(restauranteId) {
         .select("id_conexao")
         .eq("id_restaurante", restauranteId)
         .eq("status", "CONECTADO")
-        .not("access_token", "is", null)
+        .not("access_token_cifrado", "is", null)
         .maybeSingle();
     if (error) {
         throw new Error(error.message);
@@ -423,7 +423,7 @@ exports.reservationsRouter.get("/:id/cardapio", async (req, res) => {
         .eq("id_reserva", reservationId);
     const { data: cardapios, error: cardapiosError } = await supabase
         .from("cardapios")
-        .select("id_cardapio, nome, descricao, categorias(id_categoria, nome, ativo, arquivado, ordem_exibicao, produtos(id_produto, nome, descricao, tempo_preparo_minutos, preco, imagem_url, disponivel, arquivado, ordem_exibicao))")
+        .select("id_cardapio, nome, descricao, categorias(id_categoria, nome, ativo, arquivado, ordem_exibicao, produtos(id_produto, nome, descricao, preco, imagem_url, disponivel, arquivado, ordem_exibicao, seguranca_alimentar_produto(status,revisado_em), alergenos_produto(tipo, alergenos_catalogo(codigo,nome))))")
         .eq("id_restaurante", reserva.id_restaurante)
         .eq("ativo", true)
         .eq("categorias.ativo", true)

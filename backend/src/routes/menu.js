@@ -504,6 +504,67 @@ exports.menuRouter.put("/produtos/:id", async (req, res) => {
     }
 });
 
+exports.menuRouter.get("/seguranca-alimentar/catalogo", async (_req, res) => {
+    const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
+    const { data, error } = await supabase.from("alergenos_catalogo").select("codigo,nome").eq("ativo", true).order("nome");
+    if (error) return res.status(400).json({ code: "FOOD_SAFETY_CATALOG_FAILED", error: error.message });
+    return res.json({ alergenos: data ?? [] });
+});
+
+exports.menuRouter.get("/produtos/:id/seguranca-alimentar", async (req, res) => {
+    const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
+    const produtoId = normalizarProdutoId(req.params.id);
+    if (!produtoId) return res.status(400).json({ code: "FOOD_SAFETY_PRODUCT_INVALID", error: "Produto inválido." });
+    const [revisao, ingredientes, alergenos] = await Promise.all([
+        supabase.from("seguranca_alimentar_produto").select("status,origem_informacao,responsavel_revisao,revisado_em,versao").eq("id_produto", produtoId).maybeSingle(),
+        supabase.from("ingredientes_produto").select("nome").eq("id_produto", produtoId).order("nome"),
+        supabase.from("alergenos_produto").select("tipo,alergenos_catalogo(codigo,nome)").eq("id_produto", produtoId),
+    ]);
+    const error = revisao.error || ingredientes.error || alergenos.error;
+    if (error) return res.status(400).json({ code: "FOOD_SAFETY_LOAD_FAILED", error: error.message });
+    return res.json({
+        seguranca_alimentar: {
+            status: revisao.data?.status ?? "INCOMPLETA",
+            origem_informacao: revisao.data?.origem_informacao ?? "",
+            responsavel_revisao: revisao.data?.responsavel_revisao ?? "",
+            revisado_em: revisao.data?.revisado_em ?? null,
+            versao: Number(revisao.data?.versao ?? 0),
+            ingredientes: (ingredientes.data ?? []).map((item) => item.nome),
+            alergenos: (alergenos.data ?? []).map((item) => ({
+                codigo: item.alergenos_catalogo?.codigo,
+                nome: item.alergenos_catalogo?.nome,
+                tipo: item.tipo,
+            })).filter((item) => item.codigo),
+        },
+    });
+});
+
+exports.menuRouter.put("/produtos/:id/seguranca-alimentar", async (req, res) => {
+    const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
+    const produtoId = normalizarProdutoId(req.params.id);
+    if (!produtoId) return res.status(400).json({ code: "FOOD_SAFETY_PRODUCT_INVALID", error: "Produto inválido." });
+    const ingredientes = Array.isArray(req.body?.ingredientes)
+        ? [...new Set(req.body.ingredientes.map((item) => textoObrigatorio(item)).filter(Boolean))].slice(0, 80).map((nome) => ({ nome })) : null;
+    const alergenos = Array.isArray(req.body?.alergenos) ? req.body.alergenos.slice(0, 50).map((item) => ({
+        codigo: textoObrigatorio(item?.codigo).toUpperCase(), tipo: textoObrigatorio(item?.tipo).toUpperCase(),
+    })) : null;
+    if (!ingredientes || !alergenos) return res.status(400).json({ code: "FOOD_SAFETY_INPUT_INVALID", error: "Ingredientes e alérgenos devem ser listas." });
+    const { data, error } = await supabase.rpc("salvar_seguranca_alimentar_produto", {
+        p_id_produto: produtoId,
+        p_ingredientes: ingredientes,
+        p_alergenos: alergenos,
+        p_status: textoObrigatorio(req.body.status).toUpperCase() || "INCOMPLETA",
+        p_origem_informacao: textoObrigatorio(req.body.origem_informacao) || null,
+        p_responsavel_revisao: textoObrigatorio(req.body.responsavel_revisao) || null,
+        p_versao: Number(req.body.versao ?? 0),
+    });
+    if (error) {
+        const conflito = error.code === "PT409" || /outra aba/i.test(error.message);
+        return res.status(conflito ? 409 : error.code === "PT404" ? 404 : 422).json({ code: conflito ? "FOOD_SAFETY_VERSION_CONFLICT" : "FOOD_SAFETY_SAVE_FAILED", error: error.message });
+    }
+    return res.json({ message: "Informações de segurança alimentar atualizadas.", seguranca_alimentar: data });
+});
+
 exports.menuRouter.patch("/produtos/:id/disponibilidade", async (req, res) => {
     const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
     const produtoId = normalizarProdutoId(req.params.id);

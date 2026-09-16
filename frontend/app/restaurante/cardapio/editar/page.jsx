@@ -4,7 +4,7 @@ import { useInterface } from "@/lib/use-interface";
 import Image from "next/image";
 import Link from "next/link";
 import { Suspense, useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { apiRequest } from "@/lib/api";
 import { enviarImagemCardapio, validarImagemCardapio } from "@/lib/imagem-cardapio";
 import { TelaCarregandoSessao, useSessaoLocal } from "@/lib/use-sessao-local";
@@ -19,6 +19,15 @@ const initialForm = {
     available: true,
     featured: false,
     imageUrl: "",
+};
+
+const initialFoodSafety = {
+    status: "INCOMPLETA",
+    origem_informacao: "",
+    responsavel_revisao: "",
+    versao: 0,
+    ingredientes: "",
+    alergenos: [],
 };
 
 const categories = ["Entradas", "Pratos principais", "Sobremesas", "Bebidas"];
@@ -87,14 +96,18 @@ function RestaurantMenuItemEditorContent() {
     const { ui } = useInterface();
     const { sessao, sessaoCarregada } = useSessaoLocal();
     const searchParams = useSearchParams();
+    const router = useRouter();
     const idParam = Number(searchParams.get("produto"));
     const produtoId = Number.isInteger(idParam) && idParam > 0 ? idParam : null;
+    const [produtoSalvoId, setProdutoSalvoId] = useState(produtoId);
     const [form, setForm] = useState(initialForm);
     const [message, setMessage] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [imagem, setImagem] = useState(null);
     const [imagemPreview, setImagemPreview] = useState("");
     const [categoriasDisponiveis, setCategoriasDisponiveis] = useState(categories);
+    const [segurancaAlimentar, setSegurancaAlimentar] = useState(initialFoodSafety);
+    const [catalogoAlergenos, setCatalogoAlergenos] = useState([]);
 
     useEffect(() => {
         if (!sessaoCarregada || sessao?.type !== "restaurant") {
@@ -112,11 +125,18 @@ function RestaurantMenuItemEditorContent() {
     }, [sessao, sessaoCarregada]);
 
     useEffect(() => {
+        if (!sessaoCarregada || sessao?.type !== "restaurant") return;
+        apiRequest("/cardapio/seguranca-alimentar/catalogo")
+            .then((resposta) => setCatalogoAlergenos(resposta.alergenos ?? []))
+            .catch(() => setCatalogoAlergenos([]));
+    }, [sessao, sessaoCarregada]);
+
+    useEffect(() => {
         if (!sessaoCarregada || sessao?.type !== "restaurant" || !produtoId) {
             return;
         }
-        apiRequest(`/cardapio/produtos/${produtoId}`)
-            .then((resposta) => {
+        Promise.all([apiRequest(`/cardapio/produtos/${produtoId}`), apiRequest(`/cardapio/produtos/${produtoId}/seguranca-alimentar`)])
+            .then(([resposta, seguranca]) => {
                 const produto = resposta.produto;
                 setForm({
                     name: produto.nome ?? "",
@@ -129,6 +149,15 @@ function RestaurantMenuItemEditorContent() {
                     imageUrl: produto.imagem_url ?? "",
                 });
                 setImagemPreview(produto.imagem_url ?? "");
+                const dadosSeguranca = seguranca.seguranca_alimentar ?? {};
+                setSegurancaAlimentar({
+                    status: dadosSeguranca.status ?? "INCOMPLETA",
+                    origem_informacao: dadosSeguranca.origem_informacao ?? "",
+                    responsavel_revisao: dadosSeguranca.responsavel_revisao ?? "",
+                    versao: Number(dadosSeguranca.versao ?? 0),
+                    ingredientes: (dadosSeguranca.ingredientes ?? []).join(", "),
+                    alergenos: (dadosSeguranca.alergenos ?? []).map((item) => ({ codigo: item.codigo, tipo: item.tipo })),
+                });
                 setMessage("");
             })
             .catch((error) => {
@@ -139,6 +168,24 @@ function RestaurantMenuItemEditorContent() {
     function updateField(field, value) {
         setForm((current) => ({ ...current, [field]: value }));
         setMessage("");
+    }
+
+    function atualizarSeguranca(campo, valor) {
+        setSegurancaAlimentar((atual) => ({ ...atual, [campo]: valor }));
+        setMessage("");
+    }
+
+    function alternarAlergeno(codigo) {
+        setSegurancaAlimentar((atual) => ({
+            ...atual,
+            alergenos: atual.alergenos.some((item) => item.codigo === codigo)
+                ? atual.alergenos.filter((item) => item.codigo !== codigo)
+                : [...atual.alergenos, { codigo, tipo: "PRESENTE" }],
+        }));
+    }
+
+    function atualizarTipoAlergeno(codigo, tipo) {
+        setSegurancaAlimentar((atual) => ({ ...atual, alergenos: atual.alergenos.map((item) => item.codigo === codigo ? { ...item, tipo } : item) }));
     }
 
     function selecionarImagem(arquivo) {
@@ -169,10 +216,28 @@ function RestaurantMenuItemEditorContent() {
         setMessage("");
         try {
             const imageUrl = imagem ? await enviarImagemCardapio(imagem) : form.imageUrl;
-            const resposta = await apiRequest(produtoId ? `/cardapio/produtos/${produtoId}` : "/cardapio/produtos", {
-                method: produtoId ? "PUT" : "POST",
+            const idEmEdicao = produtoId ?? produtoSalvoId;
+            const resposta = await apiRequest(idEmEdicao ? `/cardapio/produtos/${idEmEdicao}` : "/cardapio/produtos", {
+                method: idEmEdicao ? "PUT" : "POST",
                 body: JSON.stringify({ ...form, imageUrl }),
             });
+            const idProdutoSalvo = idEmEdicao ?? resposta.produto?.id_produto;
+            if (!idProdutoSalvo) throw new Error("O item foi salvo sem identificação para a ficha alimentar.");
+            setProdutoSalvoId(idProdutoSalvo);
+            const ingredientes = segurancaAlimentar.ingredientes.split(",").map((item) => item.trim()).filter(Boolean);
+            try {
+                await apiRequest(`/cardapio/produtos/${idProdutoSalvo}/seguranca-alimentar`, {
+                    method: "PUT",
+                    body: JSON.stringify({
+                        ...segurancaAlimentar,
+                        ingredientes,
+                    }),
+                });
+            } catch (error) {
+                setMessage(`O item foi salvo, mas a ficha de segurança alimentar precisa ser revisada: ${error.message}`);
+                if (!produtoId) router.replace(`/restaurante/cardapio/editar?produto=${idProdutoSalvo}`);
+                return;
+            }
             setMessage(resposta.message ?? (produtoId ? "Item atualizado no cardápio." : "Item publicado no cardápio."));
             window.setTimeout(() => {
                 window.location.href = "/restaurante/cardapio";
@@ -257,6 +322,35 @@ function RestaurantMenuItemEditorContent() {
                         <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-cinza">{ui("Descricao")}</span>
                         <textarea value={form.description} onChange={(event) => updateField("description", event.target.value)} className="min-h-36 resize-y rounded-[8px] border border-app-baunilha-dourada bg-app-creme-suave px-3 py-4 text-base leading-7 text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20" placeholder={ui("Descreva ingredientes, preparo e diferenciais do prato.")} />
                     </label>
+
+                    <section className="grid gap-5 rounded-[10px] border border-app-baunilha-dourada bg-white p-5">
+                        <div>
+                            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{ui("Segurança alimentar")}</p>
+                            <h3 className="mt-2 text-xl font-semibold text-app-cafe-profundo">{ui("Ingredientes e alérgenos")}</h3>
+                            <p className="mt-2 text-sm leading-6 text-app-cinza">{ui("Informe dados revisados. Informação incompleta não é tratada como ausência de risco e não gera recomendação automática para clientes com alergias.")}</p>
+                        </div>
+                        <label className="grid gap-2">
+                            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-cinza">{ui("Ingredientes")}</span>
+                            <textarea value={segurancaAlimentar.ingredientes} onChange={(event) => atualizarSeguranca("ingredientes", event.target.value)} rows={3} placeholder={ui("Ex: arroz, leite, manteiga, cogumelos")} className="resize-y rounded-[8px] border border-app-baunilha-dourada bg-app-creme-suave px-3 py-3 text-sm text-app-cafe-profundo outline-none focus:border-app-caramelo-torrado" />
+                        </label>
+                        <div className="grid gap-3">
+                            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-cinza">{ui("Alérgenos e risco")}</span>
+                            {catalogoAlergenos.length ? <div className="grid gap-2 sm:grid-cols-2">
+                                {catalogoAlergenos.map((alergeno) => {
+                                    const selecionado = segurancaAlimentar.alergenos.find((item) => item.codigo === alergeno.codigo);
+                                    return <div key={alergeno.codigo} className="flex min-w-0 items-center gap-2 rounded-[8px] border border-app-baunilha-dourada/70 p-3">
+                                        <label className="flex min-w-0 flex-1 items-center gap-2 text-sm font-semibold text-app-mocha"><input type="checkbox" checked={Boolean(selecionado)} onChange={() => alternarAlergeno(alergeno.codigo)} className="h-4 w-4 accent-app-caramelo-torrado" /><span>{alergeno.nome}</span></label>
+                                        {selecionado ? <select value={selecionado.tipo} onChange={(event) => atualizarTipoAlergeno(alergeno.codigo, event.target.value)} aria-label={`${alergeno.nome}: tipo de risco`} className="max-w-36 rounded-[6px] border border-app-baunilha-dourada bg-white px-2 py-1 text-xs text-app-mocha"><option value="PRESENTE">{ui("Presente")}</option><option value="PODE_CONTER">{ui("Pode conter")}</option><option value="CONTAMINACAO_CRUZADA">{ui("Contaminação cruzada")}</option></select> : null}
+                                    </div>;
+                                })}
+                            </div> : <p className="text-sm text-app-cinza">{ui("O catálogo de alérgenos estará disponível após a migration de segurança alimentar.")}</p>}
+                        </div>
+                        <div className="grid gap-4 sm:grid-cols-2">
+                            <label className="grid gap-2"><span className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-cinza">{ui("Status da informação")}</span><select value={segurancaAlimentar.status} onChange={(event) => atualizarSeguranca("status", event.target.value)} className="h-12 rounded-[8px] border border-app-baunilha-dourada bg-app-creme-suave px-3 text-sm text-app-cafe-profundo"><option value="INCOMPLETA">{ui("Informação incompleta")}</option><option value="REVISADA">{ui("Revisada")}</option></select></label>
+                            <p className="self-end text-sm leading-6 text-app-cinza">{ui("O restaurante é responsável pela atualização das informações. A Appono não garante segurança alimentar absoluta.")}</p>
+                            {segurancaAlimentar.status === "REVISADA" ? <><Field label={ui("Origem da informação")} value={segurancaAlimentar.origem_informacao} onChange={(value) => atualizarSeguranca("origem_informacao", value)} placeholder={ui("Ex: ficha técnica atualizada")} required /><Field label={ui("Responsável pela revisão")} value={segurancaAlimentar.responsavel_revisao} onChange={(value) => atualizarSeguranca("responsavel_revisao", value)} placeholder={ui("Nome do responsável")} required /></> : null}
+                        </div>
+                    </section>
 
                     <label className="grid gap-3 rounded-[10px] border border-dashed border-app-caramelo-torrado/45 bg-app-creme-suave p-4">
                         <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-cinza">{ui("Imagem do item")}</span>

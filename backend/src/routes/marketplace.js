@@ -7,6 +7,7 @@ const crypto = require("crypto");
 const express_1 = require("express");
 const supabase_1 = require("../lib/supabase");
 const auth_1 = require("../middleware/auth");
+const { cifrarTokenMercadoPago, possuiChaveCredenciaisMercadoPago } = require("../services/pagamentos/credenciais-restaurante");
 
 exports.marketplaceRouter = (0, express_1.Router)();
 
@@ -62,10 +63,10 @@ function validarConfiguracaoOAuth() {
     const appId = obterMercadoPagoAppId();
     const clientSecret = obterMercadoPagoClientSecret();
     const redirectUri = obterRedirectUriMercadoPago();
-    if (!appId || !clientSecret || !redirectUri) {
+    if (!appId || !clientSecret || !redirectUri || !possuiChaveCredenciaisMercadoPago()) {
         return {
             ok: false,
-            error: "Configure MERCADO_PAGO_APP_ID, MERCADO_PAGO_CLIENT_SECRET e MERCADO_PAGO_REDIRECT_URI no backend.",
+            error: "Configure MERCADO_PAGO_APP_ID, MERCADO_PAGO_CLIENT_SECRET, MERCADO_PAGO_REDIRECT_URI e APPONO_MERCADO_PAGO_TOKEN_ENCRYPTION_KEY no backend.",
         };
     }
     return { ok: true, appId, clientSecret, redirectUri };
@@ -333,6 +334,9 @@ exports.marketplaceRouter.post("/mercado-pago/desconectar", auth_1.requireAuth, 
             public_key: null,
             access_token: null,
             refresh_token: null,
+            access_token_cifrado: null,
+            refresh_token_cifrado: null,
+            token_cifrado_em: null,
             token_type: null,
             scope: null,
             live_mode: null,
@@ -404,6 +408,9 @@ exports.marketplaceRouter.get("/mercado-pago/callback", async (req, res) => {
                 public_key: null,
                 access_token: null,
                 refresh_token: null,
+                access_token_cifrado: null,
+                refresh_token_cifrado: null,
+                token_cifrado_em: null,
                 token_type: null,
                 scope: null,
                 live_mode: null,
@@ -423,8 +430,11 @@ exports.marketplaceRouter.get("/mercado-pago/callback", async (req, res) => {
             status: "CONECTADO",
             mercado_pago_user_id: token.user_id ? String(token.user_id) : null,
             public_key: token.public_key ?? null,
-            access_token: token.access_token ?? null,
-            refresh_token: token.refresh_token ?? null,
+            access_token: null,
+            refresh_token: null,
+            access_token_cifrado: cifrarTokenMercadoPago(token.access_token),
+            refresh_token_cifrado: cifrarTokenMercadoPago(token.refresh_token),
+            token_cifrado_em: new Date().toISOString(),
             token_type: token.token_type ?? null,
             scope: token.scope ?? null,
             live_mode: typeof token.live_mode === "boolean" ? token.live_mode : null,

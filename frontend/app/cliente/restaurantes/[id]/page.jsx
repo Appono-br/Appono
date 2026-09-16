@@ -521,6 +521,14 @@ export default function PaginaRestaurante({ params }) {
                             </div>
                             <TextoDinamicoTraduzido texto={produto.nome} as="h3" className="mt-2 break-words text-base font-bold text-app-cafe-profundo sm:text-lg" />
                             {produto.descricao ? <TextoDinamicoTraduzido texto={produto.descricao} as="p" className="mt-1 break-words text-sm leading-6 text-app-mocha" /> : null}
+                            {(() => {
+                              const seguranca = Array.isArray(produto.seguranca_alimentar_produto) ? produto.seguranca_alimentar_produto[0] : produto.seguranca_alimentar_produto;
+                              const alergenos = produto.alergenos_produto ?? [];
+                              return <div className="mt-2 flex flex-wrap gap-2 text-[11px] font-semibold">
+                                <span className={seguranca?.status === "REVISADA" ? "text-emerald-700" : "text-amber-800"}>{ui(seguranca?.status === "REVISADA" ? "Informação alimentar revisada" : "Informação alimentar incompleta")}</span>
+                                {alergenos.slice(0, 3).map((item) => <span key={`${item.tipo}-${item.alergenos_catalogo?.codigo}`} className="text-app-mocha">{item.tipo === "PRESENTE" ? ui("Contém") : item.tipo === "PODE_CONTER" ? ui("Pode conter") : ui("Risco de contaminação")}: {item.alergenos_catalogo?.nome}</span>)}
+                              </div>;
+                            })()}
                             <p className="mt-2 text-base font-bold text-app-caramelo-torrado">{formatarMoeda(produto.preco, localeUI)}</p>
                           </div>
                           <div className="flex items-center justify-between gap-3 md:col-span-2 xl:col-span-1 xl:justify-end">

@@ -11,6 +11,7 @@ const { canTransitionOrder } = require("../domain/order-state");
 const { ordenarPorHorarioReserva, pedidoEstaNaFilaOperacional, pedidoPodeIniciarPreparo } = require("../domain/operational-queue");
 const { paginationMeta, parsePagination } = require("../domain/pagination");
 const { orderReviewEligibility } = require("../domain/review-state");
+const { decifrarTokenMercadoPago } = require("../services/pagamentos/credenciais-restaurante");
 exports.ordersRouter = (0, express_1.Router)();
 exports.ordersRouter.use(auth_1.requireAuth);
 
@@ -29,7 +30,7 @@ async function restaurantePodeReceberPedidoPago(restauranteId) {
         .select("id_conexao")
         .eq("id_restaurante", restauranteId)
         .eq("status", "CONECTADO")
-        .not("access_token", "is", null)
+        .not("access_token_cifrado", "is", null)
         .maybeSingle();
     if (error) {
         throw new Error(error.message);
@@ -110,14 +111,14 @@ async function obterTokenPagamentoPorPedido(pedido) {
     }
     const { data, error } = await supabase_1.supabaseAdmin
         .from("mercado_pago_conexoes_restaurante")
-        .select("access_token")
+        .select("access_token_cifrado")
         .eq("id_restaurante", pedido.id_restaurante)
         .eq("status", "CONECTADO")
         .maybeSingle();
-    if (error || !data?.access_token) {
+    if (error || !data?.access_token_cifrado) {
         return null;
     }
-    return data.access_token;
+    return decifrarTokenMercadoPago(data.access_token_cifrado);
 }
 
 async function conciliarPedidosPendentes(pedidos) {

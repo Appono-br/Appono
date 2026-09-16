@@ -3,8 +3,10 @@
 import { useInterface } from "@/lib/use-interface";
 import { apiRequest } from "@/lib/api";
 import { validarJanela } from "@/lib/routine-view.mjs";
-import Image from "next/image";
+import { RoutineBreadcrumb, RoutineHero, RoutineNotice, RoutineSkeleton } from "@/components/cliente/rotina/routine-ui";
+import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 const diasSemana = [
@@ -20,8 +22,6 @@ const diasSemana = [
 const estadoInicial = {
     nome: "Rotina principal",
     endereco_base: "",
-    latitude: "",
-    longitude: "",
     dias_semana: ["monday", "tuesday", "wednesday", "thursday", "friday"],
     horario_inicio: "12:00",
     horario_fim: "14:00",
@@ -34,7 +34,20 @@ const estadoInicial = {
     alergias: "",
     restaurantes_favoritos_rotina: [],
     pratos_favoritos_rotina: [],
+    janelas_alimentacao: [{
+        tipo: "ALMOCO", nome: "Almoço", dias_semana: ["monday", "tuesday", "wednesday", "thursday", "friday"],
+        horario_inicio: "12:00", horario_fim: "14:00", tempo_maximo_minutos: 60,
+        orcamento_por_refeicao: "", raio_km: 5, ativa: true, ordem: 0,
+    }],
 };
+
+const rotulosJanela = { CAFE: "Café", ALMOCO: "Almoço", JANTAR: "Jantar", PERSONALIZADA: "Personalizada" };
+
+function janelaPadrao(tipo = "ALMOCO", ordem = 0) {
+    const horarios = { CAFE: ["07:00", "09:30"], ALMOCO: ["12:00", "14:00"], JANTAR: ["19:00", "21:30"], PERSONALIZADA: ["15:00", "17:00"] };
+    const [horario_inicio, horario_fim] = horarios[tipo] ?? horarios.PERSONALIZADA;
+    return { ...estadoInicial.janelas_alimentacao[0], tipo, nome: rotulosJanela[tipo], horario_inicio, horario_fim, ordem };
+}
 
 function listaParaTexto(lista) {
     return Array.isArray(lista) ? lista.join(", ") : "";
@@ -58,10 +71,11 @@ function Icon({ type, className = "h-5 w-5" }) {
 
 export default function ConfigurarRotinaPage() {
     const { ui } = useInterface();
+    const router = useRouter();
     const [form, setForm] = useState(estadoInicial);
-    const [mensagem, setMensagem] = useState("Carregando rotina...");
+    const [formSalvo, setFormSalvo] = useState(null);
+    const [mensagem, setMensagem] = useState("");
     const [salvando, setSalvando] = useState(false);
-    const [localizando, setLocalizando] = useState(false);
     const [catalogo, setCatalogo] = useState([]);
     const [carregando, setCarregando] = useState(true);
     const [falhaCarga, setFalhaCarga] = useState(false);
@@ -70,10 +84,14 @@ export default function ConfigurarRotinaPage() {
     const [recarregar, setRecarregar] = useState(0);
     const [rascunho, setRascunho] = useState(null);
     const [buscaPreferidos, setBuscaPreferidos] = useState("");
-    const erroJanela = validarJanela(form);
-    const [inicioHora, inicioMinuto] = form.horario_inicio.split(":").map(Number);
-    const [fimHora, fimMinuto] = form.horario_fim.split(":").map(Number);
-    const duracaoJanela = (fimHora * 60 + fimMinuto) - (inicioHora * 60 + inicioMinuto);
+    const [confirmarDescartar, setConfirmarDescartar] = useState(false);
+    const [agenda, setAgenda] = useState({ provedores: [], conexoes: [], janelas_ocupadas: [] });
+    const [carregandoAgenda, setCarregandoAgenda] = useState(true);
+    const [acaoAgenda, setAcaoAgenda] = useState(null);
+    const [confirmarAgenda, setConfirmarAgenda] = useState(null);
+    const [candidatosEndereco, setCandidatosEndereco] = useState([]);
+    const [geocodificacaoSelecionada, setGeocodificacaoSelecionada] = useState("");
+    const erroJanela = form.janelas_alimentacao.map((janela) => validarJanela(janela)).find(Boolean) ?? "";
     const correspondeBusca = (texto) => texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().includes(buscaPreferidos.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase());
 
     useEffect(() => {
@@ -85,13 +103,10 @@ export default function ConfigurarRotinaPage() {
                 setVersaoPerfil(Number(perfil?.versao ?? 0));
                 setFalhaCarga(false);
                 setConflito(false);
-                if (perfil) {
-                    setForm({
+                const proximoForm = perfil ? {
                         ...estadoInicial,
                         nome: perfil.nome ?? estadoInicial.nome,
                         endereco_base: perfil.endereco_base ?? "",
-                        latitude: perfil.latitude ?? "",
-                        longitude: perfil.longitude ?? "",
                         dias_semana: perfil.dias_semana?.length ? perfil.dias_semana : estadoInicial.dias_semana,
                         horario_inicio: String(perfil.horario_inicio ?? "12:00").slice(0, 5),
                         horario_fim: String(perfil.horario_fim ?? "14:00").slice(0, 5),
@@ -104,8 +119,12 @@ export default function ConfigurarRotinaPage() {
                         alergias: listaParaTexto(perfil.alergias),
                         restaurantes_favoritos_rotina: perfil.restaurantes_favoritos_rotina ?? [],
                         pratos_favoritos_rotina: perfil.pratos_favoritos_rotina ?? [],
-                    });
-                }
+                        janelas_alimentacao: perfil.janelas_alimentacao?.length
+                            ? perfil.janelas_alimentacao.map((janela, ordem) => ({ ...janela, horario_inicio: String(janela.horario_inicio).slice(0, 5), horario_fim: String(janela.horario_fim).slice(0, 5), ordem }))
+                            : [janelaPadrao("ALMOCO")],
+                    } : estadoInicial;
+                setForm(proximoForm);
+                setFormSalvo(proximoForm);
                 setMensagem("");
             })
             .catch((error) => {
@@ -119,6 +138,66 @@ export default function ConfigurarRotinaPage() {
         return () => { cancelado = true; };
     }, [recarregar]);
 
+    useEffect(() => {
+        let cancelado = false;
+        const resultado = new URLSearchParams(window.location.search).get("agenda");
+        apiRequest("/rotina/agenda", { forceRefresh: true, cacheTtlMs: 0 })
+            .then((dados) => {
+                if (cancelado) return;
+                setAgenda(dados);
+                if (resultado === "conectada") setMensagem("Agenda conectada. Sincronize para revisar seus horários ocupados.");
+                if (resultado === "erro") setMensagem("Não foi possível concluir a conexão da agenda. Tente novamente.");
+            })
+            .catch((error) => { if (!cancelado) setMensagem(error.message); })
+            .finally(() => { if (!cancelado) setCarregandoAgenda(false); });
+        return () => { cancelado = true; };
+    }, []);
+
+    async function executarAcaoAgenda() {
+        const acao = confirmarAgenda;
+        if (!acao) return;
+        setAcaoAgenda(`${acao.tipo}:${acao.provedor}`);
+        try {
+            if (acao.tipo === "conectar") {
+                const resposta = await apiRequest(`/rotina/agenda/${acao.provedor.toLowerCase()}/conectar`, {
+                    method: "POST", body: JSON.stringify({ retorno_path: "/cliente/rotina/configurar" }),
+                });
+                window.location.assign(resposta.authorization_url);
+                return;
+            }
+            await apiRequest(`/rotina/agenda/${acao.provedor.toLowerCase()}`, { method: "DELETE" });
+            setAgenda((atual) => ({
+                ...atual,
+                conexoes: atual.conexoes.map((item) => item.provedor === acao.provedor ? { ...item, status: "REVOGADO", ultima_sincronizacao_em: null } : item),
+                janelas_ocupadas: atual.janelas_ocupadas.filter((janela) => {
+                    const conexao = atual.conexoes.find((item) => item.id_conexao_agenda === janela.id_conexao_agenda);
+                    return conexao?.provedor !== acao.provedor;
+                }),
+            }));
+            setMensagem("Agenda desconectada e horários importados removidos.");
+        } catch (error) {
+            setMensagem(error.message);
+        } finally {
+            setAcaoAgenda(null);
+            setConfirmarAgenda(null);
+        }
+    }
+
+    async function sincronizarAgenda(provedor) {
+        setAcaoAgenda(`sincronizar:${provedor}`);
+        try {
+            const resposta = await apiRequest(`/rotina/agenda/${provedor.toLowerCase()}/sincronizar`, {
+                method: "POST", body: JSON.stringify({ chave_idempotencia: crypto.randomUUID() }),
+            });
+            setMensagem(`${resposta.intervalos} período(s) ocupado(s) sincronizado(s). Suas sugestões anteriores não foram alteradas.`);
+            setAgenda(await apiRequest("/rotina/agenda", { forceRefresh: true, cacheTtlMs: 0 }));
+        } catch (error) {
+            setMensagem(error.message);
+        } finally {
+            setAcaoAgenda(null);
+        }
+    }
+
     function atualizar(campo, valor) {
         setForm((atual) => ({ ...atual, [campo]: valor }));
     }
@@ -131,24 +210,28 @@ export default function ConfigurarRotinaPage() {
         });
     }
 
-    function usarLocalizacao() {
-        if (!("geolocation" in navigator)) {
-            setMensagem("Seu navegador não oferece suporte à localização automática.");
-            return;
-        }
-        setLocalizando(true);
-        navigator.geolocation.getCurrentPosition((posicao) => {
-            setForm((atual) => ({
-                ...atual,
-                latitude: Number(posicao.coords.latitude.toFixed(7)),
-                longitude: Number(posicao.coords.longitude.toFixed(7)),
-            }));
-            setMensagem("Localização preenchida. Você ainda pode informar um endereço de referência.");
-            setLocalizando(false);
-        }, () => {
-            setMensagem("Não foi possível acessar a localização do navegador.");
-            setLocalizando(false);
-        }, { enableHighAccuracy: true, timeout: 8000 });
+    function atualizarJanela(indice, campo, valor) {
+        setForm((atual) => ({ ...atual, janelas_alimentacao: atual.janelas_alimentacao.map((janela, posicao) => posicao === indice ? { ...janela, [campo]: valor } : janela) }));
+    }
+
+    function alternarDiaJanela(indice, dia) {
+        setForm((atual) => ({ ...atual, janelas_alimentacao: atual.janelas_alimentacao.map((janela, posicao) => {
+            if (posicao !== indice) return janela;
+            return { ...janela, dias_semana: janela.dias_semana.includes(dia) ? janela.dias_semana.filter((item) => item !== dia) : [...janela.dias_semana, dia] };
+        }) }));
+    }
+
+    function adicionarJanela(tipo) {
+        setForm((atual) => {
+            const repetidas = atual.janelas_alimentacao.filter((janela) => janela.tipo === tipo).length;
+            const janela = janelaPadrao(tipo, atual.janelas_alimentacao.length);
+            if (repetidas) janela.nome = `${rotulosJanela[tipo]} ${repetidas + 1}`;
+            return { ...atual, janelas_alimentacao: [...atual.janelas_alimentacao, janela] };
+        });
+    }
+
+    function removerJanela(indice) {
+        setForm((atual) => atual.janelas_alimentacao.length <= 1 ? atual : ({ ...atual, janelas_alimentacao: atual.janelas_alimentacao.filter((_, posicao) => posicao !== indice).map((janela, ordem) => ({ ...janela, ordem })) }));
     }
 
     async function salvar(event) {
@@ -160,33 +243,42 @@ export default function ConfigurarRotinaPage() {
         setSalvando(true);
         setMensagem("");
         try {
+            const janelaPrincipal = form.janelas_alimentacao.find((janela) => janela.tipo === "ALMOCO") ?? form.janelas_alimentacao[0];
             const perfilSalvo = await apiRequest("/rotina/perfil", {
                 method: "POST",
                 body: JSON.stringify({
                     versao_perfil: versaoPerfil,
                     nome: form.nome,
                     endereco_base: form.endereco_base,
-                    latitude: campoNumero(form.latitude),
-                    longitude: campoNumero(form.longitude),
-                    dias_semana: form.dias_semana,
-                    horario_inicio: form.horario_inicio,
-                    horario_fim: form.horario_fim,
-                    tempo_maximo_minutos: campoNumero(form.tempo_maximo_minutos),
+                    dias_semana: janelaPrincipal.dias_semana,
+                    horario_inicio: janelaPrincipal.horario_inicio,
+                    horario_fim: janelaPrincipal.horario_fim,
+                    tempo_maximo_minutos: campoNumero(janelaPrincipal.tempo_maximo_minutos),
                     orcamento_diario: campoNumero(form.orcamento_diario),
                     orcamento_semanal: campoNumero(form.orcamento_semanal),
-                    raio_km: campoNumero(form.raio_km),
+                    raio_km: campoNumero(janelaPrincipal.raio_km),
                     preferencias: textoParaLista(form.preferencias),
                     restricoes: textoParaLista(form.restricoes),
                     alergias: textoParaLista(form.alergias),
                     restaurantes_favoritos_rotina: form.restaurantes_favoritos_rotina,
                     pratos_favoritos_rotina: form.pratos_favoritos_rotina,
+                    geocodificacao_selecionada: geocodificacaoSelecionada || undefined,
+                    janelas_alimentacao: form.janelas_alimentacao.map((janela, ordem) => ({ ...janela, ordem, tempo_maximo_minutos: campoNumero(janela.tempo_maximo_minutos), orcamento_por_refeicao: campoNumero(janela.orcamento_por_refeicao), raio_km: campoNumero(janela.raio_km) })),
                 }),
             });
             setVersaoPerfil(Number(perfilSalvo.versao));
+            setFormSalvo(form);
             setRascunho(null);
+            setCandidatosEndereco([]);
+            setGeocodificacaoSelecionada("");
             setMensagem("Rotina salva. Agora você pode gerar o planejamento semanal.");
         } catch (error) {
             if (error.status === 409) setConflito(true);
+            if (error.code === "ROUTINE_ADDRESS_AMBIGUOUS") {
+                setCandidatosEndereco(error.details?.candidatos ?? []);
+                setMensagem("Encontramos mais de um endereço. Escolha a opção correta e salve novamente.");
+                return;
+            }
             setMensagem(error instanceof Error ? error.message : "Não foi possível salvar a rotina.");
         } finally {
             setSalvando(false);
@@ -194,83 +286,58 @@ export default function ConfigurarRotinaPage() {
     }
 
     return (
-        <main className="min-h-screen bg-white px-5 py-8 text-app-cafe-profundo">
-            <section className="mx-auto max-w-5xl">
-                <div className="flex items-center justify-between gap-4">
-                    <Link href="/cliente/rotina" className="inline-flex items-center gap-2 text-sm font-bold text-app-caramelo-torrado transition hover:text-app-cafe-profundo"><Icon type="arrow" className="h-4 w-4" />{ui("Voltar")}</Link>
-                    <Image src="/brand/appono-mark.svg" alt={ui("Appono")} width={72} height={72} className="h-12 w-12" />
-                </div>
+        <main className="min-h-screen bg-white px-4 py-6 text-app-cafe-profundo sm:px-6 sm:py-8">
+            <section className="mx-auto max-w-6xl">
+                <RoutineBreadcrumb>{ui("Voltar para Appono Rotina")}</RoutineBreadcrumb>
+                <div className="mt-4"><RoutineHero eyebrow={ui("Configuração da rotina")} title={ui("Defina como sua semana deve funcionar.")} description={ui("Organize sua base, janela de almoço, orçamento e preferências. Você poderá revisar tudo antes de gerar sugestões.")} /></div>
 
-                <header className="mt-8 rounded-[18px] bg-app-cafe-profundo p-6 text-app-creme-leve shadow-sm ring-1 ring-app-baunilha-dourada/40 sm:p-8">
-                    <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-app-baunilha-dourada">{ui("Configuração")}</p>
-                    <h1 className="mt-3 text-4xl font-semibold sm:text-5xl">{ui("Monte sua rotina de almoço.")}</h1>
-                    <p className="mt-4 max-w-2xl text-sm leading-6 text-app-creme-suave">{ui("Seus horários, orçamento e preferências em um só lugar.")}</p>
-                </header>
-
-                {mensagem ? <p role="status" className="mt-6 rounded-[12px] border border-app-baunilha-dourada bg-white p-4 text-sm font-semibold text-app-caramelo-torrado">{ui(mensagem)}</p> : null}
-                {conflito || falhaCarga ? <div role="alert" className="mt-4 flex flex-wrap items-center gap-3 text-sm">
-                    <p>{ui("Sua edição permanece nesta tela. Recarregue para comparar com os dados salvos.")}</p>
-                    <button type="button" disabled={carregando} className="rounded-lg border px-4 py-2 font-semibold" onClick={() => {
+                {mensagem ? <div className="mt-5"><RoutineNotice type={conflito || falhaCarga ? "error" : "success"}>{ui(mensagem)}</RoutineNotice></div> : null}
+                {conflito || falhaCarga ? <div className="mt-4"><RoutineNotice type="warning" action={<button type="button" disabled={carregando} className="min-h-10 rounded-full border border-current px-4 text-xs font-bold uppercase tracking-wider" onClick={() => {
                         setRascunho(form); setCarregando(true); setRecarregar((valor) => valor + 1);
-                    }}>{ui("Recarregar dados salvos")}</button>
-                </div> : null}
-                {rascunho && !conflito && !carregando && !falhaCarga ? <div className="mt-4 flex flex-wrap items-center gap-3 text-sm">
-                    <p>{ui("Dados atualizados. Seu rascunho anterior foi preservado para revisão.")}</p>
-                    <button type="button" className="rounded-lg border px-4 py-2 font-semibold" onClick={() => {
+                    }}>{ui("Recarregar dados")}</button>}><p>{ui("Sua edição continua nesta tela. Recarregue para comparar com a versão salva.")}</p></RoutineNotice></div> : null}
+                {rascunho && !conflito && !carregando && !falhaCarga ? <div className="mt-4"><RoutineNotice type="info" action={<button type="button" className="min-h-10 rounded-full border border-current px-4 text-xs font-bold uppercase tracking-wider" onClick={() => {
                         setForm(rascunho); setRascunho(null); setMensagem("Rascunho restaurado. Revise antes de salvar sobre a versão atual.");
-                    }}>{ui("Restaurar meu rascunho")}</button>
-                </div> : null}
+                    }}>{ui("Restaurar rascunho")}</button>}><p>{ui("Os dados salvos foram recarregados e seu rascunho anterior foi preservado.")}</p></RoutineNotice></div> : null}
 
-                <form onSubmit={salvar} className="mt-6 grid gap-5">
+                {carregando ? <div className="mt-5"><RoutineSkeleton cards={3} /></div> : null}
+
+                <form onSubmit={salvar} className={`${carregando ? "hidden" : "grid"} mt-5 gap-5`}>
                     <fieldset disabled={carregando || salvando || falhaCarga} className="grid min-w-0 gap-5">
-                    <section className="rounded-[18px] bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada/65">
+                    <section className="rounded-[24px] bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada/55">
                         <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{ui("Base")}</p>
                         <div className="mt-5 grid gap-4 md:grid-cols-2">
                             <label className="grid gap-2 text-xs font-bold uppercase tracking-[0.14em] text-app-mocha">{ui("Nome da rotina")}
                                 <input value={form.nome} onChange={(event) => atualizar("nome", event.target.value)} className="h-12 rounded-[10px] border border-app-baunilha-dourada bg-white px-4 text-sm font-semibold normal-case tracking-normal text-app-cafe-profundo outline-none focus:border-app-caramelo-torrado" />
                             </label>
-                            <label className="grid gap-2 text-xs font-bold uppercase tracking-[0.14em] text-app-mocha">{ui("Endereço base")}
-                                <input value={form.endereco_base} onChange={(event) => atualizar("endereco_base", event.target.value)} placeholder={ui("Ex: escritório, faculdade, casa...")} className="h-12 rounded-[10px] border border-app-baunilha-dourada bg-white px-4 text-sm font-semibold normal-case tracking-normal text-app-cafe-profundo outline-none focus:border-app-caramelo-torrado" />
-                            </label>
-                            <label className="grid gap-2 text-xs font-bold uppercase tracking-[0.14em] text-app-mocha">{ui("Latitude")}
-                                <input value={form.latitude} onChange={(event) => atualizar("latitude", event.target.value)} inputMode="decimal" className="h-12 rounded-[10px] border border-app-baunilha-dourada bg-white px-4 text-sm font-semibold normal-case tracking-normal text-app-cafe-profundo outline-none focus:border-app-caramelo-torrado" />
-                            </label>
-                            <label className="grid gap-2 text-xs font-bold uppercase tracking-[0.14em] text-app-mocha">{ui("Longitude")}
-                                <input value={form.longitude} onChange={(event) => atualizar("longitude", event.target.value)} inputMode="decimal" className="h-12 rounded-[10px] border border-app-baunilha-dourada bg-white px-4 text-sm font-semibold normal-case tracking-normal text-app-cafe-profundo outline-none focus:border-app-caramelo-torrado" />
+                            <label className="grid gap-2 text-xs font-bold uppercase tracking-[0.14em] text-app-mocha">
+                                {ui("Endereço-base")}
+                                <input value={form.endereco_base} onChange={(event) => { atualizar("endereco_base", event.target.value); setCandidatosEndereco([]); setGeocodificacaoSelecionada(""); }} required placeholder={ui("Ex: Rua, número, bairro, cidade e UF")} className="h-12 rounded-[10px] border border-app-baunilha-dourada bg-white px-4 text-sm font-semibold normal-case tracking-normal text-app-cafe-profundo outline-none focus:border-app-caramelo-torrado" />
                             </label>
                         </div>
-                        <button type="button" onClick={usarLocalizacao} disabled={localizando} className="mt-5 inline-flex h-11 items-center gap-2 rounded-[8px] border border-app-baunilha-dourada px-5 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:bg-app-chantilly disabled:opacity-50">
-                            <Icon type="pin" className="h-4 w-4" />{ui(localizando ? "Localizando..." : "Usar localização atual")}
-                        </button>
+                        <p className="mt-4 max-w-2xl text-sm leading-6 text-app-cinza">{ui("Usamos o endereço apenas para encontrar restaurantes próximos. As coordenadas são calculadas com segurança no servidor e não ficam editáveis nesta tela.")}</p>
+                        {candidatosEndereco.length > 0 ? <fieldset className="mt-5 rounded-2xl border border-app-baunilha-dourada bg-app-chantilly/40 p-4"><legend className="px-1 text-xs font-bold uppercase tracking-[0.14em] text-app-mocha">{ui("Qual endereço corresponde à sua base?")}</legend><div className="mt-3 grid gap-2">{candidatosEndereco.map((candidato) => <label key={candidato.place_id} className="flex cursor-pointer items-start gap-3 rounded-xl bg-white p-3 text-sm text-app-cafe-profundo ring-1 ring-app-baunilha-dourada/55"><input type="radio" name="endereco-geocodificado" value={candidato.place_id} checked={geocodificacaoSelecionada === candidato.place_id} onChange={(event) => setGeocodificacaoSelecionada(event.target.value)} className="mt-0.5 accent-app-caramelo-torrado" /><span>{candidato.nome}</span></label>)}</div></fieldset> : null}
                     </section>
 
-                    <section className="rounded-[18px] bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada/65">
-                        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{ui("Janela de almoço")}</p>
-                        <div className="mt-5 flex flex-wrap gap-2">
-                            {diasSemana.map((dia) => (
-                                <button key={dia.id} type="button" aria-pressed={form.dias_semana.includes(dia.id)} onClick={() => alternarDia(dia.id)} className={`h-10 rounded-[8px] px-4 text-xs font-bold uppercase tracking-[0.1em] transition ${form.dias_semana.includes(dia.id) ? "bg-app-cafe-profundo text-app-creme-leve" : "border border-app-baunilha-dourada text-app-mocha hover:bg-app-chantilly"}`}>
-                                    {ui(dia.label)}
-                                </button>
-                            ))}
+                    <section className="rounded-[24px] bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada/55">
+                        <div className="flex flex-wrap items-start justify-between gap-4"><div><p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{ui("Janelas alimentares")}</p><p className="mt-2 max-w-2xl text-sm leading-6 text-app-cinza">{ui("Organize café, almoço, jantar ou um horário próprio. Cada janela recebe sugestões, limites e distância compatíveis.")}</p></div><span className="rounded-full border border-app-baunilha-dourada px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-app-mocha">{form.janelas_alimentacao.length}/8</span></div>
+                        <div className="mt-5 grid gap-4">
+                            {form.janelas_alimentacao.map((janela, indice) => {
+                                const [inicioHora, inicioMinuto] = String(janela.horario_inicio).split(":").map(Number);
+                                const [fimHora, fimMinuto] = String(janela.horario_fim).split(":").map(Number);
+                                const duracao = (fimHora * 60 + fimMinuto) - (inicioHora * 60 + inicioMinuto);
+                                const erro = validarJanela(janela);
+                                return <article key={janela.id_janela_alimentacao ?? `${janela.tipo}-${indice}`} className="rounded-2xl border border-app-baunilha-dourada/75 p-4 sm:p-5"><div className="flex flex-wrap items-center justify-between gap-3"><div className="flex flex-wrap items-center gap-2"><select aria-label={ui("Tipo da janela")} value={janela.tipo} onChange={(event) => { const tipo = event.target.value; atualizarJanela(indice, "tipo", tipo); if (janela.nome === rotulosJanela[janela.tipo]) atualizarJanela(indice, "nome", rotulosJanela[tipo]); }} className="h-10 rounded-lg border border-app-baunilha-dourada bg-white px-3 text-xs font-bold uppercase tracking-wider text-app-mocha"><option value="CAFE">{ui("Café")}</option><option value="ALMOCO">{ui("Almoço")}</option><option value="JANTAR">{ui("Jantar")}</option><option value="PERSONALIZADA">{ui("Personalizada")}</option></select><input aria-label={ui("Nome da janela")} value={janela.nome} onChange={(event) => atualizarJanela(indice, "nome", event.target.value)} className="h-10 min-w-40 rounded-lg border border-app-baunilha-dourada bg-white px-3 text-sm font-semibold text-app-cafe-profundo outline-none focus:border-app-caramelo-torrado" /></div>{form.janelas_alimentacao.length > 1 ? <button type="button" onClick={() => removerJanela(indice)} className="min-h-10 rounded-full px-3 text-xs font-bold uppercase tracking-wider text-red-700 hover:bg-red-50">{ui("Remover")}</button> : null}</div>
+                                    <div className="mt-4 flex flex-wrap gap-2">{diasSemana.map((dia) => <button key={dia.id} type="button" aria-pressed={janela.dias_semana.includes(dia.id)} onClick={() => alternarDiaJanela(indice, dia.id)} className={`h-9 rounded-lg px-3 text-[10px] font-bold uppercase tracking-[0.1em] transition ${janela.dias_semana.includes(dia.id) ? "bg-app-cafe-profundo text-app-creme-leve" : "border border-app-baunilha-dourada text-app-mocha hover:bg-app-chantilly"}`}>{ui(dia.label)}</button>)}</div>
+                                    <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4"><label className="grid gap-2 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha">{ui("Início")}<input type="time" value={janela.horario_inicio} onChange={(event) => atualizarJanela(indice, "horario_inicio", event.target.value)} className="h-11 rounded-lg border border-app-baunilha-dourada bg-white px-3 text-sm font-semibold normal-case tracking-normal" /></label><label className="grid gap-2 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha">{ui("Fim")}<input type="time" value={janela.horario_fim} onChange={(event) => atualizarJanela(indice, "horario_fim", event.target.value)} className="h-11 rounded-lg border border-app-baunilha-dourada bg-white px-3 text-sm font-semibold normal-case tracking-normal" /></label><label className="grid gap-2 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha">{ui("Tempo máximo (min)")}<input type="number" min="30" max={Math.min(240, Math.max(30, duracao || 30))} value={janela.tempo_maximo_minutos} onChange={(event) => atualizarJanela(indice, "tempo_maximo_minutos", event.target.value)} className="h-11 rounded-lg border border-app-baunilha-dourada bg-white px-3 text-sm font-semibold normal-case tracking-normal" /></label><label className="grid gap-2 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha">{ui("Raio máximo (km)")}<input type="number" min="1" max="100" step="0.1" value={janela.raio_km} onChange={(event) => atualizarJanela(indice, "raio_km", event.target.value)} className="h-11 rounded-lg border border-app-baunilha-dourada bg-white px-3 text-sm font-semibold normal-case tracking-normal" /></label></div>
+                                    <label className="mt-4 grid max-w-xs gap-2 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha">{ui("Orçamento por refeição (opcional)")}<input inputMode="decimal" placeholder={ui("Usar orçamento diário") } value={janela.orcamento_por_refeicao ?? ""} onChange={(event) => atualizarJanela(indice, "orcamento_por_refeicao", event.target.value)} className="h-11 rounded-lg border border-app-baunilha-dourada bg-white px-3 text-sm font-semibold normal-case tracking-normal" /></label>
+                                    <p className={`mt-3 text-sm leading-6 ${erro ? "text-red-700" : "text-app-cinza"}`}>{erro || ui(`Janela de ${duracao} min; a saída pode durar até ${janela.tempo_maximo_minutos} min.`)}</p>
+                                </article>;
+                            })}
                         </div>
-                        <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                            <label className="grid gap-2 text-xs font-bold uppercase tracking-[0.14em] text-app-mocha">{ui("Início")}
-                                <input type="time" value={form.horario_inicio} onChange={(event) => atualizar("horario_inicio", event.target.value)} className="h-12 rounded-[10px] border border-app-baunilha-dourada bg-white px-4 text-sm font-semibold normal-case tracking-normal text-app-cafe-profundo outline-none focus:border-app-caramelo-torrado" />
-                            </label>
-                            <label className="grid gap-2 text-xs font-bold uppercase tracking-[0.14em] text-app-mocha">{ui("Fim")}
-                                <input type="time" value={form.horario_fim} onChange={(event) => atualizar("horario_fim", event.target.value)} className="h-12 rounded-[10px] border border-app-baunilha-dourada bg-white px-4 text-sm font-semibold normal-case tracking-normal text-app-cafe-profundo outline-none focus:border-app-caramelo-torrado" />
-                            </label>
-                            <label className="grid min-w-0 gap-2 text-xs font-bold uppercase tracking-[0.14em] text-app-mocha">{ui("Limite da saída (min)")}
-                                <input type="number" min={30} max={Math.min(240, Math.max(30, duracaoJanela || 30))} step={1} required aria-describedby="resumo-janela" value={form.tempo_maximo_minutos} onChange={(event) => atualizar("tempo_maximo_minutos", event.target.value)} inputMode="numeric" className="h-12 min-w-0 w-full rounded-[10px] border border-app-baunilha-dourada bg-white px-4 text-sm font-semibold normal-case tracking-normal text-app-cafe-profundo outline-none focus:border-app-caramelo-torrado" />
-                            </label>
-                            <label className="grid min-w-0 gap-2 text-xs font-bold uppercase tracking-[0.14em] text-app-mocha">{ui("Distância máxima (km)")}
-                                <input type="number" min={1} max={100} step="0.1" required value={form.raio_km} onChange={(event) => atualizar("raio_km", event.target.value)} inputMode="decimal" className="h-12 min-w-0 w-full rounded-[10px] border border-app-baunilha-dourada bg-white px-4 text-sm font-semibold normal-case tracking-normal text-app-cafe-profundo outline-none focus:border-app-caramelo-torrado" />
-                            </label>
-                        </div>
-                        <p id="resumo-janela" className="mt-4 text-sm leading-6 text-app-cinza" aria-live="polite">{erroJanela || ui(`Janela de ${duracaoJanela} min: sua saída pode durar até ${form.tempo_maximo_minutos} min, incluindo ida, refeição e volta. A distância também precisa caber nesse tempo.`)}</p>
+                        <div className="mt-5 flex flex-wrap gap-2">{["CAFE", "ALMOCO", "JANTAR", "PERSONALIZADA"].map((tipo) => <button key={tipo} type="button" disabled={form.janelas_alimentacao.length >= 8} onClick={() => adicionarJanela(tipo)} className="min-h-10 rounded-full border border-app-baunilha-dourada px-4 text-[10px] font-bold uppercase tracking-wider text-app-mocha transition hover:bg-app-chantilly disabled:opacity-40">+ {ui(rotulosJanela[tipo])}</button>)}</div>
                     </section>
 
-                    <section className="rounded-[18px] bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada/65">
+                    <section className="rounded-[24px] bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada/55">
                         <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{ui("Preferências")}</p>
                         <div className="mt-5 grid gap-4 md:grid-cols-2">
                             <label className="grid gap-2 text-xs font-bold uppercase tracking-[0.14em] text-app-mocha">{ui("Orçamento diário")}
@@ -291,7 +358,41 @@ export default function ConfigurarRotinaPage() {
                         </div>
                     </section>
 
-                    <section className="grid gap-5 rounded-[18px] bg-white p-5 shadow-sm ring-1 ring-app-baunilha-dourada/65 sm:grid-cols-2">
+                    <section className="rounded-[24px] bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada/55">
+                        <div className="flex flex-wrap items-start justify-between gap-4">
+                            <div>
+                                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{ui("Agenda")}</p>
+                                <h2 className="mt-2 text-xl font-semibold">{ui("Proteja sua janela de almoço")}</h2>
+                                <p className="mt-2 max-w-2xl text-sm leading-6 text-app-cinza">{ui("A Appono consulta somente períodos ocupados. Títulos, convidados e descrições dos eventos não são importados.")}</p>
+                            </div>
+                            <span className="rounded-full border border-app-baunilha-dourada px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-app-mocha">{agenda.janelas_ocupadas.length} {ui("períodos ocupados")}</span>
+                        </div>
+                        {carregandoAgenda ? <div className="mt-5 h-24 animate-pulse rounded-xl bg-app-chantilly" /> : (
+                            <div className="mt-5 grid gap-3 md:grid-cols-2">
+                                {agenda.provedores.map((item) => {
+                                    const conexao = agenda.conexoes.find((conectada) => conectada.provedor === item.provedor);
+                                    const conectado = conexao?.status === "CONECTADO" || conexao?.status === "ERRO";
+                                    const nome = item.provedor === "GOOGLE" ? "Google Agenda" : "Outlook";
+                                    return <article key={item.provedor} className="rounded-2xl border border-app-baunilha-dourada/70 p-4">
+                                        <div className="flex items-start justify-between gap-3">
+                                            <div><h3 className="font-semibold">{nome}</h3><p className="mt-1 text-xs text-app-cinza">{conectado ? conexao.identificador_conta || ui("Conta conectada") : item.configurado ? ui("Disponível para conexão") : ui("Indisponível neste ambiente")}</p></div>
+                                            <span className={`text-xs font-bold ${conectado ? "text-emerald-700" : "text-app-cinza"}`}>{ui(conectado ? conexao.status === "ERRO" ? "Requer atenção" : "Conectada" : "Desconectada")}</span>
+                                        </div>
+                                        {conexao?.ultima_sincronizacao_em ? <p className="mt-3 text-xs text-app-cinza">{ui("Última sincronização")}: {new Date(conexao.ultima_sincronizacao_em).toLocaleString("pt-BR")}</p> : null}
+                                        {conexao?.erro_codigo ? <p className="mt-2 text-xs font-semibold text-red-700">{ui("A última sincronização falhou; os dados anteriores foram preservados.")}</p> : null}
+                                        <div className="mt-4 flex flex-wrap gap-2">
+                                            {conectado ? <>
+                                                <button type="button" disabled={Boolean(acaoAgenda)} onClick={() => sincronizarAgenda(item.provedor)} className="min-h-10 rounded-full bg-app-cafe-profundo px-4 text-[10px] font-bold uppercase tracking-wider text-white disabled:opacity-50">{ui(acaoAgenda === `sincronizar:${item.provedor}` ? "Sincronizando..." : "Sincronizar")}</button>
+                                                <button type="button" disabled={Boolean(acaoAgenda)} onClick={() => setConfirmarAgenda({ tipo: "desconectar", provedor: item.provedor, nome })} className="min-h-10 rounded-full border border-red-300 px-4 text-[10px] font-bold uppercase tracking-wider text-red-700 disabled:opacity-50">{ui("Desconectar")}</button>
+                                            </> : <button type="button" disabled={!item.configurado || Boolean(acaoAgenda)} onClick={() => setConfirmarAgenda({ tipo: "conectar", provedor: item.provedor, nome })} className="min-h-10 rounded-full bg-app-cafe-profundo px-4 text-[10px] font-bold uppercase tracking-wider text-white disabled:cursor-not-allowed disabled:opacity-40">{ui(`Conectar ${nome}`)}</button>}
+                                        </div>
+                                    </article>;
+                                })}
+                            </div>
+                        )}
+                    </section>
+
+                    <section className="grid gap-5 rounded-[24px] bg-white p-5 shadow-sm ring-1 ring-app-baunilha-dourada/55 sm:grid-cols-2">
                         <label className="grid gap-2 text-sm font-semibold sm:col-span-2">{ui("Buscar restaurante ou prato")}
                             <input type="search" value={buscaPreferidos} onChange={(event) => setBuscaPreferidos(event.target.value)} className="h-11 min-w-0 w-full rounded-lg border border-app-baunilha-dourada bg-white px-3" />
                         </label>
@@ -320,12 +421,14 @@ export default function ConfigurarRotinaPage() {
                     </section>
                     </fieldset>
                     <div className="flex flex-wrap justify-end gap-3">
-                        <Link href="/cliente/rotina" className="inline-flex h-12 items-center justify-center rounded-[8px] border border-app-baunilha-dourada px-6 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:bg-app-chantilly">{ui("Cancelar")}</Link>
-                        <button type="submit" disabled={carregando || salvando || falhaCarga || Boolean(erroJanela)} className="h-12 rounded-[8px] bg-app-caramelo-torrado px-8 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-app-cafe-profundo disabled:opacity-50">{ui(salvando ? "Salvando..." : "Salvar rotina")}</button>
-                        <Link href="/cliente/rotina/planejamento" className="inline-flex h-12 items-center justify-center rounded-[8px] bg-app-cafe-profundo px-6 text-xs font-bold uppercase tracking-[0.12em] text-app-creme-leve transition hover:bg-app-caramelo-torrado">{ui("Ir ao planejamento")}</Link>
+                        <button type="button" onClick={() => formSalvo && JSON.stringify(form) !== JSON.stringify(formSalvo) ? setConfirmarDescartar(true) : router.push("/cliente/rotina")} className="inline-flex min-h-12 items-center justify-center rounded-full border border-app-baunilha-dourada px-6 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:bg-app-chantilly">{ui("Cancelar")}</button>
+                        <button type="submit" disabled={carregando || salvando || falhaCarga || Boolean(erroJanela)} className="min-h-12 rounded-full bg-app-caramelo-torrado px-8 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-app-cafe-profundo disabled:opacity-50">{ui(salvando ? "Salvando..." : "Salvar rotina")}</button>
+                        <Link href="/cliente/rotina/planejamento" className="inline-flex min-h-12 items-center justify-center rounded-full bg-app-cafe-profundo px-6 text-xs font-bold uppercase tracking-[0.12em] text-app-creme-leve transition hover:bg-app-caramelo-torrado">{ui("Ir ao planejamento")}</Link>
                     </div>
                 </form>
             </section>
+            <ConfirmationDialog open={confirmarDescartar} eyebrow={ui("Alterações não salvas")} title={ui("Descartar suas alterações?")} description={ui("Os dados salvos continuam preservados, mas as edições feitas nesta tela serão perdidas.")} confirmLabel={ui("Descartar alterações")} cancelLabel={ui("Continuar editando")} loading={false} onCancel={() => setConfirmarDescartar(false)} onConfirm={() => router.push("/cliente/rotina")} />
+            <ConfirmationDialog open={Boolean(confirmarAgenda)} eyebrow={ui("Integração de agenda")} title={ui(confirmarAgenda?.tipo === "conectar" ? `Conectar ${confirmarAgenda?.nome}?` : `Desconectar ${confirmarAgenda?.nome}?`)} description={ui(confirmarAgenda?.tipo === "conectar" ? "Você será direcionado ao provedor para autorizar a leitura dos períodos ocupados." : "O acesso será removido e os períodos importados dessa agenda serão apagados. Reservas e pedidos já criados não serão alterados.")} confirmLabel={ui(confirmarAgenda?.tipo === "conectar" ? "Continuar para conexão" : "Desconectar agenda")} cancelLabel={ui("Voltar")} variant={confirmarAgenda?.tipo === "desconectar" ? "danger" : "default"} loading={Boolean(acaoAgenda)} onCancel={() => setConfirmarAgenda(null)} onConfirm={executarAcaoAgenda} />
         </main>
     );
 }

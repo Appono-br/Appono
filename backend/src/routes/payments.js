@@ -14,8 +14,13 @@ const { calculateSplit, nextTransferStatus, strongestPaymentStatus } = require("
 const { lateApprovalDecision, paymentEligibility } = require("../domain/payment-eligibility");
 const paymentConfig = require("../services/pagamentos/config");
 const { sincronizarReservasNaoComparecidas } = require("../services/reservas/expiracao");
+const { decifrarTokenMercadoPago } = require("../services/pagamentos/credenciais-restaurante");
+const { assinaturaObrigatoria, validarAssinaturaWebhookMercadoPago } = require("../services/pagamentos/webhook-security");
+const { criarRateLimiter } = require("../middleware/rate-limit");
 
 exports.paymentsRouter = (0, express_1.Router)();
+const limitarWebhookMercadoPago = criarRateLimiter({ janelaMs: 60_000, limite: 120 });
+const limitarOperacoesPagamento = criarRateLimiter({ janelaMs: 60_000, limite: 20 });
 
 function obterFrontendOrigin() {
     return paymentConfig.frontendOrigin();
@@ -23,10 +28,6 @@ function obterFrontendOrigin() {
 
 function obterBackendPublicUrl() {
     return paymentConfig.backendPublicUrl();
-}
-
-function obterWebhookSecretMercadoPago() {
-    return paymentConfig.webhookSecret();
 }
 
 function urlPermiteRetornoAutomatico(url) {
@@ -137,17 +138,17 @@ async function obterConexaoMercadoPagoRestaurante(restauranteId) {
     }
     const { data, error } = await supabase_1.supabaseAdmin
         .from("mercado_pago_conexoes_restaurante")
-        .select("id_restaurante, mercado_pago_user_id, access_token, status, live_mode, expires_at")
+        .select("id_restaurante, mercado_pago_user_id, access_token_cifrado, status, live_mode, expires_at")
         .eq("id_restaurante", restauranteId)
         .eq("status", "CONECTADO")
         .maybeSingle();
     if (error) {
         throw new Error(error.message);
     }
-    if (!data?.access_token) {
+    if (!data?.access_token_cifrado) {
         return null;
     }
-    return data;
+    return { ...data, accessToken: decifrarTokenMercadoPago(data.access_token_cifrado) };
 }
 
 async function obterTokenPagamentoPorPedido(pedidoId) {
@@ -163,7 +164,7 @@ async function obterTokenPagamentoPorPedido(pedidoId) {
         return null;
     }
     const conexao = await obterConexaoMercadoPagoRestaurante(pedido.id_restaurante);
-    return conexao?.access_token ?? null;
+    return conexao?.accessToken ?? null;
 }
 
 async function obterPedidoDoCliente(supabase, pedidoId, userId) {
@@ -493,46 +494,15 @@ function obterMercadoPagoUserIdNotificacao(req) {
     return obterPrimeiroValorQuery(req.body?.user_id ?? req.query.user_id);
 }
 
-function obterValorAssinatura(xSignature, chave) {
-    return String(xSignature ?? "")
-        .split(",")
-        .map((parte) => parte.trim().split("="))
-        .find(([nome]) => nome === chave)?.[1];
-}
-
-function validarAssinaturaWebhookMercadoPago(req, paymentId) {
-    const secret = obterWebhookSecretMercadoPago();
-    if (!secret) {
-        return true;
-    }
-    const xSignature = req.headers["x-signature"];
-    const xRequestId = req.headers["x-request-id"];
-    const ts = obterValorAssinatura(xSignature, "ts");
-    const assinaturaRecebida = obterValorAssinatura(xSignature, "v1");
-    if (!xRequestId || !ts || !assinaturaRecebida) {
-        return false;
-    }
-    const manifest = `id:${paymentId};request-id:${xRequestId};ts:${ts};`;
-    const assinaturaCalculada = crypto
-        .createHmac("sha256", secret)
-        .update(manifest)
-        .digest("hex");
-    if (!/^[a-f0-9]+$/i.test(assinaturaRecebida) || assinaturaCalculada.length !== assinaturaRecebida.length) {
-        return false;
-    }
-    return crypto.timingSafeEqual(
-        Buffer.from(assinaturaCalculada, "hex"),
-        Buffer.from(assinaturaRecebida, "hex"),
-    );
-}
-
-exports.paymentsRouter.post("/webhook/mercado-pago", async (req, res) => {
+exports.paymentsRouter.post("/webhook/mercado-pago", limitarWebhookMercadoPago, async (req, res) => {
     const paymentId = obterPrimeiroValorQuery(req.query["data.id"] ?? req.query.id ?? req.body?.data?.id ?? req.body?.id);
     if (!paymentId) {
         return res.status(200).json({ received: true });
     }
     if (!validarAssinaturaWebhookMercadoPago(req, paymentId)) {
-        log("warn", "mercado_pago_webhook_invalid_signature", { request_id: req.requestId, payment_id: paymentId });
+        log("warn", assinaturaObrigatoria() && !paymentConfig.webhookSecret()
+            ? "mercado_pago_webhook_secret_missing"
+            : "mercado_pago_webhook_invalid_signature", { request_id: req.requestId, payment_id: paymentId });
         return res.status(401).json({ received: false });
     }
     const notificationId = String(req.headers["x-request-id"] ?? crypto.createHash("sha256").update(JSON.stringify(req.body ?? {})).digest("hex"));
@@ -548,11 +518,14 @@ exports.paymentsRouter.post("/webhook/mercado-pago", async (req, res) => {
         if (!pagamentoMercadoPago?.status && mercadoPagoUserId && supabase_1.supabaseAdmin) {
             const { data: conexao } = await supabase_1.supabaseAdmin
                 .from("mercado_pago_conexoes_restaurante")
-                .select("access_token")
+                .select("access_token_cifrado")
                 .eq("mercado_pago_user_id", String(mercadoPagoUserId))
                 .eq("status", "CONECTADO")
                 .maybeSingle();
-            pagamentoMercadoPago = await (0, mercado_pago_1.consultarPagamentoMercadoPago)(paymentId, conexao?.access_token);
+            const tokenRestaurante = conexao?.access_token_cifrado
+                ? decifrarTokenMercadoPago(conexao.access_token_cifrado)
+                : null;
+            pagamentoMercadoPago = await (0, mercado_pago_1.consultarPagamentoMercadoPago)(paymentId, tokenRestaurante);
         }
         await aplicarPagamentoMercadoPago(pagamentoMercadoPago);
         if (supabase_1.supabaseAdmin) await supabase_1.supabaseAdmin.from("webhooks_mercado_pago").update({ status: "PROCESSADO", processado_em: new Date().toISOString() }).eq("chave_idempotencia", webhookKey);
@@ -568,6 +541,7 @@ exports.paymentsRouter.post("/webhook/mercado-pago", async (req, res) => {
 
 exports.paymentsRouter.use(auth_1.requireAuth);
 exports.paymentsRouter.use((0, auth_1.requireRole)("cliente"));
+exports.paymentsRouter.use(limitarOperacoesPagamento);
 
 exports.paymentsRouter.post("/pedido/:id/preferência", async (req, res) => {
     const pedidoId = Number(req.params.id);
@@ -609,7 +583,7 @@ exports.paymentsRouter.post("/pedido/:id/preferência", async (req, res) => {
             });
         }
         const token = marketplaceRealAtivo()
-            ? conexaoRestaurante.access_token
+            ? conexaoRestaurante.accessToken
             : (0, mercado_pago_1.obterAccessTokenMercadoPago)();
         if (!token) {
             return res.status(409).json({

@@ -1,43 +1,14 @@
 "use client";
 
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
+import { RoutineBreadcrumb, RoutineEmpty, RoutineHero, RoutineIcon, RoutineNotice, RoutineSkeleton, RoutineStatus } from "@/components/cliente/rotina/routine-ui";
 import { useInterface } from "@/lib/use-interface";
 import { apiRequest } from "@/lib/api";
+import { estadoPlanejamento } from "@/lib/routine-view.mjs";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-
-const statusTexto = {
-    SUGERIDA: "Sugerida",
-    APROVADA: "Aprovada",
-    RECUSADA: "Recusada",
-    ALTERADA: "Alterada",
-    CONVERTIDA_RESERVA: "Reserva criada",
-    CONVERTIDA_PEDIDO: "Pedido criado",
-    CANCELADA: "Cancelada",
-};
-
-const statusClasse = {
-    SUGERIDA: "text-app-mocha",
-    APROVADA: "text-app-verde-sucesso",
-    RECUSADA: "text-app-vermelho-erro",
-    ALTERADA: "text-app-caramelo-torrado",
-    CONVERTIDA_RESERVA: "text-app-verde-sucesso",
-    CONVERTIDA_PEDIDO: "text-app-verde-sucesso",
-    CANCELADA: "text-app-vermelho-erro",
-};
-
-function Icon({ type, className = "h-5 w-5" }) {
-    const paths = {
-        arrow: "M19 12H5m6-6-6 6 6 6",
-        calendar: "M7 3v4M17 3v4M4 8h16M6 5h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z",
-        check: "m5 12 4 4L19 6",
-        spark: "M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3z",
-        x: "M6 6l12 12M18 6 6 18",
-    };
-    return <svg aria-hidden="true" viewBox="0 0 24 24" className={`shrink-0 ${className}`}><path d={paths[type]} fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" /></svg>;
-}
 
 function moeda(valor, localeUI) {
     if (valor === null || valor === undefined) return "--";
@@ -57,6 +28,34 @@ function distancia(valor) {
     return `${numero.toFixed(numero < 10 ? 1 : 0).replace(".", ",")} km`;
 }
 
+function inicioSemana(data = new Date()) {
+    const referencia = new Date(data);
+    const dia = referencia.getDay() || 7;
+    referencia.setDate(referencia.getDate() - dia + 1);
+    return referencia.toISOString().slice(0, 10);
+}
+
+function deslocarSemana(data, quantidade) {
+    const referencia = new Date(`${data}T12:00:00`);
+    referencia.setDate(referencia.getDate() + quantidade * 7);
+    return referencia.toISOString().slice(0, 10);
+}
+
+function adicionarDias(data, quantidade) {
+    const referencia = new Date(`${data}T12:00:00`);
+    referencia.setDate(referencia.getDate() + quantidade);
+    return referencia.toISOString().slice(0, 10);
+}
+
+function statusPlanejamento(status, ui) {
+    return ui({ GERADO: "Gerado", APROVADO: "Aprovado", PARCIAL: "Em revisão", CANCELADO: "Cancelado" }[status] ?? status);
+}
+
+function nomeJanela(janela, ui) {
+    if (janela?.nome) return janela.nome;
+    return ui({ CAFE: "Café", ALMOCO: "Almoço", JANTAR: "Jantar", PERSONALIZADA: "Refeição" }[janela?.tipo] ?? "Refeição");
+}
+
 export default function PlanejamentoRotinaPage() {
     const { ui, localeUI } = useInterface();
     const router = useRouter();
@@ -67,20 +66,28 @@ export default function PlanejamentoRotinaPage() {
     const [carregando, setCarregando] = useState(true);
     const [processando, setProcessando] = useState("");
     const [confirmacao, setConfirmacao] = useState(null);
+    const [confirmacaoRecusa, setConfirmacaoRecusa] = useState(null);
+    const [confirmarOutraSugestao, setConfirmarOutraSugestao] = useState(null);
     const [edicao, setEdicao] = useState(null);
+    const [rascunhoEdicao, setRascunhoEdicao] = useState(null);
+    const [confirmarDescartar, setConfirmarDescartar] = useState(false);
     const [confirmarGeracao, setConfirmarGeracao] = useState(false);
     const [conflito, setConflito] = useState(false);
+    const [feedbackEmEdicao, setFeedbackEmEdicao] = useState(null);
+    const [confirmarExcluirFeedback, setConfirmarExcluirFeedback] = useState(null);
+    const [semanaSelecionada, setSemanaSelecionada] = useState("");
     const versoes = { versao_perfil: Number(perfil?.versao ?? 0), versao_planejamento: Number(planejamento?.versao ?? 0) };
 
-    async function carregar() {
+    async function carregar(semanaInicio = semanaSelecionada) {
         try {
             const [perfilResposta, planejamentoResposta] = await Promise.all([
                 apiRequest("/rotina/perfil", { forceRefresh: true }),
-                apiRequest("/rotina/planejamento", { forceRefresh: true }),
+                apiRequest(`/rotina/planejamento${semanaInicio ? `?semana_inicio=${semanaInicio}` : ""}`, { forceRefresh: true }),
             ]);
             setPerfil(perfilResposta);
             setPlanejamento(planejamentoResposta?.planejamento ?? null);
             setRefeicoes(planejamentoResposta?.refeicoes ?? []);
+            setSemanaSelecionada(planejamentoResposta?.planejamento?.semana_inicio ?? semanaInicio ?? inicioSemana());
             setMensagem("");
             setConflito(false);
         } catch (error) {
@@ -100,6 +107,7 @@ export default function PlanejamentoRotinaPage() {
             setPerfil(perfilResposta);
             setPlanejamento(planejamentoResposta?.planejamento ?? null);
             setRefeicoes(planejamentoResposta?.refeicoes ?? []);
+            setSemanaSelecionada(planejamentoResposta?.planejamento?.semana_inicio ?? inicioSemana());
         }).catch((error) => {
             if (!cancelado) setMensagem(error.message);
         }).finally(() => {
@@ -114,15 +122,45 @@ export default function PlanejamentoRotinaPage() {
         recusadas: refeicoes.filter((item) => item.status === "RECUSADA").length,
         convertidas: refeicoes.filter((item) => item.status?.startsWith("CONVERTIDA")).length,
     }), [refeicoes]);
+    const estado = useMemo(() => estadoPlanejamento({ perfil, planejamento, refeicoes }), [perfil, planejamento, refeicoes]);
+    const janelasPorId = useMemo(() => new Map((perfil?.janelas_alimentacao ?? []).map((janela) => [Number(janela.id_janela_alimentacao), janela])), [perfil]);
+    const diasPlanejados = useMemo(() => {
+        const grupos = new Map();
+        for (const refeicao of refeicoes) {
+            const grupo = grupos.get(refeicao.data_refeicao) ?? [];
+            grupo.push(refeicao);
+            grupos.set(refeicao.data_refeicao, grupo);
+        }
+        return [...grupos.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([data, itens]) => ({
+            data,
+            itens: itens.sort((a, b) => String(a.horario_sugerido).localeCompare(String(b.horario_sugerido))),
+        }));
+    }, [refeicoes]);
+    const proximaRefeicao = useMemo(() => {
+        const agora = Date.now();
+        return [...refeicoes]
+            .filter((refeicao) => !["RECUSADA", "CANCELADA"].includes(refeicao.status) && new Date(`${refeicao.data_refeicao}T${refeicao.horario_sugerido}`).getTime() >= agora)
+            .sort((a, b) => `${a.data_refeicao}T${a.horario_sugerido}`.localeCompare(`${b.data_refeicao}T${b.horario_sugerido}`))[0] ?? null;
+    }, [refeicoes]);
+
+    async function navegarSemana(direcao) {
+        if (processando || carregando) return;
+        const destino = deslocarSemana(semanaSelecionada || planejamento?.semana_inicio || inicioSemana(), direcao);
+        setCarregando(true);
+        setMensagem("");
+        setConflito(false);
+        await carregar(destino);
+    }
 
     async function gerarPlanejamento() {
         if (processando) return;
         setProcessando("gerar");
         setMensagem("");
         try {
-            const resposta = await apiRequest("/rotina/planejamento/gerar", { method: "POST", body: JSON.stringify({ ...versoes, semana_base: planejamento?.semana_inicio }) });
+            const resposta = await apiRequest("/rotina/planejamento/gerar", { method: "POST", body: JSON.stringify({ ...versoes, semana_inicio: semanaSelecionada || undefined, semana_base: planejamento?.semana_inicio ?? semanaSelecionada }) });
             setPlanejamento(resposta.planejamento);
             setRefeicoes(resposta.refeicoes ?? []);
+            setSemanaSelecionada(resposta.planejamento?.semana_inicio ?? semanaSelecionada);
             setMensagem("Planejamento gerado.");
             setConfirmarGeracao(false);
         } catch (error) {
@@ -156,6 +194,7 @@ export default function PlanejamentoRotinaPage() {
         try {
             await apiRequest(`/rotina/refeicoes/${refeicao.id_refeicao_planejada}/${acao}`, { method: "POST", body: JSON.stringify(versoes) });
             await carregar();
+            setConfirmacaoRecusa(null);
         } catch (error) {
             if (error.status === 409) setConflito(true);
             setMensagem(error instanceof Error ? error.message : "Não foi possível atualizar a refeição.");
@@ -223,112 +262,246 @@ export default function PlanejamentoRotinaPage() {
         }
     }
 
+    async function retomarRascunho() {
+        if (!rascunhoEdicao) return;
+        const refeicao = refeicoes.find((item) => item.id_refeicao_planejada === rascunhoEdicao.id);
+        if (!refeicao) {
+            setRascunhoEdicao(null);
+            setMensagem("A refeição editada não existe mais na versão salva.");
+            return;
+        }
+        setProcessando(`editar-${refeicao.id_refeicao_planejada}`);
+        try {
+            const opcoes = await apiRequest(`/rotina/refeicoes/${refeicao.id_refeicao_planejada}/opcoes`, { forceRefresh: true });
+            const anterior = rascunhoEdicao.opcoes?.[rascunhoEdicao.indice];
+            const indice = Math.max(0, opcoes.findIndex((item) => item.id_restaurante === anterior?.id_restaurante && item.id_produto === anterior?.id_produto));
+            setEdicao({ id: refeicao.id_refeicao_planejada, versoes, opcoes, indice, horario: rascunhoEdicao.horario });
+            setRascunhoEdicao(null);
+            setMensagem("Rascunho restaurado sobre a versão atual. Revise antes de salvar.");
+        } catch (error) {
+            setMensagem(error instanceof Error ? error.message : "Não foi possível restaurar a edição.");
+        } finally {
+            setProcessando("");
+        }
+    }
+
+    async function pedirOutraSugestao() {
+        const refeicao = confirmarOutraSugestao;
+        if (!refeicao) return;
+        setProcessando(`alternativa-${refeicao.id_refeicao_planejada}`);
+        try {
+            await apiRequest(`/rotina/refeicoes/${refeicao.id_refeicao_planejada}/outra-sugestao`, {
+                method: "POST", body: JSON.stringify(versoes),
+            });
+            setMensagem("Uma nova sugestão compatível foi escolhida para este dia.");
+            setConfirmarOutraSugestao(null);
+            await carregar();
+        } catch (error) {
+            if (error.status === 409 && error.code !== "ROUTINE_NO_ALTERNATIVE") setConflito(true);
+            setMensagem(error.message);
+        } finally {
+            setProcessando("");
+        }
+    }
+
+    function iniciarFeedback(refeicao) {
+        const anterior = refeicao.feedback_rotina;
+        setFeedbackEmEdicao({
+            id: refeicao.id_refeicao_planejada,
+            gostou: anterior?.gostou ?? true,
+            repetiria: anterior?.repetiria ?? true,
+            motivo: anterior?.motivo ?? "",
+            tags: (anterior?.tags ?? []).join(", "),
+            consentiu_personalizacao: anterior?.consentiu_personalizacao === true,
+        });
+        setMensagem("");
+    }
+
+    async function salvarFeedback(event) {
+        event.preventDefault();
+        if (!feedbackEmEdicao) return;
+        setProcessando(`feedback-${feedbackEmEdicao.id}`);
+        try {
+            const tags = [...new Set(feedbackEmEdicao.tags.split(",").map((item) => item.trim()).filter(Boolean))];
+            await apiRequest(`/rotina/refeicoes/${feedbackEmEdicao.id}/feedback`, {
+                method: "POST",
+                body: JSON.stringify({ ...feedbackEmEdicao, tags }),
+            });
+            setFeedbackEmEdicao(null);
+            setMensagem("Seu feedback foi registrado.");
+            await carregar();
+        } catch (error) {
+            setMensagem(error instanceof Error ? error.message : "Não foi possível registrar o feedback.");
+        } finally {
+            setProcessando("");
+        }
+    }
+
+    async function excluirFeedback() {
+        if (!confirmarExcluirFeedback) return;
+        const id = confirmarExcluirFeedback.id_refeicao_planejada;
+        setProcessando(`excluir-feedback-${id}`);
+        try {
+            await apiRequest(`/rotina/refeicoes/${id}/feedback`, { method: "DELETE" });
+            setConfirmarExcluirFeedback(null);
+            setMensagem("O feedback foi removido da sua personalização.");
+            await carregar();
+        } catch (error) {
+            setMensagem(error instanceof Error ? error.message : "Não foi possível excluir o feedback.");
+        } finally {
+            setProcessando("");
+        }
+    }
+
     return (
-        <main className="min-h-screen bg-white px-5 py-8 text-app-cafe-profundo">
+        <main className="min-h-screen bg-white px-4 py-6 text-app-cafe-profundo sm:px-6 sm:py-8">
             <section className="mx-auto max-w-7xl">
-                <div className="flex items-center justify-between gap-4">
-                    <Link href="/cliente/rotina" className="inline-flex items-center gap-2 text-sm font-bold text-app-caramelo-torrado transition hover:text-app-cafe-profundo"><Icon type="arrow" className="h-4 w-4" />{ui("Voltar")}</Link>
-                    <Image src="/brand/appono-mark.svg" alt={ui("Appono")} width={72} height={72} className="h-12 w-12" />
-                </div>
+                <RoutineBreadcrumb>{ui("Voltar para Appono Rotina")}</RoutineBreadcrumb>
+                <div className="mt-4"><RoutineHero eyebrow={ui("Planejamento semanal")} title={ui("Sua semana, refeição por refeição.")} description={ui("Revise café, almoço, jantar e horários personalizados. Você decide o que aprovar, alterar ou transformar em reserva.")} aside={<div className="grid grid-cols-4 gap-2 rounded-[18px] bg-white/10 p-4 text-center ring-1 ring-white/15 sm:min-w-80">
+                    <div><p className="text-[9px] uppercase tracking-wider text-app-baunilha-dourada">{ui("Sugestões")}</p><strong className="mt-1 block text-xl">{resumo.sugeridas}</strong></div>
+                    <div><p className="text-[9px] uppercase tracking-wider text-app-baunilha-dourada">{ui("Aprovadas")}</p><strong className="mt-1 block text-xl">{resumo.aprovadas}</strong></div>
+                    <div><p className="text-[9px] uppercase tracking-wider text-app-baunilha-dourada">{ui("Recusadas")}</p><strong className="mt-1 block text-xl">{resumo.recusadas}</strong></div>
+                    <div><p className="text-[9px] uppercase tracking-wider text-app-baunilha-dourada">{ui("Confirmadas")}</p><strong className="mt-1 block text-xl">{resumo.convertidas}</strong></div>
+                </div>} /></div>
 
-                <header className="mt-8 rounded-[18px] bg-app-cafe-profundo p-6 text-app-creme-leve shadow-sm ring-1 ring-app-baunilha-dourada/40 sm:p-8">
-                    <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end">
-                        <div>
-                            <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-app-baunilha-dourada">{ui("Planejamento semanal")}</p>
-                            <h1 className="mt-3 text-4xl font-semibold sm:text-5xl">{ui("Sua semana à mesa")}</h1>
-                            <p className="mt-4 max-w-2xl text-sm leading-6 text-app-creme-suave">{ui("Aprove cada refeição, recuse o que não fizer sentido ou converta diretamente em reserva com pedido antecipado.")}</p>
+                {mensagem ? <div className="mt-5"><RoutineNotice type={conflito ? "warning" : mensagem.includes("aprovado") || mensagem.includes("gerado") || mensagem.includes("restaurado") ? "success" : "info"}>{ui(mensagem)}</RoutineNotice></div> : null}
+                {conflito ? <div className="mt-4"><RoutineNotice type="warning" action={<button type="button" disabled={Boolean(processando)} className="min-h-10 rounded-full border border-current px-4 text-xs font-bold uppercase tracking-wider" onClick={() => {
+                        if (edicao) setRascunhoEdicao(edicao);
+                        setEdicao(null); setConfirmacao(null); setConfirmacaoRecusa(null); setConfirmarGeracao(false); carregar();
+                    }}>{ui("Recarregar versão salva")}</button>}><p>{ui("A rotina mudou em outra aba. Nenhuma ação foi repetida e sua edição pode ser retomada depois da recarga.")}</p></RoutineNotice></div> : null}
+                {rascunhoEdicao && !conflito ? <div className="mt-4"><RoutineNotice type="info" action={<button type="button" disabled={Boolean(processando)} onClick={retomarRascunho} className="min-h-10 rounded-full border border-current px-4 text-xs font-bold uppercase tracking-wider">{ui("Retomar edição")}</button>}><p>{ui("Seu rascunho foi preservado. Restaure-o sobre os dados atuais e revise antes de salvar.")}</p></RoutineNotice></div> : null}
+
+                <section className="mt-5 overflow-hidden rounded-[24px] bg-white shadow-sm ring-1 ring-app-baunilha-dourada/55">
+                    <div className="grid gap-5 p-5 sm:p-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
+                        <div className="min-w-0">
+                            <div className="flex flex-wrap items-center gap-3">
+                                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{ui("Semana selecionada")}</p>
+                                {planejamento?.status ? <span className="rounded-full bg-app-chantilly px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-app-mocha">{statusPlanejamento(planejamento.status, ui)}</span> : null}
+                            </div>
+                            <div className="mt-2 flex items-center gap-2">
+                                <button type="button" onClick={() => navegarSemana(-1)} disabled={carregando || Boolean(processando)} aria-label={ui("Ver semana anterior")} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-app-baunilha-dourada text-lg outline-none transition hover:bg-app-chantilly focus-visible:ring-2 focus-visible:ring-app-caramelo-torrado disabled:opacity-40">‹</button>
+                                <h2 className="min-w-0 text-xl font-semibold sm:text-2xl">
+                                    {`${dataCurta(semanaSelecionada || planejamento?.semana_inicio || inicioSemana(), localeUI)} - ${dataCurta(planejamento?.semana_fim ?? adicionarDias(semanaSelecionada || inicioSemana(), 6), localeUI)}`}
+                                </h2>
+                                <button type="button" onClick={() => navegarSemana(1)} disabled={carregando || Boolean(processando)} aria-label={ui("Ver próxima semana")} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-app-baunilha-dourada text-lg outline-none transition hover:bg-app-chantilly focus-visible:ring-2 focus-visible:ring-app-caramelo-torrado disabled:opacity-40">›</button>
+                            </div>
+                            <p className="mt-2 text-sm text-app-cinza">{planejamento ? ui("Planejamento salvo e protegido por controle de versão.") : ui("Ainda não há planejamento salvo para esta semana.")}</p>
                         </div>
-                        <div className="grid grid-cols-4 gap-2 rounded-[16px] bg-white/10 p-3 text-center ring-1 ring-white/15">
-                            <div><p className="text-[10px] uppercase text-app-baunilha-dourada">{ui("Sug.")}</p><strong>{resumo.sugeridas}</strong></div>
-                            <div><p className="text-[10px] uppercase text-app-baunilha-dourada">{ui("Apr.")}</p><strong>{resumo.aprovadas}</strong></div>
-                            <div><p className="text-[10px] uppercase text-app-baunilha-dourada">{ui("Rec.")}</p><strong>{resumo.recusadas}</strong></div>
-                            <div><p className="text-[10px] uppercase text-app-baunilha-dourada">{ui("Conv.")}</p><strong>{resumo.convertidas}</strong></div>
+                        <div className="flex flex-wrap gap-2 lg:justify-end">
+                            <Link href="/cliente/rotina/configurar" className="inline-flex min-h-10 items-center justify-center rounded-full border border-app-baunilha-dourada px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:bg-app-chantilly">{ui("Configurar")}</Link>
+                            <button type="button" disabled={Boolean(processando) || !perfil} onClick={() => planejamento ? setConfirmarGeracao(true) : gerarPlanejamento()} className="min-h-10 rounded-full bg-app-caramelo-torrado px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-app-cafe-profundo disabled:opacity-50">{ui(processando === "gerar" ? "Gerando..." : "Gerar semana")}</button>
+                            <button type="button" disabled={Boolean(processando) || !refeicoes.some((item) => item.id_restaurante && ["SUGERIDA", "ALTERADA"].includes(item.status))} onClick={aprovarTudo} className="min-h-10 rounded-full bg-app-cafe-profundo px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-app-creme-leve transition hover:bg-app-caramelo-torrado disabled:opacity-50">{ui("Aprovar tudo")}</button>
                         </div>
                     </div>
-                </header>
-
-                {mensagem ? <p role="status" className="mt-6 rounded-[12px] border border-app-baunilha-dourada bg-white p-4 text-sm font-semibold text-app-caramelo-torrado">{ui(mensagem)}</p> : null}
-                {conflito ? <div role="alert" className="mt-4 flex flex-wrap items-center gap-3 text-sm">
-                    <p>{ui("Nenhuma alteração foi repetida automaticamente. Recarregar fecha a edição e mostra a versão salva.")}</p>
-                    <button type="button" disabled={Boolean(processando)} className="rounded-lg border px-4 py-2 font-semibold" onClick={() => {
-                        setEdicao(null); setConfirmacao(null); setConfirmarGeracao(false); carregar();
-                    }}>{ui("Recarregar dados")}</button>
-                </div> : null}
-
-                <section className="mt-6 rounded-[18px] bg-white p-5 shadow-sm ring-1 ring-app-baunilha-dourada/65">
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                        <div>
-                            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{ui("Controle")}</p>
-                            <h2 className="mt-1 text-2xl font-semibold">
-                                {planejamento ? `${dataCurta(planejamento.semana_inicio, localeUI)} - ${dataCurta(planejamento.semana_fim, localeUI)}` : ui("Nenhuma semana gerada")}
-                            </h2>
+                    {proximaRefeicao ? <div className="border-t border-app-baunilha-dourada/45 bg-app-creme-leve/55 px-5 py-4 sm:px-6">
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                            <div><p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">{ui("Próxima refeição")}</p><p className="mt-1 font-semibold">{nomeJanela(janelasPorId.get(Number(proximaRefeicao.id_janela_alimentacao)), ui)} · {dataCurta(proximaRefeicao.data_refeicao, localeUI)} {ui("às")} {String(proximaRefeicao.horario_sugerido).slice(0, 5)}</p></div>
+                            <span className="text-sm text-app-mocha">{proximaRefeicao.restaurantes?.nome ?? ui("Aguardando sugestão compatível")}</span>
                         </div>
-                        <div className="flex flex-wrap gap-2">
-                            <Link href="/cliente/rotina/configurar" className="inline-flex h-10 items-center justify-center rounded-[8px] border border-app-baunilha-dourada px-4 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:bg-app-chantilly">{ui("Configurar")}</Link>
-                            <button type="button" disabled={Boolean(processando) || !perfil} onClick={() => planejamento ? setConfirmarGeracao(true) : gerarPlanejamento()} className="h-10 rounded-[8px] bg-app-caramelo-torrado px-4 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-app-cafe-profundo disabled:opacity-50">{ui(processando === "gerar" ? "Gerando..." : "Gerar semana")}</button>
-                            <button type="button" disabled={Boolean(processando) || !refeicoes.some((item) => item.id_restaurante && ["SUGERIDA", "ALTERADA"].includes(item.status))} onClick={aprovarTudo} className="h-10 rounded-[8px] bg-app-cafe-profundo px-4 text-xs font-bold uppercase tracking-[0.12em] text-app-creme-leve transition hover:bg-app-caramelo-torrado disabled:opacity-50">{ui("Aprovar tudo")}</button>
-                        </div>
-                    </div>
-                    {!perfil ? <p className="mt-4 rounded-[12px] border border-app-baunilha-dourada bg-white p-4 text-sm text-app-cinza">{ui("Configure sua rotina antes de gerar sugestões.")}</p> : null}
+                    </div> : null}
+                    {!perfil ? <p className="border-t border-app-baunilha-dourada/45 p-5 text-sm text-app-cinza sm:px-6">{ui("Configure sua rotina antes de gerar sugestões.")}</p> : null}
                 </section>
 
-                {carregando ? <p className="mt-6 rounded-[16px] bg-white p-8 text-sm font-semibold shadow-sm ring-1 ring-app-baunilha-dourada/60">{ui("Carregando planejamento...")}</p> : null}
+                {carregando ? <div className="mt-5"><RoutineSkeleton cards={3} /></div> : null}
 
                 {!carregando && !refeicoes.length ? (
-                    <section className="mt-6 rounded-[18px] border border-dashed border-app-baunilha-dourada bg-white p-10 text-center shadow-sm">
-                        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-app-cafe-profundo text-app-creme-leve"><Icon type="spark" /></div>
-                        <h2 className="mt-4 text-2xl font-semibold">{ui("Nenhuma sugestão ainda")}</h2>
-                        <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-app-cinza">{ui("Gere a semana para receber refeições sugeridas com base no seu perfil de rotina.")}</p>
-                    </section>
+                    <div className="mt-5"><RoutineEmpty title={ui(estado.titulo)} description={ui(estado.descricao)} icon={estado.acao === "configurar" ? "route" : "spark"} action={estado.acao === "configurar" ? <Link href="/cliente/rotina/configurar" className="inline-flex min-h-11 items-center rounded-full bg-app-cafe-profundo px-6 text-xs font-bold uppercase tracking-wider text-app-creme-leve">{ui("Configurar rotina")}</Link> : <button type="button" disabled={!perfil || Boolean(processando)} onClick={gerarPlanejamento} className="min-h-11 rounded-full bg-app-cafe-profundo px-6 text-xs font-bold uppercase tracking-wider text-app-creme-leve disabled:opacity-50">{ui("Gerar planejamento")}</button>} /></div>
                 ) : null}
 
-                <div className="mt-6 grid gap-4">
-                    {refeicoes.map((refeicao) => {
+                {!carregando && refeicoes.length ? <div className="mt-5 grid gap-5">
+                    {diasPlanejados.map((dia) => <section key={dia.data} aria-labelledby={`dia-${dia.data}`} className="overflow-hidden rounded-[24px] bg-white shadow-sm ring-1 ring-app-baunilha-dourada/55">
+                        <header className="flex flex-col gap-2 border-b border-app-baunilha-dourada/45 bg-app-creme-leve/55 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+                            <div><p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{ui("Dia da semana")}</p><h2 id={`dia-${dia.data}`} className="mt-1 text-xl font-semibold capitalize">{dataCurta(dia.data, localeUI)}</h2></div>
+                            <span className="text-xs font-semibold text-app-mocha">{ui("{0} janela(s) planejada(s)", [dia.itens.length])}</span>
+                        </header>
+                        <div className="divide-y divide-app-baunilha-dourada/45">
+                    {dia.itens.map((refeicao) => {
                         const restaurante = refeicao.restaurantes;
                         const produto = refeicao.produtos;
+                        const janela = janelasPorId.get(Number(refeicao.id_janela_alimentacao));
                         const semSugestao = refeicao.metadados?.sem_sugestao || !refeicao.id_restaurante;
                         const convertida = refeicao.status?.startsWith("CONVERTIDA");
+                        const experienciaConcluida = refeicao.reservas?.status_reserva === "CONCLUIDA" || refeicao.pedidos?.status_pedido === "ENTREGUE";
+                        const feedback = refeicao.feedback_rotina;
+                        const destaque = proximaRefeicao?.id_refeicao_planejada === refeicao.id_refeicao_planejada;
                         return (
-                            <article key={refeicao.id_refeicao_planejada} className="overflow-hidden rounded-[18px] bg-white shadow-sm ring-1 ring-app-baunilha-dourada/65">
-                                <div className="grid gap-0 md:grid-cols-[150px_1fr]">
-                                    <div className="flex flex-col justify-center border-b border-app-baunilha-dourada/45 bg-white p-5 text-center md:border-b-0 md:border-r">
-                                        <Icon type="calendar" className="mx-auto h-6 w-6 text-app-caramelo-torrado" />
-                                        <strong className="mt-3 text-2xl">{dataCurta(refeicao.data_refeicao, localeUI)}</strong>
-                                        <span className="mt-1 text-sm font-semibold text-app-mocha">{String(refeicao.horario_sugerido ?? "").slice(0, 5)}</span>
+                            <article key={refeicao.id_refeicao_planejada} className={`relative p-5 sm:p-6 ${destaque ? "bg-app-chantilly/45" : "bg-white"}`}>
+                                {destaque ? <span className="absolute right-5 top-5 rounded-full bg-app-caramelo-torrado px-3 py-1 text-[9px] font-bold uppercase tracking-wider text-white sm:right-6">{ui("Próxima")}</span> : null}
+                                <div className="grid gap-5 lg:grid-cols-[170px_minmax(0,1fr)]">
+                                    <div className="flex items-start gap-3 lg:block lg:border-r lg:border-app-baunilha-dourada/45 lg:pr-5">
+                                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-app-chantilly text-app-caramelo-torrado"><RoutineIcon type="calendar" className="h-5 w-5" /></div>
+                                        <div className="min-w-0 lg:mt-4">
+                                            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">{nomeJanela(janela, ui)}</p>
+                                            <strong className="mt-1 block text-xl">{String(refeicao.horario_sugerido ?? "").slice(0, 5)}</strong>
+                                            {janela?.nome && janela?.tipo ? <span className="mt-1 block text-xs text-app-cinza">{ui({ CAFE: "Café", ALMOCO: "Almoço", JANTAR: "Jantar", PERSONALIZADA: "Personalizada" }[janela.tipo] ?? janela.tipo)}</span> : null}
+                                        </div>
                                     </div>
-                                    <div className="p-5">
-                                        <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                                    <div className="min-w-0">
+                                        <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                                             <div className="min-w-0">
-                                                <p className={`text-xs font-bold uppercase tracking-[0.14em] ${statusClasse[refeicao.status] ?? "text-app-mocha"}`}>{ui(statusTexto[refeicao.status] ?? refeicao.status)}</p>
-                                                <h3 className="mt-2 text-2xl font-semibold">{semSugestao ? ui("Sem sugestão compatível") : restaurante?.nome ?? ui("Restaurante")}</h3>
+                                                <RoutineStatus status={refeicao.status} />
+                                                <div className="mt-3 flex min-w-0 items-center gap-3">
+                                                    {!semSugestao && restaurante?.logo_url ? <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-[12px] border border-app-baunilha-dourada/60 bg-white"><Image src={restaurante.logo_url} alt="" fill sizes="48px" className="object-contain p-1.5" /></div> : <div aria-hidden="true" className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[12px] bg-app-chantilly text-sm font-bold text-app-mocha">{restaurante?.nome?.slice(0, 1)?.toUpperCase() ?? "A"}</div>}
+                                                    <h3 className="min-w-0 text-xl font-semibold sm:text-2xl">{semSugestao ? ui("Sem sugestão compatível") : restaurante?.nome ?? ui("Restaurante")}</h3>
+                                                </div>
                                                 <p className="mt-2 text-sm leading-6 text-app-cinza">{refeicao.motivo_recomendacao}</p>
                                             </div>
                                             {!semSugestao ? (
-                                                <div className="grid gap-2 rounded-[14px] border border-app-baunilha-dourada/60 bg-white p-4 text-sm sm:min-w-56">
+                                                <div className="grid gap-2 rounded-[14px] bg-app-creme-leve/65 p-4 text-sm xl:min-w-64">
                                                     <span className="font-semibold">{produto?.nome ?? ui("Reserva sem item")}</span>
                                                     <span className="text-app-mocha">{moeda(refeicao.preco_estimado, localeUI)} · {distancia(refeicao.distancia_km)}</span>
-                                                    <span className="text-xs text-app-cinza">{refeicao.tempo_estimado_minutos} {ui("min estimados, incluindo ida e volta")}</span>
+                                                    {refeicao.tempo_estimado_minutos != null ? <span className="text-xs text-app-cinza">{refeicao.tempo_estimado_minutos} {ui("min estimados para o deslocamento e a refeição")}</span> : null}
                                                 </div>
                                             ) : null}
                                         </div>
 
                                         <div className="mt-5 flex flex-wrap gap-2">
-                                            {!convertida ? <button type="button" disabled={Boolean(processando)} onClick={() => editar(refeicao)} className="h-10 rounded-[8px] border border-app-baunilha-dourada px-4 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:bg-app-chantilly disabled:opacity-50">{ui("Alterar refeição")}</button> : null}
+                                            {!convertida ? <button type="button" disabled={Boolean(processando)} onClick={() => editar(refeicao)} className="min-h-10 rounded-full border border-app-baunilha-dourada px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:bg-app-chantilly disabled:opacity-50">{ui("Alterar refeição")}</button> : null}
+                                            {!semSugestao && !convertida ? <button type="button" disabled={Boolean(processando)} onClick={() => setConfirmarOutraSugestao(refeicao)} className="min-h-10 rounded-full border border-app-baunilha-dourada px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:bg-app-chantilly disabled:opacity-50">{ui("Outra sugestão")}</button> : null}
                                             {!semSugestao && !convertida && refeicao.status !== "APROVADA" ? (
-                                                <button type="button" disabled={Boolean(processando)} onClick={() => atualizarStatus(refeicao, "aprovar")} className="inline-flex h-10 items-center gap-2 rounded-[8px] bg-app-cafe-profundo px-4 text-xs font-bold uppercase tracking-[0.12em] text-app-creme-leve transition hover:bg-app-caramelo-torrado disabled:opacity-50"><Icon type="check" className="h-4 w-4" />{ui("Aprovar")}</button>
+                                                <button type="button" disabled={Boolean(processando)} onClick={() => atualizarStatus(refeicao, "aprovar")} className="inline-flex min-h-10 items-center gap-2 rounded-full bg-app-cafe-profundo px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-app-creme-leve transition hover:bg-app-caramelo-torrado disabled:opacity-50"><RoutineIcon type="check" className="h-4 w-4" />{ui("Aprovar")}</button>
                                             ) : null}
                                             {!semSugestao && !convertida && refeicao.status !== "RECUSADA" ? (
-                                                <button type="button" disabled={Boolean(processando)} onClick={() => atualizarStatus(refeicao, "recusar")} className="inline-flex h-10 items-center gap-2 rounded-[8px] border border-red-300 px-4 text-xs font-bold uppercase tracking-[0.12em] text-red-700 transition hover:bg-red-50 disabled:opacity-50"><Icon type="x" className="h-4 w-4" />{ui("Recusar")}</button>
+                                                <button type="button" disabled={Boolean(processando)} onClick={() => setConfirmacaoRecusa(refeicao)} className="inline-flex min-h-10 items-center gap-2 rounded-full border border-red-300 px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-red-700 transition hover:bg-red-50 disabled:opacity-50"><RoutineIcon type="x" className="h-4 w-4" />{ui("Recusar")}</button>
                                             ) : null}
                                             {!semSugestao && !convertida && refeicao.status !== "RECUSADA" ? (
-                                                <button type="button" disabled={Boolean(processando)} onClick={() => setConfirmacao({ tipo: "reserva", refeicao })} className="h-10 rounded-[8px] border border-app-baunilha-dourada px-4 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:bg-app-chantilly disabled:opacity-50">{ui("Criar reserva")}</button>
+                                                <button type="button" disabled={Boolean(processando)} onClick={() => setConfirmacao({ tipo: "reserva", refeicao })} className="min-h-10 rounded-full border border-app-baunilha-dourada px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:bg-app-chantilly disabled:opacity-50">{ui("Criar reserva")}</button>
                                             ) : null}
                                             {!semSugestao && !convertida && refeicao.status !== "RECUSADA" && refeicao.id_produto ? (
-                                                <button type="button" disabled={Boolean(processando)} onClick={() => setConfirmacao({ tipo: "pedido", refeicao })} className="h-10 rounded-[8px] bg-app-caramelo-torrado px-4 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-app-cafe-profundo disabled:opacity-50">{ui("Reserva com pedido")}</button>
+                                                <button type="button" disabled={Boolean(processando)} onClick={() => setConfirmacao({ tipo: "pedido", refeicao })} className="min-h-10 rounded-full bg-app-caramelo-torrado px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-app-cafe-profundo disabled:opacity-50">{ui("Reserva com pedido")}</button>
                                             ) : null}
                                             {refeicao.id_reserva ? <Link href="/cliente/reservas" className="inline-flex h-10 items-center rounded-[8px] border border-app-baunilha-dourada px-4 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:bg-app-chantilly">{ui("Ver reserva")}</Link> : null}
                                             {refeicao.id_pedido ? <Link href={`/cliente/pedidos/${refeicao.id_pedido}`} className="inline-flex h-10 items-center rounded-[8px] border border-app-baunilha-dourada px-4 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:bg-app-chantilly">{ui("Ver pedido")}</Link> : null}
                                         </div>
+                                        {experienciaConcluida ? (
+                                            <section className="mt-5 rounded-[16px] border border-app-baunilha-dourada/60 bg-white p-4" aria-label={ui("Feedback da sugestão")}>
+                                                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                                                    <div>
+                                                        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">{ui("Feedback da rotina")}</p>
+                                                        <h4 className="mt-1 font-semibold">{feedback ? ui(feedback.gostou ? "Esta sugestão funcionou para você" : "Você marcou que a sugestão não funcionou") : ui("Como foi esta sugestão?")}</h4>
+                                                        <p className="mt-1 text-sm text-app-cinza">{feedback ? ui("Você pode ajustar ou remover esse sinal das próximas sugestões.") : ui("Seu retorno melhora apenas suas próximas recomendações, quando você autorizar.")}</p>
+                                                    </div>
+                                                    <div className="flex flex-wrap gap-2">
+                                                        <button type="button" disabled={Boolean(processando)} onClick={() => iniciarFeedback(refeicao)} className="min-h-10 rounded-full border border-app-baunilha-dourada px-4 text-xs font-bold uppercase tracking-[0.1em] text-app-mocha transition hover:bg-app-chantilly disabled:opacity-50">{ui(feedback ? "Editar feedback" : "Avaliar sugestão")}</button>
+                                                        {feedback ? <button type="button" disabled={Boolean(processando)} onClick={() => setConfirmarExcluirFeedback(refeicao)} className="min-h-10 rounded-full border border-red-300 px-4 text-xs font-bold uppercase tracking-[0.1em] text-red-700 transition hover:bg-red-50 disabled:opacity-50">{ui("Remover")}</button> : null}
+                                                    </div>
+                                                </div>
+                                                {feedback?.motivo ? <p className="mt-3 border-l-2 border-app-baunilha-dourada pl-3 text-sm text-app-mocha">{feedback.motivo}</p> : null}
+                                            </section>
+                                        ) : null}
+                                        {feedbackEmEdicao?.id === refeicao.id_refeicao_planejada ? (
+                                            <form onSubmit={salvarFeedback} className="mt-4 grid gap-4 rounded-[16px] border border-app-baunilha-dourada/60 bg-white p-4">
+                                                <fieldset className="flex flex-wrap gap-2"><legend className="mb-2 text-sm font-semibold">{ui("A sugestão foi útil?")}</legend>
+                                                    <button type="button" aria-pressed={feedbackEmEdicao.gostou} onClick={() => setFeedbackEmEdicao({ ...feedbackEmEdicao, gostou: true })} className={`min-h-10 rounded-full px-4 text-xs font-bold uppercase tracking-[0.1em] ${feedbackEmEdicao.gostou ? "bg-app-cafe-profundo text-white" : "border border-app-baunilha-dourada text-app-mocha"}`}>{ui("Gostei")}</button>
+                                                    <button type="button" aria-pressed={!feedbackEmEdicao.gostou} onClick={() => setFeedbackEmEdicao({ ...feedbackEmEdicao, gostou: false })} className={`min-h-10 rounded-full px-4 text-xs font-bold uppercase tracking-[0.1em] ${!feedbackEmEdicao.gostou ? "bg-app-cafe-profundo text-white" : "border border-app-baunilha-dourada text-app-mocha"}`}>{ui("Não gostei")}</button>
+                                                </fieldset>
+                                                <label className="text-sm font-semibold">{ui("Você repetiria?")}<select value={String(feedbackEmEdicao.repetiria)} onChange={(event) => setFeedbackEmEdicao({ ...feedbackEmEdicao, repetiria: event.target.value === "true" })} className="mt-2 block min-h-11 w-full rounded-[8px] border border-app-baunilha-dourada bg-white px-3 text-sm"><option value="true">{ui("Sim")}</option><option value="false">{ui("Não")}</option></select></label>
+                                                <label className="text-sm font-semibold">{ui("Comentário opcional")}<textarea value={feedbackEmEdicao.motivo} maxLength={500} onChange={(event) => setFeedbackEmEdicao({ ...feedbackEmEdicao, motivo: event.target.value })} rows={3} className="mt-2 block w-full rounded-[8px] border border-app-baunilha-dourada bg-white p-3 text-sm" placeholder={ui("Ex.: combinou com meu horário e orçamento")} /></label>
+                                                <label className="text-sm font-semibold">{ui("Tags opcionais")}<input value={feedbackEmEdicao.tags} maxLength={320} onChange={(event) => setFeedbackEmEdicao({ ...feedbackEmEdicao, tags: event.target.value })} className="mt-2 block min-h-11 w-full rounded-[8px] border border-app-baunilha-dourada bg-white px-3 text-sm" placeholder={ui("Ex.: perto, preço justo")} /></label>
+                                                <label className="flex items-start gap-3 text-sm text-app-mocha"><input type="checkbox" checked={feedbackEmEdicao.consentiu_personalizacao} onChange={(event) => setFeedbackEmEdicao({ ...feedbackEmEdicao, consentiu_personalizacao: event.target.checked })} className="mt-1 h-4 w-4" /><span>{ui("Usar este feedback para personalizar minhas próximas sugestões.")}</span></label>
+                                                <div className="flex flex-wrap gap-2"><button disabled={Boolean(processando)} className="min-h-10 rounded-full bg-app-caramelo-torrado px-4 text-xs font-bold uppercase tracking-[0.1em] text-white disabled:opacity-50">{ui(processando.startsWith("feedback-") ? "Salvando..." : "Salvar feedback")}</button><button type="button" onClick={() => setFeedbackEmEdicao(null)} className="min-h-10 rounded-full border border-app-baunilha-dourada px-4 text-xs font-bold uppercase tracking-[0.1em] text-app-mocha hover:bg-app-chantilly">{ui("Cancelar")}</button></div>
+                                            </form>
+                                        ) : null}
                                         {edicao?.id === refeicao.id_refeicao_planejada && edicao.opcoes.length > 0 ? (
                                             <form onSubmit={salvarEdicao} className="mt-5 grid gap-4 rounded-xl border border-app-baunilha-dourada p-4 sm:grid-cols-[minmax(0,1fr)_150px]">
                                                 <label className="min-w-0 text-sm font-semibold">{ui("Restaurante e prato")}
@@ -343,8 +516,8 @@ export default function PlanejamentoRotinaPage() {
                                                     <input type="time" required value={edicao.horario} onChange={(event) => setEdicao({ ...edicao, horario: event.target.value })} className="mt-2 w-full min-w-0 rounded-lg border border-app-baunilha-dourada bg-white p-3" />
                                                 </label>
                                                 <div className="flex flex-wrap gap-3 sm:col-span-2">
-                                                    <button disabled={Boolean(processando)} className="rounded-lg bg-app-caramelo-torrado px-4 py-3 text-sm font-bold text-white disabled:opacity-50">{ui("Salvar alteração")}</button>
-                                                    <button type="button" disabled={Boolean(processando)} onClick={() => setEdicao(null)} className="rounded-lg border border-app-baunilha-dourada px-4 py-3 text-sm hover:bg-app-chantilly">{ui("Voltar")}</button>
+                                                    <button disabled={Boolean(processando)} className="rounded-full bg-app-caramelo-torrado px-5 py-3 text-sm font-bold text-white disabled:opacity-50">{ui("Salvar alteração")}</button>
+                                                    <button type="button" disabled={Boolean(processando)} onClick={() => setConfirmarDescartar(true)} className="rounded-full border border-app-baunilha-dourada px-5 py-3 text-sm hover:bg-app-chantilly">{ui("Descartar edição")}</button>
                                                 </div>
                                             </form>
                                         ) : null}
@@ -353,7 +526,9 @@ export default function PlanejamentoRotinaPage() {
                             </article>
                         );
                     })}
-                </div>
+                        </div>
+                    </section>)}
+                </div> : null}
             </section>
 
             <ConfirmationDialog
@@ -375,6 +550,31 @@ export default function PlanejamentoRotinaPage() {
                 ) : null}
             />
             <ConfirmationDialog open={confirmarGeracao} title={ui("Gerar novas sugestões?")} description={ui("As sugestões da semana serão recalculadas. Reservas e pedidos já criados serão preservados.")} confirmLabel={ui("Gerar sugestões")} variant="default" loading={processando === "gerar"} onConfirm={gerarPlanejamento} onCancel={() => setConfirmarGeracao(false)} />
+            <ConfirmationDialog
+                open={Boolean(confirmacaoRecusa)}
+                eyebrow={ui("Recusar sugestão")}
+                title={ui("Retirar esta refeição da semana?")}
+                description={ui("A sugestão ficará marcada como recusada. Nenhuma reserva ou cobrança será criada.")}
+                confirmLabel={ui("Recusar sugestão")}
+                cancelLabel={ui("Manter sugestão")}
+                loading={Boolean(processando?.startsWith("recusar-"))}
+                onConfirm={() => atualizarStatus(confirmacaoRecusa, "recusar")}
+                onCancel={() => setConfirmacaoRecusa(null)}
+                details={confirmacaoRecusa ? <div><p className="font-semibold">{confirmacaoRecusa.restaurantes?.nome ?? ui("Restaurante")}</p><p className="mt-1 text-xs text-app-cinza">{dataCurta(confirmacaoRecusa.data_refeicao, localeUI)} · {confirmacaoRecusa.produtos?.nome ?? ui("Somente reserva")}</p></div> : null}
+            />
+            <ConfirmationDialog
+                open={confirmarDescartar}
+                eyebrow={ui("Alteração em andamento")}
+                title={ui("Descartar esta edição?")}
+                description={ui("A sugestão salva continuará igual. Somente as mudanças ainda não enviadas serão descartadas.")}
+                confirmLabel={ui("Descartar edição")}
+                cancelLabel={ui("Continuar editando")}
+                loading={false}
+                onConfirm={() => { setEdicao(null); setConfirmarDescartar(false); }}
+                onCancel={() => setConfirmarDescartar(false)}
+            />
+            <ConfirmationDialog open={Boolean(confirmarOutraSugestao)} eyebrow={ui("Alternativa do dia")} title={ui("Trocar esta sugestão?")} description={ui("A Appono escolherá a próxima alternativa compatível para este dia, preservando o restante da semana.")} confirmLabel={ui("Buscar outra sugestão")} cancelLabel={ui("Manter atual")} variant="default" loading={Boolean(processando?.startsWith("alternativa-"))} onConfirm={pedirOutraSugestao} onCancel={() => setConfirmarOutraSugestao(null)} />
+            <ConfirmationDialog open={Boolean(confirmarExcluirFeedback)} eyebrow={ui("Remover feedback")} title={ui("Remover este feedback da personalização?")} description={ui("Ele deixará de influenciar as próximas sugestões. Sua reserva, pedido e dados financeiros não serão alterados.")} confirmLabel={ui("Remover feedback")} cancelLabel={ui("Manter feedback")} variant="danger" loading={Boolean(processando?.startsWith("excluir-feedback-"))} onConfirm={excluirFeedback} onCancel={() => setConfirmarExcluirFeedback(null)} />
         </main>
     );
 }

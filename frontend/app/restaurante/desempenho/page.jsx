@@ -40,6 +40,8 @@ export default function RestaurantPerformancePage() {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [dados, setDados] = useState({ items: [], total: 0, metricas: {} });
     const [mensagem, setMensagem] = useState("Carregando avaliações...");
+    const [demandaRotina, setDemandaRotina] = useState({ itens: [], coorte_minima: 5 });
+    const [mensagemDemanda, setMensagemDemanda] = useState("Carregando previsão de demanda...");
     const isRestaurant = session?.type === "restaurant";
     useEffect(() => {
         if (!isRestaurant) return;
@@ -47,6 +49,27 @@ export default function RestaurantPerformancePage() {
         apiRequest("/restaurantes/me/avaliacoes?page_size=50", { signal: controller.signal }).then((resposta) => { setDados(resposta); setMensagem(""); }).catch((error) => {
             if (error?.name !== "AbortError") setMensagem(error instanceof Error ? error.message : "Não foi possível carregar as avaliações.");
         });
+        return () => controller.abort();
+    }, [isRestaurant]);
+    useEffect(() => {
+        if (!isRestaurant) return;
+        const controller = new AbortController();
+        const inicio = new Date();
+        const fim = new Date();
+        fim.setDate(fim.getDate() + 30);
+        const formatarData = (data) => {
+            const ano = data.getFullYear();
+            const mes = String(data.getMonth() + 1).padStart(2, "0");
+            const dia = String(data.getDate()).padStart(2, "0");
+            return `${ano}-${mes}-${dia}`;
+        };
+        apiRequest(`/rotina/insights/demanda?inicio=${formatarData(inicio)}&fim=${formatarData(fim)}`, { signal: controller.signal })
+            .then((resposta) => { setDemandaRotina(resposta ?? { itens: [], coorte_minima: 5 }); setMensagemDemanda(""); })
+            .catch((error) => {
+                if (error?.name !== "AbortError") setMensagemDemanda(error?.code === "ROUTINE_INSIGHTS_DISABLED"
+                    ? "Previsão de demanda em ativação para este ambiente."
+                    : "Não foi possível atualizar a previsão de demanda agora.");
+            });
         return () => controller.abort();
     }, [isRestaurant]);
     const volumes = useMemo(() => {
@@ -142,6 +165,17 @@ export default function RestaurantPerformancePage() {
 
           {mensagem ? <p className="mt-6 text-sm font-semibold text-app-mocha">{ui(mensagem)}</p> : null}
           <div className="mt-8 grid gap-4 lg:grid-cols-2">{(dados.items ?? []).filter((item) => item.comentario).map((item) => <article key={item.id_avaliacao} className="rounded-[10px] bg-white p-5 ring-1 ring-app-baunilha-dourada/60"><p className="font-bold text-app-caramelo-torrado">{item.nota}/5</p><p className="mt-2 text-sm leading-6 text-app-mocha">{item.comentario}</p><p className="mt-3 text-xs text-app-cinza">{item.clientes?.nome ?? ui("Cliente Appono")}</p></article>)}</div>
+        </section>
+
+        <section className="mt-8 rounded-[8px] bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada/45 sm:p-8">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div><p className="text-xs font-bold uppercase tracking-[0.18em] text-app-mocha">{ui("Demanda prevista")}</p><h2 className="mt-2 text-2xl font-medium text-app-cafe-profundo">{ui("Sinais agregados da Appono Rotina")}</h2></div>
+            <span className="text-xs text-app-cinza">{ui("Exibido apenas com coorte mínima de {0} clientes.", [demandaRotina.coorte_minima ?? 5])}</span>
+          </div>
+          {mensagemDemanda ? <p className="mt-5 text-sm text-app-cinza">{ui(mensagemDemanda)}</p> : null}
+          {!mensagemDemanda && !(demandaRotina.itens ?? []).length ? <p className="mt-5 rounded-[8px] bg-app-creme-leve p-4 text-sm text-app-cinza">{ui("Ainda não há volume agregado suficiente para exibir uma tendência. Isso não representa reservas garantidas.")}</p> : null}
+          <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">{(demandaRotina.itens ?? []).map((item) => <article key={`${item.data}-${item.faixa_horario}-${item.faixa_preco}`} className="rounded-[8px] border border-app-baunilha-dourada/60 p-4"><p className="text-xs font-bold uppercase tracking-[0.14em] text-app-caramelo-torrado">{new Date(`${item.data}T12:00:00`).toLocaleDateString(localeUI, { day: "2-digit", month: "short" })} · {ui(item.faixa_horario.replaceAll("_", " "))}</p><strong className="mt-3 block text-2xl text-app-cafe-profundo">{ui("{0} interesse(s)", [item.demanda_estimada])}</strong><p className="mt-2 text-sm text-app-cinza">{ui("Faixa de preço: {0}", [item.faixa_preco.replaceAll("_", " ")])}</p>{item.categorias?.length ? <p className="mt-1 text-sm text-app-cinza">{item.categorias.join(", ")}</p> : null}</article>)}</div>
+          <p className="mt-5 text-xs leading-5 text-app-cinza">{ui("A previsão é agregada e não identifica pessoas, endereços, alergias ou reservas individuais.")}</p>
         </section>
 
         <p className="mt-8 text-sm text-app-cinza">{ui("As notas atuais representam a experiência geral. Categorias detalhadas serão disponibilizadas quando o formulário passar a coletar essas dimensões.")}</p>

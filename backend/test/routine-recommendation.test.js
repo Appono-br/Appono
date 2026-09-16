@@ -7,6 +7,7 @@ const {
     gerarPlanejamentoRotina,
     produtoIncompativel,
     horarioCompativel,
+    janelasLivresDia,
     validarLimitesRotina,
     semanaPlanejamento,
 } = require("../src/domain/routine-recommendation");
@@ -55,6 +56,42 @@ test("calcula distancia em quilometros entre coordenadas", () => {
     assert.ok(calcularDistanciaKm(-23.5617, -46.6559, -23.5700, -46.6600) > 0);
 });
 
+test("agenda ocupada recorta a janela de almoço sem importar conteúdo pessoal", () => {
+    assert.deepEqual(janelasLivresDia(perfilBase, "2026-09-14", [
+        { inicio_em: "2026-09-14T15:30:00.000Z", fim_em: "2026-09-14T16:15:00.000Z" },
+        { inicio_em: "2026-09-14T16:00:00.000Z", fim_em: "2026-09-14T16:30:00.000Z" },
+    ]), [
+        { horario_inicio: "12:15:00", horario_fim: "12:30:00" },
+        { horario_inicio: "13:30:00", horario_fim: "14:00:00" },
+    ]);
+});
+
+test("dia totalmente ocupado recebe diagnóstico sem sugestão", () => {
+    const planejamento = gerarPlanejamentoRotina({
+        perfil: perfilBase,
+        restaurantes: [restaurante()],
+        semanaInicio: "2026-09-14",
+        agora: new Date("2026-09-12T12:00:00-03:00"),
+        janelasOcupadas: [{ inicio_em: "2026-09-14T15:00:00.000Z", fim_em: "2026-09-14T17:00:00.000Z" }],
+    });
+    assert.equal(planejamento.refeicoes[0].id_restaurante, undefined);
+    assert.match(planejamento.refeicoes[0].motivo_recomendacao, /agenda/);
+    assert.equal(planejamento.resumo.agenda_aplicada, true);
+});
+
+test("alergia exige ficha revisada e bloqueia presente, pode conter e contaminação", () => {
+    const base = restaurante({ produtos: [{
+        id_produto: 10, id_restaurante: 1, nome: "Prato revisado", preco: 30, disponivel: true, arquivado: false,
+        categorias: { nome: "Principais", ativo: true, arquivado: false, cardapios: { ativo: true } },
+        seguranca_alimentar_produto: { status: "REVISADA" },
+        alergenos_produto: [{ tipo: "PRESENTE", alergenos_catalogo: { codigo: "SOJA", nome: "Soja" } }],
+    }] });
+    const seguro = gerarPlanejamentoRotina({ perfil: { ...perfilBase, dias_semana: ["monday"] }, restaurantes: [base], alergias: ["amendoim"], semanaInicio: "2026-09-14", agora: new Date("2026-09-12T12:00:00-03:00") });
+    assert.equal(seguro.refeicoes[0].id_produto, 10);
+    const bloqueado = gerarPlanejamentoRotina({ perfil: { ...perfilBase, dias_semana: ["monday"] }, restaurantes: [base], alergias: ["soja"], semanaInicio: "2026-09-14", agora: new Date("2026-09-12T12:00:00-03:00") });
+    assert.equal(bloqueado.refeicoes[0].id_produto, null);
+});
+
 test("exclui produto incompativel com restricao ou alergia", () => {
     const produto = restaurante().produtos[0];
     assert.equal(produtoIncompativel(produto, restaurante(), ["tomate"]), true);
@@ -79,6 +116,52 @@ test("prioriza favorito, orcamento, distancia e avaliacao", () => {
     assert.equal(planejamento.refeicoes[0].id_restaurante, 2);
     assert.equal(planejamento.refeicoes[0].id_produto, 10);
     assert.match(planejamento.refeicoes[0].motivo_recomendacao, /restaurante favorito/);
+});
+
+test("modelo versionado penaliza repetição recente sem banir o restaurante", () => {
+    const planejamento = gerarPlanejamentoRotina({
+        perfil: { ...perfilBase, dias_semana: ["monday"] },
+        restaurantes: [restaurante({ id_restaurante: 1, nome: "Repetido" }), restaurante({ id_restaurante: 2, nome: "Alternativa" })],
+        semanaInicio: "2026-09-14",
+        agora: new Date("2026-09-12T12:00:00-03:00"),
+        historicoRecente: Array.from({ length: 5 }, () => ({ id_restaurante: 1, id_produto: 10 })),
+    });
+    assert.equal(planejamento.resumo.modelo, "deterministico-v3");
+    assert.equal(planejamento.refeicoes[0].id_restaurante, 2);
+    assert.equal(planejamento.refeicoes[0].metadados.modelo_recomendacao, "deterministico-v3");
+});
+
+test("feedback consentido ajusta o ranking sem superar limites eliminatorios", () => {
+    const planejamento = gerarPlanejamentoRotina({
+        perfil: { ...perfilBase, dias_semana: ["monday"] },
+        restaurantes: [restaurante({ id_restaurante: 1, nome: "Com retorno" }), restaurante({ id_restaurante: 2, nome: "Sem retorno" })],
+        semanaInicio: "2026-09-14",
+        agora: new Date("2026-09-12T12:00:00-03:00"),
+        feedbacks: [{ consentiu_personalizacao: true, gostou: true, id_restaurante: 1, id_produto: 10 }],
+    });
+    assert.equal(planejamento.refeicoes[0].id_restaurante, 1);
+    assert.match(planejamento.refeicoes[0].motivo_recomendacao, /retornos anteriores/);
+    const semConsentimento = gerarPlanejamentoRotina({
+        perfil: { ...perfilBase, dias_semana: ["monday"], raio_km: 1 },
+        restaurantes: [restaurante({ id_restaurante: 1, latitude: -24, longitude: -47 })],
+        semanaInicio: "2026-09-14",
+        agora: new Date("2026-09-12T12:00:00-03:00"),
+        feedbacks: [{ consentiu_personalizacao: true, gostou: true, id_restaurante: 1, id_produto: 10 }],
+    });
+    assert.equal(semConsentimento.refeicoes[0].id_restaurante, undefined);
+});
+
+test("registra alternativas comparáveis sem inventar distância", () => {
+    const planejamento = gerarPlanejamentoRotina({
+        perfil: { ...perfilBase, dias_semana: ["monday"] },
+        restaurantes: [restaurante({ id_restaurante: 1, nome: "A" }), restaurante({ id_restaurante: 2, nome: "B" })],
+        semanaInicio: "2026-09-14",
+        agora: new Date("2026-09-12T12:00:00-03:00"),
+    });
+    const alternativa = planejamento.refeicoes[0].metadados.alternativas[0];
+    assert.equal(typeof alternativa.diferenca_preco, "number");
+    assert.equal(typeof alternativa.diferenca_aderencia, "number");
+    assert.equal(typeof alternativa.diferenca_distancia_km, "number");
 });
 
 test("nao sugere restaurante fora do raio quando ha coordenada", () => {
@@ -110,6 +193,17 @@ test("soma da semana respeita limite e contabiliza refeicoes ja convertidas", ()
     const regenerada = planejar({ orcamento_semanal: 40 }, undefined, { refeicoesExistentes: [{ data_refeicao: "2026-09-14", preco_estimado: 32 }] });
     assert.equal(regenerada.refeicoes.length, 1);
     assert.ok(!regenerada.refeicoes[0].id_restaurante);
+});
+
+test("gera uma sugestao por janela alimentar e preserva conversao da janela correspondente", () => {
+    const janelasAlimentacao = [
+        { id_janela_alimentacao: 10, tipo: "CAFE", nome: "Café", dias_semana: ["monday"], horario_inicio: "07:00", horario_fim: "10:00", tempo_maximo_minutos: 60, raio_km: 10 },
+        { id_janela_alimentacao: 11, tipo: "ALMOCO", nome: "Almoço", dias_semana: ["monday"], horario_inicio: "12:15", horario_fim: "14:00", tempo_maximo_minutos: 60, raio_km: 10 },
+    ];
+    const planejamento = planejar({}, undefined, { janelasAlimentacao });
+    assert.deepEqual(planejamento.refeicoes.map((item) => item.id_janela_alimentacao), [10, 11]);
+    const regenerado = planejar({}, undefined, { janelasAlimentacao, refeicoesExistentes: [{ data_refeicao: "2026-09-14", id_janela_alimentacao: 10, preco_estimado: 20 }] });
+    assert.deepEqual(regenerado.refeicoes.map((item) => item.id_janela_alimentacao), [11]);
 });
 
 test("restaurante sem operacao ou fechado nao recebe sugestao", () => {
@@ -179,6 +273,7 @@ test("gera refeicao sem sugestao quando todas as opcoes violam restricoes", () =
         restaurantes: [restaurante()],
         restricoes: ["tomate", "massa"],
         semanaInicio: "2026-09-14",
+        agora: new Date("2026-09-12T12:00:00-03:00"),
     });
 
     assert.equal(planejamento.refeicoes[0].id_restaurante, undefined);
