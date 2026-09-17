@@ -4,20 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { apiRequest } from "@/lib/api";
-import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 import { TelaCarregandoSessao, useSessaoLocal } from "@/lib/use-sessao-local";
-const navItems = [
-    { label: "Dashboard", href: "/restaurante/dashboard" },
-    { label: "Gestão de cardápio", href: "/restaurante/cardapio" },
-    { label: "Desempenho", href: "/restaurante/desempenho" },
-    { label: "Relatório financeiro", href: "/restaurante/financeiro" },
-    { label: "Reservas", href: "/restaurante/reservas" },
-    { label: "Cozinha", href: "/restaurante/pedidos" },
-    { label: "Histórico", href: "/restaurante/historico-pedidos" },
-    { label: "Mensagens", href: "/restaurante/mensagens" },
-    { label: "Suporte", href: "/restaurante/suporte" },
-    { label: "Configurações", href: "/restaurante/configuracoes" },
-];
 function Icon({ type, className = "h-5 w-5", }) {
     const paths = {
         "arrow-right": "M5 12h14M13 6l6 6-6 6",
@@ -86,7 +73,6 @@ const resumoInicial = {
 export default function RestaurantDashboardPage() {
     const { ui , localeUI } = useInterface();
     const { sessao, sessaoCarregada } = useSessaoLocal();
-    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [resumo, setResumo] = useState(resumoInicial);
     useEffect(() => {
         if (sessao?.type !== "restaurant") {
@@ -119,38 +105,7 @@ export default function RestaurantDashboardPage() {
       </main>);
     }
     return (<main className="flex min-h-screen flex-col bg-white text-app-cafe-profundo">
-      <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-app-creme-leve/90 text-app-cafe-profundo shadow-sm backdrop-blur-md">
-        <div className="mx-auto grid h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-5 lg:h-20">
-          <div aria-label={ui("Appono")}>
-            <Image src="/brand/appono-mark.svg" alt={ui("Appono")} width={88} height={88} className="h-11 w-11 lg:h-14 lg:w-14" priority/>
-          </div>
 
-          <nav className="hidden items-center justify-self-center gap-6 text-xs font-semibold text-app-cinza xl:flex">
-            {navItems.map((item) => (<Link key={item.label} href={item.href} className={item.href === "/restaurante/dashboard"
-                ? "text-app-cafe-profundo"
-                : "transition hover:text-app-cafe-profundo"}>
-                {ui(item.label)}
-              </Link>))}
-          </nav>
-
-          <div className="flex items-center justify-self-end gap-3 text-app-cafe-profundo">
-            <ItemHeaderNotificacoes href="/restaurante/notificacoes" />
-          <button type="button" onClick={() => setMobileMenuOpen((current) => !current)} className="flex h-9 w-9 items-center justify-center rounded-[8px] border border-app-baunilha-dourada bg-white text-app-cafe-profundo xl:hidden" aria-label={ui("Abrir menu")} aria-expanded={mobileMenuOpen} aria-controls="restaurant-dashboard-menu">
-              <Icon type="menu"/>
-            </button>
-          </div>
-        </div>
-
-        {mobileMenuOpen ? (<nav id="restaurant-dashboard-menu" className="border-t border-app-baunilha-dourada/55 bg-app-creme-leve px-5 py-3 xl:hidden">
-            <div className="mx-auto grid max-w-7xl gap-2 text-xs font-semibold text-app-cinza">
-              {navItems.map((item) => (<Link key={item.label} href={item.href} onClick={() => setMobileMenuOpen(false)} className={item.href === "/restaurante/dashboard"
-                    ? "text-app-cafe-profundo"
-                    : "transition hover:text-app-cafe-profundo"}>
-                  {ui(item.label)}
-                </Link>))}
-            </div>
-          </nav>) : null}
-      </header>
 
       <section className="mx-auto w-full max-w-7xl flex-1 px-5 py-10 sm:py-14">
         <div className="border-t border-app-baunilha-dourada/60 pt-10">
@@ -252,16 +207,6 @@ export default function RestaurantDashboardPage() {
         </section>
       </section>
 
-      <footer className="border-t border-app-cacau-intenso/20 bg-app-cafe-profundo px-5 py-7 text-app-creme-leve">
-        <div className="mx-auto flex max-w-7xl flex-col items-center gap-5 text-center sm:flex-row sm:justify-between">
-          <Image src="/brand/appono-mark.svg" alt={ui("Appono")} width={80} height={80} className="h-14 w-14 brightness-0 invert"/>
-          <nav className="flex flex-wrap justify-center gap-8 text-[10px] font-bold uppercase text-app-baunilha-dourada">
-            <Link href="#" className="transition hover:text-app-chantilly">{ui("Política de Privacidade")}</Link>
-            <Link href="#" className="transition hover:text-app-chantilly">{ui("Termos de Uso")}</Link>
-            <Link href="#" className="transition hover:text-app-chantilly">{ui("Contato")}</Link>
-          </nav>
-          <p className="text-xs font-semibold text-app-creme-suave">{ui("© 2026 APPONO. Todos os direitos reservados.")}</p>
-        </div>
-      </footer>
+
     </main>);
 }

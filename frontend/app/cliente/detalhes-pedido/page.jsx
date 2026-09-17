@@ -72,7 +72,7 @@ export default function PedidosClientePage() {
                 <header className="mt-8">
                     <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{ui("Pedidos")}</p>
                     <h1 className="mt-2 text-4xl font-semibold sm:text-5xl">{ui("Todos os seus pedidos")}</h1>
-                    <p className="mt-3 max-w-2xl text-sm leading-6 text-app-cinza">{ui("A listagem carrega apenas o resumo. Itens, acompanhamento e ações são buscados quando você abre um pedido.")}</p>
+                    <p className="mt-3 max-w-2xl text-sm leading-6 text-app-cinza">{ui("Veja seus pedidos e abra um deles para consultar os itens, acompanhar o status e acessar as opções disponíveis.")}</p>
                 </header>
 
                 {erro ? <div role="alert" className="mt-8 rounded-[12px] bg-red-50 p-5 text-sm font-semibold text-red-800 ring-1 ring-red-200">{ui(erro)}</div> : null}

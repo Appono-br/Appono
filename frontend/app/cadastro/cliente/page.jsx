@@ -6,8 +6,5 @@ export default async function ClientRegisterPage({ searchParams }) {
       <section className="flex flex-1 items-center px-4 py-2">
         <RegisterClientForm googleFlow={googleFlow} />
       </section>
-      <p className="px-4 py-3 text-center text-xs font-semibold text-app-cinza">
-        &copy; 2026 APPONO. Todos os direitos reservados.
-      </p>
     </main>);
 }

@@ -3,24 +3,11 @@
 import { useInterface } from "@/lib/use-interface";
 import Image from "next/image";
 import Link from "next/link";
-import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 import { useEffect, useMemo, useState } from "react";
 import { apiRequest } from "@/lib/api";
 import { filtrarOrdenarPorBusca, textoBusca } from "@/lib/busca-avancada";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 
-const navItems = [
-    { label: "Dashboard", href: "/restaurante/dashboard" },
-    { label: "Gestão de cardápio", href: "/restaurante/cardapio" },
-    { label: "Desempenho", href: "/restaurante/desempenho" },
-    { label: "Relatório financeiro", href: "/restaurante/financeiro" },
-    { label: "Reservas", href: "/restaurante/reservas" },
-    { label: "Cozinha", href: "/restaurante/pedidos" },
-    { label: "Histórico", href: "/restaurante/historico-pedidos" },
-    { label: "Mensagens", href: "/restaurante/mensagens" },
-    { label: "Suporte", href: "/restaurante/suporte" },
-    { label: "Configurações", href: "/restaurante/configuracoes" },
-];
 const filtrosPedido = [
     { label: "Todos", value: "TODOS" },
     { label: "Somente reserva", value: "SOMENTE_RESERVA" },
@@ -236,7 +223,6 @@ export default function RestaurantReservationsPage() {
         const storedSession = window.localStorage.getItem("appono:session");
         return storedSession ? JSON.parse(storedSession) : null;
     });
-    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [reservas, setReservas] = useState([]);
     const [filtroPedido, setFiltroPedido] = useState("TODOS");
     const [ordenacaoReserva, setOrdenacaoReserva] = useState("HORARIO");
@@ -412,70 +398,7 @@ export default function RestaurantReservationsPage() {
 
     return (
         <main className="flex min-h-screen flex-col bg-white text-app-cafe-profundo">
-            <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-app-creme-leve/90 text-app-cafe-profundo shadow-sm backdrop-blur-md">
-                <div className="mx-auto grid h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-5 lg:h-20">
-                    <div aria-label={ui("Appono")}>
-                        <Image
-                            src="/brand/appono-mark.svg"
-                            alt={ui("Appono")}
-                            width={88}
-                            height={88}
-                            className="h-11 w-11 lg:h-14 lg:w-14"
-                            priority
-                        />
-                    </div>
-
-                    <nav className="hidden items-center justify-self-center gap-6 text-xs font-semibold text-app-cinza xl:flex">
-                        {navItems.map((item) => (
-                            <Link
-                                key={item.label}
-                                href={item.href}
-                                className={item.href === "/restaurante/reservas" ? "text-app-cafe-profundo" : "transition hover:text-app-cafe-profundo"}
-                            >
-                                {ui(item.label)}
-                            </Link>
-                        ))}
-                    </nav>
-
-                    <div className="flex items-center justify-end gap-3 justify-self-end">
-                        <Link
-                            href="/restaurante/notificacoes"
-                            className="flex h-9 w-9 items-center justify-center rounded-[8px] text-app-cafe-profundo transition hover:bg-app-chantilly hover:text-app-caramelo-torrado"
-                            aria-label={ui("Notificações")}
-                        >
-                            <Icon type="bell" />
-                        </Link>
-
-                        <button
-                            type="button"
-                            onClick={() => setMobileMenuOpen((current) => !current)}
-                            className="flex h-9 w-9 items-center justify-center rounded-[8px] border border-app-baunilha-dourada bg-white text-app-cafe-profundo xl:hidden"
-                            aria-label={ui("Abrir menu")}
-                            aria-expanded={mobileMenuOpen}
-                            aria-controls="restaurant-reservations-menu"
-                        >
-                            <Icon type="menu" />
-                        </button>
-                    </div>
-                </div>
-
-                {mobileMenuOpen ? (
-                    <nav id="restaurant-reservations-menu" className="border-t border-app-baunilha-dourada/55 bg-app-creme-leve px-5 py-3 xl:hidden">
-                        <div className="mx-auto grid max-w-7xl gap-2 text-xs font-semibold text-app-cinza">
-                            {navItems.map((item) => (
-                                <Link
-                                    key={item.label}
-                                    href={item.href}
-                                    onClick={() => setMobileMenuOpen(false)}
-                                    className={item.href === "/restaurante/reservas" ? "text-app-cafe-profundo" : "transition hover:text-app-cafe-profundo"}
-                                >
-                                    {ui(item.label)}
-                                </Link>
-                            ))}
-                        </div>
-                    </nav>
-                ) : null}
-            </header>
+            <div className="px-5 pt-6"><Link href="/restaurante/notificacoes" className="inline-flex items-center gap-2 text-sm font-semibold text-app-caramelo-torrado"><span aria-hidden="true">&larr;</span>{ui("Notificações")}</Link></div>
 
             <section className="mx-auto w-full max-w-7xl flex-1 px-5 py-10 sm:py-14">
                 <div className="border-t border-app-baunilha-dourada/60 pt-10">
@@ -740,23 +663,7 @@ export default function RestaurantReservationsPage() {
                 ) : null}
             />
 
-            <footer className="border-t border-app-cacau-intenso/20 bg-app-cafe-profundo px-5 py-7 text-app-creme-leve">
-                <div className="mx-auto flex max-w-7xl flex-col items-center gap-5 text-center sm:flex-row sm:justify-between">
-                    <Image
-                        src="/brand/appono-mark.svg"
-                        alt={ui("Appono")}
-                        width={80}
-                        height={80}
-                        className="h-14 w-14 brightness-0 invert"
-                    />
-                    <nav className="flex flex-wrap justify-center gap-8 text-[10px] font-bold uppercase text-app-baunilha-dourada">
-                        <Link href="#" className="transition hover:text-app-chantilly">{ui("Política de Privacidade")}</Link>
-                        <Link href="#" className="transition hover:text-app-chantilly">{ui("Termos de Uso")}</Link>
-                        <Link href="#" className="transition hover:text-app-chantilly">{ui("Contato")}</Link>
-                    </nav>
-                    <p className="text-xs font-semibold text-app-creme-suave">{ui("© 2026 APPONO. Todos os direitos reservados.")}</p>
-                </div>
-            </footer>
+
         </main>
     );
 }

@@ -27,7 +27,6 @@ export function useTemaLocal() {
         try {
             window.localStorage.setItem(chaveTema, novoTema === "escuro" ? "dark" : "light");
         } catch {
-            // Mantém a troca visual mesmo quando o navegador bloqueia o storage.
         }
         window.dispatchEvent(new Event(eventoTema));
     }

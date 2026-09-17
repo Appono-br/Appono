@@ -3,25 +3,12 @@
 import { useInterface } from "@/lib/use-interface";
 import Image from "next/image";
 import Link from "next/link";
-import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 import { useEffect, useMemo, useState } from "react";
 import { apiRequest } from "@/lib/api";
 import { filtrarOrdenarPorBusca, textoBusca } from "@/lib/busca-avancada";
 import { textoStatusPedido, textoStatusRepasse, textoStatusReserva } from "@/lib/formatadores-status";
 import { TelaCarregandoSessao, useSessaoLocal } from "@/lib/use-sessao-local";
 
-const navItems = [
-    { label: "Dashboard", href: "/restaurante/dashboard" },
-    { label: "Gestão de cardápio", href: "/restaurante/cardapio" },
-    { label: "Desempenho", href: "/restaurante/desempenho" },
-    { label: "Relatório financeiro", href: "/restaurante/financeiro" },
-    { label: "Reservas", href: "/restaurante/reservas" },
-    { label: "Cozinha", href: "/restaurante/pedidos" },
-    { label: "Histórico", href: "/restaurante/historico-pedidos" },
-    { label: "Mensagens", href: "/restaurante/mensagens" },
-    { label: "Suporte", href: "/restaurante/suporte" },
-    { label: "Configurações", href: "/restaurante/configuracoes" },
-];
 
 const filtros = [
     { label: "Todos", value: "TODOS" },
@@ -481,7 +468,6 @@ function EmptyPanel() {
 export default function RestaurantOrderHistoryPage() {
     const { ui , localeUI } = useInterface();
     const { sessao, sessaoCarregada } = useSessaoLocal();
-    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [abaAtiva, setAbaAtiva] = useState("PEDIDOS");
     const [pedidos, setPedidos] = useState([]);
     const [reservas, setReservas] = useState([]);
@@ -602,40 +588,7 @@ export default function RestaurantOrderHistoryPage() {
 
     return (
         <main className="flex min-h-screen flex-col bg-white text-app-cafe-profundo">
-            <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-app-creme-leve/90 text-app-cafe-profundo shadow-sm backdrop-blur-md">
-                <div className="mx-auto grid h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-5 lg:h-20">
-                    <div aria-label={ui("Appono")}>
-                        <Image src="/brand/appono-mark.svg" alt={ui("Appono")} width={88} height={88} className="h-11 w-11 lg:h-14 lg:w-14" priority />
-                    </div>
 
-                    <nav className="hidden items-center justify-self-center gap-5 text-xs font-semibold text-app-cinza xl:flex">
-                        {navItems.map((item) => (
-                            <Link key={item.label} href={item.href} className={item.href === "/restaurante/historico-pedidos" ? "text-app-cafe-profundo" : "transition hover:text-app-cafe-profundo"}>
-                                {ui(item.label)}
-                            </Link>
-                        ))}
-                    </nav>
-
-                    <div className="flex items-center justify-self-end gap-3 text-app-cafe-profundo">
-                        <ItemHeaderNotificacoes href="/restaurante/notificacoes" />
-                        <button type="button" onClick={() => setMobileMenuOpen((current) => !current)} className="flex h-9 w-9 items-center justify-center rounded-[8px] border border-app-baunilha-dourada bg-white text-app-cafe-profundo xl:hidden" aria-label={ui("Abrir menu")} aria-expanded={mobileMenuOpen} aria-controls="restaurant-history-menu">
-                            <Icon type="menu" />
-                        </button>
-                    </div>
-                </div>
-
-                {mobileMenuOpen ? (
-                    <nav id="restaurant-history-menu" className="border-t border-app-baunilha-dourada/55 bg-app-creme-leve px-5 py-3 xl:hidden">
-                        <div className="mx-auto grid max-w-7xl gap-2 text-xs font-semibold text-app-cinza">
-                            {navItems.map((item) => (
-                                <Link key={item.label} href={item.href} onClick={() => setMobileMenuOpen(false)} className={item.href === "/restaurante/historico-pedidos" ? "text-app-cafe-profundo" : "transition hover:text-app-cafe-profundo"}>
-                                    {ui(item.label)}
-                                </Link>
-                            ))}
-                        </div>
-                    </nav>
-                ) : null}
-            </header>
 
             <section className="mx-auto w-full max-w-7xl flex-1 px-5 py-10 sm:py-14">
                 <div className="grid gap-6 border-t border-app-baunilha-dourada/60 pt-10 lg:grid-cols-[1fr_auto] lg:items-end">
@@ -656,11 +609,11 @@ export default function RestaurantOrderHistoryPage() {
 
                 <section className="mt-8 rounded-[14px] bg-app-creme-leve p-2 ring-1 ring-app-baunilha-dourada/65">
                     <div className="grid gap-2 sm:grid-cols-2">
-                        <button type="button" onClick={() => setAbaAtiva("PEDIDOS")} className={`rounded-xl px-4 py-3 text-left transition ${abaAtiva === "PEDIDOS" ? "bg-app-cafe-profundo text-app-creme-leve shadow-sm" : "text-app-cafe-profundo hover:bg-app-chantilly"}`}>
+                        <button type="button" aria-pressed={abaAtiva === "PEDIDOS"} onClick={() => setAbaAtiva("PEDIDOS")} className={`rounded-xl px-4 py-3 text-left transition ${abaAtiva === "PEDIDOS" ? "bg-app-botao-aba-ativa text-app-botao-aba-ativa-texto" : "text-app-cafe-profundo hover:bg-app-chantilly"}`}>
                             <span className="block text-[10px] font-bold uppercase tracking-[0.2em] opacity-80">{ui("Cozinha")}</span>
                             <strong className="mt-1 block text-lg">{ui("Pedidos")}</strong>
                         </button>
-                        <button type="button" onClick={() => setAbaAtiva("RESERVAS")} className={`rounded-xl px-4 py-3 text-left transition ${abaAtiva === "RESERVAS" ? "bg-app-cafe-profundo text-app-creme-leve shadow-sm" : "text-app-cafe-profundo hover:bg-app-chantilly"}`}>
+                        <button type="button" aria-pressed={abaAtiva === "RESERVAS"} onClick={() => setAbaAtiva("RESERVAS")} className={`rounded-xl px-4 py-3 text-left transition ${abaAtiva === "RESERVAS" ? "bg-app-botao-aba-ativa text-app-botao-aba-ativa-texto" : "text-app-cafe-profundo hover:bg-app-chantilly"}`}>
                             <span className="block text-[10px] font-bold uppercase tracking-[0.2em] opacity-80">{ui("Recepção")}</span>
                             <strong className="mt-1 block text-lg">{ui("Reservas")}</strong>
                         </button>

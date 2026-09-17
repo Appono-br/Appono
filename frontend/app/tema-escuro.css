@@ -1,18 +1,17 @@
-/* Tema único. Os estilos cromáticos legados ficam restritos ao modo claro. */
 html[data-tema="escuro"] {
   color-scheme: dark;
   --ui-fundo: #0b0b0b;
   --ui-header: #241713;
-  --ui-superficie: #241e1a;
-  --ui-superficie-elevada: #302720;
-  --ui-superficie-interna: #382d25;
-  --ui-superficie-destaque: #463426;
+  --ui-superficie: var(--ui-header);
+  --ui-superficie-elevada: var(--ui-header);
+  --ui-superficie-interna: var(--ui-header);
+  --ui-superficie-destaque: var(--ui-header);
   --ui-texto: #f5ebdd;
   --ui-texto-secundario: #c9b8a8;
   --ui-borda: #705a48;
   --ui-borda-controle: #b89980;
-  --ui-acento: #e0a174;
-  --ui-acento-fundo: #cf8150;
+  --ui-acento: #eadcc8;
+  --ui-acento-fundo: #eadcc8;
   --ui-hover: #eadcc8;
   --ui-texto-inverso: #241713;
   --ui-perigo: #ff9a86;
@@ -23,7 +22,6 @@ html[data-tema="escuro"] {
   --ui-alerta-fundo: #352612;
   --background: var(--ui-fundo);
   --foreground: var(--ui-texto);
-  /* Compatibilidade dos nomes existentes. Fundos e textos são mapeados abaixo. */
   --app-cacau-intenso: var(--ui-header);
   --app-cafe-profundo: var(--ui-texto);
   --app-mocha: var(--ui-texto-secundario);
@@ -38,7 +36,7 @@ html[data-tema="escuro"] {
   --app-dourado-mel: var(--ui-acento-fundo);
   --app-areia-quente: var(--ui-acento);
   --app-fundo-destaque: var(--ui-fundo);
-  --app-botao-aba-ativa: var(--ui-hover);
+  --app-botao-aba-ativa: #eadcc8;
   --app-botao-aba-ativa-texto: var(--ui-texto-inverso);
   --app-vermelho-erro: var(--ui-perigo);
   --app-vermelho-claro: var(--ui-perigo-fundo);
@@ -74,14 +72,17 @@ html[data-tema="escuro"] :is(.bg-app-caramelo-torrado, .bg-app-dourado-mel, .bg-
   color: var(--ui-texto-inverso);
 }
 html[data-tema="escuro"] .bg-app-botao-aba-ativa {
-  background-color: var(--ui-hover);
+  --ui-hover: #f5f1e8;
+  background-color: var(--app-botao-aba-ativa);
+}
+html[data-tema="escuro"] .abas-historico {
+  --ui-hover: #f5f1e8;
 }
 html[data-tema="escuro"] :is(.bg-app-baunilha-dourada, [class*="bg-app-baunilha-dourada/"],
   .bg-app-caramelo-torrado\/15, .bg-app-caramelo-torrado\/35,
   .bg-app-dourado-mel\/15, .bg-app-dourado-mel\/20) {
   background-color: var(--ui-superficie-destaque);
 }
-/* Apenas as superfícies de página; os cards continuam separados. */
 html[data-tema="escuro"] :is(main.home-publica, main.auth-publica, main.bg-white),
 html[data-tema="escuro"] .home-publica > section:not(#inicio),
 html[data-tema="escuro"] .auth-publica > section,
@@ -89,7 +90,7 @@ html[data-tema="escuro"] .auth-publica > .flex-1,
 html[data-tema="escuro"] .auth-publica > .flex-1 > section {
   background-color: var(--ui-fundo);
 }
-html[data-tema="escuro"] :is(header, main > header, .home-publica > header) {
+html[data-tema="escuro"] :is(header.sticky, main > header, .home-publica > header) {
   background: var(--ui-header);
   color: var(--ui-texto);
   border-color: var(--ui-borda);
@@ -110,7 +111,11 @@ html[data-tema="escuro"] :is(.text-app-caramelo-torrado, .text-app-caramelo-torr
   .text-app-dourado-mel, .text-app-baunilha-dourada, .text-app-areia-quente) {
   color: var(--ui-acento);
 }
-/* Rótulos e ícones sobre preenchimentos claros seguem a cor do controle. */
+html[data-tema="escuro"] .app-footer {
+  color: #eadcc8;
+  background-color: var(--ui-header);
+}
+
 html[data-tema="escuro"] :is(.bg-app-caramelo-torrado, .bg-app-dourado-mel, .bg-app-botao-aba-ativa),
 html[data-tema="escuro"] :is(.bg-app-caramelo-torrado, .bg-app-dourado-mel, .bg-app-botao-aba-ativa) :is(span, strong, p, svg) {
   color: var(--ui-texto-inverso);
@@ -129,7 +134,6 @@ html[data-tema="escuro"] :is(article, section, aside, form)[class*="ring-1"] {
   border-color: var(--ui-borda);
 }
 
-/* Campos: contorno mais claro que as bordas decorativas para identificar o controle. */
 html[data-tema="escuro"] :is(input, textarea, select, .campo-busca-app) {
   min-width: 0;
   background-color: var(--ui-superficie-interna);
@@ -157,18 +161,29 @@ html[data-tema="escuro"] input::file-selector-button {
 html[data-tema="escuro"] input::file-selector-button:hover {
   background: var(--ui-hover);
 }
-html[data-tema="escuro"] :is(button, a, summary, input, textarea, select, [tabindex]):focus-visible {
+html[data-tema="escuro"] :is(button, a, summary, [tabindex]):not(:is(input, textarea, select)):focus-visible {
   outline: 2px solid var(--ui-acento);
   outline-offset: 3px;
 }
-html[data-tema="escuro"] .campo-busca-app:focus-within {
-  outline: 2px solid var(--ui-acento);
-  outline-offset: 3px;
+html[data-tema="escuro"] :is(input, textarea, select):not(:is([type="radio"], [type="checkbox"])):is(:focus, :focus-visible) {
+  outline: none;
+  box-shadow: none;
+  border-color: var(--ui-acento);
+}
+html[data-tema="escuro"] :is(.campo-busca-app, label > div[class*="border"], [class*="focus-within:"]):has(:is(input, textarea, select)):focus-within {
+  outline: none;
+  box-shadow: none;
+  border-color: var(--ui-acento);
+}
+html[data-tema="escuro"] :is(.campo-busca-app, label > div[class*="border"]) :is(input, textarea, select):not(:is([type="radio"], [type="checkbox"])) {
+  outline: none;
+  box-shadow: none;
+  border: 0;
+  background-color: transparent;
 }
 html[data-tema="escuro"] :is(button, a)[class*="border-app"] {
   border-color: var(--ui-borda-controle);
 }
-/* Seletores exatos para estados, sem confundir hover:bg-* com o fundo normal. */
 html[data-tema="escuro"] :is(button, a, summary, [role="button"], [role="option"], [role="menuitem"]):not(:disabled):not([aria-disabled="true"]):not(:is(.botao-acao-critica, .bg-app-vermelho-erro, .text-app-vermelho-erro, .text-red-700, .text-red-800)):is(
   [class*="hover:bg-"], [class*="hover:border-"], [class*="hover:brightness"], .bg-app-botao-aba-ativa):hover {
   background-color: var(--ui-hover);
@@ -203,7 +218,6 @@ html[data-tema="escuro"] label:has(input[type="radio"]:focus-visible) {
   outline-offset: 3px;
 }
 
-/* Estados semânticos permanecem distintos, inclusive nos botões destrutivos. */
 html[data-tema="escuro"] :is(.text-app-vermelho-erro, .text-red-700, .text-red-800) { color: var(--ui-perigo); }
 html[data-tema="escuro"] :is(.bg-red-50, .bg-app-vermelho-erro\/10) { background-color: var(--ui-perigo-fundo); }
 html[data-tema="escuro"] :is(.border-red-200, .border-red-300, [class*="border-app-vermelho-erro"]) { border-color: var(--ui-perigo); }
@@ -239,7 +253,6 @@ html[data-tema="escuro"] :is(button, a):is(.text-app-vermelho-erro, .text-red-70
   color: var(--ui-perigo);
 }
 
-/* Modais e portais herdam o tema de html; fotografias nunca recebem filtros. */
 html[data-tema="escuro"] [role="dialog"].fixed {
   background-color: #000000b8;
 }
@@ -249,7 +262,7 @@ html[data-tema="escuro"] [role="dialog"] > :is(section, div) {
   border-color: var(--ui-borda);
 }
 html[data-tema="escuro"] img[src^="/brand/"] {
-  filter: brightness(0) saturate(100%) invert(72%) sepia(31%) saturate(845%) hue-rotate(338deg) brightness(93%) contrast(91%);
+  filter: brightness(0) saturate(100%) invert(91%) sepia(17%) saturate(325%) hue-rotate(346deg) brightness(98%) contrast(88%);
 }
 html[data-tema="escuro"] .home-hero {
   background-color: var(--ui-fundo);
@@ -268,7 +281,6 @@ html[data-tema="escuro"] .botao-google {
   border-color: var(--ui-borda-controle);
 }
 
-/* Tabelas e scrollbars mantêm contornos e texto legíveis. */
 html[data-tema="escuro"] thead { background-color: var(--ui-superficie-elevada); color: var(--ui-texto); }
 html[data-tema="escuro"] :is(th, td) { border-color: var(--ui-borda); }
 html[data-tema="escuro"] tbody tr:hover { background-color: var(--ui-superficie-elevada); }

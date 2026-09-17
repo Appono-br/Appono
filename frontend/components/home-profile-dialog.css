@@ -1,0 +1,34 @@
+.home-profile-option {
+  border: 1px solid #b89980;
+  background-color: #f5efe7;
+  box-shadow: 0 3px 8px rgb(36 23 19 / 12%);
+}
+
+.home-profile-option:hover,
+.home-profile-option:focus-visible {
+  border-color: #824427;
+  background-color: #eadcc8;
+  box-shadow: 0 5px 14px rgb(36 23 19 / 18%);
+}
+
+.home-profile-option:focus-visible {
+  outline: 2px solid #824427;
+  outline-offset: 3px;
+}
+
+html[data-tema="escuro"] .home-profile-option {
+  border-color: #b89980;
+  background-color: #35261e;
+  box-shadow: 0 3px 10px rgb(0 0 0 / 25%);
+}
+
+html[data-tema="escuro"] .home-profile-option:hover,
+html[data-tema="escuro"] .home-profile-option:focus-visible {
+  border-color: #eadcc8;
+  background-color: #483526;
+  box-shadow: 0 5px 16px rgb(0 0 0 / 35%);
+}
+
+html[data-tema="escuro"] .home-profile-option:focus-visible {
+  outline-color: #eadcc8;
+}

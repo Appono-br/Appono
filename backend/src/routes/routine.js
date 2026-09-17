@@ -81,7 +81,6 @@ function normalizarPerfilEntrada(body, atual = {}) {
     const raioKm = Number(body.raio_km ?? atual.raio_km ?? 5);
     validarLimitesRotina({ horario_inicio: horarioInicio, horario_fim: horarioFim, tempo_maximo_minutos: tempoMaximo, raio_km: raioKm,
         dias_semana: body.dias_semana ?? atual.dias_semana ?? normalizarDiasSemana() });
-    // Coordenadas da rotina sao definidas apenas pelo geocodificador do servidor.
     const latitude = atual.latitude ?? null;
     const longitude = atual.longitude ?? null;
     if (!Number.isInteger(tempoMaximo)) throw new Error("O tempo disponível deve ser informado em minutos inteiros.");
@@ -422,7 +421,6 @@ rotinaRouter.post("/planejamento/gerar", async (req, res) => {
         if (dadosPerfil.perfil.latitude === null || dadosPerfil.perfil.longitude === null) return res.status(400).json({ error: "Defina a localização da rotina antes de gerar sugestões por distância." });
         const anterior = await buscarPlanejamentoComRefeicoes(banco, res.locals.profileId, { semana_inicio: semanaInicio });
         const versaoExibida = versaoEsperada(req.body, "versao_planejamento");
-        // When the current week ends, generation targets a new, still absent week.
         const versaoAlvo = req.body.semana_base && req.body.semana_base !== semanaInicio ? 0 : versaoExibida;
         conferirVersao(anterior.planejamento?.versao, versaoAlvo);
         const restaurantes = await carregarRestaurantesParaRotina(banco, res.locals.profileId);

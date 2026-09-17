@@ -5,7 +5,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 import { apiRequest } from "@/lib/api";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 
@@ -121,20 +120,7 @@ export default function RestaurantConversationPage() {
 
   return (
     <main className="flex min-h-screen flex-col bg-white text-app-cafe-profundo">
-      <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-white/90 text-app-cafe-profundo shadow-sm backdrop-blur-md">
-        <div className="mx-auto grid h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-5">
-          <Image src="/brand/appono-mark.svg" alt={ui("Appono")} width={88} height={88} className="h-12 w-12" priority />
-          <div className="flex items-center justify-center gap-5">
-            <Link href="/restaurante/mensagens" className="transition hover:text-app-caramelo-torrado" aria-label={ui("Voltar para mensagens")}>
-              <Icon type="arrow-left" className="h-5 w-5" />
-            </Link>
-            <h1 className="text-lg font-bold uppercase tracking-[0.16em] sm:text-2xl">{ui("Chat")}</h1>
-          </div>
-          <div className="justify-self-end">
-            <ItemHeaderNotificacoes href="/restaurante/notificacoes" />
-          </div>
-        </div>
-      </header>
+      <div className="px-5 pt-6"><Link href="/restaurante/mensagens" className="inline-flex items-center gap-2 text-sm font-semibold text-app-caramelo-torrado"><span aria-hidden="true">&larr;</span>{ui("Voltar para mensagens")}</Link></div>
 
       <section className="mx-auto grid w-full max-w-7xl flex-1 gap-6 px-5 py-8 xl:grid-cols-[1fr_340px]">
         <section className="flex min-h-[680px] flex-col">

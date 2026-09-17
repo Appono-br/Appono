@@ -3,6 +3,7 @@ import "./tema-escuro.css";
 import { TemaAplicacao } from "@/components/configuracoes/tema-aplicacao";
 import { LimpezaPagamentosLegados } from "@/components/seguranca/limpeza-pagamentos-legados";
 import { TradutorInterface } from "@/components/internacionalizacao/tradutor-interface";
+import { AppFooter } from "@/components/app-footer";
 export const metadata = {
     title: "Appono",
     description: "Aplicacao Appono",
@@ -12,6 +13,6 @@ export default function RootLayout({ children, }) {
       <head>
         <script dangerouslySetInnerHTML={{ __html: '(function(){try{document.documentElement.dataset.tema=localStorage.getItem("appono:theme")==="dark"?"escuro":"claro"}catch(e){}})()' }} />
       </head>
-      <body className="min-h-full flex flex-col"><TemaAplicacao /><LimpezaPagamentosLegados /><TradutorInterface />{children}</body>
+      <body className="min-h-full flex flex-col"><TemaAplicacao /><LimpezaPagamentosLegados /><TradutorInterface />{children}<AppFooter /></body>
     </html>);
 }

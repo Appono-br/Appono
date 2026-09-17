@@ -12,7 +12,7 @@ const dicionarios = {
       logout: "Sair da conta",
       language: "Idioma",
       portuguese: "Português (Brasil)",
-      switchToEnglish: "Switch to English",
+      switchToEnglish: "Mudar para inglês",
       switchToPortuguese: "Mudar para português",
     },
   },

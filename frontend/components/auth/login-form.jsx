@@ -10,6 +10,7 @@ import {
   persistAuthResponse,
 } from "@/lib/session";
 import { supabase } from "@/lib/supabase";
+import { chaveRetornoRestaurante, obterRetornoRestaurante } from "@/lib/retorno-restaurante.mjs";
 
 function obterUrlRecuperacaoSenha() {
   const urlConfigurada =
@@ -93,7 +94,8 @@ export function LoginForm() {
         JSON.stringify({ remember })
       );
 
-      window.location.href = getDashboardPath(auth.tipo);
+      const destino = obterRetornoRestaurante(new URLSearchParams(window.location.search).get("redirect"), auth.tipo);
+      window.location.href = destino ?? getDashboardPath(auth.tipo);
     } catch (error) {
       setMessage(
         error instanceof Error
@@ -151,6 +153,9 @@ export function LoginForm() {
     setMessage("");
 
     try {
+      const destino = obterRetornoRestaurante(new URLSearchParams(window.location.search).get("redirect"));
+      if (destino) sessionStorage.setItem(chaveRetornoRestaurante, destino);
+      else sessionStorage.removeItem(chaveRetornoRestaurante);
       const { error } =
         await supabase.auth.signInWithOAuth({
           provider: "google",
@@ -232,7 +237,6 @@ export function LoginForm() {
             className="mt-5 space-y-3"
           >
             
-            {/* E-MAIL */}
             <label className="flex flex-col gap-1">
               <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-app-mocha">
                 Endereço de e-mail
@@ -250,7 +254,6 @@ export function LoginForm() {
               />
             </label>
 
-            {/* SENHA */}
             <label className="flex flex-col gap-1">
               <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-app-mocha">
                 Senha

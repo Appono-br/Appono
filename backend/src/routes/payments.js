@@ -780,9 +780,6 @@ exports.paymentsRouter.get("/pedido/:id/status", async (req, res) => {
                 pedido.status_pedido = conciliacao.pedido.status_pedido;
             }
         }
-        // Parametros da URL de retorno não são fonte confiavel para aprovar ou
-        // cancelar pagamentos. Sem confirmacao da API, preservamos o estado local
-        // ate que o webhook ou uma consulta posterior confirme o resultado.
         if (!pagamento) {
             const { data } = await supabase
                 .from("pagamentos")

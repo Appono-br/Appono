@@ -33,8 +33,8 @@ export function SeletorTema() {
 
     return (
         <fieldset className="mx-auto mt-7 w-full max-w-xl rounded-[8px] bg-app-chantilly p-5 shadow-sm ring-1 ring-app-baunilha-dourada/45">
-            <legend className="px-2 text-xs font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">{ui("Aparencia")}</legend>
-            <div className="mt-1 grid gap-3 sm:grid-cols-2">
+            <legend className="float-left mb-4 w-full text-xs font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">{ui("Aparencia")}</legend>
+            <div className="clear-both grid gap-3 sm:grid-cols-2">
                 {opcoes.map((opcao) => {
                     const selecionado = tema === opcao.valor;
 

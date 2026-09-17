@@ -1,7 +1,5 @@
 import { traduzirTextoInterface } from "./i18n";
 
-// Somente modelos gerados pelo sistema, associados ao tipo de evento conhecido.
-// Os grupos capturados (nomes, IDs e valores) são preservados, nunca traduzidos.
 const modelos = [
   ["MENSAGEM_RECEBIDA", /^(.+) enviou uma mensagem no chat\.$/s, (nome) => `${nome} sent a message in the chat.`],
   ["MENSAGEM_RECEBIDA", /^(.+) respondeu sua conversa\.$/s, (nome) => `${nome} replied to your conversation.`],

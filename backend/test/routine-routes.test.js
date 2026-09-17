@@ -8,7 +8,6 @@ const path = require("node:path");
 const { createRequire } = require("node:module");
 const express = require("express");
 
-// Executa as rotas e middleware reais com o transporte Supabase substituido.
 function carregarModulo(arquivo, substituicoes) {
     const caminho = path.resolve(__dirname, arquivo);
     const requireReal = createRequire(caminho);

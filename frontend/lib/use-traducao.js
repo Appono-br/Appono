@@ -9,6 +9,5 @@ export function useTraducao() {
 }
 
 export function useTextoTraduzido(texto) {
-  // Conteúdo livre do restaurante não é texto da interface.
   return String(texto ?? "");
 }

@@ -1,4 +1,3 @@
-// Apresentação dos pagamentos já filtrados por período, sem alterar o servidor.
 function numeroDisponivel(valor) {
   if (valor === null || valor === undefined || valor === "") return null;
   const numero = Number(valor);
@@ -20,7 +19,6 @@ export function obterIndicadoresFinanceiros(resumo, repasses) {
     }
     if (pagamento.status_pagamento !== "APROVADO") continue;
     const restaurante = numeroDisponivel(pagamento.valor_restaurante);
-    // Mesmas exclusões do resumo existente: estorno ou cancelamento sem retenção.
     if (pagamento.status_repasse === "ESTORNADO" ||
       (pagamento.pedido?.status_pedido === "CANCELADO" && restaurante === 0)) continue;
     if (pagamento.pedido?.status_pedido === "CANCELADO" && restaurante === null) {
@@ -33,7 +31,6 @@ export function obterIndicadoresFinanceiros(resumo, repasses) {
     if (["AGUARDANDO_ENTREGA", "LIBERADO_PARA_REPASSE"].includes(pagamento.status_repasse)) {
       pendente = pendente === null || restaurante === null ? null : pendente + restaurante;
     } else if (pagamento.status_repasse !== "REPASSADO") {
-      // Estado desconhecido/não aplicável não comprova saldo pendente.
       pendente = null;
     }
   }

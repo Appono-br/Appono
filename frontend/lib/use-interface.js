@@ -4,7 +4,6 @@ import { useCallback } from "react";
 import { useIdiomaLocal } from "@/lib/use-idioma-local";
 import { traduzirTextoInterface } from "@/lib/i18n";
 
-// Tradução declarativa: valores interpolados nunca passam pelo dicionário.
 export function useInterface() {
   const { idioma } = useIdiomaLocal();
   const ui = useCallback((texto, valores) => {
