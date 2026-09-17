@@ -297,19 +297,6 @@ export default function RestaurantSettingsPage() {
           </form>
         </div>
 
-        <section className="mx-auto mt-10 max-w-4xl rounded-[8px] bg-app-creme-suave p-6 shadow-sm ring-1 ring-app-baunilha-dourada/60 sm:p-8">
-          <div className="grid gap-6 sm:grid-cols-[180px_1fr] sm:items-center">
-            <div className="flex min-h-32 items-center justify-center rounded-[8px] bg-app-cafe-profundo/55 text-app-creme-leve">
-              <Icon type="shield" className="h-10 w-10"/>
-            </div>
-            <div>
-              <h2 className="text-xl font-medium text-app-cafe-profundo">{ui("Precisa alterar dados restritos?")}</h2>
-              <p className="mt-3 max-w-md text-sm leading-6 text-app-mocha">{ui("Algumas informações cadastrais requerem validação manual para garantir a segurança da plataforma.")}</p>
-              <button type="button" className="mt-5 text-xs font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado transition hover:text-app-cafe-profundo">{ui("Falar com consultor")}</button>
-            </div>
-          </div>
-        </section>
-
         <SeletorTema />
 
         <div className="mx-auto mt-7 max-w-md border-t border-app-baunilha-dourada/60 pt-5 text-center">

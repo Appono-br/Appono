@@ -315,9 +315,9 @@ export function PainelSuporte({ perfil }) {
                                 </select>
                             </label>
                         </div>
-                        <div className="mt-4 flex gap-2 overflow-x-auto">
+                        <div className="mt-4 grid grid-cols-2 gap-2">
                             {filtros.map((item) => (
-                                <button key={item.value} type="button" onClick={() => setFiltro(item.value)} className={`shrink-0 rounded-full px-3 py-2 text-[10px] font-bold uppercase tracking-[0.12em] ring-1 transition ${filtro === item.value ? "bg-app-cafe-profundo text-app-creme-leve ring-app-cafe-profundo" : "bg-white text-app-mocha ring-app-baunilha-dourada hover:bg-app-chantilly"}`}>
+                                <button key={item.value} type="button" onClick={() => setFiltro(item.value)} className={`w-full rounded-full px-3 py-2 text-[10px] font-bold uppercase tracking-[0.12em] ring-1 transition ${filtro === item.value ? "bg-app-cafe-profundo text-app-creme-leve ring-app-cafe-profundo" : "bg-white text-app-mocha ring-app-baunilha-dourada hover:bg-app-chantilly"}`}>
                                     {ui(item.label)}
                                 </button>
                             ))}
