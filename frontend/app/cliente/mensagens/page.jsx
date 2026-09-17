@@ -101,9 +101,9 @@ export default function MessagesPage() {
               <p className="mt-4 max-w-2xl text-sm leading-6 text-app-creme-suave">{ui("Centralize conversas com restaurantes antes da visita, com contexto de reserva ou pedido quando existir.")}</p>
             </div>
             <div className="grid gap-3 rounded-[18px] bg-white/10 p-3 ring-1 ring-white/10">
-              <label className="flex h-12 items-center gap-3 rounded-[12px] bg-white px-4 text-app-cafe-profundo shadow-sm transition focus-within:ring-2 focus-within:ring-app-dourado-mel/35">
+              <label className="campo-busca-app flex h-12 items-center gap-3 rounded-[12px] bg-white px-4 text-app-cafe-profundo shadow-sm transition">
                 <Icon type="search" className="h-4 w-4 text-app-cinza" />
-                <input value={busca} onChange={(event) => setBusca(event.target.value)} placeholder={ui("Buscar restaurante ou mensagem")} className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-app-cinza/60" />
+                <input value={busca} onChange={(event) => setBusca(event.target.value)} placeholder={ui("Buscar restaurante ou mensagem")} className="input-busca-app h-full min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-app-cinza/60" />
               </label>
               <div className="grid grid-cols-2 gap-3">
                 <div className="rounded-[12px] bg-white/10 px-4 py-3">

@@ -10,6 +10,13 @@ const foodImage = "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?aut
 const restaurantImage = "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=80";
 const chefImage = "https://images.unsplash.com/photo-1577219491135-ce391730fb2c?auto=format&fit=crop&w=1200&q=80";
 
+const headerLinks = [
+  { label: "Início", href: "#inicio" },
+  { label: "Como usar", href: "#reserva" },
+  { label: "Sobre", href: "#sobre" },
+];
+const headerLinkClass = "rounded-md px-4 py-2.5 font-normal text-app-cafe-profundo outline-none transition-all duration-200 hover:-translate-y-0.5 hover:font-bold focus-visible:ring-2 focus-visible:ring-app-caramelo-torrado motion-reduce:transform-none";
+
 const valueCards = [
   {
     title: "Reserva fácil",
@@ -71,7 +78,7 @@ export default function HomePage() {
   return (
     <main className={`home-publica min-h-screen bg-white text-app-texto-escuro ${tema === "escuro" ? "tema-escuro" : ""}`}>
       <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-white/95 backdrop-blur">
-  <div className="mx-auto flex min-h-20 max-w-7xl items-center justify-between gap-2 px-3 py-2 sm:px-6">
+  <div className="mx-auto flex min-h-20 max-w-7xl items-center justify-between gap-2 px-3 py-2 sm:px-6 xl:grid xl:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
     <div className="flex shrink-0 items-center">
       <Link href="/" className="flex shrink-0 items-center" onClick={closeMenu}>
         <Image
@@ -84,19 +91,15 @@ export default function HomePage() {
       </Link>
     </div>
 
-    <nav className="hidden min-w-0 items-center justify-center gap-2 whitespace-nowrap xl:flex">
-      <Link href="#inicio" className="rounded-full px-5 py-2.5 text-base font-semibold text-app-cafe-profundo transition hover:bg-app-chantilly">
-        Início
-      </Link>
-      <Link href="#reserva" className="rounded-full px-5 py-2.5 text-base font-semibold text-app-cafe-profundo transition hover:bg-app-chantilly">
-        Como usar
-      </Link>
-      <Link href="#sobre" className="rounded-full px-5 py-2.5 text-base font-semibold text-app-cafe-profundo transition hover:bg-app-chantilly">
-        Sobre
-      </Link>
+    <nav aria-label="Navegação principal" className="hidden min-w-0 items-center justify-self-center gap-2 whitespace-nowrap text-base xl:flex">
+      {headerLinks.map(({ label, href }) => (
+        <Link key={href} href={href} className={headerLinkClass}>
+          {label}
+        </Link>
+      ))}
     </nav>
 
-    <div className="flex min-w-0 items-center justify-end gap-2 sm:gap-3">
+    <div className="flex min-w-0 items-center justify-end gap-2 sm:gap-3 xl:justify-self-end">
       <div className="flex items-center gap-2">
         <button
           type="button"
@@ -160,16 +163,12 @@ export default function HomePage() {
 
   {menuOpen ? (
     <div id="mobile-menu" className="border-t border-app-baunilha-dourada/50 bg-white px-5 py-5 xl:hidden">
-      <nav className="mx-auto flex max-w-7xl flex-col gap-1 text-sm font-semibold text-app-cafe-profundo">
-        <Link href="#inicio" onClick={closeMenu} className="rounded-full px-4 py-2.5 transition hover:bg-app-chantilly">
-          Início
-        </Link>
-        <Link href="#reserva" onClick={closeMenu} className="rounded-full px-4 py-2.5 transition hover:bg-app-chantilly">
-          Como usar
-        </Link>
-        <Link href="#sobre" onClick={closeMenu} className="rounded-full px-4 py-2.5 transition hover:bg-app-chantilly">
-          Sobre
-        </Link>
+      <nav className="mx-auto flex max-w-7xl flex-col gap-1 text-sm text-app-cafe-profundo">
+        {headerLinks.map(({ label, href }) => (
+          <Link key={href} href={href} onClick={closeMenu} className={headerLinkClass}>
+            {label}
+          </Link>
+        ))}
         <button
           type="button"
           onClick={() => {
@@ -372,78 +371,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <footer className="border-t border-app-baunilha-dourada/40 bg-app-chantilly py-20 text-app-cafe-profundo">
-        <div className="mx-auto grid max-w-6xl gap-12 px-6 md:grid-cols-[1.5fr_1fr_1fr_1fr]">
-          <div>
-            <Image
-              src="/brand/appono-logo.svg"
-              alt="Appono"
-              width={100}
-              height={80}
-              className="h-20 w-auto"
-            />
-            <p className="mt-5 max-w-sm text-base leading-8 text-app-mocha">
-              Reserve sua mesa, antecipe seu pedido e aproveite melhor o tempo
-              dentro do restaurante com uma experiência mais organizada.
-            </p>
-          </div>
 
-          <div>
-            <h3 className="text-lg font-bold text-app-cafe-profundo">Appono</h3>
-            <div className="mt-2 h-1 w-12 rounded-full bg-app-dourado-mel" />
-            <div className="mt-6 flex flex-col gap-4 text-app-mocha">
-              <Link href="#inicio" className="transition-all duration-300 hover:translate-x-1 hover:text-app-caramelo-torrado">
-                Início
-              </Link>
-              <Link href="#reserva" className="transition-all duration-300 hover:translate-x-1 hover:text-app-caramelo-torrado">
-                Como usar
-              </Link>
-              <Link href="#sobre" className="transition-all duration-300 hover:translate-x-1 hover:text-app-caramelo-torrado">
-                Sobre
-              </Link>
-            </div>
-          </div>
-
-          <div>
-            <h3 className="text-lg font-bold text-app-cafe-profundo">Conta</h3>
-            <div className="mt-2 h-1 w-12 rounded-full bg-app-dourado-mel" />
-            <div className="mt-6 flex flex-col gap-4 text-app-mocha">
-              <button
-                type="button"
-                onClick={() => {
-                  window.location.href = "/login";
-                }}
-                className="w-fit text-left transition-all duration-300 hover:translate-x-1 hover:text-app-caramelo-torrado"
-              >
-                Entrar
-              </button>
-              <button
-                type="button"
-                onClick={() => setProfileDialog("cadastro")}
-                className="w-fit text-left transition-all duration-300 hover:translate-x-1 hover:text-app-caramelo-torrado"
-              >
-                Criar conta
-              </button>
-            </div>
-          </div>
-
-          <div>
-            <h3 className="text-lg font-bold text-app-cafe-profundo">Contato</h3>
-            <div className="mt-2 h-1 w-12 rounded-full bg-app-dourado-mel" />
-            <div className="mt-6">
-              <p className="text-base text-app-mocha">
-                appono.br@gmail.com
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="mx-auto mt-14 max-w-6xl border-t border-app-baunilha-dourada/40 pt-6 text-center">
-          <p className="text-sm text-app-mocha">
-            © 2026 Appono. Todos os direitos reservados.
-          </p>
-        </div>
-      </footer>
 
       {profileDialog ? (
         <div

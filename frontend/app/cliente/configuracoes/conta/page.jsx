@@ -1,6 +1,5 @@
 "use client";
 import { useInterface } from "@/lib/use-interface";
-import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { apiRequest } from "@/lib/api";
@@ -142,16 +141,6 @@ export default function AccountSettingsPage() {
           </p>) : null}
       </section>
 
-      <footer className="border-t border-app-cacau-intenso/20 bg-app-cafe-profundo px-5 py-4 text-app-creme-leve">
-        <div className="mx-auto flex max-w-7xl flex-col items-center gap-3 text-center sm:flex-row sm:justify-between">
-          <Image src="/brand/appono-mark.svg" alt={ui("Appono")} width={56} height={56} className="h-10 w-10 brightness-0 invert"/>
-          <nav className="flex flex-wrap justify-center gap-6 text-[10px] font-bold uppercase text-app-baunilha-dourada">
-            <Link href="#" className="transition hover:text-app-chantilly">{ui("Política de Privacidade")}</Link>
-            <Link href="#" className="transition hover:text-app-chantilly">{ui("Termos de Uso")}</Link>
-            <Link href="#" className="transition hover:text-app-chantilly">{ui("Contato")}</Link>
-          </nav>
-          <p className="text-xs font-semibold text-app-creme-suave">{ui("© 2026 APPONO. Todos os direitos reservados.")}</p>
-        </div>
-      </footer>
+
     </main>);
 }

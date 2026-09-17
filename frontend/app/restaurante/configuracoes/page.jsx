@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { SeletorTema } from "@/components/configuracoes/seletor-tema";
+import { BotaoIdioma } from "@/components/configuracoes/botao-idioma";
 import { apiRequest } from "@/lib/api";
 import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 import { atualizarNomeSessao, encerrarSessao } from "@/lib/session";
@@ -297,6 +298,7 @@ export default function RestaurantSettingsPage() {
           </form>
         </div>
 
+        <BotaoIdioma />
         <SeletorTema />
 
         <div className="mx-auto mt-7 max-w-md border-t border-app-baunilha-dourada/60 pt-5 text-center">
@@ -305,16 +307,6 @@ export default function RestaurantSettingsPage() {
         </div>
       </section>
 
-      <footer className="border-t border-app-cacau-intenso/20 bg-app-cafe-profundo px-5 py-7 text-app-creme-leve">
-        <div className="mx-auto flex max-w-7xl flex-col items-center gap-5 text-center sm:flex-row sm:justify-between">
-          <Image src="/brand/appono-mark.svg" alt={ui("Appono")} width={80} height={80} className="h-14 w-14 brightness-0 invert"/>
-          <nav className="flex flex-wrap justify-center gap-8 text-[10px] font-bold uppercase text-app-baunilha-dourada">
-            <Link href="#" className="transition hover:text-app-chantilly">{ui("Política de Privacidade")}</Link>
-            <Link href="#" className="transition hover:text-app-chantilly">{ui("Termos de Uso")}</Link>
-            <Link href="#" className="transition hover:text-app-chantilly">{ui("Contato")}</Link>
-          </nav>
-          <p className="text-xs font-semibold text-app-creme-suave">{ui("© 2026 APPONO. Todos os direitos reservados.")}</p>
-        </div>
-      </footer>
+
     </main>);
 }
