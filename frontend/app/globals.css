@@ -734,8 +734,17 @@ html {
 }
 
 .area-restaurante main > header nav a {
-  border-radius: 999px;
-  padding: 0.4rem 0.75rem;
+  border-radius: 0.375rem;
+  padding: 0.5rem 0.25rem;
+}
+
+.area-restaurante main > header nav a.text-app-cafe-profundo {
+  background-color: transparent !important;
+  color: var(--app-cafe-profundo);
+  text-decoration-line: underline;
+  text-decoration-color: var(--app-caramelo-torrado);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.5rem;
 }
 
 :where(html:not([data-tema=escuro])) .area-restaurante main > header nav a {
@@ -743,8 +752,9 @@ html {
 }
 
 :where(html:not([data-tema=escuro])) .area-restaurante main > header nav a:hover {
-  background-color: var(--app-chantilly-hover);
-  color: var(--app-caramelo-torrado) !important;
+  background-color: transparent !important;
+  color: var(--app-cafe-profundo) !important;
+  transform: translateY(-1px);
 }
 
 .area-restaurante main > header button {

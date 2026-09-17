@@ -43,7 +43,7 @@ function TextField({ label, value, onChange, className = "", }) {
       <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-cinza">
         {ui(label)}
       </span>
-      <input value={value} onChange={(event) => onChange(event.target.value)} className="h-12 border-b border-app-baunilha-dourada bg-app-creme-suave px-3 text-sm text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado"/>
+      <input value={value} onChange={(event) => onChange(event.target.value)} className="h-12 rounded-[8px] border border-app-baunilha-dourada bg-app-creme-suave px-4 text-sm text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20"/>
     </label>);
 }
 function NumberField({ label, value, onChange, helper, className = "" }) {
@@ -52,7 +52,7 @@ function NumberField({ label, value, onChange, helper, className = "" }) {
       <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-cinza">
         {ui(label)}
       </span>
-      <input type="number" min={0} max={720} value={value} onChange={(event) => onChange(Number(event.target.value) || 0)} className="h-12 border-b border-app-baunilha-dourada bg-app-creme-suave px-3 text-sm text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado"/>
+      <input type="number" min={0} max={720} value={value} onChange={(event) => onChange(Number(event.target.value) || 0)} className="h-12 rounded-[8px] border border-app-baunilha-dourada bg-app-creme-suave px-4 text-sm text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20"/>
       {helper ? <span className="text-xs leading-5 text-app-cinza">{ui(helper)}</span> : null}
     </label>);
 }
@@ -216,7 +216,7 @@ export default function RestaurantOperationSettingsPage() {
         </div>
 
         <form onSubmit={submitForm} className="mt-10 grid gap-6 xl:grid-cols-[360px_1fr]">
-          <aside className="h-fit rounded-[12px] bg-app-creme-leve p-6 shadow-sm ring-1 ring-app-baunilha-dourada/60">
+          <aside className="h-fit rounded-[12px] border border-app-baunilha-dourada/60 bg-app-creme-leve p-6">
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">{ui("Regras gerais")}</p>
@@ -248,7 +248,7 @@ export default function RestaurantOperationSettingsPage() {
               {message ? (<p className="mt-4 text-sm font-semibold text-app-mocha">{ui(message)}</p>) : null}
           </aside>
 
-          <section className="rounded-[12px] bg-app-creme-leve p-5 shadow-sm ring-1 ring-app-baunilha-dourada/60 sm:p-8">
+          <section className="rounded-[12px] border border-app-baunilha-dourada/60 bg-app-creme-leve p-5 sm:p-8">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div>
                 <h3 className="text-2xl font-medium text-app-cafe-profundo">{ui("Agenda semanal")}</h3>
@@ -262,7 +262,7 @@ export default function RestaurantOperationSettingsPage() {
             </div>
 
             <div className="mt-7 grid gap-4">
-              {form.days.map((day) => (<article key={day.id} className="grid gap-5 rounded-[8px] border-l-4 border-app-caramelo-torrado bg-white p-5 sm:grid-cols-[0.34fr_1fr_auto] sm:items-center">
+              {form.days.map((day) => (<article key={day.id} className="grid gap-5 rounded-[8px] border border-app-baunilha-dourada/45 bg-white p-5 sm:grid-cols-[0.34fr_1fr_auto] sm:items-center">
                   <div>
                     <h4 className="text-lg font-medium text-app-cafe-profundo">
                       {ui(day.label)}

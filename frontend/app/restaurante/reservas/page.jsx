@@ -503,13 +503,13 @@ export default function RestaurantReservationsPage() {
                             </label>
                         </div>
 
-                        <div className="mt-4 flex gap-2 overflow-x-auto border-t border-app-baunilha-dourada/45 pt-4">
+                        <div className="mt-4 grid grid-cols-1 gap-2 border-t border-app-baunilha-dourada/45 pt-4 sm:grid-cols-2 lg:grid-cols-4">
                             {filtrosPedido.map((filtro) => (
                                 <button
                                     key={filtro.value}
                                     type="button"
                                     onClick={() => setFiltroPedido(filtro.value)}
-                                    className={`inline-flex h-10 shrink-0 items-center justify-center rounded-full px-4 text-[11px] font-bold uppercase tracking-[0.12em] ring-1 transition ${filtroPedido === filtro.value
+                                    className={`flex h-10 w-full items-center justify-center whitespace-nowrap rounded-full px-3 text-[10px] font-bold uppercase tracking-[0.1em] ring-1 transition sm:px-4 sm:text-[11px] ${filtroPedido === filtro.value
                                         ? "bg-app-cafe-profundo text-app-creme-leve ring-app-cafe-profundo"
                                         : "bg-white text-app-mocha ring-app-baunilha-dourada/70 hover:bg-app-chantilly hover:text-app-cafe-profundo hover:ring-app-caramelo-torrado/45"}`}
                                 >

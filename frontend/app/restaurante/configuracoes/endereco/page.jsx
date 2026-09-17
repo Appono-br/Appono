@@ -38,7 +38,7 @@ function Field({ label, value, onChange, className = "", placeholder, }) {
       <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-cinza">
         {ui(label)}
       </span>
-      <input value={value} onChange={(event) => onChange(event.target.value)} placeholder={ui(placeholder)} className="h-12 border-b border-app-cinza/70 bg-transparent px-3 text-base text-app-cafe-profundo outline-none transition placeholder:text-app-cinza/55 focus:border-app-caramelo-torrado"/>
+      <input value={value} onChange={(event) => onChange(event.target.value)} placeholder={ui(placeholder)} className="h-12 rounded-[8px] border border-app-baunilha-dourada bg-app-creme-suave px-4 text-base text-app-cafe-profundo outline-none transition placeholder:text-app-cinza/55 focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20"/>
     </label>);
 }
 export default function RestaurantAddressSettingsPage() {
@@ -141,7 +141,7 @@ export default function RestaurantAddressSettingsPage() {
       </section>
 
       <section className="mx-auto grid w-full max-w-7xl flex-1 gap-8 px-5 py-10 lg:grid-cols-[1fr_0.7fr] lg:items-start">
-        <form onSubmit={submitForm} className="rounded-[8px] bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada/45 sm:p-10">
+        <form onSubmit={submitForm} className="rounded-[8px] border border-app-baunilha-dourada/45 bg-white p-6 sm:p-10">
           <div className="grid gap-6 sm:grid-cols-[0.48fr_1fr] sm:items-end">
             <Field label={ui("CEP")} value={form.postalCode} onChange={(value) => updateField("postalCode", aplicarMascaraCep(value))} placeholder={ui("00000-000")}/>
             <p className="pb-3 text-sm font-semibold text-app-caramelo-torrado">{ui("Consulte seu CEP automaticamente quando a integração estiver ativa.")}</p>
