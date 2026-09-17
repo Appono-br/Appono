@@ -6,6 +6,7 @@ import { apiRequest } from "@/lib/api";
 import { estadoPlanejamento } from "@/lib/routine-view.mjs";
 import { useInterface } from "@/lib/use-interface";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 function formatarMoeda(valor, localeUI) {
@@ -20,6 +21,7 @@ function formatarData(data, localeUI) {
 
 export default function RotinaClientePage() {
     const { ui, localeUI } = useInterface();
+    const router = useRouter();
     const [perfil, setPerfil] = useState(null);
     const [planejamento, setPlanejamento] = useState(null);
     const [refeicoes, setRefeicoes] = useState([]);
@@ -53,6 +55,10 @@ export default function RotinaClientePage() {
         return () => { cancelado = true; };
     }, [recarregar]);
 
+    useEffect(() => {
+        if (!carregando && planejamento) router.replace("/cliente/rotina/planejamento");
+    }, [carregando, planejamento, router]);
+
     const estado = useMemo(() => estadoPlanejamento({ perfil, planejamento, refeicoes }), [perfil, planejamento, refeicoes]);
     const resumo = useMemo(() => ({
         total: refeicoes.length,
@@ -84,18 +90,20 @@ export default function RotinaClientePage() {
         }
     }
 
-    const acaoPrincipal = estado.acao === "configurar"
-        ? <Link href="/cliente/rotina/configurar" className="inline-flex min-h-11 items-center justify-center rounded-full bg-app-cafe-profundo px-6 py-3 text-xs font-bold uppercase tracking-[0.12em] text-app-creme-leve hover:bg-app-caramelo-torrado">{ui("Configurar rotina")}</Link>
+    const acaoPrincipal = !planejamento
+        ? <Link href="/cliente/rotina/configurar" className="inline-flex min-h-11 items-center justify-center rounded-full bg-app-cafe-profundo px-6 py-3 text-sm font-bold text-app-creme-leve hover:bg-app-caramelo-torrado">{ui("Configurar rotina")}</Link>
+        : estado.acao === "configurar"
+        ? <Link href="/cliente/rotina/configurar" className="inline-flex min-h-11 items-center justify-center rounded-full bg-app-cafe-profundo px-6 py-3 text-sm font-bold text-app-creme-leve hover:bg-app-caramelo-torrado">{ui("Começar configuração")}</Link>
         : estado.acao === "gerar"
-            ? <button type="button" disabled={gerando} onClick={() => planejamento ? setConfirmarGeracao(true) : gerarSemana()} className="min-h-11 rounded-full bg-app-cafe-profundo px-6 py-3 text-xs font-bold uppercase tracking-[0.12em] text-app-creme-leve hover:bg-app-caramelo-torrado disabled:opacity-50">{ui(gerando ? "Gerando sugestões..." : "Gerar planejamento")}</button>
-            : <Link href="/cliente/rotina/planejamento" className="inline-flex min-h-11 items-center justify-center rounded-full bg-app-cafe-profundo px-6 py-3 text-xs font-bold uppercase tracking-[0.12em] text-app-creme-leve hover:bg-app-caramelo-torrado">{ui("Ver planejamento")}</Link>;
+            ? <button type="button" disabled={gerando} onClick={() => planejamento ? setConfirmarGeracao(true) : gerarSemana()} className="min-h-11 rounded-full bg-app-cafe-profundo px-6 py-3 text-sm font-bold text-app-creme-leve hover:bg-app-caramelo-torrado disabled:opacity-50">{ui(gerando ? "Gerando sugestões..." : "Gerar minha semana")}</button>
+            : <Link href="/cliente/rotina/planejamento" className="inline-flex min-h-11 items-center justify-center rounded-full bg-app-cafe-profundo px-6 py-3 text-sm font-bold text-app-creme-leve hover:bg-app-caramelo-torrado">{ui(estado.proxima ? "Ver minha semana" : "Ajustar critérios")}</Link>;
 
     return <main className="min-h-screen bg-white px-4 py-6 text-app-cafe-profundo sm:px-6 sm:py-8">
         <div className="mx-auto max-w-7xl">
             <RoutineHero
                 eyebrow={ui("Appono Rotina")}
-                title={ui("Sua semana de almoço, organizada em um só lugar.")}
-                description={ui("Acompanhe suas sugestões, ajuste preferências e transforme uma refeição em reserva quando decidir.")}
+                title={ui(perfil ? "Sua próxima decisão, em um só lugar." : "Vamos organizar suas refeições.")}
+                description={ui("Defina sua rotina, receba sugestões e reserve somente quando fizer sentido para você.")}
                 aside={<div className="grid grid-cols-3 gap-2 rounded-[18px] bg-white/10 p-4 text-center ring-1 ring-white/15 sm:min-w-80">
                     <div><p className="text-[10px] font-bold uppercase tracking-wider text-app-baunilha-dourada">{ui("Dias")}</p><strong className="mt-1 block text-2xl">{resumo.total}</strong></div>
                     <div><p className="text-[10px] font-bold uppercase tracking-wider text-app-baunilha-dourada">{ui("Aprovadas")}</p><strong className="mt-1 block text-2xl">{resumo.aprovadas}</strong></div>
@@ -106,8 +114,9 @@ export default function RotinaClientePage() {
             {mensagem ? <div className="mt-5"><RoutineNotice type={mensagem === "Planejamento atualizado." ? "success" : "error"} action={mensagem === "Planejamento atualizado." ? null : <button type="button" disabled={carregando || gerando} onClick={() => setRecarregar((valor) => valor + 1)} className="min-h-10 rounded-full border border-current px-4 text-xs font-bold uppercase tracking-wider">{ui("Recarregar")}</button>}>{ui(mensagem)}</RoutineNotice></div> : null}
             {carregando ? <div className="mt-5"><RoutineSkeleton /></div> : null}
 
+
             {!carregando && (!mensagem || mensagem === "Planejamento atualizado.") ? <div className="mt-5 grid items-start gap-5 lg:grid-cols-[0.82fr_1.18fr]">
-                <article className="rounded-[24px] bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada/55 sm:p-7">
+                <article className="hidden">
                     <div className="flex items-start justify-between gap-4">
                         <div><p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{ui("Seu perfil")}</p><h2 className="mt-2 text-2xl font-semibold sm:text-3xl">{perfil?.nome ?? ui("Rotina ainda não configurada")}</h2></div>
                         <div className="flex h-11 w-11 items-center justify-center rounded-full bg-app-cafe-profundo text-app-creme-leve"><RoutineIcon type="route" /></div>
@@ -121,19 +130,18 @@ export default function RotinaClientePage() {
                     <Link href="/cliente/rotina/configurar" className="mt-6 inline-flex min-h-11 items-center justify-center rounded-full border border-app-baunilha-dourada px-6 py-3 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha hover:bg-app-chantilly">{ui(perfil ? "Editar preferências" : "Configurar rotina")}</Link>
                 </article>
 
-                <article className="rounded-[24px] bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada/55 sm:p-7">
+                <article className={`rounded-[24px] bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada/55 sm:p-7 ${planejamento ? "order-1" : ""}`}>
                     <div className="flex items-start justify-between gap-4">
-                        <div className="min-w-0"><p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{ui("Próxima refeição")}</p><h2 className="mt-2 text-2xl font-semibold sm:text-3xl">{ui(estado.titulo)}</h2></div>
+                        <div className="min-w-0"><p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{ui(planejamento ? "Próxima refeição" : "Comece por aqui")}</p><h2 className="mt-2 text-2xl font-semibold sm:text-3xl">{ui(planejamento ? estado.titulo : "Configure sua rotina")}</h2></div>
                         <div className="flex h-11 w-11 items-center justify-center rounded-full bg-app-cafe-profundo text-app-creme-leve"><RoutineIcon type="spark" /></div>
                     </div>
-                    {estado.proxima ? <div className="mt-6 grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+                    {planejamento && estado.proxima ? <div className="mt-6 grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
                         <div className="rounded-[16px] border border-app-baunilha-dourada/45 p-5"><p className="font-semibold capitalize">{formatarData(estado.proxima.data_refeicao, localeUI)} {ui("às")} {String(estado.proxima.horario_sugerido ?? "").slice(0, 5)}</p><p className="mt-2 text-sm text-app-cinza">{estado.proxima.produtos?.nome ?? ui("Reserva sem item definido")}</p><div className="mt-3"><RoutineStatus status={estado.proxima.status} /></div></div>
                         <p className="max-w-sm text-sm leading-6 text-app-cinza">{estado.proxima.motivo_recomendacao}</p>
-                    </div> : <p className="mt-5 max-w-2xl text-sm leading-6 text-app-cinza">{ui(estado.descricao)}</p>}
-                    <div className="mt-6 flex flex-wrap gap-3">{acaoPrincipal}<Link href="/cliente/rotina/planejamento" className="inline-flex min-h-11 items-center justify-center rounded-full border border-app-baunilha-dourada px-6 py-3 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha hover:bg-app-chantilly">{ui("Abrir semana")}</Link></div>
+                    </div> : <p className="mt-5 max-w-2xl text-sm leading-6 text-app-cinza">{ui(planejamento ? estado.descricao : "Informe seus horários, ponto de partida e preferências. Depois a Appono encontrará sugestões que se encaixem no seu dia.")}</p>}
+                    <div className="mt-6 flex flex-wrap gap-3">{acaoPrincipal}{planejamento ? <Link href="/cliente/rotina/planejamento" className="inline-flex min-h-11 items-center justify-center rounded-full border border-app-baunilha-dourada px-6 py-3 text-sm font-bold text-app-mocha hover:bg-app-chantilly">{ui("Abrir semana")}</Link> : null}</div>
                 </article>
 
-                {planejamento ? <section className="rounded-[24px] bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada/55 lg:col-span-2 sm:p-7"><div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{ui("Planejamento ativo")}</p><h2 className="mt-2 text-xl font-semibold capitalize sm:text-2xl">{formatarData(planejamento.semana_inicio, localeUI)} – {formatarData(planejamento.semana_fim, localeUI)}</h2></div><Link href="/cliente/rotina/planejamento" className="inline-flex min-h-11 items-center justify-center rounded-full bg-app-caramelo-torrado px-6 py-3 text-xs font-bold uppercase tracking-[0.12em] text-white hover:bg-app-cafe-profundo">{ui("Gerenciar semana")}</Link></div></section> : null}
             </div> : null}
         </div>
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
-import { RoutineBreadcrumb, RoutineEmpty, RoutineHero, RoutineIcon, RoutineNotice, RoutineSkeleton, RoutineStatus } from "@/components/cliente/rotina/routine-ui";
+import { RoutineEmpty, RoutineHero, RoutineIcon, RoutineNotice, RoutineSkeleton, RoutineStatus } from "@/components/cliente/rotina/routine-ui";
 import { useInterface } from "@/lib/use-interface";
 import { apiRequest } from "@/lib/api";
 import { estadoPlanejamento } from "@/lib/routine-view.mjs";
@@ -76,6 +76,7 @@ export default function PlanejamentoRotinaPage() {
     const [feedbackEmEdicao, setFeedbackEmEdicao] = useState(null);
     const [confirmarExcluirFeedback, setConfirmarExcluirFeedback] = useState(null);
     const [semanaSelecionada, setSemanaSelecionada] = useState("");
+    const [agoraReferencia] = useState(() => Date.now());
     const versoes = { versao_perfil: Number(perfil?.versao ?? 0), versao_planejamento: Number(planejamento?.versao ?? 0) };
 
     async function carregar(semanaInicio = semanaSelecionada) {
@@ -122,6 +123,7 @@ export default function PlanejamentoRotinaPage() {
         recusadas: refeicoes.filter((item) => item.status === "RECUSADA").length,
         convertidas: refeicoes.filter((item) => item.status?.startsWith("CONVERTIDA")).length,
     }), [refeicoes]);
+    const pendentesDecisao = resumo.sugeridas + refeicoes.filter((item) => item.status === "ALTERADA").length;
     const estado = useMemo(() => estadoPlanejamento({ perfil, planejamento, refeicoes }), [perfil, planejamento, refeicoes]);
     const janelasPorId = useMemo(() => new Map((perfil?.janelas_alimentacao ?? []).map((janela) => [Number(janela.id_janela_alimentacao), janela])), [perfil]);
     const diasPlanejados = useMemo(() => {
@@ -137,11 +139,10 @@ export default function PlanejamentoRotinaPage() {
         }));
     }, [refeicoes]);
     const proximaRefeicao = useMemo(() => {
-        const agora = Date.now();
         return [...refeicoes]
-            .filter((refeicao) => !["RECUSADA", "CANCELADA"].includes(refeicao.status) && new Date(`${refeicao.data_refeicao}T${refeicao.horario_sugerido}`).getTime() >= agora)
+            .filter((refeicao) => !["RECUSADA", "CANCELADA"].includes(refeicao.status) && new Date(`${refeicao.data_refeicao}T${refeicao.horario_sugerido}`).getTime() >= agoraReferencia)
             .sort((a, b) => `${a.data_refeicao}T${a.horario_sugerido}`.localeCompare(`${b.data_refeicao}T${b.horario_sugerido}`))[0] ?? null;
-    }, [refeicoes]);
+    }, [refeicoes, agoraReferencia]);
 
     async function navegarSemana(direcao) {
         if (processando || carregando) return;
@@ -356,13 +357,7 @@ export default function PlanejamentoRotinaPage() {
     return (
         <main className="min-h-screen bg-white px-4 py-6 text-app-cafe-profundo sm:px-6 sm:py-8">
             <section className="mx-auto max-w-7xl">
-                <RoutineBreadcrumb>{ui("Voltar para Appono Rotina")}</RoutineBreadcrumb>
-                <div className="mt-4"><RoutineHero eyebrow={ui("Planejamento semanal")} title={ui("Sua semana, refeição por refeição.")} description={ui("Revise café, almoço, jantar e horários personalizados. Você decide o que aprovar, alterar ou transformar em reserva.")} aside={<div className="grid grid-cols-4 gap-2 rounded-[18px] bg-white/10 p-4 text-center ring-1 ring-white/15 sm:min-w-80">
-                    <div><p className="text-[9px] uppercase tracking-wider text-app-baunilha-dourada">{ui("Sugestões")}</p><strong className="mt-1 block text-xl">{resumo.sugeridas}</strong></div>
-                    <div><p className="text-[9px] uppercase tracking-wider text-app-baunilha-dourada">{ui("Aprovadas")}</p><strong className="mt-1 block text-xl">{resumo.aprovadas}</strong></div>
-                    <div><p className="text-[9px] uppercase tracking-wider text-app-baunilha-dourada">{ui("Recusadas")}</p><strong className="mt-1 block text-xl">{resumo.recusadas}</strong></div>
-                    <div><p className="text-[9px] uppercase tracking-wider text-app-baunilha-dourada">{ui("Confirmadas")}</p><strong className="mt-1 block text-xl">{resumo.convertidas}</strong></div>
-                </div>} /></div>
+                <div><RoutineHero eyebrow={ui("Minha semana")} title={ui("Sua semana de refeições")} description={ui("Escolha, ajuste ou reserve quando quiser.")} /></div>
 
                 {mensagem ? <div className="mt-5"><RoutineNotice type={conflito ? "warning" : mensagem.includes("aprovado") || mensagem.includes("gerado") || mensagem.includes("restaurado") ? "success" : "info"}>{ui(mensagem)}</RoutineNotice></div> : null}
                 {conflito ? <div className="mt-4"><RoutineNotice type="warning" action={<button type="button" disabled={Boolean(processando)} className="min-h-10 rounded-full border border-current px-4 text-xs font-bold uppercase tracking-wider" onClick={() => {
@@ -385,22 +380,16 @@ export default function PlanejamentoRotinaPage() {
                                 </h2>
                                 <button type="button" onClick={() => navegarSemana(1)} disabled={carregando || Boolean(processando)} aria-label={ui("Ver próxima semana")} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-app-baunilha-dourada text-lg outline-none transition hover:bg-app-chantilly focus-visible:ring-2 focus-visible:ring-app-caramelo-torrado disabled:opacity-40">›</button>
                             </div>
-                            <p className="mt-2 text-sm text-app-cinza">{planejamento ? ui("Planejamento salvo e protegido por controle de versão.") : ui("Ainda não há planejamento salvo para esta semana.")}</p>
                         </div>
                         <div className="flex flex-wrap gap-2 lg:justify-end">
                             <Link href="/cliente/rotina/configurar" className="inline-flex min-h-10 items-center justify-center rounded-full border border-app-baunilha-dourada px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:bg-app-chantilly">{ui("Configurar")}</Link>
                             <button type="button" disabled={Boolean(processando) || !perfil} onClick={() => planejamento ? setConfirmarGeracao(true) : gerarPlanejamento()} className="min-h-10 rounded-full bg-app-caramelo-torrado px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-app-cafe-profundo disabled:opacity-50">{ui(processando === "gerar" ? "Gerando..." : "Gerar semana")}</button>
-                            <button type="button" disabled={Boolean(processando) || !refeicoes.some((item) => item.id_restaurante && ["SUGERIDA", "ALTERADA"].includes(item.status))} onClick={aprovarTudo} className="min-h-10 rounded-full bg-app-cafe-profundo px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-app-creme-leve transition hover:bg-app-caramelo-torrado disabled:opacity-50">{ui("Aprovar tudo")}</button>
+                            <button type="button" title={ui("Mantém as sugestões na sua semana; não cria reserva nem cobrança.")} disabled={Boolean(processando) || !refeicoes.some((item) => item.id_restaurante && ["SUGERIDA", "ALTERADA"].includes(item.status))} onClick={aprovarTudo} className="min-h-10 rounded-full bg-app-cafe-profundo px-4 py-2 text-sm font-bold text-app-creme-leve transition hover:bg-app-caramelo-torrado disabled:opacity-50">{ui("Manter todas na semana")}</button>
                         </div>
                     </div>
-                    {proximaRefeicao ? <div className="border-t border-app-baunilha-dourada/45 bg-app-creme-leve/55 px-5 py-4 sm:px-6">
-                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                            <div><p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">{ui("Próxima refeição")}</p><p className="mt-1 font-semibold">{nomeJanela(janelasPorId.get(Number(proximaRefeicao.id_janela_alimentacao)), ui)} · {dataCurta(proximaRefeicao.data_refeicao, localeUI)} {ui("às")} {String(proximaRefeicao.horario_sugerido).slice(0, 5)}</p></div>
-                            <span className="text-sm text-app-mocha">{proximaRefeicao.restaurantes?.nome ?? ui("Aguardando sugestão compatível")}</span>
-                        </div>
-                    </div> : null}
                     {!perfil ? <p className="border-t border-app-baunilha-dourada/45 p-5 text-sm text-app-cinza sm:px-6">{ui("Configure sua rotina antes de gerar sugestões.")}</p> : null}
                 </section>
+
 
                 {carregando ? <div className="mt-5"><RoutineSkeleton cards={3} /></div> : null}
 
@@ -450,25 +439,23 @@ export default function PlanejamentoRotinaPage() {
                                                 <div className="grid gap-2 rounded-[14px] bg-app-creme-leve/65 p-4 text-sm xl:min-w-64">
                                                     <span className="font-semibold">{produto?.nome ?? ui("Reserva sem item")}</span>
                                                     <span className="text-app-mocha">{moeda(refeicao.preco_estimado, localeUI)} · {distancia(refeicao.distancia_km)}</span>
-                                                    {refeicao.tempo_estimado_minutos != null ? <span className="text-xs text-app-cinza">{refeicao.tempo_estimado_minutos} {ui("min estimados para o deslocamento e a refeição")}</span> : null}
                                                 </div>
                                             ) : null}
                                         </div>
 
                                         <div className="mt-5 flex flex-wrap gap-2">
-                                            {!convertida ? <button type="button" disabled={Boolean(processando)} onClick={() => editar(refeicao)} className="min-h-10 rounded-full border border-app-baunilha-dourada px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:bg-app-chantilly disabled:opacity-50">{ui("Alterar refeição")}</button> : null}
-                                            {!semSugestao && !convertida ? <button type="button" disabled={Boolean(processando)} onClick={() => setConfirmarOutraSugestao(refeicao)} className="min-h-10 rounded-full border border-app-baunilha-dourada px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:bg-app-chantilly disabled:opacity-50">{ui("Outra sugestão")}</button> : null}
+                                            {!convertida ? <button type="button" disabled={Boolean(processando)} onClick={() => editar(refeicao)} className="min-h-10 rounded-full border border-app-baunilha-dourada px-4 py-2 text-sm font-bold text-app-mocha transition hover:bg-app-chantilly disabled:opacity-50">{ui("Ver ou alterar opções")}</button> : null}
                                             {!semSugestao && !convertida && refeicao.status !== "APROVADA" ? (
-                                                <button type="button" disabled={Boolean(processando)} onClick={() => atualizarStatus(refeicao, "aprovar")} className="inline-flex min-h-10 items-center gap-2 rounded-full bg-app-cafe-profundo px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-app-creme-leve transition hover:bg-app-caramelo-torrado disabled:opacity-50"><RoutineIcon type="check" className="h-4 w-4" />{ui("Aprovar")}</button>
+                                                <button type="button" disabled={Boolean(processando)} onClick={() => atualizarStatus(refeicao, "aprovar")} className="inline-flex min-h-10 items-center gap-2 rounded-full bg-app-cafe-profundo px-4 py-2 text-sm font-bold text-app-creme-leve transition hover:bg-app-caramelo-torrado disabled:opacity-50"><RoutineIcon type="check" className="h-4 w-4" />{ui("Gostei desta sugestão")}</button>
                                             ) : null}
                                             {!semSugestao && !convertida && refeicao.status !== "RECUSADA" ? (
-                                                <button type="button" disabled={Boolean(processando)} onClick={() => setConfirmacaoRecusa(refeicao)} className="inline-flex min-h-10 items-center gap-2 rounded-full border border-red-300 px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-red-700 transition hover:bg-red-50 disabled:opacity-50"><RoutineIcon type="x" className="h-4 w-4" />{ui("Recusar")}</button>
+                                                <button type="button" disabled={Boolean(processando)} onClick={() => setConfirmacaoRecusa(refeicao)} className="inline-flex min-h-10 items-center gap-2 rounded-full border border-red-300 px-4 py-2 text-sm font-bold text-red-700 transition hover:bg-red-50 disabled:opacity-50"><RoutineIcon type="x" className="h-4 w-4" />{ui("Não quero esta sugestão")}</button>
                                             ) : null}
-                                            {!semSugestao && !convertida && refeicao.status !== "RECUSADA" ? (
-                                                <button type="button" disabled={Boolean(processando)} onClick={() => setConfirmacao({ tipo: "reserva", refeicao })} className="min-h-10 rounded-full border border-app-baunilha-dourada px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:bg-app-chantilly disabled:opacity-50">{ui("Criar reserva")}</button>
+                                            {!semSugestao && !convertida && refeicao.status === "APROVADA" ? (
+                                                <button type="button" disabled={Boolean(processando)} onClick={() => setConfirmacao({ tipo: "reserva", refeicao })} className="min-h-10 rounded-full border border-app-baunilha-dourada px-4 py-2 text-sm font-bold text-app-mocha transition hover:bg-app-chantilly disabled:opacity-50">{ui("Reservar mesa")}</button>
                                             ) : null}
-                                            {!semSugestao && !convertida && refeicao.status !== "RECUSADA" && refeicao.id_produto ? (
-                                                <button type="button" disabled={Boolean(processando)} onClick={() => setConfirmacao({ tipo: "pedido", refeicao })} className="min-h-10 rounded-full bg-app-caramelo-torrado px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-app-cafe-profundo disabled:opacity-50">{ui("Reserva com pedido")}</button>
+                                            {!semSugestao && !convertida && refeicao.status === "APROVADA" && refeicao.id_produto ? (
+                                                <button type="button" disabled={Boolean(processando)} onClick={() => setConfirmacao({ tipo: "pedido", refeicao })} className="min-h-10 rounded-full bg-app-caramelo-torrado px-4 py-2 text-sm font-bold text-white transition hover:bg-app-cafe-profundo disabled:opacity-50">{ui("Reservar e pedir")}</button>
                                             ) : null}
                                             {refeicao.id_reserva ? <Link href="/cliente/reservas" className="inline-flex h-10 items-center rounded-[8px] border border-app-baunilha-dourada px-4 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:bg-app-chantilly">{ui("Ver reserva")}</Link> : null}
                                             {refeicao.id_pedido ? <Link href={`/cliente/pedidos/${refeicao.id_pedido}`} className="inline-flex h-10 items-center rounded-[8px] border border-app-baunilha-dourada px-4 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:bg-app-chantilly">{ui("Ver pedido")}</Link> : null}

@@ -18,6 +18,7 @@ O projeto está em desenvolvimento, com módulos implementados e integrações q
 ## Sumário
 
 - [Funcionalidades e estado atual](#funcionalidades-e-estado-atual)
+- [Appono Rotina](#appono-rotina)
 - [Interface](#interface)
 - [Tecnologias e arquitetura](#tecnologias-e-arquitetura)
 - [Estrutura do repositório](#estrutura-do-repositório)
@@ -43,6 +44,16 @@ O projeto está em desenvolvimento, com módulos implementados e integrações q
 | Appono Rotina | Perfil, endereço geocodificado, até oito janelas alimentares, planejamento, agenda, recomendações explicáveis, segurança alimentar, feedback privado e conversão em reserva ou pedido | Escritas transacionais, controle de concorrência, RLS e feature flags; integrações externas continuam evolutivas |
 
 Estão pendentes de validação para um piloto financeiro: concorrência real, matriz RLS entre usuários, webhooks e estornos no sandbox, conciliação periódica independente das telas, alertas externos e restauração de backup. Os documentos de operação e piloto descrevem requisitos; não representam automações já entregues. Veja os [limites e pendências](docs/fluxos-operacionais.md#prontidão).
+
+## Appono Rotina
+
+O **Appono Rotina** ajuda o cliente a transformar preferências alimentares e horários do dia em um planejamento semanal de refeições. O fluxo foi desenhado para priorizar o planejamento já existente: ao acessar a área, o cliente é levado diretamente à sua semana; quando ainda não há planejamento, vê apenas a opção de configurar suas preferências.
+
+O cliente informa restrições e preferências alimentares, endereço e janelas de refeição. Com esses dados, a plataforma gera sugestões de restaurantes explicáveis e compatíveis com a rotina, permitindo aprovar, trocar ou recusar cada sugestão. As escolhas aprovadas podem seguir para reserva de mesa ou pedido antecipado, conforme a operação disponível no restaurante.
+
+No fluxo de reserva, iniciar o checkout cria uma reserva pendente e bloqueia a mesa temporariamente. Após o pagamento aprovado, a reserva é confirmada e a mesa permanece indisponível para o horário reservado. A mesa volta a ser elegível para novas reservas quando a visita é concluída pelo restaurante, a reserva é cancelada ou o cliente é marcado como não compareceu.
+
+As regras de disponibilidade consideram horário de funcionamento, conflito de reservas e status operacional da reserva. Integrações de agenda, notificações, grupos e insights dependem das respectivas feature flags e configurações externas.
 
 ## Interface
 
