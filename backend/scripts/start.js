@@ -18,8 +18,6 @@ function prepararTls({
         return { args: [], env: { ...env }, cleanup() {} };
     }
 
-    // Node antigo não lê o repositório do Windows. Exporte apenas certificados
-    // públicos já confiáveis; NODE_EXTRA_CA_CERTS é lido ao iniciar o processo.
     const certificates = exportCertificates();
     if (!certificates.includes("-----BEGIN CERTIFICATE-----")) {
         throw new Error("Nenhum certificado confiável foi encontrado no Windows.");

@@ -3,6 +3,7 @@ import { useSyncExternalStore } from "react";
 import { RotaProtegida } from "@/components/auth/rota-protegida";
 import { useTemaLocal } from "@/lib/use-tema-local";
 import { TelaCarregandoSessao } from "@/lib/use-sessao-local";
+import { RestauranteSidebar } from "@/components/restaurante/restaurante-sidebar";
 function inscrever() {
     return () => { };
 }
@@ -19,8 +20,9 @@ export default function LayoutRestaurante({ children }) {
         return <TelaCarregandoSessao />;
     }
     return (<RotaProtegida perfisPermitidos={["restaurant"]}>
-      <div data-appono-sem-traducao className={`area-autenticada area-restaurante min-h-full ${tema === "escuro" ? "tema-escuro" : ""}`}>
-        {children}
+      <div data-appono-sem-traducao className={`area-autenticada area-restaurante restaurant-shell min-h-full ${tema === "escuro" ? "tema-escuro" : ""}`}>
+        <RestauranteSidebar />
+        <div className="restaurant-page-content">{children}</div>
       </div>
     </RotaProtegida>);
 }

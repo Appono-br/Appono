@@ -2,21 +2,8 @@
 import { useInterface } from "@/lib/use-interface";
 import Image from "next/image";
 import Link from "next/link";
-import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 import { useEffect, useMemo, useState } from "react";
 import { apiRequest } from "@/lib/api";
-const navItems = [
-    { label: "Dashboard", href: "/restaurante/dashboard" },
-    { label: "Gestão de cardápio", href: "/restaurante/cardapio" },
-    { label: "Desempenho", href: "/restaurante/desempenho" },
-    { label: "Relatório financeiro", href: "/restaurante/financeiro" },
-    { label: "Reservas", href: "/restaurante/reservas" },
-    { label: "Pedidos", href: "/restaurante/pedidos" },
-    { label: "Histórico", href: "/restaurante/historico-pedidos" },
-    { label: "Mensagens", href: "/restaurante/mensagens" },
-    { label: "Suporte", href: "/restaurante/suporte" },
-    { label: "Configurações", href: "/restaurante/configuracoes" },
-];
 function Icon({ type, className = "h-5 w-5", }) {
     const paths = {
         alert: "M12 9v5M12 18h.01M10.3 3.9 2.1 17a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z",
@@ -37,7 +24,6 @@ export default function RestaurantPerformancePage() {
         const storedSession = window.localStorage.getItem("appono:session");
         return storedSession ? JSON.parse(storedSession) : null;
     });
-    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [dados, setDados] = useState({ items: [], total: 0, metricas: {} });
     const [mensagem, setMensagem] = useState("Carregando avaliações...");
     const [demandaRotina, setDemandaRotina] = useState({ itens: [], coorte_minima: 5 });
@@ -88,36 +74,7 @@ export default function RestaurantPerformancePage() {
       </main>);
     }
     return (<main className="flex min-h-screen flex-col bg-white text-app-cafe-profundo">
-      <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-app-creme-leve/90 text-app-cafe-profundo shadow-sm backdrop-blur-md">
-        <div className="mx-auto grid h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-5 lg:h-20">
-          <div aria-label={ui("Appono")}>
-            <Image src="/brand/appono-mark.svg" alt={ui("Appono")} width={88} height={88} className="h-11 w-11 lg:h-14 lg:w-14" priority/>
-          </div>
 
-          <nav className="hidden items-center justify-self-center gap-6 text-xs font-semibold text-app-cinza xl:flex">
-            {navItems.map((item) => (<Link key={item.label} href={item.href} className={item.href === "/restaurante/desempenho"
-                ? "text-app-cafe-profundo"
-                : "transition hover:text-app-cafe-profundo"}>
-                {ui(item.label)}
-              </Link>))}
-          </nav>
-
-          <ItemHeaderNotificacoes href="/restaurante/notificacoes" />
-          <button type="button" onClick={() => setMobileMenuOpen((current) => !current)} className="flex h-9 w-9 items-center justify-center justify-self-end rounded-[8px] border border-app-baunilha-dourada bg-white text-app-cafe-profundo xl:hidden" aria-label={ui("Abrir menu")} aria-expanded={mobileMenuOpen} aria-controls="restaurant-performance-menu">
-            <Icon type="menu"/>
-          </button>
-        </div>
-
-        {mobileMenuOpen ? (<nav id="restaurant-performance-menu" className="border-t border-app-baunilha-dourada/55 bg-app-creme-leve px-5 py-3 xl:hidden">
-            <div className="mx-auto grid max-w-7xl gap-2 text-xs font-semibold text-app-cinza">
-              {navItems.map((item) => (<Link key={item.label} href={item.href} onClick={() => setMobileMenuOpen(false)} className={item.href === "/restaurante/desempenho"
-                    ? "text-app-cafe-profundo"
-                    : "transition hover:text-app-cafe-profundo"}>
-                  {ui(item.label)}
-                </Link>))}
-            </div>
-          </nav>) : null}
-      </header>
 
       <section className="mx-auto w-full max-w-7xl flex-1 px-5 py-10 sm:py-14">
         <div className="border-t border-app-baunilha-dourada/60 pt-10">

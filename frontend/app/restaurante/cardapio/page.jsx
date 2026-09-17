@@ -5,22 +5,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { apiRequest } from "@/lib/api";
-import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 import { TelaCarregandoSessao, useSessaoLocal } from "@/lib/use-sessao-local";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 
-const navItems = [
-    { label: "Dashboard", href: "/restaurante/dashboard" },
-    { label: "Gestão de cardápio", href: "/restaurante/cardapio" },
-    { label: "Desempenho", href: "/restaurante/desempenho" },
-    { label: "Relatório financeiro", href: "/restaurante/financeiro" },
-    { label: "Reservas", href: "/restaurante/reservas" },
-    { label: "Cozinha", href: "/restaurante/pedidos" },
-    { label: "Histórico", href: "/restaurante/historico-pedidos" },
-    { label: "Mensagens", href: "/restaurante/mensagens" },
-    { label: "Suporte", href: "/restaurante/suporte" },
-    { label: "Configurações", href: "/restaurante/configuracoes" },
-];
 
 function Icon({ type, className = "h-5 w-5" }) {
     const paths = {
@@ -79,7 +66,6 @@ const categoriaInicial = {
 export default function RestaurantMenuManagementPage() {
     const { ui , localeUI } = useInterface();
     const { sessao, sessaoCarregada } = useSessaoLocal();
-    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [cardapios, setCardapios] = useState([]);
     const [mensagem, setMensagem] = useState("Carregando cardápio...");
     const [produtoExcluindoId, setProdutoExcluindoId] = useState(null);
@@ -265,38 +251,7 @@ export default function RestaurantMenuManagementPage() {
 
     return (
         <main className="flex min-h-screen flex-col bg-white text-app-cafe-profundo">
-            <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-app-creme-leve/90 text-app-cafe-profundo shadow-sm backdrop-blur-md">
-                <div className="mx-auto flex min-h-16 max-w-7xl items-center justify-between gap-3 px-4 lg:min-h-20">
-                    <div aria-label={ui("Appono")}>
-                        <Image src="/brand/appono-mark.svg" alt={ui("Appono")} width={88} height={88} className="h-11 w-11 lg:h-14 lg:w-14" priority />
-                    </div>
 
-                    <nav className="hidden items-center justify-self-center gap-6 text-xs font-semibold text-app-cinza xl:flex">
-                        {navItems.map((item) => (
-                            <Link key={item.label} href={item.href} className={item.href === "/restaurante/cardapio" ? "text-app-cafe-profundo" : "transition hover:text-app-cafe-profundo"}>
-                                {ui(item.label)}
-                            </Link>
-                        ))}
-                    </nav>
-
-                    <ItemHeaderNotificacoes href="/restaurante/notificacoes" />
-          <button type="button" onClick={() => setMobileMenuOpen((current) => !current)} className="flex h-9 w-9 items-center justify-center justify-self-end rounded-[8px] border border-app-baunilha-dourada bg-white text-app-cafe-profundo xl:hidden" aria-label={ui("Abrir menu")}>
-                        <Icon type="menu" />
-                    </button>
-                </div>
-
-                {mobileMenuOpen ? (
-                    <nav className="border-t border-app-baunilha-dourada/55 bg-app-creme-leve px-5 py-3 xl:hidden">
-                        <div className="mx-auto grid max-w-7xl gap-2 text-xs font-semibold text-app-cinza">
-                            {navItems.map((item) => (
-                                <Link key={item.label} href={item.href} onClick={() => setMobileMenuOpen(false)} className={item.href === "/restaurante/cardapio" ? "text-app-cafe-profundo" : "transition hover:text-app-cafe-profundo"}>
-                                    {ui(item.label)}
-                                </Link>
-                            ))}
-                        </div>
-                    </nav>
-                ) : null}
-            </header>
 
             <section className="gestao-cardapio mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6">
                 <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">

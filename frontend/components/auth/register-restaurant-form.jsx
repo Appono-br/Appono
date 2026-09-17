@@ -259,10 +259,8 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
 
     return (
       <div className="mx-auto w-full max-w-xl">
-        {/* CARD PRINCIPAL */}
         <div className="rounded-2xl bg-white px-6 py-7 shadow-sm ring-1 ring-app-baunilha-dourada/45 sm:px-9">
 
-          {/* LOGO */}
           <div className="mb-5 flex justify-center">
             <Image
               src="/brand/appono-mark.svg"
@@ -274,7 +272,6 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
             />
           </div>
 
-          {/* TOPO */}
           <div className="mb-5 flex items-center justify-between gap-3">
             <Link
               href="/"
@@ -303,7 +300,6 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
             </p>
           </div>
 
-          {/* TÍTULO */}
           <h1 className="text-2xl font-bold text-app-cafe-profundo">
             Torne-se um parceiro APPONO
           </h1>
@@ -313,10 +309,8 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
             Mercado Pago poderá ser conectada depois, nas configurações.
           </p>
 
-          {/* FORMULÁRIO */}
           <div className="mt-6 grid gap-3 sm:grid-cols-2">
 
-            {/* NOME DA LOJA */}
             <FormField
               label="Nome da loja"
               value={form.storeName}
@@ -328,7 +322,6 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
               className="sm:col-span-2"
             />
 
-            {/* RAZÃO SOCIAL */}
             <FormField
               label="Razão social"
               value={form.legalName}
@@ -340,7 +333,6 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
               className="sm:col-span-2"
             />
 
-            {/* EMAIL */}
             <FormField
               label="E-mail"
               type="email"
@@ -354,7 +346,6 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
               className="sm:col-span-2"
             />
 
-            {/* TELEFONE */}
             <FormField
               label="Telefone"
               value={form.phone}
@@ -371,7 +362,6 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
               className="sm:col-span-2"
             />
 
-            {/* CNPJ */}
             <FormField
               label="CNPJ"
               value={form.cnpj}
@@ -389,7 +379,6 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
               className="sm:col-span-2"
             />
 
-            {/* CEP */}
             <FormField
               label="CEP"
               value={form.cep}
@@ -407,7 +396,6 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
               className="sm:col-span-2"
             />
 
-            {/* ENDEREÇO */}
             <FormField
               label="Endereço"
               value={form.address}
@@ -419,7 +407,6 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
               className="sm:col-span-2"
             />
 
-            {/* BAIRRO */}
             <FormField
               label="Bairro"
               value={form.neighborhood}
@@ -430,7 +417,6 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
               required
             />
 
-            {/* CIDADE */}
             <FormField
               label="Cidade"
               value={form.city}
@@ -441,7 +427,6 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
               required
             />
 
-            {/* UF */}
             <FormField
               label="UF"
               value={form.uf}
@@ -453,7 +438,6 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
               maxLength={2}
             />
 
-            {/* NÚMERO */}
             <FormField
               label="Número"
               value={form.number}
@@ -464,7 +448,6 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
               required
             />
 
-            {/* COMPLEMENTO */}
             <FormField
               label="Complemento"
               value={form.complement}
@@ -475,7 +458,6 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
               className="sm:col-span-2"
             />
 
-            {/* NÚMERO DE MESAS */}
             <FormField
               label="Número de mesas"
               type="number"
@@ -489,7 +471,6 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
               className="sm:col-span-2"
             />
 
-            {/* SENHA */}
             {!isGoogleFlow ? (
               <FormField
                 label="Senha"
@@ -505,7 +486,6 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
               />
             ) : null}
 
-            {/* IMAGEM DO RESTAURANTE */}
             <label className="group grid gap-3 rounded-xl border-2 border-dashed border-app-baunilha-dourada/50 bg-white p-5 text-center transition hover:border-app-caramelo-torrado hover:bg-app-chantilly sm:col-span-2">
 
               <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-app-caramelo-torrado">
@@ -514,7 +494,6 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
 
               <div className="flex flex-col items-center gap-3">
 
-                {/* PREVIEW */}
                 <div
                   className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full bg-app-creme-suave bg-cover bg-center ring-2 ring-app-caramelo-torrado/20 transition group-hover:ring-app-dourado-mel"
                   style={
@@ -544,14 +523,12 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
                   ) : null}
                 </div>
 
-                {/* TEXTO */}
                 <span className="text-xs leading-5 text-app-cinza">
                   Selecione JPG, PNG ou WebP de até 5 MB.
                   <br />
                   Esta imagem aparecerá para os clientes.
                 </span>
 
-                {/* BOTÃO */}
                 <span className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-app-caramelo-torrado px-4 py-2 text-xs font-bold text-white transition hover:bg-app-cafe-profundo">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -584,7 +561,6 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
             </label>
           </div>
 
-          {/* DIVISÓRIA + BOTÃO */}
           <div className="mt-6 flex flex-col-reverse gap-3 border-t border-app-creme-suave pt-5 sm:flex-row sm:items-center sm:justify-between">
 
             <p className="text-[10px] leading-4 text-app-cinza">
@@ -630,7 +606,6 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
             </button>
           </div>
 
-          {/* LOGIN */}
           <div className="mt-3 flex flex-col gap-2 text-sm text-app-cinza sm:flex-row sm:items-center sm:justify-between">
             <span>
               Já possui uma conta?{" "}

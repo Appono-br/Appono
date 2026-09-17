@@ -18,10 +18,6 @@ function normalizar(texto) {
   return String(texto ?? "").trim().toLocaleLowerCase("pt-BR");
 }
 
-/**
- * Traduz somente termos aprovados pela aplicação. Conteúdo que não estiver no
- * glossário permanece no idioma original para não alterar nomes, valores ou regras.
- */
 export function traduzirConteudoGlossario(texto, idioma) {
   if (idioma !== "en") return String(texto ?? "");
   return glossarioPtBrEn[normalizar(texto)] ?? String(texto ?? "");

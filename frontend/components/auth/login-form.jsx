@@ -237,7 +237,6 @@ export function LoginForm() {
             className="mt-5 space-y-3"
           >
             
-            {/* E-MAIL */}
             <label className="flex flex-col gap-1">
               <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-app-mocha">
                 Endereço de e-mail
@@ -255,7 +254,6 @@ export function LoginForm() {
               />
             </label>
 
-            {/* SENHA */}
             <label className="flex flex-col gap-1">
               <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-app-mocha">
                 Senha

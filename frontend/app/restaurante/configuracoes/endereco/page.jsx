@@ -4,7 +4,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { apiRequest } from "@/lib/api";
-import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 import { TelaCarregandoSessao, useSessaoLocal } from "@/lib/use-sessao-local";
 import { aplicarMascaraCep } from "@/lib/validacoes/cep";
 const initialForm = {
@@ -106,27 +105,7 @@ export default function RestaurantAddressSettingsPage() {
       </main>);
     }
     return (<main className="flex min-h-screen flex-col bg-white text-app-cafe-profundo">
-      <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-app-creme-leve/90 text-app-cafe-profundo shadow-sm backdrop-blur-md">
-        <div className="mx-auto grid min-h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-5 py-2">
-          <div aria-label={ui("Appono")}>
-            <Image src="/brand/appono-mark.svg" alt={ui("Appono")} width={72} height={72} className="h-11 w-11" priority/>
-          </div>
-          <div className="flex items-center justify-center gap-6">
-            <Link href="/restaurante/configuracoes" className="transition hover:text-app-caramelo-torrado" aria-label={ui("Voltar para configurações")}>
-              <Icon type="arrow-left" className="h-5 w-5"/>
-            </Link>
-            <h1 className="text-lg font-bold uppercase tracking-[0.14em] sm:text-2xl">{ui("Configurações")}</h1>
-          </div>
-          <div className="hidden items-center justify-self-end gap-3 text-right sm:flex">
-            <ItemHeaderNotificacoes href="/restaurante/notificacoes" />
-            <Icon type="help" className="h-5 w-5 text-app-mocha"/>
-            <div>
-              <p className="text-xs font-semibold text-app-mocha">{ui("Gestor de Restaurante")}</p>
-              <p className="text-[10px] font-semibold text-app-caramelo-torrado">{ui("Acesso Administrativo")}</p>
-            </div>
-          </div>
-        </div>
-      </header>
+      <div className="px-5 pt-6"><Link href="/restaurante/configuracoes" className="inline-flex items-center gap-2 text-sm font-semibold text-app-caramelo-torrado"><span aria-hidden="true">&larr;</span>{ui("Voltar para configurações")}</Link></div>
 
       <section className="border-b border-app-baunilha-dourada/45 bg-white px-5 py-7">
         <div className="mx-auto flex max-w-7xl items-center gap-4">

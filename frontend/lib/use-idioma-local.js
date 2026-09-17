@@ -32,7 +32,7 @@ export function useIdiomaLocal() {
 
   function alternarIdioma() {
     const proximoIdioma = idioma === "pt-BR" ? "en" : "pt-BR";
-    try { window.localStorage.setItem(chaveIdioma, proximoIdioma); } catch { /* Preferência válida nesta aba. */ }
+    try { window.localStorage.setItem(chaveIdioma, proximoIdioma); } catch { }
     document.documentElement.lang = proximoIdioma;
     window.dispatchEvent(new Event(eventoIdioma));
   }

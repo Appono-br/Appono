@@ -1,25 +1,11 @@
 "use client";
 
 import { useInterface } from "@/lib/use-interface";
-import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 import { apiRequest } from "@/lib/api";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 
-const navItems = [
-  { label: "Dashboard", href: "/restaurante/dashboard" },
-  { label: "Gestão de cardápio", href: "/restaurante/cardapio" },
-  { label: "Desempenho", href: "/restaurante/desempenho" },
-  { label: "Relatório financeiro", href: "/restaurante/financeiro" },
-  { label: "Reservas", href: "/restaurante/reservas" },
-  { label: "Cozinha", href: "/restaurante/pedidos" },
-  { label: "Histórico", href: "/restaurante/historico-pedidos" },
-  { label: "Mensagens", href: "/restaurante/mensagens" },
-  { label: "Suporte", href: "/restaurante/suporte" },
-  { label: "Configurações", href: "/restaurante/configuracoes" },
-];
 
 const filtros = [
   { id: "todas", label: "Todas" },
@@ -43,7 +29,6 @@ function Icon({ type, className = "h-5 w-5" }) {
 
 export default function RestaurantMessagesPage() {
     const { ui, dataHoraUI } = useInterface();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [filtro, setFiltro] = useState("todas");
   const [busca, setBusca] = useState("");
   const [conversas, setConversas] = useState([]);
@@ -100,35 +85,7 @@ export default function RestaurantMessagesPage() {
 
   return (
     <main className="flex min-h-screen flex-col bg-white text-app-cafe-profundo">
-      <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-white/90 text-app-cafe-profundo shadow-sm backdrop-blur-md">
-        <div className="mx-auto grid h-16 max-w-7xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-5 lg:h-20">
-          <Image src="/brand/appono-mark.svg" alt={ui("Appono")} width={88} height={88} className="h-11 w-11 lg:h-14 lg:w-14" priority />
-          <nav className="hidden items-center justify-self-center gap-6 text-xs font-semibold text-app-cinza xl:flex">
-            {navItems.map((item) => (
-              <Link key={item.label} href={item.href} className={item.href === "/restaurante/mensagens" ? "text-app-cafe-profundo" : "transition hover:text-app-cafe-profundo"}>
-                {ui(item.label)}
-              </Link>
-            ))}
-          </nav>
-          <div className="flex items-center justify-self-end gap-3">
-            <ItemHeaderNotificacoes href="/restaurante/notificacoes" />
-            <button type="button" onClick={() => setMobileMenuOpen((current) => !current)} className="flex h-9 w-9 items-center justify-center rounded-[8px] border border-app-baunilha-dourada bg-white xl:hidden" aria-label={ui("Abrir menu")}>
-              <Icon type="menu" />
-            </button>
-          </div>
-        </div>
-        {mobileMenuOpen ? (
-          <nav className="border-t border-app-baunilha-dourada/55 bg-white px-5 py-3 xl:hidden">
-            <div className="mx-auto grid max-w-7xl gap-2 text-xs font-semibold text-app-cinza">
-              {navItems.map((item) => (
-                <Link key={item.label} href={item.href} onClick={() => setMobileMenuOpen(false)} className={item.href === "/restaurante/mensagens" ? "text-app-cafe-profundo" : "transition hover:text-app-cafe-profundo"}>
-                  {ui(item.label)}
-                </Link>
-              ))}
-            </div>
-          </nav>
-        ) : null}
-      </header>
+
 
       <section className="mx-auto w-full max-w-7xl flex-1 px-5 py-10 sm:py-14">
         <div className="overflow-hidden rounded-[24px] bg-app-cafe-profundo text-app-creme-leve shadow-sm">

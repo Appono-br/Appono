@@ -7,7 +7,6 @@ const { readFileSync } = require("node:fs");
 const path = require("node:path");
 const { randomUUID } = require("node:crypto");
 
-// No .env loading. Never accepts a remote host or a shared database name.
 const psql = process.env.APPONO_ROUTINE_PSQL;
 const port = Number(process.env.APPONO_ROUTINE_TEST_PORT);
 if (!psql || process.env.APPONO_ROUTINE_TEST_CLUSTER !== "isolated" || !Number.isInteger(port) || port < 1024 || port === 5432) {
@@ -44,13 +43,11 @@ before(async () => {
     for (const name of ["20260803000400_add_reservation_check_in_status.sql", "20260901000100_remove_preparation_time_from_orders.sql", "20260817000100_pending_reservation_until_order_payment.sql", "20260912000200_create_appono_routine.sql"]) {
         await query(file(`supabase/migrations/${name}`));
     }
-    // Exercise preflight against incompatible legacy data before installation.
     const actor = randomUUID();
     await query(`insert into clientes(id_auth) values(${quote(actor)});
       insert into perfis_rotina_cliente(id_cliente,tempo_maximo_minutos) select id_cliente,20 from clientes where id_auth=${quote(actor)};`);
     await assert.rejects(query(file(migration)), /Perfis de rotina incompativeis/);
     assert.equal(await query("select count(*) from information_schema.columns where table_name='perfis_rotina_cliente' and column_name='versao';"), "0");
-    // This fixture is synthetic; explicit correction is part of this test only.
     await query("update perfis_rotina_cliente set tempo_maximo_minutos=60;");
     await query(file(migration));
 });
@@ -101,7 +98,6 @@ async function race(first, second) {
     a.catch(() => ready());
     await held;
     const b = query(`set application_name='routine-race-second'; ${second}`);
-    // Verify that the second connection really waits on the advisory lock.
     const joined = Promise.allSettled([a,b]);
     let waiting = false;
     for (let attempt=0;attempt<10;attempt++) {

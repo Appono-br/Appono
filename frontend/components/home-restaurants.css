@@ -16,25 +16,25 @@
 .public-restaurants-pagination button { min-height: 40px; padding: 0 16px; border: 1px solid var(--discover-line); border-radius: 8px; color: var(--discover-text); }
 .public-restaurants-pagination button:hover:not(:disabled) { border-color: var(--discover-accent); }
 .public-restaurants-pagination button:disabled { opacity: 0.4; cursor: not-allowed; }
-.public-restaurants-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 320px)); justify-content: center; gap: 20px; }
+.public-restaurants-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 270px)); justify-content: center; gap: 16px; }
 .public-restaurant-card { display: flex; flex-direction: column; min-width: 0; width: 100%; overflow: hidden; border: 1px solid var(--discover-line); border-radius: 20px; background: var(--discover-card); color: var(--discover-text); text-align: left; transition: transform 250ms, box-shadow 250ms, border-color 250ms; }
 .public-restaurant-card:hover { transform: translateY(-5px); border-color: var(--discover-accent); box-shadow: 0 16px 40px #24171318; }
 .public-restaurant-image { position: relative; width: 100%; height: 210px; background: var(--discover-surface); overflow: hidden; }
-.public-restaurant-card .public-restaurant-image { height: 150px; }
+.public-restaurant-card .public-restaurant-image { height: 110px; }
 .public-restaurant-image img { object-fit: contain; padding: 20px; transition: transform 450ms; }
 .public-restaurant-card:hover img { transform: scale(1.04); }
 .public-restaurant-placeholder { display: flex; align-items: center; justify-content: center; height: 100%; color: var(--discover-accent); background: var(--discover-card); }
 .public-restaurant-placeholder svg { height: 64px; width: 64px; opacity: 0.65; }
-.public-restaurant-card-content { display: flex; flex-direction: column; padding: 16px; flex: 1; }
+.public-restaurant-card-content { display: flex; flex-direction: column; padding: 12px; flex: 1; }
 .public-restaurant-rating { display: inline-flex; align-items: center; gap: 6px; color: var(--discover-muted); font-size: 12px; }
 .public-restaurant-rating > span:first-child { color: var(--discover-accent); }
-.home-discover .public-restaurant-card h3 { margin-top: 10px; font-size: 18px; overflow-wrap: anywhere; }
+.home-discover .public-restaurant-card h3 { margin-top: 8px; font-size: 16px; overflow-wrap: anywhere; }
 .public-restaurant-address { margin-top: 8px; font-size: 12px; line-height: 1.6; color: var(--discover-muted); }
-.public-restaurant-tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0; }
+.public-restaurant-tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
 .public-restaurant-tags span { padding: 5px 9px; border: 1px solid var(--discover-line); border-radius: 999px; font-size: 10px; color: var(--discover-muted); }
 .public-restaurant-card-link { display: flex; align-items: center; justify-content: space-between; margin-top: auto; padding-top: 16px; border-top: 1px solid var(--discover-line); font-size: 12px; font-weight: 600; color: var(--discover-accent); }
 .public-restaurant-card-link > span { font-size: 20px; }
-.public-restaurant-skeleton { height: 320px; border-radius: 20px; border: 1px solid var(--discover-line); background: var(--discover-card); animation: public-loading 1.4s ease-in-out infinite; }
+.public-restaurant-skeleton { height: 260px; border-radius: 20px; border: 1px solid var(--discover-line); background: var(--discover-card); animation: public-loading 1.4s ease-in-out infinite; }
 .public-restaurants-empty { padding: 48px 24px; border: 1px dashed var(--discover-line); border-radius: 20px; text-align: center; }
 .public-restaurants-empty p { margin: 12px 0 24px; color: var(--discover-muted); font-size: 14px; line-height: 1.7; }
 .home-discover .public-restaurants-section { scroll-margin-top: calc(var(--home-header-height) + 20px); }
@@ -65,9 +65,9 @@
   .home-search-desktop { display: flex; }
   .home-search-mobile-row { display: none; }
 }
-@media (max-width: 1000px) { .public-restaurants-grid { grid-template-columns: repeat(2, minmax(0, 320px)); } }
+@media (max-width: 1000px) { .public-restaurants-grid { grid-template-columns: repeat(2, minmax(0, 270px)); } }
 @media (max-width: 600px) {
-  .public-restaurants-grid { grid-template-columns: minmax(0, 320px); }
+  .public-restaurants-grid { grid-template-columns: minmax(0, 270px); }
   .public-restaurants-heading { flex-direction: column; gap: 0; }
   .public-restaurants-heading > button { margin: 0 0 24px; }
   .public-preview-info { grid-template-columns: 1fr; }

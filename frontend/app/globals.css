@@ -61,15 +61,11 @@
   .home-carousel-content { padding-top: 16px; padding-bottom: 80px; }
 }
 
-/* Cores anteriores preservadas apenas no tema claro. Regras de layout são
-   compartilhadas; a paleta escura centralizada está em tema-escuro.css. */
 
-/* Gradiente fotográfico independente das cores de texto de cada tema. */
 .home-hero-overlay {
   background: linear-gradient(180deg, rgb(15 11 9 / 0.3), rgb(15 11 9 / 0.6), rgb(15 11 9 / 0.9));
 }
 
-/* Opções longas crescem verticalmente e permanecem dentro do diálogo. */
 [role="dialog"].fixed {
   overflow-y: auto;
   padding-block: 1rem;
@@ -198,7 +194,6 @@ body {
   color: var(--foreground);
 }
 
-/* Mantém uma indicação visual consistente para ações em toda a aplicação. */
 button:not(:disabled),
 a[href],
 [role="button"]:not([aria-disabled="true"]),
@@ -1146,8 +1141,6 @@ html {
   background-color: rgb(255 255 255 / 0.1) !important;
 }
 
-/* As regras públicas acima preservam o visual claro; estas sobrescrevem-nas
-   quando o usuário escolhe o tema escuro na página inicial. */
 
 :where(html:not([data-tema=escuro])) body > div:not(.area-autenticada) .home-publica :is(form, section, article, div)[class*="bg-white"] {
   border-color: rgb(181 154 120 / 0.6);

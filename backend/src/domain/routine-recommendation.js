@@ -296,7 +296,6 @@ function criarCandidatos({ perfil, restaurantes, preferencias = [], restricoes =
         }
         const minimo = numeroValido(restaurante.valor_minimo_reserva_por_pessoa) ?? 0;
         const produtos = obterProdutosRestaurante(restaurante);
-        // Alergias so recebem prato quando a ficha revisada permite uma decisao conservadora.
         const produtosCompativeis = produtos.filter((produto) =>
             !produtoIncompativel(produto, restaurante, restricoes) && produtoSeguroParaAlergias(produto, alergias));
         const produtosNoMinimo = produtosCompativeis.filter((produto) => (numeroValido(produto.preco) ?? 0) >= minimo);
