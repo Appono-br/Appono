@@ -655,7 +655,7 @@ export default function RestaurantOrderHistoryPage() {
                 </div>
 
                 <section className="mt-8 rounded-[14px] bg-app-creme-leve p-2 ring-1 ring-app-baunilha-dourada/65">
-                    <div className="abas-historico grid gap-2 sm:grid-cols-2">
+                    <div className="grid gap-2 sm:grid-cols-2">
                         <button type="button" aria-pressed={abaAtiva === "PEDIDOS"} onClick={() => setAbaAtiva("PEDIDOS")} className={`rounded-xl px-4 py-3 text-left transition ${abaAtiva === "PEDIDOS" ? "bg-app-botao-aba-ativa text-app-botao-aba-ativa-texto" : "text-app-cafe-profundo hover:bg-app-chantilly"}`}>
                             <span className="block text-[10px] font-bold uppercase tracking-[0.2em] opacity-80">{ui("Cozinha")}</span>
                             <strong className="mt-1 block text-lg">{ui("Pedidos")}</strong>

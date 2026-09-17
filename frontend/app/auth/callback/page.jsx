@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { apiRequest } from "@/lib/api";
 import { getDashboardPath, persistAuthResponse } from "@/lib/session";
 import { supabase } from "@/lib/supabase";
+import { chaveRetornoRestaurante, obterRetornoRestaurante } from "@/lib/retorno-restaurante.mjs";
 export default function AuthCallbackPage() {
     const [message, setMessage] = useState("Confirmando seu acesso...");
     useEffect(() => {
@@ -57,7 +58,9 @@ export default function AuthCallbackPage() {
                         : "Não foi possível carregar seu perfil Appono.");
                 }
                 await persistAuthResponse({ ...profile, session });
-                window.location.replace(getDashboardPath(profile.tipo));
+                const destino = obterRetornoRestaurante(sessionStorage.getItem(chaveRetornoRestaurante), profile.tipo);
+                sessionStorage.removeItem(chaveRetornoRestaurante);
+                window.location.replace(destino ?? getDashboardPath(profile.tipo));
             }
             catch (error) {
                 setMessage(error instanceof Error

@@ -2,65 +2,24 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import { HomeCarousel } from "@/components/home-carousel";
+import { HomeSections } from "@/components/home-sections";
 import { useIdiomaLocal } from "@/lib/use-idioma-local";
 import { useTemaLocal } from "@/lib/use-tema-local";
 
-const heroImage = "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=1800&q=80";
-const foodImage = "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=1200&q=80";
-const restaurantImage = "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=80";
-const chefImage = "https://images.unsplash.com/photo-1577219491135-ce391730fb2c?auto=format&fit=crop&w=1200&q=80";
 
 const headerLinks = [
   { label: "Início", href: "#inicio" },
-  { label: "Como usar", href: "#reserva" },
+  { label: "Restaurantes", href: "#restaurantes" },
   { label: "Sobre", href: "#sobre" },
 ];
-const headerLinkClass = "rounded-md px-4 py-2.5 font-normal text-app-cafe-profundo outline-none transition-all duration-200 hover:-translate-y-0.5 hover:font-bold focus-visible:ring-2 focus-visible:ring-app-caramelo-torrado motion-reduce:transform-none";
+const headerLinkClass = "rounded-md px-4 py-2.5 font-bold text-app-cafe-profundo outline-none transition-all duration-200 hover:-translate-y-0.5 focus-visible:ring-2 focus-visible:ring-app-caramelo-torrado motion-reduce:transform-none";
 
-const valueCards = [
-  {
-    title: "Reserva fácil",
-    text: "Escolha restaurante, horário e quantidade de pessoas com poucos passos.",
-    icon: "calendar",
-  },
-  {
-    title: "Menos espera",
-    text: "Antecipe o pedido para que a cozinha se organize antes da sua chegada.",
-    icon: "clock",
-  },
-  {
-    title: "Fluxo inteligente",
-    text: "O restaurante acompanha reservas, pedidos e capacidade em um só lugar.",
-    icon: "trending",
-  },
-];
-
-const faqs = [
-  {
-    question: "A Appono faz delivery?",
-    answer: "Não. A proposta da Appono é melhorar a experiência presencial em restaurantes, conectando reserva de mesa e pedido antecipado.",
-  },
-  {
-    question: "Preciso escolher os pratos antes de chegar?",
-    answer: "A escolha antecipada é opcional, mas é ela que ajuda o restaurante a reduzir espera e organizar melhor a cozinha.",
-  },
-  {
-    question: "O restaurante também usa a plataforma?",
-    answer: "Sim. O restaurante acompanha reservas, pedidos antecipados, capacidade e status operacional pelo módulo próprio.",
-  },
-];
-
-function Icon({ type, className = "h-5 w-5" }) {
-  const paths = {
-    calendar: "M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z",
-    clock: "M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z M12 6v6l4 2",
-    trending: "M23 6 13.5 15.5 8.5 10.5 1 18 M17 6h6v6",
-  };
-  return (
-    <svg aria-hidden="true" viewBox="0 0 24 24" className={className}>
-      <path d={paths[type]} fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" />
-    </svg>
-  );
+function RestaurantSearch({ value, onChange, onSubmit, mobile = false, english }) {
+  return <form role="search" onSubmit={onSubmit} className={`home-restaurant-search ${mobile ? "home-search-mobile" : "home-search-desktop"}`} data-appono-sem-traducao>
+    <input type="text" inputMode="search" enterKeyHint="search" name="q" spellCheck={false} value={value} onChange={(event) => onChange(event.target.value)} aria-label={english ? "Search restaurants" : "Buscar restaurantes"} placeholder={english ? "Search restaurants" : "Buscar restaurantes"} />
+    <button type="submit" aria-label={english ? "Search" : "Buscar"}><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"><circle cx="10.5" cy="10.5" r="6.5" /><path d="m16 16 4 4" /></svg></button>
+  </form>;
 }
 
 export default function HomePage() {
@@ -68,18 +27,31 @@ export default function HomePage() {
   const { tema, atualizarTema } = useTemaLocal();
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileDialog, setProfileDialog] = useState(null);
-  const [activeFaq, setActiveFaq] = useState(0);
+  const [searchInput, setSearchInput] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const idiomaDeDestino = idioma === "en" ? "Português" : "English";
 
   function closeMenu() {
     setMenuOpen(false);
   }
 
+  function searchRestaurants(event) {
+    event.preventDefault();
+    setSearchQuery(searchInput.trim());
+    closeMenu();
+    document.getElementById("restaurantes")?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+  }
+
+  function clearSearch() {
+    setSearchInput("");
+    setSearchQuery("");
+  }
+
   return (
     <main className={`home-publica min-h-screen bg-white text-app-texto-escuro ${tema === "escuro" ? "tema-escuro" : ""}`}>
       <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-white/95 backdrop-blur">
   <div className="mx-auto flex min-h-20 max-w-7xl items-center justify-between gap-2 px-3 py-2 sm:px-6 xl:grid xl:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
-    <div className="flex shrink-0 items-center">
+    <div className="home-header-brand-search flex min-w-0 items-center gap-6">
       <Link href="/" className="flex shrink-0 items-center" onClick={closeMenu}>
         <Image
           src="/brand/appono-mark.svg"
@@ -89,6 +61,7 @@ export default function HomePage() {
           className="h-12 w-auto transition-transform duration-300 hover:scale-105 sm:h-16"
         />
       </Link>
+      <RestaurantSearch value={searchInput} onChange={setSearchInput} onSubmit={searchRestaurants} english={idioma === "en"} />
     </div>
 
     <nav aria-label="Navegação principal" className="hidden min-w-0 items-center justify-self-center gap-2 whitespace-nowrap text-base xl:flex">
@@ -161,6 +134,8 @@ export default function HomePage() {
     </div>
   </div>
 
+  <div className="home-search-mobile-row"><RestaurantSearch value={searchInput} onChange={setSearchInput} onSubmit={searchRestaurants} english={idioma === "en"} mobile /></div>
+
   {menuOpen ? (
     <div id="mobile-menu" className="border-t border-app-baunilha-dourada/50 bg-white px-5 py-5 xl:hidden">
       <nav className="mx-auto flex max-w-7xl flex-col gap-1 text-sm text-app-cafe-profundo">
@@ -184,194 +159,9 @@ export default function HomePage() {
   ) : null}
 </header>
 
-      <section id="inicio" className="home-hero relative flex min-h-[620px] items-center justify-center overflow-hidden bg-app-cafe-profundo px-5 py-20 text-white">
-  <Image src={heroImage} alt="Mesa reservada em restaurante elegante" fill priority sizes="100vw" className="absolute inset-0 h-full w-full object-cover opacity-90" />
-  <div className="home-hero-overlay absolute inset-0" aria-hidden="true" />
+      <HomeCarousel />
 
-  <div className="relative z-10 mx-auto flex max-w-3xl flex-col items-center text-center">
-    <h1 className="max-w-2xl text-4xl font-semibold leading-tight text-white sm:text-6xl">
-      Reserve sua mesa com antecedência
-    </h1>
-    <p className="mt-5 max-w-xl text-base leading-7 text-app-creme-suave sm:text-lg">
-      Planeje sua chegada, escolha seus pratos e ajude o restaurante a
-      preparar uma experiência presencial mais rápida e organizada.
-    </p>
-    <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-      <button type="button" onClick={() => setProfileDialog("cadastro")} className="rounded-full bg-white px-8 py-4 font-bold text-app-cafe-profundo tracking-wide transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl">
-        Reservar agora
-      </button>
-      <Link href="#reserva" className="rounded-full border border-white/40 px-8 py-4 font-bold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-white/10">
-        Saiba mais
-      </Link>
-    </div>
-  </div>
-</section>
-
-      <section id="reserva" className="bg-white py-20">
-        <div className="mx-auto max-w-7xl px-6">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 xl:grid-rows-2">
-            <div className="relative min-h-64 overflow-hidden rounded-3xl shadow-lg sm:col-span-2 xl:row-span-2">
-              <Image
-                src={foodImage}
-                alt="Pratos servidos em mesa"
-                fill
-                sizes="50vw"
-                className="h-full w-full object-cover"
-              />
-            </div>
-
-            <div className="relative isolate flex flex-col justify-center overflow-hidden rounded-3xl border border-app-baunilha-dourada/45 bg-app-chantilly px-8 py-8 text-app-cafe-profundo shadow-lg xl:col-span-2">
-              <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-white/70 blur-2xl" />
-              <div className="mb-5 h-1.5 w-14 rounded-full bg-app-caramelo-torrado" />
-              <p className="relative text-[11px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">
-                APPONO
-              </p>
-              <h2 className="relative mt-4 text-2xl font-bold leading-tight text-app-cafe-profundo sm:text-3xl">
-                A melhor experiência gastronômica.
-              </h2>
-              <p className="relative mt-4 text-sm leading-7 text-slate-700 sm:text-base">
-                A reserva e o pedido caminham juntos para reduzir a espera e
-                organizar o fluxo do restaurante.
-              </p>
-            </div>
-
-            <div className="overflow-hidden rounded-3xl shadow-sm">
-              <Image
-                src={chefImage}
-                alt="Chef preparando prato"
-                width={560}
-                height={420}
-                className="h-full w-full object-cover"
-              />
-            </div>
-
-            <div className="overflow-hidden rounded-3xl shadow-sm">
-              <Image
-                src={restaurantImage}
-                alt="Ambiente do restaurante"
-                width={560}
-                height={420}
-                className="h-full w-full object-cover"
-              />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="bg-white py-24">
-        <div className="mx-auto max-w-6xl px-6">
-          <div className="mx-auto max-w-2xl text-center">
-            <span className="inline-flex items-center gap-2 rounded-full bg-app-chantilly px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">
-              Por que a Appono
-            </span>
-            <h2 className="mt-4 text-4xl font-bold text-app-cafe-profundo">
-              Por que usar o Appono?
-            </h2>
-            <p className="mt-4 text-lg leading-8 text-app-mocha">
-              Tudo foi pensado para conectar o planejamento do cliente com a
-              operação do restaurante.
-            </p>
-          </div>
-
-          <div className="mt-14 grid gap-4 md:grid-cols-3">
-            {valueCards.map((card) => (
-              <article
-                key={card.title}
-                className="rounded-3xl border border-app-baunilha-dourada/60 bg-white p-8 text-center shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
-              >
-                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-app-chantilly text-app-caramelo-torrado">
-                  <Icon type={card.icon} className="h-6 w-6" />
-                </div>
-                <h3 className="mt-5 text-xl font-bold text-app-cafe-profundo">
-                  {card.title}
-                </h3>
-                <p className="mt-3 text-base leading-7 text-app-mocha">
-                  {card.text}
-                </p>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section id="sobre" className="bg-app-chantilly py-24">
-        <div className="mx-auto grid max-w-6xl items-center gap-16 px-6 md:grid-cols-2">
-          <div>
-            <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">
-              Nossa história
-            </span>
-
-            <h2 className="mt-4 text-4xl font-bold text-app-cafe-profundo">
-              Quem somos nós?
-            </h2>
-
-            <p className="mt-6 text-lg leading-9 text-app-mocha">
-              A Appono nasceu para melhorar a relação entre clientes e
-              restaurantes no consumo presencial. Nossa proposta é transformar
-              a reserva em uma experiência planejada, onde o cliente chega com
-              menos espera e o restaurante trabalha com mais previsibilidade.
-            </p>
-          </div>
-
-          <div className="overflow-hidden rounded-3xl shadow-lg">
-            <Image
-              src={restaurantImage}
-              alt="Ambiente interno de restaurante"
-              width={640}
-              height={420}
-              className="h-80 w-full object-cover transition-all duration-500 hover:scale-[1.03]"
-            />
-          </div>
-        </div>
-      </section>
-
-      <section className="bg-white py-24">
-        <div className="mx-auto max-w-5xl px-6">
-          <div className="text-center">
-            <span className="inline-flex items-center gap-2 rounded-full bg-app-chantilly px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">
-              Duvidas
-            </span>
-            <h2 className="mt-4 text-4xl font-bold text-app-cafe-profundo">
-              Perguntas frequentes
-            </h2>
-            <p className="mt-5 text-lg text-app-mocha">
-              Tire suas dúvidas sobre como funciona a Appono.
-            </p>
-          </div>
-
-          <div className="mt-12 space-y-4">
-            {faqs.map((faq, index) => (
-              <div
-                key={faq.question}
-                className="overflow-hidden rounded-3xl border border-app-baunilha-dourada/60 bg-white shadow-sm transition-all duration-300 hover:shadow-md"
-              >
-                <button
-                  type="button"
-                  onClick={() => setActiveFaq(index)}
-                  className="flex w-full items-center justify-between px-8 py-6 text-left"
-                >
-                  <span className="text-lg font-semibold text-app-cafe-profundo">
-                    {faq.question}
-                  </span>
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-app-chantilly text-xl font-light text-app-caramelo-torrado transition-transform duration-300">
-                    {activeFaq === index ? "−" : "+"}
-                  </span>
-                </button>
-
-                {activeFaq === index && (
-                  <div className="border-t border-app-creme-suave px-8 pb-6">
-                    <p className="pt-5 text-base leading-8 text-app-mocha">
-                      {faq.answer}
-                    </p>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-
+      <HomeSections searchQuery={searchQuery} onClearSearch={clearSearch} />
 
       {profileDialog ? (
         <div
