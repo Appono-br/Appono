@@ -80,9 +80,9 @@ export default function ConfigurarRotinaPage() {
     const [catalogo, setCatalogo] = useState([]);
     const [carregando, setCarregando] = useState(true);
     const [falhaCarga, setFalhaCarga] = useState(false);
+    const [erroCarga, setErroCarga] = useState("");
     const [versaoPerfil, setVersaoPerfil] = useState(null);
     const [conflito, setConflito] = useState(false);
-    const [recarregar, setRecarregar] = useState(0);
     const [rascunho, setRascunho] = useState(null);
     const [buscaPreferidos, setBuscaPreferidos] = useState("");
     const [confirmarDescartar, setConfirmarDescartar] = useState(false);
@@ -97,12 +97,14 @@ export default function ConfigurarRotinaPage() {
 
     useEffect(() => {
         let cancelado = false;
-        Promise.all([apiRequest("/rotina/perfil", { forceRefresh: true }), apiRequest("/rotina/catalogo")])
-            .then(([perfil, restaurantes]) => {
+        async function carregarConfiguracao(tentativa = 0) {
+            setCarregando(true);
+            setFalhaCarga(false);
+            setErroCarga("");
+            try {
+                const perfil = await apiRequest("/rotina/perfil", { forceRefresh: true });
                 if (cancelado) return;
-                setCatalogo(restaurantes);
                 setVersaoPerfil(Number(perfil?.versao ?? 0));
-                setFalhaCarga(false);
                 setConflito(false);
                 const proximoForm = perfil ? {
                         ...estadoInicial,
@@ -123,21 +125,32 @@ export default function ConfigurarRotinaPage() {
                         janelas_alimentacao: perfil.janelas_alimentacao?.length
                             ? perfil.janelas_alimentacao.map((janela, ordem) => ({ ...janela, horario_inicio: String(janela.horario_inicio).slice(0, 5), horario_fim: String(janela.horario_fim).slice(0, 5), ordem }))
                             : [janelaPadrao("ALMOCO")],
-                    } : estadoInicial;
+                } : estadoInicial;
                 setForm(proximoForm);
                 setFormSalvo(proximoForm);
-                setMensagem("");
-            })
-            .catch((error) => {
-                if (!cancelado) {
-                    setMensagem(error instanceof Error ? error.message : "Não foi possível carregar sua rotina.");
-                    setFalhaCarga(true);
+                try {
+                    const restaurantes = await apiRequest("/rotina/catalogo");
+                    if (!cancelado) setCatalogo(restaurantes);
+                } catch {
+                    // The catalog only feeds optional favorites and must not prevent saving the routine.
+                    if (!cancelado) setCatalogo([]);
                 }
-            }).finally(() => {
+            } catch (error) {
+                if (!cancelado) {
+                    if (tentativa < 2) {
+                        window.setTimeout(() => carregarConfiguracao(tentativa + 1), 600 * (tentativa + 1));
+                        return;
+                    }
+                    setFalhaCarga(true);
+                    setErroCarga(error instanceof Error ? error.message : "Não foi possível carregar sua rotina.");
+                }
+            } finally {
                 if (!cancelado) setCarregando(false);
-            });
+            }
+        }
+        carregarConfiguracao();
         return () => { cancelado = true; };
-    }, [recarregar]);
+    }, []);
 
     useEffect(() => {
         let cancelado = false;
@@ -235,21 +248,32 @@ export default function ConfigurarRotinaPage() {
         setForm((atual) => atual.janelas_alimentacao.length <= 1 ? atual : ({ ...atual, janelas_alimentacao: atual.janelas_alimentacao.filter((_, posicao) => posicao !== indice).map((janela, ordem) => ({ ...janela, ordem })) }));
     }
 
-    async function salvar(event, gerarExplicitamente = null) {
+    async function salvar(event, gerarExplicitamente = null, versaoForcada = null, tentativasConflito = 0) {
         event.preventDefault();
         const gerarDepois = gerarExplicitamente ?? event.nativeEvent?.submitter?.value === "gerar";
-        if (erroJanela || falhaCarga || salvando || conflito || versaoPerfil === null) {
-            setMensagem(erroJanela || "Recarregue a página para recuperar sua configuração antes de salvar.");
+        if (erroJanela || falhaCarga || salvando || versaoPerfil === null) {
+            setMensagem(erroJanela || "Aguarde o carregamento da sua rotina terminar antes de salvar.");
             return;
         }
         setSalvando(true);
         setMensagem("");
+        setConflito(false);
         try {
+            let versaoParaSalvar = versaoForcada ?? versaoPerfil;
+            if (versaoForcada === null) {
+                const perfilAtual = await apiRequest("/rotina/perfil", { forceRefresh: true, cacheTtlMs: 0 });
+                const versaoAtual = Number(perfilAtual?.versao ?? 0);
+                if (!Number.isSafeInteger(versaoAtual) || versaoAtual < 0) {
+                    throw new Error("Não foi possível confirmar a versão atual da sua rotina.");
+                }
+                versaoParaSalvar = versaoAtual;
+                setVersaoPerfil(versaoAtual);
+            }
             const janelaPrincipal = form.janelas_alimentacao.find((janela) => janela.tipo === "ALMOCO") ?? form.janelas_alimentacao[0];
             const perfilSalvo = await apiRequest("/rotina/perfil", {
                 method: "POST",
                 body: JSON.stringify({
-                    versao_perfil: versaoPerfil,
+                    versao_perfil: versaoParaSalvar,
                     nome: form.nome,
                     endereco_base: form.endereco_base,
                     dias_semana: janelaPrincipal.dias_semana,
@@ -268,20 +292,52 @@ export default function ConfigurarRotinaPage() {
                     janelas_alimentacao: form.janelas_alimentacao.map((janela, ordem) => ({ ...janela, ordem, tempo_maximo_minutos: campoNumero(janela.tempo_maximo_minutos), orcamento_por_refeicao: campoNumero(janela.orcamento_por_refeicao), raio_km: campoNumero(janela.raio_km) })),
                 }),
             });
-            setVersaoPerfil(Number(perfilSalvo.versao));
+            const perfilConfirmado = await apiRequest("/rotina/perfil", { forceRefresh: true, cacheTtlMs: 0 });
+            const janelasEsperadas = form.janelas_alimentacao.filter((janela) => janela.ativa !== false).length;
+            const janelasPersistidas = (perfilConfirmado?.janelas_alimentacao ?? []).filter((janela) => janela.ativa !== false).length;
+            if (janelasPersistidas !== janelasEsperadas) {
+                throw new Error("Não foi possível confirmar todas as refeições configuradas. Nenhum planejamento foi gerado.");
+            }
+            const versaoConfirmada = Number(perfilConfirmado?.versao ?? perfilSalvo?.versao);
+            if (!Number.isSafeInteger(versaoConfirmada) || versaoConfirmada < 0) {
+                throw new Error("Não foi possível confirmar o salvamento da sua rotina.");
+            }
+            setVersaoPerfil(versaoConfirmada);
             setFormSalvo(form);
             setRascunho(null);
             setCandidatosEndereco([]);
             setGeocodificacaoSelecionada("");
             if (gerarDepois) {
                 const planejamentoAtual = await apiRequest("/rotina/planejamento", { forceRefresh: true });
-                await apiRequest("/rotina/planejamento/gerar", { method: "POST", body: JSON.stringify({ versao_perfil: Number(perfilSalvo.versao), versao_planejamento: Number(planejamentoAtual?.planejamento?.versao ?? 0), semana_base: planejamentoAtual?.planejamento?.semana_inicio }) });
-                router.push("/cliente/rotina/planejamento");
+                const planejamentoGerado = await apiRequest("/rotina/planejamento/gerar", { method: "POST", body: JSON.stringify({ versao_perfil: versaoConfirmada, versao_planejamento: Number(planejamentoAtual?.planejamento?.versao ?? 0), semana_base: planejamentoAtual?.planejamento?.semana_inicio }) });
+                if (!planejamentoGerado?.planejamento || !Array.isArray(planejamentoGerado?.refeicoes)) {
+                    throw new Error("Não foi possível confirmar a geração da semana.");
+                }
+                window.location.assign("/cliente/rotina/planejamento");
                 return;
             }
-            setMensagem("Rotina salva. Agora você pode gerar o planejamento semanal.");
+            window.location.assign("/cliente/rotina/planejamento");
         } catch (error) {
-            if (error.status === 409) setConflito(true);
+            const ehConflito = error.status === 409 || /dados mudaram|rotina mudou em outra aba|precisa ser sincronizada|vers[aã]o.*atual/i.test(String(error?.message ?? ""));
+            if (ehConflito && tentativasConflito < 3) {
+                try {
+                    const perfilAtual = await apiRequest("/rotina/perfil", { forceRefresh: true, cacheTtlMs: 0 });
+                    const versaoAtual = Number(perfilAtual?.versao ?? 0);
+                    if (Number.isSafeInteger(versaoAtual) && versaoAtual >= 0) {
+                        setVersaoPerfil(versaoAtual);
+                        setConflito(false);
+                        return salvar(event, gerarExplicitamente, versaoAtual, tentativasConflito + 1);
+                    }
+                } catch {
+                    // A próxima tentativa mantém o estado do formulário sem exigir recarga manual.
+                }
+                return salvar(event, gerarExplicitamente, versaoForcada, tentativasConflito + 1);
+            }
+            if (ehConflito) {
+                setConflito(false);
+                setMensagem("Não foi possível concluir o salvamento agora. Tente novamente em instantes.");
+                return;
+            }
             if (error.code === "ROUTINE_ADDRESS_AMBIGUOUS") {
                 setCandidatosEndereco(error.details?.candidatos ?? []);
                 setMensagem("Encontramos mais de um endereço. Escolha a opção correta e salve novamente.");
@@ -300,10 +356,7 @@ export default function ConfigurarRotinaPage() {
                 <div className="mt-4"><RoutineHero eyebrow={ui("Configuração da rotina")} title={ui("Defina como sua semana deve funcionar.")} description={ui("Organize sua base, janela de almoço, orçamento e preferências. Você poderá revisar tudo antes de gerar sugestões.")} /></div>
                 <ol className="mt-5 grid gap-2 sm:grid-cols-3" aria-label={ui("Etapas da configuração")}>{[["Quando você costuma comer?", 0], ["O que funciona para você?", 1], ["Personalize, se quiser", 2]].map(([titulo, indice]) => <li key={titulo} className={`flex min-h-11 items-center gap-3 rounded-xl border px-4 text-sm font-semibold ${etapa === indice ? "border-app-caramelo-torrado bg-app-chantilly" : indice < etapa ? "border-app-baunilha-dourada bg-white" : "border-app-baunilha-dourada/50 bg-white text-app-cinza"}`}><span className={`flex h-6 w-6 items-center justify-center rounded-full text-xs ${indice <= etapa ? "bg-app-cafe-profundo text-app-creme-leve" : "bg-app-chantilly"}`}>{indice < etapa ? "✓" : indice + 1}</span>{ui(titulo)}</li>)}</ol>
 
-                {mensagem ? <div className="mt-5"><RoutineNotice type={conflito || falhaCarga ? "error" : "success"}>{ui(mensagem)}</RoutineNotice></div> : null}
-                {conflito || falhaCarga ? <div className="mt-4"><RoutineNotice type="warning" action={<button type="button" disabled={carregando} className="min-h-10 rounded-full border border-current px-4 text-xs font-bold uppercase tracking-wider" onClick={() => {
-                        setRascunho(form); setCarregando(true); setRecarregar((valor) => valor + 1);
-                    }}>{ui("Recarregar dados")}</button>}><p>{ui("Sua edição continua nesta tela. Recarregue para comparar com a versão salva.")}</p></RoutineNotice></div> : null}
+                {falhaCarga || mensagem ? <div className="mt-5"><RoutineNotice type={conflito || falhaCarga ? "error" : "success"}>{ui(falhaCarga ? erroCarga || "Não foi possível carregar sua rotina." : mensagem)}</RoutineNotice></div> : null}
                 {rascunho && !conflito && !carregando && !falhaCarga ? <div className="mt-4"><RoutineNotice type="info" action={<button type="button" className="min-h-10 rounded-full border border-current px-4 text-xs font-bold uppercase tracking-wider" onClick={() => {
                         setForm(rascunho); setRascunho(null); setMensagem("Rascunho restaurado. Revise antes de salvar sobre a versão atual.");
                     }}>{ui("Restaurar rascunho")}</button>}><p>{ui("Os dados salvos foram recarregados e seu rascunho anterior foi preservado.")}</p></RoutineNotice></div> : null}

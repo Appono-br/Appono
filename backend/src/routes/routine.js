@@ -145,14 +145,14 @@ async function buscarPerfilCompleto(banco, idCliente) {
 function versaoEsperada(body, campo) {
     const valor = body?.[campo];
     if (!Number.isSafeInteger(valor) || valor < 0) {
-        throw Object.assign(new Error("Recarregue os dados para obter a versão atual da rotina."), { status: 409 });
+        throw Object.assign(new Error("Não foi possível confirmar a versão atual da rotina."), { status: 409 });
     }
     return valor;
 }
 
 function conferirVersao(atual, esperada) {
     if (Number(atual ?? 0) !== esperada) {
-        throw Object.assign(new Error("Os dados mudaram em outra aba. Recarregue antes de continuar. Sua edição não foi salva."), { status: 409 });
+        throw Object.assign(new Error("A rotina foi atualizada e precisa ser sincronizada novamente."), { status: 409 });
     }
 }
 
@@ -367,9 +367,22 @@ async function salvarPerfil(req, res) {
             throw new Error("As janelas alimentares devem ser uma lista.");
         }
         const janelas = Array.isArray(req.body?.janelas_alimentacao) ? req.body.janelas_alimentacao : null;
-        const completo = janelas
-            ? await banco.rpc("salvar_rotina_com_janelas", { p_actor: res.locals.user.id, p_versao_perfil: versaoEsperada(req.body, "versao_perfil"), p_dados: dados, p_janelas: janelas }).then(({ data, error }) => { if (error) throw new Error(error.message); return data; })
-            : await mutarRotina(banco, res, req.body, "PERFIL", null, dados);
+        let completo;
+        if (janelas) {
+            const { data, error } = await banco.rpc("salvar_rotina_com_janelas", {
+                p_actor: res.locals.user.id,
+                p_versao_perfil: versaoEsperada(req.body, "versao_perfil"),
+                p_dados: dados,
+                p_janelas: janelas,
+            });
+            if (error) {
+                const status = { PT409: 409, PT404: 404, "42501": 403 }[error.code] ?? 400;
+                throw Object.assign(new Error(error.message), { status, code: error.code });
+            }
+            completo = data;
+        } else {
+            completo = await mutarRotina(banco, res, req.body, "PERFIL", null, dados);
+        }
         return res.status(atual ? 200 : 201).json(serializarPerfil(completo.perfil, completo.preferencias, completo.restricoes, completo.janelas_alimentacao));
     } catch (error) {
         return res.status(error.status ?? 400).json({ error: error instanceof Error ? error.message : "Não foi possível salvar a rotina." });

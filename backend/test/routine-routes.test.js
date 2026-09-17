@@ -171,3 +171,16 @@ test("perfil desatualizado e conflito de banco retornam HTTP 409 sem retry", asy
     assert.equal((await ctx.requisitar("/perfil",true,{versao_perfil:1})).status,409);
     assert.equal(ctx.chamadas.length,1);
 });
+
+test("conflito ao salvar janelas preserva HTTP 409 para o cliente recuperar a versao", async (t) => {
+    const ctx = await ambiente(t, { erroRpc: "A rotina mudou em outra aba", erroCodigo: "PT409" });
+    const resposta = await ctx.requisitar("/perfil", true, {
+        versao_perfil: 1,
+        janelas_alimentacao: [{
+            tipo: "ALMOCO", nome: "Almoço", dias_semana: ["monday"],
+            horario_inicio: "12:00", horario_fim: "14:00", tempo_maximo_minutos: 60,
+            raio_km: 5, ativa: true, ordem: 0,
+        }],
+    });
+    assert.equal(resposta.status, 409);
+});

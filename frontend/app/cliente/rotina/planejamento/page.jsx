@@ -98,6 +98,23 @@ export default function PlanejamentoRotinaPage() {
         }
     }
 
+    function ehConflitoRotina(error) {
+        return error?.status === 409 || /dados mudaram|rotina mudou em outra aba|precisa ser sincronizada|vers[aã]o.*atual/i.test(String(error?.message ?? ""));
+    }
+
+    async function recuperarConflito() {
+        if (edicao) setRascunhoEdicao(edicao);
+        setEdicao(null);
+        setConfirmacao(null);
+        setConfirmacaoRecusa(null);
+        setConfirmarOutraSugestao(null);
+        setConfirmarGeracao(false);
+        setConflito(false);
+        setMensagem("");
+        setCarregando(true);
+        await carregar();
+    }
+
     useEffect(() => {
         let cancelado = false;
         Promise.all([
@@ -165,7 +182,10 @@ export default function PlanejamentoRotinaPage() {
             setMensagem("Planejamento gerado.");
             setConfirmarGeracao(false);
         } catch (error) {
-            if (error.status === 409) setConflito(true);
+            if (ehConflitoRotina(error)) {
+                await recuperarConflito();
+                return;
+            }
             setMensagem(error instanceof Error ? error.message : "Não foi possível gerar o planejamento.");
         } finally {
             setProcessando("");
@@ -182,7 +202,10 @@ export default function PlanejamentoRotinaPage() {
             setRefeicoes(resposta.refeicoes ?? []);
             setMensagem("Planejamento aprovado.");
         } catch (error) {
-            if (error.status === 409) setConflito(true);
+            if (ehConflitoRotina(error)) {
+                await recuperarConflito();
+                return;
+            }
             setMensagem(error instanceof Error ? error.message : "Não foi possível aprovar o planejamento.");
         } finally {
             setProcessando("");
@@ -197,7 +220,10 @@ export default function PlanejamentoRotinaPage() {
             await carregar();
             setConfirmacaoRecusa(null);
         } catch (error) {
-            if (error.status === 409) setConflito(true);
+            if (ehConflitoRotina(error)) {
+                await recuperarConflito();
+                return;
+            }
             setMensagem(error instanceof Error ? error.message : "Não foi possível atualizar a refeição.");
         } finally {
             setProcessando("");
@@ -222,7 +248,10 @@ export default function PlanejamentoRotinaPage() {
             await carregar();
             setMensagem("Reserva criada a partir da rotina.");
         } catch (error) {
-            if (error.status === 409) setConflito(true);
+            if (ehConflitoRotina(error)) {
+                await recuperarConflito();
+                return;
+            }
             setMensagem(error instanceof Error ? error.message : "Não foi possível converter a sugestão.");
         } finally {
             setProcessando("");
@@ -256,7 +285,10 @@ export default function PlanejamentoRotinaPage() {
             setEdicao(null);
             await carregar();
         } catch (error) {
-            if (error.status === 409) setConflito(true);
+            if (ehConflitoRotina(error)) {
+                await recuperarConflito();
+                return;
+            }
             setMensagem(error.message);
         } finally {
             setProcessando("");
@@ -298,7 +330,10 @@ export default function PlanejamentoRotinaPage() {
             setConfirmarOutraSugestao(null);
             await carregar();
         } catch (error) {
-            if (error.status === 409 && error.code !== "ROUTINE_NO_ALTERNATIVE") setConflito(true);
+            if (ehConflitoRotina(error) && error.code !== "ROUTINE_NO_ALTERNATIVE") {
+                await recuperarConflito();
+                return;
+            }
             setMensagem(error.message);
         } finally {
             setProcessando("");
@@ -360,10 +395,6 @@ export default function PlanejamentoRotinaPage() {
                 <div><RoutineHero eyebrow={ui("Minha semana")} title={ui("Sua semana de refeições")} description={ui("Escolha, ajuste ou reserve quando quiser.")} /></div>
 
                 {mensagem ? <div className="mt-5"><RoutineNotice type={conflito ? "warning" : mensagem.includes("aprovado") || mensagem.includes("gerado") || mensagem.includes("restaurado") ? "success" : "info"}>{ui(mensagem)}</RoutineNotice></div> : null}
-                {conflito ? <div className="mt-4"><RoutineNotice type="warning" action={<button type="button" disabled={Boolean(processando)} className="min-h-10 rounded-full border border-current px-4 text-xs font-bold uppercase tracking-wider" onClick={() => {
-                        if (edicao) setRascunhoEdicao(edicao);
-                        setEdicao(null); setConfirmacao(null); setConfirmacaoRecusa(null); setConfirmarGeracao(false); carregar();
-                    }}>{ui("Recarregar versão salva")}</button>}><p>{ui("A rotina mudou em outra aba. Nenhuma ação foi repetida e sua edição pode ser retomada depois da recarga.")}</p></RoutineNotice></div> : null}
                 {rascunhoEdicao && !conflito ? <div className="mt-4"><RoutineNotice type="info" action={<button type="button" disabled={Boolean(processando)} onClick={retomarRascunho} className="min-h-10 rounded-full border border-current px-4 text-xs font-bold uppercase tracking-wider">{ui("Retomar edição")}</button>}><p>{ui("Seu rascunho foi preservado. Restaure-o sobre os dados atuais e revise antes de salvar.")}</p></RoutineNotice></div> : null}
 
                 <section className="mt-5 overflow-hidden rounded-[24px] bg-white shadow-sm ring-1 ring-app-baunilha-dourada/55">

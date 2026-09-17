@@ -206,6 +206,17 @@ test("gera uma sugestao por janela alimentar e preserva conversao da janela corr
     assert.deepEqual(regenerado.refeicoes.map((item) => item.id_janela_alimentacao), [11]);
 });
 
+test("gera uma refeicao por dia e por janela alimentar ativa", () => {
+    const diasUteis = ["monday", "tuesday", "wednesday", "thursday", "friday"];
+    const planejamento = planejar({}, undefined, { janelasAlimentacao: [
+        { id_janela_alimentacao: 10, tipo: "CAFE", nome: "Café", dias_semana: diasUteis, horario_inicio: "07:00", horario_fim: "10:00", tempo_maximo_minutos: 60, raio_km: 10 },
+        { id_janela_alimentacao: 11, tipo: "ALMOCO", nome: "Almoço", dias_semana: diasUteis, horario_inicio: "12:00", horario_fim: "14:00", tempo_maximo_minutos: 60, raio_km: 10 },
+    ] });
+    assert.equal(planejamento.refeicoes.length, 10);
+    assert.equal(planejamento.refeicoes.filter((item) => item.id_janela_alimentacao === 10).length, 5);
+    assert.equal(planejamento.refeicoes.filter((item) => item.id_janela_alimentacao === 11).length, 5);
+});
+
 test("restaurante sem operacao ou fechado nao recebe sugestao", () => {
     assert.ok(planejar({}, [restaurante({ configuracao_operacao: {} })]).refeicoes.every((item) => !item.id_restaurante));
     const apenasTerca = { days: [{ id: "tuesday", enabled: true, shifts: [{ open: "11:00", close: "16:00" }] }] };
