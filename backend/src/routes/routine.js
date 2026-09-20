@@ -3,7 +3,7 @@
 const { Router } = require("express");
 const { createUserSupabaseClient, supabaseAdmin } = require("../lib/supabase");
 const { requireAuth, requireRole } = require("../middleware/auth");
-const { gerarPlanejamentoRotina, normalizarDiasSemana, criarCandidatos, horarioCompativel, janelasLivresDia, motivoRecomendacao, semanaPlanejamento, validarLimitesRotina } = require("../domain/routine-recommendation");
+const { gerarPlanejamentoRotina, normalizarDiasSemana, criarCandidatos, horarioCompativel, janelasLivresDia, motivoRecomendacao, semanaAtual, semanaPlanejamento, validarLimitesRotina } = require("../domain/routine-recommendation");
 const { notificarCliente, notificarRestaurante } = require("../services/notificacoes");
 const paymentConfig = require("../services/pagamentos/config");
 const { geocodificarEnderecoRotina } = require("../services/geolocalizacao");
@@ -250,8 +250,11 @@ async function buscarPlanejamentoComRefeicoes(banco, idCliente, filtros = {}) {
         .eq("id_cliente", idCliente);
     if (filtros.id_planejamento_rotina) consulta = consulta.eq("id_planejamento_rotina", filtros.id_planejamento_rotina);
     if (filtros.semana_inicio) consulta = consulta.eq("semana_inicio", filtros.semana_inicio);
+    if (!filtros.id_planejamento_rotina && !filtros.semana_inicio) {
+        consulta = consulta.gte("semana_fim", dataSaoPauloAtual());
+    }
     const { data: planejamento, error } = await consulta
-        .order("semana_inicio", { ascending: false })
+        .order("semana_inicio", { ascending: !filtros.id_planejamento_rotina && !filtros.semana_inicio })
         .limit(1)
         .maybeSingle();
     if (error) throw new Error(error.message);
@@ -272,6 +275,16 @@ async function buscarPlanejamentoComRefeicoes(banco, idCliente, filtros = {}) {
         planejamento: campos,
         refeicoes: refeicoesOrdenadas.map((item) => ({ ...item, feedback_rotina: feedbackPorRefeicao.get(item.id_refeicao_planejada) ?? null })),
     };
+}
+
+function dataSaoPauloAtual() {
+    return new Date().toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" });
+}
+
+function inicioSemanaAnteriorPermitida() {
+    const atual = new Date(`${semanaAtual(new Date()).inicio}T12:00:00Z`);
+    atual.setUTCDate(atual.getUTCDate() - 7);
+    return atual.toISOString().slice(0, 10);
 }
 
 async function obterRefeicaoDoCliente(banco, idCliente, idRefeicao) {
@@ -396,6 +409,12 @@ rotinaRouter.get("/planejamento", async (req, res) => {
     if (!banco) return;
     try {
         const semanaInicio = dataValida(req.query.semana_inicio) ? String(req.query.semana_inicio) : null;
+        if (semanaInicio && semanaInicio < inicioSemanaAnteriorPermitida()) {
+            return res.status(422).json({
+                code: "ROUTINE_WEEK_OUT_OF_HISTORY_RANGE",
+                error: "Você pode consultar somente a semana atual, a próxima e a semana imediatamente anterior.",
+            });
+        }
         const resposta = await buscarPlanejamentoComRefeicoes(banco, res.locals.profileId, semanaInicio ? { semana_inicio: semanaInicio } : {});
         return res.json(resposta);
     } catch (error) {
@@ -418,6 +437,12 @@ rotinaRouter.post("/planejamento/gerar", async (req, res) => {
             return res.status(400).json({ error: "Semana inicial inválida." });
         }
         if (new Date(`${semanaInicio}T12:00:00Z`).getUTCDay() !== 1) return res.status(400).json({ error: "A semana deve começar na segunda-feira." });
+        if (semanaInicio < semanaAtual(new Date()).inicio) {
+            return res.status(422).json({
+                code: "ROUTINE_PAST_WEEK_NOT_ALLOWED",
+                error: "Semanas anteriores ficam disponíveis somente para consulta e não podem ser geradas novamente.",
+            });
+        }
         if (dadosPerfil.perfil.latitude === null || dadosPerfil.perfil.longitude === null) return res.status(400).json({ error: "Defina a localização da rotina antes de gerar sugestões por distância." });
         const anterior = await buscarPlanejamentoComRefeicoes(banco, res.locals.profileId, { semana_inicio: semanaInicio });
         const versaoExibida = versaoEsperada(req.body, "versao_planejamento");
@@ -480,8 +505,10 @@ rotinaRouter.post("/planejamento/gerar", async (req, res) => {
             historicoRecente: historicoRecente ?? [],
             feedbacks: feedbacksParaRanking,
         });
-        const resposta = await mutarRotina(banco, res, { ...req.body, versao_planejamento: versaoAlvo }, "GERAR", null, planejamentoGerado);
-        return res.status(201).json(resposta);
+        await mutarRotina(banco, res, { ...req.body, versao_planejamento: versaoAlvo }, "GERAR", null, planejamentoGerado);
+        const respostaPersistida = await buscarPlanejamentoComRefeicoes(banco, res.locals.profileId, { semana_inicio: semanaInicio });
+        if (!respostaPersistida.planejamento) throw new Error("Não foi possível confirmar o planejamento recém-gerado.");
+        return res.status(201).json(respostaPersistida);
     } catch (error) {
         return res.status(error.status ?? 400).json({ error: error instanceof Error ? error.message : "Não foi possível gerar o planejamento." });
     }

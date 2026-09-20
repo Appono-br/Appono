@@ -18,10 +18,14 @@ const {
     buscarOcupacao,
     configuracaoProvedor,
     criarUrlAutorizacao,
+    excluirEventoGoogle,
     identificarConta,
+    podeEscreverGoogle,
     renovarToken,
+    salvarEventoGoogle,
     trocarCodigo,
 } = require("../services/agenda/providers");
+const { hashEvento, idEventoGoogle, montarEventoGoogle } = require("../services/agenda/planning-events");
 
 const agendaRotinaRouter = Router();
 
@@ -54,6 +58,13 @@ agendaRotinaRouter.get("/:provider/callback", async (req, res) => {
     const provedor = normalizarProvedor(req.params.provider);
     const state = String(req.query.state ?? "");
     const code = String(req.query.code ?? "");
+    const erroOAuth = String(req.query.error ?? "");
+    if (provedor === "GOOGLE" && erroOAuth) {
+        return res.redirect(frontendUrl("/cliente/rotina/configurar", {
+            agenda: "erro",
+            code: erroOAuth === "access_denied" ? "GOOGLE_ACCESS_DENIED" : "OAUTH_CALLBACK_FAILED",
+        }));
+    }
     if (!provedor || !state || !code || !supabaseAdmin) {
         return res.redirect(frontendUrl("/cliente/rotina/configurar", { agenda: "erro", code: "OAUTH_CALLBACK_INVALIDO" }));
     }
@@ -109,7 +120,10 @@ agendaRotinaRouter.get("/", async (_req, res) => {
             const config = configuracaoProvedor(provedor);
             return { provedor, habilitado: config.enabled, configurado: config.configured };
         }),
-        conexoes: conexoes ?? [],
+        conexoes: (conexoes ?? []).map((conexao) => ({
+            ...conexao,
+            pode_escrever: conexao.provedor === "GOOGLE" && podeEscreverGoogle(conexao.escopos),
+        })),
         janelas_ocupadas: janelas ?? [],
     });
 });
@@ -194,6 +208,123 @@ agendaRotinaRouter.post("/:provider/sincronizar", async (req, res) => {
         await db.from("conexoes_agenda_cliente").update({ status: "ERRO", erro_codigo: codigo, erro_em: new Date().toISOString() })
             .eq("id_conexao_agenda", conexao.id_conexao_agenda).eq("id_cliente", res.locals.profileId);
         return erroHttp(res, falha, "A sincronização falhou. As últimas janelas válidas foram preservadas.");
+    }
+});
+
+agendaRotinaRouter.post("/google/planejamentos/:id/exportar", async (req, res) => {
+    const db = banco(res);
+    if (!db) return;
+    const idPlanejamento = Number(req.params.id);
+    const chave = String(req.body?.chave_idempotencia ?? "");
+    if (!Number.isSafeInteger(idPlanejamento) || idPlanejamento <= 0 ||
+        !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(chave)) {
+        return res.status(400).json({ code: "CALENDAR_EXPORT_INPUT_INVALID", error: "Planejamento ou chave de exportação inválidos." });
+    }
+    const [{ data: conexao, error: erroConexao }, { data: planejamento, error: erroPlanejamento }] = await Promise.all([
+        db.from("conexoes_agenda_cliente").select("*")
+            .eq("id_cliente", res.locals.profileId).eq("provedor", "GOOGLE").maybeSingle(),
+        db.from("planejamentos_rotina").select("id_planejamento_rotina,semana_inicio,semana_fim")
+            .eq("id_planejamento_rotina", idPlanejamento).eq("id_cliente", res.locals.profileId).maybeSingle(),
+    ]);
+    if (erroConexao || erroPlanejamento) return erroHttp(res, erroConexao || erroPlanejamento);
+    if (!planejamento) return res.status(404).json({ code: "CALENDAR_PLANNING_NOT_FOUND", error: "Planejamento não encontrado." });
+    if (!conexao || !["CONECTADO", "ERRO"].includes(conexao.status)) {
+        return res.status(404).json({ code: "CALENDAR_CONNECTION_NOT_FOUND", error: "Conecte o Google Agenda antes de enviar o planejamento." });
+    }
+    if (!podeEscreverGoogle(conexao.escopos)) {
+        return res.status(409).json({
+            code: "CALENDAR_WRITE_SCOPE_REQUIRED",
+            error: "Reconecte o Google Agenda uma vez para autorizar a criação dos eventos da rotina.",
+        });
+    }
+
+    try {
+        const accessToken = await tokenValido(db, conexao);
+        const [{ data: refeicoes, error: erroRefeicoes }, { data: vinculos, error: erroVinculos }] = await Promise.all([
+            db.from("refeicoes_planejadas")
+                .select("*,restaurantes(nome,endereco),produtos(nome),janelas_alimentacao_rotina(nome,tempo_maximo_minutos)")
+                .eq("id_planejamento_rotina", idPlanejamento).eq("id_cliente", res.locals.profileId),
+            db.from("eventos_planejamento_agenda").select("*")
+                .eq("id_planejamento_rotina", idPlanejamento)
+                .eq("id_conexao_agenda", conexao.id_conexao_agenda)
+                .eq("id_cliente", res.locals.profileId),
+        ]);
+        if (erroRefeicoes || erroVinculos) throw erroRefeicoes || erroVinculos;
+
+        const exportaveis = (refeicoes ?? []).filter((item) =>
+            item.id_restaurante && !["RECUSADA", "CANCELADA"].includes(item.status));
+        const idsAtuais = new Set(exportaveis.map((item) => Number(item.id_refeicao_planejada)));
+        const resultado = { criados_ou_atualizados: 0, removidos: 0, falhas: 0, total: exportaveis.length };
+
+        for (const refeicao of exportaveis) {
+            const evento = montarEventoGoogle(refeicao, process.env.FRONTEND_PUBLIC_URL ?? process.env.FRONTEND_ORIGIN);
+            const eventoId = idEventoGoogle(res.locals.profileId, refeicao.id_refeicao_planejada);
+            const hashConteudo = hashEvento(evento);
+            const baseVinculo = {
+                id_cliente: res.locals.profileId,
+                id_conexao_agenda: conexao.id_conexao_agenda,
+                id_planejamento_rotina: idPlanejamento,
+                id_refeicao_planejada: refeicao.id_refeicao_planejada,
+                provedor: "GOOGLE",
+                calendario_externo_id: "primary",
+                evento_externo_id: eventoId,
+                hash_conteudo: hashConteudo,
+            };
+            const { error: erroPendente } = await db.from("eventos_planejamento_agenda").upsert({
+                ...baseVinculo, status: "PENDENTE", erro_codigo: null,
+            }, { onConflict: "id_conexao_agenda,id_refeicao_planejada" });
+            if (erroPendente) throw erroPendente;
+            try {
+                await salvarEventoGoogle({ accessToken, eventoId, evento });
+                const { error: erroConcluir } = await db.from("eventos_planejamento_agenda").update({
+                    status: "SINCRONIZADO", erro_codigo: null, sincronizado_em: new Date().toISOString(),
+                }).eq("id_conexao_agenda", conexao.id_conexao_agenda)
+                    .eq("id_refeicao_planejada", refeicao.id_refeicao_planejada)
+                    .eq("id_cliente", res.locals.profileId);
+                if (erroConcluir) throw erroConcluir;
+                resultado.criados_ou_atualizados += 1;
+            } catch (falhaEvento) {
+                resultado.falhas += 1;
+                await db.from("eventos_planejamento_agenda").update({
+                    status: "FALHOU", erro_codigo: String(falhaEvento?.code ?? "CALENDAR_EVENT_EXPORT_FAILED").slice(0, 80),
+                }).eq("id_conexao_agenda", conexao.id_conexao_agenda)
+                    .eq("id_refeicao_planejada", refeicao.id_refeicao_planejada)
+                    .eq("id_cliente", res.locals.profileId);
+            }
+        }
+
+        for (const vinculo of vinculos ?? []) {
+            if (idsAtuais.has(Number(vinculo.id_refeicao_planejada)) || vinculo.status === "REMOVIDO") continue;
+            try {
+                await excluirEventoGoogle({ accessToken, eventoId: vinculo.evento_externo_id });
+                const { error: erroRemover } = await db.from("eventos_planejamento_agenda").update({
+                    status: "REMOVIDO", erro_codigo: null, sincronizado_em: new Date().toISOString(),
+                }).eq("id_evento_planejamento_agenda", vinculo.id_evento_planejamento_agenda)
+                    .eq("id_cliente", res.locals.profileId);
+                if (erroRemover) throw erroRemover;
+                resultado.removidos += 1;
+            } catch (falhaEvento) {
+                resultado.falhas += 1;
+                await db.from("eventos_planejamento_agenda").update({
+                    status: "FALHOU", erro_codigo: String(falhaEvento?.code ?? "CALENDAR_EVENT_DELETE_FAILED").slice(0, 80),
+                }).eq("id_evento_planejamento_agenda", vinculo.id_evento_planejamento_agenda)
+                    .eq("id_cliente", res.locals.profileId);
+            }
+        }
+
+        await db.from("conexoes_agenda_cliente").update({ status: "CONECTADO", erro_codigo: null, erro_em: null })
+            .eq("id_conexao_agenda", conexao.id_conexao_agenda).eq("id_cliente", res.locals.profileId);
+        return res.json({
+            exportacao: resultado,
+            semana_inicio: planejamento.semana_inicio,
+            chave_idempotencia: chave,
+            parcial: resultado.falhas > 0,
+        });
+    } catch (falha) {
+        const codigo = String(falha?.code ?? "CALENDAR_EXPORT_FAILED").slice(0, 80);
+        await db.from("conexoes_agenda_cliente").update({ status: "ERRO", erro_codigo: codigo, erro_em: new Date().toISOString() })
+            .eq("id_conexao_agenda", conexao.id_conexao_agenda).eq("id_cliente", res.locals.profileId);
+        return erroHttp(res, falha, "O planejamento foi salvo, mas não foi possível enviá-lo ao Google Agenda.");
     }
 });
 

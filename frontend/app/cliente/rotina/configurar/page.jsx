@@ -154,13 +154,23 @@ export default function ConfigurarRotinaPage() {
 
     useEffect(() => {
         let cancelado = false;
-        const resultado = new URLSearchParams(window.location.search).get("agenda");
+        const parametros = new URLSearchParams(window.location.search);
+        const resultado = parametros.get("agenda");
+        const codigoAgenda = parametros.get("code");
         apiRequest("/rotina/agenda", { forceRefresh: true, cacheTtlMs: 0 })
             .then((dados) => {
                 if (cancelado) return;
                 setAgenda(dados);
                 if (resultado === "conectada") setMensagem("Agenda conectada. Sincronize para revisar seus horários ocupados.");
-                if (resultado === "erro") setMensagem("Não foi possível concluir a conexão da agenda. Tente novamente.");
+                if (resultado === "erro") {
+                    const mensagens = {
+                        GOOGLE_ACCESS_DENIED: "A autorização do Google Agenda foi cancelada. Tente novamente e aceite as permissões solicitadas.",
+                        OAUTH_STATE_INVALIDO: "A tentativa de conexão expirou ou já foi utilizada. Inicie a conexão novamente.",
+                        CALENDAR_REFRESH_TOKEN_MISSING: "O Google não liberou acesso contínuo. Remova o acesso anterior na sua Conta Google e conecte novamente.",
+                        CALENDAR_TOKEN_EXCHANGE_FAILED: "O Google recusou a troca de credenciais. Confira a URI de redirecionamento configurada no Google Cloud.",
+                    };
+                    setMensagem(mensagens[codigoAgenda] ?? "Não foi possível concluir a conexão da agenda. Tente novamente.");
+                }
             })
             .catch((error) => { if (!cancelado) setMensagem(error.message); })
             .finally(() => { if (!cancelado) setCarregandoAgenda(false); });
@@ -308,15 +318,45 @@ export default function ConfigurarRotinaPage() {
             setCandidatosEndereco([]);
             setGeocodificacaoSelecionada("");
             if (gerarDepois) {
-                const planejamentoAtual = await apiRequest("/rotina/planejamento", { forceRefresh: true });
-                const planejamentoGerado = await apiRequest("/rotina/planejamento/gerar", { method: "POST", body: JSON.stringify({ versao_perfil: versaoConfirmada, versao_planejamento: Number(planejamentoAtual?.planejamento?.versao ?? 0), semana_base: planejamentoAtual?.planejamento?.semana_inicio }) });
-                if (!planejamentoGerado?.planejamento || !Array.isArray(planejamentoGerado?.refeicoes)) {
-                    throw new Error("Não foi possível confirmar a geração da semana.");
+                const parametros = new URLSearchParams({
+                    origem: "configuracao",
+                    resultado: "gerado",
+                });
+                try {
+                    const planejamentoAtual = await apiRequest("/rotina/planejamento", { forceRefresh: true });
+                    const respostaGeracao = await apiRequest("/rotina/planejamento/gerar", { method: "POST", body: JSON.stringify({ versao_perfil: versaoConfirmada, versao_planejamento: Number(planejamentoAtual?.planejamento?.versao ?? 0), semana_base: planejamentoAtual?.planejamento?.semana_inicio }) });
+                    const semanaGerada = respostaGeracao?.planejamento?.semana_inicio;
+                    const planejamentoGerado = semanaGerada
+                        ? await apiRequest(`/rotina/planejamento?semana_inicio=${semanaGerada}`, { forceRefresh: true, cacheTtlMs: 0 })
+                        : respostaGeracao;
+                    if (!planejamentoGerado?.planejamento || !Array.isArray(planejamentoGerado?.refeicoes)) {
+                        throw new Error("Não foi possível confirmar a geração da semana.");
+                    }
+                    parametros.set("semana_inicio", planejamentoGerado.planejamento.semana_inicio);
+                    const refeicoesComSugestao = planejamentoGerado.refeicoes.filter((item) => item.id_restaurante);
+                    if (!refeicoesComSugestao.length) parametros.set("resultado", "gerado_sem_opcoes");
+                    try {
+                        const estadoAgenda = await apiRequest("/rotina/agenda", { forceRefresh: true, cacheTtlMs: 0 });
+                        const google = estadoAgenda?.conexoes?.find((item) => item.provedor === "GOOGLE" && ["CONECTADO", "ERRO"].includes(item.status));
+                        if (google && !google.pode_escrever) {
+                            parametros.set("agenda", "reconectar");
+                        } else if (google && refeicoesComSugestao.length) {
+                            const exportacao = await apiRequest(`/rotina/agenda/google/planejamentos/${planejamentoGerado.planejamento.id_planejamento_rotina}/exportar`, {
+                                method: "POST",
+                                body: JSON.stringify({ chave_idempotencia: crypto.randomUUID() }),
+                            });
+                            parametros.set("agenda", exportacao?.parcial ? "parcial" : "sincronizada");
+                        }
+                    } catch (erroAgenda) {
+                        parametros.set("agenda", erroAgenda?.code === "CALENDAR_WRITE_SCOPE_REQUIRED" ? "reconectar" : "erro");
+                    }
+                } catch {
+                    parametros.set("resultado", "geracao_erro");
                 }
-                window.location.assign("/cliente/rotina/planejamento");
+                window.location.assign(`/cliente/rotina?${parametros.toString()}`);
                 return;
             }
-            window.location.assign("/cliente/rotina/planejamento");
+            window.location.assign("/cliente/rotina?origem=configuracao&resultado=salvo");
         } catch (error) {
             const ehConflito = error.status === 409 || /dados mudaram|rotina mudou em outra aba|precisa ser sincronizada|vers[aã]o.*atual/i.test(String(error?.message ?? ""));
             if (ehConflito && tentativasConflito < 3) {
@@ -425,7 +465,7 @@ export default function ConfigurarRotinaPage() {
                             <div>
                                 <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{ui("Agenda")}</p>
                                 <h2 className="mt-2 text-xl font-semibold">{ui("Proteja sua janela de almoço")}</h2>
-                                <p className="mt-2 max-w-2xl text-sm leading-6 text-app-cinza">{ui("A Appono consulta somente períodos ocupados. Títulos, convidados e descrições dos eventos não são importados.")}</p>
+                                <p className="mt-2 max-w-2xl text-sm leading-6 text-app-cinza">{ui("A Appono consulta somente períodos ocupados e, com sua autorização, cria os eventos do planejamento. Títulos, convidados e descrições pessoais não são importados.")}</p>
                             </div>
                             <span className="rounded-full border border-app-baunilha-dourada px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-app-mocha">{agenda.janelas_ocupadas.length} {ui("períodos ocupados")}</span>
                         </div>
@@ -442,9 +482,12 @@ export default function ConfigurarRotinaPage() {
                                         </div>
                                         {conexao?.ultima_sincronizacao_em ? <p className="mt-3 text-xs text-app-cinza">{ui("Última sincronização")}: {new Date(conexao.ultima_sincronizacao_em).toLocaleString("pt-BR")}</p> : null}
                                         {conexao?.erro_codigo ? <p className="mt-2 text-xs font-semibold text-red-700">{ui("A última sincronização falhou; os dados anteriores foram preservados.")}</p> : null}
+                                        {conectado && item.provedor === "GOOGLE" && !conexao?.pode_escrever ? <p className="mt-2 text-xs font-semibold text-amber-700">{ui("Reconecte uma vez para permitir que o planejamento seja criado no Google Agenda.")}</p> : null}
+                                        {item.provedor === "GOOGLE" && !item.configurado ? <p className="mt-2 text-xs font-semibold text-red-700">{ui("As credenciais do Google Agenda ainda não foram configuradas no backend deste ambiente.")}</p> : null}
                                         <div className="mt-4 flex flex-wrap gap-2">
                                             {conectado ? <>
                                                 <button type="button" disabled={Boolean(acaoAgenda)} onClick={() => sincronizarAgenda(item.provedor)} className="min-h-10 rounded-full bg-app-cafe-profundo px-4 text-[10px] font-bold uppercase tracking-wider text-white disabled:opacity-50">{ui(acaoAgenda === `sincronizar:${item.provedor}` ? "Sincronizando..." : "Sincronizar")}</button>
+                                                {item.provedor === "GOOGLE" && !conexao?.pode_escrever ? <button type="button" disabled={!item.configurado || Boolean(acaoAgenda)} onClick={() => setConfirmarAgenda({ tipo: "conectar", provedor: item.provedor, nome })} className="min-h-10 rounded-full border border-app-caramelo-torrado px-4 text-[10px] font-bold uppercase tracking-wider text-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-40">{ui("Reconectar")}</button> : null}
                                                 <button type="button" disabled={Boolean(acaoAgenda)} onClick={() => setConfirmarAgenda({ tipo: "desconectar", provedor: item.provedor, nome })} className="min-h-10 rounded-full border border-red-300 px-4 text-[10px] font-bold uppercase tracking-wider text-red-700 disabled:opacity-50">{ui("Desconectar")}</button>
                                             </> : <button type="button" disabled={!item.configurado || Boolean(acaoAgenda)} onClick={() => setConfirmarAgenda({ tipo: "conectar", provedor: item.provedor, nome })} className="min-h-10 rounded-full bg-app-cafe-profundo px-4 text-[10px] font-bold uppercase tracking-wider text-white disabled:cursor-not-allowed disabled:opacity-40">{ui(`Conectar ${nome}`)}</button>}
                                         </div>
@@ -489,7 +532,7 @@ export default function ConfigurarRotinaPage() {
                 </form>
             </section>
             <ConfirmationDialog open={confirmarDescartar} eyebrow={ui("Alterações não salvas")} title={ui("Descartar suas alterações?")} description={ui("Os dados salvos continuam preservados, mas as edições feitas nesta tela serão perdidas.")} confirmLabel={ui("Descartar alterações")} cancelLabel={ui("Continuar editando")} loading={false} onCancel={() => setConfirmarDescartar(false)} onConfirm={() => router.push("/cliente/rotina")} />
-            <ConfirmationDialog open={Boolean(confirmarAgenda)} eyebrow={ui("Integração de agenda")} title={ui(confirmarAgenda?.tipo === "conectar" ? `Conectar ${confirmarAgenda?.nome}?` : `Desconectar ${confirmarAgenda?.nome}?`)} description={ui(confirmarAgenda?.tipo === "conectar" ? "Você será direcionado ao provedor para autorizar a leitura dos períodos ocupados." : "O acesso será removido e os períodos importados dessa agenda serão apagados. Reservas e pedidos já criados não serão alterados.")} confirmLabel={ui(confirmarAgenda?.tipo === "conectar" ? "Continuar para conexão" : "Desconectar agenda")} cancelLabel={ui("Voltar")} variant={confirmarAgenda?.tipo === "desconectar" ? "danger" : "default"} loading={Boolean(acaoAgenda)} onCancel={() => setConfirmarAgenda(null)} onConfirm={executarAcaoAgenda} />
+            <ConfirmationDialog open={Boolean(confirmarAgenda)} eyebrow={ui("Integração de agenda")} title={ui(confirmarAgenda?.tipo === "conectar" ? `Conectar ${confirmarAgenda?.nome}?` : `Desconectar ${confirmarAgenda?.nome}?`)} description={ui(confirmarAgenda?.tipo === "conectar" ? "Você será direcionado ao provedor. O Google poderá autorizar a leitura dos períodos ocupados e a criação dos eventos do planejamento; o Outlook permanece somente leitura." : "O acesso será removido e os períodos importados dessa agenda serão apagados. Reservas e pedidos já criados não serão alterados.")} confirmLabel={ui(confirmarAgenda?.tipo === "conectar" ? "Continuar para conexão" : "Desconectar agenda")} cancelLabel={ui("Voltar")} variant={confirmarAgenda?.tipo === "desconectar" ? "danger" : "default"} loading={Boolean(acaoAgenda)} onCancel={() => setConfirmarAgenda(null)} onConfirm={executarAcaoAgenda} />
         </main>
     );
 }

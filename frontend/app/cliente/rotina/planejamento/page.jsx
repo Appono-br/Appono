@@ -28,8 +28,9 @@ function distancia(valor) {
     return `${numero.toFixed(numero < 10 ? 1 : 0).replace(".", ",")} km`;
 }
 
-function inicioSemana(data = new Date()) {
-    const referencia = new Date(data);
+function inicioSemana(data = null) {
+    const hojeSaoPaulo = new Date().toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" });
+    const referencia = data ? new Date(data) : new Date(`${hojeSaoPaulo}T12:00:00`);
     const dia = referencia.getDay() || 7;
     referencia.setDate(referencia.getDate() - dia + 1);
     return referencia.toISOString().slice(0, 10);
@@ -78,6 +79,9 @@ export default function PlanejamentoRotinaPage() {
     const [semanaSelecionada, setSemanaSelecionada] = useState("");
     const [agoraReferencia] = useState(() => Date.now());
     const versoes = { versao_perfil: Number(perfil?.versao ?? 0), versao_planejamento: Number(planejamento?.versao ?? 0) };
+    const semanaAnterior = Boolean(semanaSelecionada) && semanaSelecionada < inicioSemana();
+    const semanaMinimaConsulta = deslocarSemana(inicioSemana(), -1);
+    const podeVoltarSemana = !semanaSelecionada || semanaSelecionada > semanaMinimaConsulta;
 
     async function carregar(semanaInicio = semanaSelecionada) {
         try {
@@ -117,15 +121,23 @@ export default function PlanejamentoRotinaPage() {
 
     useEffect(() => {
         let cancelado = false;
+        const parametros = new URLSearchParams(window.location.search);
+        const semanaUrl = /^\d{4}-\d{2}-\d{2}$/.test(parametros.get("semana_inicio") ?? "")
+            ? parametros.get("semana_inicio") : "";
+        const agendaResultado = parametros.get("agenda");
         Promise.all([
             apiRequest("/rotina/perfil", { forceRefresh: true }),
-            apiRequest("/rotina/planejamento", { forceRefresh: true }),
+            apiRequest(`/rotina/planejamento${semanaUrl ? `?semana_inicio=${semanaUrl}` : ""}`, { forceRefresh: true }),
         ]).then(([perfilResposta, planejamentoResposta]) => {
             if (cancelado) return;
             setPerfil(perfilResposta);
             setPlanejamento(planejamentoResposta?.planejamento ?? null);
             setRefeicoes(planejamentoResposta?.refeicoes ?? []);
-            setSemanaSelecionada(planejamentoResposta?.planejamento?.semana_inicio ?? inicioSemana());
+            setSemanaSelecionada(planejamentoResposta?.planejamento?.semana_inicio ?? semanaUrl ?? inicioSemana());
+            if (agendaResultado === "sincronizada") setMensagem("Semana gerada e enviada ao Google Agenda.");
+            if (agendaResultado === "parcial") setMensagem("Semana gerada. Alguns eventos do Google Agenda precisarão de uma nova sincronização.");
+            if (agendaResultado === "erro") setMensagem("Semana gerada. O Google Agenda não respondeu, mas seu planejamento foi preservado.");
+            if (agendaResultado === "reconectar") setMensagem("Semana gerada. Reconecte o Google Agenda para autorizar a criação dos eventos.");
         }).catch((error) => {
             if (!cancelado) setMensagem(error.message);
         }).finally(() => {
@@ -164,6 +176,10 @@ export default function PlanejamentoRotinaPage() {
     async function navegarSemana(direcao) {
         if (processando || carregando) return;
         const destino = deslocarSemana(semanaSelecionada || planejamento?.semana_inicio || inicioSemana(), direcao);
+        if (destino < semanaMinimaConsulta) {
+            setMensagem("O histórico fica disponível somente até a semana anterior.");
+            return;
+        }
         setCarregando(true);
         setMensagem("");
         setConflito(false);
@@ -172,6 +188,10 @@ export default function PlanejamentoRotinaPage() {
 
     async function gerarPlanejamento() {
         if (processando) return;
+        if (semanaAnterior) {
+            setMensagem("Semanas anteriores estão disponíveis somente para consulta.");
+            return;
+        }
         setProcessando("gerar");
         setMensagem("");
         try {
@@ -394,8 +414,9 @@ export default function PlanejamentoRotinaPage() {
             <section className="mx-auto max-w-7xl">
                 <div><RoutineHero eyebrow={ui("Minha semana")} title={ui("Sua semana de refeições")} description={ui("Escolha, ajuste ou reserve quando quiser.")} /></div>
 
-                {mensagem ? <div className="mt-5"><RoutineNotice type={conflito ? "warning" : mensagem.includes("aprovado") || mensagem.includes("gerado") || mensagem.includes("restaurado") ? "success" : "info"}>{ui(mensagem)}</RoutineNotice></div> : null}
+                {mensagem ? <div className="mt-5"><RoutineNotice type={conflito || mensagem.includes("Google Agenda não respondeu") || mensagem.includes("Reconecte") || mensagem.includes("Alguns eventos") ? "warning" : mensagem.includes("aprovado") || mensagem.includes("gerado") || mensagem.includes("restaurado") ? "success" : "info"}>{ui(mensagem)}</RoutineNotice></div> : null}
                 {rascunhoEdicao && !conflito ? <div className="mt-4"><RoutineNotice type="info" action={<button type="button" disabled={Boolean(processando)} onClick={retomarRascunho} className="min-h-10 rounded-full border border-current px-4 text-xs font-bold uppercase tracking-wider">{ui("Retomar edição")}</button>}><p>{ui("Seu rascunho foi preservado. Restaure-o sobre os dados atuais e revise antes de salvar.")}</p></RoutineNotice></div> : null}
+                {semanaAnterior ? <div className="mt-4"><RoutineNotice type="info">{ui("Esta semana já terminou e está disponível somente para consulta. Você pode revisar o histórico, mas não gerar novas sugestões nela.")}</RoutineNotice></div> : null}
 
                 <section className="mt-5 overflow-hidden rounded-[24px] bg-white shadow-sm ring-1 ring-app-baunilha-dourada/55">
                     <div className="grid gap-5 p-5 sm:p-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
@@ -405,7 +426,7 @@ export default function PlanejamentoRotinaPage() {
                                 {planejamento?.status ? <span className="rounded-full bg-app-chantilly px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-app-mocha">{statusPlanejamento(planejamento.status, ui)}</span> : null}
                             </div>
                             <div className="mt-2 flex items-center gap-2">
-                                <button type="button" onClick={() => navegarSemana(-1)} disabled={carregando || Boolean(processando)} aria-label={ui("Ver semana anterior")} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-app-baunilha-dourada text-lg outline-none transition hover:bg-app-chantilly focus-visible:ring-2 focus-visible:ring-app-caramelo-torrado disabled:opacity-40">‹</button>
+                                <button type="button" onClick={() => navegarSemana(-1)} disabled={carregando || Boolean(processando) || !podeVoltarSemana} aria-label={ui("Ver semana anterior")} title={!podeVoltarSemana ? ui("O histórico fica disponível somente até a semana anterior.") : undefined} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-app-baunilha-dourada text-lg outline-none transition hover:bg-app-chantilly focus-visible:ring-2 focus-visible:ring-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-40">‹</button>
                                 <h2 className="min-w-0 text-xl font-semibold sm:text-2xl">
                                     {`${dataCurta(semanaSelecionada || planejamento?.semana_inicio || inicioSemana(), localeUI)} - ${dataCurta(planejamento?.semana_fim ?? adicionarDias(semanaSelecionada || inicioSemana(), 6), localeUI)}`}
                                 </h2>
@@ -414,7 +435,7 @@ export default function PlanejamentoRotinaPage() {
                         </div>
                         <div className="flex flex-wrap gap-2 lg:justify-end">
                             <Link href="/cliente/rotina/configurar" className="inline-flex min-h-10 items-center justify-center rounded-full border border-app-baunilha-dourada px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:bg-app-chantilly">{ui("Configurar")}</Link>
-                            <button type="button" disabled={Boolean(processando) || !perfil} onClick={() => planejamento ? setConfirmarGeracao(true) : gerarPlanejamento()} className="min-h-10 rounded-full bg-app-caramelo-torrado px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-app-cafe-profundo disabled:opacity-50">{ui(processando === "gerar" ? "Gerando..." : "Gerar semana")}</button>
+                            <button type="button" disabled={Boolean(processando) || !perfil || semanaAnterior} onClick={() => planejamento ? setConfirmarGeracao(true) : gerarPlanejamento()} className="min-h-10 rounded-full bg-app-caramelo-torrado px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-app-cafe-profundo disabled:cursor-not-allowed disabled:opacity-50">{ui(semanaAnterior ? "Somente consulta" : processando === "gerar" ? "Gerando..." : "Gerar semana")}</button>
                             <button type="button" title={ui("Mantém as sugestões na sua semana; não cria reserva nem cobrança.")} disabled={Boolean(processando) || !refeicoes.some((item) => item.id_restaurante && ["SUGERIDA", "ALTERADA"].includes(item.status))} onClick={aprovarTudo} className="min-h-10 rounded-full bg-app-cafe-profundo px-4 py-2 text-sm font-bold text-app-creme-leve transition hover:bg-app-caramelo-torrado disabled:opacity-50">{ui("Manter todas na semana")}</button>
                         </div>
                     </div>
@@ -425,7 +446,7 @@ export default function PlanejamentoRotinaPage() {
                 {carregando ? <div className="mt-5"><RoutineSkeleton cards={3} /></div> : null}
 
                 {!carregando && !refeicoes.length ? (
-                    <div className="mt-5"><RoutineEmpty title={ui(estado.titulo)} description={ui(estado.descricao)} icon={estado.acao === "configurar" ? "route" : "spark"} action={estado.acao === "configurar" ? <Link href="/cliente/rotina/configurar" className="inline-flex min-h-11 items-center rounded-full bg-app-cafe-profundo px-6 text-xs font-bold uppercase tracking-wider text-app-creme-leve">{ui("Configurar rotina")}</Link> : <button type="button" disabled={!perfil || Boolean(processando)} onClick={gerarPlanejamento} className="min-h-11 rounded-full bg-app-cafe-profundo px-6 text-xs font-bold uppercase tracking-wider text-app-creme-leve disabled:opacity-50">{ui("Gerar planejamento")}</button>} /></div>
+                    <div className="mt-5"><RoutineEmpty title={ui(estado.titulo)} description={ui(estado.descricao)} icon={estado.acao === "configurar" ? "route" : "spark"} action={estado.acao === "configurar" ? <Link href="/cliente/rotina/configurar" className="inline-flex min-h-11 items-center rounded-full bg-app-cafe-profundo px-6 text-xs font-bold uppercase tracking-wider text-app-creme-leve">{ui("Configurar rotina")}</Link> : semanaAnterior ? <button type="button" disabled={Boolean(processando)} onClick={() => { setCarregando(true); carregar(inicioSemana()); }} className="min-h-11 rounded-full bg-app-cafe-profundo px-6 text-xs font-bold uppercase tracking-wider text-app-creme-leve disabled:opacity-50">{ui("Ir para semana atual")}</button> : <button type="button" disabled={!perfil || Boolean(processando)} onClick={gerarPlanejamento} className="min-h-11 rounded-full bg-app-cafe-profundo px-6 text-xs font-bold uppercase tracking-wider text-app-creme-leve disabled:opacity-50">{ui("Gerar planejamento")}</button>} /></div>
                 ) : null}
 
                 {!carregando && refeicoes.length ? <div className="mt-5 grid gap-5">

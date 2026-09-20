@@ -8,7 +8,12 @@ const CONFIGURACOES = {
         redirectEnv: "GOOGLE_CALENDAR_REDIRECT_URI",
         authorizeUrl: "https://accounts.google.com/o/oauth2/v2/auth",
         tokenUrl: "https://oauth2.googleapis.com/token",
-        scopes: ["openid", "email", "https://www.googleapis.com/auth/calendar.events.freebusy"],
+        scopes: [
+            "openid",
+            "email",
+            "https://www.googleapis.com/auth/calendar.events.freebusy",
+            "https://www.googleapis.com/auth/calendar.events.owned",
+        ],
     },
     OUTLOOK: {
         enabledEnv: "APPONO_ROTINA_AGENDA_OUTLOOK_ENABLED",
@@ -53,6 +58,7 @@ function criarUrlAutorizacao(provedor, { state, challenge }) {
     });
     if (provedor === "GOOGLE") {
         parametros.set("access_type", "offline");
+        parametros.set("include_granted_scopes", "true");
         parametros.set("prompt", "consent");
     }
     return `${config.authorizeUrl}?${parametros}`;
@@ -125,4 +131,65 @@ async function buscarOcupacao(provedor, { accessToken, inicio, fim, identificado
     }, "CALENDAR_SYNC_FAILED");
 }
 
-module.exports = { buscarOcupacao, configuracaoProvedor, criarUrlAutorizacao, identificarConta, renovarToken, trocarCodigo };
+function podeEscreverGoogle(escopos = []) {
+    const permitidos = new Set(escopos);
+    return [
+        "https://www.googleapis.com/auth/calendar",
+        "https://www.googleapis.com/auth/calendar.events",
+        "https://www.googleapis.com/auth/calendar.events.owned",
+        "https://www.googleapis.com/auth/calendar.app.created",
+    ].some((escopo) => permitidos.has(escopo));
+}
+
+async function requisicaoEventoGoogle(url, options, codigo, aceitarNaoEncontrado = false) {
+    const response = await fetch(url, { ...options, signal: AbortSignal.timeout(12000) });
+    if (aceitarNaoEncontrado && response.status === 404) return null;
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) {
+        const erro = new Error("O Google Agenda não concluiu a gravação do planejamento.");
+        erro.code = codigo;
+        erro.status = response.status;
+        throw erro;
+    }
+    return body;
+}
+
+async function salvarEventoGoogle({ accessToken, eventoId, evento }) {
+    const base = `https://www.googleapis.com/calendar/v3/calendars/primary/events/${encodeURIComponent(eventoId)}`;
+    const headers = { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" };
+    const existente = await requisicaoEventoGoogle(base, { headers }, "CALENDAR_EVENT_LOOKUP_FAILED", true);
+    if (existente) {
+        return requisicaoEventoGoogle(`${base}?sendUpdates=none`, {
+            method: "PATCH", headers, body: JSON.stringify(evento),
+        }, "CALENDAR_EVENT_UPDATE_FAILED");
+    }
+    return requisicaoEventoGoogle("https://www.googleapis.com/calendar/v3/calendars/primary/events?sendUpdates=none", {
+        method: "POST", headers, body: JSON.stringify({ ...evento, id: eventoId }),
+    }, "CALENDAR_EVENT_CREATE_FAILED");
+}
+
+async function excluirEventoGoogle({ accessToken, eventoId }) {
+    const response = await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events/${encodeURIComponent(eventoId)}?sendUpdates=none`, {
+        method: "DELETE", headers: { Authorization: `Bearer ${accessToken}` }, signal: AbortSignal.timeout(12000),
+    });
+    if (response.status === 404 || response.status === 410 || response.status === 204) return true;
+    if (!response.ok) {
+        const erro = new Error("O Google Agenda não concluiu a remoção de um evento antigo.");
+        erro.code = "CALENDAR_EVENT_DELETE_FAILED";
+        erro.status = response.status;
+        throw erro;
+    }
+    return true;
+}
+
+module.exports = {
+    buscarOcupacao,
+    configuracaoProvedor,
+    criarUrlAutorizacao,
+    excluirEventoGoogle,
+    identificarConta,
+    podeEscreverGoogle,
+    renovarToken,
+    salvarEventoGoogle,
+    trocarCodigo,
+};

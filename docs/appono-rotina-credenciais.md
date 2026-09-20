@@ -165,12 +165,14 @@ https://SEU_BACKEND/api/rotina/agenda/google/callback
 
 7. Copie Client ID para `GOOGLE_CALENDAR_CLIENT_ID` e Client Secret para `GOOGLE_CALENDAR_CLIENT_SECRET`.
 8. Gere outra chave de 32 bytes, exclusiva para `APPONO_CALENDAR_TOKEN_ENCRYPTION_KEY`. Não reutilize a chave do Mercado Pago.
-9. O backend já solicita `openid`, `email` e o escopo mínimo `https://www.googleapis.com/auth/calendar.events.freebusy`. Não adicione escopos de escrita ou leitura integral de eventos.
+9. O backend solicita `openid`, `email`, `https://www.googleapis.com/auth/calendar.events.freebusy` para consultar ocupação e `https://www.googleapis.com/auth/calendar.events.owned` para criar ou atualizar somente os eventos do planejamento no calendário principal do próprio usuário. Não adicione leitura integral de eventos.
 10. Configure as variáveis e só então altere `APPONO_ROTINA_AGENDA_GOOGLE_ENABLED=true` em homologação.
 11. Valide conexão, refresh token, sincronização, revogação e desconexão com usuários de teste.
 12. Antes de publicar para usuários externos, conclua a publicação/verificação exigida pelo Google para os escopos selecionados.
 
-O Appono deve persistir somente intervalos ocupados. Não importe título, descrição, convidados ou local dos eventos quando `freeBusy` já atende à decisão.
+O Appono persiste somente os intervalos ocupados importados. Não importa título, descrição, convidados ou local dos eventos pessoais quando `freeBusy` já atende à decisão. Os eventos escritos pelo Appono são privados, identificados de forma idempotente e contêm apenas os dados mínimos do planejamento.
+
+Conexões Google criadas antes da exportação do planejamento possuem apenas o escopo de leitura de ocupação. Depois de publicar esta versão, o cliente deve clicar em **Reconectar** uma única vez e aceitar o novo escopo para que “Salvar e gerar minha semana” também crie os eventos no Google Agenda.
 
 ## 5. Outlook e Microsoft Graph
 

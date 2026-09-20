@@ -78,6 +78,15 @@ function dataSaoPaulo(data) {
     return new Date(data).toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" });
 }
 
+function semanaAtual(dataReferencia = new Date()) {
+    const hojeIso = dataSaoPaulo(dataReferencia);
+    const inicio = inicioSemana(new Date(`${hojeIso}T12:00:00`));
+    return {
+        inicio: dataIsoLocal(inicio),
+        fim: dataIsoLocal(somarDias(inicio, 6)),
+    };
+}
+
 function semanaPlanejamento(dataReferencia = new Date(), diasSemana = DIAS_UTEIS_PADRAO, horarioFim = "23:59") {
     const hojeIso = dataSaoPaulo(dataReferencia);
     let inicio = inicioSemana(new Date(`${hojeIso}T12:00:00`));
@@ -408,6 +417,9 @@ function gerarPlanejamentoRotina({
     if (!janelas.length) throw new Error("Configure ao menos uma janela alimentar ativa antes de gerar sugestões.");
     const diasSemana = [...new Set(janelas.flatMap((janela) => janela.dias_semana))];
     const maiorHorarioFim = janelas.map((janela) => janela.horario_fim).sort().at(-1) ?? perfil.horario_fim;
+    if (semanaInicio && semanaInicio < semanaAtual(agora).inicio) {
+        throw new Error("Não é possível gerar ou regenerar um planejamento para uma semana anterior à atual.");
+    }
     const semana = semanaInicio
         ? { inicio: semanaInicio, fim: dataIsoLocal(somarDias(new Date(`${semanaInicio}T12:00:00`), 6)) }
         : semanaPlanejamento(agora, diasSemana, maiorHorarioFim);
@@ -564,6 +576,7 @@ module.exports = {
     criarCandidatos,
     datasDaSemana,
     gerarPlanejamentoRotina,
+    semanaAtual,
     normalizarJanelasAlimentacao,
     normalizarDiasSemana,
     normalizarTexto,

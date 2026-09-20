@@ -33,18 +33,30 @@ export default function RotinaClientePage() {
 
     useEffect(() => {
         let cancelado = false;
+        const parametros = new URLSearchParams(window.location.search);
+        const semanaUrl = /^\d{4}-\d{2}-\d{2}$/.test(parametros.get("semana_inicio") ?? "")
+            ? parametros.get("semana_inicio") : "";
+        const resultado = parametros.get("resultado");
+        const agendaResultado = parametros.get("agenda");
         async function carregar() {
             setCarregando(true);
             try {
                 const [perfilResposta, planejamentoResposta] = await Promise.all([
                     apiRequest("/rotina/perfil", { forceRefresh: true }),
-                    apiRequest("/rotina/planejamento", { forceRefresh: true }),
+                    apiRequest(`/rotina/planejamento${semanaUrl ? `?semana_inicio=${semanaUrl}` : ""}`, { forceRefresh: true }),
                 ]);
                 if (cancelado) return;
                 setPerfil(perfilResposta);
                 setPlanejamento(planejamentoResposta?.planejamento ?? null);
                 setRefeicoes(planejamentoResposta?.refeicoes ?? []);
-                setMensagem("");
+                if (resultado === "salvo") setMensagem("Rotina salva. Você pode gerar sua semana quando quiser.");
+                if (resultado === "gerado") setMensagem("Semana gerada com sucesso.");
+                if (resultado === "gerado_sem_opcoes") setMensagem("Semana gerada, mas nenhum restaurante atende aos critérios atuais.");
+                if (resultado === "geracao_erro") setMensagem("A rotina foi salva, mas não foi possível gerar a semana. Revise os dados e tente novamente.");
+                if (agendaResultado === "sincronizada") setMensagem("Semana gerada e enviada ao Google Agenda.");
+                if (agendaResultado === "parcial") setMensagem("Semana gerada. Alguns eventos do Google Agenda precisarão de uma nova sincronização.");
+                if (agendaResultado === "erro") setMensagem("Semana gerada. O Google Agenda não respondeu, mas seu planejamento foi preservado.");
+                if (agendaResultado === "reconectar") setMensagem("Semana gerada. Reconecte o Google Agenda para autorizar a criação dos eventos.");
             } catch (error) {
                 if (!cancelado) setMensagem(error instanceof Error ? error.message : "Não foi possível carregar sua rotina.");
             } finally {
@@ -56,7 +68,8 @@ export default function RotinaClientePage() {
     }, [recarregar]);
 
     useEffect(() => {
-        if (!carregando && planejamento) router.replace("/cliente/rotina/planejamento");
+        const veioDaConfiguracao = new URLSearchParams(window.location.search).get("origem") === "configuracao";
+        if (!carregando && planejamento && !veioDaConfiguracao) router.replace("/cliente/rotina/planejamento");
     }, [carregando, planejamento, router]);
 
     const estado = useMemo(() => estadoPlanejamento({ perfil, planejamento, refeicoes }), [perfil, planejamento, refeicoes]);
@@ -111,11 +124,11 @@ export default function RotinaClientePage() {
                 </div>}
             />
 
-            {mensagem ? <div className="mt-5"><RoutineNotice type={mensagem === "Planejamento atualizado." ? "success" : "error"} action={mensagem === "Planejamento atualizado." ? null : <button type="button" disabled={carregando || gerando} onClick={() => setRecarregar((valor) => valor + 1)} className="min-h-10 rounded-full border border-current px-4 text-xs font-bold uppercase tracking-wider">{ui("Recarregar")}</button>}>{ui(mensagem)}</RoutineNotice></div> : null}
+            {mensagem ? <div className="mt-5"><RoutineNotice type={mensagem.includes("não respondeu") || mensagem.includes("Reconecte") || mensagem.includes("Alguns eventos") || mensagem.includes("não foi possível gerar") || mensagem.includes("nenhum restaurante") ? "warning" : mensagem.includes("salva") || mensagem.includes("gerada") || mensagem === "Planejamento atualizado." ? "success" : "error"} action={mensagem.includes("não respondeu") || mensagem.includes("Reconecte") || mensagem.includes("Alguns eventos") || mensagem.includes("salva") || mensagem.includes("gerada") || mensagem.includes("não foi possível gerar") || mensagem.includes("nenhum restaurante") || mensagem === "Planejamento atualizado." ? null : <button type="button" disabled={carregando || gerando} onClick={() => setRecarregar((valor) => valor + 1)} className="min-h-10 rounded-full border border-current px-4 text-xs font-bold uppercase tracking-wider">{ui("Recarregar")}</button>}>{ui(mensagem)}</RoutineNotice></div> : null}
             {carregando ? <div className="mt-5"><RoutineSkeleton /></div> : null}
 
 
-            {!carregando && (!mensagem || mensagem === "Planejamento atualizado.") ? <div className="mt-5 grid items-start gap-5 lg:grid-cols-[0.82fr_1.18fr]">
+            {!carregando ? <div className="mt-5 grid items-start gap-5 lg:grid-cols-[0.82fr_1.18fr]">
                 <article className="hidden">
                     <div className="flex items-start justify-between gap-4">
                         <div><p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{ui("Seu perfil")}</p><h2 className="mt-2 text-2xl font-semibold sm:text-3xl">{perfil?.nome ?? ui("Rotina ainda não configurada")}</h2></div>

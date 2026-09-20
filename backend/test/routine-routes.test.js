@@ -27,6 +27,7 @@ async function ambiente(t, { role = "cliente", dono = 7, erroRpc = null, erroCod
             return {
                 select() { return this; },
                 eq(campo, valor) { filtros[campo] = valor; return this; },
+                gte(campo, valor) { filtros[campo] = valor; return this; },
                 order() { return this; },
                 limit() { return this; },
                 async maybeSingle() {
@@ -71,7 +72,7 @@ async function ambiente(t, { role = "cliente", dono = 7, erroRpc = null, erroCod
         chamadas,
         requisitar: (rota, autenticado = true, body = { versao_perfil: 1, versao_planejamento: 1 }, method = "POST") => fetch(`http://127.0.0.1:${server.address().port}/api/rotina${rota}`, {
             method, headers: { "Content-Type": "application/json", ...(autenticado ? { Authorization: "Bearer token-de-teste" } : {}) },
-            body: JSON.stringify(body),
+            ...(method === "GET" || method === "HEAD" ? {} : { body: JSON.stringify(body) }),
         }),
     };
 }
@@ -182,4 +183,23 @@ test("conflito ao salvar janelas preserva HTTP 409 para o cliente recuperar a ve
         }],
     });
     assert.equal(resposta.status, 409);
+});
+
+test("API bloqueia geração e regeneração de semana passada", async (t) => {
+    const ctx = await ambiente(t);
+    const resposta = await ctx.requisitar("/planejamento/gerar", true, {
+        versao_perfil: 1,
+        versao_planejamento: 0,
+        semana_inicio: "2000-01-03",
+    });
+    assert.equal(resposta.status, 422);
+    assert.equal((await resposta.json()).code, "ROUTINE_PAST_WEEK_NOT_ALLOWED");
+    assert.equal(ctx.chamadas.length, 0);
+});
+
+test("API limita consulta do histórico à semana imediatamente anterior", async (t) => {
+    const ctx = await ambiente(t);
+    const resposta = await ctx.requisitar("/planejamento?semana_inicio=2000-01-03", true, {}, "GET");
+    assert.equal(resposta.status, 422);
+    assert.equal((await resposta.json()).code, "ROUTINE_WEEK_OUT_OF_HISTORY_RANGE");
 });

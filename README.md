@@ -41,7 +41,7 @@ O projeto está em desenvolvimento, com módulos implementados e integrações q
 | Restaurante | Gestão do cardápio, agenda, fila da cozinha, histórico e indicadores | Perfil autenticado e dados operacionais; a janela da cozinha é definida no código |
 | Pagamentos | Checkout Pro, conexão OAuth de restaurantes, webhook, financeiro e solicitação de reembolso | Credenciais Mercado Pago, URLs de integração e modo financeiro; simulação e estorno no gateway têm comportamentos distintos |
 | Atendimento | Chat entre participantes, notificações internas, chamados e análise administrativa | Migrations de chat e suporte, autenticação e validação de propriedade |
-| Appono Rotina | Perfil, endereço geocodificado, até oito janelas alimentares, planejamento, agenda, recomendações explicáveis, segurança alimentar, feedback privado e conversão em reserva ou pedido | Escritas transacionais, controle de concorrência, RLS e feature flags; integrações externas continuam evolutivas |
+| Appono Rotina | Perfil, endereço geocodificado, até oito janelas alimentares, planejamento, Google Agenda, recomendações explicáveis, segurança alimentar, feedback privado e conversão em reserva ou pedido | Escritas transacionais, controle de concorrência, RLS e feature flags; a exportação para o Google exige reconexão das contas antigas |
 
 Estão pendentes de validação para um piloto financeiro: concorrência real, matriz RLS entre usuários, webhooks e estornos no sandbox, conciliação periódica independente das telas, alertas externos e restauração de backup. Os documentos de operação e piloto descrevem requisitos; não representam automações já entregues. Veja os [limites e pendências](docs/fluxos-operacionais.md#prontidão).
 
@@ -50,6 +50,8 @@ Estão pendentes de validação para um piloto financeiro: concorrência real, m
 O **Appono Rotina** ajuda o cliente a transformar preferências alimentares e horários do dia em um planejamento semanal de refeições. O fluxo foi desenhado para priorizar o planejamento já existente: ao acessar a área, o cliente é levado diretamente à sua semana; quando ainda não há planejamento, vê apenas a opção de configurar suas preferências.
 
 O cliente informa restrições e preferências alimentares, endereço e janelas de refeição. Com esses dados, a plataforma gera sugestões de restaurantes explicáveis e compatíveis com a rotina, permitindo aprovar, trocar ou recusar cada sugestão. As escolhas aprovadas podem seguir para reserva de mesa ou pedido antecipado, conforme a operação disponível no restaurante.
+
+Cada planejamento fica persistido por semana. Ao entrar no módulo, a aplicação prioriza a semana que contém a data atual e, quando ela ainda não existe, a próxima semana planejada. O cliente pode consultar no máximo a semana imediatamente anterior; períodos mais antigos permanecem preservados no banco, mas não ficam expostos no módulo. Geração e regeneração retroativas são bloqueadas no frontend, na API e no domínio.
 
 No fluxo de reserva, iniciar o checkout cria uma reserva pendente e bloqueia a mesa temporariamente. Após o pagamento aprovado, a reserva é confirmada e a mesa permanece indisponível para o horário reservado. A mesa volta a ser elegível para novas reservas quando a visita é concluída pelo restaurante, a reserva é cancelada ou o cliente é marcado como não compareceu.
 
@@ -292,6 +294,7 @@ O guia de [preparação do Supabase](docs/preparacao-supabase.md) cobre schema b
 - Configurar Google, recuperação de senha e callbacks exige ajustes no projeto Supabase.
 - **`supabase db push` altera o banco vinculado.** Revise o projeto de destino e as migrations pendentes antes de executar o procedimento do guia.
 - A migration `20260915205452_routine_meal_windows_and_geocoding.sql` adiciona geocodificação server-side via Nominatim, endereço normalizado e janelas de café, almoço, jantar ou personalizadas. Cada planejamento passa a identificar a janela da refeição, permitindo mais de uma sugestão por dia sem duplicar conversões.
+- A migration `20260920191137_routine_google_calendar_planning_events.sql` registra, com RLS e acesso exclusivo do backend, o vínculo idempotente entre cada refeição planejada e seu evento no Google Agenda. O fluxo salva a semana antes de chamar o Google e preserva o planejamento mesmo quando o provedor externo falha.
 - Antes de aplicá-la em um projeto que recebeu migrations manualmente pelo Dashboard, reconcilie o histórico local com `supabase migration repair` para cada versão já aplicada. Só então revise `supabase migration list --linked` e aplique a nova migration no ambiente autorizado.
 
 ## Execução local

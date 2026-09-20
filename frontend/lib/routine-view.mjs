@@ -22,6 +22,15 @@ export function estadoPlanejamento({ perfil, planejamento, refeicoes, agora = ne
     const futuras = refeicoes.filter((item) => new Date(`${item.data_refeicao}T${item.horario_sugerido || "00:00:00"}-03:00`) > agora);
     const proxima = futuras.find((item) => item.id_restaurante && !["RECUSADA", "CANCELADA"].includes(item.status));
     if (proxima) return { proxima, titulo: proxima.restaurantes?.nome ?? "Sua próxima refeição", acao: "ver" };
-    if (futuras.some((item) => !item.id_restaurante)) return { titulo: "Nenhuma opção compatível", descricao: "O planejamento foi gerado, mas não há sugestões futuras dentro dos seus critérios. Consulte os motivos por dia.", acao: "ver" };
+    if (futuras.some((item) => !item.id_restaurante)) {
+        const motivos = [...new Set(futuras.filter((item) => !item.id_restaurante).map((item) => item.motivo_recomendacao).filter(Boolean))];
+        return {
+            titulo: "Nenhuma opção compatível",
+            descricao: motivos.length === 1
+                ? motivos[0]
+                : "O planejamento foi gerado, mas não há sugestões futuras dentro dos seus critérios. Abra a semana para consultar o motivo de cada dia.",
+            acao: "ver",
+        };
+    }
     return { titulo: "Sem próximas refeições", descricao: "As refeições desta semana passaram ou foram recusadas. Consulte o planejamento ou gere outra semana.", acao: "ver" };
 }

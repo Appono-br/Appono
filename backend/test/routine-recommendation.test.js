@@ -9,6 +9,7 @@ const {
     horarioCompativel,
     janelasLivresDia,
     validarLimitesRotina,
+    semanaAtual,
     semanaPlanejamento,
 } = require("../src/domain/routine-recommendation");
 
@@ -262,8 +263,14 @@ test("janela de 90 minutos aceita limite de 60 e rejeita limite de 120", () => {
 });
 
 test("semana segue Sao Paulo e avanca apos ultima janela selecionada", () => {
+    assert.deepEqual(semanaAtual(new Date("2026-09-20T23:30:00Z")), { inicio: "2026-09-14", fim: "2026-09-20" });
     assert.equal(semanaPlanejamento(new Date("2026-09-19T01:00:00Z"), ["friday"], "13:30").inicio, "2026-09-21");
     assert.equal(semanaPlanejamento(new Date("2026-09-14T01:00:00Z"), ["sunday"], "23:59").inicio, "2026-09-07");
+});
+
+test("bloqueia geração de planejamento para semana anterior à atual", () => {
+    assert.throws(() => planejar({}, undefined, { semanaInicio: "2026-09-07", agora: new Date("2026-09-16T12:00:00-03:00") }), /semana anterior/);
+    assert.doesNotThrow(() => planejar({}, undefined, { semanaInicio: "2026-09-14", agora: new Date("2026-09-16T12:00:00-03:00") }));
 });
 
 test("geracao exclui dias passados e explica eliminacao por horario", () => {
