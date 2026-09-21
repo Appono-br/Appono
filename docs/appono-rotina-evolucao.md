@@ -2,6 +2,18 @@
 
 Atualizado em 15/09/2026. Este documento acompanha a execução do plano dos itens 1 a 9. Os relatórios históricos permanecem válidos para as etapas que descrevem.
 
+## Ciclo de coleta e validacao da Intelligence V2 - 21/09/2026
+
+- Migration `20260921204635_routine_behavioral_consent_and_signals.sql` criada e nao aplicada remotamente.
+- Consentimento explicito, reversivel, versionado e desativado por padrao.
+- Historico e sinais privados idempotentes com RLS e privilegios minimos.
+- Aprovacao, recusa, alternativa, edicao e conversao geram sinais nao bloqueantes.
+- Revogacao interrompe sinais operacionais; feedback mantem consentimento individual.
+- Painel agregado em `/admin/rotina-intelligence`, sem PII ou promocao automatica.
+- Coletor DEMO criado, mas nao executado remotamente neste ciclo.
+- Verificacao local: 140 testes backend, builds e lint aprovados.
+- Decisao: `MANTER_EM_SOMBRA`; faltam 100 experiencias elegiveis distribuidas.
+
 ## Estado das fases
 
 | Fase | Estado | Evidência atual |
@@ -106,6 +118,8 @@ Não havia navegador controlável disponível nesta sessão. A inspeção autent
 ## Fase 3: recomendações explicáveis
 
 - O modelo `deterministico-v3` centraliza pesos, versão, penalidade gradual de repetição e o impacto limitado de feedback consentido em `backend/src/domain/routine-scoring.js`.
+- O modelo local `appono-intelligence-v1` adiciona adequação contextual contínua e aprendizado individual com suavização estatística. Somente feedback consentido participa do aprendizado; alergias, restrições, agenda, disponibilidade e limites financeiros permanecem fora do alcance do ajuste adaptativo.
+- Novas sugestões armazenam versão do modelo, confiança, número de amostras e contribuições em `metadados.inteligencia`. A página identifica personalização inicial e aprendizado ativo sem expor detalhes internos ou dados sensíveis.
 - Orçamento, raio, funcionamento e agenda continuam sendo limites eliminatórios; eles não viram pontos que possam ser compensados por favoritos.
 - Histórico recente influencia diversidade sem banir favoritos. A sugestão guarda até três alternativas com diferenças de preço, distância e aderência.
 - A ação “Outra sugestão” altera apenas uma refeição, preserva versões de perfil e planejamento, e exige confirmação do cliente.
@@ -175,3 +189,39 @@ Não havia navegador controlável disponível nesta sessão. A inspeção autent
 - `git diff --check`: aprovado; somente avisos informativos de LF/CRLF no Windows.
 - Varredura da documentação não encontrou credencial real; somente placeholders e nomes de variáveis.
 - A inspeção visual autenticada nos cinco breakpoints continua pendente porque esta sessão não disponibilizou navegador controlável. A responsividade foi revisada estruturalmente e o build não apresentou erro, mas isso não substitui a evidência visual.
+
+## Primeiro teste da inteligência em modo sombra - 20/09/2026
+
+- Dez clientes sintéticos geraram 50 sugestões oficiais para a semana de 21/09/2026, sem falhas HTTP.
+- O modelo oficial `deterministico-v3` permaneceu responsável por todas as sugestões exibidas; `appono-intelligence-v1` executou apenas como desafiante privado.
+- Foram persistidas 50 comparações: 26 concordâncias e 24 divergências, uma taxa de divergência de 48%.
+- A confiança média do desafiante foi 0,35 e nenhuma comparação possuía histórico ou feedback anterior.
+- As 24 divergências trocaram o restaurante; nenhuma mudou somente o produto. O perfil sintético “João Variado” divergiu nos cinco dias.
+- O resultado valida a infraestrutura de avaliação, não a superioridade do protótipo. A v1 permanece em modo sombra até existir amostra comportamental de aprovação, recusa, troca, conversão e feedback consentido.
+
+## Appono Intelligence V2 - 20/09/2026
+
+- A V1 foi mantida sem alteração de fórmula e ganhou uma V2 isolada em `backend/src/domain/routine-intelligence-v2.js`.
+- O planejamento oficial continua sendo decidido por `deterministico-v3`. V1 e V2 recebem o mesmo conjunto já elegível e produzem duas linhas sombra independentes por refeição.
+- Sem histórico consentido, a V2 aplica ajuste e confiança zero. Preço e distância não geram bônus estático; limites eliminatórios continuam exclusivamente sob o controle.
+- O ajuste comportamental usa suavização, saturação, decaimento de 90 dias, consistência e limite global de oito pontos. A confiança cresce com volume efetivo, permanece abaixo de `0,90` e cai com sinais contraditórios.
+- Restaurante, produto, categoria, faixa de preço, faixa de distância e janela podem receber afinidade somente a partir de sinal consentido. Repetição semanal e em dias consecutivos recebe penalidade no estado independente da V2.
+- Falhas de qualquer desafiante retornam ajuste zero, geram somente código seguro no log e não interrompem a sugestão oficial.
+- A auditoria `auditoria-tecnica-v2` separa V1 e V2, conserva a sequência semanal de cada modelo e classifica escolhas idênticas como empate.
+- A tabela `avaliacoes_sombra_rotina` já suportava múltiplos desafiantes por refeição. A migration incremental `20260920220421_routine_intelligence_v2_metrics.sql` adiciona somente volume efetivo, consistência, diagnóstico agregado e falha segura; ela não foi aplicada remotamente.
+
+### Validação local da V2
+
+- `npm test --workspace backend`: 135/135 testes aprovados.
+- `npm run build --workspace backend`: aprovado.
+- `npm run lint --workspace frontend`: aprovado.
+- `npm run build --workspace frontend`: aprovado; 48 rotas.
+- O teste remoto comparativo foi executado após autorização: 10/10 clientes, 50 sugestões e nenhuma falha HTTP.
+- A V2 concordou nas 50 comparações, com confiança e volume efetivo iguais a zero, nenhuma falha e nenhuma violação detectável de orçamento ou raio.
+- A V1 repetiu o resultado histórico: 26 concordâncias, 24 divergências e confiança média de 0,35 sem histórico.
+- A auditoria independente classificou a V2 em 50 empates técnicos com o controle. Para a V1, foram 14 vitórias do controle, 2 da V1 e 34 empates.
+- O histórico remoto das migrations `20260920191137`, `20260920210706` e `20260920220421` foi reconciliado após confirmar os objetos existentes. O dry-run final não encontrou migrations pendentes.
+
+### Decisão
+
+A recomendação continua sendo manter a V2 em modo sombra. O teste remoto confirmou neutralidade e confiança zero sem histórico, mas ainda não existe amostra comportamental suficiente para afirmar superioridade. O piloto só deve ser considerado após pelo menos 100 experiências elegíveis distribuídas, zero violações eliminatórias e revisão manual dos desacordos.

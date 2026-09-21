@@ -7,6 +7,7 @@ const { gerarPlanejamentoRotina, normalizarDiasSemana, criarCandidatos, horarioC
 const { notificarCliente, notificarRestaurante } = require("../services/notificacoes");
 const paymentConfig = require("../services/pagamentos/config");
 const { geocodificarEnderecoRotina } = require("../services/geolocalizacao");
+const { registrarSinalComportamental } = require("../domain/routine-behavior-signals");
 
 const rotinaRouter = Router();
 
@@ -14,6 +15,96 @@ rotinaRouter.use(requireAuth, requireRole("cliente"));
 
 const LIMITE_TEXTO_CURTO = 80;
 const STATUS_CONVERTIDOS = ["CONVERTIDA_RESERVA", "CONVERTIDA_PEDIDO"];
+const CAMPO_RESULTADO_SOMBRA = Object.freeze({
+    APROVADA: "aprovado_em",
+    RECUSADA: "recusado_em",
+    ALTERNATIVA: "alternativa_solicitada_em",
+    EDITADA: "editado_em",
+    CONVERTIDA_RESERVA: "convertido_reserva_em",
+    CONVERTIDA_PEDIDO: "convertido_pedido_em",
+    FEEDBACK_POSITIVO: "feedback_positivo_em",
+    FEEDBACK_NEGATIVO: "feedback_negativo_em",
+});
+
+function avaliacaoSombraAtiva() {
+    return ["1", "true", "yes", "on"].includes(String(process.env.APPONO_ROTINA_SHADOW_ENABLED ?? "").toLowerCase());
+}
+
+function avisarFalhaSombra(operacao, error) {
+    console.warn("ROUTINE_SHADOW_TELEMETRY_FAILED", { operacao, code: error?.code ?? "UNKNOWN" });
+}
+
+async function registrarSinalSemBloquear(banco, entrada) {
+    try {
+        await registrarSinalComportamental(banco, entrada);
+    } catch (error) {
+        console.warn("ROUTINE_BEHAVIOR_SIGNAL_FAILED", { tipo: entrada.tipoEvento, code: error?.code ?? "UNKNOWN" });
+    }
+}
+
+async function registrarAvaliacoesSombra(banco, idCliente, planejamento, refeicoes, avaliacoes) {
+    if (!avaliacaoSombraAtiva() || !planejamento || !Array.isArray(avaliacoes) || !avaliacoes.length) return;
+    const refeicoesPorChave = new Map((refeicoes ?? []).map((item) => [
+        `${item.data_refeicao}:${Number(item.id_janela_alimentacao)}`,
+        item,
+    ]));
+    const linhas = avaliacoes.map((item) => {
+        const refeicao = refeicoesPorChave.get(`${item.data_refeicao}:${Number(item.id_janela_alimentacao)}`);
+        if (!refeicao?.id_refeicao_planejada) return null;
+        return {
+            id_cliente: idCliente,
+            id_planejamento_rotina: planejamento.id_planejamento_rotina,
+            id_refeicao_planejada: refeicao.id_refeicao_planejada,
+            modelo_controle: item.modelo_controle,
+            modelo_desafiante: item.modelo_desafiante,
+            id_restaurante_controle: item.id_restaurante_controle,
+            id_produto_controle: item.id_produto_controle,
+            pontuacao_controle: item.pontuacao_controle,
+            id_restaurante_desafiante: item.id_restaurante_desafiante,
+            id_produto_desafiante: item.id_produto_desafiante,
+            pontuacao_desafiante: item.pontuacao_desafiante,
+            confianca_desafiante: item.confianca_desafiante,
+            amostras_desafiante: item.amostras_desafiante,
+            volume_efetivo_desafiante: item.volume_efetivo_desafiante,
+            consistencia_desafiante: item.consistencia_desafiante,
+            metadados_desafiante: item.metadados_desafiante ?? {},
+            falhou: item.falhou === true,
+            erro_codigo_desafiante: item.erro_codigo_desafiante,
+            divergiu: item.divergiu,
+        };
+    }).filter(Boolean);
+    if (!linhas.length) return;
+    const { error } = await banco.from("avaliacoes_sombra_rotina").upsert(linhas, { onConflict: "id_refeicao_planejada,modelo_desafiante" });
+    if (error) throw error;
+}
+
+async function registrarResultadoSombra(banco, idCliente, idRefeicao, resultado) {
+    const campo = CAMPO_RESULTADO_SOMBRA[resultado];
+    if (!avaliacaoSombraAtiva() || !campo) return;
+    try {
+        const { error } = await banco.from("avaliacoes_sombra_rotina")
+            .update({ [campo]: new Date().toISOString() })
+            .eq("id_cliente", idCliente)
+            .eq("id_refeicao_planejada", idRefeicao);
+        if (error) throw error;
+    } catch (error) {
+        avisarFalhaSombra(resultado, error);
+    }
+}
+
+async function registrarResultadoPlanejamentoSombra(banco, idCliente, idPlanejamento, resultado) {
+    const campo = CAMPO_RESULTADO_SOMBRA[resultado];
+    if (!avaliacaoSombraAtiva() || !campo) return;
+    try {
+        const { error } = await banco.from("avaliacoes_sombra_rotina")
+            .update({ [campo]: new Date().toISOString() })
+            .eq("id_cliente", idCliente)
+            .eq("id_planejamento_rotina", idPlanejamento);
+        if (error) throw error;
+    } catch (error) {
+        avisarFalhaSombra(`PLANEJAMENTO_${resultado}`, error);
+    }
+}
 
 function bancoRotina(res) {
     if (!supabaseAdmin) {
@@ -243,6 +334,72 @@ async function carregarRestaurantesParaRotina(banco, idCliente) {
     }));
 }
 
+async function carregarFeedbacksPersonalizacao(banco, idCliente, restaurantes) {
+    const { data, error } = await banco.from("feedback_rotina_cliente")
+        .select("id_feedback_rotina,gostou,repetiria,tags,consentiu_personalizacao,criado_em,atualizado_em,refeicoes_planejadas!inner(id_restaurante,id_produto,preco_estimado,distancia_km,metadados)")
+        .eq("id_cliente", idCliente)
+        .eq("consentiu_personalizacao", true)
+        .is("excluido_em", null)
+        .order("criado_em", { ascending: false })
+        .limit(100);
+    if (error) throw error;
+    const produtos = new Map((restaurantes ?? []).flatMap((restaurante) =>
+        (restaurante.produtos ?? []).map((produto) => [Number(produto.id_produto), produto])));
+    const feedbacks = (data ?? []).map((item) => {
+        const refeicao = item.refeicoes_planejadas ?? {};
+        const produto = produtos.get(Number(refeicao.id_produto));
+        return {
+            id_sinal: item.id_feedback_rotina,
+            tipo_evento: item.gostou ? "FEEDBACK_POSITIVO" : "FEEDBACK_NEGATIVO",
+            gostou: item.gostou,
+            repetiria: item.repetiria,
+            tags: item.tags ?? [],
+            consentiu_personalizacao: item.consentiu_personalizacao,
+            criado_em: item.criado_em,
+            atualizado_em: item.atualizado_em,
+            id_restaurante: refeicao.id_restaurante,
+            id_produto: refeicao.id_produto,
+            categoria: produto?.categorias?.nome ?? null,
+            preco_estimado: refeicao.preco_estimado,
+            distancia_km: refeicao.distancia_km,
+            tipo_janela: refeicao.metadados?.janela?.tipo ?? null,
+        };
+    });
+    const { data: consentimento, error: erroConsentimento } = await banco
+        .from("consentimentos_personalizacao_rotina")
+        .select("habilitado,concedido_em")
+        .eq("id_cliente", idCliente)
+        .maybeSingle();
+    if (erroConsentimento) {
+        avisarFalhaSombra("CARREGAR_CONSENTIMENTO", erroConsentimento);
+        return feedbacks;
+    }
+    if (!consentimento?.habilitado || !consentimento.concedido_em) return feedbacks;
+    const { data: sinais, error: erroSinais } = await banco
+        .from("sinais_comportamentais_rotina")
+        .select("id_sinal_comportamental,tipo_evento,ocorreu_em,id_restaurante,id_produto,id_janela_alimentacao,atributos_escolhidos")
+        .eq("id_cliente", idCliente)
+        .eq("consentimento_valido", true)
+        .gte("ocorreu_em", consentimento.concedido_em)
+        .is("excluido_em", null)
+        .order("ocorreu_em", { ascending: false })
+        .limit(200);
+    if (erroSinais) {
+        avisarFalhaSombra("CARREGAR_SINAIS", erroSinais);
+        return feedbacks;
+    }
+    return feedbacks.concat((sinais ?? []).map((item) => ({
+        id_sinal: `behavior:${item.id_sinal_comportamental}`,
+        tipo_evento: item.tipo_evento,
+        consentiu_personalizacao: true,
+        criado_em: item.ocorreu_em,
+        id_restaurante: item.id_restaurante,
+        id_produto: item.id_produto,
+        categoria: produtos.get(Number(item.id_produto))?.categorias?.nome ?? null,
+        tipo_janela: item.atributos_escolhidos?.tipo_janela ?? null,
+    })));
+}
+
 async function buscarPlanejamentoComRefeicoes(banco, idCliente, filtros = {}) {
     let consulta = banco
         .from("planejamentos_rotina")
@@ -404,6 +561,40 @@ async function salvarPerfil(req, res) {
 rotinaRouter.post("/perfil", salvarPerfil);
 rotinaRouter.patch("/perfil", salvarPerfil);
 
+rotinaRouter.get("/consentimento-personalizacao", async (_req, res) => {
+    const banco = bancoRotina(res);
+    if (!banco) return;
+    try {
+        const { data, error } = await banco.from("consentimentos_personalizacao_rotina")
+            .select("habilitado,versao_texto,origem,concedido_em,revogado_em,versao,atualizado_em")
+            .eq("id_cliente", res.locals.profileId)
+            .maybeSingle();
+        if (error) throw error;
+        return res.json({ consentimento: data ?? { habilitado: false, versao_texto: "rotina-personalizacao-v1" } });
+    } catch (error) {
+        return res.status(400).json({ code: "ROUTINE_CONSENT_READ_FAILED", error: error.message });
+    }
+});
+
+rotinaRouter.put("/consentimento-personalizacao", async (req, res) => {
+    if (typeof req.body?.habilitado !== "boolean") {
+        return res.status(400).json({ code: "ROUTINE_CONSENT_INVALID", error: "Informe se deseja ativar a personalizacao." });
+    }
+    try {
+        const supabaseUsuario = createUserSupabaseClient(res.locals.accessToken);
+        const { data, error } = await supabaseUsuario.rpc("alterar_consentimento_personalizacao_rotina", {
+            p_habilitado: req.body.habilitado,
+            p_versao_texto: "rotina-personalizacao-v1",
+            p_origem: "CONFIGURACOES",
+        });
+        if (error) throw error;
+        return res.json({ consentimento: data });
+    } catch (error) {
+        const status = error.code === "PT401" ? 401 : 422;
+        return res.status(status).json({ code: "ROUTINE_CONSENT_UPDATE_FAILED", error: error.message });
+    }
+});
+
 rotinaRouter.get("/planejamento", async (req, res) => {
     const banco = bancoRotina(res);
     if (!banco) return;
@@ -477,19 +668,7 @@ rotinaRouter.post("/planejamento/gerar", async (req, res) => {
             .lt("data_refeicao", semanaInicio)
             .order("data_refeicao", { ascending: false }).limit(100);
         if (erroHistorico) throw erroHistorico;
-        const { data: feedbacks, error: erroFeedback } = await banco.from("feedback_rotina_cliente")
-            .select("gostou,consentiu_personalizacao,refeicoes_planejadas!inner(id_restaurante,id_produto)")
-            .eq("id_cliente", res.locals.profileId)
-            .eq("consentiu_personalizacao", true)
-            .is("excluido_em", null)
-            .limit(100);
-        if (erroFeedback) throw erroFeedback;
-        const feedbacksParaRanking = (feedbacks ?? []).map((item) => ({
-            gostou: item.gostou,
-            consentiu_personalizacao: item.consentiu_personalizacao,
-            id_restaurante: item.refeicoes_planejadas?.id_restaurante,
-            id_produto: item.refeicoes_planejadas?.id_produto,
-        }));
+        const feedbacksParaRanking = await carregarFeedbacksPersonalizacao(banco, res.locals.profileId, restaurantes);
         const planejamentoGerado = gerarPlanejamentoRotina({
             perfil: dadosPerfil.perfil,
             janelasAlimentacao: dadosPerfil.janelas,
@@ -508,6 +687,11 @@ rotinaRouter.post("/planejamento/gerar", async (req, res) => {
         await mutarRotina(banco, res, { ...req.body, versao_planejamento: versaoAlvo }, "GERAR", null, planejamentoGerado);
         const respostaPersistida = await buscarPlanejamentoComRefeicoes(banco, res.locals.profileId, { semana_inicio: semanaInicio });
         if (!respostaPersistida.planejamento) throw new Error("Não foi possível confirmar o planejamento recém-gerado.");
+        try {
+            await registrarAvaliacoesSombra(banco, res.locals.profileId, respostaPersistida.planejamento, respostaPersistida.refeicoes, planejamentoGerado.avaliacoes_sombra);
+        } catch (error) {
+            avisarFalhaSombra("GERAR", error);
+        }
         return res.status(201).json(respostaPersistida);
     } catch (error) {
         return res.status(error.status ?? 400).json({ error: error instanceof Error ? error.message : "Não foi possível gerar o planejamento." });
@@ -522,7 +706,9 @@ rotinaRouter.post("/planejamento/:id/aprovar", async (req, res) => {
         return res.status(400).json({ error: "Planejamento inválido." });
     }
     try {
-        return res.json(await mutarRotina(banco, res, req.body, "APROVAR_PLANO", idPlanejamento));
+        const data = await mutarRotina(banco, res, req.body, "APROVAR_PLANO", idPlanejamento);
+        await registrarResultadoPlanejamentoSombra(banco, res.locals.profileId, idPlanejamento, "APROVADA");
+        return res.json(data);
     } catch (error) {
         return res.status(error.status ?? 400).json({ error: error instanceof Error ? error.message : "Não foi possível aprovar o planejamento." });
     }
@@ -546,11 +732,15 @@ async function opcoesDaRefeicao(banco, idCliente, refeicao, horario = null, vers
         .gt("fim_em", new Date(`${refeicao.data_refeicao}T00:00:00-03:00`).toISOString());
     if (erroAgenda) throw erroAgenda;
     const janelasLivres = janelasLivresDia(perfil, refeicao.data_refeicao, ocupadas ?? []);
+    const restaurantes = await carregarRestaurantesParaRotina(banco, idCliente);
+    const feedbacks = await carregarFeedbacksPersonalizacao(banco, idCliente, restaurantes);
+    const janelaAtual = perfil.janelas_alimentacao?.find((item) => Number(item.id_janela_alimentacao) === Number(refeicao.id_janela_alimentacao));
     const opcoes = criarCandidatos({
-        perfil, restaurantes: await carregarRestaurantesParaRotina(banco, idCliente),
+        perfil: { ...perfil, tipo_janela: janelaAtual?.tipo ?? null }, restaurantes,
         preferencias: perfil.preferencias, restricoes: perfil.restricoes, alergias: perfil.alergias,
         favoritosRestaurantes: new Set(perfil.restaurantes_favoritos_rotina.map(Number)),
         pratosFavoritos: new Set(perfil.pratos_favoritos_rotina.map(Number)),
+        feedbacks,
     }).filter((item) => item.preco_estimado <= saldo).flatMap((item) => {
         const janela = janelasLivres.map((livre) => horarioCompativel(item, { ...perfil, ...livre }, refeicao.data_refeicao, new Date(), horario)).find(Boolean);
         return janela ? [{
@@ -558,7 +748,7 @@ async function opcoesDaRefeicao(banco, idCliente, refeicao, horario = null, vers
             id_produto: item.produto?.id_produto ?? null, prato: item.produto?.nome ?? null,
             preco_estimado: item.preco_estimado, distancia_km: item.distancia_km,
             pontuacao: item.pontuacao, motivo_recomendacao: motivoRecomendacao(item),
-            metadados: { pesos: item.pesos, modelo_recomendacao: "deterministico-v2" }, ...janela,
+            metadados: { pesos: item.pesos, modelo_recomendacao: "deterministico-v3" }, ...janela,
         }] : [];
     });
     const referencia = opcoes[0];
@@ -605,6 +795,18 @@ rotinaRouter.patch("/refeicoes/:id", async (req, res) => {
         const { restaurante: _nomeRestaurante, prato: _nomePrato, ...campos } = escolhido;
         const atualizacao = { ...campos, status: "ALTERADA", motivo_recomendacao: "Ajustado por você dentro dos critérios da rotina." };
         const data = await mutarRotina(banco, res, req.body, "EDITAR", idRefeicao, atualizacao);
+        await registrarResultadoSombra(banco, res.locals.profileId, idRefeicao, "EDITADA");
+        await registrarSinalSemBloquear(banco, {
+            idCliente: res.locals.profileId,
+            tipoEvento: "EDICAO",
+            refeicao: data.refeicao,
+            atributos: {
+                restaurante_alterado: Number(refeicao.id_restaurante) !== Number(data.refeicao?.id_restaurante),
+                produto_alterado: Number(refeicao.id_produto) !== Number(data.refeicao?.id_produto),
+                horario_alterado: String(refeicao.horario_sugerido) !== String(data.refeicao?.horario_sugerido),
+                tipo_janela: refeicao.metadados?.janela?.tipo ?? null,
+            },
+        });
         return res.json(data.refeicao);
     } catch (error) {
         return res.status(error.status ?? 400).json({ error: error instanceof Error ? error.message : "Não foi possível alterar a refeição." });
@@ -625,6 +827,13 @@ rotinaRouter.post("/refeicoes/:id/outra-sugestao", async (req, res) => {
         if (!alternativa) return res.status(409).json({ code: "ROUTINE_NO_ALTERNATIVE", error: "Não há outra sugestão compatível para este dia." });
         const { restaurante: _restaurante, prato: _prato, comparacao: _comparacao, ...dados } = alternativa;
         const resultado = await mutarRotina(banco, res, req.body, "EDITAR", idRefeicao, { ...dados, status: "ALTERADA" });
+        await registrarResultadoSombra(banco, res.locals.profileId, idRefeicao, "ALTERNATIVA");
+        await registrarSinalSemBloquear(banco, {
+            idCliente: res.locals.profileId,
+            tipoEvento: "ALTERNATIVA",
+            refeicao,
+            atributos: { tipo_janela: refeicao.metadados?.janela?.tipo ?? null },
+        });
         return res.json(resultado.refeicao);
     } catch (error) {
         return res.status(error.status ?? 400).json({ code: error.code ?? "ROUTINE_ALTERNATIVE_FAILED", error: error.message });
@@ -636,6 +845,13 @@ rotinaRouter.post("/refeicoes/:id/aprovar", async (req, res) => {
     if (!banco) return;
     try {
         const data = await mutarRotina(banco, res, req.body, "APROVAR", Number(req.params.id));
+        await registrarResultadoSombra(banco, res.locals.profileId, Number(req.params.id), "APROVADA");
+        await registrarSinalSemBloquear(banco, {
+            idCliente: res.locals.profileId,
+            tipoEvento: "APROVACAO",
+            refeicao: data.refeicao,
+            atributos: { tipo_janela: data.refeicao?.metadados?.janela?.tipo ?? null },
+        });
         return res.json(data.refeicao);
     } catch (error) {
         return res.status(error.status ?? 400).json({ error: error instanceof Error ? error.message : "Não foi possível aprovar a refeição." });
@@ -684,6 +900,7 @@ rotinaRouter.post("/refeicoes/:id/feedback", async (req, res) => {
             const status = error.code === "PT404" ? 404 : error.code === "PT409" ? 409 : error.code === "PT401" ? 401 : 422;
             return res.status(status).json({ code: "ROUTINE_FEEDBACK_REJECTED", error: error.message });
         }
+        await registrarResultadoSombra(supabaseAdmin, res.locals.profileId, idRefeicao, entrada.gostou ? "FEEDBACK_POSITIVO" : "FEEDBACK_NEGATIVO");
         return res.status(201).json({ feedback: data });
     } catch (error) {
         return res.status(error.status ?? 400).json({ code: "ROUTINE_FEEDBACK_INVALID", error: error instanceof Error ? error.message : "Não foi possível registrar o feedback." });
@@ -711,6 +928,13 @@ rotinaRouter.post("/refeicoes/:id/recusar", async (req, res) => {
     if (!banco) return;
     try {
         const data = await mutarRotina(banco, res, req.body, "RECUSAR", Number(req.params.id));
+        await registrarResultadoSombra(banco, res.locals.profileId, Number(req.params.id), "RECUSADA");
+        await registrarSinalSemBloquear(banco, {
+            idCliente: res.locals.profileId,
+            tipoEvento: "RECUSA",
+            refeicao: data.refeicao,
+            atributos: { tipo_janela: data.refeicao?.metadados?.janela?.tipo ?? null },
+        });
         return res.json(data.refeicao);
     } catch (error) {
         return res.status(error.status ?? 400).json({ error: error instanceof Error ? error.message : "Não foi possível recusar a refeição." });
@@ -735,6 +959,14 @@ rotinaRouter.post("/refeicoes/:id/converter-reserva", async (req, res) => {
         if (error) return res.status(409).json({ error: mapearErroConversao(error.message) });
         const reservaConfirmada = conversao.reserva;
         const refeicaoAtualizada = conversao.refeicao;
+        await registrarResultadoSombra(banco, res.locals.profileId, idRefeicao, "CONVERTIDA_RESERVA");
+        await registrarSinalSemBloquear(banco, {
+            idCliente: res.locals.profileId,
+            tipoEvento: "CONVERSAO_RESERVA",
+            refeicao: refeicaoAtualizada,
+            origem: "CONVERSAO_API",
+            atributos: { tipo_janela: refeicaoAtualizada?.metadados?.janela?.tipo ?? null },
+        });
         await Promise.allSettled([
             notificarCliente(res.locals.profileId, {
                 titulo: "Reserva criada pela rotina",
@@ -782,6 +1014,14 @@ rotinaRouter.post("/refeicoes/:id/converter-pedido", async (req, res) => {
             return res.status(400).json({ error: "A reserva e o pedido foram processados, mas a resposta veio incompleta." });
         }
         const refeicaoAtualizada = data.refeicao;
+        await registrarResultadoSombra(banco, res.locals.profileId, idRefeicao, "CONVERTIDA_PEDIDO");
+        await registrarSinalSemBloquear(banco, {
+            idCliente: res.locals.profileId,
+            tipoEvento: "CONVERSAO_PEDIDO",
+            refeicao: refeicaoAtualizada,
+            origem: "CONVERSAO_API",
+            atributos: { tipo_janela: refeicaoAtualizada?.metadados?.janela?.tipo ?? null },
+        });
         await Promise.allSettled([
             notificarCliente(res.locals.profileId, {
                 titulo: "Pedido da rotina criado",

@@ -46,6 +46,10 @@ export default function SettingsPage() {
     const [formularioConta, setFormularioConta] = useState(formularioContaInicial);
     const [mensagemConta, setMensagemConta] = useState("Carregando dados cadastrados...");
     const [salvandoConta, setSalvandoConta] = useState(false);
+    const [consentimento, setConsentimento] = useState(false);
+    const [carregandoConsentimento, setCarregandoConsentimento] = useState(true);
+    const [salvandoConsentimento, setSalvandoConsentimento] = useState(false);
+    const [mensagemConsentimento, setMensagemConsentimento] = useState("");
     useEffect(() => {
         window.localStorage.removeItem("appono:paymentDraft");
     }, []);
@@ -68,6 +72,13 @@ export default function SettingsPage() {
             .catch((error) => {
             setMensagemConta(error instanceof Error ? error.message : "Não foi possível carregar os dados.");
         });
+    }, [session]);
+    useEffect(() => {
+        if (session?.type !== "client") return;
+        apiRequest("/rotina/consentimento-personalizacao")
+            .then(({ consentimento: atual }) => setConsentimento(atual?.habilitado === true))
+            .catch((error) => setMensagemConsentimento(error instanceof Error ? error.message : "Nao foi possivel carregar esta preferencia."))
+            .finally(() => setCarregandoConsentimento(false));
     }, [session]);
     function atualizarCampoConta(campo, valor) {
         setFormularioConta((atual) => ({ ...atual, [campo]: valor }));
@@ -98,6 +109,27 @@ export default function SettingsPage() {
     async function logout() {
         await encerrarSessao();
         window.location.assign("/");
+    }
+    async function alterarConsentimento() {
+        const habilitado = !consentimento;
+        setSalvandoConsentimento(true);
+        setMensagemConsentimento("");
+        try {
+            const { consentimento: atualizado } = await apiRequest("/rotina/consentimento-personalizacao", {
+                method: "PUT",
+                body: JSON.stringify({ habilitado }),
+            });
+            setConsentimento(atualizado?.habilitado === true);
+            setMensagemConsentimento(habilitado
+                ? "Personalizacao ativada. Somente novas interacoes consentidas serao usadas."
+                : "Personalizacao desativada. Suas novas sugestoes nao usarao essas interacoes.");
+        }
+        catch (error) {
+            setMensagemConsentimento(error instanceof Error ? error.message : "Nao foi possivel atualizar esta preferencia.");
+        }
+        finally {
+            setSalvandoConsentimento(false);
+        }
     }
     const profileName = session?.name || t("settings.unknownProfile");
     const profileType = session?.type === "restaurant"
@@ -170,6 +202,31 @@ export default function SettingsPage() {
 
             {mensagemConta ? <p className="mt-4 text-sm font-semibold text-app-caramelo-torrado">{ui(mensagemConta)}</p> : null}
           </form>
+
+          <section className="rounded-[8px] bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada/45 sm:p-8 lg:col-start-2">
+            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">Appono Rotina</p>
+            <h2 className="mt-2 text-2xl font-medium text-app-cafe-profundo">Personalizar minhas sugestoes</h2>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-app-mocha">
+              Quando ativado, o Appono pode considerar novas aprovacoes, recusas, trocas, edicoes e conversoes para ajustar sugestoes futuras. Preferencias explicitas e regras de seguranca continuam tendo prioridade.
+            </p>
+            <p className="mt-2 text-sm leading-6 text-app-cinza">
+              A opcao vem desativada e pode ser revogada a qualquer momento. Reservas, pedidos e registros financeiros nao sao apagados pela revogacao.
+            </p>
+            <div className="mt-6 flex flex-wrap items-center gap-4">
+              <button
+                type="button"
+                role="switch"
+                aria-checked={consentimento}
+                disabled={carregandoConsentimento || salvandoConsentimento}
+                onClick={alterarConsentimento}
+                className={`inline-flex min-h-11 items-center rounded-[8px] px-6 text-sm font-bold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-caramelo-torrado ${consentimento ? "bg-app-cafe-profundo text-app-creme-leve" : "bg-app-creme-suave text-app-cafe-profundo ring-1 ring-app-baunilha-dourada"}`}
+              >
+                {carregandoConsentimento ? "Carregando..." : salvandoConsentimento ? "Salvando..." : consentimento ? "Personalizacao ativada" : "Ativar personalizacao"}
+              </button>
+              <span className="text-xs font-semibold text-app-cinza">Versao do consentimento: rotina-personalizacao-v1</span>
+            </div>
+            {mensagemConsentimento ? <p className="mt-4 text-sm font-semibold text-app-caramelo-torrado" role="status">{mensagemConsentimento}</p> : null}
+          </section>
         </div>
 
         <BotaoIdioma />

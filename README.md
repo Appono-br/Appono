@@ -4,6 +4,12 @@
 
 # Appono
 
+## Coleta comportamental da Appono Intelligence V2
+
+A V2 permanece em modo sombra. Em `/cliente/configuracoes`, o cliente pode ativar ou revogar o uso de novas interacoes na personalizacao. O consentimento vem desativado por padrao e nao apaga reservas, pedidos ou registros financeiros.
+
+A migration `20260921204635_routine_behavioral_consent_and_signals.sql` cria consentimento versionado, historico auditavel e sinais privados idempotentes. Aplique-a antes de publicar backend e frontend. O painel agregado fica em `/admin/rotina-intelligence`; a coleta DEMO usa `npm.cmd run collect:rotina:behavior --workspace backend` com `APPONO_REMOTE_SMOKE=confirmado`.
+
 **Reservas de mesas, pedidos antecipados e operação de restaurantes em uma plataforma.**
 
 [![Next.js 16](https://img.shields.io/badge/Next.js-16-000000)](frontend/package.json)
@@ -52,6 +58,10 @@ O **Appono Rotina** ajuda o cliente a transformar preferências alimentares e ho
 O cliente informa restrições e preferências alimentares, endereço e janelas de refeição. Com esses dados, a plataforma gera sugestões de restaurantes explicáveis e compatíveis com a rotina, permitindo aprovar, trocar ou recusar cada sugestão. As escolhas aprovadas podem seguir para reserva de mesa ou pedido antecipado, conforme a operação disponível no restaurante.
 
 Cada planejamento fica persistido por semana. Ao entrar no módulo, a aplicação prioriza a semana que contém a data atual e, quando ela ainda não existe, a próxima semana planejada. O cliente pode consultar no máximo a semana imediatamente anterior; períodos mais antigos permanecem preservados no banco, mas não ficam expostos no módulo. Geração e regeneração retroativas são bloqueadas no frontend, na API e no domínio.
+
+O recomendador próprio `appono-intelligence-v1` funciona no backend e complementa o modelo determinístico. Ele calcula adequação contínua ao orçamento e ao raio configurados e, mediante consentimento, aprende afinidades de categoria, faixa de preço, distância e janela alimentar a partir de experiências concluídas. Restrições, alergias, agenda, funcionamento, orçamento e disponibilidade continuam sendo filtros obrigatórios; a inteligência apenas ordena opções já consideradas seguras. Cada sugestão registra versão, confiança, quantidade de amostras e contribuições utilizadas, sem depender de um provedor externo de IA.
+
+Para avaliação em desenvolvimento ou homologação, o projeto inclui um [seed sintético do Appono Rotina](docs/appono-rotina-populacao-avaliacao.md) com restaurantes, cardápios, segurança alimentar e clientes fictícios. A execução exige confirmação explícita, é bloqueada quando `NODE_ENV=production` e possui limpeza restrita aos usuários de demonstração.
 
 No fluxo de reserva, iniciar o checkout cria uma reserva pendente e bloqueia a mesa temporariamente. Após o pagamento aprovado, a reserva é confirmada e a mesa permanece indisponível para o horário reservado. A mesa volta a ser elegível para novas reservas quando a visita é concluída pelo restaurante, a reserva é cancelada ou o cliente é marcado como não compareceu.
 
@@ -221,6 +231,9 @@ MERCADO_PAGO_PERMITIR_PRODUCAO=false
 | `SUPABASE_URL` | Obrigatória | URL do projeto de desenvolvimento |
 | `SUPABASE_PUBLISHABLE_KEY` | Obrigatória | Autenticação e operações com o token do usuário |
 | `SUPABASE_SECRET_KEY` | Obrigatória para o conjunto dos módulos | Operações administrativas, suporte e recuperação/criação de perfis; há fluxos limitados que funcionam sem ela |
+| `APPONO_DEMO_SEED` | Somente para seed manual | Deve receber `confirmado` apenas durante população ou limpeza de uma base de desenvolvimento/homologação |
+| `APPONO_DEMO_PASSWORD` | Somente para criar a população | Senha temporária com ao menos 12 caracteres para as contas sintéticas; não deve ser versionada |
+| `APPONO_DEMO_TARGET_HOST` | Somente para seed manual | Deve coincidir exatamente com o hostname de `SUPABASE_URL`, confirmando o projeto que será alterado |
 | `PORT` | Opcional; padrão `3001` | Porta da API |
 | `FRONTEND_ORIGIN` | Padrão local `http://localhost:3000` | CORS e construção do callback de cadastro; use uma origem no ambiente local |
 | `SUPABASE_ALLOW_INSECURE_TLS` | Manter `false` | Preserva a validação de certificados |
@@ -249,6 +262,8 @@ MERCADO_PAGO_PERMITIR_PRODUCAO=false
 | `APPONO_ROTINA_INSIGHTS_ENABLED` | Padrão `false` | Ativa métricas agregadas da Rotina para o restaurante |
 | `RESEND_API_KEY` e `RESEND_FROM_EMAIL` | Para envio Resend | Credenciais exclusivas do backend; necessárias somente com e-mail habilitado |
 | `APPONO_CRON_SECRET` | Para worker de e-mail | Protege `POST /api/cron/emails` com o header `X-Appono-Cron-Secret` |
+
+| `APPONO_ROTINA_SHADOW_ENABLED` | Padrao `false` | Persiste comparacoes privadas do controle com `appono-intelligence-v1` e `appono-intelligence-v2`; nao altera a sugestao mostrada |
 
 ### Endurecimento Mercado Pago
 

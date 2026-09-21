@@ -4,6 +4,7 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const {
     calcularDistanciaKm,
+    executarInteligenciaSombra,
     gerarPlanejamentoRotina,
     produtoIncompativel,
     horarioCompativel,
@@ -12,6 +13,23 @@ const {
     semanaAtual,
     semanaPlanejamento,
 } = require("../src/domain/routine-recommendation");
+
+test("falha do desafiante nao interrompe o recomendador oficial", () => {
+    const avisoOriginal = console.warn;
+    let aviso;
+    console.warn = (...args) => { aviso = args; };
+    try {
+        const resultado = executarInteligenciaSombra("modelo-teste", () => {
+            throw Object.assign(new Error("falha privada"), { code: "MODEL_FAILURE" });
+        });
+        assert.equal(resultado.ajuste, 0);
+        assert.equal(resultado.confianca, 0);
+        assert.equal(resultado.falhou, true);
+        assert.deepEqual(aviso, ["ROUTINE_SHADOW_MODEL_FAILED", { modelo: "modelo-teste", code: "MODEL_FAILURE" }]);
+    } finally {
+        console.warn = avisoOriginal;
+    }
+});
 
 function restaurante(overrides = {}) {
     return {
@@ -266,6 +284,33 @@ test("semana segue Sao Paulo e avanca apos ultima janela selecionada", () => {
     assert.deepEqual(semanaAtual(new Date("2026-09-20T23:30:00Z")), { inicio: "2026-09-14", fim: "2026-09-20" });
     assert.equal(semanaPlanejamento(new Date("2026-09-19T01:00:00Z"), ["friday"], "13:30").inicio, "2026-09-21");
     assert.equal(semanaPlanejamento(new Date("2026-09-14T01:00:00Z"), ["sunday"], "23:59").inicio, "2026-09-07");
+});
+
+test("planejamento registra comparação sombra sem entregar a decisão à IA", () => {
+    const criarProduto = (idProduto, nome, preco, idRestaurante) => ({
+        ...restaurante({ id_restaurante: idRestaurante }).produtos[0],
+        id_produto: idProduto,
+        id_restaurante: idRestaurante,
+        nome,
+        preco,
+    });
+    const resultado = planejar({}, [
+        restaurante({ id_restaurante: 1, produtos: [criarProduto(10, "Massa", 40, 1)] }),
+        restaurante({ id_restaurante: 2, nome: "Opção B", produtos: [criarProduto(20, "Bowl", 38, 2)] }),
+    ]);
+    const refeicao = resultado.refeicoes[0];
+    assert.equal(refeicao.metadados.modelo_recomendacao, "deterministico-v3");
+    assert.equal(refeicao.metadados.avaliacao_sombra, undefined);
+    assert.equal(resultado.avaliacoes_sombra.length, resultado.refeicoes.length * 2);
+    assert.ok(resultado.avaliacoes_sombra.every((item) => item.modelo_controle === "deterministico-v3"));
+    assert.deepEqual(new Set(resultado.avaliacoes_sombra.map((item) => item.modelo_desafiante)), new Set([
+        "appono-intelligence-v1",
+        "appono-intelligence-v2",
+    ]));
+    const avaliacoesV2 = resultado.avaliacoes_sombra.filter((item) => item.modelo_desafiante === "appono-intelligence-v2");
+    assert.ok(avaliacoesV2.every((item) => item.confianca_desafiante === 0 && item.amostras_desafiante === 0 && item.divergiu === false));
+    assert.equal(resultado.resumo.experimento_sombra, "appono-intelligence-v1");
+    assert.deepEqual(resultado.resumo.experimentos_sombra, ["appono-intelligence-v1", "appono-intelligence-v2"]);
 });
 
 test("bloqueia geração de planejamento para semana anterior à atual", () => {

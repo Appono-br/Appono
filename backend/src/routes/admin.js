@@ -6,6 +6,7 @@ exports.adminRouter = void 0;
 const express_1 = require("express");
 const supabase_1 = require("../lib/supabase");
 const auth_1 = require("../middleware/auth");
+const { agregarMetricasExperimento } = require("../domain/routine-experiment-metrics");
 
 exports.adminRouter = (0, express_1.Router)();
 
@@ -138,6 +139,26 @@ async function contarRegistros(tabela) {
 }
 
 exports.adminRouter.use(auth_1.requireAuth, exigirAdmin);
+
+exports.adminRouter.get("/rotina-intelligence/resumo", async (req, res) => {
+    const dias = Math.min(90, Math.max(7, Number(req.query.dias) || 30));
+    const inicio = new Date();
+    inicio.setUTCDate(inicio.getUTCDate() - dias);
+    const { data, error } = await supabase_1.supabaseAdmin
+        .from("avaliacoes_sombra_rotina")
+        .select("modelo_controle,modelo_desafiante,id_restaurante_desafiante,id_produto_desafiante,confianca_desafiante,amostras_desafiante,volume_efetivo_desafiante,consistencia_desafiante,divergiu,falhou,aprovado_em,recusado_em,alternativa_solicitada_em,editado_em,convertido_reserva_em,convertido_pedido_em,feedback_positivo_em,feedback_negativo_em,criado_em")
+        .gte("criado_em", inicio.toISOString())
+        .order("criado_em", { ascending: true })
+        .limit(5000);
+    if (error) return res.status(503).json({ code: "ROUTINE_EXPERIMENT_UNAVAILABLE", error: "Nao foi possivel carregar as metricas do experimento." });
+    const resumo = agregarMetricasExperimento(data ?? []);
+    return res.json({
+        periodo_dias: dias,
+        modelo_oficial: data?.[0]?.modelo_controle ?? "deterministico-v3",
+        decisao_atual: "MANTER_EM_SOMBRA",
+        ...resumo,
+    });
+});
 
 async function buscarPedidosPorPagamento(pagamentos) {
     const idsPedidos = [...new Set((pagamentos ?? [])

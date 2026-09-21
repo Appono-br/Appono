@@ -1,9 +1,29 @@
 "use strict";
 
 const { MODELO_RECOMENDACAO_ROTINA, impactoFeedback, penalidadeRepeticao, pontuarCandidato } = require("./routine-scoring");
+const { MODELO_INTELIGENCIA_ROTINA, pontuarInteligenciaRotina } = require("./routine-intelligence");
+const { MODELO_INTELIGENCIA_ROTINA_V2, pontuarInteligenciaRotinaV2 } = require("./routine-intelligence-v2");
+const { compararRankingSombra, ordenarPorPontuacao } = require("./routine-shadow-evaluation");
 
 const DIAS_SEMANA = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
 const DIAS_UTEIS_PADRAO = ["monday", "tuesday", "wednesday", "thursday", "friday"];
+
+function executarInteligenciaSombra(modelo, executor) {
+    try {
+        return executor();
+    } catch (error) {
+        console.warn("ROUTINE_SHADOW_MODEL_FAILED", { modelo, code: error?.code ?? error?.name ?? "UNKNOWN" });
+        return {
+            modelo,
+            ajuste: 0,
+            confianca: 0,
+            amostras: 0,
+            contribuicoes: {},
+            falhou: true,
+            erro_codigo: error?.code ?? error?.name ?? "UNKNOWN",
+        };
+    }
+}
 
 function normalizarTexto(valor) {
     return String(valor ?? "")
@@ -289,7 +309,7 @@ function obterProdutosRestaurante(restaurante) {
     });
 }
 
-function criarCandidatos({ perfil, restaurantes, preferencias = [], restricoes = [], alergias = [], favoritosRestaurantes = new Set(), pratosFavoritos = new Set(), feedbacks = [], diagnostico = {} }) {
+function criarCandidatos({ perfil, restaurantes, preferencias = [], restricoes = [], alergias = [], favoritosRestaurantes = new Set(), pratosFavoritos = new Set(), feedbacks = [], diagnostico = {}, referencia = new Date(), sequenciaV2 = {} }) {
     const orcamento = numeroValido(perfil.orcamento_diario);
     const raio = numeroValido(perfil.raio_km);
     const temCoordenada = numeroValido(perfil.latitude) !== null && numeroValido(perfil.longitude) !== null;
@@ -335,13 +355,30 @@ function criarCandidatos({ perfil, restaurantes, preferencias = [], restricoes =
                 idRestaurante: restaurante.id_restaurante,
                 idProduto: produto?.id_produto,
             });
+            const inteligencia = executarInteligenciaSombra(MODELO_INTELIGENCIA_ROTINA.versao, () => pontuarInteligenciaRotina({
+                candidato: { restaurante, produto, distancia_km: distancia, preco_estimado: preco },
+                perfil,
+                feedbacks,
+                tipoJanela: perfil.tipo_janela ?? null,
+            }));
+            const inteligenciaV2 = executarInteligenciaSombra(MODELO_INTELIGENCIA_ROTINA_V2.versao, () => pontuarInteligenciaRotinaV2({
+                candidato: { restaurante, produto, distancia_km: distancia, preco_estimado: preco },
+                sinais: feedbacks,
+                tipoJanela: perfil.tipo_janela ?? null,
+                referencia,
+                sequencia: sequenciaV2,
+            }));
             candidatos.push({
                 restaurante,
                 produto,
                 distancia_km: distancia,
                 preco_estimado: preco,
                 pontuacao: Number((score.pontuacao + ajusteFeedback).toFixed(2)),
+                pontuacaoDesafiante: Number((score.pontuacao + ajusteFeedback + inteligencia.ajuste).toFixed(2)),
+                pontuacaoDesafianteV2: Number((score.pontuacao + ajusteFeedback + inteligenciaV2.ajuste).toFixed(2)),
                 pesos: { ...score.componentes, feedback_controlado: ajusteFeedback },
+                inteligencia,
+                inteligenciaV2,
             });
         }
     }
@@ -428,6 +465,7 @@ function gerarPlanejamentoRotina({
         .filter((item) => modoLegado ? item.data >= hoje : item.data > hoje || (item.data === hoje && new Date(`${item.data}T${item.janela.horario_fim}-03:00`).getTime() - new Date(agora).getTime() > 30 * 60000))
         .sort((a, b) => a.data.localeCompare(b.data) || a.janela.ordem - b.janela.ordem);
     const refeicoes = [];
+    const avaliacoesSombra = [];
     const baseDiversidade = [...historicoRecente, ...refeicoesExistentes];
     const usoRestaurante = new Map();
     const usoProduto = new Map();
@@ -437,6 +475,10 @@ function gerarPlanejamentoRotina({
         if (refeicao.id_produto) usoProduto.set(refeicao.id_produto, (usoProduto.get(refeicao.id_produto) ?? 0) + 1);
         if (refeicao.categoria) usoCategoria.set(refeicao.categoria, (usoCategoria.get(refeicao.categoria) ?? 0) + 1);
     }
+    const usoRestauranteV2 = new Map(usoRestaurante);
+    const usoProdutoV2 = new Map(usoProduto);
+    const usoCategoriaV2 = new Map(usoCategoria);
+    const sequenciaV2 = {};
     let saldoSemanal = numeroValido(perfil.orcamento_semanal) ?? Infinity;
     saldoSemanal -= refeicoesExistentes.reduce((total, item) => total + Number(item.preco_estimado ?? 0), 0);
     for (const item of itensPlanejamento) {
@@ -448,12 +490,15 @@ function gerarPlanejamentoRotina({
             tempo_maximo_minutos: item.janela.tempo_maximo_minutos,
             orcamento_diario: item.janela.orcamento_por_refeicao ?? perfil.orcamento_diario,
             raio_km: item.janela.raio_km,
+            tipo_janela: item.janela.tipo,
         };
         if (refeicoesExistentes.some((refeicao) => refeicao.data_refeicao === item.data && (modoLegado || Number(refeicao.id_janela_alimentacao) === item.janela.id_janela_alimentacao))) continue;
         const diagnostico = {};
         const candidatos = criarCandidatos({
             perfil: perfilDaJanela, restaurantes, preferencias, restricoes, alergias,
             favoritosRestaurantes: new Set(favoritosRestaurantes.map(Number)), pratosFavoritos: new Set(pratosFavoritos.map(Number)), feedbacks, diagnostico,
+            referencia: agora,
+            sequenciaV2,
         });
         const janelasLivres = janelasLivresDia(perfilDaJanela, item.data, janelasOcupadas);
         const opcoesDoDia = candidatos
@@ -470,18 +515,33 @@ function gerarPlanejamentoRotina({
                 produtos: atual.produto ? usoProduto.get(atual.produto.id_produto) ?? 0 : 0,
                 categorias: categoria ? usoCategoria.get(categoria) ?? 0 : 0,
             });
-            return { ...atual, pontuacaoFinal: Number((atual.pontuacao - penalidadeDiversidade).toFixed(2)) };
-        })
-            .sort((a, b) => {
-            const distanciaA = a.distancia_km ?? Number.POSITIVE_INFINITY;
-            const distanciaB = b.distancia_km ?? Number.POSITIVE_INFINITY;
-            return b.pontuacaoFinal - a.pontuacaoFinal ||
-                distanciaA - distanciaB ||
-                Number(a.preco_estimado ?? 0) - Number(b.preco_estimado ?? 0) ||
-                String(a.restaurante?.nome ?? "").localeCompare(String(b.restaurante?.nome ?? ""), "pt-BR") ||
-                String(a.produto?.nome ?? "").localeCompare(String(b.produto?.nome ?? ""), "pt-BR");
+            const penalidadeDiversidadeV2 = penalidadeRepeticao({
+                restaurantes: usoRestauranteV2.get(atual.restaurante.id_restaurante) ?? 0,
+                produtos: atual.produto ? usoProdutoV2.get(atual.produto.id_produto) ?? 0 : 0,
+                categorias: categoria ? usoCategoriaV2.get(categoria) ?? 0 : 0,
+            });
+            return {
+                ...atual,
+                pontuacaoControle: Number((atual.pontuacao - penalidadeDiversidade).toFixed(2)),
+                pontuacaoDesafiante: Number((atual.pontuacaoDesafiante - penalidadeDiversidade).toFixed(2)),
+                pontuacaoDesafianteV2: Number((atual.pontuacaoDesafianteV2 - penalidadeDiversidadeV2).toFixed(2)),
+            };
         });
-        const candidato = opcoesDoDia[0];
+        const rankingControle = ordenarPorPontuacao(opcoesDoDia, "pontuacaoControle");
+        const rankingDesafianteV1 = ordenarPorPontuacao(opcoesDoDia, "pontuacaoDesafiante");
+        const rankingDesafianteV2 = ordenarPorPontuacao(opcoesDoDia, "pontuacaoDesafianteV2");
+        const candidato = rankingControle[0];
+        const avaliacaoSombraV1 = compararRankingSombra(candidato, rankingDesafianteV1[0], {
+            controle: MODELO_RECOMENDACAO_ROTINA.versao,
+            desafiante: MODELO_INTELIGENCIA_ROTINA.versao,
+        });
+        const avaliacaoSombraV2 = compararRankingSombra(candidato, rankingDesafianteV2[0], {
+            controle: MODELO_RECOMENDACAO_ROTINA.versao,
+            desafiante: MODELO_INTELIGENCIA_ROTINA_V2.versao,
+        }, {
+            pontuacao: "pontuacaoDesafianteV2",
+            inteligencia: "inteligenciaV2",
+        });
         if (!candidato) {
             const motivo = candidatos.length && !candidatos.some((item) => item.preco_estimado <= saldoSemanal)
                 ? "O saldo do orçamento semanal não comporta outra refeição."
@@ -515,7 +575,30 @@ function gerarPlanejamentoRotina({
             const categoria = candidato.produto.categorias?.nome;
             if (categoria) usoCategoria.set(categoria, (usoCategoria.get(categoria) ?? 0) + 1);
         }
+        const candidatoV2 = rankingDesafianteV2[0];
+        if (candidatoV2) {
+            const restauranteIdV2 = candidatoV2.restaurante.id_restaurante;
+            usoRestauranteV2.set(restauranteIdV2, (usoRestauranteV2.get(restauranteIdV2) ?? 0) + 1);
+            sequenciaV2.id_restaurante_anterior = restauranteIdV2;
+            if (candidatoV2.produto) {
+                const produtoIdV2 = candidatoV2.produto.id_produto;
+                usoProdutoV2.set(produtoIdV2, (usoProdutoV2.get(produtoIdV2) ?? 0) + 1);
+                sequenciaV2.id_produto_anterior = produtoIdV2;
+                const categoriaV2 = candidatoV2.produto.categorias?.nome;
+                if (categoriaV2) usoCategoriaV2.set(categoriaV2, (usoCategoriaV2.get(categoriaV2) ?? 0) + 1);
+            } else {
+                delete sequenciaV2.id_produto_anterior;
+            }
+        }
         saldoSemanal = Number((saldoSemanal - candidato.preco_estimado).toFixed(2));
+        for (const avaliacaoSombra of [avaliacaoSombraV1, avaliacaoSombraV2]) {
+            if (!avaliacaoSombra) continue;
+            avaliacoesSombra.push({
+                data_refeicao: item.data,
+                id_janela_alimentacao: item.janela.id_janela_alimentacao,
+                ...avaliacaoSombra,
+            });
+        }
         refeicoes.push({
             data_refeicao: item.data,
             dia_semana: item.dia_semana,
@@ -527,7 +610,7 @@ function gerarPlanejamentoRotina({
             distancia_km: candidato.distancia_km,
             tempo_estimado_minutos: candidato.janela.tempo_estimado_minutos,
             motivo_recomendacao: motivoRecomendacao(candidato),
-            pontuacao: candidato.pontuacaoFinal ?? candidato.pontuacao,
+            pontuacao: candidato.pontuacaoControle ?? candidato.pontuacao,
             status: "SUGERIDA",
             metadados: {
                 pesos: candidato.pesos,
@@ -540,7 +623,7 @@ function gerarPlanejamentoRotina({
                     nome: candidato.produto.nome,
                     preco: candidato.produto.preco,
                 } : null,
-                alternativas: opcoesDoDia.slice(1, 4).map((alternativa) => ({
+                alternativas: rankingControle.slice(1, 4).map((alternativa) => ({
                     id_restaurante: alternativa.restaurante.id_restaurante,
                     restaurante: alternativa.restaurante.nome,
                     id_produto: alternativa.produto?.id_produto ?? null,
@@ -548,7 +631,7 @@ function gerarPlanejamentoRotina({
                     diferenca_preco: Number((alternativa.preco_estimado - candidato.preco_estimado).toFixed(2)),
                     diferenca_distancia_km: alternativa.distancia_km === null || candidato.distancia_km === null
                         ? null : Number((alternativa.distancia_km - candidato.distancia_km).toFixed(2)),
-                    diferenca_aderencia: Number((alternativa.pontuacaoFinal - candidato.pontuacaoFinal).toFixed(2)),
+                    diferenca_aderencia: Number((alternativa.pontuacaoControle - candidato.pontuacaoControle).toFixed(2)),
                 })),
                 modelo_recomendacao: MODELO_RECOMENDACAO_ROTINA.versao,
                 janela: { tipo: item.janela.tipo, nome: item.janela.nome },
@@ -559,11 +642,14 @@ function gerarPlanejamentoRotina({
         semana_inicio: semana.inicio,
         semana_fim: semana.fim,
         refeicoes,
+        avaliacoes_sombra: avaliacoesSombra,
         resumo: {
             total_refeicoes: refeicoes.length,
             total_com_sugestao: refeicoes.filter((item) => item.id_restaurante).length,
             gerado_em: new Date(agora).toISOString(),
             modelo: MODELO_RECOMENDACAO_ROTINA.versao,
+            experimento_sombra: MODELO_INTELIGENCIA_ROTINA.versao,
+            experimentos_sombra: [MODELO_INTELIGENCIA_ROTINA.versao, MODELO_INTELIGENCIA_ROTINA_V2.versao],
             agenda_aplicada: janelasOcupadas.length > 0,
             total_janelas: janelas.length,
         },
@@ -574,6 +660,7 @@ module.exports = {
     DIAS_SEMANA,
     calcularDistanciaKm,
     criarCandidatos,
+    executarInteligenciaSombra,
     datasDaSemana,
     gerarPlanejamentoRotina,
     semanaAtual,

@@ -9,6 +9,13 @@
   "start": "node scripts/start.js",
   "test": "node --test test/*.test.js",
   "security:migrate-mercado-pago-tokens": "node scripts/migrate-mercado-pago-tokens.js",
+  "seed:rotina:preview": "node scripts/seed-routine-evaluation.js --preview",
+  "seed:rotina": "node scripts/seed-routine-evaluation.js",
+  "seed:rotina:verify": "node scripts/seed-routine-evaluation.js --verify",
+  "seed:rotina:cleanup": "node scripts/seed-routine-evaluation.js --cleanup",
+  "test:rotina:shadow": "node scripts/test-routine-shadow.js",
+  "evaluate:rotina:shadow": "node scripts/evaluate-routine-shadow.js",
+  "collect:rotina:behavior": "node scripts/collect-routine-behavior.js",
   "test:rotina:postgres": "node --test test/integration/routine-postgres.test.js",
   "test:rotina:supabase": "node test/integration/routine-supabase-smoke.js"
 },
