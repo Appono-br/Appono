@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "commitment_version": "routine-reserve-commitment-v1",
+  "partition_id": "reserva_prospectiva_v1",
+  "algorithm": "SHA-256",
+  "commitment_sha256": "40d76edee52a621e1413ee5cb2f1f1fc7cb19deac9ec163d9229b14d45b38b77",
+  "created_at": "2026-09-22T22:32:55.381Z",
+  "state": "SEALED_UNMATERIALIZED",
+  "results_present": false,
+  "private_material": "LOCAL_GITIGNORED",
+  "opening_requirements": [
+    "CANDIDATE_FROZEN",
+    "PARTITIONS_HASH_MATCH",
+    "EXPLICIT_CONFIRMATION",
+    "COMMITMENT_REVEAL_MATCH",
+    "NEW_REPORT_DESTINATION"
+  ]
+}

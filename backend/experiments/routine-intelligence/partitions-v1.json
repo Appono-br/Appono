@@ -1,0 +1,166 @@
+{
+  "schema_version": 1,
+  "partitions_version": "routine-partitions-v1",
+  "protocol": "appono-intelligence-prospective-v1",
+  "registered_at": "2026-09-24T00:00:00-03:00",
+  "timezone": "America/Sao_Paulo",
+  "purpose": "Particoes prospectivas sem instancias compartilhadas para desenvolvimento, validacao e fechamento reservado.",
+  "personas": {
+    "version": "personas-sinteticas-v1",
+    "canonical_sha256": "dea25c57dd68942582dcf9de062fbb93c6208ec9b5245a73aed8a7ceb6290474",
+    "ids": [
+      "economico",
+      "explorador",
+      "fiel_restaurante",
+      "fiel_prato",
+      "sensivel_distancia",
+      "avesso_repeticao",
+      "preferencia_forte",
+      "contraditorio",
+      "mudanca_gradual",
+      "controle_sem_historico"
+    ]
+  },
+  "historical_baseline": {
+    "manifest_path": "backend/experiments/routine-intelligence/manifest.json",
+    "reserve_status": "OPENED_ONCE_CONTAMINATED",
+    "reserve_report_sha256": "47c32c146271830879c545dee7e1cc397972b845329a30434920477630b6a185",
+    "calibration_allowed": false
+  },
+  "scenario_identity_version": "routine-scenario-id-v1",
+  "forbidden_fields": [
+    "email",
+    "telefone",
+    "endereco",
+    "latitude",
+    "longitude",
+    "jwt",
+    "access_token",
+    "refresh_token",
+    "service_role",
+    "alergia",
+    "condicao_medica"
+  ],
+  "partitions": [
+    {
+      "id": "desenvolvimento_v1",
+      "type": "DESENVOLVIMENTO",
+      "purpose": "Depuracao de fixtures, contratos e hipoteses gerais sem valor de validacao final.",
+      "namespace": "app:intelligence:dev:v1",
+      "period": {
+        "start": "2027-01-04T12:00:00Z",
+        "end": "2027-02-14T23:59:59Z"
+      },
+      "timezone": "America/Sao_Paulo",
+      "weeks": 6,
+      "decisions_per_persona": 30,
+      "seed_policy": {
+        "mode": "PUBLIC",
+        "seed": 24092026
+      },
+      "catalog_strategy": {
+        "family": "catalog-development-v1",
+        "variant_offset": 11,
+        "price_range": [20, 75],
+        "distance_range_km": [0.2, 12],
+        "categories": ["Brasileira", "Lanches", "Massas", "Asiatica", "Saudavel", "Vegetariana", "Mediterranea", "Doces"]
+      },
+      "availability_strategy": {
+        "family": "availability-development-v1",
+        "variant_offset": 17,
+        "meal_windows": ["ALMOCO", "JANTAR"],
+        "weekdays": ["monday", "tuesday", "wednesday", "thursday", "friday"]
+      },
+      "history_levels": ["NONE", "LOW", "SUFFICIENT", "OLD", "CONTRADICTORY", "GRADUAL_CHANGE"],
+      "persona_ids": ["economico", "explorador", "fiel_restaurante", "fiel_prato", "sensivel_distancia", "avesso_repeticao", "preferencia_forte", "contraditorio", "mudanca_gradual", "controle_sem_historico"],
+      "state": "REGISTERED_DEVELOPMENT",
+      "permissions": {
+        "calibration": true,
+        "repeatable": true,
+        "materialization": true
+      },
+      "authorized_commands": ["GENERATE_DEVELOPMENT", "AUDIT_DEVELOPMENT"],
+      "scenario_identity_version": "routine-scenario-id-v1"
+    },
+    {
+      "id": "validacao_v1",
+      "type": "VALIDACAO",
+      "purpose": "Aceitacao ou rejeicao de mudancas congeladas em instancias distintas do desenvolvimento.",
+      "namespace": "app:intelligence:validation:v1",
+      "period": {
+        "start": "2027-04-05T12:00:00Z",
+        "end": "2027-05-16T23:59:59Z"
+      },
+      "timezone": "America/Sao_Paulo",
+      "weeks": 6,
+      "decisions_per_persona": 30,
+      "seed_policy": {
+        "mode": "PUBLIC",
+        "seed": 24112026
+      },
+      "catalog_strategy": {
+        "family": "catalog-validation-v1",
+        "variant_offset": 37,
+        "price_range": [21, 77],
+        "distance_range_km": [0.3, 12.5],
+        "categories": ["Brasileira", "Lanches", "Massas", "Asiatica", "Saudavel", "Vegetariana", "Mediterranea", "Doces"]
+      },
+      "availability_strategy": {
+        "family": "availability-validation-v1",
+        "variant_offset": 41,
+        "meal_windows": ["ALMOCO", "JANTAR"],
+        "weekdays": ["monday", "tuesday", "wednesday", "thursday", "friday"]
+      },
+      "history_levels": ["NONE", "LOW", "SUFFICIENT", "OLD", "CONTRADICTORY", "GRADUAL_CHANGE"],
+      "persona_ids": ["economico", "explorador", "fiel_restaurante", "fiel_prato", "sensivel_distancia", "avesso_repeticao", "preferencia_forte", "contraditorio", "mudanca_gradual", "controle_sem_historico"],
+      "state": "REGISTERED_VALIDATION",
+      "permissions": {
+        "calibration": false,
+        "repeatable": false,
+        "materialization": true
+      },
+      "authorized_commands": ["GENERATE_VALIDATION", "AUDIT_VALIDATION"],
+      "scenario_identity_version": "routine-scenario-id-v1"
+    },
+    {
+      "id": "reserva_prospectiva_v1",
+      "type": "RESERVA",
+      "purpose": "Avaliacao unica da candidata congelada, pre-registrada sem substituir a reserva historica contaminada.",
+      "namespace": "app:intelligence:reserve:v1",
+      "period": {
+        "start": "2027-07-05T12:00:00Z",
+        "end": "2027-08-15T23:59:59Z"
+      },
+      "timezone": "America/Sao_Paulo",
+      "weeks": 6,
+      "decisions_per_persona": 30,
+      "seed_policy": {
+        "mode": "COMMITMENT",
+        "commitment_file": "backend/experiments/routine-intelligence/reserve-commitment-v1.json"
+      },
+      "catalog_strategy": {
+        "family": "catalog-reserve-v1",
+        "variant_offset": 73,
+        "price_range": [19, 79],
+        "distance_range_km": [0.4, 13],
+        "categories": ["Brasileira", "Lanches", "Massas", "Asiatica", "Saudavel", "Vegetariana", "Mediterranea", "Doces"]
+      },
+      "availability_strategy": {
+        "family": "availability-reserve-v1",
+        "variant_offset": 79,
+        "meal_windows": ["ALMOCO", "JANTAR"],
+        "weekdays": ["monday", "tuesday", "wednesday", "thursday", "friday"]
+      },
+      "history_levels": ["NONE", "LOW", "SUFFICIENT", "OLD", "CONTRADICTORY", "GRADUAL_CHANGE"],
+      "persona_ids": ["economico", "explorador", "fiel_restaurante", "fiel_prato", "sensivel_distancia", "avesso_repeticao", "preferencia_forte", "contraditorio", "mudanca_gradual", "controle_sem_historico"],
+      "state": "SEALED_UNMATERIALIZED",
+      "permissions": {
+        "calibration": false,
+        "repeatable": false,
+        "materialization": false
+      },
+      "authorized_commands": ["AUDIT_RESERVE_DESCRIPTOR"],
+      "scenario_identity_version": "routine-scenario-id-v1"
+    }
+  ]
+}

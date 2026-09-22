@@ -10,3 +10,4 @@ dist/
 .agents/
 skills-lock.json
 supabase/.temp/
+backend/experiments/routine-intelligence/.private/

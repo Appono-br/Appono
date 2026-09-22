@@ -1,0 +1,219 @@
+{
+  "schema_version": 1,
+  "personas_version": "personas-sinteticas-v1",
+  "criado_em": "2026-09-23",
+  "finalidade": "Avaliacao offline independente dos modelos de recomendacao da Appono Rotina.",
+  "aviso": "Personas sinteticas sem PII; nao representam clientes reais nem validacao comercial.",
+  "personas": [
+    {
+      "id": "economico",
+      "nome_tecnico": "Economico consistente",
+      "objetivo": "Valorizar folga no orcamento sem ignorar preferencias e aversoes declaradas.",
+      "descricao": "Perfil sintetico com alta sensibilidade a preco e baixa tolerancia a desperdicio.",
+      "semente_offset": 101,
+      "perfil": {
+        "orcamento": 32,
+        "raio_km": 7,
+        "janelas": [{ "tipo": "ALMOCO", "inicio": "11:30", "fim": "14:00", "dias": ["monday", "tuesday", "wednesday", "thursday", "friday"] }],
+        "preferencias_explicitas": ["Brasileira", "Lanches"]
+      },
+      "afinidades": { "categorias": { "Brasileira": 2 }, "restaurantes": {}, "produtos": {} },
+      "aversoes": { "categorias": ["Doces"], "restaurantes": [], "produtos": [] },
+      "tracos": { "forca_preferencia_explicita": 4, "forca_aversao": 10, "sensibilidade_preco": 3, "sensibilidade_distancia": 0.5, "preferencia_novidade": 0.4, "tolerancia_repeticao": 0.5, "amplitude_ruido": 0.1, "sensibilidade_comportamental": 0.5 },
+      "politica_decisao": { "converter_min": -0.1, "aprovar_min": -0.8, "editar_min": -1.5, "alternativa_min": -2.5 },
+      "consentimento_sintetico": true,
+      "mudanca_temporal": null,
+      "contradicao": null,
+      "casos_esperados": [
+        { "id": "economico_preco_equivalente", "contexto": { "semana": 0, "historico": [] }, "opcao_a": { "id_restaurante": "r_a", "id_produto": "p_a", "categoria": "Brasileira", "preco": 24, "distancia": 2 }, "opcao_b": { "id_restaurante": "r_b", "id_produto": "p_b", "categoria": "Brasileira", "preco": 31, "distancia": 2 }, "esperado": "A_MAIOR_QUE_B", "motivo": "preco" },
+        { "id": "economico_barato_com_aversao", "contexto": { "semana": 0, "historico": [] }, "opcao_a": { "id_restaurante": "r_a", "id_produto": "p_a", "categoria": "Doces", "preco": 15, "distancia": 1 }, "opcao_b": { "id_restaurante": "r_b", "id_produto": "p_b", "categoria": "Brasileira", "preco": 30, "distancia": 2 }, "esperado": "B_MAIOR_QUE_A", "motivo": "aversao" },
+        { "id": "economico_acima_orcamento", "contexto": { "semana": 0, "historico": [] }, "opcao_a": { "id_restaurante": "r_a", "id_produto": "p_a", "categoria": "Brasileira", "preco": 40, "distancia": 1 }, "opcao_b": { "id_restaurante": "r_b", "id_produto": "p_b", "categoria": "Brasileira", "preco": 28, "distancia": 2 }, "esperado": "A_INELEGIVEL", "motivo": "orcamento" }
+      ]
+    },
+    {
+      "id": "explorador",
+      "nome_tecnico": "Explorador de variedade",
+      "objetivo": "Buscar categorias e restaurantes novos sem violar preferencias explicitas.",
+      "descricao": "Perfil sintetico que aceita maior diversidade e penaliza sequencias repetidas.",
+      "semente_offset": 202,
+      "perfil": {
+        "orcamento": 60,
+        "raio_km": 10,
+        "janelas": [{ "tipo": "JANTAR", "inicio": "18:30", "fim": "22:00", "dias": ["thursday", "friday", "saturday"] }],
+        "preferencias_explicitas": ["Asiatica", "Mediterranea"]
+      },
+      "afinidades": { "categorias": { "Asiatica": 1, "Mediterranea": 1 }, "restaurantes": {}, "produtos": {} },
+      "aversoes": { "categorias": ["Frituras"], "restaurantes": [], "produtos": [] },
+      "tracos": { "forca_preferencia_explicita": 3, "forca_aversao": 9, "sensibilidade_preco": 0.3, "sensibilidade_distancia": 0.3, "preferencia_novidade": 3, "tolerancia_repeticao": 0.1, "amplitude_ruido": 0.2, "sensibilidade_comportamental": 0.6 },
+      "politica_decisao": { "converter_min": -0.05, "aprovar_min": -0.7, "editar_min": -1.4, "alternativa_min": -2.3 },
+      "consentimento_sintetico": true,
+      "mudanca_temporal": null,
+      "contradicao": null,
+      "casos_esperados": [
+        { "id": "explorador_nova_categoria", "contexto": { "semana": 1, "historico": [{ "id_restaurante": "r_b", "id_produto": "p_b", "categoria": "Mediterranea" }, { "id_restaurante": "r_b", "id_produto": "p_b", "categoria": "Mediterranea" }] }, "opcao_a": { "id_restaurante": "r_a", "id_produto": "p_a", "categoria": "Asiatica", "preco": 45, "distancia": 3 }, "opcao_b": { "id_restaurante": "r_b", "id_produto": "p_b", "categoria": "Mediterranea", "preco": 45, "distancia": 3 }, "esperado": "A_MAIOR_QUE_B", "motivo": "novidade" },
+        { "id": "explorador_novidade_com_aversao", "contexto": { "semana": 1, "historico": [{ "id_restaurante": "r_b", "id_produto": "p_b", "categoria": "Mediterranea" }] }, "opcao_a": { "id_restaurante": "r_a", "id_produto": "p_a", "categoria": "Frituras", "preco": 35, "distancia": 2 }, "opcao_b": { "id_restaurante": "r_b", "id_produto": "p_b", "categoria": "Mediterranea", "preco": 45, "distancia": 3 }, "esperado": "B_MAIOR_QUE_A", "motivo": "aversao" },
+        { "id": "explorador_repeticao_progressiva", "contexto": { "semana": 2, "historico": [{ "id_restaurante": "r_a", "id_produto": "p_a", "categoria": "Asiatica" }, { "id_restaurante": "r_a", "id_produto": "p_a", "categoria": "Asiatica" }, { "id_restaurante": "r_a", "id_produto": "p_a", "categoria": "Asiatica" }] }, "opcao_a": { "id_restaurante": "r_a", "id_produto": "p_a", "categoria": "Asiatica", "preco": 42, "distancia": 2 }, "opcao_b": { "id_restaurante": "r_c", "id_produto": "p_c", "categoria": "Mediterranea", "preco": 42, "distancia": 2 }, "esperado": "B_MAIOR_QUE_A", "motivo": "repeticao" }
+      ]
+    },
+    {
+      "id": "fiel_restaurante",
+      "nome_tecnico": "Fiel a restaurante",
+      "objetivo": "Manter afinidade recorrente por restaurante sem ultrapassar limites eliminatorios.",
+      "descricao": "Perfil sintetico com preferencia estavel por estabelecimento conhecido.",
+      "semente_offset": 303,
+      "perfil": { "orcamento": 55, "raio_km": 8, "janelas": [{ "tipo": "ALMOCO", "inicio": "11:00", "fim": "14:30", "dias": ["monday", "wednesday", "friday"] }], "preferencias_explicitas": ["Massas"] },
+      "afinidades": { "categorias": { "Massas": 1 }, "restaurantes": { "rest_favorito": 6 }, "produtos": {} },
+      "aversoes": { "categorias": ["Doces"], "restaurantes": [], "produtos": [] },
+      "tracos": { "forca_preferencia_explicita": 3, "forca_aversao": 9, "sensibilidade_preco": 0.5, "sensibilidade_distancia": 0.5, "preferencia_novidade": 0.5, "tolerancia_repeticao": 0.85, "amplitude_ruido": 0.1, "sensibilidade_comportamental": 0.7 },
+      "politica_decisao": { "converter_min": -0.1, "aprovar_min": -0.9, "editar_min": -1.8, "alternativa_min": -2.8 },
+      "consentimento_sintetico": true,
+      "mudanca_temporal": null,
+      "contradicao": null,
+      "casos_esperados": [
+        { "id": "fiel_restaurante_favorito_equivalente", "contexto": { "semana": 0, "historico": [] }, "opcao_a": { "id_restaurante": "rest_favorito", "id_produto": "p_a", "categoria": "Massas", "preco": 40, "distancia": 2 }, "opcao_b": { "id_restaurante": "rest_outro", "id_produto": "p_b", "categoria": "Massas", "preco": 40, "distancia": 2 }, "esperado": "A_MAIOR_QUE_B", "motivo": "restaurante" },
+        { "id": "fiel_restaurante_fora_raio", "contexto": { "semana": 0, "historico": [] }, "opcao_a": { "id_restaurante": "rest_favorito", "id_produto": "p_a", "categoria": "Massas", "preco": 40, "distancia": 9 }, "opcao_b": { "id_restaurante": "rest_outro", "id_produto": "p_b", "categoria": "Massas", "preco": 40, "distancia": 3 }, "esperado": "A_INELEGIVEL", "motivo": "raio" },
+        { "id": "fiel_restaurante_repeticao_moderada", "contexto": { "semana": 1, "historico": [{ "id_restaurante": "rest_favorito", "id_produto": "p_x", "categoria": "Massas" }, { "id_restaurante": "rest_favorito", "id_produto": "p_y", "categoria": "Massas" }] }, "opcao_a": { "id_restaurante": "rest_favorito", "id_produto": "p_a", "categoria": "Massas", "preco": 41, "distancia": 2 }, "opcao_b": { "id_restaurante": "rest_outro", "id_produto": "p_b", "categoria": "Massas", "preco": 41, "distancia": 2 }, "esperado": "A_MAIOR_QUE_B", "motivo": "fidelidade" }
+      ]
+    },
+    {
+      "id": "fiel_prato",
+      "nome_tecnico": "Fiel a prato",
+      "objetivo": "Priorizar um produto favorito sem confundir fidelidade ao prato com restaurante.",
+      "descricao": "Perfil sintetico que demonstra afinidade especifica por um item de cardapio.",
+      "semente_offset": 404,
+      "perfil": { "orcamento": 50, "raio_km": 8, "janelas": [{ "tipo": "ALMOCO", "inicio": "11:30", "fim": "14:00", "dias": ["tuesday", "thursday"] }], "preferencias_explicitas": ["Saudavel"] },
+      "afinidades": { "categorias": { "Saudavel": 1 }, "restaurantes": {}, "produtos": { "prato_favorito": 7 } },
+      "aversoes": { "categorias": ["Frituras"], "restaurantes": [], "produtos": [] },
+      "tracos": { "forca_preferencia_explicita": 3, "forca_aversao": 9, "sensibilidade_preco": 0.5, "sensibilidade_distancia": 0.5, "preferencia_novidade": 0.4, "tolerancia_repeticao": 0.8, "amplitude_ruido": 0.1, "sensibilidade_comportamental": 0.7 },
+      "politica_decisao": { "converter_min": -0.1, "aprovar_min": -0.9, "editar_min": -1.8, "alternativa_min": -2.8 },
+      "consentimento_sintetico": true,
+      "mudanca_temporal": null,
+      "contradicao": null,
+      "casos_esperados": [
+        { "id": "fiel_prato_mesmo_restaurante", "contexto": { "semana": 0, "historico": [] }, "opcao_a": { "id_restaurante": "r_a", "id_produto": "prato_favorito", "categoria": "Saudavel", "preco": 38, "distancia": 2 }, "opcao_b": { "id_restaurante": "r_a", "id_produto": "p_outro", "categoria": "Saudavel", "preco": 38, "distancia": 2 }, "esperado": "A_MAIOR_QUE_B", "motivo": "produto" },
+        { "id": "fiel_prato_categoria_relevante", "contexto": { "semana": 0, "historico": [] }, "opcao_a": { "id_restaurante": "r_novo", "id_produto": "prato_favorito", "categoria": "Saudavel", "preco": 40, "distancia": 3 }, "opcao_b": { "id_restaurante": "r_antigo", "id_produto": "p_irrelevante", "categoria": "Massas", "preco": 35, "distancia": 2 }, "esperado": "A_MAIOR_QUE_B", "motivo": "produto" },
+        { "id": "fiel_prato_acima_orcamento", "contexto": { "semana": 0, "historico": [] }, "opcao_a": { "id_restaurante": "r_a", "id_produto": "prato_favorito", "categoria": "Saudavel", "preco": 55, "distancia": 2 }, "opcao_b": { "id_restaurante": "r_b", "id_produto": "p_b", "categoria": "Saudavel", "preco": 40, "distancia": 2 }, "esperado": "A_INELEGIVEL", "motivo": "orcamento" }
+      ]
+    },
+    {
+      "id": "sensivel_distancia",
+      "nome_tecnico": "Sensivel a distancia",
+      "objetivo": "Priorizar deslocamentos curtos dentro do raio sem apagar preferencia explicita forte.",
+      "descricao": "Perfil sintetico com alto custo de utilidade para deslocamento adicional.",
+      "semente_offset": 505,
+      "perfil": { "orcamento": 55, "raio_km": 4, "janelas": [{ "tipo": "ALMOCO", "inicio": "12:00", "fim": "13:30", "dias": ["monday", "tuesday", "wednesday", "thursday", "friday"] }], "preferencias_explicitas": ["Brasileira"] },
+      "afinidades": { "categorias": { "Brasileira": 2 }, "restaurantes": {}, "produtos": {} },
+      "aversoes": { "categorias": ["Doces"], "restaurantes": [], "produtos": [] },
+      "tracos": { "forca_preferencia_explicita": 6, "forca_aversao": 9, "sensibilidade_preco": 0.4, "sensibilidade_distancia": 3, "preferencia_novidade": 0.3, "tolerancia_repeticao": 0.5, "amplitude_ruido": 0.1, "sensibilidade_comportamental": 0.5 },
+      "politica_decisao": { "converter_min": -0.1, "aprovar_min": -0.8, "editar_min": -1.5, "alternativa_min": -2.5 },
+      "consentimento_sintetico": true,
+      "mudanca_temporal": null,
+      "contradicao": null,
+      "casos_esperados": [
+        { "id": "sensivel_distancia_equivalente_proxima", "contexto": { "semana": 0, "historico": [] }, "opcao_a": { "id_restaurante": "r_a", "id_produto": "p_a", "categoria": "Massas", "preco": 38, "distancia": 0.5 }, "opcao_b": { "id_restaurante": "r_b", "id_produto": "p_b", "categoria": "Massas", "preco": 38, "distancia": 3.5 }, "esperado": "A_MAIOR_QUE_B", "motivo": "distancia" },
+        { "id": "sensivel_distancia_preferencia_forte", "contexto": { "semana": 0, "historico": [] }, "opcao_a": { "id_restaurante": "r_a", "id_produto": "p_a", "categoria": "Brasileira", "preco": 40, "distancia": 2 }, "opcao_b": { "id_restaurante": "r_b", "id_produto": "p_b", "categoria": "Massas", "preco": 40, "distancia": 1 }, "esperado": "A_MAIOR_QUE_B", "motivo": "preferencia" },
+        { "id": "sensivel_distancia_fora_raio", "contexto": { "semana": 0, "historico": [] }, "opcao_a": { "id_restaurante": "r_a", "id_produto": "p_a", "categoria": "Brasileira", "preco": 40, "distancia": 5 }, "opcao_b": { "id_restaurante": "r_b", "id_produto": "p_b", "categoria": "Massas", "preco": 40, "distancia": 2 }, "esperado": "A_INELEGIVEL", "motivo": "raio" }
+      ]
+    },
+    {
+      "id": "avesso_repeticao",
+      "nome_tecnico": "Avesso a repeticao",
+      "objetivo": "Penalizar progressivamente repeticoes sem banir uma primeira recorrencia compativel.",
+      "descricao": "Perfil sintetico orientado a variedade semanal de categoria, produto e restaurante.",
+      "semente_offset": 606,
+      "perfil": { "orcamento": 55, "raio_km": 9, "janelas": [{ "tipo": "JANTAR", "inicio": "18:00", "fim": "21:30", "dias": ["monday", "wednesday", "friday"] }], "preferencias_explicitas": ["Massas", "Saudavel"] },
+      "afinidades": { "categorias": { "Massas": 1, "Saudavel": 1 }, "restaurantes": {}, "produtos": {} },
+      "aversoes": { "categorias": ["Doces"], "restaurantes": [], "produtos": [] },
+      "tracos": { "forca_preferencia_explicita": 4, "forca_aversao": 10, "sensibilidade_preco": 0.3, "sensibilidade_distancia": 0.4, "preferencia_novidade": 4, "tolerancia_repeticao": 0.05, "amplitude_ruido": 0.1, "sensibilidade_comportamental": 0.5 },
+      "politica_decisao": { "converter_min": -0.1, "aprovar_min": -0.7, "editar_min": -1.4, "alternativa_min": -2.2 },
+      "consentimento_sintetico": true,
+      "mudanca_temporal": null,
+      "contradicao": null,
+      "casos_esperados": [
+        { "id": "avesso_repeticao_terceira_repeticao", "contexto": { "semana": 2, "historico": [{ "id_restaurante": "r_a", "id_produto": "p_a", "categoria": "Massas" }, { "id_restaurante": "r_a", "id_produto": "p_a", "categoria": "Massas" }, { "id_restaurante": "r_a", "id_produto": "p_a", "categoria": "Massas" }] }, "opcao_a": { "id_restaurante": "r_a", "id_produto": "p_a", "categoria": "Massas", "preco": 40, "distancia": 2 }, "opcao_b": { "id_restaurante": "r_b", "id_produto": "p_b", "categoria": "Saudavel", "preco": 40, "distancia": 2 }, "esperado": "B_MAIOR_QUE_A", "motivo": "repeticao" },
+        { "id": "avesso_repeticao_primeira_recorrencia", "contexto": { "semana": 1, "historico": [{ "id_restaurante": "r_x", "id_produto": "p_x", "categoria": "Massas" }] }, "opcao_a": { "id_restaurante": "r_a", "id_produto": "p_a", "categoria": "Massas", "preco": 38, "distancia": 2 }, "opcao_b": { "id_restaurante": "r_b", "id_produto": "p_b", "categoria": "Doces", "preco": 30, "distancia": 1 }, "esperado": "A_MAIOR_QUE_B", "motivo": "recorrencia_finita" },
+        { "id": "avesso_repeticao_novidade_evitada", "contexto": { "semana": 1, "historico": [{ "id_restaurante": "r_a", "id_produto": "p_a", "categoria": "Massas" }] }, "opcao_a": { "id_restaurante": "r_a", "id_produto": "p_a", "categoria": "Massas", "preco": 40, "distancia": 2 }, "opcao_b": { "id_restaurante": "r_b", "id_produto": "p_b", "categoria": "Doces", "preco": 35, "distancia": 2 }, "esperado": "A_MAIOR_QUE_B", "motivo": "aversao" }
+      ]
+    },
+    {
+      "id": "preferencia_forte",
+      "nome_tecnico": "Preferencia explicita forte",
+      "objetivo": "Preservar preferencia declarada diante de pequenas vantagens operacionais concorrentes.",
+      "descricao": "Perfil sintetico usado para garantir precedencia de preferencia explicita elegivel.",
+      "semente_offset": 707,
+      "perfil": { "orcamento": 65, "raio_km": 9, "janelas": [{ "tipo": "ALMOCO", "inicio": "11:30", "fim": "14:30", "dias": ["monday", "tuesday", "wednesday", "thursday", "friday"] }], "preferencias_explicitas": ["Vegetariana"] },
+      "afinidades": { "categorias": { "Vegetariana": 3 }, "restaurantes": {}, "produtos": {} },
+      "aversoes": { "categorias": ["Carnes"], "restaurantes": [], "produtos": [] },
+      "tracos": { "forca_preferencia_explicita": 8, "forca_aversao": 10, "sensibilidade_preco": 0.3, "sensibilidade_distancia": 0.3, "preferencia_novidade": 0.5, "tolerancia_repeticao": 0.5, "amplitude_ruido": 0.05, "sensibilidade_comportamental": 0.4 },
+      "politica_decisao": { "converter_min": -0.1, "aprovar_min": -0.8, "editar_min": -1.5, "alternativa_min": -2.5 },
+      "consentimento_sintetico": true,
+      "mudanca_temporal": null,
+      "contradicao": null,
+      "casos_esperados": [
+        { "id": "preferencia_forte_versus_preco", "contexto": { "semana": 0, "historico": [] }, "opcao_a": { "id_restaurante": "r_a", "id_produto": "p_a", "categoria": "Vegetariana", "preco": 50, "distancia": 3 }, "opcao_b": { "id_restaurante": "r_b", "id_produto": "p_b", "categoria": "Massas", "preco": 42, "distancia": 3 }, "esperado": "A_MAIOR_QUE_B", "motivo": "preferencia" },
+        { "id": "preferencia_forte_versus_distancia", "contexto": { "semana": 0, "historico": [] }, "opcao_a": { "id_restaurante": "r_a", "id_produto": "p_a", "categoria": "Vegetariana", "preco": 48, "distancia": 4 }, "opcao_b": { "id_restaurante": "r_b", "id_produto": "p_b", "categoria": "Massas", "preco": 48, "distancia": 2 }, "esperado": "A_MAIOR_QUE_B", "motivo": "preferencia" },
+        { "id": "preferencia_forte_limite_eliminatorio", "contexto": { "semana": 0, "historico": [] }, "opcao_a": { "id_restaurante": "r_a", "id_produto": "p_a", "categoria": "Vegetariana", "preco": 70, "distancia": 3 }, "opcao_b": { "id_restaurante": "r_b", "id_produto": "p_b", "categoria": "Massas", "preco": 50, "distancia": 3 }, "esperado": "A_INELEGIVEL", "motivo": "orcamento" }
+      ]
+    },
+    {
+      "id": "contraditorio",
+      "nome_tecnico": "Sinais contraditorios",
+      "objetivo": "Representar evidencias positivas e negativas compensaveis de modo deterministico.",
+      "descricao": "Perfil sintetico com sinais conflitantes e menor consistencia comportamental esperada.",
+      "semente_offset": 808,
+      "perfil": { "orcamento": 48, "raio_km": 8, "janelas": [{ "tipo": "JANTAR", "inicio": "18:30", "fim": "21:30", "dias": ["tuesday", "thursday", "saturday"] }], "preferencias_explicitas": ["Lanches", "Saudavel"] },
+      "afinidades": { "categorias": { "Lanches": 1, "Saudavel": 1 }, "restaurantes": {}, "produtos": {} },
+      "aversoes": { "categorias": ["Doces"], "restaurantes": [], "produtos": [] },
+      "tracos": { "forca_preferencia_explicita": 3, "forca_aversao": 9, "sensibilidade_preco": 0.7, "sensibilidade_distancia": 0.7, "preferencia_novidade": 0.8, "tolerancia_repeticao": 0.5, "amplitude_ruido": 1.2, "sensibilidade_comportamental": 1 },
+      "politica_decisao": { "converter_min": -0.05, "aprovar_min": -0.6, "editar_min": -1.2, "alternativa_min": -2 },
+      "consentimento_sintetico": true,
+      "mudanca_temporal": null,
+      "contradicao": { "ciclo": 4, "consistencia_esperada_maxima": 0.6 },
+      "casos_esperados": [
+        { "id": "contraditorio_sinais_compensados", "contexto": { "semana": 1, "historico": [], "sinais": [{ "categoria": "Lanches", "valor": 2 }, { "categoria": "Lanches", "valor": -2 }] }, "opcao_a": { "id_restaurante": "r_a", "id_produto": "p_a", "categoria": "Lanches", "preco": 35, "distancia": 2 }, "opcao_b": { "id_restaurante": "r_b", "id_produto": "p_b", "categoria": "Saudavel", "preco": 35, "distancia": 2 }, "esperado": "EMPATE", "motivo": "compensacao" },
+        { "id": "contraditorio_sinal_positivo_liquido", "contexto": { "semana": 1, "historico": [], "sinais": [{ "categoria": "Lanches", "valor": 2 }, { "categoria": "Lanches", "valor": -1 }] }, "opcao_a": { "id_restaurante": "r_a", "id_produto": "p_a", "categoria": "Lanches", "preco": 35, "distancia": 2 }, "opcao_b": { "id_restaurante": "r_b", "id_produto": "p_b", "categoria": "Saudavel", "preco": 35, "distancia": 2 }, "esperado": "A_MAIOR_QUE_B", "motivo": "saldo_sinais" },
+        { "id": "contraditorio_filtro_preservado", "contexto": { "semana": 1, "historico": [], "sinais": [{ "categoria": "Lanches", "valor": 5 }] }, "opcao_a": { "id_restaurante": "r_a", "id_produto": "p_a", "categoria": "Lanches", "preco": 60, "distancia": 2 }, "opcao_b": { "id_restaurante": "r_b", "id_produto": "p_b", "categoria": "Saudavel", "preco": 40, "distancia": 2 }, "esperado": "A_INELEGIVEL", "motivo": "orcamento" }
+      ]
+    },
+    {
+      "id": "mudanca_gradual",
+      "nome_tecnico": "Mudanca gradual de gosto",
+      "objetivo": "Migrar afinidade de Massas para Asiatica ao longo de varias semanas.",
+      "descricao": "Perfil sintetico com transicao temporal continua e sem troca abrupta por um evento isolado.",
+      "semente_offset": 909,
+      "perfil": { "orcamento": 58, "raio_km": 8, "janelas": [{ "tipo": "JANTAR", "inicio": "18:00", "fim": "22:00", "dias": ["wednesday", "friday", "saturday"] }], "preferencias_explicitas": [] },
+      "afinidades": { "categorias": { "Massas": 2 }, "restaurantes": {}, "produtos": {} },
+      "aversoes": { "categorias": ["Doces"], "restaurantes": [], "produtos": [] },
+      "tracos": { "forca_preferencia_explicita": 3, "forca_aversao": 9, "sensibilidade_preco": 0.4, "sensibilidade_distancia": 0.5, "preferencia_novidade": 0.5, "tolerancia_repeticao": 0.5, "amplitude_ruido": 0.15, "sensibilidade_comportamental": 0.6 },
+      "politica_decisao": { "converter_min": -0.1, "aprovar_min": -0.8, "editar_min": -1.5, "alternativa_min": -2.5 },
+      "consentimento_sintetico": true,
+      "mudanca_temporal": { "categoria_inicial": "Massas", "categoria_futura": "Asiatica", "semana_inicio": 1, "semana_fim": 5, "forca": 6 },
+      "contradicao": null,
+      "casos_esperados": [
+        { "id": "mudanca_gradual_inicio", "contexto": { "semana": 0, "historico": [] }, "opcao_a": { "id_restaurante": "r_a", "id_produto": "p_a", "categoria": "Massas", "preco": 42, "distancia": 3 }, "opcao_b": { "id_restaurante": "r_b", "id_produto": "p_b", "categoria": "Asiatica", "preco": 42, "distancia": 3 }, "esperado": "A_MAIOR_QUE_B", "motivo": "gosto_inicial" },
+        { "id": "mudanca_gradual_transicao", "contexto": { "semana": 3, "historico": [] }, "opcao_a": { "id_restaurante": "r_a", "id_produto": "p_a", "categoria": "Massas", "preco": 42, "distancia": 3 }, "opcao_b": { "id_restaurante": "r_b", "id_produto": "p_b", "categoria": "Asiatica", "preco": 42, "distancia": 3 }, "esperado": "A_MAIOR_QUE_B", "motivo": "transicao" },
+        { "id": "mudanca_gradual_final", "contexto": { "semana": 5, "historico": [] }, "opcao_a": { "id_restaurante": "r_a", "id_produto": "p_a", "categoria": "Massas", "preco": 42, "distancia": 3 }, "opcao_b": { "id_restaurante": "r_b", "id_produto": "p_b", "categoria": "Asiatica", "preco": 42, "distancia": 3 }, "esperado": "B_MAIOR_QUE_A", "motivo": "gosto_futuro" }
+      ]
+    },
+    {
+      "id": "controle_sem_historico",
+      "nome_tecnico": "Controle sem historico",
+      "objetivo": "Avaliar opcoes externamente sem produzir qualquer sinal de personalizacao.",
+      "descricao": "Grupo sintetico neutro usado para provar ajuste e confianca zero sem historico.",
+      "semente_offset": 1010,
+      "perfil": { "orcamento": 50, "raio_km": 8, "janelas": [{ "tipo": "ALMOCO", "inicio": "11:30", "fim": "14:00", "dias": ["monday", "tuesday", "wednesday", "thursday", "friday"] }], "preferencias_explicitas": ["Brasileira"] },
+      "afinidades": { "categorias": { "Brasileira": 2 }, "restaurantes": {}, "produtos": {} },
+      "aversoes": { "categorias": ["Doces"], "restaurantes": [], "produtos": [] },
+      "tracos": { "forca_preferencia_explicita": 4, "forca_aversao": 9, "sensibilidade_preco": 0.5, "sensibilidade_distancia": 0.5, "preferencia_novidade": 0.5, "tolerancia_repeticao": 0.5, "amplitude_ruido": 0, "sensibilidade_comportamental": 0 },
+      "politica_decisao": { "converter_min": -0.1, "aprovar_min": -0.8, "editar_min": -1.5, "alternativa_min": -2.5 },
+      "consentimento_sintetico": false,
+      "mudanca_temporal": null,
+      "contradicao": null,
+      "casos_esperados": [
+        { "id": "controle_sem_historico_utilidade_externa", "contexto": { "semana": 0, "historico": [] }, "opcao_a": { "id_restaurante": "r_a", "id_produto": "p_a", "categoria": "Brasileira", "preco": 35, "distancia": 2 }, "opcao_b": { "id_restaurante": "r_b", "id_produto": "p_b", "categoria": "Massas", "preco": 35, "distancia": 2 }, "esperado": "A_MAIOR_QUE_B", "motivo": "regua_externa" },
+        { "id": "controle_sem_historico_preco", "contexto": { "semana": 0, "historico": [] }, "opcao_a": { "id_restaurante": "r_a", "id_produto": "p_a", "categoria": "Brasileira", "preco": 30, "distancia": 2 }, "opcao_b": { "id_restaurante": "r_b", "id_produto": "p_b", "categoria": "Brasileira", "preco": 40, "distancia": 2 }, "esperado": "A_MAIOR_QUE_B", "motivo": "preco" },
+        { "id": "controle_sem_historico_fora_raio", "contexto": { "semana": 0, "historico": [] }, "opcao_a": { "id_restaurante": "r_a", "id_produto": "p_a", "categoria": "Brasileira", "preco": 35, "distancia": 9 }, "opcao_b": { "id_restaurante": "r_b", "id_produto": "p_b", "categoria": "Massas", "preco": 35, "distancia": 2 }, "esperado": "A_INELEGIVEL", "motivo": "raio" }
+      ]
+    }
+  ]
+}
