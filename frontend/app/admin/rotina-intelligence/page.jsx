@@ -31,7 +31,7 @@ export default function AdminRotinaIntelligencePage() {
                     <div>
                         <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-baunilha-dourada">Experimento privado</p>
                         <h1 className="mt-3 text-3xl font-semibold">Appono Intelligence V2</h1>
-                        <p className="mt-3 max-w-2xl text-sm leading-6 text-app-creme-suave">Comparacao agregada do controle e dos modelos sombra. Este painel nao promove modelos nem exibe sinais individuais.</p>
+                        <p className="mt-3 max-w-2xl text-sm leading-6 text-app-creme-suave">Comparacao agregada, estado operacional e guardrails da IA. O painel nao exibe sinais individuais, identidades da allowlist ou configuracoes secretas.</p>
                     </div>
                     <div className="flex gap-3">
                         <Link href="/admin/financeiro" className="rounded-[8px] border border-app-baunilha-dourada/70 px-4 py-2 text-sm font-bold">Financeiro</Link>
@@ -47,6 +47,26 @@ export default function AdminRotinaIntelligencePage() {
                 {erro ? <p role="alert" className="mt-8 rounded-[14px] border border-app-vermelho-erro p-6 text-app-vermelho-erro">{erro}</p> : null}
                 {!carregando && !erro && !dados?.comparacoes ? (
                     <p className="mt-8 rounded-[14px] bg-app-creme-leve p-6 text-app-mocha">Ainda nao ha comparacoes sombra neste periodo. Isso e diferente de um modelo sem confianca.</p>
+                ) : null}
+
+                {dados?.configuracao ? (
+                    <section className="mt-8 rounded-[14px] bg-app-creme-suave p-6 ring-1 ring-app-baunilha-dourada/70" aria-labelledby="estado-intelligence">
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                            <div>
+                                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">Estado operacional</p>
+                                <h2 id="estado-intelligence" className="mt-2 text-xl font-semibold">{dados.configuracao.modelo_disponivel}</h2>
+                            </div>
+                            <strong className={`w-fit rounded-full px-3 py-1 text-xs ${dados.configuracao.kill_switch ? "bg-app-vermelho-erro text-white" : "bg-app-cafe-profundo text-app-creme-leve"}`}>
+                                {dados.configuracao.kill_switch ? "Kill switch ativo" : "Fallback disponivel"}
+                            </strong>
+                        </div>
+                        <div className="mt-5 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
+                            <p className="rounded-[10px] bg-white p-4">Rollout publico<strong className="mt-1 block text-xl">{dados.configuracao.rollout_percentual}%</strong></p>
+                            <p className="rounded-[10px] bg-white p-4">Contas internas<strong className="mt-1 block text-xl">{dados.configuracao.contas_internas_configuradas}</strong></p>
+                            <p className="rounded-[10px] bg-white p-4">Confianca minima<strong className="mt-1 block text-xl">{Number(dados.configuracao.confianca_minima).toFixed(2)}</strong></p>
+                            <p className="rounded-[10px] bg-white p-4">Padrao publico<strong className="mt-1 block text-xl">{dados.configuracao.modo_padrao}</strong></p>
+                        </div>
+                    </section>
                 ) : null}
 
                 {dados?.comparacoes ? (

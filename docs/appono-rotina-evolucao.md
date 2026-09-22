@@ -10,9 +10,26 @@ Atualizado em 15/09/2026. Este documento acompanha a execução do plano dos ite
 - Aprovacao, recusa, alternativa, edicao e conversao geram sinais nao bloqueantes.
 - Revogacao interrompe sinais operacionais; feedback mantem consentimento individual.
 - Painel agregado em `/admin/rotina-intelligence`, sem PII ou promocao automatica.
-- Coletor DEMO criado, mas nao executado remotamente neste ciclo.
+- Coletor DEMO executado remotamente com autorizacao explicita: 100 sinais comportamentais foram produzidos pelas rotas reais, distribuidos entre oito contas consentidas; duas contas permaneceram como controle sem sinais.
+- Distribuicao: 32 aprovacoes, 34 recusas e 34 solicitacoes de alternativa, com 12 a 14 sinais por cliente participante.
+- O novo teste sombra gerou 42 comparacoes por modelo, sem falhas e sem violacoes detectaveis de orcamento ou raio.
+- V2: 19 concordancias e 23 divergencias; 34 comparacoes com historico e 8 sem historico, mantendo confianca zero para o grupo de controle.
+- Regua independente: V2 obteve 6 vitorias, 8 derrotas e 28 empates tecnicos contra o controle. A V1 obteve 2 vitorias, 8 derrotas e 32 empates.
+- A V2 reduziu a maior concentracao da mesma opcao de 17 na V1 para 6 e manteve diversidade de 7 restaurantes, 20 produtos e 7 categorias.
 - Verificacao local: 140 testes backend, builds e lint aprovados.
-- Decisao: `MANTER_EM_SOMBRA`; faltam 100 experiencias elegiveis distribuidas.
+- Decisao: `MANTER_EM_SOMBRA`. Os 100 registros validam a coleta e o consumo tecnico dos sinais, mas nao equivalem a 100 experiencias gastronomicas reais concluidas e ainda nao demonstram superioridade sobre o controle.
+
+## Integracao e simulacao longitudinal da Intelligence V2 - 22/09/2026
+
+- A V2 passou a ser selecionavel no gerador real por politica centralizada, sem acessar candidatos eliminados.
+- O padrao publico continua sendo `deterministico-v3`, com rollout zero.
+- Allowlist interna exige consentimento; baixa confianca, falta de historico, falha ou kill switch produzem fallback automatico.
+- Metadados do planejamento registram versao, segmento, motivo, confianca e amostras sem expor sinais privados.
+- Dez personas coerentes foram executadas por seis semanas nos conjuntos de desenvolvimento, validacao e reserva, totalizando 300 decisoes por modelo em cada conjunto.
+- Na reserva, o arrependimento medio foi `7,4095` no controle, `4,4114` na V1 e `3,6729` na V2, com zero violacoes eliminatorias.
+- Todos os criterios offline congelados antes da reserva foram aprovados.
+- O pacote de revisao humana cega foi gerado, mas ainda nao foi preenchido.
+- Classificacao tecnica: `IA_PRONTA_EM_HOMOLOGACAO`; validacao comercial e rollout publico continuam pendentes de clientes reais.
 
 ## Estado das fases
 

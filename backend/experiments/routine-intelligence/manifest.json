@@ -1,0 +1,107 @@
+{
+  "schema_version": 2,
+  "protocol": "appono-intelligence-longitudinal-v1",
+  "frozen_at": "2026-09-22T00:00:00-03:00",
+  "timezone": "America/Sao_Paulo",
+  "code_state": {
+    "branch": "main",
+    "head_commit": "4d4b81fc98dad9d2f7b2fa9555c9507d96127af2",
+    "working_tree": "DIRTY",
+    "tracked_diff_sha256_before_freeze": "ae53995a314b7570d6233f944557b4cf64d38d1a",
+    "note": "O baseline inclui arquivos ainda nao commitados; os hashes individuais abaixo identificam o codigo efetivamente avaliado."
+  },
+  "runtime": {
+    "node": "v24.14.0",
+    "npm": "11.9.0"
+  },
+  "models": {
+    "control": "deterministico-v3",
+    "challengers": [
+      "appono-intelligence-v1",
+      "appono-intelligence-v2"
+    ]
+  },
+  "independent_ruler": "persona-utility-v1",
+  "weeks_per_persona": 6,
+  "source_files": {
+    "backend/src/domain/routine-scoring.js": "0e276cd125b533dd5df381cdb95732804e3002ae31eb34efbdffe51694e31a18",
+    "backend/src/domain/routine-intelligence.js": "41dfae64aaae0b53ec81cc70bdd74ae0807f6b83a30348ff0f663dbfcea0831b",
+    "backend/src/domain/routine-intelligence-v2.js": "f21157716c2c1c396dfc45bf89e66744c693bb98414906b893d7d82038335bc4",
+    "backend/src/domain/routine-intelligence-simulation.js": "44021e591056a42694897eb739975f2c2e429f85e71f96c7b2c4c6d040e76dd1",
+    "backend/src/domain/routine-intelligence-policy.js": "a8523294dd8487bcbbcf47e0713a51230cb4565ca1131341b2682daace61dd69",
+    "backend/src/domain/routine-experiment-manifest.js": "8ca02cc726d530761666231e78085645c402722f4009b7b5e3f7215277ce6fd7",
+    "backend/scripts/simulate-routine-intelligence.js": "9a2615a463f03640381a897b56b4701787969fd1905ecac129d3dbbe8d81485d",
+    "backend/scripts/evaluate-routine-intelligence.js": "2cbd2c84fa9a50cdfdc0b3213b252fa80c67badde47be21052e1ada4f7382532"
+  },
+  "datasets": {
+    "desenvolvimento": {
+      "seed": 22092026,
+      "reference_time": "2026-01-05T12:00:00Z",
+      "catalog_sha256": "9fffd3771e427b17be186d010b58ed663ed892f6706b3c4b5213dc0272e45732",
+      "personas_sha256": "2e611a58c4663fc20c5f8a255b6d487e9017efbe56a1a311782e48d78f6fa840",
+      "report": "backend/reports/routine-intelligence/desenvolvimento.json",
+      "report_sha256": "b296cf34ccea3ddb00315589472a00ddb5e2ee79ad9b503f0c0f5ada04921dfd",
+      "status": "FROZEN"
+    },
+    "validacao": {
+      "seed": 23112026,
+      "reference_time": "2026-03-02T12:00:00Z",
+      "catalog_sha256": "a6a330142241e43116302d9b6900096dab0835498b131401446c2be314bd5995",
+      "personas_sha256": "2e611a58c4663fc20c5f8a255b6d487e9017efbe56a1a311782e48d78f6fa840",
+      "report": "backend/reports/routine-intelligence/validacao.json",
+      "report_sha256": "44052c96b7bc6331d15bd0226c19b8b87fe726559c0ccba71097194cbf44ab9f",
+      "status": "FROZEN"
+    },
+    "reserva": {
+      "seed": 10102026,
+      "reference_time": "2026-05-04T12:00:00Z",
+      "catalog_sha256": "58fc7a3cfa522b5ee1a55803e2e38540e04be6f329742240170362d3b953da91",
+      "personas_sha256": "2e611a58c4663fc20c5f8a255b6d487e9017efbe56a1a311782e48d78f6fa840",
+      "report": "backend/reports/routine-intelligence/reserva.json",
+      "report_sha256": "47c32c146271830879c545dee7e1cc397972b845329a30434920477630b6a185",
+      "status": "OPENED_ONCE",
+      "note": "Executado antes do checkpoint de 22/09; nao executar novamente nem usar para recalibracao."
+    }
+  },
+  "artifacts": {
+    "blind_review": {
+      "path": "backend/reports/routine-intelligence/blind-review.json",
+      "sha256": "cf45bf490bbae41928780d92bd26f7fc4a69a7e74f934f372ffc20fc423e3719",
+      "cases": 111,
+      "status": "PENDING_HUMAN_REVIEW"
+    }
+  },
+  "commands": {
+    "simulate_development": "npm run simulate:rotina:intelligence --workspace backend -- --dataset=desenvolvimento",
+    "simulate_validation": "npm run simulate:rotina:intelligence --workspace backend -- --dataset=validacao",
+    "evaluate_development": "npm run evaluate:rotina:intelligence --workspace backend -- --dataset=desenvolvimento",
+    "evaluate_validation": "npm run evaluate:rotina:intelligence --workspace backend -- --dataset=validacao",
+    "reserve_original": "npm run simulate:rotina:intelligence --workspace backend -- --dataset=reserva --confirm-reserve"
+  },
+  "shadow_baseline": {
+    "synthetic_signals": 100,
+    "v2_control_wins": 8,
+    "v2_challenger_wins": 6,
+    "v2_technical_ties": 28,
+    "note": "Baseline historico distinto da simulacao longitudinal."
+  },
+  "acceptance": {
+    "eliminatory_violations": 0,
+    "deterministic": true,
+    "neutral_without_history": true,
+    "v2_regret_not_worse_than_v1": true,
+    "v2_regret_not_worse_than_control": true,
+    "maximum_persona_regret_regression": 2.0,
+    "explicit_preference_regression_margin": 0,
+    "concentration_not_worse_than_v1": true,
+    "minimum_internal_confidence": 0.25,
+    "active_consent_required": true,
+    "fallback_on_error_low_confidence_or_no_history": true
+  },
+  "feature_flags": {
+    "enabled_by_default": false,
+    "public_rollout_percent": 0,
+    "internal_allowlist_supported": true,
+    "kill_switch_supported": true
+  }
+}

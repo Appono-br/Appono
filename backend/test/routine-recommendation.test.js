@@ -313,6 +313,44 @@ test("planejamento registra comparação sombra sem entregar a decisão à IA", 
     assert.deepEqual(resultado.resumo.experimentos_sombra, ["appono-intelligence-v1", "appono-intelligence-v2"]);
 });
 
+test("allowlist interna entrega a decisao da V2 com confianca e registra fallback seguro", () => {
+    const produtoA = { ...restaurante().produtos[0], id_produto: 10, id_restaurante: 1, nome: "Massa", categorias: { nome: "Massas", ativo: true, arquivado: false, cardapios: { ativo: true } } };
+    const produtoB = { ...restaurante().produtos[0], id_produto: 20, id_restaurante: 2, nome: "Bowl", categorias: { nome: "Saudavel", ativo: true, arquivado: false, cardapios: { ativo: true } } };
+    const sinais = Array.from({ length: 8 }, (_, indice) => ({
+        id_sinal: indice + 1,
+        tipo_evento: "FEEDBACK_POSITIVO",
+        consentiu_personalizacao: true,
+        criado_em: "2026-09-11T12:00:00Z",
+        id_restaurante: 2,
+        id_produto: 20,
+        categoria: "Saudavel",
+        tipo_janela: "ALMOCO",
+    }));
+    const base = {
+        dias_semana: ["monday"],
+        restaurantes: [
+            restaurante({ id_restaurante: 1, nome: "A Controle", produtos: [produtoA] }),
+            restaurante({ id_restaurante: 2, nome: "B Personalizado", produtos: [produtoB] }),
+        ],
+        feedbacks: sinais,
+    };
+    const interno = planejar({ dias_semana: base.dias_semana }, base.restaurantes, {
+        feedbacks: base.feedbacks,
+        politicaInteligencia: { usarV2: true, segmento: "interno", motivo: "ALLOWLIST_INTERNA", confiancaMinima: 0.25 },
+    });
+    assert.equal(interno.refeicoes[0].id_restaurante, 2);
+    assert.equal(interno.refeicoes[0].metadados.modelo_recomendacao, "appono-intelligence-v2");
+    assert.equal(interno.refeicoes[0].metadados.decisao_inteligencia.motivo, "V2_SELECIONADA");
+
+    const semConfianca = planejar({ dias_semana: base.dias_semana }, base.restaurantes, {
+        feedbacks: base.feedbacks.slice(0, 1),
+        politicaInteligencia: { usarV2: true, segmento: "interno", motivo: "ALLOWLIST_INTERNA", confiancaMinima: 0.9 },
+    });
+    assert.equal(semConfianca.refeicoes[0].id_restaurante, 1);
+    assert.equal(semConfianca.refeicoes[0].metadados.modelo_recomendacao, "deterministico-v3");
+    assert.equal(semConfianca.refeicoes[0].metadados.decisao_inteligencia.motivo, "V2_CONFIANCA_INSUFICIENTE");
+});
+
 test("bloqueia geração de planejamento para semana anterior à atual", () => {
     assert.throws(() => planejar({}, undefined, { semanaInicio: "2026-09-07", agora: new Date("2026-09-16T12:00:00-03:00") }), /semana anterior/);
     assert.doesNotThrow(() => planejar({}, undefined, { semanaInicio: "2026-09-14", agora: new Date("2026-09-16T12:00:00-03:00") }));

@@ -8,6 +8,7 @@ const { notificarCliente, notificarRestaurante } = require("../services/notifica
 const paymentConfig = require("../services/pagamentos/config");
 const { geocodificarEnderecoRotina } = require("../services/geolocalizacao");
 const { registrarSinalComportamental } = require("../domain/routine-behavior-signals");
+const { resolverPoliticaInteligenciaRotina } = require("../domain/routine-intelligence-policy");
 
 const rotinaRouter = Router();
 
@@ -334,7 +335,20 @@ async function carregarRestaurantesParaRotina(banco, idCliente) {
     }));
 }
 
-async function carregarFeedbacksPersonalizacao(banco, idCliente, restaurantes) {
+async function carregarConsentimentoPersonalizacao(banco, idCliente) {
+    const { data, error } = await banco
+        .from("consentimentos_personalizacao_rotina")
+        .select("habilitado,concedido_em")
+        .eq("id_cliente", idCliente)
+        .maybeSingle();
+    if (error) {
+        avisarFalhaSombra("CARREGAR_CONSENTIMENTO", error);
+        return null;
+    }
+    return data ?? null;
+}
+
+async function carregarFeedbacksPersonalizacao(banco, idCliente, restaurantes, consentimentoCarregado = undefined) {
     const { data, error } = await banco.from("feedback_rotina_cliente")
         .select("id_feedback_rotina,gostou,repetiria,tags,consentiu_personalizacao,criado_em,atualizado_em,refeicoes_planejadas!inner(id_restaurante,id_produto,preco_estimado,distancia_km,metadados)")
         .eq("id_cliente", idCliente)
@@ -365,15 +379,9 @@ async function carregarFeedbacksPersonalizacao(banco, idCliente, restaurantes) {
             tipo_janela: refeicao.metadados?.janela?.tipo ?? null,
         };
     });
-    const { data: consentimento, error: erroConsentimento } = await banco
-        .from("consentimentos_personalizacao_rotina")
-        .select("habilitado,concedido_em")
-        .eq("id_cliente", idCliente)
-        .maybeSingle();
-    if (erroConsentimento) {
-        avisarFalhaSombra("CARREGAR_CONSENTIMENTO", erroConsentimento);
-        return feedbacks;
-    }
+    const consentimento = consentimentoCarregado === undefined
+        ? await carregarConsentimentoPersonalizacao(banco, idCliente)
+        : consentimentoCarregado;
     if (!consentimento?.habilitado || !consentimento.concedido_em) return feedbacks;
     const { data: sinais, error: erroSinais } = await banco
         .from("sinais_comportamentais_rotina")
@@ -668,7 +676,13 @@ rotinaRouter.post("/planejamento/gerar", async (req, res) => {
             .lt("data_refeicao", semanaInicio)
             .order("data_refeicao", { ascending: false }).limit(100);
         if (erroHistorico) throw erroHistorico;
-        const feedbacksParaRanking = await carregarFeedbacksPersonalizacao(banco, res.locals.profileId, restaurantes);
+        const consentimento = await carregarConsentimentoPersonalizacao(banco, res.locals.profileId);
+        const feedbacksParaRanking = await carregarFeedbacksPersonalizacao(banco, res.locals.profileId, restaurantes, consentimento);
+        const politicaInteligencia = resolverPoliticaInteligenciaRotina({
+            usuario: res.locals.user,
+            idCliente: res.locals.profileId,
+            consentimentoAtivo: consentimento?.habilitado === true && Boolean(consentimento.concedido_em),
+        });
         const planejamentoGerado = gerarPlanejamentoRotina({
             perfil: dadosPerfil.perfil,
             janelasAlimentacao: dadosPerfil.janelas,
@@ -683,6 +697,7 @@ rotinaRouter.post("/planejamento/gerar", async (req, res) => {
             janelasOcupadas: janelasOcupadas ?? [],
             historicoRecente: historicoRecente ?? [],
             feedbacks: feedbacksParaRanking,
+            politicaInteligencia,
         });
         await mutarRotina(banco, res, { ...req.body, versao_planejamento: versaoAlvo }, "GERAR", null, planejamentoGerado);
         const respostaPersistida = await buscarPlanejamentoComRefeicoes(banco, res.locals.profileId, { semana_inicio: semanaInicio });

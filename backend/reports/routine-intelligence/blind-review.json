@@ -1,0 +1,3837 @@
+[
+  {
+    "id": "caso-0001",
+    "persona": "explorador",
+    "semana": 1,
+    "contexto": {
+      "orcamento": 60,
+      "raio": 10,
+      "preferencias": [
+        "Asiática",
+        "Mediterrânea"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 4,
+        "nome": "Oriente Bowl"
+      },
+      "produto": {
+        "id_produto": 104,
+        "nome": "Bowl oriental"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0002",
+    "persona": "explorador",
+    "semana": 1,
+    "contexto": {
+      "orcamento": 60,
+      "raio": 10,
+      "preferencias": [
+        "Asiática",
+        "Mediterrânea"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 7,
+        "nome": "Mesa Mediterrânea"
+      },
+      "produto": {
+        "id_produto": 107,
+        "nome": "Cuscuz mediterrâneo"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 1,
+        "nome": "Casa Brasileira"
+      },
+      "produto": {
+        "id_produto": 101,
+        "nome": "PF da casa"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0003",
+    "persona": "explorador",
+    "semana": 2,
+    "contexto": {
+      "orcamento": 60,
+      "raio": 10,
+      "preferencias": [
+        "Asiática",
+        "Mediterrânea"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 7,
+        "nome": "Mesa Mediterrânea"
+      },
+      "produto": {
+        "id_produto": 107,
+        "nome": "Cuscuz mediterrâneo"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 4,
+        "nome": "Oriente Bowl"
+      },
+      "produto": {
+        "id_produto": 104,
+        "nome": "Bowl oriental"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0004",
+    "persona": "explorador",
+    "semana": 2,
+    "contexto": {
+      "orcamento": 60,
+      "raio": 10,
+      "preferencias": [
+        "Asiática",
+        "Mediterrânea"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 7,
+        "nome": "Mesa Mediterrânea"
+      },
+      "produto": {
+        "id_produto": 107,
+        "nome": "Cuscuz mediterrâneo"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0005",
+    "persona": "explorador",
+    "semana": 2,
+    "contexto": {
+      "orcamento": 60,
+      "raio": 10,
+      "preferencias": [
+        "Asiática",
+        "Mediterrânea"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 1,
+        "nome": "Casa Brasileira"
+      },
+      "produto": {
+        "id_produto": 101,
+        "nome": "PF da casa"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0006",
+    "persona": "explorador",
+    "semana": 3,
+    "contexto": {
+      "orcamento": 60,
+      "raio": 10,
+      "preferencias": [
+        "Asiática",
+        "Mediterrânea"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 4,
+        "nome": "Oriente Bowl"
+      },
+      "produto": {
+        "id_produto": 104,
+        "nome": "Bowl oriental"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 1,
+        "nome": "Casa Brasileira"
+      },
+      "produto": {
+        "id_produto": 101,
+        "nome": "PF da casa"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0007",
+    "persona": "explorador",
+    "semana": 3,
+    "contexto": {
+      "orcamento": 60,
+      "raio": 10,
+      "preferencias": [
+        "Asiática",
+        "Mediterrânea"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 2,
+        "nome": "Cantina Central"
+      },
+      "produto": {
+        "id_produto": 102,
+        "nome": "Penne ao sugo"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 4,
+        "nome": "Oriente Bowl"
+      },
+      "produto": {
+        "id_produto": 104,
+        "nome": "Bowl oriental"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0008",
+    "persona": "explorador",
+    "semana": 3,
+    "contexto": {
+      "orcamento": 60,
+      "raio": 10,
+      "preferencias": [
+        "Asiática",
+        "Mediterrânea"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 7,
+        "nome": "Mesa Mediterrânea"
+      },
+      "produto": {
+        "id_produto": 107,
+        "nome": "Cuscuz mediterrâneo"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 5,
+        "nome": "Verde Vivo"
+      },
+      "produto": {
+        "id_produto": 105,
+        "nome": "Bowl verde"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0009",
+    "persona": "explorador",
+    "semana": 3,
+    "contexto": {
+      "orcamento": 60,
+      "raio": 10,
+      "preferencias": [
+        "Asiática",
+        "Mediterrânea"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 6,
+        "nome": "Horta Urbana"
+      },
+      "produto": {
+        "id_produto": 106,
+        "nome": "Risoto vegetal"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0010",
+    "persona": "explorador",
+    "semana": 3,
+    "contexto": {
+      "orcamento": 60,
+      "raio": 10,
+      "preferencias": [
+        "Asiática",
+        "Mediterrânea"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 1,
+        "nome": "Casa Brasileira"
+      },
+      "produto": {
+        "id_produto": 101,
+        "nome": "PF da casa"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0011",
+    "persona": "explorador",
+    "semana": 4,
+    "contexto": {
+      "orcamento": 60,
+      "raio": 10,
+      "preferencias": [
+        "Asiática",
+        "Mediterrânea"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 8,
+        "nome": "Sabor do Dia"
+      },
+      "produto": {
+        "id_produto": 108,
+        "nome": "Executivo do dia"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0012",
+    "persona": "explorador",
+    "semana": 4,
+    "contexto": {
+      "orcamento": 60,
+      "raio": 10,
+      "preferencias": [
+        "Asiática",
+        "Mediterrânea"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 4,
+        "nome": "Oriente Bowl"
+      },
+      "produto": {
+        "id_produto": 104,
+        "nome": "Bowl oriental"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0013",
+    "persona": "explorador",
+    "semana": 4,
+    "contexto": {
+      "orcamento": 60,
+      "raio": 10,
+      "preferencias": [
+        "Asiática",
+        "Mediterrânea"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 7,
+        "nome": "Mesa Mediterrânea"
+      },
+      "produto": {
+        "id_produto": 107,
+        "nome": "Cuscuz mediterrâneo"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0014",
+    "persona": "explorador",
+    "semana": 4,
+    "contexto": {
+      "orcamento": 60,
+      "raio": 10,
+      "preferencias": [
+        "Asiática",
+        "Mediterrânea"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 2,
+        "nome": "Cantina Central"
+      },
+      "produto": {
+        "id_produto": 102,
+        "nome": "Penne ao sugo"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0015",
+    "persona": "explorador",
+    "semana": 5,
+    "contexto": {
+      "orcamento": 60,
+      "raio": 10,
+      "preferencias": [
+        "Asiática",
+        "Mediterrânea"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 5,
+        "nome": "Verde Vivo"
+      },
+      "produto": {
+        "id_produto": 105,
+        "nome": "Bowl verde"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0016",
+    "persona": "explorador",
+    "semana": 5,
+    "contexto": {
+      "orcamento": 60,
+      "raio": 10,
+      "preferencias": [
+        "Asiática",
+        "Mediterrânea"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 6,
+        "nome": "Horta Urbana"
+      },
+      "produto": {
+        "id_produto": 106,
+        "nome": "Risoto vegetal"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0017",
+    "persona": "explorador",
+    "semana": 5,
+    "contexto": {
+      "orcamento": 60,
+      "raio": 10,
+      "preferencias": [
+        "Asiática",
+        "Mediterrânea"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 1,
+        "nome": "Casa Brasileira"
+      },
+      "produto": {
+        "id_produto": 101,
+        "nome": "PF da casa"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0018",
+    "persona": "explorador",
+    "semana": 5,
+    "contexto": {
+      "orcamento": 60,
+      "raio": 10,
+      "preferencias": [
+        "Asiática",
+        "Mediterrânea"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 8,
+        "nome": "Sabor do Dia"
+      },
+      "produto": {
+        "id_produto": 108,
+        "nome": "Executivo do dia"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0019",
+    "persona": "explorador",
+    "semana": 5,
+    "contexto": {
+      "orcamento": 60,
+      "raio": 10,
+      "preferencias": [
+        "Asiática",
+        "Mediterrânea"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 1,
+        "nome": "Casa Brasileira"
+      },
+      "produto": {
+        "id_produto": 101,
+        "nome": "PF da casa"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0020",
+    "persona": "fiel_restaurante",
+    "semana": 1,
+    "contexto": {
+      "orcamento": 55,
+      "raio": 8,
+      "preferencias": [
+        "Massas"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 2,
+        "nome": "Cantina Central"
+      },
+      "produto": {
+        "id_produto": 102,
+        "nome": "Penne ao sugo"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0021",
+    "persona": "fiel_restaurante",
+    "semana": 1,
+    "contexto": {
+      "orcamento": 55,
+      "raio": 8,
+      "preferencias": [
+        "Massas"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 1,
+        "nome": "Casa Brasileira"
+      },
+      "produto": {
+        "id_produto": 101,
+        "nome": "PF da casa"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 2,
+        "nome": "Cantina Central"
+      },
+      "produto": {
+        "id_produto": 102,
+        "nome": "Penne ao sugo"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0022",
+    "persona": "fiel_prato",
+    "semana": 1,
+    "contexto": {
+      "orcamento": 50,
+      "raio": 8,
+      "preferencias": [
+        "Saudável"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 5,
+        "nome": "Verde Vivo"
+      },
+      "produto": {
+        "id_produto": 105,
+        "nome": "Bowl verde"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 1,
+        "nome": "Casa Brasileira"
+      },
+      "produto": {
+        "id_produto": 101,
+        "nome": "PF da casa"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0023",
+    "persona": "fiel_prato",
+    "semana": 1,
+    "contexto": {
+      "orcamento": 50,
+      "raio": 8,
+      "preferencias": [
+        "Saudável"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 5,
+        "nome": "Verde Vivo"
+      },
+      "produto": {
+        "id_produto": 105,
+        "nome": "Bowl verde"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 1,
+        "nome": "Casa Brasileira"
+      },
+      "produto": {
+        "id_produto": 101,
+        "nome": "PF da casa"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0024",
+    "persona": "fiel_prato",
+    "semana": 1,
+    "contexto": {
+      "orcamento": 50,
+      "raio": 8,
+      "preferencias": [
+        "Saudável"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 5,
+        "nome": "Verde Vivo"
+      },
+      "produto": {
+        "id_produto": 105,
+        "nome": "Bowl verde"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0025",
+    "persona": "fiel_prato",
+    "semana": 2,
+    "contexto": {
+      "orcamento": 50,
+      "raio": 8,
+      "preferencias": [
+        "Saudável"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 5,
+        "nome": "Verde Vivo"
+      },
+      "produto": {
+        "id_produto": 105,
+        "nome": "Bowl verde"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 1,
+        "nome": "Casa Brasileira"
+      },
+      "produto": {
+        "id_produto": 101,
+        "nome": "PF da casa"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0026",
+    "persona": "fiel_prato",
+    "semana": 2,
+    "contexto": {
+      "orcamento": 50,
+      "raio": 8,
+      "preferencias": [
+        "Saudável"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 5,
+        "nome": "Verde Vivo"
+      },
+      "produto": {
+        "id_produto": 105,
+        "nome": "Bowl verde"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 2,
+        "nome": "Cantina Central"
+      },
+      "produto": {
+        "id_produto": 102,
+        "nome": "Penne ao sugo"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0027",
+    "persona": "fiel_prato",
+    "semana": 2,
+    "contexto": {
+      "orcamento": 50,
+      "raio": 8,
+      "preferencias": [
+        "Saudável"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 5,
+        "nome": "Verde Vivo"
+      },
+      "produto": {
+        "id_produto": 105,
+        "nome": "Bowl verde"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0028",
+    "persona": "fiel_prato",
+    "semana": 3,
+    "contexto": {
+      "orcamento": 50,
+      "raio": 8,
+      "preferencias": [
+        "Saudável"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 4,
+        "nome": "Oriente Bowl"
+      },
+      "produto": {
+        "id_produto": 104,
+        "nome": "Bowl oriental"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0029",
+    "persona": "fiel_prato",
+    "semana": 3,
+    "contexto": {
+      "orcamento": 50,
+      "raio": 8,
+      "preferencias": [
+        "Saudável"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 5,
+        "nome": "Verde Vivo"
+      },
+      "produto": {
+        "id_produto": 105,
+        "nome": "Bowl verde"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0030",
+    "persona": "fiel_prato",
+    "semana": 3,
+    "contexto": {
+      "orcamento": 50,
+      "raio": 8,
+      "preferencias": [
+        "Saudável"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 6,
+        "nome": "Horta Urbana"
+      },
+      "produto": {
+        "id_produto": 106,
+        "nome": "Risoto vegetal"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0031",
+    "persona": "fiel_prato",
+    "semana": 3,
+    "contexto": {
+      "orcamento": 50,
+      "raio": 8,
+      "preferencias": [
+        "Saudável"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 5,
+        "nome": "Verde Vivo"
+      },
+      "produto": {
+        "id_produto": 105,
+        "nome": "Bowl verde"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0032",
+    "persona": "fiel_prato",
+    "semana": 3,
+    "contexto": {
+      "orcamento": 50,
+      "raio": 8,
+      "preferencias": [
+        "Saudável"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 8,
+        "nome": "Sabor do Dia"
+      },
+      "produto": {
+        "id_produto": 108,
+        "nome": "Executivo do dia"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0033",
+    "persona": "fiel_prato",
+    "semana": 4,
+    "contexto": {
+      "orcamento": 50,
+      "raio": 8,
+      "preferencias": [
+        "Saudável"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 5,
+        "nome": "Verde Vivo"
+      },
+      "produto": {
+        "id_produto": 105,
+        "nome": "Bowl verde"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0034",
+    "persona": "fiel_prato",
+    "semana": 4,
+    "contexto": {
+      "orcamento": 50,
+      "raio": 8,
+      "preferencias": [
+        "Saudável"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 1,
+        "nome": "Casa Brasileira"
+      },
+      "produto": {
+        "id_produto": 101,
+        "nome": "PF da casa"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0035",
+    "persona": "fiel_prato",
+    "semana": 4,
+    "contexto": {
+      "orcamento": 50,
+      "raio": 8,
+      "preferencias": [
+        "Saudável"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 5,
+        "nome": "Verde Vivo"
+      },
+      "produto": {
+        "id_produto": 105,
+        "nome": "Bowl verde"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0036",
+    "persona": "fiel_prato",
+    "semana": 4,
+    "contexto": {
+      "orcamento": 50,
+      "raio": 8,
+      "preferencias": [
+        "Saudável"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 5,
+        "nome": "Verde Vivo"
+      },
+      "produto": {
+        "id_produto": 105,
+        "nome": "Bowl verde"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0037",
+    "persona": "fiel_prato",
+    "semana": 5,
+    "contexto": {
+      "orcamento": 50,
+      "raio": 8,
+      "preferencias": [
+        "Saudável"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 2,
+        "nome": "Cantina Central"
+      },
+      "produto": {
+        "id_produto": 102,
+        "nome": "Penne ao sugo"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0038",
+    "persona": "fiel_prato",
+    "semana": 5,
+    "contexto": {
+      "orcamento": 50,
+      "raio": 8,
+      "preferencias": [
+        "Saudável"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 5,
+        "nome": "Verde Vivo"
+      },
+      "produto": {
+        "id_produto": 105,
+        "nome": "Bowl verde"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0039",
+    "persona": "fiel_prato",
+    "semana": 5,
+    "contexto": {
+      "orcamento": 50,
+      "raio": 8,
+      "preferencias": [
+        "Saudável"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 5,
+        "nome": "Verde Vivo"
+      },
+      "produto": {
+        "id_produto": 105,
+        "nome": "Bowl verde"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0040",
+    "persona": "sensivel_distancia",
+    "semana": 1,
+    "contexto": {
+      "orcamento": 55,
+      "raio": 4,
+      "preferencias": [
+        "Brasileira"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 1,
+        "nome": "Casa Brasileira"
+      },
+      "produto": {
+        "id_produto": 101,
+        "nome": "PF da casa"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 8,
+        "nome": "Sabor do Dia"
+      },
+      "produto": {
+        "id_produto": 108,
+        "nome": "Executivo do dia"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0041",
+    "persona": "sensivel_distancia",
+    "semana": 2,
+    "contexto": {
+      "orcamento": 55,
+      "raio": 4,
+      "preferencias": [
+        "Brasileira"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 1,
+        "nome": "Casa Brasileira"
+      },
+      "produto": {
+        "id_produto": 101,
+        "nome": "PF da casa"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0042",
+    "persona": "sensivel_distancia",
+    "semana": 3,
+    "contexto": {
+      "orcamento": 55,
+      "raio": 4,
+      "preferencias": [
+        "Brasileira"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 1,
+        "nome": "Casa Brasileira"
+      },
+      "produto": {
+        "id_produto": 101,
+        "nome": "PF da casa"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 8,
+        "nome": "Sabor do Dia"
+      },
+      "produto": {
+        "id_produto": 108,
+        "nome": "Executivo do dia"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0043",
+    "persona": "sensivel_distancia",
+    "semana": 3,
+    "contexto": {
+      "orcamento": 55,
+      "raio": 4,
+      "preferencias": [
+        "Brasileira"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 1,
+        "nome": "Casa Brasileira"
+      },
+      "produto": {
+        "id_produto": 101,
+        "nome": "PF da casa"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0044",
+    "persona": "avesso_repeticao",
+    "semana": 1,
+    "contexto": {
+      "orcamento": 55,
+      "raio": 9,
+      "preferencias": [
+        "Massas",
+        "Saudável"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 2,
+        "nome": "Cantina Central"
+      },
+      "produto": {
+        "id_produto": 102,
+        "nome": "Penne ao sugo"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0045",
+    "persona": "avesso_repeticao",
+    "semana": 1,
+    "contexto": {
+      "orcamento": 55,
+      "raio": 9,
+      "preferencias": [
+        "Massas",
+        "Saudável"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 1,
+        "nome": "Casa Brasileira"
+      },
+      "produto": {
+        "id_produto": 101,
+        "nome": "PF da casa"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 5,
+        "nome": "Verde Vivo"
+      },
+      "produto": {
+        "id_produto": 105,
+        "nome": "Bowl verde"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0046",
+    "persona": "avesso_repeticao",
+    "semana": 2,
+    "contexto": {
+      "orcamento": 55,
+      "raio": 9,
+      "preferencias": [
+        "Massas",
+        "Saudável"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 5,
+        "nome": "Verde Vivo"
+      },
+      "produto": {
+        "id_produto": 105,
+        "nome": "Bowl verde"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 2,
+        "nome": "Cantina Central"
+      },
+      "produto": {
+        "id_produto": 102,
+        "nome": "Penne ao sugo"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0047",
+    "persona": "avesso_repeticao",
+    "semana": 2,
+    "contexto": {
+      "orcamento": 55,
+      "raio": 9,
+      "preferencias": [
+        "Massas",
+        "Saudável"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 5,
+        "nome": "Verde Vivo"
+      },
+      "produto": {
+        "id_produto": 105,
+        "nome": "Bowl verde"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0048",
+    "persona": "avesso_repeticao",
+    "semana": 2,
+    "contexto": {
+      "orcamento": 55,
+      "raio": 9,
+      "preferencias": [
+        "Massas",
+        "Saudável"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 1,
+        "nome": "Casa Brasileira"
+      },
+      "produto": {
+        "id_produto": 101,
+        "nome": "PF da casa"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0049",
+    "persona": "avesso_repeticao",
+    "semana": 3,
+    "contexto": {
+      "orcamento": 55,
+      "raio": 9,
+      "preferencias": [
+        "Massas",
+        "Saudável"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 1,
+        "nome": "Casa Brasileira"
+      },
+      "produto": {
+        "id_produto": 101,
+        "nome": "PF da casa"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 2,
+        "nome": "Cantina Central"
+      },
+      "produto": {
+        "id_produto": 102,
+        "nome": "Penne ao sugo"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0050",
+    "persona": "avesso_repeticao",
+    "semana": 3,
+    "contexto": {
+      "orcamento": 55,
+      "raio": 9,
+      "preferencias": [
+        "Massas",
+        "Saudável"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 2,
+        "nome": "Cantina Central"
+      },
+      "produto": {
+        "id_produto": 102,
+        "nome": "Penne ao sugo"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 4,
+        "nome": "Oriente Bowl"
+      },
+      "produto": {
+        "id_produto": 104,
+        "nome": "Bowl oriental"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0051",
+    "persona": "avesso_repeticao",
+    "semana": 3,
+    "contexto": {
+      "orcamento": 55,
+      "raio": 9,
+      "preferencias": [
+        "Massas",
+        "Saudável"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 5,
+        "nome": "Verde Vivo"
+      },
+      "produto": {
+        "id_produto": 105,
+        "nome": "Bowl verde"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 6,
+        "nome": "Horta Urbana"
+      },
+      "produto": {
+        "id_produto": 106,
+        "nome": "Risoto vegetal"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0052",
+    "persona": "avesso_repeticao",
+    "semana": 3,
+    "contexto": {
+      "orcamento": 55,
+      "raio": 9,
+      "preferencias": [
+        "Massas",
+        "Saudável"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 7,
+        "nome": "Mesa Mediterrânea"
+      },
+      "produto": {
+        "id_produto": 107,
+        "nome": "Cuscuz mediterrâneo"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0053",
+    "persona": "avesso_repeticao",
+    "semana": 3,
+    "contexto": {
+      "orcamento": 55,
+      "raio": 9,
+      "preferencias": [
+        "Massas",
+        "Saudável"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 1,
+        "nome": "Casa Brasileira"
+      },
+      "produto": {
+        "id_produto": 101,
+        "nome": "PF da casa"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0054",
+    "persona": "avesso_repeticao",
+    "semana": 4,
+    "contexto": {
+      "orcamento": 55,
+      "raio": 9,
+      "preferencias": [
+        "Massas",
+        "Saudável"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 8,
+        "nome": "Sabor do Dia"
+      },
+      "produto": {
+        "id_produto": 108,
+        "nome": "Executivo do dia"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0055",
+    "persona": "avesso_repeticao",
+    "semana": 4,
+    "contexto": {
+      "orcamento": 55,
+      "raio": 9,
+      "preferencias": [
+        "Massas",
+        "Saudável"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 2,
+        "nome": "Cantina Central"
+      },
+      "produto": {
+        "id_produto": 102,
+        "nome": "Penne ao sugo"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0056",
+    "persona": "avesso_repeticao",
+    "semana": 4,
+    "contexto": {
+      "orcamento": 55,
+      "raio": 9,
+      "preferencias": [
+        "Massas",
+        "Saudável"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 5,
+        "nome": "Verde Vivo"
+      },
+      "produto": {
+        "id_produto": 105,
+        "nome": "Bowl verde"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0057",
+    "persona": "avesso_repeticao",
+    "semana": 4,
+    "contexto": {
+      "orcamento": 55,
+      "raio": 9,
+      "preferencias": [
+        "Massas",
+        "Saudável"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 4,
+        "nome": "Oriente Bowl"
+      },
+      "produto": {
+        "id_produto": 104,
+        "nome": "Bowl oriental"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0058",
+    "persona": "avesso_repeticao",
+    "semana": 5,
+    "contexto": {
+      "orcamento": 55,
+      "raio": 9,
+      "preferencias": [
+        "Massas",
+        "Saudável"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 6,
+        "nome": "Horta Urbana"
+      },
+      "produto": {
+        "id_produto": 106,
+        "nome": "Risoto vegetal"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0059",
+    "persona": "avesso_repeticao",
+    "semana": 5,
+    "contexto": {
+      "orcamento": 55,
+      "raio": 9,
+      "preferencias": [
+        "Massas",
+        "Saudável"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 7,
+        "nome": "Mesa Mediterrânea"
+      },
+      "produto": {
+        "id_produto": 107,
+        "nome": "Cuscuz mediterrâneo"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0060",
+    "persona": "avesso_repeticao",
+    "semana": 5,
+    "contexto": {
+      "orcamento": 55,
+      "raio": 9,
+      "preferencias": [
+        "Massas",
+        "Saudável"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 1,
+        "nome": "Casa Brasileira"
+      },
+      "produto": {
+        "id_produto": 101,
+        "nome": "PF da casa"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0061",
+    "persona": "avesso_repeticao",
+    "semana": 5,
+    "contexto": {
+      "orcamento": 55,
+      "raio": 9,
+      "preferencias": [
+        "Massas",
+        "Saudável"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 8,
+        "nome": "Sabor do Dia"
+      },
+      "produto": {
+        "id_produto": 108,
+        "nome": "Executivo do dia"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0062",
+    "persona": "avesso_repeticao",
+    "semana": 5,
+    "contexto": {
+      "orcamento": 55,
+      "raio": 9,
+      "preferencias": [
+        "Massas",
+        "Saudável"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 1,
+        "nome": "Casa Brasileira"
+      },
+      "produto": {
+        "id_produto": 101,
+        "nome": "PF da casa"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0063",
+    "persona": "preferencia_forte",
+    "semana": 1,
+    "contexto": {
+      "orcamento": 65,
+      "raio": 9,
+      "preferencias": [
+        "Vegetariana"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 6,
+        "nome": "Horta Urbana"
+      },
+      "produto": {
+        "id_produto": 106,
+        "nome": "Risoto vegetal"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 1,
+        "nome": "Casa Brasileira"
+      },
+      "produto": {
+        "id_produto": 101,
+        "nome": "PF da casa"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0064",
+    "persona": "preferencia_forte",
+    "semana": 1,
+    "contexto": {
+      "orcamento": 65,
+      "raio": 9,
+      "preferencias": [
+        "Vegetariana"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 1,
+        "nome": "Casa Brasileira"
+      },
+      "produto": {
+        "id_produto": 101,
+        "nome": "PF da casa"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 6,
+        "nome": "Horta Urbana"
+      },
+      "produto": {
+        "id_produto": 106,
+        "nome": "Risoto vegetal"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0065",
+    "persona": "preferencia_forte",
+    "semana": 1,
+    "contexto": {
+      "orcamento": 65,
+      "raio": 9,
+      "preferencias": [
+        "Vegetariana"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 6,
+        "nome": "Horta Urbana"
+      },
+      "produto": {
+        "id_produto": 106,
+        "nome": "Risoto vegetal"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0066",
+    "persona": "preferencia_forte",
+    "semana": 2,
+    "contexto": {
+      "orcamento": 65,
+      "raio": 9,
+      "preferencias": [
+        "Vegetariana"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 6,
+        "nome": "Horta Urbana"
+      },
+      "produto": {
+        "id_produto": 106,
+        "nome": "Risoto vegetal"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 1,
+        "nome": "Casa Brasileira"
+      },
+      "produto": {
+        "id_produto": 101,
+        "nome": "PF da casa"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0067",
+    "persona": "preferencia_forte",
+    "semana": 2,
+    "contexto": {
+      "orcamento": 65,
+      "raio": 9,
+      "preferencias": [
+        "Vegetariana"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 2,
+        "nome": "Cantina Central"
+      },
+      "produto": {
+        "id_produto": 102,
+        "nome": "Penne ao sugo"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 6,
+        "nome": "Horta Urbana"
+      },
+      "produto": {
+        "id_produto": 106,
+        "nome": "Risoto vegetal"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0068",
+    "persona": "preferencia_forte",
+    "semana": 2,
+    "contexto": {
+      "orcamento": 65,
+      "raio": 9,
+      "preferencias": [
+        "Vegetariana"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 6,
+        "nome": "Horta Urbana"
+      },
+      "produto": {
+        "id_produto": 106,
+        "nome": "Risoto vegetal"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0069",
+    "persona": "preferencia_forte",
+    "semana": 3,
+    "contexto": {
+      "orcamento": 65,
+      "raio": 9,
+      "preferencias": [
+        "Vegetariana"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 5,
+        "nome": "Verde Vivo"
+      },
+      "produto": {
+        "id_produto": 105,
+        "nome": "Bowl verde"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0070",
+    "persona": "preferencia_forte",
+    "semana": 3,
+    "contexto": {
+      "orcamento": 65,
+      "raio": 9,
+      "preferencias": [
+        "Vegetariana"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 6,
+        "nome": "Horta Urbana"
+      },
+      "produto": {
+        "id_produto": 106,
+        "nome": "Risoto vegetal"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0071",
+    "persona": "preferencia_forte",
+    "semana": 3,
+    "contexto": {
+      "orcamento": 65,
+      "raio": 9,
+      "preferencias": [
+        "Vegetariana"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 4,
+        "nome": "Oriente Bowl"
+      },
+      "produto": {
+        "id_produto": 104,
+        "nome": "Bowl oriental"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0072",
+    "persona": "preferencia_forte",
+    "semana": 3,
+    "contexto": {
+      "orcamento": 65,
+      "raio": 9,
+      "preferencias": [
+        "Vegetariana"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 6,
+        "nome": "Horta Urbana"
+      },
+      "produto": {
+        "id_produto": 106,
+        "nome": "Risoto vegetal"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0073",
+    "persona": "preferencia_forte",
+    "semana": 3,
+    "contexto": {
+      "orcamento": 65,
+      "raio": 9,
+      "preferencias": [
+        "Vegetariana"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 7,
+        "nome": "Mesa Mediterrânea"
+      },
+      "produto": {
+        "id_produto": 107,
+        "nome": "Cuscuz mediterrâneo"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0074",
+    "persona": "preferencia_forte",
+    "semana": 4,
+    "contexto": {
+      "orcamento": 65,
+      "raio": 9,
+      "preferencias": [
+        "Vegetariana"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 6,
+        "nome": "Horta Urbana"
+      },
+      "produto": {
+        "id_produto": 106,
+        "nome": "Risoto vegetal"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0075",
+    "persona": "preferencia_forte",
+    "semana": 4,
+    "contexto": {
+      "orcamento": 65,
+      "raio": 9,
+      "preferencias": [
+        "Vegetariana"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 8,
+        "nome": "Sabor do Dia"
+      },
+      "produto": {
+        "id_produto": 108,
+        "nome": "Executivo do dia"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0076",
+    "persona": "preferencia_forte",
+    "semana": 4,
+    "contexto": {
+      "orcamento": 65,
+      "raio": 9,
+      "preferencias": [
+        "Vegetariana"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 6,
+        "nome": "Horta Urbana"
+      },
+      "produto": {
+        "id_produto": 106,
+        "nome": "Risoto vegetal"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0077",
+    "persona": "preferencia_forte",
+    "semana": 4,
+    "contexto": {
+      "orcamento": 65,
+      "raio": 9,
+      "preferencias": [
+        "Vegetariana"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 1,
+        "nome": "Casa Brasileira"
+      },
+      "produto": {
+        "id_produto": 101,
+        "nome": "PF da casa"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0078",
+    "persona": "preferencia_forte",
+    "semana": 4,
+    "contexto": {
+      "orcamento": 65,
+      "raio": 9,
+      "preferencias": [
+        "Vegetariana"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 6,
+        "nome": "Horta Urbana"
+      },
+      "produto": {
+        "id_produto": 106,
+        "nome": "Risoto vegetal"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0079",
+    "persona": "preferencia_forte",
+    "semana": 5,
+    "contexto": {
+      "orcamento": 65,
+      "raio": 9,
+      "preferencias": [
+        "Vegetariana"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 6,
+        "nome": "Horta Urbana"
+      },
+      "produto": {
+        "id_produto": 106,
+        "nome": "Risoto vegetal"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0080",
+    "persona": "preferencia_forte",
+    "semana": 5,
+    "contexto": {
+      "orcamento": 65,
+      "raio": 9,
+      "preferencias": [
+        "Vegetariana"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 2,
+        "nome": "Cantina Central"
+      },
+      "produto": {
+        "id_produto": 102,
+        "nome": "Penne ao sugo"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0081",
+    "persona": "preferencia_forte",
+    "semana": 5,
+    "contexto": {
+      "orcamento": 65,
+      "raio": 9,
+      "preferencias": [
+        "Vegetariana"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 6,
+        "nome": "Horta Urbana"
+      },
+      "produto": {
+        "id_produto": 106,
+        "nome": "Risoto vegetal"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0082",
+    "persona": "preferencia_forte",
+    "semana": 5,
+    "contexto": {
+      "orcamento": 65,
+      "raio": 9,
+      "preferencias": [
+        "Vegetariana"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 5,
+        "nome": "Verde Vivo"
+      },
+      "produto": {
+        "id_produto": 105,
+        "nome": "Bowl verde"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0083",
+    "persona": "contraditorio",
+    "semana": 0,
+    "contexto": {
+      "orcamento": 48,
+      "raio": 8,
+      "preferencias": [
+        "Lanches",
+        "Saudável"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 1,
+        "nome": "Casa Brasileira"
+      },
+      "produto": {
+        "id_produto": 101,
+        "nome": "PF da casa"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0084",
+    "persona": "contraditorio",
+    "semana": 0,
+    "contexto": {
+      "orcamento": 48,
+      "raio": 8,
+      "preferencias": [
+        "Lanches",
+        "Saudável"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 1,
+        "nome": "Casa Brasileira"
+      },
+      "produto": {
+        "id_produto": 101,
+        "nome": "PF da casa"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0085",
+    "persona": "contraditorio",
+    "semana": 1,
+    "contexto": {
+      "orcamento": 48,
+      "raio": 8,
+      "preferencias": [
+        "Lanches",
+        "Saudável"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 1,
+        "nome": "Casa Brasileira"
+      },
+      "produto": {
+        "id_produto": 101,
+        "nome": "PF da casa"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0086",
+    "persona": "contraditorio",
+    "semana": 1,
+    "contexto": {
+      "orcamento": 48,
+      "raio": 8,
+      "preferencias": [
+        "Lanches",
+        "Saudável"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 1,
+        "nome": "Casa Brasileira"
+      },
+      "produto": {
+        "id_produto": 101,
+        "nome": "PF da casa"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0087",
+    "persona": "contraditorio",
+    "semana": 1,
+    "contexto": {
+      "orcamento": 48,
+      "raio": 8,
+      "preferencias": [
+        "Lanches",
+        "Saudável"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 5,
+        "nome": "Verde Vivo"
+      },
+      "produto": {
+        "id_produto": 105,
+        "nome": "Bowl verde"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0088",
+    "persona": "contraditorio",
+    "semana": 1,
+    "contexto": {
+      "orcamento": 48,
+      "raio": 8,
+      "preferencias": [
+        "Lanches",
+        "Saudável"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 5,
+        "nome": "Verde Vivo"
+      },
+      "produto": {
+        "id_produto": 105,
+        "nome": "Bowl verde"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0089",
+    "persona": "contraditorio",
+    "semana": 2,
+    "contexto": {
+      "orcamento": 48,
+      "raio": 8,
+      "preferencias": [
+        "Lanches",
+        "Saudável"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 1,
+        "nome": "Casa Brasileira"
+      },
+      "produto": {
+        "id_produto": 101,
+        "nome": "PF da casa"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0090",
+    "persona": "contraditorio",
+    "semana": 2,
+    "contexto": {
+      "orcamento": 48,
+      "raio": 8,
+      "preferencias": [
+        "Lanches",
+        "Saudável"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 5,
+        "nome": "Verde Vivo"
+      },
+      "produto": {
+        "id_produto": 105,
+        "nome": "Bowl verde"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0091",
+    "persona": "contraditorio",
+    "semana": 3,
+    "contexto": {
+      "orcamento": 48,
+      "raio": 8,
+      "preferencias": [
+        "Lanches",
+        "Saudável"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 1,
+        "nome": "Casa Brasileira"
+      },
+      "produto": {
+        "id_produto": 101,
+        "nome": "PF da casa"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0092",
+    "persona": "mudanca_gradual",
+    "semana": 1,
+    "contexto": {
+      "orcamento": 58,
+      "raio": 8,
+      "preferencias": [
+        "Massas"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 1,
+        "nome": "Casa Brasileira"
+      },
+      "produto": {
+        "id_produto": 101,
+        "nome": "PF da casa"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 2,
+        "nome": "Cantina Central"
+      },
+      "produto": {
+        "id_produto": 102,
+        "nome": "Penne ao sugo"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0093",
+    "persona": "mudanca_gradual",
+    "semana": 1,
+    "contexto": {
+      "orcamento": 58,
+      "raio": 8,
+      "preferencias": [
+        "Massas"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 2,
+        "nome": "Cantina Central"
+      },
+      "produto": {
+        "id_produto": 102,
+        "nome": "Penne ao sugo"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 1,
+        "nome": "Casa Brasileira"
+      },
+      "produto": {
+        "id_produto": 101,
+        "nome": "PF da casa"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0094",
+    "persona": "mudanca_gradual",
+    "semana": 1,
+    "contexto": {
+      "orcamento": 58,
+      "raio": 8,
+      "preferencias": [
+        "Massas"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 2,
+        "nome": "Cantina Central"
+      },
+      "produto": {
+        "id_produto": 102,
+        "nome": "Penne ao sugo"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0095",
+    "persona": "mudanca_gradual",
+    "semana": 2,
+    "contexto": {
+      "orcamento": 58,
+      "raio": 8,
+      "preferencias": [
+        "Massas"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 2,
+        "nome": "Cantina Central"
+      },
+      "produto": {
+        "id_produto": 102,
+        "nome": "Penne ao sugo"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 1,
+        "nome": "Casa Brasileira"
+      },
+      "produto": {
+        "id_produto": 101,
+        "nome": "PF da casa"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0096",
+    "persona": "mudanca_gradual",
+    "semana": 2,
+    "contexto": {
+      "orcamento": 58,
+      "raio": 8,
+      "preferencias": [
+        "Massas"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 2,
+        "nome": "Cantina Central"
+      },
+      "produto": {
+        "id_produto": 102,
+        "nome": "Penne ao sugo"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 5,
+        "nome": "Verde Vivo"
+      },
+      "produto": {
+        "id_produto": 105,
+        "nome": "Bowl verde"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0097",
+    "persona": "mudanca_gradual",
+    "semana": 2,
+    "contexto": {
+      "orcamento": 58,
+      "raio": 8,
+      "preferencias": [
+        "Massas"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 2,
+        "nome": "Cantina Central"
+      },
+      "produto": {
+        "id_produto": 102,
+        "nome": "Penne ao sugo"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0098",
+    "persona": "mudanca_gradual",
+    "semana": 3,
+    "contexto": {
+      "orcamento": 58,
+      "raio": 8,
+      "preferencias": [
+        "Massas",
+        "Asiática"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 4,
+        "nome": "Oriente Bowl"
+      },
+      "produto": {
+        "id_produto": 104,
+        "nome": "Bowl oriental"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0099",
+    "persona": "mudanca_gradual",
+    "semana": 3,
+    "contexto": {
+      "orcamento": 58,
+      "raio": 8,
+      "preferencias": [
+        "Massas",
+        "Asiática"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 2,
+        "nome": "Cantina Central"
+      },
+      "produto": {
+        "id_produto": 102,
+        "nome": "Penne ao sugo"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0100",
+    "persona": "mudanca_gradual",
+    "semana": 3,
+    "contexto": {
+      "orcamento": 58,
+      "raio": 8,
+      "preferencias": [
+        "Massas",
+        "Asiática"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 6,
+        "nome": "Horta Urbana"
+      },
+      "produto": {
+        "id_produto": 106,
+        "nome": "Risoto vegetal"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0101",
+    "persona": "mudanca_gradual",
+    "semana": 3,
+    "contexto": {
+      "orcamento": 58,
+      "raio": 8,
+      "preferencias": [
+        "Massas",
+        "Asiática"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 2,
+        "nome": "Cantina Central"
+      },
+      "produto": {
+        "id_produto": 102,
+        "nome": "Penne ao sugo"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0102",
+    "persona": "mudanca_gradual",
+    "semana": 3,
+    "contexto": {
+      "orcamento": 58,
+      "raio": 8,
+      "preferencias": [
+        "Massas",
+        "Asiática"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 7,
+        "nome": "Mesa Mediterrânea"
+      },
+      "produto": {
+        "id_produto": 107,
+        "nome": "Cuscuz mediterrâneo"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0103",
+    "persona": "mudanca_gradual",
+    "semana": 4,
+    "contexto": {
+      "orcamento": 58,
+      "raio": 8,
+      "preferencias": [
+        "Massas",
+        "Asiática"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 2,
+        "nome": "Cantina Central"
+      },
+      "produto": {
+        "id_produto": 102,
+        "nome": "Penne ao sugo"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0104",
+    "persona": "mudanca_gradual",
+    "semana": 4,
+    "contexto": {
+      "orcamento": 58,
+      "raio": 8,
+      "preferencias": [
+        "Massas",
+        "Asiática"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 8,
+        "nome": "Sabor do Dia"
+      },
+      "produto": {
+        "id_produto": 108,
+        "nome": "Executivo do dia"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0105",
+    "persona": "mudanca_gradual",
+    "semana": 4,
+    "contexto": {
+      "orcamento": 58,
+      "raio": 8,
+      "preferencias": [
+        "Massas",
+        "Asiática"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 2,
+        "nome": "Cantina Central"
+      },
+      "produto": {
+        "id_produto": 102,
+        "nome": "Penne ao sugo"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0106",
+    "persona": "mudanca_gradual",
+    "semana": 4,
+    "contexto": {
+      "orcamento": 58,
+      "raio": 8,
+      "preferencias": [
+        "Massas",
+        "Asiática"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 1,
+        "nome": "Casa Brasileira"
+      },
+      "produto": {
+        "id_produto": 101,
+        "nome": "PF da casa"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0107",
+    "persona": "mudanca_gradual",
+    "semana": 4,
+    "contexto": {
+      "orcamento": 58,
+      "raio": 8,
+      "preferencias": [
+        "Massas",
+        "Asiática"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 2,
+        "nome": "Cantina Central"
+      },
+      "produto": {
+        "id_produto": 102,
+        "nome": "Penne ao sugo"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0108",
+    "persona": "mudanca_gradual",
+    "semana": 5,
+    "contexto": {
+      "orcamento": 58,
+      "raio": 8,
+      "preferencias": [
+        "Massas",
+        "Asiática"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 2,
+        "nome": "Cantina Central"
+      },
+      "produto": {
+        "id_produto": 102,
+        "nome": "Penne ao sugo"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0109",
+    "persona": "mudanca_gradual",
+    "semana": 5,
+    "contexto": {
+      "orcamento": 58,
+      "raio": 8,
+      "preferencias": [
+        "Massas",
+        "Asiática"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 5,
+        "nome": "Verde Vivo"
+      },
+      "produto": {
+        "id_produto": 105,
+        "nome": "Bowl verde"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0110",
+    "persona": "mudanca_gradual",
+    "semana": 5,
+    "contexto": {
+      "orcamento": 58,
+      "raio": 8,
+      "preferencias": [
+        "Massas",
+        "Asiática"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 2,
+        "nome": "Cantina Central"
+      },
+      "produto": {
+        "id_produto": 102,
+        "nome": "Penne ao sugo"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  },
+  {
+    "id": "caso-0111",
+    "persona": "mudanca_gradual",
+    "semana": 5,
+    "contexto": {
+      "orcamento": 58,
+      "raio": 8,
+      "preferencias": [
+        "Massas",
+        "Asiática"
+      ]
+    },
+    "opcao_a": {
+      "restaurante": {
+        "id_restaurante": 4,
+        "nome": "Oriente Bowl"
+      },
+      "produto": {
+        "id_produto": 104,
+        "nome": "Bowl oriental"
+      }
+    },
+    "opcao_b": {
+      "restaurante": {
+        "id_restaurante": 3,
+        "nome": "Estação Casual"
+      },
+      "produto": {
+        "id_produto": 103,
+        "nome": "Sanduíche artesanal"
+      }
+    },
+    "escolha": null,
+    "motivo": null
+  }
+]

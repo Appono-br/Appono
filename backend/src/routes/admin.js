@@ -7,6 +7,7 @@ const express_1 = require("express");
 const supabase_1 = require("../lib/supabase");
 const auth_1 = require("../middleware/auth");
 const { agregarMetricasExperimento } = require("../domain/routine-experiment-metrics");
+const { diagnosticoConfiguracaoInteligencia } = require("../domain/routine-intelligence-policy");
 
 exports.adminRouter = (0, express_1.Router)();
 
@@ -156,6 +157,7 @@ exports.adminRouter.get("/rotina-intelligence/resumo", async (req, res) => {
         periodo_dias: dias,
         modelo_oficial: data?.[0]?.modelo_controle ?? "deterministico-v3",
         decisao_atual: "MANTER_EM_SOMBRA",
+        configuracao: diagnosticoConfiguracaoInteligencia(),
         ...resumo,
     });
 });

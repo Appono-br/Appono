@@ -4,9 +4,13 @@
 
 # Appono
 
-## Coleta comportamental da Appono Intelligence V2
+## Appono Intelligence V2
 
-A V2 permanece em modo sombra. Em `/cliente/configuracoes`, o cliente pode ativar ou revogar o uso de novas interacoes na personalizacao. O consentimento vem desativado por padrao e nao apaga reservas, pedidos ou registros financeiros.
+A V2 esta integrada ao planejamento real e permanece com rollout publico igual a zero. Em desenvolvimento e homologacao, contas consentidas de uma allowlist podem usar a decisao da IA; falha, baixa confianca, ausencia de historico ou kill switch retornam automaticamente ao `deterministico-v3`.
+
+Em `/cliente/configuracoes`, o cliente pode ativar ou revogar o uso de novas interacoes na personalizacao. O consentimento vem desativado por padrao e nao apaga reservas, pedidos ou registros financeiros. O painel privado `/admin/rotina-intelligence` mostra metricas e estado operacional sem expor sinais ou identidades.
+
+Os comandos `simulate:rotina:intelligence` e `evaluate:rotina:intelligence` executam a avaliacao longitudinal reproduzivel. O estado e as limitacoes estao em [docs/appono-intelligence-v2-relatorio-pre-piloto.md](docs/appono-intelligence-v2-relatorio-pre-piloto.md).
 
 A migration `20260921204635_routine_behavioral_consent_and_signals.sql` cria consentimento versionado, historico auditavel e sinais privados idempotentes. Aplique-a antes de publicar backend e frontend. O painel agregado fica em `/admin/rotina-intelligence`; a coleta DEMO usa `npm.cmd run collect:rotina:behavior --workspace backend` com `APPONO_REMOTE_SMOKE=confirmado`.
 

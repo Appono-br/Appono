@@ -152,4 +152,54 @@ Aprovações, recusas e alternativas continuam disponíveis como telemetria do e
 
 A promoção exige ao menos 100 experiências elegíveis distribuídas, revisão humana e rollout por flag. Não existe promoção automática; até atingir essa evidência, a recomendação é manter a V2 em modo sombra.
 
+## Coleta comportamental sintética - 21/09/2026
+
+O coletor DEMO foi ampliado para aceitar uma meta exata e várias semanas, mantendo as chamadas nas rotas reais. A execução autorizada usou `--target=100 --weeks=3`, sem criar pagamento, pedido, reserva concluída, feedback ou envio de e-mail artificial.
+
+Resultado da coleta:
+
+- 100 sinais novos e 100 sinais totais no recorte;
+- 32 aprovações, 34 recusas e 34 solicitações de alternativa;
+- 8 clientes consentidos com 12 a 14 sinais cada;
+- 2 clientes de controle sem consentimento comportamental e sem sinais;
+- todas as ações observadas responderam HTTP 200;
+- nenhuma credencial ou token foi impresso.
+
+O segundo teste sombra produziu 42 comparações para cada desafiante:
+
+- V1: 24 concordâncias, 18 divergências e confiança média `0,35`;
+- V2: 19 concordâncias, 23 divergências e confiança média `0,3515`;
+- V2: 34 comparações com histórico e 8 sem histórico;
+- o grupo sem histórico permaneceu com confiança zero;
+- nenhum modelo apresentou falha ou violação detectável de orçamento ou raio.
+
+Pela régua independente `auditoria-tecnica-v2`:
+
+- V1: 2 vitórias, 8 derrotas e 32 empates técnicos contra o controle;
+- V2: 6 vitórias, 8 derrotas e 28 empates técnicos contra o controle;
+- a maior concentração da mesma opção foi 17 na V1 e 6 na V2;
+- a V2 cobriu 7 restaurantes, 20 produtos e 7 categorias;
+- a cobertura de preferências explícitas foi `52,38%` nos dois desafiantes.
+
+Conclusão: a V2 apresentou melhora sobre a V1 em diversidade, concentração e número de vitórias, mas ainda perdeu mais casos do que ganhou contra o controle. As ações sintéticas foram distribuídas para exercitar a arquitetura e não representam gosto gastronômico real. Portanto, elas validam consentimento, persistência, carregamento de sinais, confiança e avaliação, mas não satisfazem o critério de 100 experiências elegíveis reais para promoção.
+
+Decisão: `MANTER_EM_SOMBRA`. O próximo ciclo deve coletar experiências reais concluídas, conversões e feedback consentido, preservar um grupo de controle e repetir a avaliação longitudinal antes de qualquer piloto.
+
+## Simulacao longitudinal controlada - 22/09/2026
+
+Foi criado o protocolo `appono-intelligence-longitudinal-v1`, com dez personas coerentes, seis semanas por persona e conjuntos separados de desenvolvimento, validacao e reserva. A utilidade externa nao reutiliza os pesos da V2 e cada modelo e avaliado contra sua propria sequencia.
+
+No conjunto de reserva, executado uma unica vez apos o congelamento dos criterios:
+
+- 300 decisoes por modelo;
+- 134 desacordos entre controle e V2;
+- arrependimento medio do controle: `7,4095`;
+- arrependimento medio da V1: `4,4114`;
+- arrependimento medio da V2: `3,6729`;
+- zero violacoes eliminatorias;
+- neutralidade preservada no grupo sem historico;
+- nenhuma regressao por persona acima do limite predefinido de `2,0`.
+
+A evidencia sintetica aprova a V2 como software para homologacao interna, nao como produto validado por clientes. A revisao cega foi preparada em `backend/reports/routine-intelligence/blind-review.json` e ainda requer preenchimento humano.
+
 As migrations `20260920191137`, `20260920210706` e `20260920220421` já existiam fisicamente no banco por aplicação manual, mas não constavam no histórico do CLI. O histórico foi reconciliado como `applied` após consultas confirmarem tabelas e colunas; o `supabase db push --linked --dry-run` terminou com o banco atualizado e nenhuma migration pendente.

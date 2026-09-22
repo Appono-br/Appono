@@ -1,0 +1,4681 @@
+{
+  "protocolo": "appono-intelligence-longitudinal-v1",
+  "conjunto": "desenvolvimento",
+  "semente": 22092026,
+  "referencia": "2026-01-05T12:00:00Z",
+  "semanas": 6,
+  "hash_catalogo": "9fffd3771e427b17be186d010b58ed663ed892f6706b3c4b5213dc0272e45732",
+  "hash_personas": "2e611a58c4663fc20c5f8a255b6d487e9017efbe56a1a311782e48d78f6fa840",
+  "personas": [
+    {
+      "persona": "economico",
+      "controle": {
+        "decisoes": 30,
+        "utilidade_media": -2.4818,
+        "arrependimento_medio": 1.6099,
+        "confianca_media": 0,
+        "opcoes_distintas": 2,
+        "concentracao_maxima": 25
+      },
+      "v1": {
+        "decisoes": 30,
+        "utilidade_media": -2.6887,
+        "arrependimento_medio": 2.0236,
+        "confianca_media": 0.8277,
+        "opcoes_distintas": 2,
+        "concentracao_maxima": 26
+      },
+      "v2": {
+        "decisoes": 30,
+        "utilidade_media": -2.4835,
+        "arrependimento_medio": 1.6809,
+        "confianca_media": 0.461,
+        "opcoes_distintas": 2,
+        "concentracao_maxima": 25
+      },
+      "sinais": 30
+    },
+    {
+      "persona": "explorador",
+      "controle": {
+        "decisoes": 30,
+        "utilidade_media": -11.2702,
+        "arrependimento_medio": 11.4399,
+        "confianca_media": 0,
+        "opcoes_distintas": 4,
+        "concentracao_maxima": 17
+      },
+      "v1": {
+        "decisoes": 30,
+        "utilidade_media": -4.9758,
+        "arrependimento_medio": 4.7677,
+        "confianca_media": 0.8277,
+        "opcoes_distintas": 8,
+        "concentracao_maxima": 10
+      },
+      "v2": {
+        "decisoes": 30,
+        "utilidade_media": -3.6176,
+        "arrependimento_medio": 3.1179,
+        "confianca_media": 0.3438,
+        "opcoes_distintas": 8,
+        "concentracao_maxima": 7
+      },
+      "sinais": 30
+    },
+    {
+      "persona": "fiel_restaurante",
+      "controle": {
+        "decisoes": 30,
+        "utilidade_media": 10.2601,
+        "arrependimento_medio": 0.5264,
+        "confianca_media": 0,
+        "opcoes_distintas": 3,
+        "concentracao_maxima": 28
+      },
+      "v1": {
+        "decisoes": 30,
+        "utilidade_media": 11.4132,
+        "arrependimento_medio": 0,
+        "confianca_media": 0.8277,
+        "opcoes_distintas": 1,
+        "concentracao_maxima": 30
+      },
+      "v2": {
+        "decisoes": 30,
+        "utilidade_media": 11.4132,
+        "arrependimento_medio": 0,
+        "confianca_media": 0.6679,
+        "opcoes_distintas": 1,
+        "concentracao_maxima": 30
+      },
+      "sinais": 30
+    },
+    {
+      "persona": "fiel_prato",
+      "controle": {
+        "decisoes": 30,
+        "utilidade_media": 5.1623,
+        "arrependimento_medio": 3.3217,
+        "confianca_media": 0,
+        "opcoes_distintas": 3,
+        "concentracao_maxima": 21
+      },
+      "v1": {
+        "decisoes": 30,
+        "utilidade_media": 6.1549,
+        "arrependimento_medio": 3.9686,
+        "confianca_media": 0.8277,
+        "opcoes_distintas": 7,
+        "concentracao_maxima": 16
+      },
+      "v2": {
+        "decisoes": 30,
+        "utilidade_media": 4.863,
+        "arrependimento_medio": 5.1005,
+        "confianca_media": 0.2975,
+        "opcoes_distintas": 7,
+        "concentracao_maxima": 13
+      },
+      "sinais": 30
+    },
+    {
+      "persona": "sensivel_distancia",
+      "controle": {
+        "decisoes": 30,
+        "utilidade_media": -2.6731,
+        "arrependimento_medio": 2.8006,
+        "confianca_media": 0,
+        "opcoes_distintas": 2,
+        "concentracao_maxima": 28
+      },
+      "v1": {
+        "decisoes": 30,
+        "utilidade_media": -2.4954,
+        "arrependimento_medio": 2.6219,
+        "confianca_media": 0.8277,
+        "opcoes_distintas": 2,
+        "concentracao_maxima": 27
+      },
+      "v2": {
+        "decisoes": 30,
+        "utilidade_media": -1.9407,
+        "arrependimento_medio": 1.8081,
+        "confianca_media": 0.3303,
+        "opcoes_distintas": 3,
+        "concentracao_maxima": 24
+      },
+      "sinais": 30
+    },
+    {
+      "persona": "avesso_repeticao",
+      "controle": {
+        "decisoes": 30,
+        "utilidade_media": -15.4884,
+        "arrependimento_medio": 15.5823,
+        "confianca_media": 0,
+        "opcoes_distintas": 4,
+        "concentracao_maxima": 17
+      },
+      "v1": {
+        "decisoes": 30,
+        "utilidade_media": -8.1063,
+        "arrependimento_medio": 7.6001,
+        "confianca_media": 0.8277,
+        "opcoes_distintas": 8,
+        "concentracao_maxima": 11
+      },
+      "v2": {
+        "decisoes": 30,
+        "utilidade_media": -5.1217,
+        "arrependimento_medio": 4.3155,
+        "confianca_media": 0.3406,
+        "opcoes_distintas": 8,
+        "concentracao_maxima": 7
+      },
+      "sinais": 30
+    },
+    {
+      "persona": "preferencia_forte",
+      "controle": {
+        "decisoes": 30,
+        "utilidade_media": -2.5582,
+        "arrependimento_medio": 10.9528,
+        "confianca_media": 0,
+        "opcoes_distintas": 3,
+        "concentracao_maxima": 21
+      },
+      "v1": {
+        "decisoes": 30,
+        "utilidade_media": 2.5263,
+        "arrependimento_medio": 5.0516,
+        "confianca_media": 0.8277,
+        "opcoes_distintas": 8,
+        "concentracao_maxima": 13
+      },
+      "v2": {
+        "decisoes": 30,
+        "utilidade_media": 2.4803,
+        "arrependimento_medio": 4.4643,
+        "confianca_media": 0.2888,
+        "opcoes_distintas": 8,
+        "concentracao_maxima": 13
+      },
+      "sinais": 30
+    },
+    {
+      "persona": "contraditorio",
+      "controle": {
+        "decisoes": 30,
+        "utilidade_media": -7.7531,
+        "arrependimento_medio": 10.3028,
+        "confianca_media": 0,
+        "opcoes_distintas": 2,
+        "concentracao_maxima": 28
+      },
+      "v1": {
+        "decisoes": 30,
+        "utilidade_media": -5.8778,
+        "arrependimento_medio": 7.7328,
+        "confianca_media": 0.8277,
+        "opcoes_distintas": 3,
+        "concentracao_maxima": 25
+      },
+      "v2": {
+        "decisoes": 30,
+        "utilidade_media": -4.6572,
+        "arrependimento_medio": 5.9568,
+        "confianca_media": 0.4166,
+        "opcoes_distintas": 3,
+        "concentracao_maxima": 23
+      },
+      "sinais": 30
+    },
+    {
+      "persona": "mudanca_gradual",
+      "controle": {
+        "decisoes": 30,
+        "utilidade_media": -3.2494,
+        "arrependimento_medio": 8.1212,
+        "confianca_media": 0,
+        "opcoes_distintas": 3,
+        "concentracao_maxima": 21
+      },
+      "v1": {
+        "decisoes": 30,
+        "utilidade_media": 0.4951,
+        "arrependimento_medio": 3.9433,
+        "confianca_media": 0.8277,
+        "opcoes_distintas": 7,
+        "concentracao_maxima": 17
+      },
+      "v2": {
+        "decisoes": 30,
+        "utilidade_media": 0.874,
+        "arrependimento_medio": 3.4644,
+        "confianca_media": 0.2888,
+        "opcoes_distintas": 8,
+        "concentracao_maxima": 13
+      },
+      "sinais": 30
+    },
+    {
+      "persona": "controle_sem_historico",
+      "controle": {
+        "decisoes": 30,
+        "utilidade_media": -2.921,
+        "arrependimento_medio": 6.3973,
+        "confianca_media": 0,
+        "opcoes_distintas": 2,
+        "concentracao_maxima": 28
+      },
+      "v1": {
+        "decisoes": 30,
+        "utilidade_media": -2.921,
+        "arrependimento_medio": 6.3973,
+        "confianca_media": 0.35,
+        "opcoes_distintas": 2,
+        "concentracao_maxima": 28
+      },
+      "v2": {
+        "decisoes": 30,
+        "utilidade_media": -2.921,
+        "arrependimento_medio": 6.3973,
+        "confianca_media": 0,
+        "opcoes_distintas": 2,
+        "concentracao_maxima": 28
+      },
+      "sinais": 0
+    }
+  ],
+  "desacordos": [
+    {
+      "id": "desenvolvimento:economico:1:2",
+      "conjunto": "desenvolvimento",
+      "persona": "economico",
+      "semana": 1,
+      "contexto": {
+        "orcamento": 32,
+        "raio": 7,
+        "preferencias": [
+          "Brasileira",
+          "Lanches"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 3,
+          "nome": "Estação Casual"
+        },
+        "produto": {
+          "id_produto": 103,
+          "nome": "Sanduíche artesanal"
+        },
+        "utilidade": -1.3164
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": 0.3952,
+        "confianca": 0.515
+      }
+    },
+    {
+      "id": "desenvolvimento:economico:1:3",
+      "conjunto": "desenvolvimento",
+      "persona": "economico",
+      "semana": 1,
+      "contexto": {
+        "orcamento": 32,
+        "raio": 7,
+        "preferencias": [
+          "Brasileira",
+          "Lanches"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": 0.3961
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 3,
+          "nome": "Estação Casual"
+        },
+        "produto": {
+          "id_produto": 103,
+          "nome": "Sanduíche artesanal"
+        },
+        "utilidade": -1.3384,
+        "confianca": 0.062
+      }
+    },
+    {
+      "id": "desenvolvimento:economico:1:4",
+      "conjunto": "desenvolvimento",
+      "persona": "economico",
+      "semana": 1,
+      "contexto": {
+        "orcamento": 32,
+        "raio": 7,
+        "preferencias": [
+          "Brasileira",
+          "Lanches"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 3,
+          "nome": "Estação Casual"
+        },
+        "produto": {
+          "id_produto": 103,
+          "nome": "Sanduíche artesanal"
+        },
+        "utilidade": -1.8109
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": 0.0047,
+        "confianca": 0.552
+      }
+    },
+    {
+      "id": "desenvolvimento:economico:5:0",
+      "conjunto": "desenvolvimento",
+      "persona": "economico",
+      "semana": 5,
+      "contexto": {
+        "orcamento": 32,
+        "raio": 7,
+        "preferencias": [
+          "Brasileira",
+          "Lanches"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -5.9398
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 3,
+          "nome": "Estação Casual"
+        },
+        "produto": {
+          "id_produto": 103,
+          "nome": "Sanduíche artesanal"
+        },
+        "utilidade": -1.7839,
+        "confianca": 0.15
+      }
+    },
+    {
+      "id": "desenvolvimento:explorador:1:1",
+      "conjunto": "desenvolvimento",
+      "persona": "explorador",
+      "semana": 1,
+      "contexto": {
+        "orcamento": 60,
+        "raio": 10,
+        "preferencias": [
+          "Asiática",
+          "Mediterrânea"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -4.5265
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 4,
+          "nome": "Oriente Bowl"
+        },
+        "produto": {
+          "id_produto": 104,
+          "nome": "Bowl oriental"
+        },
+        "utilidade": -0.4306,
+        "confianca": 0.298
+      }
+    },
+    {
+      "id": "desenvolvimento:explorador:1:2",
+      "conjunto": "desenvolvimento",
+      "persona": "explorador",
+      "semana": 1,
+      "contexto": {
+        "orcamento": 60,
+        "raio": 10,
+        "preferencias": [
+          "Asiática",
+          "Mediterrânea"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 3,
+          "nome": "Estação Casual"
+        },
+        "produto": {
+          "id_produto": 103,
+          "nome": "Sanduíche artesanal"
+        },
+        "utilidade": -4.6382
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 7,
+          "nome": "Mesa Mediterrânea"
+        },
+        "produto": {
+          "id_produto": 107,
+          "nome": "Cuscuz mediterrâneo"
+        },
+        "utilidade": -0.6193,
+        "confianca": 0.274
+      }
+    },
+    {
+      "id": "desenvolvimento:explorador:2:0",
+      "conjunto": "desenvolvimento",
+      "persona": "explorador",
+      "semana": 2,
+      "contexto": {
+        "orcamento": 60,
+        "raio": 10,
+        "preferencias": [
+          "Asiática",
+          "Mediterrânea"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -6.7465
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 3,
+          "nome": "Estação Casual"
+        },
+        "produto": {
+          "id_produto": 103,
+          "nome": "Sanduíche artesanal"
+        },
+        "utilidade": -4.6605,
+        "confianca": 0.266
+      }
+    },
+    {
+      "id": "desenvolvimento:explorador:2:1",
+      "conjunto": "desenvolvimento",
+      "persona": "explorador",
+      "semana": 2,
+      "contexto": {
+        "orcamento": 60,
+        "raio": 10,
+        "preferencias": [
+          "Asiática",
+          "Mediterrânea"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 3,
+          "nome": "Estação Casual"
+        },
+        "produto": {
+          "id_produto": 103,
+          "nome": "Sanduíche artesanal"
+        },
+        "utilidade": -6.7702
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -4.5648,
+        "confianca": 0.506
+      }
+    },
+    {
+      "id": "desenvolvimento:explorador:2:2",
+      "conjunto": "desenvolvimento",
+      "persona": "explorador",
+      "semana": 2,
+      "contexto": {
+        "orcamento": 60,
+        "raio": 10,
+        "preferencias": [
+          "Asiática",
+          "Mediterrânea"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 4,
+          "nome": "Oriente Bowl"
+        },
+        "produto": {
+          "id_produto": 104,
+          "nome": "Bowl oriental"
+        },
+        "utilidade": -2.7809
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 7,
+          "nome": "Mesa Mediterrânea"
+        },
+        "produto": {
+          "id_produto": 107,
+          "nome": "Cuscuz mediterrâneo"
+        },
+        "utilidade": -4.9503,
+        "confianca": 0.203
+      }
+    },
+    {
+      "id": "desenvolvimento:explorador:2:3",
+      "conjunto": "desenvolvimento",
+      "persona": "explorador",
+      "semana": 2,
+      "contexto": {
+        "orcamento": 60,
+        "raio": 10,
+        "preferencias": [
+          "Asiática",
+          "Mediterrânea"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 7,
+          "nome": "Mesa Mediterrânea"
+        },
+        "produto": {
+          "id_produto": 107,
+          "nome": "Cuscuz mediterrâneo"
+        },
+        "utilidade": -2.8273
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 3,
+          "nome": "Estação Casual"
+        },
+        "produto": {
+          "id_produto": 103,
+          "nome": "Sanduíche artesanal"
+        },
+        "utilidade": -6.8499,
+        "confianca": 0.4
+      }
+    },
+    {
+      "id": "desenvolvimento:explorador:3:0",
+      "conjunto": "desenvolvimento",
+      "persona": "explorador",
+      "semana": 3,
+      "contexto": {
+        "orcamento": 60,
+        "raio": 10,
+        "preferencias": [
+          "Asiática",
+          "Mediterrânea"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 3,
+          "nome": "Estação Casual"
+        },
+        "produto": {
+          "id_produto": 103,
+          "nome": "Sanduíche artesanal"
+        },
+        "utilidade": -9.0048
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 4,
+          "nome": "Oriente Bowl"
+        },
+        "produto": {
+          "id_produto": 104,
+          "nome": "Bowl oriental"
+        },
+        "utilidade": -4.9383,
+        "confianca": 0.018
+      }
+    },
+    {
+      "id": "desenvolvimento:explorador:3:1",
+      "conjunto": "desenvolvimento",
+      "persona": "explorador",
+      "semana": 3,
+      "contexto": {
+        "orcamento": 60,
+        "raio": 10,
+        "preferencias": [
+          "Asiática",
+          "Mediterrânea"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 4,
+          "nome": "Oriente Bowl"
+        },
+        "produto": {
+          "id_produto": 104,
+          "nome": "Bowl oriental"
+        },
+        "utilidade": -4.8633
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 2,
+          "nome": "Cantina Central"
+        },
+        "produto": {
+          "id_produto": 102,
+          "nome": "Penne ao sugo"
+        },
+        "utilidade": -0.2628,
+        "confianca": 0.181
+      }
+    },
+    {
+      "id": "desenvolvimento:explorador:3:2",
+      "conjunto": "desenvolvimento",
+      "persona": "explorador",
+      "semana": 3,
+      "contexto": {
+        "orcamento": 60,
+        "raio": 10,
+        "preferencias": [
+          "Asiática",
+          "Mediterrânea"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 7,
+          "nome": "Mesa Mediterrânea"
+        },
+        "produto": {
+          "id_produto": 107,
+          "nome": "Cuscuz mediterrâneo"
+        },
+        "utilidade": -5.0693
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 5,
+          "nome": "Verde Vivo"
+        },
+        "produto": {
+          "id_produto": 105,
+          "nome": "Bowl verde"
+        },
+        "utilidade": -0.222,
+        "confianca": 0.239
+      }
+    },
+    {
+      "id": "desenvolvimento:explorador:3:3",
+      "conjunto": "desenvolvimento",
+      "persona": "explorador",
+      "semana": 3,
+      "contexto": {
+        "orcamento": 60,
+        "raio": 10,
+        "preferencias": [
+          "Asiática",
+          "Mediterrânea"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -11.2035
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 6,
+          "nome": "Horta Urbana"
+        },
+        "produto": {
+          "id_produto": 106,
+          "nome": "Risoto vegetal"
+        },
+        "utilidade": -0.3533,
+        "confianca": 0.274
+      }
+    },
+    {
+      "id": "desenvolvimento:explorador:3:4",
+      "conjunto": "desenvolvimento",
+      "persona": "explorador",
+      "semana": 3,
+      "contexto": {
+        "orcamento": 60,
+        "raio": 10,
+        "preferencias": [
+          "Asiática",
+          "Mediterrânea"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -13.4059
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 3,
+          "nome": "Estação Casual"
+        },
+        "produto": {
+          "id_produto": 103,
+          "nome": "Sanduíche artesanal"
+        },
+        "utilidade": -9.032,
+        "confianca": 0.543
+      }
+    },
+    {
+      "id": "desenvolvimento:explorador:4:1",
+      "conjunto": "desenvolvimento",
+      "persona": "explorador",
+      "semana": 4,
+      "contexto": {
+        "orcamento": 60,
+        "raio": 10,
+        "preferencias": [
+          "Asiática",
+          "Mediterrânea"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -17.7438
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 8,
+          "nome": "Sabor do Dia"
+        },
+        "produto": {
+          "id_produto": 108,
+          "nome": "Executivo do dia"
+        },
+        "utilidade": -0.2025,
+        "confianca": 0.409
+      }
+    },
+    {
+      "id": "desenvolvimento:explorador:4:2",
+      "conjunto": "desenvolvimento",
+      "persona": "explorador",
+      "semana": 4,
+      "contexto": {
+        "orcamento": 60,
+        "raio": 10,
+        "preferencias": [
+          "Asiática",
+          "Mediterrânea"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -19.9385
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 4,
+          "nome": "Oriente Bowl"
+        },
+        "produto": {
+          "id_produto": 104,
+          "nome": "Bowl oriental"
+        },
+        "utilidade": -7.1824,
+        "confianca": 0.242
+      }
+    },
+    {
+      "id": "desenvolvimento:explorador:4:3",
+      "conjunto": "desenvolvimento",
+      "persona": "explorador",
+      "semana": 4,
+      "contexto": {
+        "orcamento": 60,
+        "raio": 10,
+        "preferencias": [
+          "Asiática",
+          "Mediterrânea"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -22.2587
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 7,
+          "nome": "Mesa Mediterrânea"
+        },
+        "produto": {
+          "id_produto": 107,
+          "nome": "Cuscuz mediterrâneo"
+        },
+        "utilidade": -7.1346,
+        "confianca": 0.254
+      }
+    },
+    {
+      "id": "desenvolvimento:explorador:4:4",
+      "conjunto": "desenvolvimento",
+      "persona": "explorador",
+      "semana": 4,
+      "contexto": {
+        "orcamento": 60,
+        "raio": 10,
+        "preferencias": [
+          "Asiática",
+          "Mediterrânea"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -24.278
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 2,
+          "nome": "Cantina Central"
+        },
+        "produto": {
+          "id_produto": 102,
+          "nome": "Penne ao sugo"
+        },
+        "utilidade": -2.4588,
+        "confianca": 0.372
+      }
+    },
+    {
+      "id": "desenvolvimento:explorador:5:0",
+      "conjunto": "desenvolvimento",
+      "persona": "explorador",
+      "semana": 5,
+      "contexto": {
+        "orcamento": 60,
+        "raio": 10,
+        "preferencias": [
+          "Asiática",
+          "Mediterrânea"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -26.6157
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 5,
+          "nome": "Verde Vivo"
+        },
+        "produto": {
+          "id_produto": 105,
+          "nome": "Bowl verde"
+        },
+        "utilidade": -2.3859,
+        "confianca": 0.386
+      }
+    },
+    {
+      "id": "desenvolvimento:explorador:5:1",
+      "conjunto": "desenvolvimento",
+      "persona": "explorador",
+      "semana": 5,
+      "contexto": {
+        "orcamento": 60,
+        "raio": 10,
+        "preferencias": [
+          "Asiática",
+          "Mediterrânea"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -28.8517
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 6,
+          "nome": "Horta Urbana"
+        },
+        "produto": {
+          "id_produto": 106,
+          "nome": "Risoto vegetal"
+        },
+        "utilidade": -2.5814,
+        "confianca": 0.399
+      }
+    },
+    {
+      "id": "desenvolvimento:explorador:5:2",
+      "conjunto": "desenvolvimento",
+      "persona": "explorador",
+      "semana": 5,
+      "contexto": {
+        "orcamento": 60,
+        "raio": 10,
+        "preferencias": [
+          "Asiática",
+          "Mediterrânea"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -30.8836
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 3,
+          "nome": "Estação Casual"
+        },
+        "produto": {
+          "id_produto": 103,
+          "nome": "Sanduíche artesanal"
+        },
+        "utilidade": -11.1207,
+        "confianca": 0.639
+      }
+    },
+    {
+      "id": "desenvolvimento:explorador:5:3",
+      "conjunto": "desenvolvimento",
+      "persona": "explorador",
+      "semana": 5,
+      "contexto": {
+        "orcamento": 60,
+        "raio": 10,
+        "preferencias": [
+          "Asiática",
+          "Mediterrânea"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -33.1505
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 8,
+          "nome": "Sabor do Dia"
+        },
+        "produto": {
+          "id_produto": 108,
+          "nome": "Executivo do dia"
+        },
+        "utilidade": -2.4615,
+        "confianca": 0.534
+      }
+    },
+    {
+      "id": "desenvolvimento:explorador:5:4",
+      "conjunto": "desenvolvimento",
+      "persona": "explorador",
+      "semana": 5,
+      "contexto": {
+        "orcamento": 60,
+        "raio": 10,
+        "preferencias": [
+          "Asiática",
+          "Mediterrânea"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -35.4165
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 3,
+          "nome": "Estação Casual"
+        },
+        "produto": {
+          "id_produto": 103,
+          "nome": "Sanduíche artesanal"
+        },
+        "utilidade": -13.3831,
+        "confianca": 0.657
+      }
+    },
+    {
+      "id": "desenvolvimento:fiel_restaurante:1:0",
+      "conjunto": "desenvolvimento",
+      "persona": "fiel_restaurante",
+      "semana": 1,
+      "contexto": {
+        "orcamento": 55,
+        "raio": 8,
+        "preferencias": [
+          "Massas"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -0.2491
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 2,
+          "nome": "Cantina Central"
+        },
+        "produto": {
+          "id_produto": 102,
+          "nome": "Penne ao sugo"
+        },
+        "utilidade": 7.6237,
+        "confianca": 0.55
+      }
+    },
+    {
+      "id": "desenvolvimento:fiel_restaurante:1:1",
+      "conjunto": "desenvolvimento",
+      "persona": "fiel_restaurante",
+      "semana": 1,
+      "contexto": {
+        "orcamento": 55,
+        "raio": 8,
+        "preferencias": [
+          "Massas"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 3,
+          "nome": "Estação Casual"
+        },
+        "produto": {
+          "id_produto": 103,
+          "nome": "Sanduíche artesanal"
+        },
+        "utilidade": -0.2824
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 2,
+          "nome": "Cantina Central"
+        },
+        "produto": {
+          "id_produto": 102,
+          "nome": "Penne ao sugo"
+        },
+        "utilidade": 8.0378,
+        "confianca": 0.574
+      }
+    },
+    {
+      "id": "desenvolvimento:fiel_prato:1:0",
+      "conjunto": "desenvolvimento",
+      "persona": "fiel_prato",
+      "semana": 1,
+      "contexto": {
+        "orcamento": 50,
+        "raio": 8,
+        "preferencias": [
+          "Saudável"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": 0.9028
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 3,
+          "nome": "Estação Casual"
+        },
+        "produto": {
+          "id_produto": 103,
+          "nome": "Sanduíche artesanal"
+        },
+        "utilidade": 0.9143,
+        "confianca": 0.327
+      }
+    },
+    {
+      "id": "desenvolvimento:fiel_prato:1:1",
+      "conjunto": "desenvolvimento",
+      "persona": "fiel_prato",
+      "semana": 1,
+      "contexto": {
+        "orcamento": 50,
+        "raio": 8,
+        "preferencias": [
+          "Saudável"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 3,
+          "nome": "Estação Casual"
+        },
+        "produto": {
+          "id_produto": 103,
+          "nome": "Sanduíche artesanal"
+        },
+        "utilidade": 0.9347
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 5,
+          "nome": "Verde Vivo"
+        },
+        "produto": {
+          "id_produto": 105,
+          "nome": "Bowl verde"
+        },
+        "utilidade": 7.1505,
+        "confianca": 0.16
+      }
+    },
+    {
+      "id": "desenvolvimento:fiel_prato:1:2",
+      "conjunto": "desenvolvimento",
+      "persona": "fiel_prato",
+      "semana": 1,
+      "contexto": {
+        "orcamento": 50,
+        "raio": 8,
+        "preferencias": [
+          "Saudável"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 5,
+          "nome": "Verde Vivo"
+        },
+        "produto": {
+          "id_produto": 105,
+          "nome": "Bowl verde"
+        },
+        "utilidade": 7.1532
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": 0.9229,
+        "confianca": 0.531
+      }
+    },
+    {
+      "id": "desenvolvimento:fiel_prato:1:3",
+      "conjunto": "desenvolvimento",
+      "persona": "fiel_prato",
+      "semana": 1,
+      "contexto": {
+        "orcamento": 50,
+        "raio": 8,
+        "preferencias": [
+          "Saudável"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": 1.4891
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 5,
+          "nome": "Verde Vivo"
+        },
+        "produto": {
+          "id_produto": 105,
+          "nome": "Bowl verde"
+        },
+        "utilidade": 7.8024,
+        "confianca": 0.305
+      }
+    },
+    {
+      "id": "desenvolvimento:fiel_prato:2:2",
+      "conjunto": "desenvolvimento",
+      "persona": "fiel_prato",
+      "semana": 2,
+      "contexto": {
+        "orcamento": 50,
+        "raio": 8,
+        "preferencias": [
+          "Saudável"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 3,
+          "nome": "Estação Casual"
+        },
+        "produto": {
+          "id_produto": 103,
+          "nome": "Sanduíche artesanal"
+        },
+        "utilidade": 2.1214
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 5,
+          "nome": "Verde Vivo"
+        },
+        "produto": {
+          "id_produto": 105,
+          "nome": "Bowl verde"
+        },
+        "utilidade": 9.0038,
+        "confianca": 0.352
+      }
+    },
+    {
+      "id": "desenvolvimento:fiel_prato:2:3",
+      "conjunto": "desenvolvimento",
+      "persona": "fiel_prato",
+      "semana": 2,
+      "contexto": {
+        "orcamento": 50,
+        "raio": 8,
+        "preferencias": [
+          "Saudável"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 5,
+          "nome": "Verde Vivo"
+        },
+        "produto": {
+          "id_produto": 105,
+          "nome": "Bowl verde"
+        },
+        "utilidade": 8.3677
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 2,
+          "nome": "Cantina Central"
+        },
+        "produto": {
+          "id_produto": 102,
+          "nome": "Penne ao sugo"
+        },
+        "utilidade": -0.4493,
+        "confianca": 0.072
+      }
+    },
+    {
+      "id": "desenvolvimento:fiel_prato:2:4",
+      "conjunto": "desenvolvimento",
+      "persona": "fiel_prato",
+      "semana": 2,
+      "contexto": {
+        "orcamento": 50,
+        "raio": 8,
+        "preferencias": [
+          "Saudável"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": 2.7234
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 5,
+          "nome": "Verde Vivo"
+        },
+        "produto": {
+          "id_produto": 105,
+          "nome": "Bowl verde"
+        },
+        "utilidade": 9.5777,
+        "confianca": 0.408
+      }
+    },
+    {
+      "id": "desenvolvimento:fiel_prato:3:0",
+      "conjunto": "desenvolvimento",
+      "persona": "fiel_prato",
+      "semana": 3,
+      "contexto": {
+        "orcamento": 50,
+        "raio": 8,
+        "preferencias": [
+          "Saudável"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": 3.3054
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 4,
+          "nome": "Oriente Bowl"
+        },
+        "produto": {
+          "id_produto": 104,
+          "nome": "Bowl oriental"
+        },
+        "utilidade": -0.4993,
+        "confianca": 0.162
+      }
+    },
+    {
+      "id": "desenvolvimento:fiel_prato:3:1",
+      "conjunto": "desenvolvimento",
+      "persona": "fiel_prato",
+      "semana": 3,
+      "contexto": {
+        "orcamento": 50,
+        "raio": 8,
+        "preferencias": [
+          "Saudável"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": 3.9676
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 5,
+          "nome": "Verde Vivo"
+        },
+        "produto": {
+          "id_produto": 105,
+          "nome": "Bowl verde"
+        },
+        "utilidade": 10.203,
+        "confianca": 0.38
+      }
+    },
+    {
+      "id": "desenvolvimento:fiel_prato:3:2",
+      "conjunto": "desenvolvimento",
+      "persona": "fiel_prato",
+      "semana": 3,
+      "contexto": {
+        "orcamento": 50,
+        "raio": 8,
+        "preferencias": [
+          "Saudável"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": 4.5785
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 6,
+          "nome": "Horta Urbana"
+        },
+        "produto": {
+          "id_produto": 106,
+          "nome": "Risoto vegetal"
+        },
+        "utilidade": -0.5732,
+        "confianca": 0.117
+      }
+    },
+    {
+      "id": "desenvolvimento:fiel_prato:3:3",
+      "conjunto": "desenvolvimento",
+      "persona": "fiel_prato",
+      "semana": 3,
+      "contexto": {
+        "orcamento": 50,
+        "raio": 8,
+        "preferencias": [
+          "Saudável"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": 5.1458
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 5,
+          "nome": "Verde Vivo"
+        },
+        "produto": {
+          "id_produto": 105,
+          "nome": "Bowl verde"
+        },
+        "utilidade": 10.8055,
+        "confianca": 0.351
+      }
+    },
+    {
+      "id": "desenvolvimento:fiel_prato:3:4",
+      "conjunto": "desenvolvimento",
+      "persona": "fiel_prato",
+      "semana": 3,
+      "contexto": {
+        "orcamento": 50,
+        "raio": 8,
+        "preferencias": [
+          "Saudável"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": 5.7401
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 3,
+          "nome": "Estação Casual"
+        },
+        "produto": {
+          "id_produto": 103,
+          "nome": "Sanduíche artesanal"
+        },
+        "utilidade": 2.062,
+        "confianca": 0.419
+      }
+    },
+    {
+      "id": "desenvolvimento:fiel_prato:4:0",
+      "conjunto": "desenvolvimento",
+      "persona": "fiel_prato",
+      "semana": 4,
+      "contexto": {
+        "orcamento": 50,
+        "raio": 8,
+        "preferencias": [
+          "Saudável"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": 6.3458
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 5,
+          "nome": "Verde Vivo"
+        },
+        "produto": {
+          "id_produto": 105,
+          "nome": "Bowl verde"
+        },
+        "utilidade": 11.4265,
+        "confianca": 0.32
+      }
+    },
+    {
+      "id": "desenvolvimento:fiel_prato:4:1",
+      "conjunto": "desenvolvimento",
+      "persona": "fiel_prato",
+      "semana": 4,
+      "contexto": {
+        "orcamento": 50,
+        "raio": 8,
+        "preferencias": [
+          "Saudável"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": 6.9037
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 8,
+          "nome": "Sabor do Dia"
+        },
+        "produto": {
+          "id_produto": 108,
+          "nome": "Executivo do dia"
+        },
+        "utilidade": -0.4231,
+        "confianca": 0.149
+      }
+    },
+    {
+      "id": "desenvolvimento:fiel_prato:4:2",
+      "conjunto": "desenvolvimento",
+      "persona": "fiel_prato",
+      "semana": 4,
+      "contexto": {
+        "orcamento": 50,
+        "raio": 8,
+        "preferencias": [
+          "Saudável"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": 7.5568
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 5,
+          "nome": "Verde Vivo"
+        },
+        "produto": {
+          "id_produto": 105,
+          "nome": "Bowl verde"
+        },
+        "utilidade": 11.9634,
+        "confianca": 0.293
+      }
+    },
+    {
+      "id": "desenvolvimento:fiel_prato:4:4",
+      "conjunto": "desenvolvimento",
+      "persona": "fiel_prato",
+      "semana": 4,
+      "contexto": {
+        "orcamento": 50,
+        "raio": 8,
+        "preferencias": [
+          "Saudável"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": 8.7717
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 5,
+          "nome": "Verde Vivo"
+        },
+        "produto": {
+          "id_produto": 105,
+          "nome": "Bowl verde"
+        },
+        "utilidade": 12.6032,
+        "confianca": 0.287
+      }
+    },
+    {
+      "id": "desenvolvimento:fiel_prato:5:0",
+      "conjunto": "desenvolvimento",
+      "persona": "fiel_prato",
+      "semana": 5,
+      "contexto": {
+        "orcamento": 50,
+        "raio": 8,
+        "preferencias": [
+          "Saudável"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": 9.363
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 2,
+          "nome": "Cantina Central"
+        },
+        "produto": {
+          "id_produto": 102,
+          "nome": "Penne ao sugo"
+        },
+        "utilidade": 0.1747,
+        "confianca": 0.048
+      }
+    },
+    {
+      "id": "desenvolvimento:fiel_prato:5:1",
+      "conjunto": "desenvolvimento",
+      "persona": "fiel_prato",
+      "semana": 5,
+      "contexto": {
+        "orcamento": 50,
+        "raio": 8,
+        "preferencias": [
+          "Saudável"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": 9.9203
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 5,
+          "nome": "Verde Vivo"
+        },
+        "produto": {
+          "id_produto": 105,
+          "nome": "Bowl verde"
+        },
+        "utilidade": 13.2305,
+        "confianca": 0.323
+      }
+    },
+    {
+      "id": "desenvolvimento:fiel_prato:5:3",
+      "conjunto": "desenvolvimento",
+      "persona": "fiel_prato",
+      "semana": 5,
+      "contexto": {
+        "orcamento": 50,
+        "raio": 8,
+        "preferencias": [
+          "Saudável"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": 11.1559
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 5,
+          "nome": "Verde Vivo"
+        },
+        "produto": {
+          "id_produto": 105,
+          "nome": "Bowl verde"
+        },
+        "utilidade": 13.7718,
+        "confianca": 0.356
+      }
+    },
+    {
+      "id": "desenvolvimento:sensivel_distancia:2:2",
+      "conjunto": "desenvolvimento",
+      "persona": "sensivel_distancia",
+      "semana": 2,
+      "contexto": {
+        "orcamento": 55,
+        "raio": 4,
+        "preferencias": [
+          "Brasileira"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -1.7154
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 8,
+          "nome": "Sabor do Dia"
+        },
+        "produto": {
+          "id_produto": 108,
+          "nome": "Executivo do dia"
+        },
+        "utilidade": 0.066,
+        "confianca": 0.584
+      }
+    },
+    {
+      "id": "desenvolvimento:sensivel_distancia:3:1",
+      "conjunto": "desenvolvimento",
+      "persona": "sensivel_distancia",
+      "semana": 3,
+      "contexto": {
+        "orcamento": 55,
+        "raio": 4,
+        "preferencias": [
+          "Brasileira"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -2.983
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 3,
+          "nome": "Estação Casual"
+        },
+        "produto": {
+          "id_produto": 103,
+          "nome": "Sanduíche artesanal"
+        },
+        "utilidade": -1.532,
+        "confianca": 0.289
+      }
+    },
+    {
+      "id": "desenvolvimento:sensivel_distancia:4:0",
+      "conjunto": "desenvolvimento",
+      "persona": "sensivel_distancia",
+      "semana": 4,
+      "contexto": {
+        "orcamento": 55,
+        "raio": 4,
+        "preferencias": [
+          "Brasileira"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -4.1227
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 8,
+          "nome": "Sabor do Dia"
+        },
+        "produto": {
+          "id_produto": 108,
+          "nome": "Executivo do dia"
+        },
+        "utilidade": -0.2812,
+        "confianca": 0.146
+      }
+    },
+    {
+      "id": "desenvolvimento:sensivel_distancia:5:1",
+      "conjunto": "desenvolvimento",
+      "persona": "sensivel_distancia",
+      "semana": 5,
+      "contexto": {
+        "orcamento": 55,
+        "raio": 4,
+        "preferencias": [
+          "Brasileira"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -5.9243
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 3,
+          "nome": "Estação Casual"
+        },
+        "produto": {
+          "id_produto": 103,
+          "nome": "Sanduíche artesanal"
+        },
+        "utilidade": -1.8244,
+        "confianca": 0.086
+      }
+    },
+    {
+      "id": "desenvolvimento:avesso_repeticao:1:1",
+      "conjunto": "desenvolvimento",
+      "persona": "avesso_repeticao",
+      "semana": 1,
+      "contexto": {
+        "orcamento": 55,
+        "raio": 9,
+        "preferencias": [
+          "Massas",
+          "Saudável"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -6.1522
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 2,
+          "nome": "Cantina Central"
+        },
+        "produto": {
+          "id_produto": 102,
+          "nome": "Penne ao sugo"
+        },
+        "utilidade": -1.2813,
+        "confianca": 0.324
+      }
+    },
+    {
+      "id": "desenvolvimento:avesso_repeticao:1:2",
+      "conjunto": "desenvolvimento",
+      "persona": "avesso_repeticao",
+      "semana": 1,
+      "contexto": {
+        "orcamento": 55,
+        "raio": 9,
+        "preferencias": [
+          "Massas",
+          "Saudável"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 3,
+          "nome": "Estação Casual"
+        },
+        "produto": {
+          "id_produto": 103,
+          "nome": "Sanduíche artesanal"
+        },
+        "utilidade": -6.2174
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 5,
+          "nome": "Verde Vivo"
+        },
+        "produto": {
+          "id_produto": 105,
+          "nome": "Bowl verde"
+        },
+        "utilidade": -1.3405,
+        "confianca": 0.303
+      }
+    },
+    {
+      "id": "desenvolvimento:avesso_repeticao:2:0",
+      "conjunto": "desenvolvimento",
+      "persona": "avesso_repeticao",
+      "semana": 2,
+      "contexto": {
+        "orcamento": 55,
+        "raio": 9,
+        "preferencias": [
+          "Massas",
+          "Saudável"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -9.2378
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 3,
+          "nome": "Estação Casual"
+        },
+        "produto": {
+          "id_produto": 103,
+          "nome": "Sanduíche artesanal"
+        },
+        "utilidade": -6.1716,
+        "confianca": 0.266
+      }
+    },
+    {
+      "id": "desenvolvimento:avesso_repeticao:2:1",
+      "conjunto": "desenvolvimento",
+      "persona": "avesso_repeticao",
+      "semana": 2,
+      "contexto": {
+        "orcamento": 55,
+        "raio": 9,
+        "preferencias": [
+          "Massas",
+          "Saudável"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 3,
+          "nome": "Estação Casual"
+        },
+        "produto": {
+          "id_produto": 103,
+          "nome": "Sanduíche artesanal"
+        },
+        "utilidade": -9.1846
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -6.1655,
+        "confianca": 0.506
+      }
+    },
+    {
+      "id": "desenvolvimento:avesso_repeticao:2:2",
+      "conjunto": "desenvolvimento",
+      "persona": "avesso_repeticao",
+      "semana": 2,
+      "contexto": {
+        "orcamento": 55,
+        "raio": 9,
+        "preferencias": [
+          "Massas",
+          "Saudável"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 2,
+          "nome": "Cantina Central"
+        },
+        "produto": {
+          "id_produto": 102,
+          "nome": "Penne ao sugo"
+        },
+        "utilidade": -4.3112
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 5,
+          "nome": "Verde Vivo"
+        },
+        "produto": {
+          "id_produto": 105,
+          "nome": "Bowl verde"
+        },
+        "utilidade": -7.3374,
+        "confianca": 0.243
+      }
+    },
+    {
+      "id": "desenvolvimento:avesso_repeticao:2:3",
+      "conjunto": "desenvolvimento",
+      "persona": "avesso_repeticao",
+      "semana": 2,
+      "contexto": {
+        "orcamento": 55,
+        "raio": 9,
+        "preferencias": [
+          "Massas",
+          "Saudável"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 5,
+          "nome": "Verde Vivo"
+        },
+        "produto": {
+          "id_produto": 105,
+          "nome": "Bowl verde"
+        },
+        "utilidade": -4.338
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 3,
+          "nome": "Estação Casual"
+        },
+        "produto": {
+          "id_produto": 103,
+          "nome": "Sanduíche artesanal"
+        },
+        "utilidade": -9.1906,
+        "confianca": 0.4
+      }
+    },
+    {
+      "id": "desenvolvimento:avesso_repeticao:3:0",
+      "conjunto": "desenvolvimento",
+      "persona": "avesso_repeticao",
+      "semana": 3,
+      "contexto": {
+        "orcamento": 55,
+        "raio": 9,
+        "preferencias": [
+          "Massas",
+          "Saudável"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 3,
+          "nome": "Estação Casual"
+        },
+        "produto": {
+          "id_produto": 103,
+          "nome": "Sanduíche artesanal"
+        },
+        "utilidade": -12.217
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 2,
+          "nome": "Cantina Central"
+        },
+        "produto": {
+          "id_produto": 102,
+          "nome": "Penne ao sugo"
+        },
+        "utilidade": -7.342,
+        "confianca": 0.009
+      }
+    },
+    {
+      "id": "desenvolvimento:avesso_repeticao:3:1",
+      "conjunto": "desenvolvimento",
+      "persona": "avesso_repeticao",
+      "semana": 3,
+      "contexto": {
+        "orcamento": 55,
+        "raio": 9,
+        "preferencias": [
+          "Massas",
+          "Saudável"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 2,
+          "nome": "Cantina Central"
+        },
+        "produto": {
+          "id_produto": 102,
+          "nome": "Penne ao sugo"
+        },
+        "utilidade": -7.2631
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 4,
+          "nome": "Oriente Bowl"
+        },
+        "produto": {
+          "id_produto": 104,
+          "nome": "Bowl oriental"
+        },
+        "utilidade": -0.3467,
+        "confianca": 0.131
+      }
+    },
+    {
+      "id": "desenvolvimento:avesso_repeticao:3:2",
+      "conjunto": "desenvolvimento",
+      "persona": "avesso_repeticao",
+      "semana": 3,
+      "contexto": {
+        "orcamento": 55,
+        "raio": 9,
+        "preferencias": [
+          "Massas",
+          "Saudável"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 5,
+          "nome": "Verde Vivo"
+        },
+        "produto": {
+          "id_produto": 105,
+          "nome": "Bowl verde"
+        },
+        "utilidade": -7.2747
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 6,
+          "nome": "Horta Urbana"
+        },
+        "produto": {
+          "id_produto": 106,
+          "nome": "Risoto vegetal"
+        },
+        "utilidade": -0.4024,
+        "confianca": 0.188
+      }
+    },
+    {
+      "id": "desenvolvimento:avesso_repeticao:3:3",
+      "conjunto": "desenvolvimento",
+      "persona": "avesso_repeticao",
+      "semana": 3,
+      "contexto": {
+        "orcamento": 55,
+        "raio": 9,
+        "preferencias": [
+          "Massas",
+          "Saudável"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -15.2019
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 7,
+          "nome": "Mesa Mediterrânea"
+        },
+        "produto": {
+          "id_produto": 107,
+          "nome": "Cuscuz mediterrâneo"
+        },
+        "utilidade": -0.4997,
+        "confianca": 0.321
+      }
+    },
+    {
+      "id": "desenvolvimento:avesso_repeticao:3:4",
+      "conjunto": "desenvolvimento",
+      "persona": "avesso_repeticao",
+      "semana": 3,
+      "contexto": {
+        "orcamento": 55,
+        "raio": 9,
+        "preferencias": [
+          "Massas",
+          "Saudável"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -18.2417
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 3,
+          "nome": "Estação Casual"
+        },
+        "produto": {
+          "id_produto": 103,
+          "nome": "Sanduíche artesanal"
+        },
+        "utilidade": -12.194,
+        "confianca": 0.543
+      }
+    },
+    {
+      "id": "desenvolvimento:avesso_repeticao:4:1",
+      "conjunto": "desenvolvimento",
+      "persona": "avesso_repeticao",
+      "semana": 4,
+      "contexto": {
+        "orcamento": 55,
+        "raio": 9,
+        "preferencias": [
+          "Massas",
+          "Saudável"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -24.1646
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 8,
+          "nome": "Sabor do Dia"
+        },
+        "produto": {
+          "id_produto": 108,
+          "nome": "Executivo do dia"
+        },
+        "utilidade": -0.3204,
+        "confianca": 0.369
+      }
+    },
+    {
+      "id": "desenvolvimento:avesso_repeticao:4:2",
+      "conjunto": "desenvolvimento",
+      "persona": "avesso_repeticao",
+      "semana": 4,
+      "contexto": {
+        "orcamento": 55,
+        "raio": 9,
+        "preferencias": [
+          "Massas",
+          "Saudável"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -27.1589
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 2,
+          "nome": "Cantina Central"
+        },
+        "produto": {
+          "id_produto": 102,
+          "nome": "Penne ao sugo"
+        },
+        "utilidade": -10.2877,
+        "confianca": 0.218
+      }
+    },
+    {
+      "id": "desenvolvimento:avesso_repeticao:4:3",
+      "conjunto": "desenvolvimento",
+      "persona": "avesso_repeticao",
+      "semana": 4,
+      "contexto": {
+        "orcamento": 55,
+        "raio": 9,
+        "preferencias": [
+          "Massas",
+          "Saudável"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -30.2135
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 5,
+          "nome": "Verde Vivo"
+        },
+        "produto": {
+          "id_produto": 105,
+          "nome": "Bowl verde"
+        },
+        "utilidade": -10.3618,
+        "confianca": 0.231
+      }
+    },
+    {
+      "id": "desenvolvimento:avesso_repeticao:4:4",
+      "conjunto": "desenvolvimento",
+      "persona": "avesso_repeticao",
+      "semana": 4,
+      "contexto": {
+        "orcamento": 55,
+        "raio": 9,
+        "preferencias": [
+          "Massas",
+          "Saudável"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -33.1856
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 4,
+          "nome": "Oriente Bowl"
+        },
+        "produto": {
+          "id_produto": 104,
+          "nome": "Bowl oriental"
+        },
+        "utilidade": -3.4331,
+        "confianca": 0.33
+      }
+    },
+    {
+      "id": "desenvolvimento:avesso_repeticao:5:0",
+      "conjunto": "desenvolvimento",
+      "persona": "avesso_repeticao",
+      "semana": 5,
+      "contexto": {
+        "orcamento": 55,
+        "raio": 9,
+        "preferencias": [
+          "Massas",
+          "Saudável"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -36.1714
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 6,
+          "nome": "Horta Urbana"
+        },
+        "produto": {
+          "id_produto": 106,
+          "nome": "Risoto vegetal"
+        },
+        "utilidade": -3.4003,
+        "confianca": 0.344
+      }
+    },
+    {
+      "id": "desenvolvimento:avesso_repeticao:5:1",
+      "conjunto": "desenvolvimento",
+      "persona": "avesso_repeticao",
+      "semana": 5,
+      "contexto": {
+        "orcamento": 55,
+        "raio": 9,
+        "preferencias": [
+          "Massas",
+          "Saudável"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -39.1616
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 7,
+          "nome": "Mesa Mediterrânea"
+        },
+        "produto": {
+          "id_produto": 107,
+          "nome": "Cuscuz mediterrâneo"
+        },
+        "utilidade": -3.486,
+        "confianca": 0.45
+      }
+    },
+    {
+      "id": "desenvolvimento:avesso_repeticao:5:2",
+      "conjunto": "desenvolvimento",
+      "persona": "avesso_repeticao",
+      "semana": 5,
+      "contexto": {
+        "orcamento": 55,
+        "raio": 9,
+        "preferencias": [
+          "Massas",
+          "Saudável"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -42.1858
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 3,
+          "nome": "Estação Casual"
+        },
+        "produto": {
+          "id_produto": 103,
+          "nome": "Sanduíche artesanal"
+        },
+        "utilidade": -15.2367,
+        "confianca": 0.639
+      }
+    },
+    {
+      "id": "desenvolvimento:avesso_repeticao:5:3",
+      "conjunto": "desenvolvimento",
+      "persona": "avesso_repeticao",
+      "semana": 5,
+      "contexto": {
+        "orcamento": 55,
+        "raio": 9,
+        "preferencias": [
+          "Massas",
+          "Saudável"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -45.2256
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 8,
+          "nome": "Sabor do Dia"
+        },
+        "produto": {
+          "id_produto": 108,
+          "nome": "Executivo do dia"
+        },
+        "utilidade": -3.3078,
+        "confianca": 0.494
+      }
+    },
+    {
+      "id": "desenvolvimento:avesso_repeticao:5:4",
+      "conjunto": "desenvolvimento",
+      "persona": "avesso_repeticao",
+      "semana": 5,
+      "contexto": {
+        "orcamento": 55,
+        "raio": 9,
+        "preferencias": [
+          "Massas",
+          "Saudável"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -48.2195
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 3,
+          "nome": "Estação Casual"
+        },
+        "produto": {
+          "id_produto": 103,
+          "nome": "Sanduíche artesanal"
+        },
+        "utilidade": -18.217,
+        "confianca": 0.657
+      }
+    },
+    {
+      "id": "desenvolvimento:preferencia_forte:1:0",
+      "conjunto": "desenvolvimento",
+      "persona": "preferencia_forte",
+      "semana": 1,
+      "contexto": {
+        "orcamento": 65,
+        "raio": 9,
+        "preferencias": [
+          "Vegetariana"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -1.1026
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 3,
+          "nome": "Estação Casual"
+        },
+        "produto": {
+          "id_produto": 103,
+          "nome": "Sanduíche artesanal"
+        },
+        "utilidade": -1.1108,
+        "confianca": 0.327
+      }
+    },
+    {
+      "id": "desenvolvimento:preferencia_forte:1:1",
+      "conjunto": "desenvolvimento",
+      "persona": "preferencia_forte",
+      "semana": 1,
+      "contexto": {
+        "orcamento": 65,
+        "raio": 9,
+        "preferencias": [
+          "Vegetariana"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 3,
+          "nome": "Estação Casual"
+        },
+        "produto": {
+          "id_produto": 103,
+          "nome": "Sanduíche artesanal"
+        },
+        "utilidade": -1.1094
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 6,
+          "nome": "Horta Urbana"
+        },
+        "produto": {
+          "id_produto": 106,
+          "nome": "Risoto vegetal"
+        },
+        "utilidade": 9.2401,
+        "confianca": 0.16
+      }
+    },
+    {
+      "id": "desenvolvimento:preferencia_forte:1:2",
+      "conjunto": "desenvolvimento",
+      "persona": "preferencia_forte",
+      "semana": 1,
+      "contexto": {
+        "orcamento": 65,
+        "raio": 9,
+        "preferencias": [
+          "Vegetariana"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 6,
+          "nome": "Horta Urbana"
+        },
+        "produto": {
+          "id_produto": 106,
+          "nome": "Risoto vegetal"
+        },
+        "utilidade": 9.2764
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -1.1274,
+        "confianca": 0.531
+      }
+    },
+    {
+      "id": "desenvolvimento:preferencia_forte:1:3",
+      "conjunto": "desenvolvimento",
+      "persona": "preferencia_forte",
+      "semana": 1,
+      "contexto": {
+        "orcamento": 65,
+        "raio": 9,
+        "preferencias": [
+          "Vegetariana"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -1.5968
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 6,
+          "nome": "Horta Urbana"
+        },
+        "produto": {
+          "id_produto": 106,
+          "nome": "Risoto vegetal"
+        },
+        "utilidade": 8.7477,
+        "confianca": 0.305
+      }
+    },
+    {
+      "id": "desenvolvimento:preferencia_forte:2:2",
+      "conjunto": "desenvolvimento",
+      "persona": "preferencia_forte",
+      "semana": 2,
+      "contexto": {
+        "orcamento": 65,
+        "raio": 9,
+        "preferencias": [
+          "Vegetariana"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 3,
+          "nome": "Estação Casual"
+        },
+        "produto": {
+          "id_produto": 103,
+          "nome": "Sanduíche artesanal"
+        },
+        "utilidade": -2.1215
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 6,
+          "nome": "Horta Urbana"
+        },
+        "produto": {
+          "id_produto": 106,
+          "nome": "Risoto vegetal"
+        },
+        "utilidade": 7.7439,
+        "confianca": 0.352
+      }
+    },
+    {
+      "id": "desenvolvimento:preferencia_forte:2:3",
+      "conjunto": "desenvolvimento",
+      "persona": "preferencia_forte",
+      "semana": 2,
+      "contexto": {
+        "orcamento": 65,
+        "raio": 9,
+        "preferencias": [
+          "Vegetariana"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 6,
+          "nome": "Horta Urbana"
+        },
+        "produto": {
+          "id_produto": 106,
+          "nome": "Risoto vegetal"
+        },
+        "utilidade": 8.2637
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 2,
+          "nome": "Cantina Central"
+        },
+        "produto": {
+          "id_produto": 102,
+          "nome": "Penne ao sugo"
+        },
+        "utilidade": -0.1666,
+        "confianca": 0.072
+      }
+    },
+    {
+      "id": "desenvolvimento:preferencia_forte:2:4",
+      "conjunto": "desenvolvimento",
+      "persona": "preferencia_forte",
+      "semana": 2,
+      "contexto": {
+        "orcamento": 65,
+        "raio": 9,
+        "preferencias": [
+          "Vegetariana"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -2.5902
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 6,
+          "nome": "Horta Urbana"
+        },
+        "produto": {
+          "id_produto": 106,
+          "nome": "Risoto vegetal"
+        },
+        "utilidade": 7.2689,
+        "confianca": 0.408
+      }
+    },
+    {
+      "id": "desenvolvimento:preferencia_forte:3:0",
+      "conjunto": "desenvolvimento",
+      "persona": "preferencia_forte",
+      "semana": 3,
+      "contexto": {
+        "orcamento": 65,
+        "raio": 9,
+        "preferencias": [
+          "Vegetariana"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -3.126
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 5,
+          "nome": "Verde Vivo"
+        },
+        "produto": {
+          "id_produto": 105,
+          "nome": "Bowl verde"
+        },
+        "utilidade": -0.1541,
+        "confianca": 0.162
+      }
+    },
+    {
+      "id": "desenvolvimento:preferencia_forte:3:1",
+      "conjunto": "desenvolvimento",
+      "persona": "preferencia_forte",
+      "semana": 3,
+      "contexto": {
+        "orcamento": 65,
+        "raio": 9,
+        "preferencias": [
+          "Vegetariana"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -3.6133
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 6,
+          "nome": "Horta Urbana"
+        },
+        "produto": {
+          "id_produto": 106,
+          "nome": "Risoto vegetal"
+        },
+        "utilidade": 6.7619,
+        "confianca": 0.38
+      }
+    },
+    {
+      "id": "desenvolvimento:preferencia_forte:3:2",
+      "conjunto": "desenvolvimento",
+      "persona": "preferencia_forte",
+      "semana": 3,
+      "contexto": {
+        "orcamento": 65,
+        "raio": 9,
+        "preferencias": [
+          "Vegetariana"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -4.1212
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 4,
+          "nome": "Oriente Bowl"
+        },
+        "produto": {
+          "id_produto": 104,
+          "nome": "Bowl oriental"
+        },
+        "utilidade": -0.2194,
+        "confianca": 0.117
+      }
+    },
+    {
+      "id": "desenvolvimento:preferencia_forte:3:3",
+      "conjunto": "desenvolvimento",
+      "persona": "preferencia_forte",
+      "semana": 3,
+      "contexto": {
+        "orcamento": 65,
+        "raio": 9,
+        "preferencias": [
+          "Vegetariana"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -4.6182
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 6,
+          "nome": "Horta Urbana"
+        },
+        "produto": {
+          "id_produto": 106,
+          "nome": "Risoto vegetal"
+        },
+        "utilidade": 6.241,
+        "confianca": 0.351
+      }
+    },
+    {
+      "id": "desenvolvimento:preferencia_forte:3:4",
+      "conjunto": "desenvolvimento",
+      "persona": "preferencia_forte",
+      "semana": 3,
+      "contexto": {
+        "orcamento": 65,
+        "raio": 9,
+        "preferencias": [
+          "Vegetariana"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -5.1201
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 7,
+          "nome": "Mesa Mediterrânea"
+        },
+        "produto": {
+          "id_produto": 107,
+          "nome": "Cuscuz mediterrâneo"
+        },
+        "utilidade": -0.2477,
+        "confianca": 0.09
+      }
+    },
+    {
+      "id": "desenvolvimento:preferencia_forte:4:0",
+      "conjunto": "desenvolvimento",
+      "persona": "preferencia_forte",
+      "semana": 4,
+      "contexto": {
+        "orcamento": 65,
+        "raio": 9,
+        "preferencias": [
+          "Vegetariana"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -5.5959
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 6,
+          "nome": "Horta Urbana"
+        },
+        "produto": {
+          "id_produto": 106,
+          "nome": "Risoto vegetal"
+        },
+        "utilidade": 5.7879,
+        "confianca": 0.32
+      }
+    },
+    {
+      "id": "desenvolvimento:preferencia_forte:4:1",
+      "conjunto": "desenvolvimento",
+      "persona": "preferencia_forte",
+      "semana": 4,
+      "contexto": {
+        "orcamento": 65,
+        "raio": 9,
+        "preferencias": [
+          "Vegetariana"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -6.1046
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 3,
+          "nome": "Estação Casual"
+        },
+        "produto": {
+          "id_produto": 103,
+          "nome": "Sanduíche artesanal"
+        },
+        "utilidade": -2.1209,
+        "confianca": 0.451
+      }
+    },
+    {
+      "id": "desenvolvimento:preferencia_forte:4:2",
+      "conjunto": "desenvolvimento",
+      "persona": "preferencia_forte",
+      "semana": 4,
+      "contexto": {
+        "orcamento": 65,
+        "raio": 9,
+        "preferencias": [
+          "Vegetariana"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -6.6249
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 6,
+          "nome": "Horta Urbana"
+        },
+        "produto": {
+          "id_produto": 106,
+          "nome": "Risoto vegetal"
+        },
+        "utilidade": 5.2545,
+        "confianca": 0.289
+      }
+    },
+    {
+      "id": "desenvolvimento:preferencia_forte:4:3",
+      "conjunto": "desenvolvimento",
+      "persona": "preferencia_forte",
+      "semana": 4,
+      "contexto": {
+        "orcamento": 65,
+        "raio": 9,
+        "preferencias": [
+          "Vegetariana"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -7.1113
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 8,
+          "nome": "Sabor do Dia"
+        },
+        "produto": {
+          "id_produto": 108,
+          "nome": "Executivo do dia"
+        },
+        "utilidade": -0.1796,
+        "confianca": 0.199
+      }
+    },
+    {
+      "id": "desenvolvimento:preferencia_forte:4:4",
+      "conjunto": "desenvolvimento",
+      "persona": "preferencia_forte",
+      "semana": 4,
+      "contexto": {
+        "orcamento": 65,
+        "raio": 9,
+        "preferencias": [
+          "Vegetariana"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -7.6058
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 6,
+          "nome": "Horta Urbana"
+        },
+        "produto": {
+          "id_produto": 106,
+          "nome": "Risoto vegetal"
+        },
+        "utilidade": 4.7693,
+        "confianca": 0.259
+      }
+    },
+    {
+      "id": "desenvolvimento:preferencia_forte:5:1",
+      "conjunto": "desenvolvimento",
+      "persona": "preferencia_forte",
+      "semana": 5,
+      "contexto": {
+        "orcamento": 65,
+        "raio": 9,
+        "preferencias": [
+          "Vegetariana"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -8.5905
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 6,
+          "nome": "Horta Urbana"
+        },
+        "produto": {
+          "id_produto": 106,
+          "nome": "Risoto vegetal"
+        },
+        "utilidade": 4.2649,
+        "confianca": 0.228
+      }
+    },
+    {
+      "id": "desenvolvimento:preferencia_forte:5:2",
+      "conjunto": "desenvolvimento",
+      "persona": "preferencia_forte",
+      "semana": 5,
+      "contexto": {
+        "orcamento": 65,
+        "raio": 9,
+        "preferencias": [
+          "Vegetariana"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -9.1053
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 2,
+          "nome": "Cantina Central"
+        },
+        "produto": {
+          "id_produto": 102,
+          "nome": "Penne ao sugo"
+        },
+        "utilidade": -0.6672,
+        "confianca": 0.08
+      }
+    },
+    {
+      "id": "desenvolvimento:preferencia_forte:5:3",
+      "conjunto": "desenvolvimento",
+      "persona": "preferencia_forte",
+      "semana": 5,
+      "contexto": {
+        "orcamento": 65,
+        "raio": 9,
+        "preferencias": [
+          "Vegetariana"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -9.5826
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 6,
+          "nome": "Horta Urbana"
+        },
+        "produto": {
+          "id_produto": 106,
+          "nome": "Risoto vegetal"
+        },
+        "utilidade": 3.7594,
+        "confianca": 0.198
+      }
+    },
+    {
+      "id": "desenvolvimento:preferencia_forte:5:4",
+      "conjunto": "desenvolvimento",
+      "persona": "preferencia_forte",
+      "semana": 5,
+      "contexto": {
+        "orcamento": 65,
+        "raio": 9,
+        "preferencias": [
+          "Vegetariana"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -10.092
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 5,
+          "nome": "Verde Vivo"
+        },
+        "produto": {
+          "id_produto": 105,
+          "nome": "Bowl verde"
+        },
+        "utilidade": -0.6811,
+        "confianca": 0.113
+      }
+    },
+    {
+      "id": "desenvolvimento:contraditorio:0:3",
+      "conjunto": "desenvolvimento",
+      "persona": "contraditorio",
+      "semana": 0,
+      "contexto": {
+        "orcamento": 48,
+        "raio": 8,
+        "preferencias": [
+          "Lanches",
+          "Saudável"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 3,
+          "nome": "Estação Casual"
+        },
+        "produto": {
+          "id_produto": 103,
+          "nome": "Sanduíche artesanal"
+        },
+        "utilidade": -2.1798
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -0.6465,
+        "confianca": 0.425
+      }
+    },
+    {
+      "id": "desenvolvimento:contraditorio:0:4",
+      "conjunto": "desenvolvimento",
+      "persona": "contraditorio",
+      "semana": 0,
+      "contexto": {
+        "orcamento": 48,
+        "raio": 8,
+        "preferencias": [
+          "Lanches",
+          "Saudável"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -0.1882
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 3,
+          "nome": "Estação Casual"
+        },
+        "produto": {
+          "id_produto": 103,
+          "nome": "Sanduíche artesanal"
+        },
+        "utilidade": 0.5219,
+        "confianca": 0.244
+      }
+    },
+    {
+      "id": "desenvolvimento:contraditorio:1:0",
+      "conjunto": "desenvolvimento",
+      "persona": "contraditorio",
+      "semana": 1,
+      "contexto": {
+        "orcamento": 48,
+        "raio": 8,
+        "preferencias": [
+          "Lanches",
+          "Saudável"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 3,
+          "nome": "Estação Casual"
+        },
+        "produto": {
+          "id_produto": 103,
+          "nome": "Sanduíche artesanal"
+        },
+        "utilidade": -0.2853
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -1.1768,
+        "confianca": 0.085
+      }
+    },
+    {
+      "id": "desenvolvimento:contraditorio:1:1",
+      "conjunto": "desenvolvimento",
+      "persona": "contraditorio",
+      "semana": 1,
+      "contexto": {
+        "orcamento": 48,
+        "raio": 8,
+        "preferencias": [
+          "Lanches",
+          "Saudável"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -1.8003
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 3,
+          "nome": "Estação Casual"
+        },
+        "produto": {
+          "id_produto": 103,
+          "nome": "Sanduíche artesanal"
+        },
+        "utilidade": 0.4273,
+        "confianca": 0.066
+      }
+    },
+    {
+      "id": "desenvolvimento:contraditorio:1:2",
+      "conjunto": "desenvolvimento",
+      "persona": "contraditorio",
+      "semana": 1,
+      "contexto": {
+        "orcamento": 48,
+        "raio": 8,
+        "preferencias": [
+          "Lanches",
+          "Saudável"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 3,
+          "nome": "Estação Casual"
+        },
+        "produto": {
+          "id_produto": 103,
+          "nome": "Sanduíche artesanal"
+        },
+        "utilidade": -3.5946
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 5,
+          "nome": "Verde Vivo"
+        },
+        "produto": {
+          "id_produto": 105,
+          "nome": "Bowl verde"
+        },
+        "utilidade": 0.1763,
+        "confianca": 0.009
+      }
+    },
+    {
+      "id": "desenvolvimento:contraditorio:1:4",
+      "conjunto": "desenvolvimento",
+      "persona": "contraditorio",
+      "semana": 1,
+      "contexto": {
+        "orcamento": 48,
+        "raio": 8,
+        "preferencias": [
+          "Lanches",
+          "Saudável"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 3,
+          "nome": "Estação Casual"
+        },
+        "produto": {
+          "id_produto": 103,
+          "nome": "Sanduíche artesanal"
+        },
+        "utilidade": -2.6824
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 5,
+          "nome": "Verde Vivo"
+        },
+        "produto": {
+          "id_produto": 105,
+          "nome": "Bowl verde"
+        },
+        "utilidade": 2.1375,
+        "confianca": 0.184
+      }
+    },
+    {
+      "id": "desenvolvimento:contraditorio:2:1",
+      "conjunto": "desenvolvimento",
+      "persona": "contraditorio",
+      "semana": 2,
+      "contexto": {
+        "orcamento": 48,
+        "raio": 8,
+        "preferencias": [
+          "Lanches",
+          "Saudável"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 3,
+          "nome": "Estação Casual"
+        },
+        "produto": {
+          "id_produto": 103,
+          "nome": "Sanduíche artesanal"
+        },
+        "utilidade": -6.4545
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -2.3797,
+        "confianca": 0.444
+      }
+    },
+    {
+      "id": "desenvolvimento:contraditorio:2:4",
+      "conjunto": "desenvolvimento",
+      "persona": "contraditorio",
+      "semana": 2,
+      "contexto": {
+        "orcamento": 48,
+        "raio": 8,
+        "preferencias": [
+          "Lanches",
+          "Saudável"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 3,
+          "nome": "Estação Casual"
+        },
+        "produto": {
+          "id_produto": 103,
+          "nome": "Sanduíche artesanal"
+        },
+        "utilidade": -6.6508
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 5,
+          "nome": "Verde Vivo"
+        },
+        "produto": {
+          "id_produto": 105,
+          "nome": "Bowl verde"
+        },
+        "utilidade": 2.2394,
+        "confianca": 0.43
+      }
+    },
+    {
+      "id": "desenvolvimento:contraditorio:3:1",
+      "conjunto": "desenvolvimento",
+      "persona": "contraditorio",
+      "semana": 3,
+      "contexto": {
+        "orcamento": 48,
+        "raio": 8,
+        "preferencias": [
+          "Lanches",
+          "Saudável"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 3,
+          "nome": "Estação Casual"
+        },
+        "produto": {
+          "id_produto": 103,
+          "nome": "Sanduíche artesanal"
+        },
+        "utilidade": -8.2838
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -2.9399,
+        "confianca": 0.564
+      }
+    },
+    {
+      "id": "desenvolvimento:mudanca_gradual:1:0",
+      "conjunto": "desenvolvimento",
+      "persona": "mudanca_gradual",
+      "semana": 1,
+      "contexto": {
+        "orcamento": 58,
+        "raio": 8,
+        "preferencias": [
+          "Massas"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -1.3082
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 3,
+          "nome": "Estação Casual"
+        },
+        "produto": {
+          "id_produto": 103,
+          "nome": "Sanduíche artesanal"
+        },
+        "utilidade": -1.3463,
+        "confianca": 0.327
+      }
+    },
+    {
+      "id": "desenvolvimento:mudanca_gradual:1:1",
+      "conjunto": "desenvolvimento",
+      "persona": "mudanca_gradual",
+      "semana": 1,
+      "contexto": {
+        "orcamento": 58,
+        "raio": 8,
+        "preferencias": [
+          "Massas"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 3,
+          "nome": "Estação Casual"
+        },
+        "produto": {
+          "id_produto": 103,
+          "nome": "Sanduíche artesanal"
+        },
+        "utilidade": -1.27
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 2,
+          "nome": "Cantina Central"
+        },
+        "produto": {
+          "id_produto": 102,
+          "nome": "Penne ao sugo"
+        },
+        "utilidade": 5.1127,
+        "confianca": 0.16
+      }
+    },
+    {
+      "id": "desenvolvimento:mudanca_gradual:1:2",
+      "conjunto": "desenvolvimento",
+      "persona": "mudanca_gradual",
+      "semana": 1,
+      "contexto": {
+        "orcamento": 58,
+        "raio": 8,
+        "preferencias": [
+          "Massas"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 2,
+          "nome": "Cantina Central"
+        },
+        "produto": {
+          "id_produto": 102,
+          "nome": "Penne ao sugo"
+        },
+        "utilidade": 5.0814
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -1.1754,
+        "confianca": 0.531
+      }
+    },
+    {
+      "id": "desenvolvimento:mudanca_gradual:1:3",
+      "conjunto": "desenvolvimento",
+      "persona": "mudanca_gradual",
+      "semana": 1,
+      "contexto": {
+        "orcamento": 58,
+        "raio": 8,
+        "preferencias": [
+          "Massas"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -1.722
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 2,
+          "nome": "Cantina Central"
+        },
+        "produto": {
+          "id_produto": 102,
+          "nome": "Penne ao sugo"
+        },
+        "utilidade": 4.6222,
+        "confianca": 0.305
+      }
+    },
+    {
+      "id": "desenvolvimento:mudanca_gradual:2:2",
+      "conjunto": "desenvolvimento",
+      "persona": "mudanca_gradual",
+      "semana": 2,
+      "contexto": {
+        "orcamento": 58,
+        "raio": 8,
+        "preferencias": [
+          "Massas"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 3,
+          "nome": "Estação Casual"
+        },
+        "produto": {
+          "id_produto": 103,
+          "nome": "Sanduíche artesanal"
+        },
+        "utilidade": -2.3257
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 2,
+          "nome": "Cantina Central"
+        },
+        "produto": {
+          "id_produto": 102,
+          "nome": "Penne ao sugo"
+        },
+        "utilidade": 3.5411,
+        "confianca": 0.352
+      }
+    },
+    {
+      "id": "desenvolvimento:mudanca_gradual:2:3",
+      "conjunto": "desenvolvimento",
+      "persona": "mudanca_gradual",
+      "semana": 2,
+      "contexto": {
+        "orcamento": 58,
+        "raio": 8,
+        "preferencias": [
+          "Massas"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 2,
+          "nome": "Cantina Central"
+        },
+        "produto": {
+          "id_produto": 102,
+          "nome": "Penne ao sugo"
+        },
+        "utilidade": 4.1551
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 5,
+          "nome": "Verde Vivo"
+        },
+        "produto": {
+          "id_produto": 105,
+          "nome": "Bowl verde"
+        },
+        "utilidade": -0.4833,
+        "confianca": 0.072
+      }
+    },
+    {
+      "id": "desenvolvimento:mudanca_gradual:2:4",
+      "conjunto": "desenvolvimento",
+      "persona": "mudanca_gradual",
+      "semana": 2,
+      "contexto": {
+        "orcamento": 58,
+        "raio": 8,
+        "preferencias": [
+          "Massas"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -2.7986
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 2,
+          "nome": "Cantina Central"
+        },
+        "produto": {
+          "id_produto": 102,
+          "nome": "Penne ao sugo"
+        },
+        "utilidade": 3.1061,
+        "confianca": 0.408
+      }
+    },
+    {
+      "id": "desenvolvimento:mudanca_gradual:3:0",
+      "conjunto": "desenvolvimento",
+      "persona": "mudanca_gradual",
+      "semana": 3,
+      "contexto": {
+        "orcamento": 58,
+        "raio": 8,
+        "preferencias": [
+          "Massas",
+          "Asiática"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -3.2311
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 4,
+          "nome": "Oriente Bowl"
+        },
+        "produto": {
+          "id_produto": 104,
+          "nome": "Bowl oriental"
+        },
+        "utilidade": 1.9136,
+        "confianca": 0.162
+      }
+    },
+    {
+      "id": "desenvolvimento:mudanca_gradual:3:1",
+      "conjunto": "desenvolvimento",
+      "persona": "mudanca_gradual",
+      "semana": 3,
+      "contexto": {
+        "orcamento": 58,
+        "raio": 8,
+        "preferencias": [
+          "Massas",
+          "Asiática"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -3.7097
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 2,
+          "nome": "Cantina Central"
+        },
+        "produto": {
+          "id_produto": 102,
+          "nome": "Penne ao sugo"
+        },
+        "utilidade": 2.5573,
+        "confianca": 0.38
+      }
+    },
+    {
+      "id": "desenvolvimento:mudanca_gradual:3:2",
+      "conjunto": "desenvolvimento",
+      "persona": "mudanca_gradual",
+      "semana": 3,
+      "contexto": {
+        "orcamento": 58,
+        "raio": 8,
+        "preferencias": [
+          "Massas",
+          "Asiática"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -4.2236
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 6,
+          "nome": "Horta Urbana"
+        },
+        "produto": {
+          "id_produto": 106,
+          "nome": "Risoto vegetal"
+        },
+        "utilidade": -0.5524,
+        "confianca": 0.117
+      }
+    },
+    {
+      "id": "desenvolvimento:mudanca_gradual:3:3",
+      "conjunto": "desenvolvimento",
+      "persona": "mudanca_gradual",
+      "semana": 3,
+      "contexto": {
+        "orcamento": 58,
+        "raio": 8,
+        "preferencias": [
+          "Massas",
+          "Asiática"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -4.7236
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 2,
+          "nome": "Cantina Central"
+        },
+        "produto": {
+          "id_produto": 102,
+          "nome": "Penne ao sugo"
+        },
+        "utilidade": 2.1418,
+        "confianca": 0.351
+      }
+    },
+    {
+      "id": "desenvolvimento:mudanca_gradual:3:4",
+      "conjunto": "desenvolvimento",
+      "persona": "mudanca_gradual",
+      "semana": 3,
+      "contexto": {
+        "orcamento": 58,
+        "raio": 8,
+        "preferencias": [
+          "Massas",
+          "Asiática"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -5.2611
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 7,
+          "nome": "Mesa Mediterrânea"
+        },
+        "produto": {
+          "id_produto": 107,
+          "nome": "Cuscuz mediterrâneo"
+        },
+        "utilidade": -0.6693,
+        "confianca": 0.09
+      }
+    },
+    {
+      "id": "desenvolvimento:mudanca_gradual:4:0",
+      "conjunto": "desenvolvimento",
+      "persona": "mudanca_gradual",
+      "semana": 4,
+      "contexto": {
+        "orcamento": 58,
+        "raio": 8,
+        "preferencias": [
+          "Massas",
+          "Asiática"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -5.8109
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 2,
+          "nome": "Cantina Central"
+        },
+        "produto": {
+          "id_produto": 102,
+          "nome": "Penne ao sugo"
+        },
+        "utilidade": 1.6622,
+        "confianca": 0.32
+      }
+    },
+    {
+      "id": "desenvolvimento:mudanca_gradual:4:1",
+      "conjunto": "desenvolvimento",
+      "persona": "mudanca_gradual",
+      "semana": 4,
+      "contexto": {
+        "orcamento": 58,
+        "raio": 8,
+        "preferencias": [
+          "Massas",
+          "Asiática"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -6.2302
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 3,
+          "nome": "Estação Casual"
+        },
+        "produto": {
+          "id_produto": 103,
+          "nome": "Sanduíche artesanal"
+        },
+        "utilidade": -2.347,
+        "confianca": 0.451
+      }
+    },
+    {
+      "id": "desenvolvimento:mudanca_gradual:4:2",
+      "conjunto": "desenvolvimento",
+      "persona": "mudanca_gradual",
+      "semana": 4,
+      "contexto": {
+        "orcamento": 58,
+        "raio": 8,
+        "preferencias": [
+          "Massas",
+          "Asiática"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -6.8016
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 2,
+          "nome": "Cantina Central"
+        },
+        "produto": {
+          "id_produto": 102,
+          "nome": "Penne ao sugo"
+        },
+        "utilidade": 1.1131,
+        "confianca": 0.289
+      }
+    },
+    {
+      "id": "desenvolvimento:mudanca_gradual:4:3",
+      "conjunto": "desenvolvimento",
+      "persona": "mudanca_gradual",
+      "semana": 4,
+      "contexto": {
+        "orcamento": 58,
+        "raio": 8,
+        "preferencias": [
+          "Massas",
+          "Asiática"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -7.2585
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 8,
+          "nome": "Sabor do Dia"
+        },
+        "produto": {
+          "id_produto": 108,
+          "nome": "Executivo do dia"
+        },
+        "utilidade": -0.3559,
+        "confianca": 0.199
+      }
+    },
+    {
+      "id": "desenvolvimento:mudanca_gradual:4:4",
+      "conjunto": "desenvolvimento",
+      "persona": "mudanca_gradual",
+      "semana": 4,
+      "contexto": {
+        "orcamento": 58,
+        "raio": 8,
+        "preferencias": [
+          "Massas",
+          "Asiática"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -7.7069
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 2,
+          "nome": "Cantina Central"
+        },
+        "produto": {
+          "id_produto": 102,
+          "nome": "Penne ao sugo"
+        },
+        "utilidade": 0.6017,
+        "confianca": 0.259
+      }
+    },
+    {
+      "id": "desenvolvimento:mudanca_gradual:5:1",
+      "conjunto": "desenvolvimento",
+      "persona": "mudanca_gradual",
+      "semana": 5,
+      "contexto": {
+        "orcamento": 58,
+        "raio": 8,
+        "preferencias": [
+          "Massas",
+          "Asiática"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -8.7471
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 2,
+          "nome": "Cantina Central"
+        },
+        "produto": {
+          "id_produto": 102,
+          "nome": "Penne ao sugo"
+        },
+        "utilidade": 0.1348,
+        "confianca": 0.228
+      }
+    },
+    {
+      "id": "desenvolvimento:mudanca_gradual:5:2",
+      "conjunto": "desenvolvimento",
+      "persona": "mudanca_gradual",
+      "semana": 5,
+      "contexto": {
+        "orcamento": 58,
+        "raio": 8,
+        "preferencias": [
+          "Massas",
+          "Asiática"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -9.1791
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 5,
+          "nome": "Verde Vivo"
+        },
+        "produto": {
+          "id_produto": 105,
+          "nome": "Bowl verde"
+        },
+        "utilidade": -0.9082,
+        "confianca": 0.08
+      }
+    },
+    {
+      "id": "desenvolvimento:mudanca_gradual:5:3",
+      "conjunto": "desenvolvimento",
+      "persona": "mudanca_gradual",
+      "semana": 5,
+      "contexto": {
+        "orcamento": 58,
+        "raio": 8,
+        "preferencias": [
+          "Massas",
+          "Asiática"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -9.8162
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 2,
+          "nome": "Cantina Central"
+        },
+        "produto": {
+          "id_produto": 102,
+          "nome": "Penne ao sugo"
+        },
+        "utilidade": -0.3256,
+        "confianca": 0.198
+      }
+    },
+    {
+      "id": "desenvolvimento:mudanca_gradual:5:4",
+      "conjunto": "desenvolvimento",
+      "persona": "mudanca_gradual",
+      "semana": 5,
+      "contexto": {
+        "orcamento": 58,
+        "raio": 8,
+        "preferencias": [
+          "Massas",
+          "Asiática"
+        ]
+      },
+      "controle": {
+        "restaurante": {
+          "id_restaurante": 1,
+          "nome": "Casa Brasileira"
+        },
+        "produto": {
+          "id_produto": 101,
+          "nome": "PF da casa"
+        },
+        "utilidade": -10.3187
+      },
+      "v2": {
+        "restaurante": {
+          "id_restaurante": 4,
+          "nome": "Oriente Bowl"
+        },
+        "produto": {
+          "id_produto": 104,
+          "nome": "Bowl oriental"
+        },
+        "utilidade": 6.1543,
+        "confianca": 0.113
+      }
+    }
+  ],
+  "violacoes_eliminatorias": 0
+}
