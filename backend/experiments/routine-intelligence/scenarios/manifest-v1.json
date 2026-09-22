@@ -1,0 +1,133 @@
+{
+  "schema_version": 1,
+  "manifest_version": "routine-scenario-snapshots-v1",
+  "generator_version": "routine-scenario-generator-v1",
+  "protocol": "appono-intelligence-prospective-v1",
+  "partitions_version": "routine-partitions-v1",
+  "partitions_sha256": "40f7bc5b657e77ce334cd3fb9d71c856f191f23392e66f3ceab076f20c710ab7",
+  "personas_version": "personas-sinteticas-v1",
+  "personas_sha256": "dea25c57dd68942582dcf9de062fbb93c6208ec9b5245a73aed8a7ceb6290474",
+  "snapshots": {
+    "desenvolvimento_v1": {
+      "path": "backend/experiments/routine-intelligence/scenarios/desenvolvimento-v1.json",
+      "file_sha256": "2bfb0164ad2c886b1ce9f8231568c5ca5158e18a27791943728cc8e1d92cd69c",
+      "scenarios_sha256": "f377be1c9611fc0d1fb07663a134a4e1be4970f7a6a50c6b2cfb81545c3fb975",
+      "scenarios": 300,
+      "personas": 10,
+      "coverage": {
+        "by_persona": {
+          "avesso_repeticao": 30,
+          "contraditorio": 30,
+          "controle_sem_historico": 30,
+          "economico": 30,
+          "explorador": 30,
+          "fiel_prato": 30,
+          "fiel_restaurante": 30,
+          "mudanca_gradual": 30,
+          "preferencia_forte": 30,
+          "sensivel_distancia": 30
+        },
+        "history_levels": {
+          "CONTRADICTORY": 45,
+          "GRADUAL_CHANGE": 45,
+          "LOW": 45,
+          "NONE": 75,
+          "OLD": 45,
+          "SUFFICIENT": 45
+        },
+        "meal_windows": {
+          "ALMOCO": 180,
+          "JANTAR": 120
+        },
+        "categories": [
+          "Asiatica",
+          "Brasileira",
+          "Doces",
+          "Lanches",
+          "Massas",
+          "Mediterranea",
+          "Saudavel",
+          "Vegetariana"
+        ],
+        "eligible_candidates": 1200,
+        "ineligible_candidates": 1200,
+        "ineligibility_reasons": {
+          "FORA_ORCAMENTO": 300,
+          "FORA_RAIO": 300,
+          "RESTAURANTE_FECHADO": 100,
+          "PRODUTO_INDISPONIVEL": 100,
+          "ANTECEDENCIA_INSUFICIENTE": 100,
+          "JANELA_INSUFICIENTE": 150,
+          "SEGURANCA_NAO_VERIFICADA": 150
+        }
+      },
+      "state": "GENERATED"
+    },
+    "validacao_v1": {
+      "path": "backend/experiments/routine-intelligence/scenarios/validacao-v1.json",
+      "file_sha256": "92c91f5d1ebc33cad1ea60d1bc192e3a7e6967f8716b9fbe06a8c4eb0021a0a6",
+      "scenarios_sha256": "0f666561fc093f8adbe074ee630f8047b8f60fad71a3e34763df5a69ee1dadd0",
+      "scenarios": 300,
+      "personas": 10,
+      "coverage": {
+        "by_persona": {
+          "avesso_repeticao": 30,
+          "contraditorio": 30,
+          "controle_sem_historico": 30,
+          "economico": 30,
+          "explorador": 30,
+          "fiel_prato": 30,
+          "fiel_restaurante": 30,
+          "mudanca_gradual": 30,
+          "preferencia_forte": 30,
+          "sensivel_distancia": 30
+        },
+        "history_levels": {
+          "CONTRADICTORY": 45,
+          "GRADUAL_CHANGE": 45,
+          "LOW": 45,
+          "NONE": 75,
+          "OLD": 45,
+          "SUFFICIENT": 45
+        },
+        "meal_windows": {
+          "ALMOCO": 180,
+          "JANTAR": 120
+        },
+        "categories": [
+          "Asiatica",
+          "Brasileira",
+          "Doces",
+          "Lanches",
+          "Massas",
+          "Mediterranea",
+          "Saudavel",
+          "Vegetariana"
+        ],
+        "eligible_candidates": 1200,
+        "ineligible_candidates": 1200,
+        "ineligibility_reasons": {
+          "FORA_ORCAMENTO": 300,
+          "FORA_RAIO": 300,
+          "RESTAURANTE_FECHADO": 100,
+          "PRODUTO_INDISPONIVEL": 100,
+          "ANTECEDENCIA_INSUFICIENTE": 100,
+          "JANELA_INSUFICIENTE": 150,
+          "SEGURANCA_NAO_VERIFICADA": 150
+        }
+      },
+      "state": "GENERATED"
+    }
+  },
+  "historical_reserve": {
+    "state": "OPENED_ONCE_CONTAMINATED",
+    "report_sha256": "47c32c146271830879c545dee7e1cc397972b845329a30434920477630b6a185"
+  },
+  "prospective_reserve": {
+    "partition_id": "reserva_prospectiva_v1",
+    "state": "SEALED_UNMATERIALIZED",
+    "commitment_sha256": "40d76edee52a621e1413ee5cb2f1f1fc7cb19deac9ec163d9229b14d45b38b77",
+    "snapshot_path": null
+  },
+  "model_results_present": false
+}

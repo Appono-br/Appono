@@ -19,6 +19,8 @@
   "simulate:rotina:intelligence": "node scripts/simulate-routine-intelligence.js",
   "evaluate:rotina:intelligence": "node scripts/evaluate-routine-intelligence.js",
   "audit:rotina:partitions": "node scripts/audit-routine-intelligence-partitions.js",
+  "generate:rotina:scenarios": "node scripts/generate-routine-intelligence-scenarios.js",
+  "audit:rotina:scenarios": "node scripts/audit-routine-intelligence-scenarios.js",
   "test:rotina:postgres": "node --test test/integration/routine-postgres.test.js",
   "test:rotina:supabase": "node test/integration/routine-supabase-smoke.js"
 },
