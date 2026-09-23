@@ -583,11 +583,13 @@ module.exports = {
     auditScenarioSnapshots,
     deterministicInteger,
     deterministicNumber,
+    generateScenario,
     forbiddenResultFields,
     generateScenarioSnapshot,
     hierarchicalUnit,
     sequenceHashes,
     serializeScenarioSnapshot,
+    summarizeCoverage,
     validateGeneratorInputs,
     validateScenarioSnapshot,
 };

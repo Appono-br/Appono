@@ -1,0 +1,29 @@
+{
+  "schema_version": "routine-reserve-summary-v1",
+  "protocol_version": "routine-reserve-opening-v1",
+  "partition_id": "reserva_prospectiva_v1",
+  "candidate_version": "appono-intelligence-v2",
+  "candidate_state": "FROZEN",
+  "reserve_accessed": true,
+  "historical_reserve_used": false,
+  "real_customer_data": false,
+  "recalibration_used": false,
+  "public_rollout_percent": 0,
+  "scenarios": 300,
+  "model_executions": 900,
+  "executions_by_model": {
+    "deterministico-v3": 300,
+    "appono-intelligence-v1": 300,
+    "appono-intelligence-v2": 300
+  },
+  "failures_by_model": {
+    "deterministico-v3": 0,
+    "appono-intelligence-v1": 0,
+    "appono-intelligence-v2": 0
+  },
+  "fallbacks": 0,
+  "eliminatory_violations": 0,
+  "raw_report_sha256": "b7c8f05656243dd9658afb58fff99ef95142f20a7a1c54097bc7a8e050608f85",
+  "metrics_sha256": "4beb7eaa4a920d1a142e698abc678f27ceac740b0b47e36e9c57f1532f458bf9",
+  "content_sha256": "d86d81fb92b8ba60cc0f4ba280e9e42900222201511b4b4b98b086283f69ee7a"
+}

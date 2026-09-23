@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "protocol_version": "routine-reserve-opening-v1",
+  "planned_date": "2026-10-07",
+  "execution_date": "2026-09-23",
+  "partition_id": "reserva_prospectiva_v1",
+  "candidate_version": "appono-intelligence-v2",
+  "candidate_state": "FROZEN",
+  "partition_hash": "40f7bc5b657e77ce334cd3fb9d71c856f191f23392e66f3ceab076f20c710ab7",
+  "commitment_sha256": "40d76edee52a621e1413ee5cb2f1f1fc7cb19deac9ec163d9229b14d45b38b77",
+  "snapshot_scenarios_sha256": "e882147070b477763b3e16da94c4686e83deb768d50ce6272b6e0673585b78bc",
+  "raw_report_sha256": "b7c8f05656243dd9658afb58fff99ef95142f20a7a1c54097bc7a8e050608f85",
+  "metrics_sha256": "4beb7eaa4a920d1a142e698abc678f27ceac740b0b47e36e9c57f1532f458bf9",
+  "scenarios": 300,
+  "model_executions": 900,
+  "reserve_accessed": true,
+  "historical_reserve_used": false,
+  "real_customer_data": false,
+  "calibration_used": false,
+  "recalibration_used": false,
+  "public_rollout_percent": 0
+}

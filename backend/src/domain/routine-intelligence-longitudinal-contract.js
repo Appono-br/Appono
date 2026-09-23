@@ -29,15 +29,19 @@ function deepFreeze(value) {
     return value;
 }
 
-function assertAllowedDataset(snapshot) {
+function assertAllowedDataset(snapshot, allowReserveExecution = false) {
     requireCondition(snapshot?.partition && typeof snapshot.partition.id === "string", "DATASET_MISSING");
-    requireCondition(snapshot.partition.type !== "RESERVA" && !/reserva|reserve/i.test(snapshot.partition.id), "RESERVE_IS_SEALED");
-    requireCondition(ALLOWED_DATASETS.has(snapshot.partition.id), "DATASET_NOT_ALLOWED");
+    if (allowReserveExecution) {
+        requireCondition(snapshot.partition.id === "reserva_prospectiva_v1" && snapshot.partition.type === "RESERVA", "RESERVE_DATASET_INVALID");
+    } else {
+        requireCondition(snapshot.partition.type !== "RESERVA" && !/reserva|reserve/i.test(snapshot.partition.id), "RESERVE_IS_SEALED");
+        requireCondition(ALLOWED_DATASETS.has(snapshot.partition.id), "DATASET_NOT_ALLOWED");
+    }
     return snapshot.partition.id;
 }
 
-function orderLongitudinalScenarios(snapshot) {
-    assertAllowedDataset(snapshot);
+function orderLongitudinalScenarios(snapshot, { allowReserveExecution = false } = {}) {
+    assertAllowedDataset(snapshot, allowReserveExecution);
     requireCondition(Array.isArray(snapshot.scenarios), "SCENARIOS_REQUIRED");
     const ordered = [...snapshot.scenarios].sort((first, second) => (
         first.persona_id.localeCompare(second.persona_id)
