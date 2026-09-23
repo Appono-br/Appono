@@ -9,6 +9,7 @@ const paymentConfig = require("../services/pagamentos/config");
 const { geocodificarEnderecoRotina } = require("../services/geolocalizacao");
 const { registrarSinalComportamental } = require("../domain/routine-behavior-signals");
 const { resolverPoliticaInteligenciaRotina } = require("../domain/routine-intelligence-policy");
+const { candidataCongeladaDisponivel } = require("../domain/routine-intelligence-operational");
 
 const rotinaRouter = Router();
 
@@ -683,6 +684,10 @@ rotinaRouter.post("/planejamento/gerar", async (req, res) => {
             idCliente: res.locals.profileId,
             consentimentoAtivo: consentimento?.habilitado === true && Boolean(consentimento.concedido_em),
         });
+        const candidataDisponivel = candidataCongeladaDisponivel();
+        const politicaOperacional = candidataDisponivel
+            ? politicaInteligencia
+            : { ...politicaInteligencia, usarV2: false, motivo: "CANDIDATA_NAO_CONGELADA" };
         const planejamentoGerado = gerarPlanejamentoRotina({
             perfil: dadosPerfil.perfil,
             janelasAlimentacao: dadosPerfil.janelas,
@@ -697,7 +702,8 @@ rotinaRouter.post("/planejamento/gerar", async (req, res) => {
             janelasOcupadas: janelasOcupadas ?? [],
             historicoRecente: historicoRecente ?? [],
             feedbacks: feedbacksParaRanking,
-            politicaInteligencia,
+            politicaInteligencia: politicaOperacional,
+            requestId: `routine:${res.locals.profileId}:${semanaInicio}`,
         });
         await mutarRotina(banco, res, { ...req.body, versao_planejamento: versaoAlvo }, "GERAR", null, planejamentoGerado);
         const respostaPersistida = await buscarPlanejamentoComRefeicoes(banco, res.locals.profileId, { semana_inicio: semanaInicio });

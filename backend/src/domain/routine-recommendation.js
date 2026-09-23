@@ -5,6 +5,7 @@ const { MODELO_INTELIGENCIA_ROTINA, pontuarInteligenciaRotina } = require("./rou
 const { MODELO_INTELIGENCIA_ROTINA_V2, pontuarInteligenciaRotinaV2 } = require("./routine-intelligence-v2");
 const { compararRankingSombra, ordenarPorPontuacao } = require("./routine-shadow-evaluation");
 const { decidirCandidatoInteligencia } = require("./routine-intelligence-policy");
+const { criarDiagnosticoOperacional } = require("./routine-intelligence-operational");
 
 const DIAS_SEMANA = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
 const DIAS_UTEIS_PADRAO = ["monday", "tuesday", "wednesday", "thursday", "friday"];
@@ -450,6 +451,7 @@ function gerarPlanejamentoRotina({
     feedbacks = [],
     janelasAlimentacao = [],
     politicaInteligencia = null,
+    requestId = null,
 }) {
     const modoLegado = !Array.isArray(janelasAlimentacao) || janelasAlimentacao.length === 0;
     const janelas = normalizarJanelasAlimentacao(perfil, janelasAlimentacao);
@@ -537,6 +539,7 @@ function gerarPlanejamentoRotina({
         const candidatoV2 = rankingDesafianteV2[0];
         const decisao = decidirCandidatoInteligencia({ controle: candidatoControle, v2: candidatoV2, politica: politicaInteligencia });
         const candidato = decisao.candidato;
+        const diagnosticoInteligencia = criarDiagnosticoOperacional({ decisao, requestId });
         const avaliacaoSombraV1 = compararRankingSombra(candidatoControle, rankingDesafianteV1[0], {
             controle: MODELO_RECOMENDACAO_ROTINA.versao,
             desafiante: MODELO_INTELIGENCIA_ROTINA.versao,
@@ -649,6 +652,7 @@ function gerarPlanejamentoRotina({
                     confianca: decisao.confianca,
                     amostras: decisao.amostras,
                 },
+                diagnostico_inteligencia: diagnosticoInteligencia,
                 janela: { tipo: item.janela.tipo, nome: item.janela.nome },
             },
         });
@@ -664,6 +668,9 @@ function gerarPlanejamentoRotina({
             gerado_em: new Date(agora).toISOString(),
             modelo: modelosDecisao.size === 1 ? [...modelosDecisao][0] : MODELO_RECOMENDACAO_ROTINA.versao,
             modelos_decisao: [...modelosDecisao],
+            diagnosticos_inteligencia: refeicoes
+                .map((item) => item.metadados?.diagnostico_inteligencia)
+                .filter(Boolean),
             segmento_inteligencia: politicaInteligencia?.segmento ?? "controle",
             experimento_sombra: MODELO_INTELIGENCIA_ROTINA.versao,
             experimentos_sombra: [MODELO_INTELIGENCIA_ROTINA.versao, MODELO_INTELIGENCIA_ROTINA_V2.versao],
