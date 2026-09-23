@@ -36,7 +36,9 @@ O prazo comporta concluir e integrar a IA. Ele nao comporta provar eficacia com 
 - [x] `23/09` - Personas coerentes versionadas, com 30 casos aprovados. Evidencias: [checkpoint de 23/09](appono-intelligence-v2-checkpoint-2026-09-23.md).
 - [x] `24/09` - Conjuntos prospectivos separados, reserva selada e intersecao zero comprovada. Evidencias: [checkpoint de 24/09](appono-intelligence-v2-checkpoint-2026-09-24.md).
 - [x] `25/09` - Gerador deterministico concluido, com 600 cenarios reproduziveis e intersecao zero. Evidencias: [checkpoint de 25/09](appono-intelligence-v2-checkpoint-2026-09-25.md).
-- [ ] `28/09` - Executar simulacao longitudinal de seis semanas sobre os snapshots congelados.
+- [x] `26/09` - Reserva tecnica aprovada com validadores endurecidos, CLI documentada e hashes dos snapshots preservados. Evidencias: [checkpoint de 26/09](appono-intelligence-v2-checkpoint-2026-09-26.md).
+- [x] `27/09` - Prontidao longitudinal aprovada, com entradas comuns, estados isolados e ensaio seco sem modelos. Evidencias: [checkpoint de 27/09](appono-intelligence-v2-checkpoint-2026-09-27.md).
+- [x] `28/09` - Simulacao longitudinal prospectiva concluida: 600 cenarios e 1.800 execucoes de modelo, sem falha ou violacao eliminatoria. Evidencias: [checkpoint de 28/09](appono-intelligence-v2-checkpoint-2026-09-28.md).
 
 Os demais marcos permanecem abertos. A existencia antecipada de alguns artefatos nao equivale a conclusao das respectivas datas.
 

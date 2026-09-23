@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "manifest_version": "routine-longitudinal-reports-manifest-v1",
+  "executor_version": "routine-longitudinal-simulation-v1",
+  "report_schema_version": "routine-longitudinal-raw-report-v1",
+  "model_versions": [
+    "deterministico-v3",
+    "appono-intelligence-v1",
+    "appono-intelligence-v2"
+  ],
+  "synthetic_offline_only": true,
+  "reserve_accessed": false,
+  "reports": {
+    "desenvolvimento_v1": {
+      "path": "backend/reports/routine-intelligence/prospective/desenvolvimento-v1.json",
+      "file_sha256": "b8033dc6d5b15e40e4ad2acc15897c65c451828953f1112b105a06f382718467",
+      "content_sha256": "e71c128fa04d567182497d621c32c9eb22fd8783f9e3560300662d6926f02b57",
+      "scenarios": 300,
+      "model_executions": 900
+    },
+    "validacao_v1": {
+      "path": "backend/reports/routine-intelligence/prospective/validacao-v1.json",
+      "file_sha256": "1abfe85103adc84baf76735380eeb6eb7443b99519608c49e7dedc133669ecee",
+      "content_sha256": "3a6cdb5121f28a337a9448e14382de91a6b0506933be5dd126002edd1328c7fc",
+      "scenarios": 300,
+      "model_executions": 900
+    }
+  }
+}

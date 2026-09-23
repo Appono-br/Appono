@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "protocol_version": "appono-intelligence-longitudinal-prospective-v1",
+  "executor_version": "routine-longitudinal-simulation-v1",
+  "created_at": "2026-09-28T00:00:00-03:00",
+  "purpose": "Executar controle, V1 e V2 sobre snapshots prospectivos congelados, sem calibracao ou acesso a reserva.",
+  "contract": {
+    "version": "routine-longitudinal-contract-v1",
+    "source_sha256": "f4194266319ad080648b7bb82e4a03b57ee0edbae0833837c6ecc1a4a4d18e1a"
+  },
+  "models": [
+    {
+      "version": "deterministico-v3",
+      "source_sha256": "0e276cd125b533dd5df381cdb95732804e3002ae31eb34efbdffe51694e31a18"
+    },
+    {
+      "version": "appono-intelligence-v1",
+      "source_sha256": "41dfae64aaae0b53ec81cc70bdd74ae0807f6b83a30348ff0f663dbfcea0831b"
+    },
+    {
+      "version": "appono-intelligence-v2",
+      "source_sha256": "f21157716c2c1c396dfc45bf89e66744c693bb98414906b893d7d82038335bc4"
+    }
+  ],
+  "external_utility": {
+    "version": "persona-utility-v1",
+    "source_sha256": "1a8619d2d2a4e3ab4594a9b77e49989975047ff041abc7f4dd4df12d14e2652d"
+  },
+  "personas": {
+    "version": "personas-sinteticas-v1",
+    "canonical_sha256": "dea25c57dd68942582dcf9de062fbb93c6208ec9b5245a73aed8a7ceb6290474"
+  },
+  "partitions": {
+    "version": "routine-partitions-v1",
+    "canonical_sha256": "40f7bc5b657e77ce334cd3fb9d71c856f191f23392e66f3ceab076f20c710ab7"
+  },
+  "snapshots": {
+    "desenvolvimento_v1": {
+      "file_sha256": "2bfb0164ad2c886b1ce9f8231568c5ca5158e18a27791943728cc8e1d92cd69c",
+      "scenarios": 300
+    },
+    "validacao_v1": {
+      "file_sha256": "92c91f5d1ebc33cad1ea60d1bc192e3a7e6967f8716b9fbe06a8c4eb0021a0a6",
+      "scenarios": 300
+    }
+  },
+  "execution": {
+    "weeks_per_persona": 6,
+    "decisions_per_week": 5,
+    "model_executions_per_dataset": 900,
+    "order": [
+      "persona_id",
+      "virtual_week",
+      "virtual_day",
+      "scenario_index"
+    ],
+    "signal_delay": "STRICTLY_BEFORE_NEXT_SCENARIO",
+    "state_scope": "dataset+persona+model_version",
+    "candidate_policy": "SAME_ELIGIBLE_CANDIDATES",
+    "challenger_failure_policy": "RECORD_NATIVE_FAILURE_AND_CONTROL_FALLBACK_WITHOUT_CREDIT",
+    "control_failure_policy": "INVALIDATE_SCENARIO_WITHOUT_FABRICATED_CHOICE"
+  },
+  "report": {
+    "schema_version": "routine-longitudinal-raw-report-v1",
+    "canonical": true,
+    "contains_pii": false,
+    "contains_final_winner": false
+  },
+  "authorized_commands": [
+    "SIMULATE_DEVELOPMENT",
+    "CHECK_DEVELOPMENT",
+    "SIMULATE_VALIDATION",
+    "CHECK_VALIDATION"
+  ],
+  "reserve": {
+    "historical_state": "OPENED_ONCE_CONTAMINATED",
+    "prospective_state": "SEALED_UNMATERIALIZED",
+    "access_allowed": false
+  },
+  "synthetic_offline_only": true,
+  "calibration_allowed": false
+}

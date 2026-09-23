@@ -25,6 +25,14 @@ const destinations = Object.freeze({
     desenvolvimento_v1: "desenvolvimento-v1.json",
     validacao_v1: "validacao-v1.json",
 });
+const USAGE = [
+    "Uso:",
+    "  node scripts/generate-routine-intelligence-scenarios.js --dataset=<desenvolvimento_v1|validacao_v1> [--check]",
+    "",
+    "Opcoes:",
+    "  --check  valida o snapshot versionado sem escrever arquivos",
+    "  --help   mostra esta ajuda sem gerar ou alterar artefatos",
+].join("\n");
 
 function argument(name) {
     const prefix = `--${name}=`;
@@ -115,6 +123,10 @@ function safeSummary(snapshot, file, checked) {
 }
 
 function run() {
+    if (process.argv.includes("--help") || process.argv.includes("-h")) {
+        process.stdout.write(`${USAGE}\n`);
+        return;
+    }
     const dataset = argument("dataset");
     if (!dataset) throw new Error("SCENARIO_DATASET_REQUIRED");
     if (dataset === "reserva_prospectiva_v1" || /reserva|reserve/i.test(dataset)) {
@@ -153,6 +165,7 @@ function run() {
 if (require.main === module) run();
 
 module.exports = {
+    USAGE,
     buildManifest,
     destinations,
     run,

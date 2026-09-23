@@ -26,6 +26,7 @@ const {
 } = require("../src/domain/routine-intelligence-scenario-generator");
 const { canonicalHash } = require("../src/domain/routine-intelligence-partitions");
 const {
+    USAGE,
     buildManifest,
     sha256Buffer,
     verifySnapshotContent,
@@ -238,6 +239,26 @@ test("snapshot validation rejects sensitive and model-result fields", () => {
     assert.throws(() => validateScenarioSnapshot(modelResult, { partitionsArtifact: partitions, personasArtifact: personas }), /model result fields/);
 });
 
+test("snapshot validation rejects unknown fields, numeric coercion and duplicated candidates", () => {
+    const unknown = clone(development);
+    unknown.scenarios[0].unexpected = true;
+    unknown.scenarios[0].input_snapshot_sha256 = canonicalHash(Object.fromEntries(Object.entries(unknown.scenarios[0]).filter(([key]) => key !== "input_snapshot_sha256")));
+    unknown.scenarios_sha256 = canonicalHash(unknown.scenarios);
+    assert.throws(() => validateScenarioSnapshot(unknown, { partitionsArtifact: partitions, personasArtifact: personas }), /unknown field unexpected/);
+
+    const coerced = clone(development);
+    coerced.scenarios[0].catalog[0].price = null;
+    coerced.scenarios[0].input_snapshot_sha256 = canonicalHash(Object.fromEntries(Object.entries(coerced.scenarios[0]).filter(([key]) => key !== "input_snapshot_sha256")));
+    coerced.scenarios_sha256 = canonicalHash(coerced.scenarios);
+    assert.throws(() => validateScenarioSnapshot(coerced, { partitionsArtifact: partitions, personasArtifact: personas }), /invalid numeric candidate field/);
+
+    const duplicated = clone(development);
+    duplicated.scenarios[0].catalog.push(clone(duplicated.scenarios[0].catalog[0]));
+    duplicated.scenarios[0].input_snapshot_sha256 = canonicalHash(Object.fromEntries(Object.entries(duplicated.scenarios[0]).filter(([key]) => key !== "input_snapshot_sha256")));
+    duplicated.scenarios_sha256 = canonicalHash(duplicated.scenarios);
+    assert.throws(() => validateScenarioSnapshot(duplicated, { partitionsArtifact: partitions, personasArtifact: personas }), /duplicated catalog candidate/);
+});
+
 test("mutations alter hashes and copied scenarios are detected as overlap", () => {
     const changed = clone(development.scenarios[0]);
     const originalHash = canonicalHash(changed);
@@ -291,6 +312,18 @@ test("CLI rejects reserve before materialization", () => {
     assert.notEqual(result.status, 0);
     assert.match(`${result.stdout}${result.stderr}`, /PROSPECTIVE_RESERVE_IS_SEALED/);
     assert.equal(fs.existsSync(path.join(root, "experiments/routine-intelligence/scenarios/reserva-prospectiva-v1.json")), false);
+});
+
+test("CLI help is safe and does not require a dataset", () => {
+    const result = childProcess.spawnSync(process.execPath, [
+        "scripts/generate-routine-intelligence-scenarios.js",
+        "--help",
+    ], { cwd: root, encoding: "utf8" });
+    assert.equal(result.status, 0);
+    assert.match(result.stdout, /Uso:/);
+    assert.match(result.stdout, /--check/);
+    assert.equal(result.stderr, "");
+    assert.match(USAGE, /desenvolvimento_v1\|validacao_v1/);
 });
 
 test("generator has no model dependency, real clock or ambient randomness", () => {

@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Backend API com Node.js, Express e JavaScript",
   "main": "src/server.js",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
   "dev": "nodemon --watch src --watch scripts --exec node scripts/start.js",
   "build": "node --check src/server.js",
@@ -21,6 +24,8 @@
   "audit:rotina:partitions": "node scripts/audit-routine-intelligence-partitions.js",
   "generate:rotina:scenarios": "node scripts/generate-routine-intelligence-scenarios.js",
   "audit:rotina:scenarios": "node scripts/audit-routine-intelligence-scenarios.js",
+  "prepare:rotina:longitudinal": "node scripts/prepare-routine-intelligence-longitudinal.js",
+  "simulate:rotina:longitudinal": "node scripts/simulate-routine-intelligence-longitudinal.js",
   "test:rotina:postgres": "node --test test/integration/routine-postgres.test.js",
   "test:rotina:supabase": "node test/integration/routine-supabase-smoke.js"
 },

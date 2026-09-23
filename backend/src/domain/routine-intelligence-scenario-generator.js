@@ -25,13 +25,49 @@ const INELIGIBILITY_REASONS = Object.freeze([
     "JANELA_INSUFICIENTE",
     "SEGURANCA_NAO_VERIFICADA",
 ]);
+const SNAPSHOT_KEYS = new Set([
+    "schema_version", "generator_version", "protocol", "partitions_version", "partitions_sha256",
+    "personas_version", "personas_sha256", "partition", "total_personas", "total_scenarios",
+    "scenarios_sha256", "coverage", "scenarios",
+]);
+const SNAPSHOT_PARTITION_KEYS = new Set(["id", "type", "namespace", "seed", "period", "timezone", "weeks"]);
+const SCENARIO_KEYS = new Set([
+    "scenario_id", "semantic_key_sha256", "partition_id", "persona_version", "persona_id",
+    "virtual_week", "virtual_day", "scenario_index", "instant_utc", "timezone", "meal_window",
+    "history_level", "profile", "history", "catalog_variant", "availability_variant", "catalog",
+    "eligible_candidate_ids", "ineligible_candidates", "input_snapshot_sha256",
+]);
+const PROFILE_KEYS = new Set(["budget", "radius_km", "explicit_preferences", "synthetic_consent"]);
+const HISTORY_KEYS = new Set(["history_instance_id", "level", "recent_choices", "signals"]);
+const RECENT_CHOICE_KEYS = new Set(["restaurant_id", "product_id", "category", "occurred_at"]);
+const SIGNAL_KEYS = new Set([
+    "signal_id", "idempotency_key", "event_type", "occurred_at", "category", "restaurant_id",
+    "product_id", "value", "consent_valid", "active", "synthetic_offline",
+]);
+const CANDIDATE_KEYS = new Set([
+    "candidate_id", "restaurant_id", "product_id", "category", "price", "distance_km", "rating",
+    "operational_score", "restaurant_open", "product_available", "advance_satisfied",
+    "window_sufficient", "food_safety_verified", "catalog_variant", "ineligibility_reasons",
+]);
+const INELIGIBLE_CANDIDATE_KEYS = new Set(["candidate_id", "reasons"]);
 
 function requireCondition(condition, message) {
     if (!condition) throw new Error(`SCENARIO_GENERATOR_INVALID: ${message}`);
 }
 
 function finite(value) {
-    return Number.isFinite(Number(value));
+    return typeof value === "number" && Number.isFinite(value);
+}
+
+function requireExactKeys(value, expected, path) {
+    requireCondition(value && typeof value === "object" && !Array.isArray(value), `${path}: object is required`);
+    for (const key of Object.keys(value)) requireCondition(expected.has(key), `${path}: unknown field ${key}`);
+    for (const key of expected) requireCondition(Object.hasOwn(value, key), `${path}: missing field ${key}`);
+}
+
+function hasIntersection(first, second) {
+    for (const value of first) if (second.has(value)) return true;
+    return false;
 }
 
 function forbiddenResultFields(value, path = "$") {
@@ -410,8 +446,10 @@ function generateScenarioSnapshot({ partitionsArtifact, partition, personasArtif
 }
 
 function validateScenarioSnapshot(snapshot, { partitionsArtifact, personasArtifact } = {}) {
+    requireExactKeys(snapshot, SNAPSHOT_KEYS, "snapshot");
     requireCondition(snapshot?.schema_version === SNAPSHOT_SCHEMA_VERSION, "snapshot schema is invalid");
     requireCondition(snapshot.generator_version === GENERATOR_VERSION, "snapshot generator version is invalid");
+    requireExactKeys(snapshot.partition, SNAPSHOT_PARTITION_KEYS, "snapshot.partition");
     requireCondition(snapshot.partitions_sha256 === canonicalHash(partitionsArtifact), "snapshot partitions hash differs");
     requireCondition(snapshot.personas_sha256 === personaHash(personasArtifact), "snapshot personas hash differs");
     requireCondition(Array.isArray(snapshot.scenarios) && snapshot.scenarios.length === snapshot.total_scenarios, "snapshot scenario count differs");
@@ -421,17 +459,54 @@ function validateScenarioSnapshot(snapshot, { partitionsArtifact, personasArtifa
     const ids = new Set();
     const idempotencyKeys = new Set();
     for (const scenario of snapshot.scenarios) {
+        requireExactKeys(scenario, SCENARIO_KEYS, `scenario ${scenario?.scenario_id ?? "unknown"}`);
         requireCondition(!ids.has(scenario.scenario_id), `duplicated scenario ${scenario.scenario_id}`);
         ids.add(scenario.scenario_id);
         requireCondition(Date.parse(scenario.instant_utc) >= Date.parse(snapshot.partition.period.start), `${scenario.scenario_id}: instant before period`);
         requireCondition(Date.parse(scenario.instant_utc) <= Date.parse(snapshot.partition.period.end), `${scenario.scenario_id}: instant after period`);
         requireCondition(scenario.input_snapshot_sha256 === canonicalHash(Object.fromEntries(Object.entries(scenario).filter(([key]) => key !== "input_snapshot_sha256"))), `${scenario.scenario_id}: input hash differs`);
+        requireExactKeys(scenario.profile, PROFILE_KEYS, `${scenario.scenario_id}.profile`);
+        requireCondition(finite(scenario.profile.budget) && finite(scenario.profile.radius_km), `${scenario.scenario_id}: invalid numeric profile field`);
+        requireCondition(Array.isArray(scenario.profile.explicit_preferences), `${scenario.scenario_id}: explicit preferences must be an array`);
+        requireCondition(typeof scenario.profile.synthetic_consent === "boolean", `${scenario.scenario_id}: synthetic consent must be boolean`);
+        requireExactKeys(scenario.history, HISTORY_KEYS, `${scenario.scenario_id}.history`);
+        requireCondition(Array.isArray(scenario.history.recent_choices) && Array.isArray(scenario.history.signals), `${scenario.scenario_id}: history lists are invalid`);
+        for (const choice of scenario.history.recent_choices) {
+            requireExactKeys(choice, RECENT_CHOICE_KEYS, `${scenario.scenario_id}.history.recent_choice`);
+            requireCondition(Number.isFinite(Date.parse(choice.occurred_at)), `${scenario.scenario_id}: invalid recent choice instant`);
+        }
         requireCondition(scenario.eligible_candidate_ids.length >= 2, `${scenario.scenario_id}: insufficient eligible candidates`);
+        requireCondition(new Set(scenario.eligible_candidate_ids).size === scenario.eligible_candidate_ids.length, `${scenario.scenario_id}: duplicated eligible candidate`);
         const eligible = new Set(scenario.eligible_candidate_ids);
         const ineligible = new Set(scenario.ineligible_candidates.map((item) => item.candidate_id));
-        requireCondition(eligible.intersection(ineligible).size === 0, `${scenario.scenario_id}: candidate appears in both eligibility lists`);
-        requireCondition(scenario.catalog.every((candidate) => finite(candidate.price) && finite(candidate.distance_km)), `${scenario.scenario_id}: invalid numeric candidate field`);
+        requireCondition(ineligible.size === scenario.ineligible_candidates.length, `${scenario.scenario_id}: duplicated ineligible candidate`);
+        requireCondition(!hasIntersection(eligible, ineligible), `${scenario.scenario_id}: candidate appears in both eligibility lists`);
+        const catalogIds = new Set();
+        for (const candidate of scenario.catalog) {
+            requireExactKeys(candidate, CANDIDATE_KEYS, `${scenario.scenario_id}.catalog`);
+            requireCondition(!catalogIds.has(candidate.candidate_id), `${scenario.scenario_id}: duplicated catalog candidate`);
+            catalogIds.add(candidate.candidate_id);
+            requireCondition(
+                [candidate.price, candidate.distance_km, candidate.rating, candidate.operational_score, candidate.catalog_variant].every(finite),
+                `${scenario.scenario_id}: invalid numeric candidate field`,
+            );
+            requireCondition(Array.isArray(candidate.ineligibility_reasons), `${scenario.scenario_id}: invalid ineligibility reasons`);
+            requireCondition(candidate.ineligibility_reasons.every((reason) => INELIGIBILITY_REASONS.includes(reason)), `${scenario.scenario_id}: unknown ineligibility reason`);
+            requireCondition(eligible.has(candidate.candidate_id) === (candidate.ineligibility_reasons.length === 0), `${scenario.scenario_id}: eligibility differs from catalog`);
+        }
+        requireCondition(catalogIds.size === eligible.size + ineligible.size, `${scenario.scenario_id}: eligibility lists do not cover catalog`);
+        requireCondition([...eligible, ...ineligible].every((candidateId) => catalogIds.has(candidateId)), `${scenario.scenario_id}: eligibility references unknown candidate`);
+        for (const item of scenario.ineligible_candidates) {
+            requireExactKeys(item, INELIGIBLE_CANDIDATE_KEYS, `${scenario.scenario_id}.ineligible_candidate`);
+            requireCondition(Array.isArray(item.reasons) && item.reasons.length > 0, `${scenario.scenario_id}: ineligible candidate has no reason`);
+            const candidate = scenario.catalog.find((entry) => entry.candidate_id === item.candidate_id);
+            requireCondition(candidate && canonicalSerialize(candidate.ineligibility_reasons) === canonicalSerialize(item.reasons), `${scenario.scenario_id}: ineligibility reasons differ from catalog`);
+        }
         for (const signal of scenario.history.signals) {
+            requireExactKeys(signal, SIGNAL_KEYS, `${scenario.scenario_id}.history.signal`);
+            requireCondition(finite(signal.value), `${scenario.scenario_id}: invalid signal value`);
+            requireCondition(typeof signal.consent_valid === "boolean" && typeof signal.active === "boolean" && signal.synthetic_offline === true, `${scenario.scenario_id}: invalid signal flags`);
+            requireCondition(Number.isFinite(Date.parse(signal.occurred_at)), `${scenario.scenario_id}: invalid signal instant`);
             requireCondition(Date.parse(signal.occurred_at) < Date.parse(scenario.instant_utc), `${scenario.scenario_id}: future signal`);
             requireCondition(!idempotencyKeys.has(signal.idempotency_key), `${scenario.scenario_id}: duplicated idempotency key`);
             idempotencyKeys.add(signal.idempotency_key);

@@ -4,16 +4,6 @@
 
 # Appono
 
-## Appono Intelligence V2
-
-A V2 esta integrada ao planejamento real e permanece com rollout publico igual a zero. Em desenvolvimento e homologacao, contas consentidas de uma allowlist podem usar a decisao da IA; falha, baixa confianca, ausencia de historico ou kill switch retornam automaticamente ao `deterministico-v3`.
-
-Em `/cliente/configuracoes`, o cliente pode ativar ou revogar o uso de novas interacoes na personalizacao. O consentimento vem desativado por padrao e nao apaga reservas, pedidos ou registros financeiros. O painel privado `/admin/rotina-intelligence` mostra metricas e estado operacional sem expor sinais ou identidades.
-
-Os comandos `simulate:rotina:intelligence` e `evaluate:rotina:intelligence` executam a avaliacao longitudinal reproduzivel. O estado e as limitacoes estao em [docs/appono-intelligence-v2-relatorio-pre-piloto.md](docs/appono-intelligence-v2-relatorio-pre-piloto.md).
-
-A migration `20260921204635_routine_behavioral_consent_and_signals.sql` cria consentimento versionado, historico auditavel e sinais privados idempotentes. Aplique-a antes de publicar backend e frontend. O painel agregado fica em `/admin/rotina-intelligence`; a coleta DEMO usa `npm.cmd run collect:rotina:behavior --workspace backend` com `APPONO_REMOTE_SMOKE=confirmado`.
-
 **Reservas de mesas, pedidos antecipados e operação de restaurantes em uma plataforma.**
 
 [![Next.js 16](https://img.shields.io/badge/Next.js-16-000000)](frontend/package.json)
@@ -29,6 +19,7 @@ O projeto está em desenvolvimento, com módulos implementados e integrações q
 
 - [Funcionalidades e estado atual](#funcionalidades-e-estado-atual)
 - [Appono Rotina](#appono-rotina)
+- [Appono Intelligence](#appono-intelligence)
 - [Interface](#interface)
 - [Tecnologias e arquitetura](#tecnologias-e-arquitetura)
 - [Estrutura do repositório](#estrutura-do-repositório)
@@ -63,7 +54,17 @@ O cliente informa restrições e preferências alimentares, endereço e janelas 
 
 Cada planejamento fica persistido por semana. Ao entrar no módulo, a aplicação prioriza a semana que contém a data atual e, quando ela ainda não existe, a próxima semana planejada. O cliente pode consultar no máximo a semana imediatamente anterior; períodos mais antigos permanecem preservados no banco, mas não ficam expostos no módulo. Geração e regeneração retroativas são bloqueadas no frontend, na API e no domínio.
 
-O recomendador próprio `appono-intelligence-v1` funciona no backend e complementa o modelo determinístico. Ele calcula adequação contínua ao orçamento e ao raio configurados e, mediante consentimento, aprende afinidades de categoria, faixa de preço, distância e janela alimentar a partir de experiências concluídas. Restrições, alergias, agenda, funcionamento, orçamento e disponibilidade continuam sendo filtros obrigatórios; a inteligência apenas ordena opções já consideradas seguras. Cada sugestão registra versão, confiança, quantidade de amostras e contribuições utilizadas, sem depender de um provedor externo de IA.
+### Appono Intelligence
+
+O planejamento usa o `deterministico-v3` como modelo oficial. A `appono-intelligence-v1` permanece congelada como referência histórica, enquanto a `appono-intelligence-v2` está integrada ao fluxo real para avaliação controlada. Restrições, alergias, agenda, funcionamento, orçamento e disponibilidade continuam sendo filtros obrigatórios; a inteligência apenas ordena opções já consideradas elegíveis e seguras, sem depender de um provedor externo de IA.
+
+A V2 permanece com rollout público igual a zero. Em desenvolvimento e homologação, contas consentidas de uma allowlist podem usar sua decisão; falha, baixa confiança, ausência de histórico ou kill switch retornam automaticamente ao `deterministico-v3`.
+
+Em `/cliente/configuracoes`, o cliente pode ativar ou revogar o uso de novas interações na personalização. O consentimento vem desativado por padrão e não apaga reservas, pedidos ou registros financeiros. O painel privado `/admin/rotina-intelligence` mostra métricas e estado operacional sem expor sinais ou identidades.
+
+Os comandos `simulate:rotina:intelligence` e `evaluate:rotina:intelligence` executam a avaliação longitudinal reproduzível. O estado e as limitações estão em [docs/appono-intelligence-v2-relatorio-pre-piloto.md](docs/appono-intelligence-v2-relatorio-pre-piloto.md).
+
+A migration `20260921204635_routine_behavioral_consent_and_signals.sql` cria consentimento versionado, histórico auditável e sinais privados idempotentes. Aplique-a antes de publicar backend e frontend. A coleta DEMO usa `npm.cmd run collect:rotina:behavior --workspace backend` com `APPONO_REMOTE_SMOKE=confirmado`.
 
 Para avaliação em desenvolvimento ou homologação, o projeto inclui um [seed sintético do Appono Rotina](docs/appono-rotina-populacao-avaliacao.md) com restaurantes, cardápios, segurança alimentar e clientes fictícios. A execução exige confirmação explícita, é bloqueada quando `NODE_ENV=production` e possui limpeza restrita aos usuários de demonstração.
 
