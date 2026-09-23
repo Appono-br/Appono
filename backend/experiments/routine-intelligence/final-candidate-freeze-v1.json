@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "freeze_manifest_version": "routine-final-candidate-freeze-v1",
+  "state": "PREPARED_FOR_FREEZE",
+  "candidate": {
+    "model_version": "appono-intelligence-v2",
+    "control_version": "deterministico-v3",
+    "reference_version": "appono-intelligence-v1",
+    "utility_version": "persona-utility-v1"
+  },
+  "source_hashes": {
+    "routine_scoring_sha256": "0e276cd125b533dd5df381cdb95732804e3002ae31eb34efbdffe51694e31a18",
+    "control_sha256": "41dfae64aaae0b53ec81cc70bdd74ae0807f6b83a30348ff0f663dbfcea0831b",
+    "challenger_sha256": "f21157716c2c1c396dfc45bf89e66744c693bb98414906b893d7d82038335bc4",
+    "policy_sha256": "a8523294dd8487bcbbcf47e0713a51230cb4565ca1131341b2682daace61dd69",
+    "longitudinal_contract_sha256": "f4194266319ad080648b7bb82e4a03b57ee0edbae0833837c6ecc1a4a4d18e1a",
+    "guardrails_sha256": "f205b05666b8607f69f2fe1136dc777d70791d16ca8c9377377c1c02038f9eeb",
+    "decision_protocol_sha256": "61327ee5be8ce8ce81b8cb29bd8456fe44749bf2e5f05bfe5b21175c57244a6a",
+    "decision_report_sha256": "b667219faede2f1ca271459c32e993f24e4adb812ac1df46642076d0c2488748",
+    "snapshot_development_sha256": "2bfb0164ad2c886b1ce9f8231568c5ca5158e18a27791943728cc8e1d92cd69",
+    "snapshot_validation_sha256": "92c91f5d1ebc33cad1ea60d1bc192e3a7e6967f8716b9fbe06a8c4eb0021a0a6",
+    "raw_development_sha256": "b8033dc6d5b15e40e4ad2acc15897c65c451828953f1112b105a06f382718467",
+    "raw_validation_sha256": "1abfe85103adc84baf76735380eeb6eb7443b99519608c49e7dedc133669ecee",
+    "metrics_development_sha256": "d99a2c72b647f92913a766e8e425942fd7142fa50661e28c41bd57030a4969f9",
+    "metrics_validation_sha256": "3adc252c2299e7d75b8aa3054adb2627aa311c7de74d932318307621b5de8c5e",
+    "comparison_sha256": "8741b09dc047d68215cf3b0a849c3c4736155f0ba96adc554ed2dfd3d16d1c09",
+    "blind_package_sha256": "c869b431b92c3bfb952b7a741a32fd11f3bc0ff844e19cdea33eff464ea751c7",
+    "blind_key_sha256": "235f63dfa5f94d7ccc20d33a070fcb522fffdf2b3acb941ec46d9bfbc0727891"
+  },
+  "operational_contract": {
+    "eligible_candidates_before_personalization": true,
+    "low_confidence_threshold": 0.25,
+    "low_confidence_fallback": "deterministico-v3",
+    "consent_required": true,
+    "revocation_removes_future_effect": true,
+    "idempotency_required": true,
+    "unknown_fields_fail_closed": true,
+    "model_failure_isolated": true,
+    "explanation_allowlist_only": true,
+    "synthetic_offline_only": true
+  },
+  "rollout": {
+    "public_percent": 0,
+    "internal_allowlist": false,
+    "kill_switch_available": true
+  },
+  "reserve": {
+    "historical_state": "OPENED_ONCE_CONTAMINATED",
+    "prospective_state": "SEALED_UNMATERIALIZED",
+    "accessed": false
+  },
+  "required_freeze_checks": [
+    "hashes_match_manifest",
+    "formulas_unchanged",
+    "guardrails_pass",
+    "no_human_response_fabricated",
+    "no_reserve_access",
+    "no_public_rollout",
+    "full_suite_passes",
+    "backend_build_passes",
+    "frontend_lint_passes",
+    "frontend_build_passes",
+    "diff_check_passes"
+  ],
+  "formula_changes_allowed": false,
+  "reserve_access_allowed": false,
+  "public_rollout_allowed": false,
+  "pii_present": false
+}

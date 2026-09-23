@@ -1,0 +1,159 @@
+{
+  "schema_version": 1,
+  "decision_protocol_version": "routine-technical-decision-v1",
+  "registered_at": "2026-10-02T12:00:00-03:00",
+  "timezone": "America/Sao_Paulo",
+  "purpose": "Decidir de forma reproduzivel entre manter a V2 sem ajuste ou aceitar hipoteses gerais para investigacao de V2.1.",
+  "state": "REGISTERED_BEFORE_HUMAN_AGGREGATION",
+  "synthetic_offline_only": true,
+  "contains_pii": false,
+  "reserve_access_allowed": false,
+  "formula_changes_allowed": false,
+  "public_rollout_percent": 0,
+  "source_artifacts": {
+    "blind_review_protocol_file_sha256": "b5aba66abde0be97f2719a8d4431301db868de6dda28bce419d9adfe1770a23f",
+    "blind_review_protocol_canonical_sha256": "6f2753bb307712ae86203085d7e1fb71bee69eb456535e8affd420a1aabfb6ae",
+    "blind_package_file_sha256": "c869b431b92c3bfb952b7a741a32fd11f3bc0ff844e19cdea33eff464ea751c7",
+    "blind_package_content_sha256": "15783281156afc526a2a5c5dbf8361ceba510bf93db7d73384fd30bbbd26b668",
+    "blind_key_file_sha256": "235f63dfa5f94d7ccc20d33a070fcb522fffdf2b3acb941ec46d9bfbc0727891",
+    "blind_key_commitment_sha256": "1313c2dee80fc64028f430bb1c60df17316757e776c9c7d0670c68770e4c325a",
+    "guardrails_report_file_sha256": "886b66c25338563917af3434583d3a8104d9edd3f5c507e7c856a6df4467a5ab",
+    "guardrails_report_canonical_sha256": "27480414de60dbd0e9c4b009ee1b715f4c8497738a97a95b653a1b9b57e06121",
+    "comparison_file_sha256": "8741b09dc047d68215cf3b0a849c3c4736155f0ba96adc554ed2dfd3d16d1c09",
+    "comparison_content_sha256": "26bdeba2d2cc4ca42d2f4c4ce3fbf2fa9d4dc646182d85d5200c17270bdecf2a",
+    "development_metrics_file_sha256": "d99a2c72b647f92913a766e8e425942fd7142fa50661e28c41bd57030a4969f9",
+    "development_metrics_content_sha256": "44cbbde4fafc9414f90d46487c1daf91e12d66ebb7ecca1814425be6cb4197e3",
+    "validation_metrics_file_sha256": "3adc252c2299e7d75b8aa3054adb2627aa311c7de74d932318307621b5de8c5e",
+    "validation_metrics_content_sha256": "27592b75a9f4888af8ec1f43fe5cb98117e530de79292ebc2857f7a83d8c35fa",
+    "control_source_sha256": "0e276cd125b533dd5df381cdb95732804e3002ae31eb34efbdffe51694e31a18",
+    "v1_source_sha256": "41dfae64aaae0b53ec81cc70bdd74ae0807f6b83a30348ff0f663dbfcea0831b",
+    "v2_source_sha256": "f21157716c2c1c396dfc45bf89e66744c693bb98414906b893d7d82038335bc4"
+  },
+  "evidence_order": [
+    "VERIFY_FROZEN_HASHES",
+    "DETERMINE_HUMAN_REVIEW_STATE",
+    "FREEZE_COMPLETE_HUMAN_SUBMISSION",
+    "VERIFY_KEY_COMMITMENT",
+    "BUILD_AUTOMATED_EVIDENCE",
+    "AGGREGATE_HUMAN_EVIDENCE_WHEN_VALID",
+    "EVALUATE_HYPOTHESES",
+    "ISSUE_DECISION"
+  ],
+  "human_review_policy": {
+    "submission_relative_path": "reports/routine-intelligence/prospective/blind-review-v1/responses-submitted.json",
+    "missing_state": "REVISAO_HUMANA_PENDENTE",
+    "incomplete_state": "REVISAO_HUMANA_INCOMPLETA",
+    "complete_state": "REVISAO_HUMANA_CONGELADA",
+    "required_case_count": 24,
+    "single_reviewer_is_consensus": false,
+    "absence_blocks_conservative_decision": false,
+    "absence_can_support_new_hypothesis": false,
+    "human_evidence_is_auxiliary": true,
+    "key_may_be_aggregated_only_after_frozen_complete_submission": true
+  },
+  "hypothesis_acceptance_requirements": [
+    "GENERAL_MECHANISM",
+    "REPRODUCIBLE_VALIDATION_EVIDENCE",
+    "INDEPENDENT_GENERAL_FIXTURE",
+    "PREEXISTING_GUARDRAIL_OR_CRITERION",
+    "ELIMINATORY_FILTERS_PRESERVED",
+    "CONSENT_PRIVACY_IDEMPOTENCY_AND_CAUSALITY_PRESERVED",
+    "NO_HISTORY_NEUTRALITY_PRESERVED",
+    "NO_RESERVE_DEPENDENCY",
+    "NO_CASE_REMOVAL",
+    "OBJECTIVE_ABANDONMENT_CRITERION",
+    "NOT_SCORE_TUNING"
+  ],
+  "candidate_hypotheses": [
+    {
+      "id": "confidence_is_not_quality_calibration",
+      "problem": "Confianca interna elevada pode coexistir com arrependimento alto.",
+      "source_classifications": ["CONFIANCA_INSUFICIENTE", "HIPOTESE_PARA_V2_1"],
+      "required_acceptance_criterion": "minimum_internal_confidence",
+      "fixture_reference": "routine-intelligence-v2.test.js",
+      "mechanism_confirmed_by_frozen_evidence": false,
+      "uses_reserve": false,
+      "removes_cases": false,
+      "score_tuning": false,
+      "changes_eliminatory_filters": false,
+      "weakens_signal_safety": false,
+      "preserves_no_history_neutrality": true,
+      "has_objective_abandonment_criterion": true
+    },
+    {
+      "id": "explicit_preference_requires_broader_precedence",
+      "problem": "Personalizacao pode escolher categoria nao preferida em divergencias com preferencia explicita.",
+      "source_classifications": ["PREFERENCIA_EXPLICITA_PERDIDA"],
+      "required_acceptance_criterion": "explicit_preference_regression_margin",
+      "fixture_reference": "routine-intelligence-guardrails.test.js",
+      "mechanism_confirmed_by_frozen_evidence": false,
+      "uses_reserve": false,
+      "removes_cases": false,
+      "score_tuning": false,
+      "changes_eliminatory_filters": false,
+      "weakens_signal_safety": false,
+      "preserves_no_history_neutrality": true,
+      "has_objective_abandonment_criterion": true
+    },
+    {
+      "id": "distance_tradeoff_requires_recalibration",
+      "problem": "Ajuste comportamental pode superar diferencas de distancia em cenarios sinteticos.",
+      "source_classifications": ["DISTANCIA_MAL_PRIORIZADA"],
+      "required_acceptance_criterion": "maximum_persona_regret_regression",
+      "fixture_reference": "routine-intelligence-personas.test.js",
+      "mechanism_confirmed_by_frozen_evidence": false,
+      "uses_reserve": false,
+      "removes_cases": false,
+      "score_tuning": false,
+      "changes_eliminatory_filters": false,
+      "weakens_signal_safety": false,
+      "preserves_no_history_neutrality": true,
+      "has_objective_abandonment_criterion": true
+    },
+    {
+      "id": "gradual_change_transition_requires_new_formula",
+      "problem": "A transicao temporal pode reagir de forma inadequada a sinais recentes ou contraditorios.",
+      "source_classifications": ["CONTRADICAO_MAL_COMPENSADA", "HIPOTESE_PARA_V2_1"],
+      "required_acceptance_criterion": "v2_regret_not_worse_than_v1",
+      "fixture_reference": "routine-intelligence-personas.test.js",
+      "mechanism_confirmed_by_frozen_evidence": false,
+      "uses_reserve": false,
+      "removes_cases": false,
+      "score_tuning": false,
+      "changes_eliminatory_filters": false,
+      "weakens_signal_safety": false,
+      "preserves_no_history_neutrality": true,
+      "has_objective_abandonment_criterion": true
+    }
+  ],
+  "allowed_hypothesis_statuses": [
+    "ACCEPTED_FOR_INVESTIGATION",
+    "REJECTED",
+    "INSUFFICIENT_EVIDENCE",
+    "DEFERRED_HUMAN_REVIEW"
+  ],
+  "allowed_substantive_decisions": [
+    "MANTER_V2_SEM_AJUSTE",
+    "HIPOTESES_V2_1_ACEITAS"
+  ],
+  "allowed_milestone_decisions": [
+    "DECISAO_TECNICA_CONCLUIDA_MANTER_V2",
+    "DECISAO_TECNICA_CONCLUIDA_HIPOTESES_V2_1",
+    "DECISAO_TECNICA_CONCLUIDA_COM_REVISAO_PENDENTE",
+    "DECISAO_TECNICA_BLOQUEADA"
+  ],
+  "decision_policy": {
+    "no_accepted_hypothesis": "MANTER_V2_SEM_AJUSTE",
+    "one_or_more_accepted_hypotheses": "HIPOTESES_V2_1_ACEITAS",
+    "pending_human_review_with_no_accepted_hypothesis": "DECISAO_TECNICA_CONCLUIDA_COM_REVISAO_PENDENTE",
+    "integrity_failure": "DECISAO_TECNICA_BLOQUEADA"
+  },
+  "prohibited_actions": [
+    "FILL_HUMAN_RESPONSES",
+    "CHANGE_MODEL_FORMULA",
+    "IMPLEMENT_V2_1",
+    "RERUN_MODELS_FOR_QUALITY",
+    "ACCESS_RESERVE",
+    "ENABLE_PUBLIC_ROLLOUT"
+  ]
+}

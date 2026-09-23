@@ -29,6 +29,7 @@
   "evaluate:rotina:longitudinal": "node scripts/evaluate-routine-intelligence-longitudinal.js",
   "audit:rotina:guardrails": "node scripts/audit-routine-intelligence-guardrails.js",
   "generate:rotina:blind-review": "node scripts/generate-routine-intelligence-blind-review.js",
+  "decide:rotina:intelligence": "node scripts/decide-routine-intelligence.js",
   "test:rotina:postgres": "node --test test/integration/routine-postgres.test.js",
   "test:rotina:supabase": "node test/integration/routine-supabase-smoke.js"
 },
