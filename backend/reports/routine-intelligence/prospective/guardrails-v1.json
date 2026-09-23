@@ -1,0 +1,2452 @@
+{
+  "schema_version": "routine-intelligence-guardrail-audit-v1",
+  "guardrails_version": "routine-intelligence-guardrails-v1",
+  "guardrails_sha256": "185705b2e9dc74296db23cea68b14bd1c7f2415288b718058b19bba33e8ae38c",
+  "synthetic_offline_only": true,
+  "reserve_accessed": false,
+  "datasets": [
+    {
+      "dataset_id": "desenvolvimento_v1",
+      "executions": 900,
+      "eliminatory_violations": 0,
+      "no_history_v2_neutral": true,
+      "reserve_accessed": false
+    },
+    {
+      "dataset_id": "validacao_v1",
+      "executions": 900,
+      "eliminatory_violations": 0,
+      "no_history_v2_neutral": true,
+      "reserve_accessed": false
+    }
+  ],
+  "matrix": [
+    {
+      "guardrail_id": "eligible_candidates_only",
+      "severity": "BLOCKER",
+      "status": "PASS",
+      "checked_cases": 1800
+    },
+    {
+      "guardrail_id": "no_history_neutral",
+      "severity": "BLOCKER",
+      "status": "PASS",
+      "checked_cases": 60
+    },
+    {
+      "guardrail_id": "active_consent_required",
+      "severity": "BLOCKER",
+      "status": "COVERED_BY_CONTRACT_TEST",
+      "checked_cases": 0
+    },
+    {
+      "guardrail_id": "low_confidence_fallback",
+      "severity": "HIGH",
+      "status": "COVERED_BY_CONTRACT_TEST",
+      "checked_cases": 0
+    },
+    {
+      "guardrail_id": "explicit_preference_precedence",
+      "severity": "HIGH",
+      "status": "COVERED_BY_CONTRACT_TEST",
+      "checked_cases": 0
+    },
+    {
+      "guardrail_id": "contradiction_reduces_confidence",
+      "severity": "HIGH",
+      "status": "COVERED_BY_CONTRACT_TEST",
+      "checked_cases": 0
+    },
+    {
+      "guardrail_id": "temporal_causality",
+      "severity": "BLOCKER",
+      "status": "PASS",
+      "checked_cases": 1800
+    },
+    {
+      "guardrail_id": "bounded_repetition_and_diversity",
+      "severity": "MEDIUM",
+      "status": "COVERED_BY_CONTRACT_TEST",
+      "checked_cases": 0
+    },
+    {
+      "guardrail_id": "safe_technical_explanation",
+      "severity": "BLOCKER",
+      "status": "COVERED_BY_CONTRACT_TEST",
+      "checked_cases": 0
+    },
+    {
+      "guardrail_id": "public_rollout_zero",
+      "severity": "BLOCKER",
+      "status": "COVERED_BY_CONTRACT_TEST",
+      "checked_cases": 0
+    }
+  ],
+  "regression_summary": {
+    "total_classified": 53,
+    "by_classification": {
+      "PREFERENCIA_EXPLICITA_PERDIDA": 11,
+      "INFERENCIA_FRACA_SUPERESTIMADA": 0,
+      "CONFIANCA_INSUFICIENTE": 24,
+      "CONTRADICAO_MAL_COMPENSADA": 1,
+      "REPETICAO_EXCESSIVA": 0,
+      "PENALIDADE_DE_REPETICAO_EXCESSIVA": 0,
+      "MUDANCA_GRADUAL_LENTA": 0,
+      "MUDANCA_GRADUAL_ABRUPTA": 0,
+      "DISTANCIA_MAL_PRIORIZADA": 8,
+      "PRECO_MAL_PRIORIZADO": 2,
+      "FAVORITO_IGNORADO": 0,
+      "DIVERSIDADE_INSUFICIENTE": 0,
+      "EMPATE_TECNICO": 0,
+      "SEM_VIOLACAO_DE_GUARDRAIL": 0,
+      "DEFEITO_DE_FIXTURE": 0,
+      "DEFEITO_DE_AVALIADOR": 0,
+      "HIPOTESE_PARA_V2_1": 7
+    }
+  },
+  "regressions": [
+    {
+      "dataset_id": "validacao_v1",
+      "scenario_id": "0441ed9024f421e3708a4d8e977e5cedd9dc8befb1090b1565fa9ecf33c04061",
+      "persona_id": "fiel_restaurante",
+      "virtual_week": 5,
+      "scenario_index": 25,
+      "comparator_version": "appono-intelligence-v1",
+      "v2_choice_candidate_id": "syn-candidate-validacao_v1-fiel_restaurante-25-3",
+      "comparator_choice_candidate_id": "syn-candidate-validacao_v1-fiel_restaurante-25-1",
+      "v2_regret": 30.254157,
+      "comparator_regret": 0,
+      "regret_delta": 30.254157,
+      "v2_confidence": 0.104,
+      "relevant_alternatives": [
+        {
+          "candidate_id": "syn-candidate-validacao_v1-fiel_restaurante-25-3",
+          "category": "Doces",
+          "price": 32.93,
+          "distance_km": 1.72
+        },
+        {
+          "candidate_id": "syn-candidate-validacao_v1-fiel_restaurante-25-1",
+          "category": "Massas",
+          "price": 30.74,
+          "distance_km": 0.5
+        }
+      ],
+      "explicit_preferences": [
+        "Massas"
+      ],
+      "evidence": {
+        "explicit_preference_lost": true,
+        "v2_farther": true,
+        "v2_more_expensive": true,
+        "opposing_signals": false,
+        "favorite_lost": false
+      },
+      "classification": "CONFIANCA_INSUFICIENTE"
+    },
+    {
+      "dataset_id": "desenvolvimento_v1",
+      "scenario_id": "1f082f8da0730ac55be3a085c0c89dd5959009c126bddbd3dc210cbf7124fe2d",
+      "persona_id": "fiel_restaurante",
+      "virtual_week": 5,
+      "scenario_index": 27,
+      "comparator_version": "appono-intelligence-v1",
+      "v2_choice_candidate_id": "syn-candidate-desenvolvimento_v1-fiel_restaurante-27-3",
+      "comparator_choice_candidate_id": "syn-candidate-desenvolvimento_v1-fiel_restaurante-27-0",
+      "v2_regret": 29.590772,
+      "comparator_regret": 0,
+      "regret_delta": 29.590772,
+      "v2_confidence": 0.247,
+      "relevant_alternatives": [
+        {
+          "candidate_id": "syn-candidate-desenvolvimento_v1-fiel_restaurante-27-3",
+          "category": "Doces",
+          "price": 27.97,
+          "distance_km": 0.36
+        },
+        {
+          "candidate_id": "syn-candidate-desenvolvimento_v1-fiel_restaurante-27-0",
+          "category": "Massas",
+          "price": 29.04,
+          "distance_km": 1.12
+        }
+      ],
+      "explicit_preferences": [
+        "Massas"
+      ],
+      "evidence": {
+        "explicit_preference_lost": true,
+        "v2_farther": false,
+        "v2_more_expensive": false,
+        "opposing_signals": true,
+        "favorite_lost": false
+      },
+      "classification": "CONFIANCA_INSUFICIENTE"
+    },
+    {
+      "dataset_id": "desenvolvimento_v1",
+      "scenario_id": "287c7d6ba28423a92076c1e13289c08e467ed332158ff6228e1bec46d4b8681e",
+      "persona_id": "fiel_restaurante",
+      "virtual_week": 3,
+      "scenario_index": 19,
+      "comparator_version": "appono-intelligence-v1",
+      "v2_choice_candidate_id": "syn-candidate-desenvolvimento_v1-fiel_restaurante-19-3",
+      "comparator_choice_candidate_id": "syn-candidate-desenvolvimento_v1-fiel_restaurante-19-0",
+      "v2_regret": 25.147625,
+      "comparator_regret": 0,
+      "regret_delta": 25.147625,
+      "v2_confidence": 0.205,
+      "relevant_alternatives": [
+        {
+          "candidate_id": "syn-candidate-desenvolvimento_v1-fiel_restaurante-19-3",
+          "category": "Doces",
+          "price": 28.15,
+          "distance_km": 2.93
+        },
+        {
+          "candidate_id": "syn-candidate-desenvolvimento_v1-fiel_restaurante-19-0",
+          "category": "Massas",
+          "price": 26.73,
+          "distance_km": 0.25
+        }
+      ],
+      "explicit_preferences": [
+        "Massas"
+      ],
+      "evidence": {
+        "explicit_preference_lost": true,
+        "v2_farther": true,
+        "v2_more_expensive": true,
+        "opposing_signals": false,
+        "favorite_lost": false
+      },
+      "classification": "CONFIANCA_INSUFICIENTE"
+    },
+    {
+      "dataset_id": "validacao_v1",
+      "scenario_id": "3c8723de078170dc86b4ec2be572452ce5ad90a2640ce1aec075073be037439c",
+      "persona_id": "fiel_restaurante",
+      "virtual_week": 5,
+      "scenario_index": 29,
+      "comparator_version": "appono-intelligence-v1",
+      "v2_choice_candidate_id": "syn-candidate-validacao_v1-fiel_restaurante-29-3",
+      "comparator_choice_candidate_id": "syn-candidate-validacao_v1-fiel_restaurante-29-1",
+      "v2_regret": 23.664314,
+      "comparator_regret": 0,
+      "regret_delta": 23.664314,
+      "v2_confidence": 0.146,
+      "relevant_alternatives": [
+        {
+          "candidate_id": "syn-candidate-validacao_v1-fiel_restaurante-29-3",
+          "category": "Asiatica",
+          "price": 24.85,
+          "distance_km": 2.66
+        },
+        {
+          "candidate_id": "syn-candidate-validacao_v1-fiel_restaurante-29-1",
+          "category": "Massas",
+          "price": 31.73,
+          "distance_km": 0.51
+        }
+      ],
+      "explicit_preferences": [
+        "Massas"
+      ],
+      "evidence": {
+        "explicit_preference_lost": true,
+        "v2_farther": true,
+        "v2_more_expensive": false,
+        "opposing_signals": true,
+        "favorite_lost": false
+      },
+      "classification": "CONFIANCA_INSUFICIENTE"
+    },
+    {
+      "dataset_id": "validacao_v1",
+      "scenario_id": "2c96f07a8043d6d46141815b03e036409c2cdbc93ebb538aa1761c61661eb654",
+      "persona_id": "fiel_prato",
+      "virtual_week": 4,
+      "scenario_index": 24,
+      "comparator_version": "appono-intelligence-v1",
+      "v2_choice_candidate_id": "syn-candidate-validacao_v1-fiel_prato-24-3",
+      "comparator_choice_candidate_id": "syn-candidate-validacao_v1-fiel_prato-24-1",
+      "v2_regret": 20.919715,
+      "comparator_regret": 0,
+      "regret_delta": 20.919715,
+      "v2_confidence": 0.055,
+      "relevant_alternatives": [
+        {
+          "candidate_id": "syn-candidate-validacao_v1-fiel_prato-24-3",
+          "category": "Mediterranea",
+          "price": 23.14,
+          "distance_km": 0.53
+        },
+        {
+          "candidate_id": "syn-candidate-validacao_v1-fiel_prato-24-1",
+          "category": "Saudavel",
+          "price": 27.98,
+          "distance_km": 0.33
+        }
+      ],
+      "explicit_preferences": [
+        "Saudavel"
+      ],
+      "evidence": {
+        "explicit_preference_lost": true,
+        "v2_farther": true,
+        "v2_more_expensive": false,
+        "opposing_signals": false,
+        "favorite_lost": false
+      },
+      "classification": "CONFIANCA_INSUFICIENTE"
+    },
+    {
+      "dataset_id": "desenvolvimento_v1",
+      "scenario_id": "8d6b1a4ab473c69868af2125743b1da5f415ed547288c32236f4d4c3ea78121b",
+      "persona_id": "contraditorio",
+      "virtual_week": 5,
+      "scenario_index": 27,
+      "comparator_version": "appono-intelligence-v1",
+      "v2_choice_candidate_id": "syn-candidate-desenvolvimento_v1-contraditorio-27-3",
+      "comparator_choice_candidate_id": "syn-candidate-desenvolvimento_v1-contraditorio-27-2",
+      "v2_regret": 22.540379,
+      "comparator_regret": 2.143811,
+      "regret_delta": 20.396568,
+      "v2_confidence": 0.279,
+      "relevant_alternatives": [
+        {
+          "candidate_id": "syn-candidate-desenvolvimento_v1-contraditorio-27-3",
+          "category": "Doces",
+          "price": 28.36,
+          "distance_km": 0.88
+        },
+        {
+          "candidate_id": "syn-candidate-desenvolvimento_v1-contraditorio-27-2",
+          "category": "Saudavel",
+          "price": 30.46,
+          "distance_km": 1.95
+        }
+      ],
+      "explicit_preferences": [
+        "Lanches",
+        "Saudavel"
+      ],
+      "evidence": {
+        "explicit_preference_lost": true,
+        "v2_farther": false,
+        "v2_more_expensive": false,
+        "opposing_signals": true,
+        "favorite_lost": false
+      },
+      "classification": "PREFERENCIA_EXPLICITA_PERDIDA"
+    },
+    {
+      "dataset_id": "desenvolvimento_v1",
+      "scenario_id": "4b0a6385205e99804b276215551fc076813685e3a08af033965730735782150a",
+      "persona_id": "fiel_prato",
+      "virtual_week": 4,
+      "scenario_index": 23,
+      "comparator_version": "appono-intelligence-v1",
+      "v2_choice_candidate_id": "syn-candidate-desenvolvimento_v1-fiel_prato-23-3",
+      "comparator_choice_candidate_id": "syn-candidate-desenvolvimento_v1-fiel_prato-23-0",
+      "v2_regret": 19.372791,
+      "comparator_regret": 0.236133,
+      "regret_delta": 19.136658,
+      "v2_confidence": 0.251,
+      "relevant_alternatives": [
+        {
+          "candidate_id": "syn-candidate-desenvolvimento_v1-fiel_prato-23-3",
+          "category": "Asiatica",
+          "price": 33.3,
+          "distance_km": 3.63
+        },
+        {
+          "candidate_id": "syn-candidate-desenvolvimento_v1-fiel_prato-23-0",
+          "category": "Saudavel",
+          "price": 33.12,
+          "distance_km": 3.07
+        }
+      ],
+      "explicit_preferences": [
+        "Saudavel"
+      ],
+      "evidence": {
+        "explicit_preference_lost": true,
+        "v2_farther": true,
+        "v2_more_expensive": true,
+        "opposing_signals": true,
+        "favorite_lost": false
+      },
+      "classification": "PREFERENCIA_EXPLICITA_PERDIDA"
+    },
+    {
+      "dataset_id": "validacao_v1",
+      "scenario_id": "eb2201036c7ccc7aef9ab9b944600ed3dc1261ad5096d2916c43e45449070221",
+      "persona_id": "fiel_restaurante",
+      "virtual_week": 3,
+      "scenario_index": 19,
+      "comparator_version": "appono-intelligence-v1",
+      "v2_choice_candidate_id": "syn-candidate-validacao_v1-fiel_restaurante-19-3",
+      "comparator_choice_candidate_id": "syn-candidate-validacao_v1-fiel_restaurante-19-0",
+      "v2_regret": 18.383018,
+      "comparator_regret": 0,
+      "regret_delta": 18.383018,
+      "v2_confidence": 0.117,
+      "relevant_alternatives": [
+        {
+          "candidate_id": "syn-candidate-validacao_v1-fiel_restaurante-19-3",
+          "category": "Lanches",
+          "price": 31.2,
+          "distance_km": 3.17
+        },
+        {
+          "candidate_id": "syn-candidate-validacao_v1-fiel_restaurante-19-0",
+          "category": "Massas",
+          "price": 29.34,
+          "distance_km": 3.58
+        }
+      ],
+      "explicit_preferences": [
+        "Massas"
+      ],
+      "evidence": {
+        "explicit_preference_lost": true,
+        "v2_farther": false,
+        "v2_more_expensive": true,
+        "opposing_signals": false,
+        "favorite_lost": false
+      },
+      "classification": "CONFIANCA_INSUFICIENTE"
+    },
+    {
+      "dataset_id": "validacao_v1",
+      "scenario_id": "6e4df7d7442ed7ebb7e9f30f8249a3b0067c46b8ddc96cd510f32dea1da6a3a7",
+      "persona_id": "preferencia_forte",
+      "virtual_week": 4,
+      "scenario_index": 24,
+      "comparator_version": "appono-intelligence-v1",
+      "v2_choice_candidate_id": "syn-candidate-validacao_v1-preferencia_forte-24-2",
+      "comparator_choice_candidate_id": "syn-candidate-validacao_v1-preferencia_forte-24-1",
+      "v2_regret": 17.2711,
+      "comparator_regret": 0,
+      "regret_delta": 17.2711,
+      "v2_confidence": 0.1,
+      "relevant_alternatives": [
+        {
+          "candidate_id": "syn-candidate-validacao_v1-preferencia_forte-24-2",
+          "category": "Asiatica",
+          "price": 33.99,
+          "distance_km": 0.38
+        },
+        {
+          "candidate_id": "syn-candidate-validacao_v1-preferencia_forte-24-1",
+          "category": "Vegetariana",
+          "price": 37.09,
+          "distance_km": 0.83
+        }
+      ],
+      "explicit_preferences": [
+        "Vegetariana"
+      ],
+      "evidence": {
+        "explicit_preference_lost": true,
+        "v2_farther": false,
+        "v2_more_expensive": false,
+        "opposing_signals": false,
+        "favorite_lost": false
+      },
+      "classification": "CONFIANCA_INSUFICIENTE"
+    },
+    {
+      "dataset_id": "desenvolvimento_v1",
+      "scenario_id": "0faa1e430cd045dea81906fd4ac58f269ddad18f1cd69568dd906a8f0714d985",
+      "persona_id": "fiel_prato",
+      "virtual_week": 3,
+      "scenario_index": 19,
+      "comparator_version": "appono-intelligence-v1",
+      "v2_choice_candidate_id": "syn-candidate-desenvolvimento_v1-fiel_prato-19-3",
+      "comparator_choice_candidate_id": "syn-candidate-desenvolvimento_v1-fiel_prato-19-1",
+      "v2_regret": 17.18939,
+      "comparator_regret": 0,
+      "regret_delta": 17.18939,
+      "v2_confidence": 0.138,
+      "relevant_alternatives": [
+        {
+          "candidate_id": "syn-candidate-desenvolvimento_v1-fiel_prato-19-3",
+          "category": "Doces",
+          "price": 33.5,
+          "distance_km": 1.24
+        },
+        {
+          "candidate_id": "syn-candidate-desenvolvimento_v1-fiel_prato-19-1",
+          "category": "Saudavel",
+          "price": 33.42,
+          "distance_km": 1.05
+        }
+      ],
+      "explicit_preferences": [
+        "Saudavel"
+      ],
+      "evidence": {
+        "explicit_preference_lost": true,
+        "v2_farther": true,
+        "v2_more_expensive": true,
+        "opposing_signals": false,
+        "favorite_lost": false
+      },
+      "classification": "CONFIANCA_INSUFICIENTE"
+    },
+    {
+      "dataset_id": "validacao_v1",
+      "scenario_id": "9581414c933f25f592e7622c88b0068b1d759851f94d8396b33142badb265293",
+      "persona_id": "fiel_prato",
+      "virtual_week": 3,
+      "scenario_index": 15,
+      "comparator_version": "appono-intelligence-v1",
+      "v2_choice_candidate_id": "syn-candidate-validacao_v1-fiel_prato-15-2",
+      "comparator_choice_candidate_id": "syn-candidate-validacao_v1-fiel_prato-15-1",
+      "v2_regret": 17.062401,
+      "comparator_regret": 0,
+      "regret_delta": 17.062401,
+      "v2_confidence": 0.126,
+      "relevant_alternatives": [
+        {
+          "candidate_id": "syn-candidate-validacao_v1-fiel_prato-15-2",
+          "category": "Massas",
+          "price": 23.76,
+          "distance_km": 1.41
+        },
+        {
+          "candidate_id": "syn-candidate-validacao_v1-fiel_prato-15-1",
+          "category": "Saudavel",
+          "price": 24.42,
+          "distance_km": 0.31
+        }
+      ],
+      "explicit_preferences": [
+        "Saudavel"
+      ],
+      "evidence": {
+        "explicit_preference_lost": true,
+        "v2_farther": true,
+        "v2_more_expensive": false,
+        "opposing_signals": true,
+        "favorite_lost": false
+      },
+      "classification": "CONFIANCA_INSUFICIENTE"
+    },
+    {
+      "dataset_id": "validacao_v1",
+      "scenario_id": "71ce89d0dfb0e18aef156591e2605de6ce03f6f17860a2af352ee8c56548dea5",
+      "persona_id": "preferencia_forte",
+      "virtual_week": 5,
+      "scenario_index": 25,
+      "comparator_version": "appono-intelligence-v1",
+      "v2_choice_candidate_id": "syn-candidate-validacao_v1-preferencia_forte-25-3",
+      "comparator_choice_candidate_id": "syn-candidate-validacao_v1-preferencia_forte-25-0",
+      "v2_regret": 16.720404,
+      "comparator_regret": 0.160084,
+      "regret_delta": 16.56032,
+      "v2_confidence": 0.08,
+      "relevant_alternatives": [
+        {
+          "candidate_id": "syn-candidate-validacao_v1-preferencia_forte-25-3",
+          "category": "Doces",
+          "price": 29.83,
+          "distance_km": 1.57
+        },
+        {
+          "candidate_id": "syn-candidate-validacao_v1-preferencia_forte-25-0",
+          "category": "Vegetariana",
+          "price": 35.59,
+          "distance_km": 0.42
+        }
+      ],
+      "explicit_preferences": [
+        "Vegetariana"
+      ],
+      "evidence": {
+        "explicit_preference_lost": true,
+        "v2_farther": true,
+        "v2_more_expensive": false,
+        "opposing_signals": false,
+        "favorite_lost": false
+      },
+      "classification": "CONFIANCA_INSUFICIENTE"
+    },
+    {
+      "dataset_id": "desenvolvimento_v1",
+      "scenario_id": "cf9849d9de5d0751ff3d40b3f91a4c674a09a09c149cc68a6a0774a3b9cc6975",
+      "persona_id": "fiel_prato",
+      "virtual_week": 4,
+      "scenario_index": 22,
+      "comparator_version": "appono-intelligence-v1",
+      "v2_choice_candidate_id": "syn-candidate-desenvolvimento_v1-fiel_prato-22-2",
+      "comparator_choice_candidate_id": "syn-candidate-desenvolvimento_v1-fiel_prato-22-1",
+      "v2_regret": 16.687045,
+      "comparator_regret": 0.260006,
+      "regret_delta": 16.427039,
+      "v2_confidence": 0.236,
+      "relevant_alternatives": [
+        {
+          "candidate_id": "syn-candidate-desenvolvimento_v1-fiel_prato-22-2",
+          "category": "Doces",
+          "price": 27.83,
+          "distance_km": 1.84
+        },
+        {
+          "candidate_id": "syn-candidate-desenvolvimento_v1-fiel_prato-22-1",
+          "category": "Saudavel",
+          "price": 32.69,
+          "distance_km": 0.63
+        }
+      ],
+      "explicit_preferences": [
+        "Saudavel"
+      ],
+      "evidence": {
+        "explicit_preference_lost": true,
+        "v2_farther": true,
+        "v2_more_expensive": false,
+        "opposing_signals": true,
+        "favorite_lost": false
+      },
+      "classification": "CONFIANCA_INSUFICIENTE"
+    },
+    {
+      "dataset_id": "validacao_v1",
+      "scenario_id": "c83501bdb6552a70399d4eee813f1bbc1f12e3611baaf3ed6ce02dd8435cdf9a",
+      "persona_id": "economico",
+      "virtual_week": 5,
+      "scenario_index": 29,
+      "comparator_version": "appono-intelligence-v1",
+      "v2_choice_candidate_id": "syn-candidate-validacao_v1-economico-29-3",
+      "comparator_choice_candidate_id": "syn-candidate-validacao_v1-economico-29-1",
+      "v2_regret": 16.276441,
+      "comparator_regret": 0,
+      "regret_delta": 16.276441,
+      "v2_confidence": 0.208,
+      "relevant_alternatives": [
+        {
+          "candidate_id": "syn-candidate-validacao_v1-economico-29-3",
+          "category": "Asiatica",
+          "price": 23.33,
+          "distance_km": 1.88
+        },
+        {
+          "candidate_id": "syn-candidate-validacao_v1-economico-29-1",
+          "category": "Brasileira",
+          "price": 21.33,
+          "distance_km": 1.5
+        }
+      ],
+      "explicit_preferences": [
+        "Brasileira",
+        "Lanches"
+      ],
+      "evidence": {
+        "explicit_preference_lost": true,
+        "v2_farther": true,
+        "v2_more_expensive": true,
+        "opposing_signals": true,
+        "favorite_lost": false
+      },
+      "classification": "CONFIANCA_INSUFICIENTE"
+    },
+    {
+      "dataset_id": "validacao_v1",
+      "scenario_id": "6693a9957378276914e20d264528c43e3e26ee5f453b32d12b0494c3231b78a7",
+      "persona_id": "preferencia_forte",
+      "virtual_week": 2,
+      "scenario_index": 14,
+      "comparator_version": "appono-intelligence-v1",
+      "v2_choice_candidate_id": "syn-candidate-validacao_v1-preferencia_forte-14-3",
+      "comparator_choice_candidate_id": "syn-candidate-validacao_v1-preferencia_forte-14-0",
+      "v2_regret": 15.666756,
+      "comparator_regret": 0,
+      "regret_delta": 15.666756,
+      "v2_confidence": 0.047,
+      "relevant_alternatives": [
+        {
+          "candidate_id": "syn-candidate-validacao_v1-preferencia_forte-14-3",
+          "category": "Saudavel",
+          "price": 43.34,
+          "distance_km": 1.32
+        },
+        {
+          "candidate_id": "syn-candidate-validacao_v1-preferencia_forte-14-0",
+          "category": "Vegetariana",
+          "price": 38.6,
+          "distance_km": 0.92
+        }
+      ],
+      "explicit_preferences": [
+        "Vegetariana"
+      ],
+      "evidence": {
+        "explicit_preference_lost": true,
+        "v2_farther": true,
+        "v2_more_expensive": true,
+        "opposing_signals": true,
+        "favorite_lost": false
+      },
+      "classification": "CONFIANCA_INSUFICIENTE"
+    },
+    {
+      "dataset_id": "desenvolvimento_v1",
+      "scenario_id": "98bfe05c044bc1180a7d54c85f4634eb9002cd176aa93798c96cd6aea518ca2b",
+      "persona_id": "preferencia_forte",
+      "virtual_week": 4,
+      "scenario_index": 24,
+      "comparator_version": "appono-intelligence-v1",
+      "v2_choice_candidate_id": "syn-candidate-desenvolvimento_v1-preferencia_forte-24-2",
+      "comparator_choice_candidate_id": "syn-candidate-desenvolvimento_v1-preferencia_forte-24-1",
+      "v2_regret": 14.789963,
+      "comparator_regret": 0,
+      "regret_delta": 14.789963,
+      "v2_confidence": 0.438,
+      "relevant_alternatives": [
+        {
+          "candidate_id": "syn-candidate-desenvolvimento_v1-preferencia_forte-24-2",
+          "category": "Lanches",
+          "price": 34.93,
+          "distance_km": 0.51
+        },
+        {
+          "candidate_id": "syn-candidate-desenvolvimento_v1-preferencia_forte-24-1",
+          "category": "Vegetariana",
+          "price": 34.22,
+          "distance_km": 0.87
+        }
+      ],
+      "explicit_preferences": [
+        "Vegetariana"
+      ],
+      "evidence": {
+        "explicit_preference_lost": true,
+        "v2_farther": false,
+        "v2_more_expensive": true,
+        "opposing_signals": false,
+        "favorite_lost": false
+      },
+      "classification": "PREFERENCIA_EXPLICITA_PERDIDA"
+    },
+    {
+      "dataset_id": "validacao_v1",
+      "scenario_id": "4d16e969969f863c6b9719f5e9960e8bcfda028fc3d4f351040c0338dd1d60d4",
+      "persona_id": "contraditorio",
+      "virtual_week": 0,
+      "scenario_index": 4,
+      "comparator_version": "appono-intelligence-v1",
+      "v2_choice_candidate_id": "syn-candidate-validacao_v1-contraditorio-04-2",
+      "comparator_choice_candidate_id": "syn-candidate-validacao_v1-contraditorio-04-1",
+      "v2_regret": 15.523546,
+      "comparator_regret": 1.410698,
+      "regret_delta": 14.112848,
+      "v2_confidence": 0.076,
+      "relevant_alternatives": [
+        {
+          "candidate_id": "syn-candidate-validacao_v1-contraditorio-04-2",
+          "category": "Doces",
+          "price": 29.75,
+          "distance_km": 1.38
+        },
+        {
+          "candidate_id": "syn-candidate-validacao_v1-contraditorio-04-1",
+          "category": "Lanches",
+          "price": 28.57,
+          "distance_km": 0.63
+        }
+      ],
+      "explicit_preferences": [
+        "Lanches",
+        "Saudavel"
+      ],
+      "evidence": {
+        "explicit_preference_lost": true,
+        "v2_farther": true,
+        "v2_more_expensive": true,
+        "opposing_signals": false,
+        "favorite_lost": false
+      },
+      "classification": "CONFIANCA_INSUFICIENTE"
+    },
+    {
+      "dataset_id": "desenvolvimento_v1",
+      "scenario_id": "01ca9efa9a5de863b9717110d6ed24d0e64a57d8d1a802566091987e0e164cdd",
+      "persona_id": "sensivel_distancia",
+      "virtual_week": 5,
+      "scenario_index": 29,
+      "comparator_version": "appono-intelligence-v1",
+      "v2_choice_candidate_id": "syn-candidate-desenvolvimento_v1-sensivel_distancia-29-3",
+      "comparator_choice_candidate_id": "syn-candidate-desenvolvimento_v1-sensivel_distancia-29-1",
+      "v2_regret": 13.976138,
+      "comparator_regret": 0,
+      "regret_delta": 13.976138,
+      "v2_confidence": 0.375,
+      "relevant_alternatives": [
+        {
+          "candidate_id": "syn-candidate-desenvolvimento_v1-sensivel_distancia-29-3",
+          "category": "Lanches",
+          "price": 31.38,
+          "distance_km": 1.19
+        },
+        {
+          "candidate_id": "syn-candidate-desenvolvimento_v1-sensivel_distancia-29-1",
+          "category": "Brasileira",
+          "price": 25.43,
+          "distance_km": 0.55
+        }
+      ],
+      "explicit_preferences": [
+        "Brasileira"
+      ],
+      "evidence": {
+        "explicit_preference_lost": true,
+        "v2_farther": true,
+        "v2_more_expensive": true,
+        "opposing_signals": true,
+        "favorite_lost": false
+      },
+      "classification": "PREFERENCIA_EXPLICITA_PERDIDA"
+    },
+    {
+      "dataset_id": "validacao_v1",
+      "scenario_id": "bf975445fb910f26b447cf44ed99d873e7df54e219723b6264b5a742716dec6c",
+      "persona_id": "sensivel_distancia",
+      "virtual_week": 5,
+      "scenario_index": 25,
+      "comparator_version": "appono-intelligence-v1",
+      "v2_choice_candidate_id": "syn-candidate-validacao_v1-sensivel_distancia-25-2",
+      "comparator_choice_candidate_id": "syn-candidate-validacao_v1-sensivel_distancia-25-0",
+      "v2_regret": 12.708949,
+      "comparator_regret": 0,
+      "regret_delta": 12.708949,
+      "v2_confidence": 0.414,
+      "relevant_alternatives": [
+        {
+          "candidate_id": "syn-candidate-validacao_v1-sensivel_distancia-25-2",
+          "category": "Saudavel",
+          "price": 33.68,
+          "distance_km": 0.41
+        },
+        {
+          "candidate_id": "syn-candidate-validacao_v1-sensivel_distancia-25-0",
+          "category": "Brasileira",
+          "price": 36.05,
+          "distance_km": 0.4
+        }
+      ],
+      "explicit_preferences": [
+        "Brasileira"
+      ],
+      "evidence": {
+        "explicit_preference_lost": true,
+        "v2_farther": true,
+        "v2_more_expensive": false,
+        "opposing_signals": false,
+        "favorite_lost": false
+      },
+      "classification": "PREFERENCIA_EXPLICITA_PERDIDA"
+    },
+    {
+      "dataset_id": "validacao_v1",
+      "scenario_id": "0bfde8f052b30463b820ca2906c8e1e5c06ee6c2df7d09f678f19c6aed351feb",
+      "persona_id": "sensivel_distancia",
+      "virtual_week": 5,
+      "scenario_index": 26,
+      "comparator_version": "appono-intelligence-v1",
+      "v2_choice_candidate_id": "syn-candidate-validacao_v1-sensivel_distancia-26-2",
+      "comparator_choice_candidate_id": "syn-candidate-validacao_v1-sensivel_distancia-26-0",
+      "v2_regret": 15.052554,
+      "comparator_regret": 2.352552,
+      "regret_delta": 12.700002,
+      "v2_confidence": 0.374,
+      "relevant_alternatives": [
+        {
+          "candidate_id": "syn-candidate-validacao_v1-sensivel_distancia-26-2",
+          "category": "Vegetariana",
+          "price": 28.69,
+          "distance_km": 0.91
+        },
+        {
+          "candidate_id": "syn-candidate-validacao_v1-sensivel_distancia-26-0",
+          "category": "Brasileira",
+          "price": 25.33,
+          "distance_km": 1.26
+        }
+      ],
+      "explicit_preferences": [
+        "Brasileira"
+      ],
+      "evidence": {
+        "explicit_preference_lost": true,
+        "v2_farther": false,
+        "v2_more_expensive": true,
+        "opposing_signals": true,
+        "favorite_lost": false
+      },
+      "classification": "PREFERENCIA_EXPLICITA_PERDIDA"
+    },
+    {
+      "dataset_id": "desenvolvimento_v1",
+      "scenario_id": "bfbca7316c7c1aac3675971bf75155a52eb1266133c5845bce407868dd0fba18",
+      "persona_id": "sensivel_distancia",
+      "virtual_week": 3,
+      "scenario_index": 15,
+      "comparator_version": "appono-intelligence-v1",
+      "v2_choice_candidate_id": "syn-candidate-desenvolvimento_v1-sensivel_distancia-15-3",
+      "comparator_choice_candidate_id": "syn-candidate-desenvolvimento_v1-sensivel_distancia-15-2",
+      "v2_regret": 11.8345,
+      "comparator_regret": 0,
+      "regret_delta": 11.8345,
+      "v2_confidence": 0.36,
+      "relevant_alternatives": [
+        {
+          "candidate_id": "syn-candidate-desenvolvimento_v1-sensivel_distancia-15-3",
+          "category": "Asiatica",
+          "price": 33.51,
+          "distance_km": 1.05
+        },
+        {
+          "candidate_id": "syn-candidate-desenvolvimento_v1-sensivel_distancia-15-2",
+          "category": "Brasileira",
+          "price": 31.46,
+          "distance_km": 0.36
+        }
+      ],
+      "explicit_preferences": [
+        "Brasileira"
+      ],
+      "evidence": {
+        "explicit_preference_lost": true,
+        "v2_farther": true,
+        "v2_more_expensive": true,
+        "opposing_signals": true,
+        "favorite_lost": false
+      },
+      "classification": "PREFERENCIA_EXPLICITA_PERDIDA"
+    },
+    {
+      "dataset_id": "desenvolvimento_v1",
+      "scenario_id": "116f534d481d49c33a3d9365601b0bd4ad93849939efcf06737e19580e024ecf",
+      "persona_id": "economico",
+      "virtual_week": 5,
+      "scenario_index": 28,
+      "comparator_version": "appono-intelligence-v1",
+      "v2_choice_candidate_id": "syn-candidate-desenvolvimento_v1-economico-28-2",
+      "comparator_choice_candidate_id": "syn-candidate-desenvolvimento_v1-economico-28-1",
+      "v2_regret": 12.637827,
+      "comparator_regret": 0.821988,
+      "regret_delta": 11.815839,
+      "v2_confidence": 0.325,
+      "relevant_alternatives": [
+        {
+          "candidate_id": "syn-candidate-desenvolvimento_v1-economico-28-2",
+          "category": "Vegetariana",
+          "price": 22.59,
+          "distance_km": 0.48
+        },
+        {
+          "candidate_id": "syn-candidate-desenvolvimento_v1-economico-28-1",
+          "category": "Brasileira",
+          "price": 22.13,
+          "distance_km": 1.5
+        }
+      ],
+      "explicit_preferences": [
+        "Brasileira",
+        "Lanches"
+      ],
+      "evidence": {
+        "explicit_preference_lost": true,
+        "v2_farther": false,
+        "v2_more_expensive": true,
+        "opposing_signals": false,
+        "favorite_lost": false
+      },
+      "classification": "PREFERENCIA_EXPLICITA_PERDIDA"
+    },
+    {
+      "dataset_id": "validacao_v1",
+      "scenario_id": "4eae8422ba25371b00568e195524997238a13e8f90758fbfc34e8154f6f8b999",
+      "persona_id": "sensivel_distancia",
+      "virtual_week": 3,
+      "scenario_index": 16,
+      "comparator_version": "deterministico-v3",
+      "v2_choice_candidate_id": "syn-candidate-validacao_v1-sensivel_distancia-16-2",
+      "comparator_choice_candidate_id": "syn-candidate-validacao_v1-sensivel_distancia-16-0",
+      "v2_regret": 12.579535,
+      "comparator_regret": 0.943235,
+      "regret_delta": 11.6363,
+      "v2_confidence": 0.238,
+      "relevant_alternatives": [
+        {
+          "candidate_id": "syn-candidate-validacao_v1-sensivel_distancia-16-2",
+          "category": "Asiatica",
+          "price": 26.45,
+          "distance_km": 1.94
+        },
+        {
+          "candidate_id": "syn-candidate-validacao_v1-sensivel_distancia-16-0",
+          "category": "Brasileira",
+          "price": 27.94,
+          "distance_km": 1.02
+        }
+      ],
+      "explicit_preferences": [
+        "Brasileira"
+      ],
+      "evidence": {
+        "explicit_preference_lost": true,
+        "v2_farther": true,
+        "v2_more_expensive": false,
+        "opposing_signals": true,
+        "favorite_lost": false
+      },
+      "classification": "CONFIANCA_INSUFICIENTE"
+    },
+    {
+      "dataset_id": "validacao_v1",
+      "scenario_id": "4eae8422ba25371b00568e195524997238a13e8f90758fbfc34e8154f6f8b999",
+      "persona_id": "sensivel_distancia",
+      "virtual_week": 3,
+      "scenario_index": 16,
+      "comparator_version": "appono-intelligence-v1",
+      "v2_choice_candidate_id": "syn-candidate-validacao_v1-sensivel_distancia-16-2",
+      "comparator_choice_candidate_id": "syn-candidate-validacao_v1-sensivel_distancia-16-0",
+      "v2_regret": 12.579535,
+      "comparator_regret": 0.943235,
+      "regret_delta": 11.6363,
+      "v2_confidence": 0.238,
+      "relevant_alternatives": [
+        {
+          "candidate_id": "syn-candidate-validacao_v1-sensivel_distancia-16-2",
+          "category": "Asiatica",
+          "price": 26.45,
+          "distance_km": 1.94
+        },
+        {
+          "candidate_id": "syn-candidate-validacao_v1-sensivel_distancia-16-0",
+          "category": "Brasileira",
+          "price": 27.94,
+          "distance_km": 1.02
+        }
+      ],
+      "explicit_preferences": [
+        "Brasileira"
+      ],
+      "evidence": {
+        "explicit_preference_lost": true,
+        "v2_farther": true,
+        "v2_more_expensive": false,
+        "opposing_signals": true,
+        "favorite_lost": false
+      },
+      "classification": "CONFIANCA_INSUFICIENTE"
+    },
+    {
+      "dataset_id": "desenvolvimento_v1",
+      "scenario_id": "f3e8af158eb14fde78017e01c1e24be1e8db641321e3fef83ea8d4f7086f7d55",
+      "persona_id": "sensivel_distancia",
+      "virtual_week": 2,
+      "scenario_index": 14,
+      "comparator_version": "appono-intelligence-v1",
+      "v2_choice_candidate_id": "syn-candidate-desenvolvimento_v1-sensivel_distancia-14-3",
+      "comparator_choice_candidate_id": "syn-candidate-desenvolvimento_v1-sensivel_distancia-14-1",
+      "v2_regret": 11.322991,
+      "comparator_regret": 0,
+      "regret_delta": 11.322991,
+      "v2_confidence": 0.188,
+      "relevant_alternatives": [
+        {
+          "candidate_id": "syn-candidate-desenvolvimento_v1-sensivel_distancia-14-3",
+          "category": "Massas",
+          "price": 26.65,
+          "distance_km": 1.25
+        },
+        {
+          "candidate_id": "syn-candidate-desenvolvimento_v1-sensivel_distancia-14-1",
+          "category": "Brasileira",
+          "price": 33.03,
+          "distance_km": 0.47
+        }
+      ],
+      "explicit_preferences": [
+        "Brasileira"
+      ],
+      "evidence": {
+        "explicit_preference_lost": true,
+        "v2_farther": true,
+        "v2_more_expensive": false,
+        "opposing_signals": true,
+        "favorite_lost": false
+      },
+      "classification": "CONFIANCA_INSUFICIENTE"
+    },
+    {
+      "dataset_id": "desenvolvimento_v1",
+      "scenario_id": "b9455ff2647bb3a1caa0054a55b404655e7eff33686afd8ac5d8a7d7d4059494",
+      "persona_id": "sensivel_distancia",
+      "virtual_week": 3,
+      "scenario_index": 18,
+      "comparator_version": "appono-intelligence-v1",
+      "v2_choice_candidate_id": "syn-candidate-desenvolvimento_v1-sensivel_distancia-18-2",
+      "comparator_choice_candidate_id": "syn-candidate-desenvolvimento_v1-sensivel_distancia-18-0",
+      "v2_regret": 11.287593,
+      "comparator_regret": 0,
+      "regret_delta": 11.287593,
+      "v2_confidence": 0.334,
+      "relevant_alternatives": [
+        {
+          "candidate_id": "syn-candidate-desenvolvimento_v1-sensivel_distancia-18-2",
+          "category": "Asiatica",
+          "price": 28.04,
+          "distance_km": 0.44
+        },
+        {
+          "candidate_id": "syn-candidate-desenvolvimento_v1-sensivel_distancia-18-0",
+          "category": "Brasileira",
+          "price": 29.14,
+          "distance_km": 0.47
+        }
+      ],
+      "explicit_preferences": [
+        "Brasileira"
+      ],
+      "evidence": {
+        "explicit_preference_lost": true,
+        "v2_farther": false,
+        "v2_more_expensive": false,
+        "opposing_signals": false,
+        "favorite_lost": false
+      },
+      "classification": "PREFERENCIA_EXPLICITA_PERDIDA"
+    },
+    {
+      "dataset_id": "validacao_v1",
+      "scenario_id": "49836f8438fd419e8fd866e4f4f493740186a80aa813dd12cd8410d9a0ad1968",
+      "persona_id": "sensivel_distancia",
+      "virtual_week": 1,
+      "scenario_index": 6,
+      "comparator_version": "appono-intelligence-v1",
+      "v2_choice_candidate_id": "syn-candidate-validacao_v1-sensivel_distancia-06-2",
+      "comparator_choice_candidate_id": "syn-candidate-validacao_v1-sensivel_distancia-06-1",
+      "v2_regret": 11.052883,
+      "comparator_regret": 0,
+      "regret_delta": 11.052883,
+      "v2_confidence": 0.59,
+      "relevant_alternatives": [
+        {
+          "candidate_id": "syn-candidate-validacao_v1-sensivel_distancia-06-2",
+          "category": "Lanches",
+          "price": 27.55,
+          "distance_km": 1.18
+        },
+        {
+          "candidate_id": "syn-candidate-validacao_v1-sensivel_distancia-06-1",
+          "category": "Brasileira",
+          "price": 27.78,
+          "distance_km": 0.58
+        }
+      ],
+      "explicit_preferences": [
+        "Brasileira"
+      ],
+      "evidence": {
+        "explicit_preference_lost": true,
+        "v2_farther": true,
+        "v2_more_expensive": false,
+        "opposing_signals": false,
+        "favorite_lost": false
+      },
+      "classification": "PREFERENCIA_EXPLICITA_PERDIDA"
+    },
+    {
+      "dataset_id": "desenvolvimento_v1",
+      "scenario_id": "9a204ff58e76a00254f739969833981814159a3761e901443704a92db89a549c",
+      "persona_id": "contraditorio",
+      "virtual_week": 5,
+      "scenario_index": 29,
+      "comparator_version": "appono-intelligence-v1",
+      "v2_choice_candidate_id": "syn-candidate-desenvolvimento_v1-contraditorio-29-3",
+      "comparator_choice_candidate_id": "syn-candidate-desenvolvimento_v1-contraditorio-29-1",
+      "v2_regret": 10.574079,
+      "comparator_regret": 0,
+      "regret_delta": 10.574079,
+      "v2_confidence": 0.289,
+      "relevant_alternatives": [
+        {
+          "candidate_id": "syn-candidate-desenvolvimento_v1-contraditorio-29-3",
+          "category": "Lanches",
+          "price": 27.83,
+          "distance_km": 1.05
+        },
+        {
+          "candidate_id": "syn-candidate-desenvolvimento_v1-contraditorio-29-1",
+          "category": "Saudavel",
+          "price": 29.68,
+          "distance_km": 2.26
+        }
+      ],
+      "explicit_preferences": [
+        "Lanches",
+        "Saudavel"
+      ],
+      "evidence": {
+        "explicit_preference_lost": false,
+        "v2_farther": false,
+        "v2_more_expensive": false,
+        "opposing_signals": true,
+        "favorite_lost": false
+      },
+      "classification": "CONTRADICAO_MAL_COMPENSADA"
+    },
+    {
+      "dataset_id": "desenvolvimento_v1",
+      "scenario_id": "6cbfaa45296944359b2b541103f80b172d6e7239f32f7fefaa79af22973e22e2",
+      "persona_id": "fiel_prato",
+      "virtual_week": 1,
+      "scenario_index": 7,
+      "comparator_version": "appono-intelligence-v1",
+      "v2_choice_candidate_id": "syn-candidate-desenvolvimento_v1-fiel_prato-07-3",
+      "comparator_choice_candidate_id": "syn-candidate-desenvolvimento_v1-fiel_prato-07-1",
+      "v2_regret": 10.417149,
+      "comparator_regret": 0.025751,
+      "regret_delta": 10.391398,
+      "v2_confidence": 0.066,
+      "relevant_alternatives": [
+        {
+          "candidate_id": "syn-candidate-desenvolvimento_v1-fiel_prato-07-3",
+          "category": "Asiatica",
+          "price": 32.39,
+          "distance_km": 1.99
+        },
+        {
+          "candidate_id": "syn-candidate-desenvolvimento_v1-fiel_prato-07-1",
+          "category": "Saudavel",
+          "price": 30.33,
+          "distance_km": 1.49
+        }
+      ],
+      "explicit_preferences": [
+        "Saudavel"
+      ],
+      "evidence": {
+        "explicit_preference_lost": true,
+        "v2_farther": true,
+        "v2_more_expensive": true,
+        "opposing_signals": false,
+        "favorite_lost": false
+      },
+      "classification": "CONFIANCA_INSUFICIENTE"
+    },
+    {
+      "dataset_id": "desenvolvimento_v1",
+      "scenario_id": "55c3e72daf91884f1f15f1fd164350ca02e7748e23c874c7da80a1d04e4deedf",
+      "persona_id": "economico",
+      "virtual_week": 3,
+      "scenario_index": 16,
+      "comparator_version": "appono-intelligence-v1",
+      "v2_choice_candidate_id": "syn-candidate-desenvolvimento_v1-economico-16-2",
+      "comparator_choice_candidate_id": "syn-candidate-desenvolvimento_v1-economico-16-1",
+      "v2_regret": 10.346153,
+      "comparator_regret": 0,
+      "regret_delta": 10.346153,
+      "v2_confidence": 0.375,
+      "relevant_alternatives": [
+        {
+          "candidate_id": "syn-candidate-desenvolvimento_v1-economico-16-2",
+          "category": "Lanches",
+          "price": 24,
+          "distance_km": 0.74
+        },
+        {
+          "candidate_id": "syn-candidate-desenvolvimento_v1-economico-16-1",
+          "category": "Brasileira",
+          "price": 20.43,
+          "distance_km": 0.46
+        }
+      ],
+      "explicit_preferences": [
+        "Brasileira",
+        "Lanches"
+      ],
+      "evidence": {
+        "explicit_preference_lost": false,
+        "v2_farther": true,
+        "v2_more_expensive": true,
+        "opposing_signals": false,
+        "favorite_lost": false
+      },
+      "classification": "PRECO_MAL_PRIORIZADO"
+    },
+    {
+      "dataset_id": "desenvolvimento_v1",
+      "scenario_id": "92e0da3301a23dd025186e835a411b76bd885f61fdafa2a684c0e744382af6db",
+      "persona_id": "mudanca_gradual",
+      "virtual_week": 0,
+      "scenario_index": 1,
+      "comparator_version": "appono-intelligence-v1",
+      "v2_choice_candidate_id": "syn-candidate-desenvolvimento_v1-mudanca_gradual-01-3",
+      "comparator_choice_candidate_id": "syn-candidate-desenvolvimento_v1-mudanca_gradual-01-2",
+      "v2_regret": 9.868428,
+      "comparator_regret": 0.178494,
+      "regret_delta": 9.689934,
+      "v2_confidence": 0.199,
+      "relevant_alternatives": [
+        {
+          "candidate_id": "syn-candidate-desenvolvimento_v1-mudanca_gradual-01-3",
+          "category": "Vegetariana",
+          "price": 33.22,
+          "distance_km": 3.32
+        },
+        {
+          "candidate_id": "syn-candidate-desenvolvimento_v1-mudanca_gradual-01-2",
+          "category": "Massas",
+          "price": 39.21,
+          "distance_km": 2.72
+        }
+      ],
+      "explicit_preferences": [],
+      "evidence": {
+        "explicit_preference_lost": false,
+        "v2_farther": true,
+        "v2_more_expensive": false,
+        "opposing_signals": false,
+        "favorite_lost": false
+      },
+      "classification": "CONFIANCA_INSUFICIENTE"
+    },
+    {
+      "dataset_id": "validacao_v1",
+      "scenario_id": "bfe30700656b4b3ea46a1f34a12bb695b7e2d7038289748a47ea5ade88e5cb50",
+      "persona_id": "mudanca_gradual",
+      "virtual_week": 4,
+      "scenario_index": 23,
+      "comparator_version": "appono-intelligence-v1",
+      "v2_choice_candidate_id": "syn-candidate-validacao_v1-mudanca_gradual-23-0",
+      "comparator_choice_candidate_id": "syn-candidate-validacao_v1-mudanca_gradual-23-2",
+      "v2_regret": 10.329956,
+      "comparator_regret": 1.011848,
+      "regret_delta": 9.318108,
+      "v2_confidence": 0.59,
+      "relevant_alternatives": [
+        {
+          "candidate_id": "syn-candidate-validacao_v1-mudanca_gradual-23-0",
+          "category": "Saudavel",
+          "price": 38.07,
+          "distance_km": 1.17
+        },
+        {
+          "candidate_id": "syn-candidate-validacao_v1-mudanca_gradual-23-2",
+          "category": "Massas",
+          "price": 26.58,
+          "distance_km": 1.3
+        }
+      ],
+      "explicit_preferences": [],
+      "evidence": {
+        "explicit_preference_lost": false,
+        "v2_farther": false,
+        "v2_more_expensive": true,
+        "opposing_signals": true,
+        "favorite_lost": false
+      },
+      "classification": "HIPOTESE_PARA_V2_1"
+    },
+    {
+      "dataset_id": "desenvolvimento_v1",
+      "scenario_id": "20099b7bce0b2335f1f7e6ae5915a00374a2d67ca939b1a4c70ea1feb6591ab7",
+      "persona_id": "mudanca_gradual",
+      "virtual_week": 5,
+      "scenario_index": 25,
+      "comparator_version": "appono-intelligence-v1",
+      "v2_choice_candidate_id": "syn-candidate-desenvolvimento_v1-mudanca_gradual-25-3",
+      "comparator_choice_candidate_id": "syn-candidate-desenvolvimento_v1-mudanca_gradual-25-2",
+      "v2_regret": 8.821677,
+      "comparator_regret": 0.322919,
+      "regret_delta": 8.498758,
+      "v2_confidence": 0.609,
+      "relevant_alternatives": [
+        {
+          "candidate_id": "syn-candidate-desenvolvimento_v1-mudanca_gradual-25-3",
+          "category": "Vegetariana",
+          "price": 36.75,
+          "distance_km": 1.06
+        },
+        {
+          "candidate_id": "syn-candidate-desenvolvimento_v1-mudanca_gradual-25-2",
+          "category": "Massas",
+          "price": 29.48,
+          "distance_km": 0.52
+        }
+      ],
+      "explicit_preferences": [],
+      "evidence": {
+        "explicit_preference_lost": false,
+        "v2_farther": true,
+        "v2_more_expensive": true,
+        "opposing_signals": false,
+        "favorite_lost": false
+      },
+      "classification": "HIPOTESE_PARA_V2_1"
+    },
+    {
+      "dataset_id": "desenvolvimento_v1",
+      "scenario_id": "cafe06ab999a952f2efc6e2c48fe4b8de31eea98c9ec4bd946748212281d5f7d",
+      "persona_id": "mudanca_gradual",
+      "virtual_week": 0,
+      "scenario_index": 4,
+      "comparator_version": "appono-intelligence-v1",
+      "v2_choice_candidate_id": "syn-candidate-desenvolvimento_v1-mudanca_gradual-04-0",
+      "comparator_choice_candidate_id": "syn-candidate-desenvolvimento_v1-mudanca_gradual-04-2",
+      "v2_regret": 16.247613,
+      "comparator_regret": 8.054476,
+      "regret_delta": 8.193137,
+      "v2_confidence": 0.27,
+      "relevant_alternatives": [
+        {
+          "candidate_id": "syn-candidate-desenvolvimento_v1-mudanca_gradual-04-0",
+          "category": "Doces",
+          "price": 28.18,
+          "distance_km": 0.45
+        },
+        {
+          "candidate_id": "syn-candidate-desenvolvimento_v1-mudanca_gradual-04-2",
+          "category": "Vegetariana",
+          "price": 28.45,
+          "distance_km": 1.62
+        }
+      ],
+      "explicit_preferences": [],
+      "evidence": {
+        "explicit_preference_lost": false,
+        "v2_farther": false,
+        "v2_more_expensive": false,
+        "opposing_signals": true,
+        "favorite_lost": false
+      },
+      "classification": "HIPOTESE_PARA_V2_1"
+    },
+    {
+      "dataset_id": "validacao_v1",
+      "scenario_id": "a232cbd4a7e62a1a90ee25bb8d921eee5883c4d3f54dadd86a1899ec10182608",
+      "persona_id": "explorador",
+      "virtual_week": 3,
+      "scenario_index": 15,
+      "comparator_version": "appono-intelligence-v1",
+      "v2_choice_candidate_id": "syn-candidate-validacao_v1-explorador-15-1",
+      "comparator_choice_candidate_id": "syn-candidate-validacao_v1-explorador-15-3",
+      "v2_regret": 6.974002,
+      "comparator_regret": 0,
+      "regret_delta": 6.974002,
+      "v2_confidence": 0.453,
+      "relevant_alternatives": [
+        {
+          "candidate_id": "syn-candidate-validacao_v1-explorador-15-1",
+          "category": "Mediterranea",
+          "price": 33.88,
+          "distance_km": 1.53
+        },
+        {
+          "candidate_id": "syn-candidate-validacao_v1-explorador-15-3",
+          "category": "Vegetariana",
+          "price": 29.27,
+          "distance_km": 0.83
+        }
+      ],
+      "explicit_preferences": [
+        "Asiatica",
+        "Mediterranea"
+      ],
+      "evidence": {
+        "explicit_preference_lost": false,
+        "v2_farther": true,
+        "v2_more_expensive": true,
+        "opposing_signals": true,
+        "favorite_lost": false
+      },
+      "classification": "HIPOTESE_PARA_V2_1"
+    },
+    {
+      "dataset_id": "validacao_v1",
+      "scenario_id": "ec8936e004e37fdb076372648d1389f0f07eb93f6aee8647673e719550b4b9dc",
+      "persona_id": "sensivel_distancia",
+      "virtual_week": 5,
+      "scenario_index": 28,
+      "comparator_version": "deterministico-v3",
+      "v2_choice_candidate_id": "syn-candidate-validacao_v1-sensivel_distancia-28-2",
+      "comparator_choice_candidate_id": "syn-candidate-validacao_v1-sensivel_distancia-28-3",
+      "v2_regret": 21.147383,
+      "comparator_regret": 14.628811,
+      "regret_delta": 6.518572,
+      "v2_confidence": 0.384,
+      "relevant_alternatives": [
+        {
+          "candidate_id": "syn-candidate-validacao_v1-sensivel_distancia-28-2",
+          "category": "Doces",
+          "price": 25.7,
+          "distance_km": 0.56
+        },
+        {
+          "candidate_id": "syn-candidate-validacao_v1-sensivel_distancia-28-3",
+          "category": "Massas",
+          "price": 36.21,
+          "distance_km": 1.46
+        }
+      ],
+      "explicit_preferences": [
+        "Brasileira"
+      ],
+      "evidence": {
+        "explicit_preference_lost": false,
+        "v2_farther": false,
+        "v2_more_expensive": false,
+        "opposing_signals": true,
+        "favorite_lost": false
+      },
+      "classification": "HIPOTESE_PARA_V2_1"
+    },
+    {
+      "dataset_id": "desenvolvimento_v1",
+      "scenario_id": "a8ea0016e5acde23b611edbc80a521a9b98ec7e8029901f8b2888c6100d4afda",
+      "persona_id": "fiel_prato",
+      "virtual_week": 0,
+      "scenario_index": 1,
+      "comparator_version": "appono-intelligence-v1",
+      "v2_choice_candidate_id": "syn-candidate-desenvolvimento_v1-fiel_prato-01-2",
+      "comparator_choice_candidate_id": "syn-candidate-desenvolvimento_v1-fiel_prato-01-1",
+      "v2_regret": 6.22481,
+      "comparator_regret": 0,
+      "regret_delta": 6.22481,
+      "v2_confidence": 0.425,
+      "relevant_alternatives": [
+        {
+          "candidate_id": "syn-candidate-desenvolvimento_v1-fiel_prato-01-2",
+          "category": "Massas",
+          "price": 29.04,
+          "distance_km": 2.57
+        },
+        {
+          "candidate_id": "syn-candidate-desenvolvimento_v1-fiel_prato-01-1",
+          "category": "Saudavel",
+          "price": 24.59,
+          "distance_km": 3.26
+        }
+      ],
+      "explicit_preferences": [
+        "Saudavel"
+      ],
+      "evidence": {
+        "explicit_preference_lost": true,
+        "v2_farther": false,
+        "v2_more_expensive": true,
+        "opposing_signals": false,
+        "favorite_lost": false
+      },
+      "classification": "PREFERENCIA_EXPLICITA_PERDIDA"
+    },
+    {
+      "dataset_id": "validacao_v1",
+      "scenario_id": "f83c492e9a0da6c295f3f89619c769752a91377ca74a421aa7b1dbbab7ddfd73",
+      "persona_id": "economico",
+      "virtual_week": 2,
+      "scenario_index": 14,
+      "comparator_version": "deterministico-v3",
+      "v2_choice_candidate_id": "syn-candidate-validacao_v1-economico-14-3",
+      "comparator_choice_candidate_id": "syn-candidate-validacao_v1-economico-14-2",
+      "v2_regret": 9.90834,
+      "comparator_regret": 4.59871,
+      "regret_delta": 5.30963,
+      "v2_confidence": 0.091,
+      "relevant_alternatives": [
+        {
+          "candidate_id": "syn-candidate-validacao_v1-economico-14-3",
+          "category": "Saudavel",
+          "price": 23.44,
+          "distance_km": 1.27
+        },
+        {
+          "candidate_id": "syn-candidate-validacao_v1-economico-14-2",
+          "category": "Lanches",
+          "price": 21.53,
+          "distance_km": 0.42
+        }
+      ],
+      "explicit_preferences": [
+        "Brasileira",
+        "Lanches"
+      ],
+      "evidence": {
+        "explicit_preference_lost": true,
+        "v2_farther": true,
+        "v2_more_expensive": true,
+        "opposing_signals": true,
+        "favorite_lost": false
+      },
+      "classification": "CONFIANCA_INSUFICIENTE"
+    },
+    {
+      "dataset_id": "desenvolvimento_v1",
+      "scenario_id": "26acb878488c8087c841c8454d5439ae82acf2d886837e6181fbcc453efe7ed2",
+      "persona_id": "avesso_repeticao",
+      "virtual_week": 1,
+      "scenario_index": 5,
+      "comparator_version": "deterministico-v3",
+      "v2_choice_candidate_id": "syn-candidate-desenvolvimento_v1-avesso_repeticao-05-0",
+      "comparator_choice_candidate_id": "syn-candidate-desenvolvimento_v1-avesso_repeticao-05-2",
+      "v2_regret": 5.29979,
+      "comparator_regret": 0.513096,
+      "regret_delta": 4.786694,
+      "v2_confidence": 0.125,
+      "relevant_alternatives": [
+        {
+          "candidate_id": "syn-candidate-desenvolvimento_v1-avesso_repeticao-05-0",
+          "category": "Saudavel",
+          "price": 31.99,
+          "distance_km": 0.6
+        },
+        {
+          "candidate_id": "syn-candidate-desenvolvimento_v1-avesso_repeticao-05-2",
+          "category": "Mediterranea",
+          "price": 31.2,
+          "distance_km": 1
+        }
+      ],
+      "explicit_preferences": [
+        "Massas",
+        "Saudavel"
+      ],
+      "evidence": {
+        "explicit_preference_lost": false,
+        "v2_farther": false,
+        "v2_more_expensive": true,
+        "opposing_signals": true,
+        "favorite_lost": false
+      },
+      "classification": "CONFIANCA_INSUFICIENTE"
+    },
+    {
+      "dataset_id": "validacao_v1",
+      "scenario_id": "f83c492e9a0da6c295f3f89619c769752a91377ca74a421aa7b1dbbab7ddfd73",
+      "persona_id": "economico",
+      "virtual_week": 2,
+      "scenario_index": 14,
+      "comparator_version": "appono-intelligence-v1",
+      "v2_choice_candidate_id": "syn-candidate-validacao_v1-economico-14-3",
+      "comparator_choice_candidate_id": "syn-candidate-validacao_v1-economico-14-2",
+      "v2_regret": 9.90834,
+      "comparator_regret": 5.217476,
+      "regret_delta": 4.690864,
+      "v2_confidence": 0.091,
+      "relevant_alternatives": [
+        {
+          "candidate_id": "syn-candidate-validacao_v1-economico-14-3",
+          "category": "Saudavel",
+          "price": 23.44,
+          "distance_km": 1.27
+        },
+        {
+          "candidate_id": "syn-candidate-validacao_v1-economico-14-2",
+          "category": "Lanches",
+          "price": 21.53,
+          "distance_km": 0.42
+        }
+      ],
+      "explicit_preferences": [
+        "Brasileira",
+        "Lanches"
+      ],
+      "evidence": {
+        "explicit_preference_lost": true,
+        "v2_farther": true,
+        "v2_more_expensive": true,
+        "opposing_signals": true,
+        "favorite_lost": false
+      },
+      "classification": "CONFIANCA_INSUFICIENTE"
+    },
+    {
+      "dataset_id": "validacao_v1",
+      "scenario_id": "ec8936e004e37fdb076372648d1389f0f07eb93f6aee8647673e719550b4b9dc",
+      "persona_id": "sensivel_distancia",
+      "virtual_week": 5,
+      "scenario_index": 28,
+      "comparator_version": "appono-intelligence-v1",
+      "v2_choice_candidate_id": "syn-candidate-validacao_v1-sensivel_distancia-28-2",
+      "comparator_choice_candidate_id": "syn-candidate-validacao_v1-sensivel_distancia-28-3",
+      "v2_regret": 21.147383,
+      "comparator_regret": 17.244353,
+      "regret_delta": 3.90303,
+      "v2_confidence": 0.384,
+      "relevant_alternatives": [
+        {
+          "candidate_id": "syn-candidate-validacao_v1-sensivel_distancia-28-2",
+          "category": "Doces",
+          "price": 25.7,
+          "distance_km": 0.56
+        },
+        {
+          "candidate_id": "syn-candidate-validacao_v1-sensivel_distancia-28-3",
+          "category": "Massas",
+          "price": 36.21,
+          "distance_km": 1.46
+        }
+      ],
+      "explicit_preferences": [
+        "Brasileira"
+      ],
+      "evidence": {
+        "explicit_preference_lost": false,
+        "v2_farther": false,
+        "v2_more_expensive": false,
+        "opposing_signals": true,
+        "favorite_lost": false
+      },
+      "classification": "HIPOTESE_PARA_V2_1"
+    },
+    {
+      "dataset_id": "validacao_v1",
+      "scenario_id": "c08461df03e8650250d9285e7dbaa04bca401c7d47f2fa9f9bd5c296909e4478",
+      "persona_id": "sensivel_distancia",
+      "virtual_week": 5,
+      "scenario_index": 29,
+      "comparator_version": "deterministico-v3",
+      "v2_choice_candidate_id": "syn-candidate-validacao_v1-sensivel_distancia-29-1",
+      "comparator_choice_candidate_id": "syn-candidate-validacao_v1-sensivel_distancia-29-2",
+      "v2_regret": 3.389685,
+      "comparator_regret": 0,
+      "regret_delta": 3.389685,
+      "v2_confidence": 0.298,
+      "relevant_alternatives": [
+        {
+          "candidate_id": "syn-candidate-validacao_v1-sensivel_distancia-29-1",
+          "category": "Brasileira",
+          "price": 33.67,
+          "distance_km": 1.8
+        },
+        {
+          "candidate_id": "syn-candidate-validacao_v1-sensivel_distancia-29-2",
+          "category": "Brasileira",
+          "price": 32.01,
+          "distance_km": 0.38
+        }
+      ],
+      "explicit_preferences": [
+        "Brasileira"
+      ],
+      "evidence": {
+        "explicit_preference_lost": false,
+        "v2_farther": true,
+        "v2_more_expensive": true,
+        "opposing_signals": true,
+        "favorite_lost": false
+      },
+      "classification": "DISTANCIA_MAL_PRIORIZADA"
+    },
+    {
+      "dataset_id": "validacao_v1",
+      "scenario_id": "c08461df03e8650250d9285e7dbaa04bca401c7d47f2fa9f9bd5c296909e4478",
+      "persona_id": "sensivel_distancia",
+      "virtual_week": 5,
+      "scenario_index": 29,
+      "comparator_version": "appono-intelligence-v1",
+      "v2_choice_candidate_id": "syn-candidate-validacao_v1-sensivel_distancia-29-1",
+      "comparator_choice_candidate_id": "syn-candidate-validacao_v1-sensivel_distancia-29-2",
+      "v2_regret": 3.389685,
+      "comparator_regret": 0,
+      "regret_delta": 3.389685,
+      "v2_confidence": 0.298,
+      "relevant_alternatives": [
+        {
+          "candidate_id": "syn-candidate-validacao_v1-sensivel_distancia-29-1",
+          "category": "Brasileira",
+          "price": 33.67,
+          "distance_km": 1.8
+        },
+        {
+          "candidate_id": "syn-candidate-validacao_v1-sensivel_distancia-29-2",
+          "category": "Brasileira",
+          "price": 32.01,
+          "distance_km": 0.38
+        }
+      ],
+      "explicit_preferences": [
+        "Brasileira"
+      ],
+      "evidence": {
+        "explicit_preference_lost": false,
+        "v2_farther": true,
+        "v2_more_expensive": true,
+        "opposing_signals": true,
+        "favorite_lost": false
+      },
+      "classification": "DISTANCIA_MAL_PRIORIZADA"
+    },
+    {
+      "dataset_id": "validacao_v1",
+      "scenario_id": "65ba55e3170e60dc956c0794423d1cac430bfe73de9fad5b996b9b374ac54b55",
+      "persona_id": "sensivel_distancia",
+      "virtual_week": 3,
+      "scenario_index": 18,
+      "comparator_version": "appono-intelligence-v1",
+      "v2_choice_candidate_id": "syn-candidate-validacao_v1-sensivel_distancia-18-3",
+      "comparator_choice_candidate_id": "syn-candidate-validacao_v1-sensivel_distancia-18-1",
+      "v2_regret": 2.42902,
+      "comparator_regret": 0,
+      "regret_delta": 2.42902,
+      "v2_confidence": 0.232,
+      "relevant_alternatives": [
+        {
+          "candidate_id": "syn-candidate-validacao_v1-sensivel_distancia-18-3",
+          "category": "Brasileira",
+          "price": 33.35,
+          "distance_km": 1.51
+        },
+        {
+          "candidate_id": "syn-candidate-validacao_v1-sensivel_distancia-18-1",
+          "category": "Brasileira",
+          "price": 24.92,
+          "distance_km": 0.39
+        }
+      ],
+      "explicit_preferences": [
+        "Brasileira"
+      ],
+      "evidence": {
+        "explicit_preference_lost": false,
+        "v2_farther": true,
+        "v2_more_expensive": true,
+        "opposing_signals": false,
+        "favorite_lost": false
+      },
+      "classification": "CONFIANCA_INSUFICIENTE"
+    },
+    {
+      "dataset_id": "desenvolvimento_v1",
+      "scenario_id": "d6660d28c839b76a91c3b6e4401436d297c4c8a0ef5c40f771e27ef5ef83772e",
+      "persona_id": "sensivel_distancia",
+      "virtual_week": 5,
+      "scenario_index": 28,
+      "comparator_version": "appono-intelligence-v1",
+      "v2_choice_candidate_id": "syn-candidate-desenvolvimento_v1-sensivel_distancia-28-0",
+      "comparator_choice_candidate_id": "syn-candidate-desenvolvimento_v1-sensivel_distancia-28-1",
+      "v2_regret": 2.199342,
+      "comparator_regret": 0,
+      "regret_delta": 2.199342,
+      "v2_confidence": 0.291,
+      "relevant_alternatives": [
+        {
+          "candidate_id": "syn-candidate-desenvolvimento_v1-sensivel_distancia-28-0",
+          "category": "Brasileira",
+          "price": 29.69,
+          "distance_km": 1.54
+        },
+        {
+          "candidate_id": "syn-candidate-desenvolvimento_v1-sensivel_distancia-28-1",
+          "category": "Brasileira",
+          "price": 37.6,
+          "distance_km": 0.51
+        }
+      ],
+      "explicit_preferences": [
+        "Brasileira"
+      ],
+      "evidence": {
+        "explicit_preference_lost": false,
+        "v2_farther": true,
+        "v2_more_expensive": false,
+        "opposing_signals": true,
+        "favorite_lost": false
+      },
+      "classification": "DISTANCIA_MAL_PRIORIZADA"
+    },
+    {
+      "dataset_id": "validacao_v1",
+      "scenario_id": "b42c6caecf428a0c89461ae61f6657efcac524cd714a8793e4e7b8eadf66c625",
+      "persona_id": "sensivel_distancia",
+      "virtual_week": 1,
+      "scenario_index": 8,
+      "comparator_version": "deterministico-v3",
+      "v2_choice_candidate_id": "syn-candidate-validacao_v1-sensivel_distancia-08-3",
+      "comparator_choice_candidate_id": "syn-candidate-validacao_v1-sensivel_distancia-08-2",
+      "v2_regret": 12.188753,
+      "comparator_regret": 10.13322,
+      "regret_delta": 2.055533,
+      "v2_confidence": 0.445,
+      "relevant_alternatives": [
+        {
+          "candidate_id": "syn-candidate-validacao_v1-sensivel_distancia-08-3",
+          "category": "Mediterranea",
+          "price": 35.15,
+          "distance_km": 1.6
+        },
+        {
+          "candidate_id": "syn-candidate-validacao_v1-sensivel_distancia-08-2",
+          "category": "Asiatica",
+          "price": 26.63,
+          "distance_km": 0.47
+        }
+      ],
+      "explicit_preferences": [
+        "Brasileira"
+      ],
+      "evidence": {
+        "explicit_preference_lost": false,
+        "v2_farther": true,
+        "v2_more_expensive": true,
+        "opposing_signals": true,
+        "favorite_lost": false
+      },
+      "classification": "DISTANCIA_MAL_PRIORIZADA"
+    },
+    {
+      "dataset_id": "desenvolvimento_v1",
+      "scenario_id": "0606e83af2d09a7fa98dc5ac07e021cb0e64bb40c7770751fa0087df8f505aef",
+      "persona_id": "economico",
+      "virtual_week": 4,
+      "scenario_index": 24,
+      "comparator_version": "appono-intelligence-v1",
+      "v2_choice_candidate_id": "syn-candidate-desenvolvimento_v1-economico-24-0",
+      "comparator_choice_candidate_id": "syn-candidate-desenvolvimento_v1-economico-24-1",
+      "v2_regret": 0.857027,
+      "comparator_regret": 0,
+      "regret_delta": 0.857027,
+      "v2_confidence": 0.306,
+      "relevant_alternatives": [
+        {
+          "candidate_id": "syn-candidate-desenvolvimento_v1-economico-24-0",
+          "category": "Brasileira",
+          "price": 23.49,
+          "distance_km": 1.48
+        },
+        {
+          "candidate_id": "syn-candidate-desenvolvimento_v1-economico-24-1",
+          "category": "Brasileira",
+          "price": 20.45,
+          "distance_km": 1.27
+        }
+      ],
+      "explicit_preferences": [
+        "Brasileira",
+        "Lanches"
+      ],
+      "evidence": {
+        "explicit_preference_lost": false,
+        "v2_farther": true,
+        "v2_more_expensive": true,
+        "opposing_signals": false,
+        "favorite_lost": false
+      },
+      "classification": "PRECO_MAL_PRIORIZADO"
+    },
+    {
+      "dataset_id": "validacao_v1",
+      "scenario_id": "74cef86565d591acc5d72a1e72497b86546c59d6fa9ce1eac93e6e9ab0b6c550",
+      "persona_id": "sensivel_distancia",
+      "virtual_week": 0,
+      "scenario_index": 3,
+      "comparator_version": "appono-intelligence-v1",
+      "v2_choice_candidate_id": "syn-candidate-validacao_v1-sensivel_distancia-03-1",
+      "comparator_choice_candidate_id": "syn-candidate-validacao_v1-sensivel_distancia-03-0",
+      "v2_regret": 0.80711,
+      "comparator_regret": 0,
+      "regret_delta": 0.80711,
+      "v2_confidence": 0.416,
+      "relevant_alternatives": [
+        {
+          "candidate_id": "syn-candidate-validacao_v1-sensivel_distancia-03-1",
+          "category": "Brasileira",
+          "price": 28.96,
+          "distance_km": 0.75
+        },
+        {
+          "candidate_id": "syn-candidate-validacao_v1-sensivel_distancia-03-0",
+          "category": "Brasileira",
+          "price": 28.04,
+          "distance_km": 0.38
+        }
+      ],
+      "explicit_preferences": [
+        "Brasileira"
+      ],
+      "evidence": {
+        "explicit_preference_lost": false,
+        "v2_farther": true,
+        "v2_more_expensive": true,
+        "opposing_signals": true,
+        "favorite_lost": false
+      },
+      "classification": "DISTANCIA_MAL_PRIORIZADA"
+    },
+    {
+      "dataset_id": "validacao_v1",
+      "scenario_id": "85b58fd1d0efd46860d3dca91df719ace51c1031df67f90466c891a47c57887c",
+      "persona_id": "sensivel_distancia",
+      "virtual_week": 1,
+      "scenario_index": 7,
+      "comparator_version": "deterministico-v3",
+      "v2_choice_candidate_id": "syn-candidate-validacao_v1-sensivel_distancia-07-1",
+      "comparator_choice_candidate_id": "syn-candidate-validacao_v1-sensivel_distancia-07-0",
+      "v2_regret": 0.730991,
+      "comparator_regret": 0,
+      "regret_delta": 0.730991,
+      "v2_confidence": 0.492,
+      "relevant_alternatives": [
+        {
+          "candidate_id": "syn-candidate-validacao_v1-sensivel_distancia-07-1",
+          "category": "Brasileira",
+          "price": 32.04,
+          "distance_km": 1.1
+        },
+        {
+          "candidate_id": "syn-candidate-validacao_v1-sensivel_distancia-07-0",
+          "category": "Brasileira",
+          "price": 25.62,
+          "distance_km": 0.84
+        }
+      ],
+      "explicit_preferences": [
+        "Brasileira"
+      ],
+      "evidence": {
+        "explicit_preference_lost": false,
+        "v2_farther": true,
+        "v2_more_expensive": true,
+        "opposing_signals": false,
+        "favorite_lost": false
+      },
+      "classification": "DISTANCIA_MAL_PRIORIZADA"
+    },
+    {
+      "dataset_id": "validacao_v1",
+      "scenario_id": "85b58fd1d0efd46860d3dca91df719ace51c1031df67f90466c891a47c57887c",
+      "persona_id": "sensivel_distancia",
+      "virtual_week": 1,
+      "scenario_index": 7,
+      "comparator_version": "appono-intelligence-v1",
+      "v2_choice_candidate_id": "syn-candidate-validacao_v1-sensivel_distancia-07-1",
+      "comparator_choice_candidate_id": "syn-candidate-validacao_v1-sensivel_distancia-07-0",
+      "v2_regret": 0.730991,
+      "comparator_regret": 0,
+      "regret_delta": 0.730991,
+      "v2_confidence": 0.492,
+      "relevant_alternatives": [
+        {
+          "candidate_id": "syn-candidate-validacao_v1-sensivel_distancia-07-1",
+          "category": "Brasileira",
+          "price": 32.04,
+          "distance_km": 1.1
+        },
+        {
+          "candidate_id": "syn-candidate-validacao_v1-sensivel_distancia-07-0",
+          "category": "Brasileira",
+          "price": 25.62,
+          "distance_km": 0.84
+        }
+      ],
+      "explicit_preferences": [
+        "Brasileira"
+      ],
+      "evidence": {
+        "explicit_preference_lost": false,
+        "v2_farther": true,
+        "v2_more_expensive": true,
+        "opposing_signals": false,
+        "favorite_lost": false
+      },
+      "classification": "DISTANCIA_MAL_PRIORIZADA"
+    },
+    {
+      "dataset_id": "validacao_v1",
+      "scenario_id": "b42c6caecf428a0c89461ae61f6657efcac524cd714a8793e4e7b8eadf66c625",
+      "persona_id": "sensivel_distancia",
+      "virtual_week": 1,
+      "scenario_index": 8,
+      "comparator_version": "appono-intelligence-v1",
+      "v2_choice_candidate_id": "syn-candidate-validacao_v1-sensivel_distancia-08-3",
+      "comparator_choice_candidate_id": "syn-candidate-validacao_v1-sensivel_distancia-08-2",
+      "v2_regret": 12.188753,
+      "comparator_regret": 11.517023,
+      "regret_delta": 0.67173,
+      "v2_confidence": 0.445,
+      "relevant_alternatives": [
+        {
+          "candidate_id": "syn-candidate-validacao_v1-sensivel_distancia-08-3",
+          "category": "Mediterranea",
+          "price": 35.15,
+          "distance_km": 1.6
+        },
+        {
+          "candidate_id": "syn-candidate-validacao_v1-sensivel_distancia-08-2",
+          "category": "Asiatica",
+          "price": 26.63,
+          "distance_km": 0.47
+        }
+      ],
+      "explicit_preferences": [
+        "Brasileira"
+      ],
+      "evidence": {
+        "explicit_preference_lost": false,
+        "v2_farther": true,
+        "v2_more_expensive": true,
+        "opposing_signals": true,
+        "favorite_lost": false
+      },
+      "classification": "DISTANCIA_MAL_PRIORIZADA"
+    },
+    {
+      "dataset_id": "validacao_v1",
+      "scenario_id": "35df3078b4b6850df2c62db4f471e068f5fc4c058b31a1d9aaac4f17b57638cb",
+      "persona_id": "explorador",
+      "virtual_week": 4,
+      "scenario_index": 21,
+      "comparator_version": "appono-intelligence-v1",
+      "v2_choice_candidate_id": "syn-candidate-validacao_v1-explorador-21-3",
+      "comparator_choice_candidate_id": "syn-candidate-validacao_v1-explorador-21-1",
+      "v2_regret": 7.274071,
+      "comparator_regret": 6.701886,
+      "regret_delta": 0.572185,
+      "v2_confidence": 0.403,
+      "relevant_alternatives": [
+        {
+          "candidate_id": "syn-candidate-validacao_v1-explorador-21-3",
+          "category": "Asiatica",
+          "price": 37.99,
+          "distance_km": 4.59
+        },
+        {
+          "candidate_id": "syn-candidate-validacao_v1-explorador-21-1",
+          "category": "Mediterranea",
+          "price": 28.79,
+          "distance_km": 2.41
+        }
+      ],
+      "explicit_preferences": [
+        "Asiatica",
+        "Mediterranea"
+      ],
+      "evidence": {
+        "explicit_preference_lost": false,
+        "v2_farther": true,
+        "v2_more_expensive": true,
+        "opposing_signals": true,
+        "favorite_lost": false
+      },
+      "classification": "HIPOTESE_PARA_V2_1"
+    },
+    {
+      "dataset_id": "validacao_v1",
+      "scenario_id": "3c8723de078170dc86b4ec2be572452ce5ad90a2640ce1aec075073be037439c",
+      "persona_id": "fiel_restaurante",
+      "virtual_week": 5,
+      "scenario_index": 29,
+      "comparator_version": "deterministico-v3",
+      "v2_choice_candidate_id": "syn-candidate-validacao_v1-fiel_restaurante-29-3",
+      "comparator_choice_candidate_id": "syn-candidate-validacao_v1-fiel_restaurante-29-2",
+      "v2_regret": 23.664314,
+      "comparator_regret": 23.191687,
+      "regret_delta": 0.472627,
+      "v2_confidence": 0.146,
+      "relevant_alternatives": [
+        {
+          "candidate_id": "syn-candidate-validacao_v1-fiel_restaurante-29-3",
+          "category": "Asiatica",
+          "price": 24.85,
+          "distance_km": 2.66
+        },
+        {
+          "candidate_id": "syn-candidate-validacao_v1-fiel_restaurante-29-2",
+          "category": "Brasileira",
+          "price": 31.34,
+          "distance_km": 1.26
+        }
+      ],
+      "explicit_preferences": [
+        "Massas"
+      ],
+      "evidence": {
+        "explicit_preference_lost": false,
+        "v2_farther": true,
+        "v2_more_expensive": false,
+        "opposing_signals": true,
+        "favorite_lost": false
+      },
+      "classification": "CONFIANCA_INSUFICIENTE"
+    }
+  ],
+  "blind_review_candidates": [
+    {
+      "blind_case_id": "54b9d30414b181cbe1445d05",
+      "source_dataset": "validacao_v1",
+      "scenario_id": "0441ed9024f421e3708a4d8e977e5cedd9dc8befb1090b1565fa9ecf33c04061",
+      "persona_id": "fiel_restaurante",
+      "virtual_week": 5,
+      "scenario_index": 25,
+      "inclusion_reason": "CONFIANCA_INSUFICIENTE",
+      "external_utility_gap": 30.254157,
+      "priority": 1
+    },
+    {
+      "blind_case_id": "434fdec073b87b2dfb086a5d",
+      "source_dataset": "desenvolvimento_v1",
+      "scenario_id": "1f082f8da0730ac55be3a085c0c89dd5959009c126bddbd3dc210cbf7124fe2d",
+      "persona_id": "fiel_restaurante",
+      "virtual_week": 5,
+      "scenario_index": 27,
+      "inclusion_reason": "CONFIANCA_INSUFICIENTE",
+      "external_utility_gap": 29.590772,
+      "priority": 2
+    },
+    {
+      "blind_case_id": "63469556c30fa3c60a9c551f",
+      "source_dataset": "desenvolvimento_v1",
+      "scenario_id": "287c7d6ba28423a92076c1e13289c08e467ed332158ff6228e1bec46d4b8681e",
+      "persona_id": "fiel_restaurante",
+      "virtual_week": 3,
+      "scenario_index": 19,
+      "inclusion_reason": "CONFIANCA_INSUFICIENTE",
+      "external_utility_gap": 25.147625,
+      "priority": 3
+    },
+    {
+      "blind_case_id": "4131cf325888af8cfcf1332a",
+      "source_dataset": "validacao_v1",
+      "scenario_id": "3c8723de078170dc86b4ec2be572452ce5ad90a2640ce1aec075073be037439c",
+      "persona_id": "fiel_restaurante",
+      "virtual_week": 5,
+      "scenario_index": 29,
+      "inclusion_reason": "CONFIANCA_INSUFICIENTE",
+      "external_utility_gap": 23.664314,
+      "priority": 4
+    },
+    {
+      "blind_case_id": "e6d30f04d3dc46d3646e2876",
+      "source_dataset": "validacao_v1",
+      "scenario_id": "2c96f07a8043d6d46141815b03e036409c2cdbc93ebb538aa1761c61661eb654",
+      "persona_id": "fiel_prato",
+      "virtual_week": 4,
+      "scenario_index": 24,
+      "inclusion_reason": "CONFIANCA_INSUFICIENTE",
+      "external_utility_gap": 20.919715,
+      "priority": 5
+    },
+    {
+      "blind_case_id": "d5096beb04f825429fcfc7d9",
+      "source_dataset": "desenvolvimento_v1",
+      "scenario_id": "8d6b1a4ab473c69868af2125743b1da5f415ed547288c32236f4d4c3ea78121b",
+      "persona_id": "contraditorio",
+      "virtual_week": 5,
+      "scenario_index": 27,
+      "inclusion_reason": "PREFERENCIA_EXPLICITA_PERDIDA",
+      "external_utility_gap": 20.396568,
+      "priority": 6
+    },
+    {
+      "blind_case_id": "272b68ba7d671a099a242de2",
+      "source_dataset": "desenvolvimento_v1",
+      "scenario_id": "4b0a6385205e99804b276215551fc076813685e3a08af033965730735782150a",
+      "persona_id": "fiel_prato",
+      "virtual_week": 4,
+      "scenario_index": 23,
+      "inclusion_reason": "PREFERENCIA_EXPLICITA_PERDIDA",
+      "external_utility_gap": 19.136658,
+      "priority": 7
+    },
+    {
+      "blind_case_id": "e21ac8e0599146fbcdf49df0",
+      "source_dataset": "validacao_v1",
+      "scenario_id": "eb2201036c7ccc7aef9ab9b944600ed3dc1261ad5096d2916c43e45449070221",
+      "persona_id": "fiel_restaurante",
+      "virtual_week": 3,
+      "scenario_index": 19,
+      "inclusion_reason": "CONFIANCA_INSUFICIENTE",
+      "external_utility_gap": 18.383018,
+      "priority": 8
+    },
+    {
+      "blind_case_id": "475e154b17fb4b65d883b1d5",
+      "source_dataset": "validacao_v1",
+      "scenario_id": "6e4df7d7442ed7ebb7e9f30f8249a3b0067c46b8ddc96cd510f32dea1da6a3a7",
+      "persona_id": "preferencia_forte",
+      "virtual_week": 4,
+      "scenario_index": 24,
+      "inclusion_reason": "CONFIANCA_INSUFICIENTE",
+      "external_utility_gap": 17.2711,
+      "priority": 9
+    },
+    {
+      "blind_case_id": "bde6b9414d7d8fe0552fe0e1",
+      "source_dataset": "desenvolvimento_v1",
+      "scenario_id": "0faa1e430cd045dea81906fd4ac58f269ddad18f1cd69568dd906a8f0714d985",
+      "persona_id": "fiel_prato",
+      "virtual_week": 3,
+      "scenario_index": 19,
+      "inclusion_reason": "CONFIANCA_INSUFICIENTE",
+      "external_utility_gap": 17.18939,
+      "priority": 10
+    },
+    {
+      "blind_case_id": "6878f964346805b3f3fecf30",
+      "source_dataset": "validacao_v1",
+      "scenario_id": "9581414c933f25f592e7622c88b0068b1d759851f94d8396b33142badb265293",
+      "persona_id": "fiel_prato",
+      "virtual_week": 3,
+      "scenario_index": 15,
+      "inclusion_reason": "CONFIANCA_INSUFICIENTE",
+      "external_utility_gap": 17.062401,
+      "priority": 11
+    },
+    {
+      "blind_case_id": "d4bded6a1caf80e578425272",
+      "source_dataset": "validacao_v1",
+      "scenario_id": "71ce89d0dfb0e18aef156591e2605de6ce03f6f17860a2af352ee8c56548dea5",
+      "persona_id": "preferencia_forte",
+      "virtual_week": 5,
+      "scenario_index": 25,
+      "inclusion_reason": "CONFIANCA_INSUFICIENTE",
+      "external_utility_gap": 16.56032,
+      "priority": 12
+    },
+    {
+      "blind_case_id": "db7f396ea04549d17b893f97",
+      "source_dataset": "desenvolvimento_v1",
+      "scenario_id": "cf9849d9de5d0751ff3d40b3f91a4c674a09a09c149cc68a6a0774a3b9cc6975",
+      "persona_id": "fiel_prato",
+      "virtual_week": 4,
+      "scenario_index": 22,
+      "inclusion_reason": "CONFIANCA_INSUFICIENTE",
+      "external_utility_gap": 16.427039,
+      "priority": 13
+    },
+    {
+      "blind_case_id": "d1954eb2a4dc5169a25cc16e",
+      "source_dataset": "validacao_v1",
+      "scenario_id": "c83501bdb6552a70399d4eee813f1bbc1f12e3611baaf3ed6ce02dd8435cdf9a",
+      "persona_id": "economico",
+      "virtual_week": 5,
+      "scenario_index": 29,
+      "inclusion_reason": "CONFIANCA_INSUFICIENTE",
+      "external_utility_gap": 16.276441,
+      "priority": 14
+    },
+    {
+      "blind_case_id": "92e0867ed9398be412fd2ef8",
+      "source_dataset": "validacao_v1",
+      "scenario_id": "6693a9957378276914e20d264528c43e3e26ee5f453b32d12b0494c3231b78a7",
+      "persona_id": "preferencia_forte",
+      "virtual_week": 2,
+      "scenario_index": 14,
+      "inclusion_reason": "CONFIANCA_INSUFICIENTE",
+      "external_utility_gap": 15.666756,
+      "priority": 15
+    },
+    {
+      "blind_case_id": "addc367c693726c59a0bb42c",
+      "source_dataset": "desenvolvimento_v1",
+      "scenario_id": "98bfe05c044bc1180a7d54c85f4634eb9002cd176aa93798c96cd6aea518ca2b",
+      "persona_id": "preferencia_forte",
+      "virtual_week": 4,
+      "scenario_index": 24,
+      "inclusion_reason": "PREFERENCIA_EXPLICITA_PERDIDA",
+      "external_utility_gap": 14.789963,
+      "priority": 16
+    },
+    {
+      "blind_case_id": "d68a1f2baec858f00bca1f30",
+      "source_dataset": "validacao_v1",
+      "scenario_id": "4d16e969969f863c6b9719f5e9960e8bcfda028fc3d4f351040c0338dd1d60d4",
+      "persona_id": "contraditorio",
+      "virtual_week": 0,
+      "scenario_index": 4,
+      "inclusion_reason": "CONFIANCA_INSUFICIENTE",
+      "external_utility_gap": 14.112848,
+      "priority": 17
+    },
+    {
+      "blind_case_id": "f77a16f680eedec315bedc23",
+      "source_dataset": "desenvolvimento_v1",
+      "scenario_id": "01ca9efa9a5de863b9717110d6ed24d0e64a57d8d1a802566091987e0e164cdd",
+      "persona_id": "sensivel_distancia",
+      "virtual_week": 5,
+      "scenario_index": 29,
+      "inclusion_reason": "PREFERENCIA_EXPLICITA_PERDIDA",
+      "external_utility_gap": 13.976138,
+      "priority": 18
+    },
+    {
+      "blind_case_id": "fa71dbb4b43d1cb57deb674e",
+      "source_dataset": "validacao_v1",
+      "scenario_id": "bf975445fb910f26b447cf44ed99d873e7df54e219723b6264b5a742716dec6c",
+      "persona_id": "sensivel_distancia",
+      "virtual_week": 5,
+      "scenario_index": 25,
+      "inclusion_reason": "PREFERENCIA_EXPLICITA_PERDIDA",
+      "external_utility_gap": 12.708949,
+      "priority": 19
+    },
+    {
+      "blind_case_id": "86f91d4aa91be36877e6472d",
+      "source_dataset": "validacao_v1",
+      "scenario_id": "0bfde8f052b30463b820ca2906c8e1e5c06ee6c2df7d09f678f19c6aed351feb",
+      "persona_id": "sensivel_distancia",
+      "virtual_week": 5,
+      "scenario_index": 26,
+      "inclusion_reason": "PREFERENCIA_EXPLICITA_PERDIDA",
+      "external_utility_gap": 12.700002,
+      "priority": 20
+    },
+    {
+      "blind_case_id": "d7c05c5fc595a9f2ee13ab1e",
+      "source_dataset": "desenvolvimento_v1",
+      "scenario_id": "bfbca7316c7c1aac3675971bf75155a52eb1266133c5845bce407868dd0fba18",
+      "persona_id": "sensivel_distancia",
+      "virtual_week": 3,
+      "scenario_index": 15,
+      "inclusion_reason": "PREFERENCIA_EXPLICITA_PERDIDA",
+      "external_utility_gap": 11.8345,
+      "priority": 21
+    },
+    {
+      "blind_case_id": "5d867a8d3a02c4e41382ceb7",
+      "source_dataset": "desenvolvimento_v1",
+      "scenario_id": "116f534d481d49c33a3d9365601b0bd4ad93849939efcf06737e19580e024ecf",
+      "persona_id": "economico",
+      "virtual_week": 5,
+      "scenario_index": 28,
+      "inclusion_reason": "PREFERENCIA_EXPLICITA_PERDIDA",
+      "external_utility_gap": 11.815839,
+      "priority": 22
+    },
+    {
+      "blind_case_id": "0cd1a05eceb6241027ff3e06",
+      "source_dataset": "validacao_v1",
+      "scenario_id": "4eae8422ba25371b00568e195524997238a13e8f90758fbfc34e8154f6f8b999",
+      "persona_id": "sensivel_distancia",
+      "virtual_week": 3,
+      "scenario_index": 16,
+      "inclusion_reason": "CONFIANCA_INSUFICIENTE",
+      "external_utility_gap": 11.6363,
+      "priority": 23
+    },
+    {
+      "blind_case_id": "7c40f4335b918a6f99e9f349",
+      "source_dataset": "desenvolvimento_v1",
+      "scenario_id": "f3e8af158eb14fde78017e01c1e24be1e8db641321e3fef83ea8d4f7086f7d55",
+      "persona_id": "sensivel_distancia",
+      "virtual_week": 2,
+      "scenario_index": 14,
+      "inclusion_reason": "CONFIANCA_INSUFICIENTE",
+      "external_utility_gap": 11.322991,
+      "priority": 24
+    }
+  ],
+  "limitations": [
+    "Dados e reacoes sao sinteticos e offline.",
+    "Resultado desfavoravel sem violacao de guardrail permanece hipotese para decisao posterior.",
+    "A auditoria nao executa modelos nem acessa a reserva."
+  ],
+  "canonical_sha256": "27480414de60dbd0e9c4b009ee1b715f4c8497738a97a95b653a1b9b57e06121"
+}
