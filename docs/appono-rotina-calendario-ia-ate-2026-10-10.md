@@ -45,6 +45,7 @@ O prazo comporta concluir e integrar a IA. Ele nao comporta provar eficacia com 
 - [x] `02/10` - Decisao tecnica concluida: V2 mantida sem ajuste, com revisao humana pendente e nenhuma hipotese V2.1 aceita. Evidencias: [checkpoint de 02/10](appono-intelligence-v2-checkpoint-2026-10-02.md).
 - [x] `03/10` - Reserva tecnica concluida com estabilizacao, manifesto de congelamento preparado e matriz de integracao documentada; sem recalibracao ou nova simulacao. Evidencias: [checkpoint de 03/10](appono-intelligence-v2-checkpoint-2026-10-03.md).
 - [x] `04/10` - Auditoria final de prontidao concluida: 13 riscos aprovados, checklist de congelamento preparado e nenhum artefato experimental alterado. Evidencias: [checkpoint de 04/10](appono-intelligence-v2-checkpoint-2026-10-04.md).
+- [x] `05/10` - V2 atual congelada formalmente como candidata tecnica, com regressao final aprovada, sem recalibracao e sem rollout publico. Evidencias: [checkpoint de 05/10](appono-intelligence-v2-checkpoint-2026-10-05.md).
 
 Os demais marcos permanecem abertos. A existencia antecipada de alguns artefatos nao equivale a conclusao das respectivas datas.
 

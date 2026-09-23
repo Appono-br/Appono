@@ -1,7 +1,11 @@
 {
   "schema_version": 1,
   "freeze_manifest_version": "routine-final-candidate-freeze-v1",
-  "state": "PREPARED_FOR_FREEZE",
+  "state": "FROZEN",
+  "planned_date": "2026-10-05",
+  "executed_date": "2026-09-23",
+  "timezone": "America/Sao_Paulo",
+  "freeze_executor": "codex-local",
   "candidate": {
     "model_version": "appono-intelligence-v2",
     "control_version": "deterministico-v3",
@@ -62,8 +66,32 @@
     "frontend_build_passes",
     "diff_check_passes"
   ],
+  "verification_summary": {
+    "backend_tests": { "passed": 286, "failed": 0 },
+    "focused_decision_tests": { "passed": 12, "failed": 0, "runs": 3 },
+    "backend_build": "PASS",
+    "frontend_lint": "PASS",
+    "frontend_build": "PASS",
+    "decision_check": "PASS",
+    "blind_review_check": "PASS",
+    "longitudinal_development_check": "PASS",
+    "longitudinal_validation_check": "PASS",
+    "metrics_check": "PASS",
+    "guardrails_check": "PASS",
+    "scenario_audit": "PASS",
+    "partition_audit": "PASS",
+    "diff_check": "PASS",
+    "eliminatory_failures": 0,
+    "models_executed_in_write_mode": 0,
+    "new_scores_produced": 0
+  },
   "formula_changes_allowed": false,
   "reserve_access_allowed": false,
   "public_rollout_allowed": false,
-  "pii_present": false
+  "pii_present": false,
+  "human_review_state": "REVISAO_HUMANA_PENDENTE",
+  "formulas_changed": false,
+  "reserve_accessed": false,
+  "public_rollout_percent": 0,
+  "canonical_sha256": "b1910fc3d0b5b64333be8b08ebac3b661947ea9863b4249f5ae98bd9db26712b"
 }
