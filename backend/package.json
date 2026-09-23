@@ -31,6 +31,7 @@
   "generate:rotina:blind-review": "node scripts/generate-routine-intelligence-blind-review.js",
   "decide:rotina:intelligence": "node scripts/decide-routine-intelligence.js",
   "execute:rotina:reserve": "node scripts/run-routine-intelligence-reserve.js",
+  "demo:rotina:intelligence": "node scripts/demo-routine-intelligence-internal.js",
   "test:rotina:postgres": "node --test test/integration/routine-postgres.test.js",
   "test:rotina:supabase": "node test/integration/routine-supabase-smoke.js"
 },
