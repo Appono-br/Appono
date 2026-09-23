@@ -1,0 +1,106 @@
+{
+  "schema_version": 1,
+  "protocol_version": "routine-blind-review-v1",
+  "registered_at": "2026-10-01T12:00:00-03:00",
+  "timezone": "America/Sao_Paulo",
+  "purpose": "Gerar pacote sintetico e cego para julgamento humano auxiliar de desacordos prospectivos.",
+  "state": "REGISTERED_UNJUDGED",
+  "synthetic_offline_only": true,
+  "contains_pii": false,
+  "reserve_access_allowed": false,
+  "target_case_count": 24,
+  "source_artifacts": {
+    "guardrails_report_file_sha256": "886b66c25338563917af3434583d3a8104d9edd3f5c507e7c856a6df4467a5ab",
+    "guardrails_report_canonical_sha256": "27480414de60dbd0e9c4b009ee1b715f4c8497738a97a95b653a1b9b57e06121",
+    "comparison_file_sha256": "8741b09dc047d68215cf3b0a849c3c4736155f0ba96adc554ed2dfd3d16d1c09",
+    "comparison_canonical_sha256": "26bdeba2d2cc4ca42d2f4c4ce3fbf2fa9d4dc646182d85d5200c17270bdecf2a",
+    "development_raw_file_sha256": "b8033dc6d5b15e40e4ad2acc15897c65c451828953f1112b105a06f382718467",
+    "development_raw_content_sha256": "e71c128fa04d567182497d621c32c9eb22fd8783f9e3560300662d6926f02b57",
+    "validation_raw_file_sha256": "1abfe85103adc84baf76735380eeb6eb7443b99519608c49e7dedc133669ecee",
+    "validation_raw_content_sha256": "3a6cdb5121f28a337a9448e14382de91a6b0506933be5dd126002edd1328c7fc",
+    "development_snapshot_file_sha256": "2bfb0164ad2c886b1ce9f8231568c5ca5158e18a27791943728cc8e1d92cd69c",
+    "validation_snapshot_file_sha256": "92c91f5d1ebc33cad1ea60d1bc192e3a7e6967f8716b9fbe06a8c4eb0021a0a6",
+    "personas_canonical_sha256": "dea25c57dd68942582dcf9de062fbb93c6208ec9b5245a73aed8a7ceb6290474"
+  },
+  "seed_derivation": {
+    "algorithm": "SHA-256",
+    "separator": "LF",
+    "components": [
+      "routine-blind-review-v1",
+      "2026-10-01",
+      "27480414de60dbd0e9c4b009ee1b715f4c8497738a97a95b653a1b9b57e06121",
+      "26bdeba2d2cc4ca42d2f4c4ce3fbf2fa9d4dc646182d85d5200c17270bdecf2a"
+    ],
+    "derived_sha256": "901bc28bcaab1780efd6644414ee201d5836869914587f7217c46b05f36c8927"
+  },
+  "sampling": {
+    "unique_scenarios": true,
+    "validation_minimum": 12,
+    "persona_soft_cap": 4,
+    "include_best_per_observed_classification": true,
+    "include_best_per_observed_persona": true,
+    "include_all_available_comparators": true,
+    "cover_all_virtual_weeks": true,
+    "quality_order": "regret_delta_desc_then_stable_source_key",
+    "fallback_relaxation": "RELAX_PERSONA_CAP_ONLY_AFTER_COVERAGE_AND_VALIDATION"
+  },
+  "randomization": {
+    "algorithm_version": "sha256-sort-balanced-orientation-v1",
+    "case_order_scope": "case-order",
+    "orientation_scope": "orientation-by-dataset-and-comparator",
+    "maximum_orientation_imbalance_per_stratum": 1,
+    "ambient_randomness_allowed": false
+  },
+  "trajectory_policy": {
+    "shared_history": "SHARED_HISTORY",
+    "divergent_history": "TRAJECTORY_OUTCOME",
+    "recent_sequence_limit": 3,
+    "future_decisions_allowed": false
+  },
+  "schemas": {
+    "public_package": "routine-blind-review-package-v1",
+    "internal_key": "routine-blind-review-key-v1",
+    "response_template": "routine-blind-review-responses-v1"
+  },
+  "allowed_choices": ["A", "B", "EMPATE", "INDETERMINADO"],
+  "allowed_reason_codes": [
+    "PREFERENCIA_EXPLICITA",
+    "PRECO",
+    "DISTANCIA",
+    "FAVORITO",
+    "VARIEDADE",
+    "REPETICAO",
+    "NOVIDADE",
+    "COERENCIA_COM_SEQUENCIA",
+    "AMBAS_ACEITAVEIS",
+    "NENHUMA_ACEITAVEL",
+    "CONTEXTO_INSUFICIENTE",
+    "OUTRO"
+  ],
+  "key_commitment": {
+    "algorithm": "SHA-256",
+    "canonical_serialization": true,
+    "published_in_public_package": true,
+    "internal_key_distributed_to_reviewer": false,
+    "expected_sha256": "1313c2dee80fc64028f430bb1c60df17316757e776c9c7d0670c68770e4c325a"
+  },
+  "forbidden_public_fields": [
+    "model_version",
+    "candidate_id",
+    "scenario_id",
+    "dataset_id",
+    "base_score",
+    "adjustment",
+    "total_score",
+    "confidence",
+    "effective_samples",
+    "effective_volume",
+    "consistency",
+    "utility",
+    "regret",
+    "classification",
+    "priority",
+    "state_hash",
+    "internal_key_path"
+  ]
+}

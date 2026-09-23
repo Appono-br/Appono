@@ -1,0 +1,489 @@
+{
+  "schema_version": "routine-blind-review-key-v1",
+  "protocol_version": "routine-blind-review-v1",
+  "seed_sha256": "901bc28bcaab1780efd6644414ee201d5836869914587f7217c46b05f36c8927",
+  "public_cases_sha256": "a6d131747cfe470f1485865680a5ce659c7188643c913b265de3710fba39657f",
+  "cases": [
+    {
+      "blind_case_id": "caso-001",
+      "dataset_id": "validacao_v1",
+      "scenario_id": "4d16e969969f863c6b9719f5e9960e8bcfda028fc3d4f351040c0338dd1d60d4",
+      "persona_id": "contraditorio",
+      "virtual_week": 0,
+      "scenario_index": 4,
+      "classification": "CONFIANCA_INSUFICIENTE",
+      "regret_delta": 14.112848,
+      "comparison_mode": "SHARED_HISTORY",
+      "option_a": {
+        "model_version": "appono-intelligence-v2",
+        "candidate_id": "syn-candidate-validacao_v1-contraditorio-04-2"
+      },
+      "option_b": {
+        "model_version": "appono-intelligence-v1",
+        "candidate_id": "syn-candidate-validacao_v1-contraditorio-04-1"
+      },
+      "public_case_sha256": "4ec46b3bec1b1838a9e743dd39074a68186523502d5c31e3e6c6a7f31655eb33"
+    },
+    {
+      "blind_case_id": "caso-002",
+      "dataset_id": "desenvolvimento_v1",
+      "scenario_id": "01ca9efa9a5de863b9717110d6ed24d0e64a57d8d1a802566091987e0e164cdd",
+      "persona_id": "sensivel_distancia",
+      "virtual_week": 5,
+      "scenario_index": 29,
+      "classification": "PREFERENCIA_EXPLICITA_PERDIDA",
+      "regret_delta": 13.976138,
+      "comparison_mode": "TRAJECTORY_OUTCOME",
+      "option_a": {
+        "model_version": "appono-intelligence-v1",
+        "candidate_id": "syn-candidate-desenvolvimento_v1-sensivel_distancia-29-1"
+      },
+      "option_b": {
+        "model_version": "appono-intelligence-v2",
+        "candidate_id": "syn-candidate-desenvolvimento_v1-sensivel_distancia-29-3"
+      },
+      "public_case_sha256": "4882ea68374cb1ec5e3b6d769e2570f8af3ebc08dabe104d954711f8e7e24582"
+    },
+    {
+      "blind_case_id": "caso-003",
+      "dataset_id": "desenvolvimento_v1",
+      "scenario_id": "9a204ff58e76a00254f739969833981814159a3761e901443704a92db89a549c",
+      "persona_id": "contraditorio",
+      "virtual_week": 5,
+      "scenario_index": 29,
+      "classification": "CONTRADICAO_MAL_COMPENSADA",
+      "regret_delta": 10.574079,
+      "comparison_mode": "TRAJECTORY_OUTCOME",
+      "option_a": {
+        "model_version": "appono-intelligence-v2",
+        "candidate_id": "syn-candidate-desenvolvimento_v1-contraditorio-29-3"
+      },
+      "option_b": {
+        "model_version": "appono-intelligence-v1",
+        "candidate_id": "syn-candidate-desenvolvimento_v1-contraditorio-29-1"
+      },
+      "public_case_sha256": "1afdf86cb14022f31d1703137b6633ce52aaaa969d3f9f93784c0d8e5e24371a"
+    },
+    {
+      "blind_case_id": "caso-004",
+      "dataset_id": "validacao_v1",
+      "scenario_id": "0441ed9024f421e3708a4d8e977e5cedd9dc8befb1090b1565fa9ecf33c04061",
+      "persona_id": "fiel_restaurante",
+      "virtual_week": 5,
+      "scenario_index": 25,
+      "classification": "CONFIANCA_INSUFICIENTE",
+      "regret_delta": 30.254157,
+      "comparison_mode": "SHARED_HISTORY",
+      "option_a": {
+        "model_version": "appono-intelligence-v1",
+        "candidate_id": "syn-candidate-validacao_v1-fiel_restaurante-25-1"
+      },
+      "option_b": {
+        "model_version": "appono-intelligence-v2",
+        "candidate_id": "syn-candidate-validacao_v1-fiel_restaurante-25-3"
+      },
+      "public_case_sha256": "bbf227ccfebfc6dab0eac4364114694b9f3b447d285d33fef17a6b6424e79937"
+    },
+    {
+      "blind_case_id": "caso-005",
+      "dataset_id": "desenvolvimento_v1",
+      "scenario_id": "92e0da3301a23dd025186e835a411b76bd885f61fdafa2a684c0e744382af6db",
+      "persona_id": "mudanca_gradual",
+      "virtual_week": 0,
+      "scenario_index": 1,
+      "classification": "CONFIANCA_INSUFICIENTE",
+      "regret_delta": 9.689934,
+      "comparison_mode": "SHARED_HISTORY",
+      "option_a": {
+        "model_version": "appono-intelligence-v2",
+        "candidate_id": "syn-candidate-desenvolvimento_v1-mudanca_gradual-01-3"
+      },
+      "option_b": {
+        "model_version": "appono-intelligence-v1",
+        "candidate_id": "syn-candidate-desenvolvimento_v1-mudanca_gradual-01-2"
+      },
+      "public_case_sha256": "06b3f7998c6e5c896e74462d41166b234f59c0daeeb36b78d9cba5e7be121414"
+    },
+    {
+      "blind_case_id": "caso-006",
+      "dataset_id": "desenvolvimento_v1",
+      "scenario_id": "287c7d6ba28423a92076c1e13289c08e467ed332158ff6228e1bec46d4b8681e",
+      "persona_id": "fiel_restaurante",
+      "virtual_week": 3,
+      "scenario_index": 19,
+      "classification": "CONFIANCA_INSUFICIENTE",
+      "regret_delta": 25.147625,
+      "comparison_mode": "SHARED_HISTORY",
+      "option_a": {
+        "model_version": "appono-intelligence-v1",
+        "candidate_id": "syn-candidate-desenvolvimento_v1-fiel_restaurante-19-0"
+      },
+      "option_b": {
+        "model_version": "appono-intelligence-v2",
+        "candidate_id": "syn-candidate-desenvolvimento_v1-fiel_restaurante-19-3"
+      },
+      "public_case_sha256": "3ff6e4a05d569e78a40a16e73a1719a18b7cff2168f2cbf8b775f82d648098d0"
+    },
+    {
+      "blind_case_id": "caso-007",
+      "dataset_id": "desenvolvimento_v1",
+      "scenario_id": "26acb878488c8087c841c8454d5439ae82acf2d886837e6181fbcc453efe7ed2",
+      "persona_id": "avesso_repeticao",
+      "virtual_week": 1,
+      "scenario_index": 5,
+      "classification": "CONFIANCA_INSUFICIENTE",
+      "regret_delta": 4.786694,
+      "comparison_mode": "SHARED_HISTORY",
+      "option_a": {
+        "model_version": "deterministico-v3",
+        "candidate_id": "syn-candidate-desenvolvimento_v1-avesso_repeticao-05-2"
+      },
+      "option_b": {
+        "model_version": "appono-intelligence-v2",
+        "candidate_id": "syn-candidate-desenvolvimento_v1-avesso_repeticao-05-0"
+      },
+      "public_case_sha256": "4d0530bd4d74cecbf81fde184e68cd3269e8669a92e9ce3cbe2a6464b363e4a3"
+    },
+    {
+      "blind_case_id": "caso-008",
+      "dataset_id": "validacao_v1",
+      "scenario_id": "6e4df7d7442ed7ebb7e9f30f8249a3b0067c46b8ddc96cd510f32dea1da6a3a7",
+      "persona_id": "preferencia_forte",
+      "virtual_week": 4,
+      "scenario_index": 24,
+      "classification": "CONFIANCA_INSUFICIENTE",
+      "regret_delta": 17.2711,
+      "comparison_mode": "SHARED_HISTORY",
+      "option_a": {
+        "model_version": "appono-intelligence-v2",
+        "candidate_id": "syn-candidate-validacao_v1-preferencia_forte-24-2"
+      },
+      "option_b": {
+        "model_version": "appono-intelligence-v1",
+        "candidate_id": "syn-candidate-validacao_v1-preferencia_forte-24-1"
+      },
+      "public_case_sha256": "83482581ee06284ea17f808be66e913d00bad024060b1fd6f5d172f2b12f08af"
+    },
+    {
+      "blind_case_id": "caso-009",
+      "dataset_id": "validacao_v1",
+      "scenario_id": "71ce89d0dfb0e18aef156591e2605de6ce03f6f17860a2af352ee8c56548dea5",
+      "persona_id": "preferencia_forte",
+      "virtual_week": 5,
+      "scenario_index": 25,
+      "classification": "CONFIANCA_INSUFICIENTE",
+      "regret_delta": 16.56032,
+      "comparison_mode": "TRAJECTORY_OUTCOME",
+      "option_a": {
+        "model_version": "appono-intelligence-v2",
+        "candidate_id": "syn-candidate-validacao_v1-preferencia_forte-25-3"
+      },
+      "option_b": {
+        "model_version": "appono-intelligence-v1",
+        "candidate_id": "syn-candidate-validacao_v1-preferencia_forte-25-0"
+      },
+      "public_case_sha256": "4cfc392953b5bc5718b7e100d4652e8bbe3c9ccf284119ede375bfbd5c035eb9"
+    },
+    {
+      "blind_case_id": "caso-010",
+      "dataset_id": "desenvolvimento_v1",
+      "scenario_id": "1f082f8da0730ac55be3a085c0c89dd5959009c126bddbd3dc210cbf7124fe2d",
+      "persona_id": "fiel_restaurante",
+      "virtual_week": 5,
+      "scenario_index": 27,
+      "classification": "CONFIANCA_INSUFICIENTE",
+      "regret_delta": 29.590772,
+      "comparison_mode": "SHARED_HISTORY",
+      "option_a": {
+        "model_version": "appono-intelligence-v1",
+        "candidate_id": "syn-candidate-desenvolvimento_v1-fiel_restaurante-27-0"
+      },
+      "option_b": {
+        "model_version": "appono-intelligence-v2",
+        "candidate_id": "syn-candidate-desenvolvimento_v1-fiel_restaurante-27-3"
+      },
+      "public_case_sha256": "d25d8124d4544309f4c8f996272d2176002c7732936748d8b8a9962ec39a3ffb"
+    },
+    {
+      "blind_case_id": "caso-011",
+      "dataset_id": "desenvolvimento_v1",
+      "scenario_id": "55c3e72daf91884f1f15f1fd164350ca02e7748e23c874c7da80a1d04e4deedf",
+      "persona_id": "economico",
+      "virtual_week": 3,
+      "scenario_index": 16,
+      "classification": "PRECO_MAL_PRIORIZADO",
+      "regret_delta": 10.346153,
+      "comparison_mode": "SHARED_HISTORY",
+      "option_a": {
+        "model_version": "appono-intelligence-v1",
+        "candidate_id": "syn-candidate-desenvolvimento_v1-economico-16-1"
+      },
+      "option_b": {
+        "model_version": "appono-intelligence-v2",
+        "candidate_id": "syn-candidate-desenvolvimento_v1-economico-16-2"
+      },
+      "public_case_sha256": "4695133a92b6b76536b0926f573925120a5f6e52799adbeadb163a69a0c3252b"
+    },
+    {
+      "blind_case_id": "caso-012",
+      "dataset_id": "validacao_v1",
+      "scenario_id": "eb2201036c7ccc7aef9ab9b944600ed3dc1261ad5096d2916c43e45449070221",
+      "persona_id": "fiel_restaurante",
+      "virtual_week": 3,
+      "scenario_index": 19,
+      "classification": "CONFIANCA_INSUFICIENTE",
+      "regret_delta": 18.383018,
+      "comparison_mode": "SHARED_HISTORY",
+      "option_a": {
+        "model_version": "appono-intelligence-v2",
+        "candidate_id": "syn-candidate-validacao_v1-fiel_restaurante-19-3"
+      },
+      "option_b": {
+        "model_version": "appono-intelligence-v1",
+        "candidate_id": "syn-candidate-validacao_v1-fiel_restaurante-19-0"
+      },
+      "public_case_sha256": "d03f0ea7b807b40b8fc92bfa970615f8074c44051e6cf630b4a384e9927fb96e"
+    },
+    {
+      "blind_case_id": "caso-013",
+      "dataset_id": "desenvolvimento_v1",
+      "scenario_id": "8d6b1a4ab473c69868af2125743b1da5f415ed547288c32236f4d4c3ea78121b",
+      "persona_id": "contraditorio",
+      "virtual_week": 5,
+      "scenario_index": 27,
+      "classification": "PREFERENCIA_EXPLICITA_PERDIDA",
+      "regret_delta": 20.396568,
+      "comparison_mode": "SHARED_HISTORY",
+      "option_a": {
+        "model_version": "appono-intelligence-v1",
+        "candidate_id": "syn-candidate-desenvolvimento_v1-contraditorio-27-2"
+      },
+      "option_b": {
+        "model_version": "appono-intelligence-v2",
+        "candidate_id": "syn-candidate-desenvolvimento_v1-contraditorio-27-3"
+      },
+      "public_case_sha256": "1fcda9f6115f603460b075b9fc775b6dd2cee97298ec42c6f03a3a5c25c8ecf7"
+    },
+    {
+      "blind_case_id": "caso-014",
+      "dataset_id": "validacao_v1",
+      "scenario_id": "bfe30700656b4b3ea46a1f34a12bb695b7e2d7038289748a47ea5ade88e5cb50",
+      "persona_id": "mudanca_gradual",
+      "virtual_week": 4,
+      "scenario_index": 23,
+      "classification": "HIPOTESE_PARA_V2_1",
+      "regret_delta": 9.318108,
+      "comparison_mode": "SHARED_HISTORY",
+      "option_a": {
+        "model_version": "appono-intelligence-v1",
+        "candidate_id": "syn-candidate-validacao_v1-mudanca_gradual-23-2"
+      },
+      "option_b": {
+        "model_version": "appono-intelligence-v2",
+        "candidate_id": "syn-candidate-validacao_v1-mudanca_gradual-23-0"
+      },
+      "public_case_sha256": "30665802d36025e7dbbd594c2e49a4be8ea52c1068b7b2fd3ff0a9ca72d164d5"
+    },
+    {
+      "blind_case_id": "caso-015",
+      "dataset_id": "validacao_v1",
+      "scenario_id": "2c96f07a8043d6d46141815b03e036409c2cdbc93ebb538aa1761c61661eb654",
+      "persona_id": "fiel_prato",
+      "virtual_week": 4,
+      "scenario_index": 24,
+      "classification": "CONFIANCA_INSUFICIENTE",
+      "regret_delta": 20.919715,
+      "comparison_mode": "SHARED_HISTORY",
+      "option_a": {
+        "model_version": "appono-intelligence-v1",
+        "candidate_id": "syn-candidate-validacao_v1-fiel_prato-24-1"
+      },
+      "option_b": {
+        "model_version": "appono-intelligence-v2",
+        "candidate_id": "syn-candidate-validacao_v1-fiel_prato-24-3"
+      },
+      "public_case_sha256": "e581c5cce9b77ee3918435910d9b22469fd96d76daa0f19a06f88da655aa4ccc"
+    },
+    {
+      "blind_case_id": "caso-016",
+      "dataset_id": "desenvolvimento_v1",
+      "scenario_id": "4b0a6385205e99804b276215551fc076813685e3a08af033965730735782150a",
+      "persona_id": "fiel_prato",
+      "virtual_week": 4,
+      "scenario_index": 23,
+      "classification": "PREFERENCIA_EXPLICITA_PERDIDA",
+      "regret_delta": 19.136658,
+      "comparison_mode": "TRAJECTORY_OUTCOME",
+      "option_a": {
+        "model_version": "appono-intelligence-v2",
+        "candidate_id": "syn-candidate-desenvolvimento_v1-fiel_prato-23-3"
+      },
+      "option_b": {
+        "model_version": "appono-intelligence-v1",
+        "candidate_id": "syn-candidate-desenvolvimento_v1-fiel_prato-23-0"
+      },
+      "public_case_sha256": "d176f3375cd5b2b37c89d0363c668e0c660b30863684df915d56fc45d7ace665"
+    },
+    {
+      "blind_case_id": "caso-017",
+      "dataset_id": "validacao_v1",
+      "scenario_id": "49836f8438fd419e8fd866e4f4f493740186a80aa813dd12cd8410d9a0ad1968",
+      "persona_id": "sensivel_distancia",
+      "virtual_week": 1,
+      "scenario_index": 6,
+      "classification": "PREFERENCIA_EXPLICITA_PERDIDA",
+      "regret_delta": 11.052883,
+      "comparison_mode": "TRAJECTORY_OUTCOME",
+      "option_a": {
+        "model_version": "appono-intelligence-v2",
+        "candidate_id": "syn-candidate-validacao_v1-sensivel_distancia-06-2"
+      },
+      "option_b": {
+        "model_version": "appono-intelligence-v1",
+        "candidate_id": "syn-candidate-validacao_v1-sensivel_distancia-06-1"
+      },
+      "public_case_sha256": "d9e9ccc95f5ce8b468e5c52c9128d4ac9c6ef512d3e4cc0c9abf97e4834c009f"
+    },
+    {
+      "blind_case_id": "caso-018",
+      "dataset_id": "validacao_v1",
+      "scenario_id": "9581414c933f25f592e7622c88b0068b1d759851f94d8396b33142badb265293",
+      "persona_id": "fiel_prato",
+      "virtual_week": 3,
+      "scenario_index": 15,
+      "classification": "CONFIANCA_INSUFICIENTE",
+      "regret_delta": 17.062401,
+      "comparison_mode": "SHARED_HISTORY",
+      "option_a": {
+        "model_version": "appono-intelligence-v1",
+        "candidate_id": "syn-candidate-validacao_v1-fiel_prato-15-1"
+      },
+      "option_b": {
+        "model_version": "appono-intelligence-v2",
+        "candidate_id": "syn-candidate-validacao_v1-fiel_prato-15-2"
+      },
+      "public_case_sha256": "23439737afa5a39277bedcad2cb299fafcea442417750d83eb02b98ba3f09821"
+    },
+    {
+      "blind_case_id": "caso-019",
+      "dataset_id": "validacao_v1",
+      "scenario_id": "c08461df03e8650250d9285e7dbaa04bca401c7d47f2fa9f9bd5c296909e4478",
+      "persona_id": "sensivel_distancia",
+      "virtual_week": 5,
+      "scenario_index": 29,
+      "classification": "DISTANCIA_MAL_PRIORIZADA",
+      "regret_delta": 3.389685,
+      "comparison_mode": "TRAJECTORY_OUTCOME",
+      "option_a": {
+        "model_version": "appono-intelligence-v2",
+        "candidate_id": "syn-candidate-validacao_v1-sensivel_distancia-29-1"
+      },
+      "option_b": {
+        "model_version": "deterministico-v3",
+        "candidate_id": "syn-candidate-validacao_v1-sensivel_distancia-29-2"
+      },
+      "public_case_sha256": "34d2e1b755fa53fc1a8171c1cdec8615e0a310b22ac1b7759f3204e77d2a7dce"
+    },
+    {
+      "blind_case_id": "caso-020",
+      "dataset_id": "validacao_v1",
+      "scenario_id": "6693a9957378276914e20d264528c43e3e26ee5f453b32d12b0494c3231b78a7",
+      "persona_id": "preferencia_forte",
+      "virtual_week": 2,
+      "scenario_index": 14,
+      "classification": "CONFIANCA_INSUFICIENTE",
+      "regret_delta": 15.666756,
+      "comparison_mode": "SHARED_HISTORY",
+      "option_a": {
+        "model_version": "appono-intelligence-v1",
+        "candidate_id": "syn-candidate-validacao_v1-preferencia_forte-14-0"
+      },
+      "option_b": {
+        "model_version": "appono-intelligence-v2",
+        "candidate_id": "syn-candidate-validacao_v1-preferencia_forte-14-3"
+      },
+      "public_case_sha256": "4fdf8d30ed074eee46da99f6429b193ea5b055267f3bbd5d5f3e09e57acb2d8e"
+    },
+    {
+      "blind_case_id": "caso-021",
+      "dataset_id": "validacao_v1",
+      "scenario_id": "c83501bdb6552a70399d4eee813f1bbc1f12e3611baaf3ed6ce02dd8435cdf9a",
+      "persona_id": "economico",
+      "virtual_week": 5,
+      "scenario_index": 29,
+      "classification": "CONFIANCA_INSUFICIENTE",
+      "regret_delta": 16.276441,
+      "comparison_mode": "SHARED_HISTORY",
+      "option_a": {
+        "model_version": "appono-intelligence-v2",
+        "candidate_id": "syn-candidate-validacao_v1-economico-29-3"
+      },
+      "option_b": {
+        "model_version": "appono-intelligence-v1",
+        "candidate_id": "syn-candidate-validacao_v1-economico-29-1"
+      },
+      "public_case_sha256": "8d0ba0d49b27a9a28d5d101fcee1c5d5f1ed0bd815bdc3066cf1f8cbe9e775ce"
+    },
+    {
+      "blind_case_id": "caso-022",
+      "dataset_id": "validacao_v1",
+      "scenario_id": "a232cbd4a7e62a1a90ee25bb8d921eee5883c4d3f54dadd86a1899ec10182608",
+      "persona_id": "explorador",
+      "virtual_week": 3,
+      "scenario_index": 15,
+      "classification": "HIPOTESE_PARA_V2_1",
+      "regret_delta": 6.974002,
+      "comparison_mode": "SHARED_HISTORY",
+      "option_a": {
+        "model_version": "appono-intelligence-v1",
+        "candidate_id": "syn-candidate-validacao_v1-explorador-15-3"
+      },
+      "option_b": {
+        "model_version": "appono-intelligence-v2",
+        "candidate_id": "syn-candidate-validacao_v1-explorador-15-1"
+      },
+      "public_case_sha256": "56d9c92d3f59868febb9acab46f3e10393f1e33867b797247587d76b2a84eecd"
+    },
+    {
+      "blind_case_id": "caso-023",
+      "dataset_id": "desenvolvimento_v1",
+      "scenario_id": "0faa1e430cd045dea81906fd4ac58f269ddad18f1cd69568dd906a8f0714d985",
+      "persona_id": "fiel_prato",
+      "virtual_week": 3,
+      "scenario_index": 19,
+      "classification": "CONFIANCA_INSUFICIENTE",
+      "regret_delta": 17.18939,
+      "comparison_mode": "SHARED_HISTORY",
+      "option_a": {
+        "model_version": "appono-intelligence-v2",
+        "candidate_id": "syn-candidate-desenvolvimento_v1-fiel_prato-19-3"
+      },
+      "option_b": {
+        "model_version": "appono-intelligence-v1",
+        "candidate_id": "syn-candidate-desenvolvimento_v1-fiel_prato-19-1"
+      },
+      "public_case_sha256": "e62785437e34fbf818dbe069df96af7dbd93ce78bcfc5dcd486f76b18f5f54a2"
+    },
+    {
+      "blind_case_id": "caso-024",
+      "dataset_id": "validacao_v1",
+      "scenario_id": "4eae8422ba25371b00568e195524997238a13e8f90758fbfc34e8154f6f8b999",
+      "persona_id": "sensivel_distancia",
+      "virtual_week": 3,
+      "scenario_index": 16,
+      "classification": "CONFIANCA_INSUFICIENTE",
+      "regret_delta": 11.6363,
+      "comparison_mode": "SHARED_HISTORY",
+      "option_a": {
+        "model_version": "deterministico-v3",
+        "candidate_id": "syn-candidate-validacao_v1-sensivel_distancia-16-0"
+      },
+      "option_b": {
+        "model_version": "appono-intelligence-v2",
+        "candidate_id": "syn-candidate-validacao_v1-sensivel_distancia-16-2"
+      },
+      "public_case_sha256": "ffcfe13e4b6997ff17c19fb2ce370e0f05a128fafa97ece482fe4e808a81c5b2"
+    }
+  ],
+  "canonical_sha256": "1313c2dee80fc64028f430bb1c60df17316757e776c9c7d0670c68770e4c325a"
+}

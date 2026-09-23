@@ -1,0 +1,1527 @@
+{
+  "schema_version": "routine-blind-review-package-v1",
+  "package_version": "blind-review-package-v1",
+  "synthetic_offline_only": true,
+  "judgments_present": false,
+  "case_count": 24,
+  "comparison_notice": "Amostra intencional de desacordos; alguns pares representam trajetorias anteriores diferentes.",
+  "allowed_choices": [
+    "A",
+    "B",
+    "EMPATE",
+    "INDETERMINADO"
+  ],
+  "allowed_reason_codes": [
+    "PREFERENCIA_EXPLICITA",
+    "PRECO",
+    "DISTANCIA",
+    "FAVORITO",
+    "VARIEDADE",
+    "REPETICAO",
+    "NOVIDADE",
+    "COERENCIA_COM_SEQUENCIA",
+    "AMBAS_ACEITAVEIS",
+    "NENHUMA_ACEITAVEL",
+    "CONTEXTO_INSUFICIENTE",
+    "OUTRO"
+  ],
+  "answer_key_commitment_sha256": "1313c2dee80fc64028f430bb1c60df17316757e776c9c7d0670c68770e4c325a",
+  "cases": [
+    {
+      "blind_case_id": "caso-001",
+      "display_order": 1,
+      "comparison_mode": "SHARED_HISTORY",
+      "context": {
+        "profile_label": "Perfil E350",
+        "behavioral_goal": "Representar evidencias positivas e negativas compensaveis de modo deterministico.",
+        "explicit_preferences": [
+          "Lanches",
+          "Saudavel"
+        ],
+        "gastronomic_aversions": [
+          "Doces"
+        ],
+        "meal_window": "JANTAR",
+        "virtual_moment": "semana 1, dia 5",
+        "meal_budget": "ate R$ 48",
+        "maximum_distance": "ate 8 km",
+        "recent_sequence": [
+          {
+            "restaurant_alias": "Restaurante anterior 1",
+            "category": "Saudavel"
+          },
+          {
+            "restaurant_alias": "Restaurante anterior 2",
+            "category": "Brasileira"
+          },
+          {
+            "restaurant_alias": "Restaurante anterior 3",
+            "category": "Lanches"
+          }
+        ]
+      },
+      "option_a": {
+        "restaurant_alias": "Restaurante A",
+        "product_alias": "Opcao A",
+        "category": "Doces",
+        "price_band": "de R$ 25 a R$ 34",
+        "distance_band": "de 1 a 2 km",
+        "eligible_confirmed": true,
+        "preference_relation": "EVITADA",
+        "recent_category_occurrences": 0
+      },
+      "option_b": {
+        "restaurant_alias": "Restaurante B",
+        "product_alias": "Opcao B",
+        "category": "Lanches",
+        "price_band": "de R$ 25 a R$ 34",
+        "distance_band": "menos de 1 km",
+        "eligible_confirmed": true,
+        "preference_relation": "PREFERIDA",
+        "recent_category_occurrences": 1
+      },
+      "response": {
+        "choice": null,
+        "reason_codes": [],
+        "review_confidence": null,
+        "optional_note": null
+      }
+    },
+    {
+      "blind_case_id": "caso-002",
+      "display_order": 2,
+      "comparison_mode": "TRAJECTORY_OUTCOME",
+      "context": {
+        "profile_label": "Perfil 8BD6",
+        "behavioral_goal": "Priorizar deslocamentos curtos dentro do raio sem apagar preferencia explicita forte.",
+        "explicit_preferences": [
+          "Brasileira"
+        ],
+        "gastronomic_aversions": [
+          "Doces"
+        ],
+        "meal_window": "ALMOCO",
+        "virtual_moment": "semana 6, dia 5",
+        "meal_budget": "ate R$ 55",
+        "maximum_distance": "ate 4 km"
+      },
+      "option_a": {
+        "restaurant_alias": "Restaurante A",
+        "product_alias": "Opcao A",
+        "category": "Brasileira",
+        "price_band": "de R$ 25 a R$ 34",
+        "distance_band": "menos de 1 km",
+        "eligible_confirmed": true,
+        "preference_relation": "PREFERIDA",
+        "recent_category_occurrences": 2,
+        "recent_sequence": [
+          {
+            "restaurant_alias": "Historico A 1",
+            "category": "Mediterranea"
+          },
+          {
+            "restaurant_alias": "Historico A 2",
+            "category": "Brasileira"
+          },
+          {
+            "restaurant_alias": "Historico A 3",
+            "category": "Brasileira"
+          }
+        ]
+      },
+      "option_b": {
+        "restaurant_alias": "Restaurante B",
+        "product_alias": "Opcao B",
+        "category": "Lanches",
+        "price_band": "de R$ 25 a R$ 34",
+        "distance_band": "de 1 a 2 km",
+        "eligible_confirmed": true,
+        "preference_relation": "NEUTRA",
+        "recent_category_occurrences": 0,
+        "recent_sequence": [
+          {
+            "restaurant_alias": "Historico B 1",
+            "category": "Mediterranea"
+          },
+          {
+            "restaurant_alias": "Historico B 2",
+            "category": "Brasileira"
+          },
+          {
+            "restaurant_alias": "Historico B 3",
+            "category": "Brasileira"
+          }
+        ]
+      },
+      "response": {
+        "choice": null,
+        "reason_codes": [],
+        "review_confidence": null,
+        "optional_note": null
+      }
+    },
+    {
+      "blind_case_id": "caso-003",
+      "display_order": 3,
+      "comparison_mode": "TRAJECTORY_OUTCOME",
+      "context": {
+        "profile_label": "Perfil E350",
+        "behavioral_goal": "Representar evidencias positivas e negativas compensaveis de modo deterministico.",
+        "explicit_preferences": [
+          "Lanches",
+          "Saudavel"
+        ],
+        "gastronomic_aversions": [
+          "Doces"
+        ],
+        "meal_window": "JANTAR",
+        "virtual_moment": "semana 6, dia 5",
+        "meal_budget": "ate R$ 48",
+        "maximum_distance": "ate 8 km"
+      },
+      "option_a": {
+        "restaurant_alias": "Restaurante A",
+        "product_alias": "Opcao A",
+        "category": "Lanches",
+        "price_band": "de R$ 25 a R$ 34",
+        "distance_band": "de 1 a 2 km",
+        "eligible_confirmed": true,
+        "preference_relation": "PREFERIDA",
+        "recent_category_occurrences": 0,
+        "recent_sequence": [
+          {
+            "restaurant_alias": "Historico A 1",
+            "category": "Asiatica"
+          },
+          {
+            "restaurant_alias": "Historico A 2",
+            "category": "Doces"
+          },
+          {
+            "restaurant_alias": "Historico A 3",
+            "category": "Brasileira"
+          }
+        ]
+      },
+      "option_b": {
+        "restaurant_alias": "Restaurante B",
+        "product_alias": "Opcao B",
+        "category": "Saudavel",
+        "price_band": "de R$ 25 a R$ 34",
+        "distance_band": "de 2 a 4 km",
+        "eligible_confirmed": true,
+        "preference_relation": "PREFERIDA",
+        "recent_category_occurrences": 1,
+        "recent_sequence": [
+          {
+            "restaurant_alias": "Historico B 1",
+            "category": "Asiatica"
+          },
+          {
+            "restaurant_alias": "Historico B 2",
+            "category": "Saudavel"
+          },
+          {
+            "restaurant_alias": "Historico B 3",
+            "category": "Brasileira"
+          }
+        ]
+      },
+      "response": {
+        "choice": null,
+        "reason_codes": [],
+        "review_confidence": null,
+        "optional_note": null
+      }
+    },
+    {
+      "blind_case_id": "caso-004",
+      "display_order": 4,
+      "comparison_mode": "SHARED_HISTORY",
+      "context": {
+        "profile_label": "Perfil 003E",
+        "behavioral_goal": "Manter afinidade recorrente por restaurante sem ultrapassar limites eliminatorios.",
+        "explicit_preferences": [
+          "Massas"
+        ],
+        "gastronomic_aversions": [
+          "Doces"
+        ],
+        "meal_window": "ALMOCO",
+        "virtual_moment": "semana 6, dia 1",
+        "meal_budget": "ate R$ 55",
+        "maximum_distance": "ate 8 km",
+        "recent_sequence": [
+          {
+            "restaurant_alias": "Restaurante anterior 1",
+            "category": "Massas"
+          },
+          {
+            "restaurant_alias": "Restaurante anterior 2",
+            "category": "Massas"
+          },
+          {
+            "restaurant_alias": "Restaurante anterior 3",
+            "category": "Mediterranea"
+          }
+        ]
+      },
+      "option_a": {
+        "restaurant_alias": "Restaurante A",
+        "product_alias": "Opcao A",
+        "category": "Massas",
+        "price_band": "de R$ 25 a R$ 34",
+        "distance_band": "menos de 1 km",
+        "eligible_confirmed": true,
+        "preference_relation": "PREFERIDA",
+        "recent_category_occurrences": 2
+      },
+      "option_b": {
+        "restaurant_alias": "Restaurante B",
+        "product_alias": "Opcao B",
+        "category": "Doces",
+        "price_band": "de R$ 25 a R$ 34",
+        "distance_band": "de 1 a 2 km",
+        "eligible_confirmed": true,
+        "preference_relation": "EVITADA",
+        "recent_category_occurrences": 0
+      },
+      "response": {
+        "choice": null,
+        "reason_codes": [],
+        "review_confidence": null,
+        "optional_note": null
+      }
+    },
+    {
+      "blind_case_id": "caso-005",
+      "display_order": 5,
+      "comparison_mode": "SHARED_HISTORY",
+      "context": {
+        "profile_label": "Perfil BCC7",
+        "behavioral_goal": "Migrar afinidade de Massas para Asiatica ao longo de varias semanas.",
+        "explicit_preferences": [],
+        "gastronomic_aversions": [
+          "Doces"
+        ],
+        "meal_window": "JANTAR",
+        "virtual_moment": "semana 1, dia 2",
+        "meal_budget": "ate R$ 58",
+        "maximum_distance": "ate 8 km",
+        "recent_sequence": [
+          {
+            "restaurant_alias": "Restaurante anterior 1",
+            "category": "Massas"
+          }
+        ]
+      },
+      "option_a": {
+        "restaurant_alias": "Restaurante A",
+        "product_alias": "Opcao A",
+        "category": "Vegetariana",
+        "price_band": "de R$ 25 a R$ 34",
+        "distance_band": "de 2 a 4 km",
+        "eligible_confirmed": true,
+        "preference_relation": "NEUTRA",
+        "recent_category_occurrences": 0
+      },
+      "option_b": {
+        "restaurant_alias": "Restaurante B",
+        "product_alias": "Opcao B",
+        "category": "Massas",
+        "price_band": "de R$ 35 a R$ 44",
+        "distance_band": "de 2 a 4 km",
+        "eligible_confirmed": true,
+        "preference_relation": "NEUTRA",
+        "recent_category_occurrences": 1
+      },
+      "response": {
+        "choice": null,
+        "reason_codes": [],
+        "review_confidence": null,
+        "optional_note": null
+      }
+    },
+    {
+      "blind_case_id": "caso-006",
+      "display_order": 6,
+      "comparison_mode": "SHARED_HISTORY",
+      "context": {
+        "profile_label": "Perfil 003E",
+        "behavioral_goal": "Manter afinidade recorrente por restaurante sem ultrapassar limites eliminatorios.",
+        "explicit_preferences": [
+          "Massas"
+        ],
+        "gastronomic_aversions": [
+          "Doces"
+        ],
+        "meal_window": "ALMOCO",
+        "virtual_moment": "semana 4, dia 5",
+        "meal_budget": "ate R$ 55",
+        "maximum_distance": "ate 8 km",
+        "recent_sequence": [
+          {
+            "restaurant_alias": "Restaurante anterior 1",
+            "category": "Massas"
+          },
+          {
+            "restaurant_alias": "Restaurante anterior 2",
+            "category": "Vegetariana"
+          },
+          {
+            "restaurant_alias": "Restaurante anterior 3",
+            "category": "Mediterranea"
+          }
+        ]
+      },
+      "option_a": {
+        "restaurant_alias": "Restaurante A",
+        "product_alias": "Opcao A",
+        "category": "Massas",
+        "price_band": "de R$ 25 a R$ 34",
+        "distance_band": "menos de 1 km",
+        "eligible_confirmed": true,
+        "preference_relation": "PREFERIDA",
+        "recent_category_occurrences": 1
+      },
+      "option_b": {
+        "restaurant_alias": "Restaurante B",
+        "product_alias": "Opcao B",
+        "category": "Doces",
+        "price_band": "de R$ 25 a R$ 34",
+        "distance_band": "de 2 a 4 km",
+        "eligible_confirmed": true,
+        "preference_relation": "EVITADA",
+        "recent_category_occurrences": 0
+      },
+      "response": {
+        "choice": null,
+        "reason_codes": [],
+        "review_confidence": null,
+        "optional_note": null
+      }
+    },
+    {
+      "blind_case_id": "caso-007",
+      "display_order": 7,
+      "comparison_mode": "SHARED_HISTORY",
+      "context": {
+        "profile_label": "Perfil 381A",
+        "behavioral_goal": "Penalizar progressivamente repeticoes sem banir uma primeira recorrencia compativel.",
+        "explicit_preferences": [
+          "Massas",
+          "Saudavel"
+        ],
+        "gastronomic_aversions": [
+          "Doces"
+        ],
+        "meal_window": "JANTAR",
+        "virtual_moment": "semana 2, dia 1",
+        "meal_budget": "ate R$ 55",
+        "maximum_distance": "ate 9 km",
+        "recent_sequence": [
+          {
+            "restaurant_alias": "Restaurante anterior 1",
+            "category": "Massas"
+          },
+          {
+            "restaurant_alias": "Restaurante anterior 2",
+            "category": "Saudavel"
+          },
+          {
+            "restaurant_alias": "Restaurante anterior 3",
+            "category": "Massas"
+          }
+        ]
+      },
+      "option_a": {
+        "restaurant_alias": "Restaurante A",
+        "product_alias": "Opcao A",
+        "category": "Mediterranea",
+        "price_band": "de R$ 25 a R$ 34",
+        "distance_band": "de 1 a 2 km",
+        "eligible_confirmed": true,
+        "preference_relation": "NEUTRA",
+        "recent_category_occurrences": 0
+      },
+      "option_b": {
+        "restaurant_alias": "Restaurante B",
+        "product_alias": "Opcao B",
+        "category": "Saudavel",
+        "price_band": "de R$ 25 a R$ 34",
+        "distance_band": "menos de 1 km",
+        "eligible_confirmed": true,
+        "preference_relation": "PREFERIDA",
+        "recent_category_occurrences": 1
+      },
+      "response": {
+        "choice": null,
+        "reason_codes": [],
+        "review_confidence": null,
+        "optional_note": null
+      }
+    },
+    {
+      "blind_case_id": "caso-008",
+      "display_order": 8,
+      "comparison_mode": "SHARED_HISTORY",
+      "context": {
+        "profile_label": "Perfil CBE5",
+        "behavioral_goal": "Preservar preferencia declarada diante de pequenas vantagens operacionais concorrentes.",
+        "explicit_preferences": [
+          "Vegetariana"
+        ],
+        "gastronomic_aversions": [
+          "Carnes"
+        ],
+        "meal_window": "ALMOCO",
+        "virtual_moment": "semana 5, dia 5",
+        "meal_budget": "ate R$ 65",
+        "maximum_distance": "ate 9 km",
+        "recent_sequence": [
+          {
+            "restaurant_alias": "Restaurante anterior 1",
+            "category": "Vegetariana"
+          },
+          {
+            "restaurant_alias": "Restaurante anterior 2",
+            "category": "Lanches"
+          },
+          {
+            "restaurant_alias": "Restaurante anterior 3",
+            "category": "Vegetariana"
+          }
+        ]
+      },
+      "option_a": {
+        "restaurant_alias": "Restaurante A",
+        "product_alias": "Opcao A",
+        "category": "Asiatica",
+        "price_band": "de R$ 25 a R$ 34",
+        "distance_band": "menos de 1 km",
+        "eligible_confirmed": true,
+        "preference_relation": "NEUTRA",
+        "recent_category_occurrences": 0
+      },
+      "option_b": {
+        "restaurant_alias": "Restaurante B",
+        "product_alias": "Opcao B",
+        "category": "Vegetariana",
+        "price_band": "de R$ 35 a R$ 44",
+        "distance_band": "menos de 1 km",
+        "eligible_confirmed": true,
+        "preference_relation": "PREFERIDA",
+        "recent_category_occurrences": 2
+      },
+      "response": {
+        "choice": null,
+        "reason_codes": [],
+        "review_confidence": null,
+        "optional_note": null
+      }
+    },
+    {
+      "blind_case_id": "caso-009",
+      "display_order": 9,
+      "comparison_mode": "TRAJECTORY_OUTCOME",
+      "context": {
+        "profile_label": "Perfil CBE5",
+        "behavioral_goal": "Preservar preferencia declarada diante de pequenas vantagens operacionais concorrentes.",
+        "explicit_preferences": [
+          "Vegetariana"
+        ],
+        "gastronomic_aversions": [
+          "Carnes"
+        ],
+        "meal_window": "ALMOCO",
+        "virtual_moment": "semana 6, dia 1",
+        "meal_budget": "ate R$ 65",
+        "maximum_distance": "ate 9 km"
+      },
+      "option_a": {
+        "restaurant_alias": "Restaurante A",
+        "product_alias": "Opcao A",
+        "category": "Doces",
+        "price_band": "de R$ 25 a R$ 34",
+        "distance_band": "de 1 a 2 km",
+        "eligible_confirmed": true,
+        "preference_relation": "NEUTRA",
+        "recent_category_occurrences": 0,
+        "recent_sequence": [
+          {
+            "restaurant_alias": "Historico A 1",
+            "category": "Lanches"
+          },
+          {
+            "restaurant_alias": "Historico A 2",
+            "category": "Vegetariana"
+          },
+          {
+            "restaurant_alias": "Historico A 3",
+            "category": "Asiatica"
+          }
+        ]
+      },
+      "option_b": {
+        "restaurant_alias": "Restaurante B",
+        "product_alias": "Opcao B",
+        "category": "Vegetariana",
+        "price_band": "de R$ 35 a R$ 44",
+        "distance_band": "menos de 1 km",
+        "eligible_confirmed": true,
+        "preference_relation": "PREFERIDA",
+        "recent_category_occurrences": 2,
+        "recent_sequence": [
+          {
+            "restaurant_alias": "Historico B 1",
+            "category": "Lanches"
+          },
+          {
+            "restaurant_alias": "Historico B 2",
+            "category": "Vegetariana"
+          },
+          {
+            "restaurant_alias": "Historico B 3",
+            "category": "Vegetariana"
+          }
+        ]
+      },
+      "response": {
+        "choice": null,
+        "reason_codes": [],
+        "review_confidence": null,
+        "optional_note": null
+      }
+    },
+    {
+      "blind_case_id": "caso-010",
+      "display_order": 10,
+      "comparison_mode": "SHARED_HISTORY",
+      "context": {
+        "profile_label": "Perfil 003E",
+        "behavioral_goal": "Manter afinidade recorrente por restaurante sem ultrapassar limites eliminatorios.",
+        "explicit_preferences": [
+          "Massas"
+        ],
+        "gastronomic_aversions": [
+          "Doces"
+        ],
+        "meal_window": "ALMOCO",
+        "virtual_moment": "semana 6, dia 3",
+        "meal_budget": "ate R$ 55",
+        "maximum_distance": "ate 8 km",
+        "recent_sequence": [
+          {
+            "restaurant_alias": "Restaurante anterior 1",
+            "category": "Massas"
+          },
+          {
+            "restaurant_alias": "Restaurante anterior 2",
+            "category": "Vegetariana"
+          },
+          {
+            "restaurant_alias": "Restaurante anterior 3",
+            "category": "Massas"
+          }
+        ]
+      },
+      "option_a": {
+        "restaurant_alias": "Restaurante A",
+        "product_alias": "Opcao A",
+        "category": "Massas",
+        "price_band": "de R$ 25 a R$ 34",
+        "distance_band": "de 1 a 2 km",
+        "eligible_confirmed": true,
+        "preference_relation": "PREFERIDA",
+        "recent_category_occurrences": 2
+      },
+      "option_b": {
+        "restaurant_alias": "Restaurante B",
+        "product_alias": "Opcao B",
+        "category": "Doces",
+        "price_band": "de R$ 25 a R$ 34",
+        "distance_band": "menos de 1 km",
+        "eligible_confirmed": true,
+        "preference_relation": "EVITADA",
+        "recent_category_occurrences": 0
+      },
+      "response": {
+        "choice": null,
+        "reason_codes": [],
+        "review_confidence": null,
+        "optional_note": null
+      }
+    },
+    {
+      "blind_case_id": "caso-011",
+      "display_order": 11,
+      "comparison_mode": "SHARED_HISTORY",
+      "context": {
+        "profile_label": "Perfil AAF7",
+        "behavioral_goal": "Valorizar folga no orcamento sem ignorar preferencias e aversoes declaradas.",
+        "explicit_preferences": [
+          "Brasileira",
+          "Lanches"
+        ],
+        "gastronomic_aversions": [
+          "Doces"
+        ],
+        "meal_window": "ALMOCO",
+        "virtual_moment": "semana 4, dia 2",
+        "meal_budget": "ate R$ 32",
+        "maximum_distance": "ate 7 km",
+        "recent_sequence": [
+          {
+            "restaurant_alias": "Restaurante anterior 1",
+            "category": "Lanches"
+          },
+          {
+            "restaurant_alias": "Restaurante anterior 2",
+            "category": "Doces"
+          },
+          {
+            "restaurant_alias": "Restaurante anterior 3",
+            "category": "Brasileira"
+          }
+        ]
+      },
+      "option_a": {
+        "restaurant_alias": "Restaurante A",
+        "product_alias": "Opcao A",
+        "category": "Brasileira",
+        "price_band": "abaixo de R$ 25",
+        "distance_band": "menos de 1 km",
+        "eligible_confirmed": true,
+        "preference_relation": "PREFERIDA",
+        "recent_category_occurrences": 1
+      },
+      "option_b": {
+        "restaurant_alias": "Restaurante B",
+        "product_alias": "Opcao B",
+        "category": "Lanches",
+        "price_band": "abaixo de R$ 25",
+        "distance_band": "menos de 1 km",
+        "eligible_confirmed": true,
+        "preference_relation": "PREFERIDA",
+        "recent_category_occurrences": 1
+      },
+      "response": {
+        "choice": null,
+        "reason_codes": [],
+        "review_confidence": null,
+        "optional_note": null
+      }
+    },
+    {
+      "blind_case_id": "caso-012",
+      "display_order": 12,
+      "comparison_mode": "SHARED_HISTORY",
+      "context": {
+        "profile_label": "Perfil 003E",
+        "behavioral_goal": "Manter afinidade recorrente por restaurante sem ultrapassar limites eliminatorios.",
+        "explicit_preferences": [
+          "Massas"
+        ],
+        "gastronomic_aversions": [
+          "Doces"
+        ],
+        "meal_window": "ALMOCO",
+        "virtual_moment": "semana 4, dia 5",
+        "meal_budget": "ate R$ 55",
+        "maximum_distance": "ate 8 km",
+        "recent_sequence": [
+          {
+            "restaurant_alias": "Restaurante anterior 1",
+            "category": "Asiatica"
+          },
+          {
+            "restaurant_alias": "Restaurante anterior 2",
+            "category": "Doces"
+          },
+          {
+            "restaurant_alias": "Restaurante anterior 3",
+            "category": "Brasileira"
+          }
+        ]
+      },
+      "option_a": {
+        "restaurant_alias": "Restaurante A",
+        "product_alias": "Opcao A",
+        "category": "Lanches",
+        "price_band": "de R$ 25 a R$ 34",
+        "distance_band": "de 2 a 4 km",
+        "eligible_confirmed": true,
+        "preference_relation": "NEUTRA",
+        "recent_category_occurrences": 0
+      },
+      "option_b": {
+        "restaurant_alias": "Restaurante B",
+        "product_alias": "Opcao B",
+        "category": "Massas",
+        "price_band": "de R$ 25 a R$ 34",
+        "distance_band": "de 2 a 4 km",
+        "eligible_confirmed": true,
+        "preference_relation": "PREFERIDA",
+        "recent_category_occurrences": 0
+      },
+      "response": {
+        "choice": null,
+        "reason_codes": [],
+        "review_confidence": null,
+        "optional_note": null
+      }
+    },
+    {
+      "blind_case_id": "caso-013",
+      "display_order": 13,
+      "comparison_mode": "SHARED_HISTORY",
+      "context": {
+        "profile_label": "Perfil E350",
+        "behavioral_goal": "Representar evidencias positivas e negativas compensaveis de modo deterministico.",
+        "explicit_preferences": [
+          "Lanches",
+          "Saudavel"
+        ],
+        "gastronomic_aversions": [
+          "Doces"
+        ],
+        "meal_window": "JANTAR",
+        "virtual_moment": "semana 6, dia 3",
+        "meal_budget": "ate R$ 48",
+        "maximum_distance": "ate 8 km",
+        "recent_sequence": [
+          {
+            "restaurant_alias": "Restaurante anterior 1",
+            "category": "Lanches"
+          },
+          {
+            "restaurant_alias": "Restaurante anterior 2",
+            "category": "Saudavel"
+          },
+          {
+            "restaurant_alias": "Restaurante anterior 3",
+            "category": "Asiatica"
+          }
+        ]
+      },
+      "option_a": {
+        "restaurant_alias": "Restaurante A",
+        "product_alias": "Opcao A",
+        "category": "Saudavel",
+        "price_band": "de R$ 25 a R$ 34",
+        "distance_band": "de 1 a 2 km",
+        "eligible_confirmed": true,
+        "preference_relation": "PREFERIDA",
+        "recent_category_occurrences": 1
+      },
+      "option_b": {
+        "restaurant_alias": "Restaurante B",
+        "product_alias": "Opcao B",
+        "category": "Doces",
+        "price_band": "de R$ 25 a R$ 34",
+        "distance_band": "menos de 1 km",
+        "eligible_confirmed": true,
+        "preference_relation": "EVITADA",
+        "recent_category_occurrences": 0
+      },
+      "response": {
+        "choice": null,
+        "reason_codes": [],
+        "review_confidence": null,
+        "optional_note": null
+      }
+    },
+    {
+      "blind_case_id": "caso-014",
+      "display_order": 14,
+      "comparison_mode": "SHARED_HISTORY",
+      "context": {
+        "profile_label": "Perfil BCC7",
+        "behavioral_goal": "Migrar afinidade de Massas para Asiatica ao longo de varias semanas.",
+        "explicit_preferences": [],
+        "gastronomic_aversions": [
+          "Doces"
+        ],
+        "meal_window": "JANTAR",
+        "virtual_moment": "semana 5, dia 4",
+        "meal_budget": "ate R$ 58",
+        "maximum_distance": "ate 8 km",
+        "recent_sequence": [
+          {
+            "restaurant_alias": "Restaurante anterior 1",
+            "category": "Massas"
+          },
+          {
+            "restaurant_alias": "Restaurante anterior 2",
+            "category": "Asiatica"
+          },
+          {
+            "restaurant_alias": "Restaurante anterior 3",
+            "category": "Saudavel"
+          }
+        ]
+      },
+      "option_a": {
+        "restaurant_alias": "Restaurante A",
+        "product_alias": "Opcao A",
+        "category": "Massas",
+        "price_band": "de R$ 25 a R$ 34",
+        "distance_band": "de 1 a 2 km",
+        "eligible_confirmed": true,
+        "preference_relation": "NEUTRA",
+        "recent_category_occurrences": 1
+      },
+      "option_b": {
+        "restaurant_alias": "Restaurante B",
+        "product_alias": "Opcao B",
+        "category": "Saudavel",
+        "price_band": "de R$ 35 a R$ 44",
+        "distance_band": "de 1 a 2 km",
+        "eligible_confirmed": true,
+        "preference_relation": "NEUTRA",
+        "recent_category_occurrences": 1
+      },
+      "response": {
+        "choice": null,
+        "reason_codes": [],
+        "review_confidence": null,
+        "optional_note": null
+      }
+    },
+    {
+      "blind_case_id": "caso-015",
+      "display_order": 15,
+      "comparison_mode": "SHARED_HISTORY",
+      "context": {
+        "profile_label": "Perfil F37A",
+        "behavioral_goal": "Priorizar um produto favorito sem confundir fidelidade ao prato com restaurante.",
+        "explicit_preferences": [
+          "Saudavel"
+        ],
+        "gastronomic_aversions": [
+          "Frituras"
+        ],
+        "meal_window": "ALMOCO",
+        "virtual_moment": "semana 5, dia 5",
+        "meal_budget": "ate R$ 50",
+        "maximum_distance": "ate 8 km",
+        "recent_sequence": [
+          {
+            "restaurant_alias": "Restaurante anterior 1",
+            "category": "Saudavel"
+          },
+          {
+            "restaurant_alias": "Restaurante anterior 2",
+            "category": "Saudavel"
+          },
+          {
+            "restaurant_alias": "Restaurante anterior 3",
+            "category": "Vegetariana"
+          }
+        ]
+      },
+      "option_a": {
+        "restaurant_alias": "Restaurante A",
+        "product_alias": "Opcao A",
+        "category": "Saudavel",
+        "price_band": "de R$ 25 a R$ 34",
+        "distance_band": "menos de 1 km",
+        "eligible_confirmed": true,
+        "preference_relation": "PREFERIDA",
+        "recent_category_occurrences": 2
+      },
+      "option_b": {
+        "restaurant_alias": "Restaurante B",
+        "product_alias": "Opcao B",
+        "category": "Mediterranea",
+        "price_band": "abaixo de R$ 25",
+        "distance_band": "menos de 1 km",
+        "eligible_confirmed": true,
+        "preference_relation": "NEUTRA",
+        "recent_category_occurrences": 0
+      },
+      "response": {
+        "choice": null,
+        "reason_codes": [],
+        "review_confidence": null,
+        "optional_note": null
+      }
+    },
+    {
+      "blind_case_id": "caso-016",
+      "display_order": 16,
+      "comparison_mode": "TRAJECTORY_OUTCOME",
+      "context": {
+        "profile_label": "Perfil F37A",
+        "behavioral_goal": "Priorizar um produto favorito sem confundir fidelidade ao prato com restaurante.",
+        "explicit_preferences": [
+          "Saudavel"
+        ],
+        "gastronomic_aversions": [
+          "Frituras"
+        ],
+        "meal_window": "ALMOCO",
+        "virtual_moment": "semana 5, dia 4",
+        "meal_budget": "ate R$ 50",
+        "maximum_distance": "ate 8 km"
+      },
+      "option_a": {
+        "restaurant_alias": "Restaurante A",
+        "product_alias": "Opcao A",
+        "category": "Asiatica",
+        "price_band": "de R$ 25 a R$ 34",
+        "distance_band": "de 2 a 4 km",
+        "eligible_confirmed": true,
+        "preference_relation": "NEUTRA",
+        "recent_category_occurrences": 0,
+        "recent_sequence": [
+          {
+            "restaurant_alias": "Historico A 1",
+            "category": "Saudavel"
+          },
+          {
+            "restaurant_alias": "Historico A 2",
+            "category": "Mediterranea"
+          },
+          {
+            "restaurant_alias": "Historico A 3",
+            "category": "Doces"
+          }
+        ]
+      },
+      "option_b": {
+        "restaurant_alias": "Restaurante B",
+        "product_alias": "Opcao B",
+        "category": "Saudavel",
+        "price_band": "de R$ 25 a R$ 34",
+        "distance_band": "de 2 a 4 km",
+        "eligible_confirmed": true,
+        "preference_relation": "PREFERIDA",
+        "recent_category_occurrences": 2,
+        "recent_sequence": [
+          {
+            "restaurant_alias": "Historico B 1",
+            "category": "Saudavel"
+          },
+          {
+            "restaurant_alias": "Historico B 2",
+            "category": "Mediterranea"
+          },
+          {
+            "restaurant_alias": "Historico B 3",
+            "category": "Saudavel"
+          }
+        ]
+      },
+      "response": {
+        "choice": null,
+        "reason_codes": [],
+        "review_confidence": null,
+        "optional_note": null
+      }
+    },
+    {
+      "blind_case_id": "caso-017",
+      "display_order": 17,
+      "comparison_mode": "TRAJECTORY_OUTCOME",
+      "context": {
+        "profile_label": "Perfil 8BD6",
+        "behavioral_goal": "Priorizar deslocamentos curtos dentro do raio sem apagar preferencia explicita forte.",
+        "explicit_preferences": [
+          "Brasileira"
+        ],
+        "gastronomic_aversions": [
+          "Doces"
+        ],
+        "meal_window": "ALMOCO",
+        "virtual_moment": "semana 2, dia 2",
+        "meal_budget": "ate R$ 55",
+        "maximum_distance": "ate 4 km"
+      },
+      "option_a": {
+        "restaurant_alias": "Restaurante A",
+        "product_alias": "Opcao A",
+        "category": "Lanches",
+        "price_band": "de R$ 25 a R$ 34",
+        "distance_band": "de 1 a 2 km",
+        "eligible_confirmed": true,
+        "preference_relation": "NEUTRA",
+        "recent_category_occurrences": 0,
+        "recent_sequence": [
+          {
+            "restaurant_alias": "Historico A 1",
+            "category": "Brasileira"
+          },
+          {
+            "restaurant_alias": "Historico A 2",
+            "category": "Brasileira"
+          },
+          {
+            "restaurant_alias": "Historico A 3",
+            "category": "Brasileira"
+          }
+        ]
+      },
+      "option_b": {
+        "restaurant_alias": "Restaurante B",
+        "product_alias": "Opcao B",
+        "category": "Brasileira",
+        "price_band": "de R$ 25 a R$ 34",
+        "distance_band": "menos de 1 km",
+        "eligible_confirmed": true,
+        "preference_relation": "PREFERIDA",
+        "recent_category_occurrences": 3,
+        "recent_sequence": [
+          {
+            "restaurant_alias": "Historico B 1",
+            "category": "Brasileira"
+          },
+          {
+            "restaurant_alias": "Historico B 2",
+            "category": "Brasileira"
+          },
+          {
+            "restaurant_alias": "Historico B 3",
+            "category": "Brasileira"
+          }
+        ]
+      },
+      "response": {
+        "choice": null,
+        "reason_codes": [],
+        "review_confidence": null,
+        "optional_note": null
+      }
+    },
+    {
+      "blind_case_id": "caso-018",
+      "display_order": 18,
+      "comparison_mode": "SHARED_HISTORY",
+      "context": {
+        "profile_label": "Perfil F37A",
+        "behavioral_goal": "Priorizar um produto favorito sem confundir fidelidade ao prato com restaurante.",
+        "explicit_preferences": [
+          "Saudavel"
+        ],
+        "gastronomic_aversions": [
+          "Frituras"
+        ],
+        "meal_window": "ALMOCO",
+        "virtual_moment": "semana 4, dia 1",
+        "meal_budget": "ate R$ 50",
+        "maximum_distance": "ate 8 km",
+        "recent_sequence": [
+          {
+            "restaurant_alias": "Restaurante anterior 1",
+            "category": "Saudavel"
+          },
+          {
+            "restaurant_alias": "Restaurante anterior 2",
+            "category": "Brasileira"
+          },
+          {
+            "restaurant_alias": "Restaurante anterior 3",
+            "category": "Saudavel"
+          }
+        ]
+      },
+      "option_a": {
+        "restaurant_alias": "Restaurante A",
+        "product_alias": "Opcao A",
+        "category": "Saudavel",
+        "price_band": "abaixo de R$ 25",
+        "distance_band": "menos de 1 km",
+        "eligible_confirmed": true,
+        "preference_relation": "PREFERIDA",
+        "recent_category_occurrences": 2
+      },
+      "option_b": {
+        "restaurant_alias": "Restaurante B",
+        "product_alias": "Opcao B",
+        "category": "Massas",
+        "price_band": "abaixo de R$ 25",
+        "distance_band": "de 1 a 2 km",
+        "eligible_confirmed": true,
+        "preference_relation": "NEUTRA",
+        "recent_category_occurrences": 0
+      },
+      "response": {
+        "choice": null,
+        "reason_codes": [],
+        "review_confidence": null,
+        "optional_note": null
+      }
+    },
+    {
+      "blind_case_id": "caso-019",
+      "display_order": 19,
+      "comparison_mode": "TRAJECTORY_OUTCOME",
+      "context": {
+        "profile_label": "Perfil 8BD6",
+        "behavioral_goal": "Priorizar deslocamentos curtos dentro do raio sem apagar preferencia explicita forte.",
+        "explicit_preferences": [
+          "Brasileira"
+        ],
+        "gastronomic_aversions": [
+          "Doces"
+        ],
+        "meal_window": "ALMOCO",
+        "virtual_moment": "semana 6, dia 5",
+        "meal_budget": "ate R$ 55",
+        "maximum_distance": "ate 4 km"
+      },
+      "option_a": {
+        "restaurant_alias": "Restaurante A",
+        "product_alias": "Opcao A",
+        "category": "Brasileira",
+        "price_band": "de R$ 25 a R$ 34",
+        "distance_band": "de 1 a 2 km",
+        "eligible_confirmed": true,
+        "preference_relation": "PREFERIDA",
+        "recent_category_occurrences": 1,
+        "recent_sequence": [
+          {
+            "restaurant_alias": "Historico A 1",
+            "category": "Vegetariana"
+          },
+          {
+            "restaurant_alias": "Historico A 2",
+            "category": "Brasileira"
+          },
+          {
+            "restaurant_alias": "Historico A 3",
+            "category": "Doces"
+          }
+        ]
+      },
+      "option_b": {
+        "restaurant_alias": "Restaurante B",
+        "product_alias": "Opcao B",
+        "category": "Brasileira",
+        "price_band": "de R$ 25 a R$ 34",
+        "distance_band": "menos de 1 km",
+        "eligible_confirmed": true,
+        "preference_relation": "PREFERIDA",
+        "recent_category_occurrences": 1,
+        "recent_sequence": [
+          {
+            "restaurant_alias": "Historico B 1",
+            "category": "Vegetariana"
+          },
+          {
+            "restaurant_alias": "Historico B 2",
+            "category": "Brasileira"
+          },
+          {
+            "restaurant_alias": "Historico B 3",
+            "category": "Massas"
+          }
+        ]
+      },
+      "response": {
+        "choice": null,
+        "reason_codes": [],
+        "review_confidence": null,
+        "optional_note": null
+      }
+    },
+    {
+      "blind_case_id": "caso-020",
+      "display_order": 20,
+      "comparison_mode": "SHARED_HISTORY",
+      "context": {
+        "profile_label": "Perfil CBE5",
+        "behavioral_goal": "Preservar preferencia declarada diante de pequenas vantagens operacionais concorrentes.",
+        "explicit_preferences": [
+          "Vegetariana"
+        ],
+        "gastronomic_aversions": [
+          "Carnes"
+        ],
+        "meal_window": "ALMOCO",
+        "virtual_moment": "semana 3, dia 5",
+        "meal_budget": "ate R$ 65",
+        "maximum_distance": "ate 9 km",
+        "recent_sequence": [
+          {
+            "restaurant_alias": "Restaurante anterior 1",
+            "category": "Mediterranea"
+          },
+          {
+            "restaurant_alias": "Restaurante anterior 2",
+            "category": "Vegetariana"
+          },
+          {
+            "restaurant_alias": "Restaurante anterior 3",
+            "category": "Vegetariana"
+          }
+        ]
+      },
+      "option_a": {
+        "restaurant_alias": "Restaurante A",
+        "product_alias": "Opcao A",
+        "category": "Vegetariana",
+        "price_band": "de R$ 35 a R$ 44",
+        "distance_band": "menos de 1 km",
+        "eligible_confirmed": true,
+        "preference_relation": "PREFERIDA",
+        "recent_category_occurrences": 2
+      },
+      "option_b": {
+        "restaurant_alias": "Restaurante B",
+        "product_alias": "Opcao B",
+        "category": "Saudavel",
+        "price_band": "de R$ 35 a R$ 44",
+        "distance_band": "de 1 a 2 km",
+        "eligible_confirmed": true,
+        "preference_relation": "NEUTRA",
+        "recent_category_occurrences": 0
+      },
+      "response": {
+        "choice": null,
+        "reason_codes": [],
+        "review_confidence": null,
+        "optional_note": null
+      }
+    },
+    {
+      "blind_case_id": "caso-021",
+      "display_order": 21,
+      "comparison_mode": "SHARED_HISTORY",
+      "context": {
+        "profile_label": "Perfil AAF7",
+        "behavioral_goal": "Valorizar folga no orcamento sem ignorar preferencias e aversoes declaradas.",
+        "explicit_preferences": [
+          "Brasileira",
+          "Lanches"
+        ],
+        "gastronomic_aversions": [
+          "Doces"
+        ],
+        "meal_window": "ALMOCO",
+        "virtual_moment": "semana 6, dia 5",
+        "meal_budget": "ate R$ 32",
+        "maximum_distance": "ate 7 km",
+        "recent_sequence": [
+          {
+            "restaurant_alias": "Restaurante anterior 1",
+            "category": "Brasileira"
+          },
+          {
+            "restaurant_alias": "Restaurante anterior 2",
+            "category": "Lanches"
+          },
+          {
+            "restaurant_alias": "Restaurante anterior 3",
+            "category": "Massas"
+          }
+        ]
+      },
+      "option_a": {
+        "restaurant_alias": "Restaurante A",
+        "product_alias": "Opcao A",
+        "category": "Asiatica",
+        "price_band": "abaixo de R$ 25",
+        "distance_band": "de 1 a 2 km",
+        "eligible_confirmed": true,
+        "preference_relation": "NEUTRA",
+        "recent_category_occurrences": 0
+      },
+      "option_b": {
+        "restaurant_alias": "Restaurante B",
+        "product_alias": "Opcao B",
+        "category": "Brasileira",
+        "price_band": "abaixo de R$ 25",
+        "distance_band": "de 1 a 2 km",
+        "eligible_confirmed": true,
+        "preference_relation": "PREFERIDA",
+        "recent_category_occurrences": 1
+      },
+      "response": {
+        "choice": null,
+        "reason_codes": [],
+        "review_confidence": null,
+        "optional_note": null
+      }
+    },
+    {
+      "blind_case_id": "caso-022",
+      "display_order": 22,
+      "comparison_mode": "SHARED_HISTORY",
+      "context": {
+        "profile_label": "Perfil 8AE3",
+        "behavioral_goal": "Buscar categorias e restaurantes novos sem violar preferencias explicitas.",
+        "explicit_preferences": [
+          "Asiatica",
+          "Mediterranea"
+        ],
+        "gastronomic_aversions": [
+          "Frituras"
+        ],
+        "meal_window": "JANTAR",
+        "virtual_moment": "semana 4, dia 1",
+        "meal_budget": "ate R$ 60",
+        "maximum_distance": "ate 10 km",
+        "recent_sequence": [
+          {
+            "restaurant_alias": "Restaurante anterior 1",
+            "category": "Asiatica"
+          },
+          {
+            "restaurant_alias": "Restaurante anterior 2",
+            "category": "Mediterranea"
+          },
+          {
+            "restaurant_alias": "Restaurante anterior 3",
+            "category": "Asiatica"
+          }
+        ]
+      },
+      "option_a": {
+        "restaurant_alias": "Restaurante A",
+        "product_alias": "Opcao A",
+        "category": "Vegetariana",
+        "price_band": "de R$ 25 a R$ 34",
+        "distance_band": "menos de 1 km",
+        "eligible_confirmed": true,
+        "preference_relation": "NEUTRA",
+        "recent_category_occurrences": 0
+      },
+      "option_b": {
+        "restaurant_alias": "Restaurante B",
+        "product_alias": "Opcao B",
+        "category": "Mediterranea",
+        "price_band": "de R$ 25 a R$ 34",
+        "distance_band": "de 1 a 2 km",
+        "eligible_confirmed": true,
+        "preference_relation": "PREFERIDA",
+        "recent_category_occurrences": 1
+      },
+      "response": {
+        "choice": null,
+        "reason_codes": [],
+        "review_confidence": null,
+        "optional_note": null
+      }
+    },
+    {
+      "blind_case_id": "caso-023",
+      "display_order": 23,
+      "comparison_mode": "SHARED_HISTORY",
+      "context": {
+        "profile_label": "Perfil F37A",
+        "behavioral_goal": "Priorizar um produto favorito sem confundir fidelidade ao prato com restaurante.",
+        "explicit_preferences": [
+          "Saudavel"
+        ],
+        "gastronomic_aversions": [
+          "Frituras"
+        ],
+        "meal_window": "ALMOCO",
+        "virtual_moment": "semana 4, dia 5",
+        "meal_budget": "ate R$ 50",
+        "maximum_distance": "ate 8 km",
+        "recent_sequence": [
+          {
+            "restaurant_alias": "Restaurante anterior 1",
+            "category": "Lanches"
+          },
+          {
+            "restaurant_alias": "Restaurante anterior 2",
+            "category": "Saudavel"
+          },
+          {
+            "restaurant_alias": "Restaurante anterior 3",
+            "category": "Mediterranea"
+          }
+        ]
+      },
+      "option_a": {
+        "restaurant_alias": "Restaurante A",
+        "product_alias": "Opcao A",
+        "category": "Doces",
+        "price_band": "de R$ 25 a R$ 34",
+        "distance_band": "de 1 a 2 km",
+        "eligible_confirmed": true,
+        "preference_relation": "NEUTRA",
+        "recent_category_occurrences": 0
+      },
+      "option_b": {
+        "restaurant_alias": "Restaurante B",
+        "product_alias": "Opcao B",
+        "category": "Saudavel",
+        "price_band": "de R$ 25 a R$ 34",
+        "distance_band": "de 1 a 2 km",
+        "eligible_confirmed": true,
+        "preference_relation": "PREFERIDA",
+        "recent_category_occurrences": 1
+      },
+      "response": {
+        "choice": null,
+        "reason_codes": [],
+        "review_confidence": null,
+        "optional_note": null
+      }
+    },
+    {
+      "blind_case_id": "caso-024",
+      "display_order": 24,
+      "comparison_mode": "SHARED_HISTORY",
+      "context": {
+        "profile_label": "Perfil 8BD6",
+        "behavioral_goal": "Priorizar deslocamentos curtos dentro do raio sem apagar preferencia explicita forte.",
+        "explicit_preferences": [
+          "Brasileira"
+        ],
+        "gastronomic_aversions": [
+          "Doces"
+        ],
+        "meal_window": "ALMOCO",
+        "virtual_moment": "semana 4, dia 2",
+        "meal_budget": "ate R$ 55",
+        "maximum_distance": "ate 4 km",
+        "recent_sequence": [
+          {
+            "restaurant_alias": "Restaurante anterior 1",
+            "category": "Brasileira"
+          },
+          {
+            "restaurant_alias": "Restaurante anterior 2",
+            "category": "Lanches"
+          },
+          {
+            "restaurant_alias": "Restaurante anterior 3",
+            "category": "Vegetariana"
+          }
+        ]
+      },
+      "option_a": {
+        "restaurant_alias": "Restaurante A",
+        "product_alias": "Opcao A",
+        "category": "Brasileira",
+        "price_band": "de R$ 25 a R$ 34",
+        "distance_band": "de 1 a 2 km",
+        "eligible_confirmed": true,
+        "preference_relation": "PREFERIDA",
+        "recent_category_occurrences": 1
+      },
+      "option_b": {
+        "restaurant_alias": "Restaurante B",
+        "product_alias": "Opcao B",
+        "category": "Asiatica",
+        "price_band": "de R$ 25 a R$ 34",
+        "distance_band": "de 1 a 2 km",
+        "eligible_confirmed": true,
+        "preference_relation": "NEUTRA",
+        "recent_category_occurrences": 0
+      },
+      "response": {
+        "choice": null,
+        "reason_codes": [],
+        "review_confidence": null,
+        "optional_note": null
+      }
+    }
+  ],
+  "content_sha256": "15783281156afc526a2a5c5dbf8361ceba510bf93db7d73384fd30bbbd26b668"
+}

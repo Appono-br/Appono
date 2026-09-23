@@ -1,0 +1,177 @@
+{
+  "schema_version": "routine-blind-review-responses-v1",
+  "package_content_sha256": "15783281156afc526a2a5c5dbf8361ceba510bf93db7d73384fd30bbbd26b668",
+  "status": "DRAFT_EMPTY",
+  "reviewer_code": null,
+  "responses": [
+    {
+      "blind_case_id": "caso-001",
+      "choice": null,
+      "reason_codes": [],
+      "review_confidence": null,
+      "optional_note": null
+    },
+    {
+      "blind_case_id": "caso-002",
+      "choice": null,
+      "reason_codes": [],
+      "review_confidence": null,
+      "optional_note": null
+    },
+    {
+      "blind_case_id": "caso-003",
+      "choice": null,
+      "reason_codes": [],
+      "review_confidence": null,
+      "optional_note": null
+    },
+    {
+      "blind_case_id": "caso-004",
+      "choice": null,
+      "reason_codes": [],
+      "review_confidence": null,
+      "optional_note": null
+    },
+    {
+      "blind_case_id": "caso-005",
+      "choice": null,
+      "reason_codes": [],
+      "review_confidence": null,
+      "optional_note": null
+    },
+    {
+      "blind_case_id": "caso-006",
+      "choice": null,
+      "reason_codes": [],
+      "review_confidence": null,
+      "optional_note": null
+    },
+    {
+      "blind_case_id": "caso-007",
+      "choice": null,
+      "reason_codes": [],
+      "review_confidence": null,
+      "optional_note": null
+    },
+    {
+      "blind_case_id": "caso-008",
+      "choice": null,
+      "reason_codes": [],
+      "review_confidence": null,
+      "optional_note": null
+    },
+    {
+      "blind_case_id": "caso-009",
+      "choice": null,
+      "reason_codes": [],
+      "review_confidence": null,
+      "optional_note": null
+    },
+    {
+      "blind_case_id": "caso-010",
+      "choice": null,
+      "reason_codes": [],
+      "review_confidence": null,
+      "optional_note": null
+    },
+    {
+      "blind_case_id": "caso-011",
+      "choice": null,
+      "reason_codes": [],
+      "review_confidence": null,
+      "optional_note": null
+    },
+    {
+      "blind_case_id": "caso-012",
+      "choice": null,
+      "reason_codes": [],
+      "review_confidence": null,
+      "optional_note": null
+    },
+    {
+      "blind_case_id": "caso-013",
+      "choice": null,
+      "reason_codes": [],
+      "review_confidence": null,
+      "optional_note": null
+    },
+    {
+      "blind_case_id": "caso-014",
+      "choice": null,
+      "reason_codes": [],
+      "review_confidence": null,
+      "optional_note": null
+    },
+    {
+      "blind_case_id": "caso-015",
+      "choice": null,
+      "reason_codes": [],
+      "review_confidence": null,
+      "optional_note": null
+    },
+    {
+      "blind_case_id": "caso-016",
+      "choice": null,
+      "reason_codes": [],
+      "review_confidence": null,
+      "optional_note": null
+    },
+    {
+      "blind_case_id": "caso-017",
+      "choice": null,
+      "reason_codes": [],
+      "review_confidence": null,
+      "optional_note": null
+    },
+    {
+      "blind_case_id": "caso-018",
+      "choice": null,
+      "reason_codes": [],
+      "review_confidence": null,
+      "optional_note": null
+    },
+    {
+      "blind_case_id": "caso-019",
+      "choice": null,
+      "reason_codes": [],
+      "review_confidence": null,
+      "optional_note": null
+    },
+    {
+      "blind_case_id": "caso-020",
+      "choice": null,
+      "reason_codes": [],
+      "review_confidence": null,
+      "optional_note": null
+    },
+    {
+      "blind_case_id": "caso-021",
+      "choice": null,
+      "reason_codes": [],
+      "review_confidence": null,
+      "optional_note": null
+    },
+    {
+      "blind_case_id": "caso-022",
+      "choice": null,
+      "reason_codes": [],
+      "review_confidence": null,
+      "optional_note": null
+    },
+    {
+      "blind_case_id": "caso-023",
+      "choice": null,
+      "reason_codes": [],
+      "review_confidence": null,
+      "optional_note": null
+    },
+    {
+      "blind_case_id": "caso-024",
+      "choice": null,
+      "reason_codes": [],
+      "review_confidence": null,
+      "optional_note": null
+    }
+  ],
+  "content_sha256": "2999bab00e20b2d6a7b8c9aef06147b0f3f20f7f0a451c2089a69af9a07f5eb0"
+}

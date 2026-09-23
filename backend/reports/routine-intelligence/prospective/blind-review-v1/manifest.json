@@ -1,0 +1,35 @@
+{
+  "schema_version": "blind-review-distribution-manifest-v1",
+  "protocol_version": "routine-blind-review-v1",
+  "package_content_sha256": "15783281156afc526a2a5c5dbf8361ceba510bf93db7d73384fd30bbbd26b668",
+  "answer_key_commitment_sha256": "1313c2dee80fc64028f430bb1c60df17316757e776c9c7d0670c68770e4c325a",
+  "judgments_present": false,
+  "case_count": 24,
+  "distributions": {
+    "comparison_mode": {
+      "SHARED_HISTORY": 18,
+      "TRAJECTORY_OUTCOME": 6
+    },
+    "anonymous_profile": {
+      "Perfil 003E": 4,
+      "Perfil 381A": 1,
+      "Perfil 8AE3": 1,
+      "Perfil 8BD6": 4,
+      "Perfil AAF7": 2,
+      "Perfil BCC7": 2,
+      "Perfil CBE5": 3,
+      "Perfil E350": 3,
+      "Perfil F37A": 4
+    }
+  },
+  "public_file_sha256": {
+    "package.json": "c869b431b92c3bfb952b7a741a32fd11f3bc0ff844e19cdea33eff464ea751c7",
+    "review-form.csv": "c41d83b0211d47567926e02feb5ba37d35a896de5808b16c39031a4e3a6ee551",
+    "responses-template.json": "80f218c0c4362b45628e64fe544f3c3b88561593c4da63c1a4ccddb60fd08b6e",
+    "README.md": "b2849ae79f2229671390e5d623c2e764752391c2975c3e9786611162390262cb"
+  },
+  "responses_filled": 0,
+  "reserve_accessed": false,
+  "models_executed": 0,
+  "content_sha256": "0524023f81929edfbcd384d1393cbcfc695b51435723268a8a87b68c50d7cf01"
+}
