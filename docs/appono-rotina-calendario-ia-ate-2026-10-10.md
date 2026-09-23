@@ -49,6 +49,7 @@ O prazo comporta concluir e integrar a IA. Ele nao comporta provar eficacia com 
 - [x] `06/10` - Integracao controlada da V2 congelada ao planejamento real, com politica, allowlist, fallback, diagnostico seguro e rollout publico zero. Evidencias: [checkpoint de 06/10](appono-intelligence-v2-checkpoint-2026-10-06.md).
 - [x] `07/10` - Validacao offline e reserva prospectiva executadas uma unica vez, sem recalibracao e com rollout publico zero. Evidencias: [checkpoint de 07/10](appono-intelligence-v2-checkpoint-2026-10-07.md).
 - [x] `08/10` - Homologacao interna controlada verificada com allowlist, fallback, kill switch e rollout publico zero; ressalva documentada sobre o verificador corrigido. Evidencias: [checkpoint de 08/10](appono-intelligence-v2-checkpoint-2026-10-08.md).
+- [x] `09/10` - Verificacao final ponta a ponta concluida com ressalva documentada, smoke tests aprovados e rollout publico zero. Evidencias: [checkpoint de 09/10](appono-intelligence-v2-checkpoint-2026-10-09.md).
 
 Os demais marcos permanecem abertos. A existencia antecipada de alguns artefatos nao equivale a conclusao das respectivas datas.
 
