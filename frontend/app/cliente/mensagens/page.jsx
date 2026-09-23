@@ -93,31 +93,31 @@ export default function MessagesPage() {
   return (
     <main className="flex min-h-screen flex-col bg-white text-app-cafe-profundo">
       <section className="mx-auto w-full max-w-7xl flex-1 px-5 py-10 sm:py-14">
-        <div className="overflow-hidden rounded-[24px] bg-app-cafe-profundo text-app-creme-leve shadow-sm">
-          <div className="grid gap-8 p-6 sm:p-8 lg:grid-cols-[1fr_390px] lg:items-end">
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-app-baunilha-dourada">{ui("Conversas seguras")}</p>
-              <h1 className="mt-3 text-4xl font-semibold leading-tight sm:text-6xl">{ui("Mensagens")}</h1>
-              <p className="mt-4 max-w-2xl text-sm leading-6 text-app-creme-suave">{ui("Centralize conversas com restaurantes antes da visita, com contexto de reserva ou pedido quando existir.")}</p>
+        <div className="relative isolate overflow-hidden rounded-[30px_76px_30px_76px] bg-app-cafe-profundo text-app-creme-leve shadow-sm">
+          <div className="relative px-7 py-8 sm:px-10 sm:py-10">
+            <div className="max-w-2xl">
+              <h1 className="text-4xl font-semibold leading-[0.92] tracking-[-0.05em] sm:text-6xl">{ui("Mensagens")}</h1>
             </div>
-            <div className="grid gap-3 rounded-[18px] bg-white/10 p-3 ring-1 ring-white/10">
-              <label className="campo-busca-app flex h-12 items-center gap-3 rounded-[12px] bg-white px-4 text-app-cafe-profundo shadow-sm transition">
-                <Icon type="search" className="h-4 w-4 text-app-cinza" />
-                <input value={busca} onChange={(event) => setBusca(event.target.value)} placeholder={ui("Buscar restaurante ou mensagem")} className="input-busca-app h-full min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-app-cinza/60" />
-              </label>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="rounded-[12px] bg-white/10 px-4 py-3">
-                  <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-app-baunilha-dourada">{ui("Conversas")}</span>
-                  <strong className="mt-1 block text-2xl">{conversas.length}</strong>
-                </div>
-                <div className="rounded-[12px] bg-white/10 px-4 py-3">
-                  <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-app-baunilha-dourada">{ui("Não lidas")}</span>
-                  <strong className="mt-1 block text-2xl">{totalNaoLidas}</strong>
-                </div>
+
+            <div className="mt-8 flex flex-wrap gap-x-9 gap-y-4 border-t border-white/10 pt-5">
+              <div className="flex items-baseline gap-3">
+                <strong className="text-3xl leading-none">{conversas.length}</strong>
+                <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-app-baunilha-dourada">{ui("Conversas")}</span>
+              </div>
+              <div className="flex items-baseline gap-3">
+                <strong className="text-3xl leading-none">{totalNaoLidas}</strong>
+                <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-app-baunilha-dourada">{ui("Não lidas")}</span>
               </div>
             </div>
           </div>
         </div>
+
+        <label className="campo-busca-app mt-5 flex h-20 items-center gap-4 rounded-[24px_48px_24px_48px] bg-white px-6 text-app-cafe-profundo shadow-sm ring-1 ring-app-baunilha-dourada/60 transition focus-within:ring-app-caramelo-torrado sm:px-8">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-app-chantilly text-app-caramelo-torrado">
+            <Icon type="search" className="h-5 w-5" />
+          </span>
+          <input value={busca} onChange={(event) => setBusca(event.target.value)} placeholder={ui("Buscar restaurante ou mensagem")} className="input-busca-app h-full min-w-0 flex-1 bg-transparent text-base outline-none placeholder:text-app-cinza/70" />
+        </label>
 
         {mensagem ? <p role="status" className="mt-6 rounded-[12px] border border-app-baunilha-dourada bg-white p-4 text-sm font-semibold text-app-caramelo-torrado">{ui(mensagem)}</p> : null}
 

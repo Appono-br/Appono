@@ -11,6 +11,7 @@ import {
 } from "@/lib/session";
 import { supabase } from "@/lib/supabase";
 import { chaveRetornoRestaurante, obterRetornoRestaurante } from "@/lib/retorno-restaurante.mjs";
+import "../home-profile-dialog.css";
 
 function obterUrlRecuperacaoSenha() {
   const urlConfigurada =
@@ -430,14 +431,14 @@ export function LoginForm() {
           aria-modal="true"
           aria-label="Escolha de cadastro"
         >
-          <section className="w-full max-w-2xl rounded-2xl bg-white p-6 shadow-2xl sm:p-8">
+          <section className="w-full max-w-md rounded-3xl bg-white p-7 shadow-2xl animate-in zoom-in-95 slide-in-from-bottom-4 duration-300">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-xs font-bold uppercase tracking-[0.24em] text-app-caramelo-torrado">
+                <p className="text-sm font-semibold uppercase tracking-[0.18em] text-app-caramelo-torrado">
                   Criar conta
                 </p>
 
-                <h2 className="mt-2 text-2xl font-bold text-app-cafe-profundo">
+                <h2 className="mt-2 text-2xl font-semibold text-app-cafe-profundo">
                   Escolha seu perfil
                 </h2>
               </div>
@@ -445,7 +446,7 @@ export function LoginForm() {
               <button
                 type="button"
                 onClick={() => setRegisterDialog(false)}
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-app-baunilha-dourada text-app-cafe-profundo transition hover:bg-app-creme-suave"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-app-baunilha-dourada text-app-cafe-profundo transition hover:bg-app-chantilly"
                 aria-label="Fechar"
               >
                 <svg
@@ -465,12 +466,12 @@ export function LoginForm() {
               </button>
             </div>
 
-            <div className="mt-6 grid gap-4 sm:grid-cols-2">
+            <div className="mt-6 grid gap-3">
               <Link
                 href="/cadastro/cliente"
-                className="group relative flex flex-col rounded-2xl border-0 bg-white p-5 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md"
+                className="home-profile-option group relative flex min-w-0 items-center gap-4 rounded-2xl p-4 text-left transition-all duration-200 hover:-translate-y-0.5"
               >
-                <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-app-creme-suave text-app-caramelo-torrado transition group-hover:bg-app-dourado-mel group-hover:text-white">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-app-chantilly text-app-caramelo-torrado transition group-hover:bg-app-dourado-mel group-hover:text-white">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="20"
@@ -487,20 +488,27 @@ export function LoginForm() {
                   </svg>
                 </div>
 
-                <strong className="block text-app-cafe-profundo">
-                  Sou cliente
-                </strong>
+                <div className="min-w-0">
+                  <strong className="block text-app-cafe-profundo">
+                    Sou cliente
+                  </strong>
 
-                <span className="mt-2 block text-sm leading-6 text-app-mocha">
-                  Quero reservar mesa e antecipar meu pedido presencial.
-                </span>
+                  <span className="mt-1 block text-sm leading-6 text-app-mocha">
+                    Quero reservar mesa e antecipar meu pedido presencial.
+                  </span>
+                </div>
+
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-auto shrink-0 text-app-caramelo-torrado transition-transform group-hover:translate-x-1">
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                  <polyline points="12 5 19 12 12 19" />
+                </svg>
               </Link>
 
               <Link
                 href="/cadastro/restaurante"
-                className="group relative flex flex-col rounded-2xl border-0 bg-white p-5 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-md"
+                className="home-profile-option group relative flex min-w-0 items-center gap-4 rounded-2xl p-4 text-left transition-all duration-200 hover:-translate-y-0.5"
               >
-                <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-app-creme-suave text-app-caramelo-torrado transition group-hover:bg-app-dourado-mel group-hover:text-white">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-app-chantilly text-app-caramelo-torrado transition group-hover:bg-app-dourado-mel group-hover:text-white">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="20"
@@ -521,13 +529,20 @@ export function LoginForm() {
                   </svg>
                 </div>
 
-                <strong className="block text-app-cafe-profundo">
-                  Sou restaurante
-                </strong>
+                <div className="min-w-0">
+                  <strong className="block text-app-cafe-profundo">
+                    Sou restaurante
+                  </strong>
 
-                <span className="mt-2 block text-sm leading-6 text-app-mocha">
-                  Quero organizar reservas, cardápio e pedidos antecipados.
-                </span>
+                  <span className="mt-1 block text-sm leading-6 text-app-mocha">
+                    Quero organizar reservas, cardápio e pedidos antecipados.
+                  </span>
+                </div>
+
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-auto shrink-0 text-app-caramelo-torrado transition-transform group-hover:translate-x-1">
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                  <polyline points="12 5 19 12 12 19" />
+                </svg>
               </Link>
             </div>
           </section>

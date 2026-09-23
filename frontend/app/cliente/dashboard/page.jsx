@@ -48,6 +48,22 @@ function EmptyState({ title, description, compact = false, }) {
       </p>
     </div>);
 }
+function LocationEmptyState({ title, description, }) {
+    const { ui } = useInterface();
+    return (<div className="flex min-h-64 flex-col items-center justify-center px-6 py-12 text-center sm:flex-row sm:gap-6 sm:text-left">
+      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-app-baunilha-dourada/45 text-app-caramelo-torrado">
+        <Icon type="pin" className="h-6 w-6"/>
+      </div>
+      <div className="mt-5 max-w-md sm:mt-0">
+        <h3 className="text-lg font-semibold text-app-cafe-profundo">
+          {ui(title)}
+        </h3>
+        <p className="mt-2 text-sm leading-6 text-app-cinza">
+          {ui(description)}
+        </p>
+      </div>
+    </div>);
+}
 function formatarDataReserva(data, localeUI = "pt-BR") {
     return new Date(`${data}T12:00:00`).toLocaleDateString(localeUI, {
         day: "2-digit",
@@ -527,49 +543,51 @@ export default function DashboardPage() {
       </section>
 
       <section className="mx-auto max-w-7xl px-5 py-8">
-        <div className="overflow-hidden rounded-[18px] bg-white shadow-sm ring-1 ring-app-baunilha-dourada/55">
-          <div className="grid gap-6 bg-app-cafe-profundo p-6 text-app-creme-leve lg:grid-cols-[1fr_0.9fr] lg:items-end sm:p-8">
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-app-baunilha-dourada">{ui("Localização")}</p>
-              <h2 className="mt-2 text-4xl font-medium sm:text-5xl">{ui("Perto de Você")}</h2>
-              <p className="mt-3 max-w-xl text-sm leading-6 text-app-creme-suave">
-                {ui(obterMensagemOrigemLocalizacao(statusLocalizacao))}
-              </p>
-            </div>
-            <form onSubmit={buscarPorLocalizacaoManual} className="grid gap-3 rounded-[14px] bg-white/10 p-3 ring-1 ring-white/15">
-              <div className="grid gap-3 sm:grid-cols-[auto_1fr]">
-                <button type="button" onClick={solicitarLocalizacao} disabled={statusLocalizacao === "loading"} className="h-11 rounded-[10px] bg-white px-4 text-xs font-bold uppercase tracking-[0.12em] text-app-cafe-profundo transition hover:bg-app-chantilly disabled:cursor-wait disabled:opacity-60">
-                  {ui(statusLocalizacao === "loading" ? "Localizando..." : localizacaoCliente ? "Atualizar localização" : "Permitir localização")}
-                </button>
-                <select value={raioKm} onChange={(event) => setRaioKm(event.target.value)} className="h-11 rounded-[10px] border border-white/20 bg-white px-3 text-sm font-semibold text-app-cafe-profundo outline-none">
-                  <option value="2">{ui("Até 2 km")}</option>
-                  <option value="5">{ui("Até 5 km")}</option>
-                  <option value="10">{ui("Até 10 km")}</option>
-                  <option value="20">{ui("Até 20 km")}</option>
-                  <option value="todos">{ui("Qualquer distância")}</option>
-                </select>
-              </div>
-              <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
-                <label className="flex h-11 items-center gap-2 rounded-[10px] bg-white px-3 text-app-cafe-profundo">
-                  <Icon type="pin" className="h-4 w-4 text-app-caramelo-torrado"/>
-                  <span className="sr-only">{ui("Buscar por bairro, cidade ou CEP")}</span>
-                  <input value={localizacaoManual} onChange={(event) => setLocalizacaoManual(event.target.value)} placeholder={ui("Ou informe bairro, cidade ou CEP")} className="h-full min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-app-cinza"/>
-                </label>
-                <button type="submit" className="h-11 rounded-[10px] bg-app-dourado-mel px-5 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-app-caramelo-torrado">{ui("Buscar")}</button>
-              </div>
-            </form>
-          </div>
+        <div className="rounded-[26px] bg-app-cafe-profundo px-7 py-8 text-app-creme-leve shadow-sm sm:px-10 sm:py-10">
+          <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-app-baunilha-dourada">{ui("Localização")}</p>
+          <h2 className="mt-2 text-4xl font-medium sm:text-5xl">{ui("Perto de Você")}</h2>
+          <p className="mt-3 max-w-xl text-sm leading-6 text-app-creme-suave">
+            {ui(obterMensagemOrigemLocalizacao(statusLocalizacao))}
+          </p>
+        </div>
 
-          {statusLocalizacao === "denied" ? (
-            <p className="mx-6 mt-5 rounded-[8px] border border-app-baunilha-dourada bg-white p-4 text-sm font-semibold text-app-mocha sm:mx-8">{ui("Não foi possível acessar sua localização. Libere a permissão no navegador para ver restaurantes por distância.")}</p>
+        <div className="mt-5 grid gap-3 sm:grid-cols-[auto_minmax(220px,0.42fr)]">
+          <button type="button" onClick={solicitarLocalizacao} disabled={statusLocalizacao === "loading"} className="h-12 rounded-full bg-app-cafe-profundo px-6 text-xs font-bold uppercase tracking-[0.12em] text-app-creme-leve shadow-sm transition hover:bg-app-caramelo-torrado disabled:cursor-wait disabled:opacity-60">
+            {ui(statusLocalizacao === "loading" ? "Localizando..." : localizacaoCliente ? "Atualizar localização" : "Permitir localização")}
+          </button>
+          <label className="flex h-12 items-center rounded-full bg-white px-5 text-app-cafe-profundo shadow-sm ring-1 ring-app-baunilha-dourada/60">
+            <span className="sr-only">{ui("Raio de busca")}</span>
+            <select value={raioKm} onChange={(event) => setRaioKm(event.target.value)} className="h-full min-w-0 flex-1 bg-transparent text-sm font-semibold outline-none">
+              <option value="2">{ui("Até 2 km")}</option>
+              <option value="5">{ui("Até 5 km")}</option>
+              <option value="10">{ui("Até 10 km")}</option>
+              <option value="20">{ui("Até 20 km")}</option>
+              <option value="todos">{ui("Qualquer distância")}</option>
+            </select>
+          </label>
+        </div>
+
+        <form onSubmit={buscarPorLocalizacaoManual} className="mt-3 flex h-20 items-center gap-4 rounded-[24px_48px_24px_48px] bg-white px-6 text-app-cafe-profundo shadow-sm ring-1 ring-app-baunilha-dourada/60 transition focus-within:ring-app-caramelo-torrado sm:px-8">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-app-chantilly text-app-caramelo-torrado">
+            <Icon type="pin" className="h-5 w-5"/>
+          </span>
+          <label className="flex h-full min-w-0 flex-1 items-center">
+            <span className="sr-only">{ui("Buscar por bairro, cidade ou CEP")}</span>
+            <input value={localizacaoManual} onChange={(event) => setLocalizacaoManual(event.target.value)} placeholder={ui("Ou informe bairro, cidade ou CEP")} className="h-full min-w-0 flex-1 bg-transparent text-base outline-none placeholder:text-app-cinza/70"/>
+          </label>
+          <button type="submit" className="h-10 shrink-0 rounded-full bg-app-dourado-mel px-5 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-app-caramelo-torrado">{ui("Buscar")}</button>
+        </form>
+
+        {statusLocalizacao === "denied" ? (
+            <p className="mt-7 border-l-2 border-app-caramelo-torrado pl-4 text-sm font-semibold text-app-mocha">{ui("Não foi possível acessar sua localização. Libere a permissão no navegador para ver restaurantes por distância.")}</p>
           ) : null}
           {statusLocalizacao === "unsupported" ? (
-            <p className="mx-6 mt-5 rounded-[8px] border border-app-baunilha-dourada bg-white p-4 text-sm font-semibold text-app-mocha sm:mx-8">{ui("Este navegador não oferece suporte à localização automática.")}</p>
+            <p className="mt-7 border-l-2 border-app-caramelo-torrado pl-4 text-sm font-semibold text-app-mocha">{ui("Este navegador não oferece suporte à localização automática.")}</p>
           ) : null}
 
-          <div className="p-6 sm:p-8">
+        <div className="pt-8">
             {carregandoRestaurantes && (statusLocalizacao === "loading" || localizacaoCliente || localizacaoManualAplicada) ? (
-              <EmptyState title={ui("Carregando restaurantes próximos")} description={ui("Estamos calculando a distância dos restaurantes para ordenar a lista.")}/>
+              <LocationEmptyState title={ui("Carregando restaurantes próximos")} description={ui("Estamos calculando a distância dos restaurantes para ordenar a lista.")}/>
             ) : (localizacaoCliente || localizacaoManualAplicada) && nearbyRestaurants.length ? (<div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
                 {nearbyRestaurants.map((restaurant) => (<article key={restaurant.id} className="group relative min-w-0 rounded-[8px] border border-app-baunilha-dourada bg-white p-2.5 shadow-sm transition hover:-translate-y-0.5 hover:border-app-caramelo-torrado/55 hover:shadow-md">
                     <Link href={`/cliente/restaurantes/${restaurant.id}`} className="flex min-w-0 gap-3" aria-label={`Ver ${restaurant.name}`}>
@@ -614,9 +632,8 @@ export default function DashboardPage() {
                       <Icon type="heart" filled={restaurant.isFavorite} className="h-full w-full"/>
                     </button>
                   </article>))}
-              </div>) : (localizacaoCliente || localizacaoManualAplicada) ? (<EmptyState title={ui("Nenhum restaurante neste raio")} description={ui("Tente aumentar o raio de busca ou usar outra cidade, bairro ou CEP.")}/>) : (<EmptyState title={ui("Permita sua localização")} description={ui("Ao autorizar o navegador, a Appono carrega automaticamente os restaurantes mais próximos e permite filtrar por raio.")}/>)}
+              </div>) : (localizacaoCliente || localizacaoManualAplicada) ? (<LocationEmptyState title={ui("Nenhum restaurante neste raio")} description={ui("Tente aumentar o raio de busca ou usar outra cidade, bairro ou CEP.")}/>) : (<LocationEmptyState title={ui("Permita sua localização")} description={ui("Ao autorizar o navegador, a Appono carrega automaticamente os restaurantes mais próximos e permite filtrar por raio.")}/>)}
           </div>
-        </div>
       </section>
 
       <section className="mx-auto max-w-7xl px-5 py-12">
