@@ -118,4 +118,20 @@ function executeReserve({ root, protocol, write = false }) {
     return { openingManifest, summary, outputs, outputDirectory: reports };
 }
 
-module.exports = { CONFIRMATION, RESERVE_ID, executeReserve, reserveSnapshot, seedNumber };
+function checkReserveOutputs(root) {
+    const directory = path.join(root, "backend", "reports", "routine-intelligence", "prospective", "internal", "reserve-v1");
+    const required = ["opening-manifest.json", "snapshot.json", "raw-report.json", "metrics.json", "summary.json"];
+    if (!fs.existsSync(directory)) throw new Error("RESERVE_CHECK_MISMATCH: output directory missing");
+    for (const name of required) if (!fs.existsSync(path.join(directory, name))) throw new Error("RESERVE_CHECK_MISMATCH: output missing");
+    const opening = readJson(path.join(directory, "opening-manifest.json"));
+    const raw = readJson(path.join(directory, "raw-report.json"));
+    const metrics = readJson(path.join(directory, "metrics.json"));
+    const summary = readJson(path.join(directory, "summary.json"));
+    if (opening.partition_id !== RESERVE_ID || opening.reserve_accessed !== true || opening.historical_reserve_used !== false) throw new Error("RESERVE_CHECK_MISMATCH: opening manifest");
+    if (raw.metadata?.dataset_id !== RESERVE_ID || raw.metadata?.reserve_accessed !== true || raw.content_sha256 !== canonicalHash({ metadata: raw.metadata, summary: raw.summary, decisions: raw.decisions })) throw new Error("RESERVE_CHECK_MISMATCH: raw report");
+    if (metrics.metadata?.dataset_id !== RESERVE_ID || metrics.metadata?.reserve_accessed !== true) throw new Error("RESERVE_CHECK_MISMATCH: metrics");
+    if (summary.partition_id !== RESERVE_ID || summary.reserve_accessed !== true || summary.raw_report_sha256 !== raw.content_sha256 || summary.metrics_sha256 !== metrics.content_sha256) throw new Error("RESERVE_CHECK_MISMATCH: summary");
+    return { outputDirectory: directory, files: required };
+}
+
+module.exports = { CONFIRMATION, RESERVE_ID, checkReserveOutputs, executeReserve, reserveSnapshot, seedNumber };

@@ -1,7 +1,7 @@
 "use strict";
 
 const path = require("node:path");
-const { executeReserve } = require("../src/domain/routine-intelligence-reserve");
+const { checkReserveOutputs, executeReserve } = require("../src/domain/routine-intelligence-reserve");
 
 const args = process.argv.slice(2);
 if (args.includes("--help")) {
@@ -18,15 +18,14 @@ if (modes.length !== 1 || args.length !== 1) {
     process.exit(2);
 }
 try {
-    const result = executeReserve({ root: path.resolve(__dirname, "../.."), write: modes[0] === "--write" });
+    const root = path.resolve(__dirname, "../..");
     if (modes[0] === "--check") {
-        const fs = require("node:fs");
-        for (const [name, content] of Object.entries(result.outputs)) {
-            const file = path.join(result.outputDirectory, name);
-            if (!fs.existsSync(file) || fs.readFileSync(file, "utf8") !== content) throw new Error("RESERVE_CHECK_MISMATCH: output differs");
-        }
+        const checked = checkReserveOutputs(root);
+        console.log(JSON.stringify({ protocol: "routine-reserve-opening-v1", mode: "check", files: checked.files, private_material_read: false, reserve_reexecuted: false, historical_reserve_used: false, recalibration: false, public_rollout_percent: 0 }));
+    } else {
+        const result = executeReserve({ root, write: true });
+        console.log(JSON.stringify({ protocol: "routine-reserve-opening-v1", mode: "write", scenarios: result.summary.scenarios, model_executions: result.summary.model_executions, failures: result.summary.failures_by_model, fallbacks: result.summary.fallbacks, eliminatory_violations: result.summary.eliminatory_violations, reserve_accessed: true, historical_reserve_used: false, recalibration: false, public_rollout_percent: 0 }));
     }
-    console.log(JSON.stringify({ protocol: "routine-reserve-opening-v1", mode: modes[0].slice(2), scenarios: result.summary.scenarios, model_executions: result.summary.model_executions, failures: result.summary.failures_by_model, fallbacks: result.summary.fallbacks, eliminatory_violations: result.summary.eliminatory_violations, reserve_accessed: true, historical_reserve_used: false, recalibration: false, public_rollout_percent: 0 }));
 } catch (error) {
     console.error(String(error.message ?? "RESERVE_EXECUTION_FAILED").split("\n")[0]);
     process.exit(1);
