@@ -22,6 +22,8 @@ const diasSemana = [
 const estadoInicial = {
     nome: "Rotina principal",
     endereco_base: "",
+    endereco_ativo_id: "casa",
+    enderecos_rotina: [{ id: "casa", tipo: "CASA", nome: "Casa", endereco: "", ativo: true }],
     dias_semana: ["monday", "tuesday", "wednesday", "thursday", "friday"],
     horario_inicio: "12:00",
     horario_fim: "14:00",
@@ -42,6 +44,13 @@ const estadoInicial = {
 };
 
 const rotulosJanela = { CAFE: "Café", ALMOCO: "Almoço", JANTAR: "Jantar", PERSONALIZADA: "Personalizada" };
+
+const rotulosEndereco = { CASA: "Casa", ESCOLA: "Escola", TRABALHO: "Trabalho", OUTRO: "Outro" };
+
+function enderecoPadrao(tipo = "OUTRO", indice = 0) {
+    const id = `${tipo.toLowerCase()}-${indice + 1}`;
+    return { id, tipo, nome: rotulosEndereco[tipo] ?? "Outro", endereco: "", ativo: false };
+}
 
 function janelaPadrao(tipo = "ALMOCO", ordem = 0) {
     const horarios = { CAFE: ["07:00", "09:30"], ALMOCO: ["12:00", "14:00"], JANTAR: ["19:00", "21:30"], PERSONALIZADA: ["15:00", "17:00"] };
@@ -110,6 +119,10 @@ export default function ConfigurarRotinaPage() {
                         ...estadoInicial,
                         nome: perfil.nome ?? estadoInicial.nome,
                         endereco_base: perfil.endereco_base ?? "",
+                        endereco_ativo_id: perfil.endereco_ativo_id ?? perfil.enderecos_rotina?.find((item) => item.ativo)?.id ?? "casa",
+                        enderecos_rotina: perfil.enderecos_rotina?.length
+                            ? perfil.enderecos_rotina
+                            : [{ id: "casa", tipo: "CASA", nome: "Casa", endereco: perfil.endereco_base ?? "", ativo: true }],
                         dias_semana: perfil.dias_semana?.length ? perfil.dias_semana : estadoInicial.dias_semana,
                         horario_inicio: String(perfil.horario_inicio ?? "12:00").slice(0, 5),
                         horario_fim: String(perfil.horario_fim ?? "14:00").slice(0, 5),
@@ -226,6 +239,38 @@ export default function ConfigurarRotinaPage() {
         setForm((atual) => ({ ...atual, [campo]: valor }));
     }
 
+    function atualizarEndereco(indice, campo, valor) {
+        setForm((atual) => ({ ...atual, enderecos_rotina: atual.enderecos_rotina.map((item, posicao) => posicao === indice ? { ...item, [campo]: valor } : item) }));
+        if (campo === "endereco" && form.enderecos_rotina[indice]?.id === form.endereco_ativo_id) {
+            atualizar("endereco_base", valor);
+            setCandidatosEndereco([]);
+            setGeocodificacaoSelecionada("");
+        }
+    }
+
+    function selecionarEndereco(id) {
+        setForm((atual) => {
+            const selecionado = atual.enderecos_rotina.find((item) => item.id === id);
+            return { ...atual, endereco_ativo_id: id, endereco_base: selecionado?.endereco ?? "", enderecos_rotina: atual.enderecos_rotina.map((item) => ({ ...item, ativo: item.id === id })) };
+        });
+        setCandidatosEndereco([]);
+        setGeocodificacaoSelecionada("");
+    }
+
+    function adicionarEndereco(tipo) {
+        setForm((atual) => ({ ...atual, enderecos_rotina: [...atual.enderecos_rotina, enderecoPadrao(tipo, atual.enderecos_rotina.length)] }));
+    }
+
+    function removerEndereco(indice) {
+        setForm((atual) => {
+            if (atual.enderecos_rotina.length <= 1) return atual;
+            const removido = atual.enderecos_rotina[indice];
+            const enderecos = atual.enderecos_rotina.filter((_, posicao) => posicao !== indice);
+            const ativo = removido.id === atual.endereco_ativo_id ? enderecos[0] : enderecos.find((item) => item.id === atual.endereco_ativo_id) ?? enderecos[0];
+            return { ...atual, endereco_ativo_id: ativo.id, enderecos_rotina: enderecos.map((item) => ({ ...item, ativo: item.id === ativo.id })) };
+        });
+    }
+
     function alternarDia(dia) {
         setForm((atual) => {
             const selecionado = atual.dias_semana.includes(dia);
@@ -280,12 +325,17 @@ export default function ConfigurarRotinaPage() {
                 setVersaoPerfil(versaoAtual);
             }
             const janelaPrincipal = form.janelas_alimentacao.find((janela) => janela.tipo === "ALMOCO") ?? form.janelas_alimentacao[0];
+            const enderecosParaSalvar = form.enderecos_rotina.map((item) => item.id === form.endereco_ativo_id
+                ? { ...item, endereco: form.endereco_base, ativo: true }
+                : { ...item, ativo: false });
             const perfilSalvo = await apiRequest("/rotina/perfil", {
                 method: "POST",
                 body: JSON.stringify({
                     versao_perfil: versaoParaSalvar,
                     nome: form.nome,
                     endereco_base: form.endereco_base,
+                    endereco_ativo_id: form.endereco_ativo_id,
+                    enderecos_rotina: enderecosParaSalvar,
                     dias_semana: janelaPrincipal.dias_semana,
                     horario_inicio: janelaPrincipal.horario_inicio,
                     horario_fim: janelaPrincipal.horario_fim,
@@ -418,6 +468,16 @@ export default function ConfigurarRotinaPage() {
                         </div>
                         <p className="mt-4 max-w-2xl text-sm leading-6 text-app-cinza">{ui("Usamos o endereço apenas para encontrar restaurantes próximos. As coordenadas são calculadas com segurança no servidor e não ficam editáveis nesta tela.")}</p>
                         {candidatosEndereco.length > 0 ? <fieldset className="mt-5 rounded-2xl border border-app-baunilha-dourada bg-app-chantilly/40 p-4"><legend className="px-1 text-xs font-bold uppercase tracking-[0.14em] text-app-mocha">{ui("Qual endereço corresponde à sua base?")}</legend><div className="mt-3 grid gap-2">{candidatosEndereco.map((candidato) => <label key={candidato.place_id} className="flex cursor-pointer items-start gap-3 rounded-xl bg-white p-3 text-sm text-app-cafe-profundo ring-1 ring-app-baunilha-dourada/55"><input type="radio" name="endereco-geocodificado" value={candidato.place_id} checked={geocodificacaoSelecionada === candidato.place_id} onChange={(event) => setGeocodificacaoSelecionada(event.target.value)} className="mt-0.5 accent-app-caramelo-torrado" /><span>{candidato.nome}</span></label>)}</div></fieldset> : null}
+                        <section className="mt-5 rounded-2xl border border-app-baunilha-dourada/70 bg-app-chantilly/25 p-4">
+                            <div className="flex flex-wrap items-start justify-between gap-3"><div><h2 className="text-lg font-semibold">{ui("Meus enderecos")}</h2><p className="mt-1 text-sm leading-6 text-app-cinza">{ui("Escolha onde voce esta. O endereco ativo define a distancia usada nas sugestoes.")}</p></div><span className="text-xs font-bold text-app-mocha">{form.enderecos_rotina.length}/10</span></div>
+                            <div className="mt-4 grid gap-3">
+                                {form.enderecos_rotina.map((endereco, indice) => <article key={endereco.id} className={`rounded-xl border p-3 ${endereco.id === form.endereco_ativo_id ? "border-app-caramelo-torrado bg-white" : "border-app-baunilha-dourada/60 bg-white/70"}`}>
+                                    <div className="flex flex-wrap items-center gap-3"><label className="flex items-center gap-2 text-sm font-semibold"><input type="radio" name="endereco-ativo" checked={endereco.id === form.endereco_ativo_id} onChange={() => selecionarEndereco(endereco.id)} className="accent-app-caramelo-torrado" />{ui("Usar neste momento")}</label><select value={endereco.tipo} onChange={(event) => atualizarEndereco(indice, "tipo", event.target.value)} className="h-9 rounded-lg border border-app-baunilha-dourada bg-white px-2 text-xs font-bold uppercase tracking-wider"><option value="CASA">{ui("Casa")}</option><option value="ESCOLA">{ui("Escola")}</option><option value="TRABALHO">{ui("Trabalho")}</option><option value="OUTRO">{ui("Outro")}</option></select>{form.enderecos_rotina.length > 1 ? <button type="button" onClick={() => removerEndereco(indice)} className="ml-auto text-xs font-bold uppercase tracking-wider text-red-700">{ui("Remover")}</button> : null}</div>
+                                    <div className="mt-3 grid gap-3 sm:grid-cols-2"><label className="grid gap-1 text-xs font-bold uppercase tracking-wider text-app-mocha">{ui("Nome")}<input value={endereco.nome} onChange={(event) => atualizarEndereco(indice, "nome", event.target.value)} className="h-10 rounded-lg border border-app-baunilha-dourada px-3 text-sm font-semibold normal-case tracking-normal" /></label><label className="grid gap-1 text-xs font-bold uppercase tracking-wider text-app-mocha sm:col-span-2">{ui("Endereco")}<input value={endereco.endereco} onChange={(event) => atualizarEndereco(indice, "endereco", event.target.value)} required={indice === 0} placeholder={ui("Ex: Rua, numero, bairro, cidade e UF")} className="h-10 rounded-lg border border-app-baunilha-dourada px-3 text-sm font-semibold normal-case tracking-normal" /></label></div>
+                                </article>)}
+                            </div>
+                            <div className="mt-3 flex flex-wrap gap-2">{["CASA", "ESCOLA", "TRABALHO", "OUTRO"].map((tipo) => <button key={tipo} type="button" disabled={form.enderecos_rotina.length >= 10} onClick={() => adicionarEndereco(tipo)} className="min-h-9 rounded-full border border-app-baunilha-dourada px-3 text-[10px] font-bold uppercase tracking-wider text-app-mocha disabled:opacity-40">+ {ui(rotulosEndereco[tipo])}</button>)}</div>
+                        </section>
                     </section>
 
                     <section className={`${etapa === 0 ? "" : "hidden "}rounded-[24px] bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada/55`}>

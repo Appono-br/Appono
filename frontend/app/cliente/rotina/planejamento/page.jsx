@@ -68,6 +68,7 @@ export default function PlanejamentoRotinaPage() {
     const [processando, setProcessando] = useState("");
     const [confirmacao, setConfirmacao] = useState(null);
     const [confirmacaoRecusa, setConfirmacaoRecusa] = useState(null);
+    const [confirmacaoRecusaTodas, setConfirmacaoRecusaTodas] = useState(false);
     const [confirmarOutraSugestao, setConfirmarOutraSugestao] = useState(null);
     const [edicao, setEdicao] = useState(null);
     const [rascunhoEdicao, setRascunhoEdicao] = useState(null);
@@ -155,9 +156,10 @@ export default function PlanejamentoRotinaPage() {
     const pendentesDecisao = resumo.sugeridas + refeicoes.filter((item) => item.status === "ALTERADA").length;
     const estado = useMemo(() => estadoPlanejamento({ perfil, planejamento, refeicoes }), [perfil, planejamento, refeicoes]);
     const janelasPorId = useMemo(() => new Map((perfil?.janelas_alimentacao ?? []).map((janela) => [Number(janela.id_janela_alimentacao), janela])), [perfil]);
+    const refeicoesVisiveis = useMemo(() => semanaAnterior ? [] : refeicoes.filter((item) => !["RECUSADA", "CANCELADA"].includes(item.status)), [refeicoes, semanaAnterior]);
     const diasPlanejados = useMemo(() => {
         const grupos = new Map();
-        for (const refeicao of refeicoes) {
+        for (const refeicao of refeicoesVisiveis) {
             const grupo = grupos.get(refeicao.data_refeicao) ?? [];
             grupo.push(refeicao);
             grupos.set(refeicao.data_refeicao, grupo);
@@ -166,7 +168,7 @@ export default function PlanejamentoRotinaPage() {
             data,
             itens: itens.sort((a, b) => String(a.horario_sugerido).localeCompare(String(b.horario_sugerido))),
         }));
-    }, [refeicoes]);
+    }, [refeicoesVisiveis]);
     const proximaRefeicao = useMemo(() => {
         return [...refeicoes]
             .filter((refeicao) => !["RECUSADA", "CANCELADA"].includes(refeicao.status) && new Date(`${refeicao.data_refeicao}T${refeicao.horario_sugerido}`).getTime() >= agoraReferencia)
@@ -214,6 +216,10 @@ export default function PlanejamentoRotinaPage() {
 
     async function aprovarTudo() {
         if (!planejamento?.id_planejamento_rotina) return;
+        if (semanaAnterior) {
+            setMensagem("Semanas anteriores estao disponiveis somente para consulta.");
+            return;
+        }
         setProcessando("aprovar-tudo");
         setMensagem("");
         try {
@@ -227,6 +233,27 @@ export default function PlanejamentoRotinaPage() {
                 return;
             }
             setMensagem(error instanceof Error ? error.message : "Não foi possível aprovar o planejamento.");
+        } finally {
+            setProcessando("");
+        }
+    }
+
+    async function recusarTodas() {
+        if (!planejamento?.id_planejamento_rotina || semanaAnterior) return;
+        setProcessando("recusar-todas");
+        setMensagem("");
+        try {
+            const resposta = await apiRequest(`/rotina/planejamento/${planejamento.id_planejamento_rotina}/recusar-sugestoes`, { method: "POST", body: JSON.stringify(versoes) });
+            setPlanejamento(resposta.planejamento);
+            setRefeicoes(resposta.refeicoes ?? []);
+            setConfirmacaoRecusaTodas(false);
+            setMensagem("Todas as sugestoes disponiveis foram recusadas.");
+        } catch (error) {
+            if (ehConflitoRotina(error)) {
+                await recuperarConflito();
+                return;
+            }
+            setMensagem(error instanceof Error ? error.message : "Nao foi possivel recusar as sugestoes.");
         } finally {
             setProcessando("");
         }
@@ -433,10 +460,12 @@ export default function PlanejamentoRotinaPage() {
                                 <button type="button" onClick={() => navegarSemana(1)} disabled={carregando || Boolean(processando)} aria-label={ui("Ver próxima semana")} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-app-baunilha-dourada text-lg outline-none transition hover:bg-app-chantilly focus-visible:ring-2 focus-visible:ring-app-caramelo-torrado disabled:opacity-40">›</button>
                             </div>
                         </div>
-                        <div className="flex flex-wrap gap-2 lg:justify-end">
+                        <div className="flex flex-wrap gap-2 lg:justify-end [&>button]:whitespace-nowrap [&>button]:px-3 [&>button]:text-xs">
+                            {semanaAnterior ? <button type="button" disabled={carregando || Boolean(processando)} onClick={() => { setCarregando(true); carregar(inicioSemana()); }} className="min-h-10 rounded-full border border-app-baunilha-dourada px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:bg-app-chantilly disabled:opacity-50">{ui("Ir para semana atual")}</button> : null}
                             <Link href="/cliente/rotina/configurar" className="inline-flex min-h-10 items-center justify-center rounded-full border border-app-baunilha-dourada px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:bg-app-chantilly">{ui("Configurar")}</Link>
                             <button type="button" disabled={Boolean(processando) || !perfil || semanaAnterior} onClick={() => planejamento ? setConfirmarGeracao(true) : gerarPlanejamento()} className="min-h-10 rounded-full bg-app-caramelo-torrado px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-app-cafe-profundo disabled:cursor-not-allowed disabled:opacity-50">{ui(semanaAnterior ? "Somente consulta" : processando === "gerar" ? "Gerando..." : "Gerar semana")}</button>
                             <button type="button" title={ui("Mantém as sugestões na sua semana; não cria reserva nem cobrança.")} disabled={Boolean(processando) || !refeicoes.some((item) => item.id_restaurante && ["SUGERIDA", "ALTERADA"].includes(item.status))} onClick={aprovarTudo} className="min-h-10 rounded-full bg-app-cafe-profundo px-4 py-2 text-sm font-bold text-app-creme-leve transition hover:bg-app-caramelo-torrado disabled:opacity-50">{ui("Manter todas na semana")}</button>
+                            <button type="button" disabled={Boolean(processando) || semanaAnterior || !refeicoes.some((item) => item.id_restaurante && ["SUGERIDA", "ALTERADA", "APROVADA"].includes(item.status))} onClick={() => setConfirmacaoRecusaTodas(true)} className="min-h-10 rounded-full border border-red-300 px-4 py-2 text-sm font-bold text-red-700 transition hover:bg-red-50 disabled:opacity-50">{ui("Recusar todas as sugestões")}</button>
                         </div>
                     </div>
                     {!perfil ? <p className="border-t border-app-baunilha-dourada/45 p-5 text-sm text-app-cinza sm:px-6">{ui("Configure sua rotina antes de gerar sugestões.")}</p> : null}
@@ -445,11 +474,11 @@ export default function PlanejamentoRotinaPage() {
 
                 {carregando ? <div className="mt-5"><RoutineSkeleton cards={3} /></div> : null}
 
-                {!carregando && !refeicoes.length ? (
+                {!carregando && !diasPlanejados.length ? (
                     <div className="mt-5"><RoutineEmpty title={ui(estado.titulo)} description={ui(estado.descricao)} icon={estado.acao === "configurar" ? "route" : "spark"} action={estado.acao === "configurar" ? <Link href="/cliente/rotina/configurar" className="inline-flex min-h-11 items-center rounded-full bg-app-cafe-profundo px-6 text-xs font-bold uppercase tracking-wider text-app-creme-leve">{ui("Configurar rotina")}</Link> : semanaAnterior ? <button type="button" disabled={Boolean(processando)} onClick={() => { setCarregando(true); carregar(inicioSemana()); }} className="min-h-11 rounded-full bg-app-cafe-profundo px-6 text-xs font-bold uppercase tracking-wider text-app-creme-leve disabled:opacity-50">{ui("Ir para semana atual")}</button> : <button type="button" disabled={!perfil || Boolean(processando)} onClick={gerarPlanejamento} className="min-h-11 rounded-full bg-app-cafe-profundo px-6 text-xs font-bold uppercase tracking-wider text-app-creme-leve disabled:opacity-50">{ui("Gerar planejamento")}</button>} /></div>
                 ) : null}
 
-                {!carregando && refeicoes.length ? <div className="mt-5 grid gap-5">
+                {!carregando && diasPlanejados.length ? <div className="mt-5 grid gap-5">
                     {diasPlanejados.map((dia) => <section key={dia.data} aria-labelledby={`dia-${dia.data}`} className="overflow-hidden rounded-[24px] bg-white shadow-sm ring-1 ring-app-baunilha-dourada/55">
                         <header className="flex flex-col gap-2 border-b border-app-baunilha-dourada/45 bg-app-creme-leve/55 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
                             <div><p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{ui("Dia da semana")}</p><h2 id={`dia-${dia.data}`} className="mt-1 text-xl font-semibold capitalize">{dataCurta(dia.data, localeUI)}</h2></div>
@@ -467,6 +496,7 @@ export default function PlanejamentoRotinaPage() {
                         const destaque = proximaRefeicao?.id_refeicao_planejada === refeicao.id_refeicao_planejada;
                         return (
                             <article key={refeicao.id_refeicao_planejada} className={`relative p-5 sm:p-6 ${destaque ? "bg-app-chantilly/45" : "bg-white"}`}>
+                                {semanaAnterior ? <span className="absolute bottom-5 right-5 rounded-full bg-app-chantilly px-3 py-1 text-[9px] font-bold uppercase tracking-wider text-app-mocha sm:bottom-6 sm:right-6">{ui("Historico")}</span> : null}
                                 {destaque ? <span className="absolute right-5 top-5 rounded-full bg-app-caramelo-torrado px-3 py-1 text-[9px] font-bold uppercase tracking-wider text-white sm:right-6">{ui("Próxima")}</span> : null}
                                 <div className="grid gap-5 lg:grid-cols-[170px_minmax(0,1fr)]">
                                     <div className="flex items-start gap-3 lg:block lg:border-r lg:border-app-baunilha-dourada/45 lg:pr-5">
@@ -600,6 +630,18 @@ export default function PlanejamentoRotinaPage() {
                 onConfirm={() => atualizarStatus(confirmacaoRecusa, "recusar")}
                 onCancel={() => setConfirmacaoRecusa(null)}
                 details={confirmacaoRecusa ? <div><p className="font-semibold">{confirmacaoRecusa.restaurantes?.nome ?? ui("Restaurante")}</p><p className="mt-1 text-xs text-app-cinza">{dataCurta(confirmacaoRecusa.data_refeicao, localeUI)} · {confirmacaoRecusa.produtos?.nome ?? ui("Somente reserva")}</p></div> : null}
+            />
+            <ConfirmationDialog
+                open={confirmacaoRecusaTodas}
+                eyebrow={ui("Recusar sugestões")}
+                title={ui("Recusar todas as sugestões da semana?")}
+                description={ui("As sugestões ainda não convertidas serão retiradas desta semana. Pedidos e reservas já criados não serão alterados.")}
+                confirmLabel={ui("Recusar todas")}
+                cancelLabel={ui("Manter sugestões")}
+                variant="danger"
+                loading={processando === "recusar-todas"}
+                onConfirm={recusarTodas}
+                onCancel={() => setConfirmacaoRecusaTodas(false)}
             />
             <ConfirmationDialog
                 open={confirmarDescartar}

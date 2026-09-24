@@ -118,7 +118,7 @@ export default function RotinaClientePage() {
                 title={ui(perfil ? "Sua próxima decisão, em um só lugar." : "Vamos organizar suas refeições.")}
                 description={ui("Defina sua rotina, receba sugestões e reserve somente quando fizer sentido para você.")}
                 aside={<div className="grid grid-cols-3 gap-2 rounded-[18px] bg-white/10 p-4 text-center ring-1 ring-white/15 sm:min-w-80">
-                    <div><p className="text-[10px] font-bold uppercase tracking-wider text-app-baunilha-dourada">{ui("Dias")}</p><strong className="mt-1 block text-2xl">{resumo.total}</strong></div>
+                    <div><p className="text-[10px] font-bold uppercase tracking-wider text-app-baunilha-dourada">{ui("Refeições")}</p><strong className="mt-1 block text-2xl">{resumo.total}</strong></div>
                     <div><p className="text-[10px] font-bold uppercase tracking-wider text-app-baunilha-dourada">{ui("Aprovadas")}</p><strong className="mt-1 block text-2xl">{resumo.aprovadas}</strong></div>
                     <div><p className="text-[10px] font-bold uppercase tracking-wider text-app-baunilha-dourada">{ui("Reservadas")}</p><strong className="mt-1 block text-2xl">{resumo.convertidas}</strong></div>
                 </div>}
@@ -128,7 +128,7 @@ export default function RotinaClientePage() {
             {carregando ? <div className="mt-5"><RoutineSkeleton /></div> : null}
 
 
-            {!carregando ? <div className="mt-5 grid items-start gap-5 lg:grid-cols-[0.82fr_1.18fr]">
+            {!carregando ? <div className="mt-5 grid items-start gap-5 lg:grid-cols-1">
                 <article className="hidden">
                     <div className="flex items-start justify-between gap-4">
                         <div><p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{ui("Seu perfil")}</p><h2 className="mt-2 text-2xl font-semibold sm:text-3xl">{perfil?.nome ?? ui("Rotina ainda não configurada")}</h2></div>
@@ -148,11 +148,11 @@ export default function RotinaClientePage() {
                         <div className="min-w-0"><p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{ui(planejamento ? "Próxima refeição" : "Comece por aqui")}</p><h2 className="mt-2 text-2xl font-semibold sm:text-3xl">{ui(planejamento ? estado.titulo : "Configure sua rotina")}</h2></div>
                         <div className="flex h-11 w-11 items-center justify-center rounded-full bg-app-cafe-profundo text-app-creme-leve"><RoutineIcon type="spark" /></div>
                     </div>
-                    {planejamento && estado.proxima ? <div className="mt-6 grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+                    {planejamento && estado.proxima ? <div className="mt-6 grid gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] sm:items-center">
                         <div className="rounded-[16px] border border-app-baunilha-dourada/45 p-5"><p className="font-semibold capitalize">{formatarData(estado.proxima.data_refeicao, localeUI)} {ui("às")} {String(estado.proxima.horario_sugerido ?? "").slice(0, 5)}</p><p className="mt-2 text-sm text-app-cinza">{estado.proxima.produtos?.nome ?? ui("Reserva sem item definido")}</p><div className="mt-3"><RoutineStatus status={estado.proxima.status} /></div></div>
                         <p className="max-w-sm text-sm leading-6 text-app-cinza">{estado.proxima.motivo_recomendacao}</p>
                     </div> : <p className="mt-5 max-w-2xl text-sm leading-6 text-app-cinza">{ui(planejamento ? estado.descricao : "Informe seus horários, ponto de partida e preferências. Depois a Appono encontrará sugestões que se encaixem no seu dia.")}</p>}
-                    <div className="mt-6 flex flex-wrap gap-3">{acaoPrincipal}{planejamento ? <Link href="/cliente/rotina/planejamento" className="inline-flex min-h-11 items-center justify-center rounded-full border border-app-baunilha-dourada px-6 py-3 text-sm font-bold text-app-mocha hover:bg-app-chantilly">{ui("Abrir semana")}</Link> : null}</div>
+                    <div className="mt-6 flex flex-wrap gap-3">{acaoPrincipal}</div>
                 </article>
 
             </div> : null}

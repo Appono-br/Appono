@@ -3,10 +3,16 @@ begin;
 alter table public.perfis_rotina_cliente
   add column if not exists endereco_normalizado text,
   add column if not exists geocodificado_em timestamptz,
-  add column if not exists status_geocodificacao text not null default 'PENDENTE',
-  add constraint perfis_rotina_cliente_geocodificacao_check check (status_geocodificacao in ('PENDENTE','CONFIRMADO','AMBIGUO','FALHOU'));
+  add column if not exists status_geocodificacao text not null default 'PENDENTE';
 
-create table public.janelas_alimentacao_rotina (
+alter table public.perfis_rotina_cliente
+  drop constraint if exists perfis_rotina_cliente_geocodificacao_check;
+
+alter table public.perfis_rotina_cliente
+  add constraint perfis_rotina_cliente_geocodificacao_check
+  check (status_geocodificacao in ('PENDENTE','CONFIRMADO','AMBIGUO','FALHOU'));
+
+create table if not exists public.janelas_alimentacao_rotina (
   id_janela_alimentacao bigserial primary key,
   id_perfil_rotina bigint not null references public.perfis_rotina_cliente(id_perfil_rotina) on delete cascade,
   id_cliente bigint not null references public.clientes(id_cliente) on delete cascade,
@@ -32,8 +38,9 @@ create table public.janelas_alimentacao_rotina (
   constraint janelas_rotina_raio_check check (raio_km is null or raio_km between 1 and 100),
   constraint janelas_rotina_ordem_check check (ordem between 0 and 99)
 );
-create index janelas_rotina_perfil_idx on public.janelas_alimentacao_rotina(id_perfil_rotina, ativa, ordem);
-create unique index janelas_rotina_nome_ativo_uidx on public.janelas_alimentacao_rotina(id_perfil_rotina, lower(nome)) where ativa;
+create index if not exists janelas_rotina_perfil_idx on public.janelas_alimentacao_rotina(id_perfil_rotina, ativa, ordem);
+create unique index if not exists janelas_rotina_nome_ativo_uidx on public.janelas_alimentacao_rotina(id_perfil_rotina, lower(nome)) where ativa;
+drop trigger if exists set_updated_at_janelas_alimentacao_rotina on public.janelas_alimentacao_rotina;
 create trigger set_updated_at_janelas_alimentacao_rotina before update on public.janelas_alimentacao_rotina for each row execute function public.set_atualizado_em();
 grant usage, select on sequence public.janelas_alimentacao_rotina_id_janela_alimentacao_seq to service_role;
 
@@ -53,8 +60,8 @@ do $$ begin
 end $$;
 alter table public.refeicoes_planejadas alter column id_janela_alimentacao set not null;
 drop index if exists public.refeicoes_planejadas_planejamento_data_uidx;
-create unique index refeicoes_planejadas_planejamento_data_janela_uidx on public.refeicoes_planejadas(id_planejamento_rotina,data_refeicao,id_janela_alimentacao);
-create index refeicoes_planejadas_janela_idx on public.refeicoes_planejadas(id_janela_alimentacao,data_refeicao,status);
+create unique index if not exists refeicoes_planejadas_planejamento_data_janela_uidx on public.refeicoes_planejadas(id_planejamento_rotina,data_refeicao,id_janela_alimentacao);
+create index if not exists refeicoes_planejadas_janela_idx on public.refeicoes_planejadas(id_janela_alimentacao,data_refeicao,status);
 
 alter table public.janelas_alimentacao_rotina enable row level security;
 revoke all on public.janelas_alimentacao_rotina from public, anon, authenticated;

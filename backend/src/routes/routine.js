@@ -10,6 +10,7 @@ const { geocodificarEnderecoRotina } = require("../services/geolocalizacao");
 const { registrarSinalComportamental } = require("../domain/routine-behavior-signals");
 const { resolverPoliticaInteligenciaRotina } = require("../domain/routine-intelligence-policy");
 const { candidataCongeladaDisponivel } = require("../domain/routine-intelligence-operational");
+const { enderecoAtivo, normalizarEnderecos } = require("../domain/routine-addresses");
 
 const rotinaRouter = Router();
 
@@ -180,9 +181,16 @@ function normalizarPerfilEntrada(body, atual = {}) {
     for (const campo of ["orcamento_diario", "orcamento_semanal"]) {
         if (numeroOpcional(body[campo]) < 0) throw new Error("O orçamento não pode ser negativo.");
     }
+    const enderecosRotina = normalizarEnderecos(body.enderecos_rotina ?? atual.enderecos_rotina, atual.endereco_base);
+    if (!Array.isArray(body.enderecos_rotina) && !Array.isArray(atual.enderecos_rotina) && enderecosRotina[0]) {
+        enderecosRotina[0] = { ...enderecosRotina[0], latitude: atual.latitude ?? null, longitude: atual.longitude ?? null, status_geocodificacao: atual.status_geocodificacao ?? "CONFIRMADO" };
+    }
+    const enderecoSelecionado = enderecoAtivo(enderecosRotina, body.endereco_ativo_id ?? atual.endereco_ativo_id);
     return {
         nome: textoCurto(body.nome ?? atual.nome, "Rotina principal"),
         endereco_base: String((body.endereco_base !== undefined ? body.endereco_base : atual.endereco_base) ?? "").trim().slice(0, 180) || null,
+        enderecos_rotina: enderecosRotina,
+        endereco_ativo_id: enderecoSelecionado?.id ?? null,
         latitude,
         longitude,
         dias_semana: normalizarDiasSemana(body.dias_semana ?? atual.dias_semana),
@@ -205,6 +213,7 @@ function serializarPerfil(perfil, preferencias = [], restricoes = [], janelas = 
     if (!perfil) return null;
     return {
         ...perfil,
+        enderecos_rotina: normalizarEnderecos(perfil.enderecos_rotina, perfil.endereco_base),
         preferencias: preferencias.filter((item) => item.tipo === "PREFERENCIA").map((item) => item.valor).filter(Boolean),
         restaurantes_favoritos_rotina: preferencias.filter((item) => item.tipo === "RESTAURANTE_FAVORITO").map((item) => item.id_restaurante).filter(Boolean),
         pratos_favoritos_rotina: preferencias.filter((item) => item.tipo === "PRATO_FAVORITO").map((item) => item.id_produto).filter(Boolean),
@@ -334,6 +343,29 @@ async function carregarRestaurantesParaRotina(banco, idCliente) {
         ...metricas.get(restaurante.id_restaurante),
         produtos: produtosPorRestaurante.get(restaurante.id_restaurante) ?? [],
     }));
+}
+
+async function sincronizarJanelasSeNecessario(banco, idCliente, perfil, janelasSolicitadas, janelasPersistidas) {
+    const ativas = (janelasSolicitadas ?? []).filter((janela) => janela.ativa !== false);
+    if (!ativas.length || ativas.length <= (janelasPersistidas ?? []).filter((janela) => janela.ativa !== false).length) return false;
+    const linhas = ativas.map((janela, ordem) => ({
+        ...(janela.id_janela_alimentacao ? { id_janela_alimentacao: Number(janela.id_janela_alimentacao) } : {}),
+        id_perfil_rotina: perfil.id_perfil_rotina,
+        id_cliente: idCliente,
+        tipo: janela.tipo,
+        nome: String(janela.nome ?? "Refeicao").trim(),
+        dias_semana: janela.dias_semana,
+        horario_inicio: janela.horario_inicio,
+        horario_fim: janela.horario_fim,
+        tempo_maximo_minutos: Number(janela.tempo_maximo_minutos),
+        orcamento_por_refeicao: janela.orcamento_por_refeicao === "" ? null : janela.orcamento_por_refeicao ?? null,
+        raio_km: janela.raio_km === "" ? null : janela.raio_km ?? null,
+        ativa: true,
+        ordem: Number.isInteger(Number(janela.ordem)) ? Number(janela.ordem) : ordem,
+    }));
+    const { error } = await banco.from("janelas_alimentacao_rotina").upsert(linhas, { onConflict: "id_janela_alimentacao" });
+    if (error) throw error;
+    return true;
 }
 
 async function carregarConsentimentoPersonalizacao(banco, idCliente) {
@@ -521,20 +553,31 @@ async function salvarPerfil(req, res) {
         const atual = completoAtual.perfil;
         conferirVersao(atual?.versao, versaoEsperada(req.body, "versao_perfil"));
         const dados = normalizarPerfilEntrada(req.body ?? {}, atual ?? {});
-        const enderecoMudou = dados.endereco_base !== (atual?.endereco_base ?? null);
-        const precisaGeocodificar = enderecoMudou || dados.latitude === null || dados.longitude === null;
+        const enderecoSelecionado = enderecoAtivo(dados.enderecos_rotina, dados.endereco_ativo_id);
+        const enderecoMudou = enderecoSelecionado?.endereco !== (atual?.endereco_base ?? null);
+        const precisaGeocodificar = Boolean(enderecoSelecionado) && (enderecoMudou || enderecoSelecionado.latitude === null || enderecoSelecionado.longitude === null);
         if (precisaGeocodificar) {
-            if (!dados.endereco_base) {
+            if (!enderecoSelecionado?.endereco) {
                 return res.status(422).json({ code: "ROUTINE_ADDRESS_REQUIRED", error: "Informe seu endereço-base para calcular restaurantes próximos." });
             }
-            const candidatos = await geocodificarEnderecoRotina(dados.endereco_base);
+            const candidatos = await geocodificarEnderecoRotina(enderecoSelecionado.endereco);
             const selecionado = candidatos.find((item) => item.place_id === String(req.body?.geocodificacao_selecionada ?? ""));
-            if (candidatos.length > 1 && !selecionado) {
+            const usarMelhorCorrespondenciaAutomaticamente = true;
+            if (!usarMelhorCorrespondenciaAutomaticamente && candidatos.length > 1 && !selecionado) {
                 return res.status(422).json({ code: "ROUTINE_ADDRESS_AMBIGUOUS", error: "Escolha o endereço correspondente para continuar.", candidatos: candidatos.map(({ place_id, nome }) => ({ place_id, nome })) });
             }
             const local = selecionado ?? candidatos[0];
             if (!local) return res.status(422).json({ code: "ROUTINE_ADDRESS_NOT_FOUND", error: "Não foi possível localizar esse endereço. Revise os dados e tente novamente." });
-            Object.assign(dados, { latitude: local.latitude, longitude: local.longitude, endereco_normalizado: local.nome, status_geocodificacao: "CONFIRMADO", geocodificado_em: new Date().toISOString() });
+            const geocodificadoEm = new Date().toISOString();
+            dados.enderecos_rotina = dados.enderecos_rotina.map((item) => item.id === enderecoSelecionado.id
+                ? { ...item, latitude: local.latitude, longitude: local.longitude, endereco_normalizado: local.nome, status_geocodificacao: "CONFIRMADO", geocodificado_em: geocodificadoEm, ativo: true }
+                : { ...item, ativo: false });
+            Object.assign(dados, { endereco_base: enderecoSelecionado.endereco, latitude: local.latitude, longitude: local.longitude, endereco_normalizado: local.nome, status_geocodificacao: "CONFIRMADO", geocodificado_em: geocodificadoEm });
+        } else if (enderecoSelecionado) {
+            dados.enderecos_rotina = dados.enderecos_rotina.map((item) => ({ ...item, ativo: item.id === enderecoSelecionado.id }));
+            Object.assign(dados, { endereco_base: enderecoSelecionado.endereco, latitude: enderecoSelecionado.latitude, longitude: enderecoSelecionado.longitude });
+        } else {
+            return res.status(422).json({ code: "ROUTINE_ADDRESS_REQUIRED", error: "Informe pelo menos um endereço para calcular restaurantes próximos." });
         }
         for (const campo of ["preferencias", "restricoes", "alergias", "restaurantes_favoritos_rotina", "pratos_favoritos_rotina"]) {
             if (req.body[campo] === undefined) continue;
@@ -560,6 +603,36 @@ async function salvarPerfil(req, res) {
             completo = data;
         } else {
             completo = await mutarRotina(banco, res, req.body, "PERFIL", null, dados);
+        }
+        if (completo?.perfil?.id_perfil_rotina && Array.isArray(dados.enderecos_rotina) && (Array.isArray(req.body?.enderecos_rotina) || Array.isArray(atual?.enderecos_rotina))) {
+            const { data: perfilAtualizado, error: erroEnderecos } = await banco
+                .from("perfis_rotina_cliente")
+                .update({ enderecos_rotina: dados.enderecos_rotina, endereco_ativo_id: dados.endereco_ativo_id })
+                .eq("id_perfil_rotina", completo.perfil.id_perfil_rotina)
+                .eq("id_cliente", res.locals.profileId)
+                .select("*")
+                .single();
+            if (erroEnderecos) throw erroEnderecos;
+            completo.perfil = perfilAtualizado;
+        }
+        if (janelas && completo?.perfil?.id_perfil_rotina) {
+            const janelasSincronizadas = await sincronizarJanelasSeNecessario(
+                banco,
+                res.locals.profileId,
+                completo.perfil,
+                janelas,
+                completo.janelas_alimentacao,
+            );
+            if (janelasSincronizadas) {
+                const atualizado = await buscarPerfilCompleto(banco, res.locals.profileId);
+                completo = {
+                    ...completo,
+                    perfil: atualizado.perfil,
+                    preferencias: atualizado.preferencias,
+                    restricoes: atualizado.restricoes,
+                    janelas_alimentacao: atualizado.janelas,
+                };
+            }
         }
         return res.status(atual ? 200 : 201).json(serializarPerfil(completo.perfil, completo.preferencias, completo.restricoes, completo.janelas_alimentacao));
     } catch (error) {
@@ -732,6 +805,32 @@ rotinaRouter.post("/planejamento/:id/aprovar", async (req, res) => {
         return res.json(data);
     } catch (error) {
         return res.status(error.status ?? 400).json({ error: error instanceof Error ? error.message : "Não foi possível aprovar o planejamento." });
+    }
+});
+
+rotinaRouter.post("/planejamento/:id/recusar-sugestoes", async (req, res) => {
+    const banco = bancoRotina(res);
+    if (!banco) return;
+    const idPlanejamento = Number(req.params.id);
+    if (!Number.isInteger(idPlanejamento) || idPlanejamento <= 0) {
+        return res.status(400).json({ error: "Planejamento invalido." });
+    }
+    try {
+        const semana = await buscarPlanejamentoComRefeicoes(banco, res.locals.profileId, { id_planejamento_rotina: idPlanejamento });
+        if (!semana.planejamento) return res.status(404).json({ error: "Planejamento nao encontrado." });
+        const pendentes = semana.refeicoes.filter((item) => item.id_restaurante && ["SUGERIDA", "ALTERADA", "APROVADA"].includes(item.status));
+        let versaoPlanejamento = versaoEsperada(req.body, "versao_planejamento");
+        let resultado = { planejamento: semana.planejamento, refeicoes: semana.refeicoes };
+        for (const refeicao of pendentes) {
+            const data = await mutarRotina(banco, res, { ...req.body, versao_planejamento: versaoPlanejamento }, "RECUSAR", refeicao.id_refeicao_planejada);
+            versaoPlanejamento = Number(data.planejamento?.versao ?? versaoPlanejamento + 1);
+            resultado = data;
+            await registrarResultadoSombra(banco, res.locals.profileId, refeicao.id_refeicao_planejada, "RECUSADA");
+        }
+        const atualizado = await buscarPlanejamentoComRefeicoes(banco, res.locals.profileId, { id_planejamento_rotina: idPlanejamento });
+        return res.json(atualizado.planejamento ? atualizado : resultado);
+    } catch (error) {
+        return res.status(error.status ?? 400).json({ error: error instanceof Error ? error.message : "Nao foi possivel recusar as sugestoes." });
     }
 });
 
