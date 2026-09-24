@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { LinkNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 import { useInterface } from "@/lib/use-interface";
+import { encerrarSessao } from "@/lib/session";
 import "./restaurante-sidebar.css";
 
 const itens = [
@@ -29,6 +30,7 @@ export function RestauranteSidebar() {
     const { ui } = useInterface();
     const pathname = usePathname();
     const [aberto, setAberto] = useState(false);
+    const [saindo, setSaindo] = useState(false);
     const dialogRef = useRef(null);
 
     useEffect(() => {
@@ -46,6 +48,13 @@ export function RestauranteSidebar() {
             media.removeEventListener("change", fecharNoDesktop);
         };
     }, [aberto]);
+
+    async function sairDaConta() {
+        if (saindo) return;
+        setSaindo(true);
+        await encerrarSessao();
+        window.location.assign("/");
+    }
 
     function conteudo(mobile = false) {
         return <>
@@ -68,6 +77,10 @@ export function RestauranteSidebar() {
                 <LinkNotificacoes href="/restaurante/notificacoes" />
                 <Link href="/restaurante/notificacoes" aria-current={pathname === "/restaurante/notificacoes" ? "page" : undefined}>{ui("Notificações")}</Link>
             </div>
+            <button type="button" className="restaurant-sidebar-logout" onClick={sairDaConta} disabled={saindo} aria-busy={saindo}>
+                <Icone caminho="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />
+                <span>{ui(saindo ? "Saindo..." : "Sair da conta")}</span>
+            </button>
         </>;
     }
 

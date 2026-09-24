@@ -44,6 +44,23 @@
 .restaurant-sidebar-nav a[aria-current="page"] { background: #eadcc8; color: #241713; font-weight: 700; }
 .restaurant-sidebar-notifications { margin-top: auto; padding: 24px 12px 8px; display: flex; align-items: center; gap: 12px; font-size: 13px; }
 .restaurant-sidebar-notifications a[aria-current="page"] { font-weight: 700; }
+.restaurant-sidebar-logout {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  margin-top: 8px;
+  padding: 12px;
+  border-radius: 10px;
+  color: var(--app-vermelho-erro);
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+.restaurant-sidebar-logout:hover:not(:disabled) { background: var(--ui-hover, #f5efe7); }
+.restaurant-sidebar-logout:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+.restaurant-sidebar-logout:disabled { cursor: wait; opacity: .6; }
 .restaurant-menu-trigger { display: none; }
 .restaurant-sidebar-dialog { margin: 0; padding: 0; width: min(288px, 88vw); max-width: none; height: 100dvh; max-height: none; border: 0; border-right: 1px solid var(--ui-borda, #e5d5c4); }
 .restaurant-sidebar-dialog::backdrop { background: rgb(0 0 0 / 55%); }
