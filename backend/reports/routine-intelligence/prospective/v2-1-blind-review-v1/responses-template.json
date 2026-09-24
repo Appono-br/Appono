@@ -1,0 +1,177 @@
+{
+  "schema_version": 1,
+  "package_content_sha256": "fc278cd729af1bb7c83141a5f78acf8aa5d37a6921a60d8093153449de5ecc65",
+  "status": "DRAFT_EMPTY",
+  "reviewer_code": null,
+  "responses": [
+    {
+      "blind_case_id": "v2-1-caso-01",
+      "choice": null,
+      "reason_codes": [],
+      "confidence": null,
+      "note": null
+    },
+    {
+      "blind_case_id": "v2-1-caso-02",
+      "choice": null,
+      "reason_codes": [],
+      "confidence": null,
+      "note": null
+    },
+    {
+      "blind_case_id": "v2-1-caso-03",
+      "choice": null,
+      "reason_codes": [],
+      "confidence": null,
+      "note": null
+    },
+    {
+      "blind_case_id": "v2-1-caso-04",
+      "choice": null,
+      "reason_codes": [],
+      "confidence": null,
+      "note": null
+    },
+    {
+      "blind_case_id": "v2-1-caso-05",
+      "choice": null,
+      "reason_codes": [],
+      "confidence": null,
+      "note": null
+    },
+    {
+      "blind_case_id": "v2-1-caso-06",
+      "choice": null,
+      "reason_codes": [],
+      "confidence": null,
+      "note": null
+    },
+    {
+      "blind_case_id": "v2-1-caso-07",
+      "choice": null,
+      "reason_codes": [],
+      "confidence": null,
+      "note": null
+    },
+    {
+      "blind_case_id": "v2-1-caso-08",
+      "choice": null,
+      "reason_codes": [],
+      "confidence": null,
+      "note": null
+    },
+    {
+      "blind_case_id": "v2-1-caso-09",
+      "choice": null,
+      "reason_codes": [],
+      "confidence": null,
+      "note": null
+    },
+    {
+      "blind_case_id": "v2-1-caso-10",
+      "choice": null,
+      "reason_codes": [],
+      "confidence": null,
+      "note": null
+    },
+    {
+      "blind_case_id": "v2-1-caso-11",
+      "choice": null,
+      "reason_codes": [],
+      "confidence": null,
+      "note": null
+    },
+    {
+      "blind_case_id": "v2-1-caso-12",
+      "choice": null,
+      "reason_codes": [],
+      "confidence": null,
+      "note": null
+    },
+    {
+      "blind_case_id": "v2-1-caso-13",
+      "choice": null,
+      "reason_codes": [],
+      "confidence": null,
+      "note": null
+    },
+    {
+      "blind_case_id": "v2-1-caso-14",
+      "choice": null,
+      "reason_codes": [],
+      "confidence": null,
+      "note": null
+    },
+    {
+      "blind_case_id": "v2-1-caso-15",
+      "choice": null,
+      "reason_codes": [],
+      "confidence": null,
+      "note": null
+    },
+    {
+      "blind_case_id": "v2-1-caso-16",
+      "choice": null,
+      "reason_codes": [],
+      "confidence": null,
+      "note": null
+    },
+    {
+      "blind_case_id": "v2-1-caso-17",
+      "choice": null,
+      "reason_codes": [],
+      "confidence": null,
+      "note": null
+    },
+    {
+      "blind_case_id": "v2-1-caso-18",
+      "choice": null,
+      "reason_codes": [],
+      "confidence": null,
+      "note": null
+    },
+    {
+      "blind_case_id": "v2-1-caso-19",
+      "choice": null,
+      "reason_codes": [],
+      "confidence": null,
+      "note": null
+    },
+    {
+      "blind_case_id": "v2-1-caso-20",
+      "choice": null,
+      "reason_codes": [],
+      "confidence": null,
+      "note": null
+    },
+    {
+      "blind_case_id": "v2-1-caso-21",
+      "choice": null,
+      "reason_codes": [],
+      "confidence": null,
+      "note": null
+    },
+    {
+      "blind_case_id": "v2-1-caso-22",
+      "choice": null,
+      "reason_codes": [],
+      "confidence": null,
+      "note": null
+    },
+    {
+      "blind_case_id": "v2-1-caso-23",
+      "choice": null,
+      "reason_codes": [],
+      "confidence": null,
+      "note": null
+    },
+    {
+      "blind_case_id": "v2-1-caso-24",
+      "choice": null,
+      "reason_codes": [],
+      "confidence": null,
+      "note": null
+    }
+  ],
+  "content_sha256": "80943c65a1754570d1863896f9f5e7802131a1490c5c733b27820c11b50226d9"
+}

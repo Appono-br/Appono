@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "report_version": "appono-intelligence-v2-1-candidate-decision-v1",
+  "candidate_version": "appono-intelligence-v2-1",
+  "decision": "V2_1_APROVADA_PARA_AVALIACAO_DE_RESERVA",
+  "decision_scope": "Somente considerar nova reserva prospectiva mediante autorizacao explicita separada; nenhuma autorizacao de rollout ou substituicao da V2.",
+  "hypothesis_id": "explicit_preference_requires_broader_precedence",
+  "protocol_sha256": "db83cb2841a742920d26ff3079921543128315e86bdf7c17ebb676d977099ea8",
+  "development": { "scenarios": 300, "raw_content_sha256": "b302b1bb5f529679f416108f97d659104fa94067787edd22f3895bca9549c980", "regret_mean": 2.522448, "failures": 0, "fallbacks": 0, "eliminatory_violations": 0, "passed": true },
+  "validation": { "scenarios": 300, "raw_content_sha256": "4bde6fea87dcc0d52af81605004c673a091aa6fba99f510f6e3b5fe68c001aaf", "regret_mean": 2.388391, "failures": 0, "fallbacks": 0, "eliminatory_violations": 0, "passed": true,
+    "comparisons": {
+      "deterministico-v3": { "baseline_regret_mean": 5.372953, "delta_candidate_minus_baseline": -2.984562, "passed": true },
+      "appono-intelligence-v1": { "baseline_regret_mean": 4.263973, "delta_candidate_minus_baseline": -1.875582, "passed": true },
+      "appono-intelligence-v2": { "baseline_regret_mean": 4.926099, "delta_candidate_minus_baseline": -2.537707, "passed": true }
+    }
+  },
+  "human_review": "REVISAO_HUMANA_PENDENTE",
+  "real_customer_data": "DADOS_REAIS_AUSENTES",
+  "reserve": { "state": "SEALED_NOT_AUTHORIZED", "accessed": false, "recalibration_after_validation": false },
+  "rollout": { "public_rollout_percent": 0, "allowlist": "disabled", "enabled_by_default": false },
+  "formulas_changed": false,
+  "v2_baseline_preserved": true,
+  "canonical_sha256": "de03dc581c32a97dfa31d804dd62ec6e7ae708283afa43d24d2c2097455a11f9"
+}

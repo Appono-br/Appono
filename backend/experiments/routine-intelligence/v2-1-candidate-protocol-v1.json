@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "protocol_version": "appono-intelligence-v2-1-candidate-v1",
+  "created_at": "2026-09-23T00:00:00-03:00",
+  "timezone": "America/Sao_Paulo",
+  "executor": "codex-local",
+  "candidate_version": "appono-intelligence-v2-1",
+  "hypothesis": {
+    "id": "explicit_preference_requires_broader_precedence",
+    "mechanism": "Quando houver ao menos uma categoria explicitamente preferida no universo elegivel, a candidata deve restringir a selecao nativa a esse subconjunto, sem alterar a pontuacao congelada da V2.",
+    "generality": "A regra e aplicada a todos os contextos com preferencia explicita e candidato elegivel, sem excecao por persona ou caso.",
+    "independent_fixture": "routine-intelligence-guardrails.test.js",
+    "reserve_dependency": false,
+    "score_tuning": false
+  },
+  "baseline_hashes": {
+    "control": "0e276cd125b533dd5df381cdb95732804e3002ae31eb34efbdffe51694e31a18",
+    "v1": "41dfae64aaae0b53ec81cc70bdd74ae0807f6b83a30348ff0f663dbfcea0831b",
+    "v2": "f21157716c2c1c396dfc45bf89e66744c693bb98414906b893d7d82038335bc4",
+    "policy": "a8523294dd8487bcbbcf47e0713a51230cb4565ca1131341b2682daace61dd69",
+    "guardrails": "f205b05666b8607f69f2fe1136dc777d70791d16ca8c9377377c1c02038f9eeb",
+    "contract": "ea66691754eeaa39625c32682397c46f418e9aa4fd0ff13509210f02e78c649f"
+  },
+  "criteria": {
+    "primary": "mean_external_regret",
+    "development": "guardrails_pass_and_hypothesis_fixture_pass",
+    "validation": "v2_1_regret_lower_than_control_and_not_higher_than_v1_or_v2",
+    "comparators": ["deterministico-v3", "appono-intelligence-v1", "appono-intelligence-v2"],
+    "unit": "scenario_decision",
+    "tie_policy": "indeterminate_is_separate_from_tie",
+    "fallback_policy": "native_failure_is_recorded_and_never_credited_as_native_choice",
+    "confidence_threshold": 0.25,
+    "eliminatory_filters_must_not_regress": true,
+    "no_history_neutrality_required": true,
+    "abandonment": "abandon_if_independent_fixture_or_any_guardrail_fails",
+    "blockers": ["baseline_hash_divergence", "candidate_set_change", "future_signal", "pii", "reserve_access"]
+  },
+  "data_policy": {
+    "synthetic_offline_only": true,
+    "real_customer_data": "DADOS_REAIS_AUSENTES",
+    "human_review": "REVISAO_HUMANA_PENDENTE",
+    "reserve": "SEALED_NOT_AUTHORIZED"
+  },
+  "rollout": {
+    "public_rollout_percent": 0,
+    "enabled_by_default": false,
+    "allowlist": "disabled"
+  },
+  "formulas_changed": false,
+  "reserve_accessed": false,
+  "canonical_sha256": "db83cb2841a742920d26ff3079921543128315e86bdf7c17ebb676d977099ea8"
+}

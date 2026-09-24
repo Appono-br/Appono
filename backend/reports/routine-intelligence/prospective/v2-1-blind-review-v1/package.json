@@ -1,0 +1,714 @@
+{
+  "schema_version": 1,
+  "package_version": "appono-intelligence-v2-1-blind-review-v1",
+  "candidate_version": "appono-intelligence-v2-1",
+  "comparison_baseline": "frozen-baseline",
+  "synthetic_offline_only": true,
+  "judgments_present": false,
+  "case_count": 24,
+  "allowed_choices": [
+    "A",
+    "B",
+    "EMPATE",
+    "INDETERMINADO"
+  ],
+  "cases": [
+    {
+      "blind_case_id": "v2-1-caso-01",
+      "scenario_digest": "00e7cb2cada221b7a3dd488c7240338add43dcda5a40dc71b4d6308961aefd61",
+      "context": {
+        "profile_label": "Perfil 349A",
+        "meal_window": "ALMOCO",
+        "virtual_moment": "semana 5, dia 2, historico NONE"
+      },
+      "option_a": {
+        "alias": "Opcao A",
+        "category": "Brasileira",
+        "price_band": "ATE_34",
+        "distance_band": "ATE_2_KM",
+        "eligible_confirmed": true
+      },
+      "option_b": {
+        "alias": "Opcao B",
+        "category": "Asiatica",
+        "price_band": "ATE_34",
+        "distance_band": "ATE_2_KM",
+        "eligible_confirmed": true
+      },
+      "response": {
+        "choice": null,
+        "reason_codes": [],
+        "confidence": null,
+        "note": null
+      }
+    },
+    {
+      "blind_case_id": "v2-1-caso-02",
+      "scenario_digest": "00ff24e65365fc9eaa6ba8dae90f28e770f265b94295f1f8fb3ecc619c5433fb",
+      "context": {
+        "profile_label": "Perfil 71C3",
+        "meal_window": "JANTAR",
+        "virtual_moment": "semana 6, dia 2, historico SUFFICIENT"
+      },
+      "option_a": {
+        "alias": "Opcao A",
+        "category": "Massas",
+        "price_band": "ATE_34",
+        "distance_band": "ATE_2_KM",
+        "eligible_confirmed": true
+      },
+      "option_b": {
+        "alias": "Opcao B",
+        "category": "Brasileira",
+        "price_band": "ATE_34",
+        "distance_band": "ATE_2_KM",
+        "eligible_confirmed": true
+      },
+      "response": {
+        "choice": null,
+        "reason_codes": [],
+        "confidence": null,
+        "note": null
+      }
+    },
+    {
+      "blind_case_id": "v2-1-caso-03",
+      "scenario_digest": "01f6ec653f8196c3aed31cd2f9fbfd7714e4279cd576c6408228f5e61d0acf13",
+      "context": {
+        "profile_label": "Perfil 859B",
+        "meal_window": "ALMOCO",
+        "virtual_moment": "semana 5, dia 5, historico NONE"
+      },
+      "option_a": {
+        "alias": "Opcao A",
+        "category": "Mediterranea",
+        "price_band": "ATE_34",
+        "distance_band": "ATE_2_KM",
+        "eligible_confirmed": true
+      },
+      "option_b": {
+        "alias": "Opcao B",
+        "category": "Massas",
+        "price_band": "ATE_34",
+        "distance_band": "ATE_2_KM",
+        "eligible_confirmed": true
+      },
+      "response": {
+        "choice": null,
+        "reason_codes": [],
+        "confidence": null,
+        "note": null
+      }
+    },
+    {
+      "blind_case_id": "v2-1-caso-04",
+      "scenario_digest": "03d92b9d3e7c1453b735ce4a770b86624985013b31a3cb50d6cc204c23727945",
+      "context": {
+        "profile_label": "Perfil 349A",
+        "meal_window": "ALMOCO",
+        "virtual_moment": "semana 1, dia 4, historico NONE"
+      },
+      "option_a": {
+        "alias": "Opcao A",
+        "category": "Brasileira",
+        "price_band": "ATE_34",
+        "distance_band": "ATE_2_KM",
+        "eligible_confirmed": true
+      },
+      "option_b": {
+        "alias": "Opcao B",
+        "category": "Lanches",
+        "price_band": "ATE_34",
+        "distance_band": "ATE_2_KM",
+        "eligible_confirmed": true
+      },
+      "response": {
+        "choice": null,
+        "reason_codes": [],
+        "confidence": null,
+        "note": null
+      }
+    },
+    {
+      "blind_case_id": "v2-1-caso-05",
+      "scenario_digest": "03de922fb63f8c6a49e1e819169bac2b08b33661cb428f3de075b63171f1acb7",
+      "context": {
+        "profile_label": "Perfil 6C53",
+        "meal_window": "ALMOCO",
+        "virtual_moment": "semana 1, dia 3, historico SUFFICIENT"
+      },
+      "option_a": {
+        "alias": "Opcao A",
+        "category": "Saudavel",
+        "price_band": "ATE_34",
+        "distance_band": "ATE_2_KM",
+        "eligible_confirmed": true
+      },
+      "option_b": {
+        "alias": "Opcao B",
+        "category": "Vegetariana",
+        "price_band": "ATE_34",
+        "distance_band": "ATE_2_KM",
+        "eligible_confirmed": true
+      },
+      "response": {
+        "choice": null,
+        "reason_codes": [],
+        "confidence": null,
+        "note": null
+      }
+    },
+    {
+      "blind_case_id": "v2-1-caso-06",
+      "scenario_digest": "0867c1302c8e47ce1d2d52dbad04531f1a84d9b0a0432546adec75dad8fc8ac1",
+      "context": {
+        "profile_label": "Perfil 2C28",
+        "meal_window": "ALMOCO",
+        "virtual_moment": "semana 3, dia 5, historico SUFFICIENT"
+      },
+      "option_a": {
+        "alias": "Opcao A",
+        "category": "Saudavel",
+        "price_band": "ATE_34",
+        "distance_band": "ATE_2_KM",
+        "eligible_confirmed": true
+      },
+      "option_b": {
+        "alias": "Opcao B",
+        "category": "Lanches",
+        "price_band": "ATE_34",
+        "distance_band": "ATE_2_KM",
+        "eligible_confirmed": true
+      },
+      "response": {
+        "choice": null,
+        "reason_codes": [],
+        "confidence": null,
+        "note": null
+      }
+    },
+    {
+      "blind_case_id": "v2-1-caso-07",
+      "scenario_digest": "09fb72895a949934839f7996b6996fb05f45554500c582061a68af9f1e632a0f",
+      "context": {
+        "profile_label": "Perfil 1AA3",
+        "meal_window": "JANTAR",
+        "virtual_moment": "semana 2, dia 4, historico SUFFICIENT"
+      },
+      "option_a": {
+        "alias": "Opcao A",
+        "category": "Mediterranea",
+        "price_band": "35_A_49",
+        "distance_band": "2_A_4_KM",
+        "eligible_confirmed": true
+      },
+      "option_b": {
+        "alias": "Opcao B",
+        "category": "Asiatica",
+        "price_band": "ATE_34",
+        "distance_band": "ATE_2_KM",
+        "eligible_confirmed": true
+      },
+      "response": {
+        "choice": null,
+        "reason_codes": [],
+        "confidence": null,
+        "note": null
+      }
+    },
+    {
+      "blind_case_id": "v2-1-caso-08",
+      "scenario_digest": "0c24fa55884b0a0adfcd99c2306dbcde20a4b9ec401a7836c85d2a7d041995f1",
+      "context": {
+        "profile_label": "Perfil 3610",
+        "meal_window": "ALMOCO",
+        "virtual_moment": "semana 2, dia 3, historico LOW"
+      },
+      "option_a": {
+        "alias": "Opcao A",
+        "category": "Brasileira",
+        "price_band": "ATE_34",
+        "distance_band": "ATE_2_KM",
+        "eligible_confirmed": true
+      },
+      "option_b": {
+        "alias": "Opcao B",
+        "category": "Brasileira",
+        "price_band": "ATE_34",
+        "distance_band": "ATE_2_KM",
+        "eligible_confirmed": true
+      },
+      "response": {
+        "choice": null,
+        "reason_codes": [],
+        "confidence": null,
+        "note": null
+      }
+    },
+    {
+      "blind_case_id": "v2-1-caso-09",
+      "scenario_digest": "0eafae37d85dfebdd502d1a5aff79cfd69b95ce84cf3029983682e526ccd09a1",
+      "context": {
+        "profile_label": "Perfil 3610",
+        "meal_window": "ALMOCO",
+        "virtual_moment": "semana 6, dia 4, historico CONTRADICTORY"
+      },
+      "option_a": {
+        "alias": "Opcao A",
+        "category": "Doces",
+        "price_band": "ATE_34",
+        "distance_band": "ATE_2_KM",
+        "eligible_confirmed": true
+      },
+      "option_b": {
+        "alias": "Opcao B",
+        "category": "Brasileira",
+        "price_band": "ATE_34",
+        "distance_band": "ATE_2_KM",
+        "eligible_confirmed": true
+      },
+      "response": {
+        "choice": null,
+        "reason_codes": [],
+        "confidence": null,
+        "note": null
+      }
+    },
+    {
+      "blind_case_id": "v2-1-caso-10",
+      "scenario_digest": "1053d6aaca036671dcc026e59986059b485824d277ae5028170b164eb7bd22d9",
+      "context": {
+        "profile_label": "Perfil 3610",
+        "meal_window": "ALMOCO",
+        "virtual_moment": "semana 5, dia 3, historico CONTRADICTORY"
+      },
+      "option_a": {
+        "alias": "Opcao A",
+        "category": "Brasileira",
+        "price_band": "ATE_34",
+        "distance_band": "ATE_2_KM",
+        "eligible_confirmed": true
+      },
+      "option_b": {
+        "alias": "Opcao B",
+        "category": "Lanches",
+        "price_band": "ATE_34",
+        "distance_band": "ATE_2_KM",
+        "eligible_confirmed": true
+      },
+      "response": {
+        "choice": null,
+        "reason_codes": [],
+        "confidence": null,
+        "note": null
+      }
+    },
+    {
+      "blind_case_id": "v2-1-caso-11",
+      "scenario_digest": "14d6312f5268fd2f633f635b2bab30d5f0fab8eb190dabb0cbd4ff2e61393e7d",
+      "context": {
+        "profile_label": "Perfil 71C3",
+        "meal_window": "JANTAR",
+        "virtual_moment": "semana 6, dia 3, historico OLD"
+      },
+      "option_a": {
+        "alias": "Opcao A",
+        "category": "Saudavel",
+        "price_band": "35_A_49",
+        "distance_band": "2_A_4_KM",
+        "eligible_confirmed": true
+      },
+      "option_b": {
+        "alias": "Opcao B",
+        "category": "Mediterranea",
+        "price_band": "ATE_34",
+        "distance_band": "ATE_2_KM",
+        "eligible_confirmed": true
+      },
+      "response": {
+        "choice": null,
+        "reason_codes": [],
+        "confidence": null,
+        "note": null
+      }
+    },
+    {
+      "blind_case_id": "v2-1-caso-12",
+      "scenario_digest": "15c00c8f00311205d9792e84f70f32dc84a16ccf41162893b4385e1a3a84fa80",
+      "context": {
+        "profile_label": "Perfil 349A",
+        "meal_window": "ALMOCO",
+        "virtual_moment": "semana 6, dia 3, historico NONE"
+      },
+      "option_a": {
+        "alias": "Opcao A",
+        "category": "Mediterranea",
+        "price_band": "ATE_34",
+        "distance_band": "ATE_2_KM",
+        "eligible_confirmed": true
+      },
+      "option_b": {
+        "alias": "Opcao B",
+        "category": "Brasileira",
+        "price_band": "ATE_34",
+        "distance_band": "ATE_2_KM",
+        "eligible_confirmed": true
+      },
+      "response": {
+        "choice": null,
+        "reason_codes": [],
+        "confidence": null,
+        "note": null
+      }
+    },
+    {
+      "blind_case_id": "v2-1-caso-13",
+      "scenario_digest": "183f83bbb88870ff13f52fd2cd659684ebfad29c33176225802d4f29a9bfbbac",
+      "context": {
+        "profile_label": "Perfil 3610",
+        "meal_window": "ALMOCO",
+        "virtual_moment": "semana 4, dia 2, historico CONTRADICTORY"
+      },
+      "option_a": {
+        "alias": "Opcao A",
+        "category": "Brasileira",
+        "price_band": "ATE_34",
+        "distance_band": "ATE_2_KM",
+        "eligible_confirmed": true
+      },
+      "option_b": {
+        "alias": "Opcao B",
+        "category": "Asiatica",
+        "price_band": "ATE_34",
+        "distance_band": "ATE_2_KM",
+        "eligible_confirmed": true
+      },
+      "response": {
+        "choice": null,
+        "reason_codes": [],
+        "confidence": null,
+        "note": null
+      }
+    },
+    {
+      "blind_case_id": "v2-1-caso-14",
+      "scenario_digest": "18cbf136f5c53aa3ef27265097f8683fc32202b9fb61e3b08aa984b8f3dce675",
+      "context": {
+        "profile_label": "Perfil 1AA3",
+        "meal_window": "JANTAR",
+        "virtual_moment": "semana 3, dia 2, historico GRADUAL_CHANGE"
+      },
+      "option_a": {
+        "alias": "Opcao A",
+        "category": "Lanches",
+        "price_band": "35_A_49",
+        "distance_band": "ATE_2_KM",
+        "eligible_confirmed": true
+      },
+      "option_b": {
+        "alias": "Opcao B",
+        "category": "Mediterranea",
+        "price_band": "ATE_34",
+        "distance_band": "2_A_4_KM",
+        "eligible_confirmed": true
+      },
+      "response": {
+        "choice": null,
+        "reason_codes": [],
+        "confidence": null,
+        "note": null
+      }
+    },
+    {
+      "blind_case_id": "v2-1-caso-15",
+      "scenario_digest": "1e59dfa09cef9b1d46b73b422d28fbae57f07e77b4d80b7f972ebb0f81fa20a5",
+      "context": {
+        "profile_label": "Perfil 2C28",
+        "meal_window": "ALMOCO",
+        "virtual_moment": "semana 2, dia 2, historico NONE"
+      },
+      "option_a": {
+        "alias": "Opcao A",
+        "category": "Lanches",
+        "price_band": "ATE_34",
+        "distance_band": "2_A_4_KM",
+        "eligible_confirmed": true
+      },
+      "option_b": {
+        "alias": "Opcao B",
+        "category": "Saudavel",
+        "price_band": "ATE_34",
+        "distance_band": "ATE_2_KM",
+        "eligible_confirmed": true
+      },
+      "response": {
+        "choice": null,
+        "reason_codes": [],
+        "confidence": null,
+        "note": null
+      }
+    },
+    {
+      "blind_case_id": "v2-1-caso-16",
+      "scenario_digest": "1ec8d913880593db9e4300bf6c7059e249bc7023054dc48b12d665284707f813",
+      "context": {
+        "profile_label": "Perfil 71C3",
+        "meal_window": "JANTAR",
+        "virtual_moment": "semana 3, dia 2, historico GRADUAL_CHANGE"
+      },
+      "option_a": {
+        "alias": "Opcao A",
+        "category": "Saudavel",
+        "price_band": "ATE_34",
+        "distance_band": "ATE_2_KM",
+        "eligible_confirmed": true
+      },
+      "option_b": {
+        "alias": "Opcao B",
+        "category": "Mediterranea",
+        "price_band": "ATE_34",
+        "distance_band": "ATE_2_KM",
+        "eligible_confirmed": true
+      },
+      "response": {
+        "choice": null,
+        "reason_codes": [],
+        "confidence": null,
+        "note": null
+      }
+    },
+    {
+      "blind_case_id": "v2-1-caso-17",
+      "scenario_digest": "1f9c3b15ebb49769c57742397c6b7f4141f6ae90940882b9ddb6002ce7fc2060",
+      "context": {
+        "profile_label": "Perfil 859B",
+        "meal_window": "ALMOCO",
+        "virtual_moment": "semana 2, dia 2, historico NONE"
+      },
+      "option_a": {
+        "alias": "Opcao A",
+        "category": "Massas",
+        "price_band": "ATE_34",
+        "distance_band": "ATE_2_KM",
+        "eligible_confirmed": true
+      },
+      "option_b": {
+        "alias": "Opcao B",
+        "category": "Lanches",
+        "price_band": "ATE_34",
+        "distance_band": "ATE_2_KM",
+        "eligible_confirmed": true
+      },
+      "response": {
+        "choice": null,
+        "reason_codes": [],
+        "confidence": null,
+        "note": null
+      }
+    },
+    {
+      "blind_case_id": "v2-1-caso-18",
+      "scenario_digest": "21fe7fe2af0d154dfd5887afb7a707c2b42417baf48ade563dfeea7f101f7211",
+      "context": {
+        "profile_label": "Perfil 349A",
+        "meal_window": "ALMOCO",
+        "virtual_moment": "semana 1, dia 3, historico NONE"
+      },
+      "option_a": {
+        "alias": "Opcao A",
+        "category": "Brasileira",
+        "price_band": "ATE_34",
+        "distance_band": "ATE_2_KM",
+        "eligible_confirmed": true
+      },
+      "option_b": {
+        "alias": "Opcao B",
+        "category": "Vegetariana",
+        "price_band": "ATE_34",
+        "distance_band": "ATE_2_KM",
+        "eligible_confirmed": true
+      },
+      "response": {
+        "choice": null,
+        "reason_codes": [],
+        "confidence": null,
+        "note": null
+      }
+    },
+    {
+      "blind_case_id": "v2-1-caso-19",
+      "scenario_digest": "2855f9c5508c84a1d241d85fb949655cf37ac86bf50a28f993451d3fa1692bff",
+      "context": {
+        "profile_label": "Perfil 2C28",
+        "meal_window": "ALMOCO",
+        "virtual_moment": "semana 2, dia 1, historico GRADUAL_CHANGE"
+      },
+      "option_a": {
+        "alias": "Opcao A",
+        "category": "Asiatica",
+        "price_band": "ATE_34",
+        "distance_band": "ATE_2_KM",
+        "eligible_confirmed": true
+      },
+      "option_b": {
+        "alias": "Opcao B",
+        "category": "Brasileira",
+        "price_band": "ATE_34",
+        "distance_band": "2_A_4_KM",
+        "eligible_confirmed": true
+      },
+      "response": {
+        "choice": null,
+        "reason_codes": [],
+        "confidence": null,
+        "note": null
+      }
+    },
+    {
+      "blind_case_id": "v2-1-caso-20",
+      "scenario_digest": "290196d5f6debf2f5a8c2dbb08fc4c3b1a56c53e3c055a1a8ceb471b2778cd64",
+      "context": {
+        "profile_label": "Perfil 349A",
+        "meal_window": "ALMOCO",
+        "virtual_moment": "semana 5, dia 4, historico NONE"
+      },
+      "option_a": {
+        "alias": "Opcao A",
+        "category": "Brasileira",
+        "price_band": "ATE_34",
+        "distance_band": "2_A_4_KM",
+        "eligible_confirmed": true
+      },
+      "option_b": {
+        "alias": "Opcao B",
+        "category": "Massas",
+        "price_band": "ATE_34",
+        "distance_band": "ATE_2_KM",
+        "eligible_confirmed": true
+      },
+      "response": {
+        "choice": null,
+        "reason_codes": [],
+        "confidence": null,
+        "note": null
+      }
+    },
+    {
+      "blind_case_id": "v2-1-caso-21",
+      "scenario_digest": "298a5e20bdf45ade3c9a89627ea8c204e7a8ff9fc5145a03cbe06ca4d1fedfdd",
+      "context": {
+        "profile_label": "Perfil 859B",
+        "meal_window": "ALMOCO",
+        "virtual_moment": "semana 6, dia 2, historico SUFFICIENT"
+      },
+      "option_a": {
+        "alias": "Opcao A",
+        "category": "Brasileira",
+        "price_band": "ATE_34",
+        "distance_band": "ATE_2_KM",
+        "eligible_confirmed": true
+      },
+      "option_b": {
+        "alias": "Opcao B",
+        "category": "Massas",
+        "price_band": "ATE_34",
+        "distance_band": "2_A_4_KM",
+        "eligible_confirmed": true
+      },
+      "response": {
+        "choice": null,
+        "reason_codes": [],
+        "confidence": null,
+        "note": null
+      }
+    },
+    {
+      "blind_case_id": "v2-1-caso-22",
+      "scenario_digest": "2b2ba977ebb291b3fc92d448dc02953190f04cf24629d9b12dc54765d9994ad7",
+      "context": {
+        "profile_label": "Perfil 4A78",
+        "meal_window": "ALMOCO",
+        "virtual_moment": "semana 1, dia 3, historico SUFFICIENT"
+      },
+      "option_a": {
+        "alias": "Opcao A",
+        "category": "Vegetariana",
+        "price_band": "35_A_49",
+        "distance_band": "ATE_2_KM",
+        "eligible_confirmed": true
+      },
+      "option_b": {
+        "alias": "Opcao B",
+        "category": "Brasileira",
+        "price_band": "35_A_49",
+        "distance_band": "ATE_2_KM",
+        "eligible_confirmed": true
+      },
+      "response": {
+        "choice": null,
+        "reason_codes": [],
+        "confidence": null,
+        "note": null
+      }
+    },
+    {
+      "blind_case_id": "v2-1-caso-23",
+      "scenario_digest": "2e31db33e7c5c88a059f06415c0042734664afd7ece95b62fb6785b935ab0011",
+      "context": {
+        "profile_label": "Perfil 71C3",
+        "meal_window": "JANTAR",
+        "virtual_moment": "semana 4, dia 2, historico CONTRADICTORY"
+      },
+      "option_a": {
+        "alias": "Opcao A",
+        "category": "Massas",
+        "price_band": "ATE_34",
+        "distance_band": "2_A_4_KM",
+        "eligible_confirmed": true
+      },
+      "option_b": {
+        "alias": "Opcao B",
+        "category": "Asiatica",
+        "price_band": "ATE_34",
+        "distance_band": "ATE_2_KM",
+        "eligible_confirmed": true
+      },
+      "response": {
+        "choice": null,
+        "reason_codes": [],
+        "confidence": null,
+        "note": null
+      }
+    },
+    {
+      "blind_case_id": "v2-1-caso-24",
+      "scenario_digest": "3067cb55e4a6216e9a2993e67c9519af41a295f2f502250b10b11a3bdbb29386",
+      "context": {
+        "profile_label": "Perfil 1AA3",
+        "meal_window": "JANTAR",
+        "virtual_moment": "semana 6, dia 4, historico CONTRADICTORY"
+      },
+      "option_a": {
+        "alias": "Opcao A",
+        "category": "Doces",
+        "price_band": "35_A_49",
+        "distance_band": "2_A_4_KM",
+        "eligible_confirmed": true
+      },
+      "option_b": {
+        "alias": "Opcao B",
+        "category": "Asiatica",
+        "price_band": "ATE_34",
+        "distance_band": "2_A_4_KM",
+        "eligible_confirmed": true
+      },
+      "response": {
+        "choice": null,
+        "reason_codes": [],
+        "confidence": null,
+        "note": null
+      }
+    }
+  ],
+  "content_sha256": "fc278cd729af1bb7c83141a5f78acf8aa5d37a6921a60d8093153449de5ecc65"
+}
