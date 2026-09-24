@@ -13,18 +13,18 @@ const financeCards = [
     {
         label: "Venda bruta",
         key: "bruto",
-        description: "Pagamentos aprovados antes das deduções. Exclui estornos e cancelamentos sem retenção.",
     },
+    { label: "Taxas", key: "taxas" },
+    { label: "Estornos", key: "estornos" },
     {
         label: "Valor líquido",
         key: "liquido",
-        description: "Parte do restaurante após comissão e reembolsos informados. Não significa saldo já recebido.",
     },
     {
         label: "A receber",
         key: "pendente",
-        description: "Parte do restaurante aguardando entrega ou liberada para repasse, ainda não repassada.",
     },
+    { label: "Disponível", key: "disponivel" },
 ];
 const tableHeaders = ["Pedido", "Cliente", "Reserva", "Pedido", "Repasse", "Reembolso", "Valor restaurante"];
 const periodos = [
@@ -81,12 +81,11 @@ function obterPrevisaoRepasse(repasse) {
     return "Após confirmação de entrega";
 }
 
-function FinanceCard({ label, value, description, idioma, carregando, erro }) {
+function FinanceCard({ label, value, idioma, carregando, erro }) {
     const { ui } = useInterface();
     return (<div className="min-w-0 p-5 sm:p-6">
       <dt className="text-sm font-semibold text-app-mocha">{ui(label)}</dt>
       <dd className="mt-3 break-words text-2xl font-semibold tabular-nums text-app-cafe-profundo sm:text-3xl">{ui(carregando ? "Carregando..." : erro ? "Erro ao carregar" : value === null ? "Indisponível" : formatarMoeda(value, idioma))}</dd>
-      <p className="mt-3 text-sm leading-6 text-app-cinza">{ui(description)}</p>
       {!carregando && !erro && value === null ? <p className="mt-2 text-xs text-app-cinza">{ui("Faltam valores ou estados financeiros suficientes na resposta.")}</p> : null}
     </div>);
 }
@@ -160,6 +159,8 @@ export default function RestaurantFinancialReportPage() {
     const [acaoMercadoPago, setAcaoMercadoPago] = useState(false);
     const [modalMercadoPago, setModalMercadoPago] = useState(null);
     const [periodoAtivo, setPeriodoAtivo] = useState("30d");
+    const [filtroStatus, setFiltroStatus] = useState("todos");
+    const [filtroTipo, setFiltroTipo] = useState("todos");
     const [politicaFinanceira, setPoliticaFinanceira] = useState({
         percentual_comissao_app: 13,
         gatilho_repasse: "ENTREGA_DO_PEDIDO",
@@ -168,6 +169,7 @@ export default function RestaurantFinancialReportPage() {
     const mercadoPagoConectado = conexaoMercadoPago?.status === "CONECTADO";
     const carregandoFinanceiro = estadoFinanceiro.periodo !== periodoAtivo;
     const indicadores = obterIndicadoresFinanceiros(resumoFinanceiro, repasses);
+    const repassesFiltrados = repasses.filter((item) => (filtroStatus === "todos" || item.status_repasse === filtroStatus) && (filtroTipo === "todos" || item.tipo_fluxo_pagamento === filtroTipo));
 
     useEffect(() => {
         const statusMercadoPago = searchParams.get("mercado_pago");
@@ -309,75 +311,24 @@ export default function RestaurantFinancialReportPage() {
           <div className="border-b border-app-baunilha-dourada/60 px-5 py-4">
             <h2 className="text-lg font-semibold">{ui("Resumo do período")}</h2>
             <p className="mt-1 text-sm text-app-cinza">{ui("Período: ")}{ui(periodos.find((periodo) => periodo.value === periodoAtivo)?.label)}</p>
-            <p className="mt-1 text-xs leading-5 text-app-cinza">{ui("Filtro por aprovação do pagamento; na ausência, data do pagamento ou da atualização. Valores em BRL.")}</p>
           </div>
           <dl className="grid divide-y divide-app-baunilha-dourada/60 md:grid-cols-3 md:divide-x md:divide-y-0">
-            {financeCards.map((card) => (<FinanceCard key={card.key} label={ui(card.label)} value={indicadores[card.key]} description={ui(card.description)} idioma={idioma} carregando={carregandoFinanceiro} erro={estadoFinanceiro.erro}/>))}
+            {financeCards.map((card) => (<FinanceCard key={card.key} label={ui(card.label)} value={indicadores[card.key]} idioma={idioma} carregando={carregandoFinanceiro} erro={estadoFinanceiro.erro}/>))}
           </dl>
-          <p className="border-t border-app-baunilha-dourada/60 px-5 py-4 text-xs leading-5 text-app-cinza">{ui("Os indicadores se sobrepõem e não devem ser somados. Reembolsos parciais reduzem o líquido, não a venda bruta original.")}</p>
           {!carregandoFinanceiro && estadoFinanceiro.erro ? <p role="alert" className="px-5 pb-4 text-sm text-app-vermelho-erro">{ui("Não foi possível carregar o resumo financeiro. Recarregue a página ou selecione outro período.")}</p> : null}
           {!carregandoFinanceiro && !estadoFinanceiro.erro && !repasses.length ? <p role="status" className="px-5 pb-4 text-sm text-app-cinza">{ui("Nenhum pagamento aprovado neste período.")}</p> : null}
         </section>
 
         <section className="mt-8 rounded-[8px] bg-app-creme-leve p-6 shadow-sm ring-1 ring-app-baunilha-dourada/60 sm:p-8">
-          <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-center">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">{ui("Marketplace Mercado Pago")}</p>
-              <h2 className="mt-2 text-2xl font-medium text-app-cafe-profundo">{ui("Conta de recebimento")}</h2>
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-app-mocha">{ui("Esta conta recebe os repasses dos pedidos entregues e valores retidos por ausência conforme a regra comercial da Appono.")}</p>
-            </div>
-            <div className="rounded-[8px] bg-white p-5 text-sm ring-1 ring-app-baunilha-dourada/45 lg:min-w-96">
-              <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-app-cinza">{ui("Status da conexão")}</p>
-              <strong className="mt-2 block text-xl text-app-cafe-profundo">
-                {ui(obterTextoStatusMercadoPago(conexaoMercadoPago?.status))}
-              </strong>
-              {conexaoMercadoPago?.mercado_pago_user_id ? (
-                <p className="mt-2 text-xs text-app-mocha">{ui("Conta MP: ")}{conexaoMercadoPago.mercado_pago_user_id}
-                </p>
-              ) : null}
-              {conexaoMercadoPago?.conectado_em ? (
-                <p className="mt-1 text-xs text-app-cinza">{ui("Conectado em ")}{new Date(conexaoMercadoPago.conectado_em).toLocaleDateString(localeUI)}
-                </p>
-              ) : null}
-              {mercadoPagoConectado ? (
-                <button
-                  type="button"
-                  disabled={acaoMercadoPago}
-                  onClick={() => setModalMercadoPago("desconectar")}
-                  className="mt-5 inline-flex h-11 w-full items-center justify-center rounded-[8px] border border-app-caramelo-torrado px-5 text-xs font-bold uppercase tracking-[0.12em] text-app-caramelo-torrado transition hover:bg-app-caramelo-torrado hover:text-app-creme-leve disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  {ui(acaoMercadoPago ? "Desconectando..." : "Desconectar conta")}
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  disabled={acaoMercadoPago}
-                  onClick={() => setModalMercadoPago("conectar")}
-                  className="mt-5 inline-flex h-11 w-full items-center justify-center rounded-[8px] bg-app-cafe-profundo px-5 text-xs font-bold uppercase tracking-[0.12em] text-app-creme-leve transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  {ui(acaoMercadoPago ? "Abrindo login..." : "Conectar Mercado Pago")}
-                </button>
-              )}
-            </div>
-          </div>
-          <div className="mt-6 grid gap-4">
-            <div className="rounded-[8px] bg-white p-4 text-sm leading-6 text-app-mocha ring-1 ring-app-baunilha-dourada/45">
-              {mercadoPagoConectado ? (
-                <p>{ui("Sua conta Mercado Pago está conectada. Para trocar de vendedor, desconecte a conta atual e conecte novamente pelo login do Mercado Pago.")}</p>
-              ) : (
-                <p>{ui("Conecte a conta de recebimento do restaurante. A Appono abrira o login seguro do Mercado Pago para autorização.")}</p>
-              )}
-            </div>
-            {mensagemMercadoPago ? (
-              <p className="text-sm font-semibold text-app-caramelo-torrado">
-                {ui(mensagemMercadoPago)}
-              </p>
-            ) : null}
-          </div>
+          <p className="text-xs font-bold text-app-caramelo-torrado">Mercado Pago</p>
+          <h2 className="mt-2 text-2xl font-medium text-app-cafe-profundo">Conta de recebimento</h2>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-app-mocha">A conex?o e as credenciais de recebimento s?o administradas nas configura??es do restaurante.</p>
+          <Link href="/restaurante/configuracoes/mercado-pago" className="mt-5 inline-flex rounded-full bg-app-cafe-profundo px-5 py-3 text-sm font-semibold text-white">Gerenciar conex?o</Link>
         </section>
 
         <section className="mt-10">
-          {!carregandoFinanceiro && !estadoFinanceiro.erro ? <RepassesTable repasses={repasses} /> : null}
+          <div className="mb-4 flex flex-wrap items-end gap-3"><label className="grid gap-1 text-sm">Status<select value={filtroStatus} onChange={(e) => setFiltroStatus(e.target.value)} className="rounded-lg border border-app-baunilha-dourada px-3 py-2"><option value="todos">Todos</option><option value="AGUARDANDO_ENTREGA">Pendente</option><option value="LIBERADO_PARA_REPASSE">Disponível</option><option value="REPASSADO">Repassado</option><option value="ESTORNADO">Estornado</option></select></label><label className="grid gap-1 text-sm">Tipo<select value={filtroTipo} onChange={(e) => setFiltroTipo(e.target.value)} className="rounded-lg border border-app-baunilha-dourada px-3 py-2"><option value="todos">Todos</option><option value="MARKETPLACE">Marketplace</option><option value="DIRETO">Direto</option></select></label><p className="text-xs text-app-cinza">Os cartões mostram o total do período; estes filtros alteram apenas as linhas abaixo.</p></div>
+          {!carregandoFinanceiro && !estadoFinanceiro.erro ? <RepassesTable repasses={repassesFiltrados} /> : null}
         </section>
 
         <section className="mt-8 grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">

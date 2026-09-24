@@ -123,6 +123,7 @@ function mapearRestaurante(restaurant) {
         matchedCategories: restaurant.categorias_encontradas ?? [],
         matchedMenus: restaurant.cardapios_encontrados ?? [],
         publishedCategories: restaurant.categorias_publicadas ?? [],
+        minimumReservationValue: restaurant.valor_minimo_reserva_por_pessoa,
         menuItemsCount: restaurant.total_itens_cardapio ?? 0,
         hasMenu: Boolean(restaurant.tem_cardapio_publicado),
         acceptsReservation: Boolean(restaurant.aceita_reserva),
@@ -309,6 +310,26 @@ export default function DashboardPage() {
         .filter((restaurant) => Number(restaurant.favoriteCount) > 0)
         .sort((a, b) => Number(b.favoriteCount) - Number(a.favoriteCount))
         .slice(0, 3), [restaurants]);
+    const colecoesDescoberta = useMemo(() => {
+        const elegiveis = restaurants.filter((restaurant) => restaurant.hasMenu);
+        const categorias = (restaurant) => restaurant.publishedCategories.join(" ").toLowerCase();
+        const bemAvaliados = [...elegiveis]
+            .filter((restaurant) => Number(restaurant.reviewCount) > 0)
+            .sort((a, b) => Number(b.rating ?? 0) - Number(a.rating ?? 0) || Number(b.reviewCount) - Number(a.reviewCount))
+            .slice(0, 3);
+        const paraAlmoco = elegiveis.filter((restaurant) => /almo[cç]o|executivo|brasileira|caseira|massa/.test(`${categorias(restaurant)} ${restaurant.name.toLowerCase()}`)).slice(0, 3);
+        const paraJantar = elegiveis.filter((restaurant) => /jantar|pizza|hamb|japon|italiana|bar/.test(`${categorias(restaurant)} ${restaurant.name.toLowerCase()}`)).slice(0, 3);
+        const faixaAcessivel = [...elegiveis]
+            .filter((restaurant) => Number.isFinite(Number(restaurant.minimumReservationValue)))
+            .sort((a, b) => Number(a.minimumReservationValue) - Number(b.minimumReservationValue) || a.name.localeCompare(b.name, "pt-BR"))
+            .slice(0, 3);
+        return [
+            { titulo: "Bem avaliados", criterio: "Com avaliações registradas e maior média", itens: bemAvaliados },
+            { titulo: "Para almoço", criterio: "Opções com categorias adequadas ao almoço", itens: paraAlmoco },
+            { titulo: "Para jantar", criterio: "Opções com categorias adequadas ao jantar", itens: paraJantar },
+            { titulo: "Faixa de preço acessível", criterio: "Menor valor mínimo de reserva informado", itens: faixaAcessivel },
+        ].filter((colecao) => colecao.itens.length > 0);
+    }, [restaurants]);
     const nearbyRestaurants = useMemo(() => nearbyRestaurantItems
         .filter((restaurant) => Number.isFinite(Number(restaurant.distanceKm)))
         .sort((a, b) => Number(a.distanceKm) - Number(b.distanceKm))
@@ -617,6 +638,26 @@ export default function DashboardPage() {
               </div>) : (localizacaoCliente || localizacaoManualAplicada) ? (<EmptyState title={ui("Nenhum restaurante neste raio")} description={ui("Tente aumentar o raio de busca ou usar outra cidade, bairro ou CEP.")}/>) : (<EmptyState title={ui("Permita sua localização")} description={ui("Ao autorizar o navegador, a Appono carrega automaticamente os restaurantes mais próximos e permite filtrar por raio.")}/>)}
           </div>
         </div>
+      </section>
+
+      <section className="mx-auto max-w-7xl px-5 py-10">
+        <div>
+          <p className="text-[10px] font-bold uppercase text-app-caramelo-torrado">{ui("Descobrir")}</p>
+          <h2 className="mt-2 text-3xl font-semibold text-app-cafe-profundo sm:text-4xl">{ui("Encontre algo diferente")}</h2>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-app-cinza">{ui("Conheça restaurantes pelo cardápio, avaliações e faixa de preço, sem precisar usar a busca.")}</p>
+        </div>
+        {colecoesDescoberta.length ? <div className="mt-7 grid gap-7 lg:grid-cols-2">
+          {colecoesDescoberta.map((colecao) => <section key={colecao.titulo} className="rounded-[14px] border border-app-baunilha-dourada/60 bg-app-creme-leve p-5">
+            <h3 className="text-xl font-semibold text-app-cafe-profundo">{ui(colecao.titulo)}</h3>
+            <p className="mt-1 text-xs text-app-cinza">{ui(colecao.criterio)}</p>
+            <div className="mt-4 grid gap-3">{colecao.itens.map((restaurant) => <Link key={restaurant.id} href={`/cliente/restaurantes/${restaurant.id}`} className="flex items-center justify-between gap-4 rounded-[10px] bg-white p-4 transition hover:shadow-sm">
+              <div className="min-w-0"><p className="truncate font-semibold text-app-cafe-profundo">{restaurant.name}</p><p className="mt-1 truncate text-sm text-app-cinza">{restaurant.publishedCategories.slice(0, 2).join(" · ") || ui("Cardápio disponível")}</p></div>
+              <div className="shrink-0 text-right"><p className="text-sm font-semibold text-app-caramelo-torrado">{restaurant.rating == null ? ui("Novo") : `★ ${Number(restaurant.rating).toFixed(1)}`}</p>{Number.isFinite(Number(restaurant.minimumReservationValue)) ? <p className="mt-1 text-xs text-app-cinza">{formatarMoeda(restaurant.minimumReservationValue, localeUI)}</p> : null}</div>
+            </Link>)}</div>
+          </section>)}
+        </div> : (
+          <EmptyState compact title={ui("Ainda não há coleções disponíveis")} description={ui("As opções aparecerão aqui quando os restaurantes tiverem cardápio publicado e dados suficientes.")}/>
+        )}
       </section>
 
       <section className="mx-auto max-w-7xl px-5 py-12">

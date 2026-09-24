@@ -15,6 +15,12 @@ function verificarCamposObrigatorios(body, fields) {
     const missing = fields.filter((field) => !body[field]);
     return missing.length ? `Campos obrigatórios ausentes: ${missing.join(", ")}` : null;
 }
+function contaGoogleVerificada(usuario) {
+    const provedores = usuario?.app_metadata?.providers ?? [usuario?.app_metadata?.provider];
+    const usaGoogle = Array.isArray(provedores) && provedores.includes("google");
+    const emailVerificado = usuario?.user_metadata?.email_verified === true || Boolean(usuario?.email_confirmed_at);
+    return usaGoogle && emailVerificado && Boolean(usuario?.email);
+}
 function montarEndereco(...parts) {
     return parts.filter(Boolean).join(", ");
 }
@@ -393,7 +399,7 @@ exports.authRouter.post("/login", async (req, res) => {
     const email = typeof req.body.email === "string" ? req.body.email.trim().toLowerCase() : "";
     const { password } = req.body;
     if (!email || !password) {
-        return res.status(400).json({ error: "Informe e-mail e senha." });
+        return res.status(400).json({ code: "AUTH_CREDENTIALS_REQUIRED", error: "Informe e-mail e senha." });
     }
     const { data, error } = await supabase_1.supabaseAuth.auth.signInWithPassword({
         email,
@@ -402,11 +408,13 @@ exports.authRouter.post("/login", async (req, res) => {
     if (error || !data.session) {
         if (erroAutenticacaoEhInfraestrutura(error)) {
             return res.status(503).json({
+                code: "AUTH_SERVICE_UNAVAILABLE",
                 error: "Não foi possível acessar o serviço de autenticação. Verifique a conexão e tente novamente.",
             });
         }
         const mensagemErro = String(error?.message ?? "").toLowerCase();
         return res.status(401).json({
+            code: mensagemErro.includes("email not confirmed") ? "AUTH_EMAIL_NOT_CONFIRMED" : "AUTH_INVALID_CREDENTIALS",
             error: mensagemErro.includes("email not confirmed")
                 ? "Confirme seu e-mail antes de entrar."
                 : "E-mail ou senha incorretos. Confira os dados cadastrados e tente novamente.",
@@ -414,7 +422,7 @@ exports.authRouter.post("/login", async (req, res) => {
     }
     const profile = await obterPerfil(data.session.access_token, data.user.id);
     if (!profile) {
-        return res.status(404).json({ error: "Perfil não encontrado para este usuario." });
+        return res.status(404).json({ code: "AUTH_PROFILE_NOT_FOUND", error: "Sua conta foi autenticada, mas o perfil Appono não foi encontrado." });
     }
     return res.json({
         ...profile,
@@ -438,8 +446,8 @@ exports.authRouter.post("/google/client", auth_1.requireAuth, async (req, res) =
     if (missing) {
         return res.status(400).json({ error: missing });
     }
-    if (!res.locals.user.email) {
-        return res.status(400).json({ error: "A conta Google precisa possuir e-mail." });
+    if (!contaGoogleVerificada(res.locals.user)) {
+        return res.status(403).json({ code: "GOOGLE_EMAIL_NOT_VERIFIED", error: "Use uma Conta Google com e-mail verificado para continuar." });
     }
     if (!(0, cpf_1.validarCpf)(body.cpf)) {
         return res.status(400).json({ error: "Informe um CPF válido." });
@@ -481,8 +489,8 @@ exports.authRouter.post("/google/restaurant", auth_1.requireAuth, async (req, re
     if (missing) {
         return res.status(400).json({ error: missing });
     }
-    if (!res.locals.user.email) {
-        return res.status(400).json({ error: "A conta Google precisa possuir e-mail." });
+    if (!contaGoogleVerificada(res.locals.user)) {
+        return res.status(403).json({ code: "GOOGLE_EMAIL_NOT_VERIFIED", error: "Use uma Conta Google com e-mail verificado para continuar." });
     }
     const cnpj = (0, comum_1.somenteNumeros)(body.cnpj);
     const cep = (0, comum_1.somenteNumeros)(body.cep);

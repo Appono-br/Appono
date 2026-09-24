@@ -39,7 +39,7 @@ const settingsItems = [
     {
         label: "Mercado Pago",
         icon: "card",
-        href: "/restaurante/financeiro",
+        href: "/restaurante/configuracoes/mercado-pago",
     },
     {
         label: "Operação & logística",

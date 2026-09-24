@@ -200,3 +200,34 @@ exports.restaurantDashboardRouter.get("/dashboard/resumo", async (_req, res) => 
         pedidosAtivosCozinha: pedidosFilaCozinha.length,
     });
 });
+
+exports.restaurantDashboardRouter.get("/desempenho", async (req, res) => {
+    const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
+    const { data: restaurante } = await supabase.from("restaurantes").select("id_restaurante").eq("id_auth", res.locals.user.id).maybeSingle();
+    if (!restaurante) return res.status(403).json({ code: "RESTAURANT_REQUIRED", error: "Este relatório está disponível apenas para restaurantes." });
+    const dias = [7, 30, 90].includes(Number(req.query.dias)) ? Number(req.query.dias) : 30;
+    const inicio = new Date(); inicio.setDate(inicio.getDate() - (dias - 1));
+    const dataInicio = obterDataLocalISO(inicio);
+    const banco = supabase_1.supabaseAdmin ?? supabase;
+    const [reservasR, pedidosR, avaliacoesR] = await Promise.all([
+        banco.from("reservas").select("id_reserva, status_reserva, status_confirmacao_presenca, data_reserva").eq("id_restaurante", restaurante.id_restaurante).gte("data_reserva", dataInicio),
+        banco.from("pedidos").select("id_pedido, status_pedido, valor_total, data_pedido").eq("id_restaurante", restaurante.id_restaurante).gte("data_pedido", `${dataInicio}T00:00:00-03:00`),
+        banco.from("avaliacoes_restaurante").select("nota, created_at").eq("id_restaurante", restaurante.id_restaurante).gte("created_at", `${dataInicio}T00:00:00-03:00`),
+    ]);
+    const falha = [reservasR, pedidosR, avaliacoesR].find((item) => item.error);
+    if (falha) return res.status(400).json({ code: "PERFORMANCE_QUERY_FAILED", error: "Não foi possível calcular o desempenho agora." });
+    const reservas = reservasR.data ?? []; const pedidos = pedidosR.data ?? []; const avaliacoes = avaliacoesR.data ?? [];
+    const contar = (lista, campo, valores) => lista.filter((item) => valores.includes(item[campo])).length;
+    const reservasCanceladas = contar(reservas, "status_reserva", ["CANCELADA", "CANCELADO"]);
+    const reservasConcluidas = contar(reservas, "status_reserva", ["CONCLUIDA", "CONCLUIDO", "FINALIZADA"]);
+    const naoComparecimentos = reservas.filter((item) => ["NAO_COMPARECEU", "AUSENTE"].includes(item.status_confirmacao_presenca)).length;
+    const pedidosValidos = pedidos.filter((item) => !["CANCELADO", "PENDENTE"].includes(item.status_pedido));
+    const bruto = pedidosValidos.reduce((total, item) => total + Number(item.valor_total ?? 0), 0);
+    const serie = new Map();
+    for (const reserva of reservas) serie.set(reserva.data_reserva, { data: reserva.data_reserva, reservas: (serie.get(reserva.data_reserva)?.reservas ?? 0) + 1, pedidos: serie.get(reserva.data_reserva)?.pedidos ?? 0 });
+    for (const pedido of pedidos) { const data = String(pedido.data_pedido ?? "").slice(0, 10); const atual = serie.get(data) ?? { data, reservas: 0, pedidos: 0 }; atual.pedidos += 1; serie.set(data, atual); }
+    return res.json({ periodo: { dias, inicio: dataInicio, fuso: "America/Sao_Paulo" }, possui_amostra: reservas.length + pedidos.length + avaliacoes.length > 0,
+        reservas: { criadas: reservas.length, confirmadas: contar(reservas, "status_reserva", ["CONFIRMADA", "CONFIRMADO"]), concluidas: reservasConcluidas, canceladas: reservasCanceladas, nao_comparecimentos: naoComparecimentos, taxa_conclusao: reservas.length ? Number((reservasConcluidas / reservas.length * 100).toFixed(1)) : null, taxa_cancelamento: reservas.length ? Number((reservasCanceladas / reservas.length * 100).toFixed(1)) : null },
+        pedidos: { criados: pedidos.length, confirmados: contar(pedidos, "status_pedido", ["PAGO", "CONFIRMADO"]), em_preparo: contar(pedidos, "status_pedido", ["EM_PREPARO", "PRONTO"]), entregues: contar(pedidos, "status_pedido", ["ENTREGUE"]), cancelados: contar(pedidos, "status_pedido", ["CANCELADO"]), faturamento_bruto: Number(bruto.toFixed(2)), ticket_medio: pedidosValidos.length ? Number((bruto / pedidosValidos.length).toFixed(2)) : null },
+        avaliacoes: { media: avaliacoes.length ? Number((avaliacoes.reduce((s, a) => s + Number(a.nota), 0) / avaliacoes.length).toFixed(1)) : null, quantidade: avaliacoes.length }, serie: [...serie.values()].sort((a, b) => a.data.localeCompare(b.data)) });
+});

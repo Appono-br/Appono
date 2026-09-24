@@ -3,7 +3,7 @@
 const { Router } = require("express");
 const { createUserSupabaseClient, supabaseAdmin } = require("../lib/supabase");
 const { requireAuth, requireRole } = require("../middleware/auth");
-const { gerarPlanejamentoRotina, normalizarDiasSemana, criarCandidatos, horarioCompativel, janelasLivresDia, motivoRecomendacao, semanaAtual, semanaPlanejamento, validarLimitesRotina } = require("../domain/routine-recommendation");
+const { gerarPlanejamentoRotina, normalizarDiasSemana, criarCandidatos, horarioCompativel, janelasLivresDia, motivoRecomendacao, semanaAtual, semanaPlanejamento, validarLimitesRotina, calcularDistanciaKm } = require("../domain/routine-recommendation");
 const { notificarCliente, notificarRestaurante } = require("../services/notificacoes");
 const paymentConfig = require("../services/pagamentos/config");
 const { geocodificarEnderecoRotina } = require("../services/geolocalizacao");
@@ -574,6 +574,67 @@ rotinaRouter.get("/perfil", async (_req, res) => {
     } catch (error) {
         return res.status(400).json({ error: error instanceof Error ? error.message : "Não foi possível carregar a rotina." });
     }
+});
+
+function normalizarBuscaCatalogo(valor) {
+    return String(valor ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim().slice(0, 80);
+}
+
+async function buscarCatalogoNoRaio(banco, idCliente, query = {}) {
+    const { perfil, preferencias } = await buscarPerfilCompleto(banco, idCliente);
+    const endereco = enderecoAtivo(perfil?.enderecos_rotina, perfil?.endereco_ativo_id);
+    const latitude = Number(endereco?.latitude ?? perfil?.latitude);
+    const longitude = Number(endereco?.longitude ?? perfil?.longitude);
+    const raio = Math.min(50, Math.max(0.5, Number(perfil?.raio_km ?? 5)));
+    if (!perfil || !Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+        throw Object.assign(new Error("Salve um endereço válido antes de pesquisar restaurantes."), { status: 422, code: "ROUTINE_LOCATION_REQUIRED" });
+    }
+    const termo = normalizarBuscaCatalogo(query.q);
+    const pagina = Math.max(1, Number.parseInt(query.pagina, 10) || 1);
+    const limite = Math.min(20, Math.max(1, Number.parseInt(query.limite, 10) || 10));
+    const deltaLatitude = raio / 111.32;
+    const deltaLongitude = raio / (111.32 * Math.max(0.1, Math.cos(latitude * Math.PI / 180)));
+    const respostaRestaurantes = await banco.from("restaurantes")
+        .select("id_restaurante, nome, endereco, logo_url, latitude, longitude")
+        .eq("ativo", true)
+        .gte("latitude", latitude - deltaLatitude).lte("latitude", latitude + deltaLatitude)
+        .gte("longitude", longitude - deltaLongitude).lte("longitude", longitude + deltaLongitude)
+        .limit(250);
+    if (respostaRestaurantes.error) throw respostaRestaurantes.error;
+    const noRaio = (respostaRestaurantes.data ?? []).map((item) => ({ ...item, distancia_km: calcularDistanciaKm(latitude, longitude, Number(item.latitude), Number(item.longitude)) }))
+        .filter((item) => Number.isFinite(item.distancia_km) && item.distancia_km <= raio);
+    const ids = noRaio.map((item) => item.id_restaurante);
+    if (!ids.length) return { itens: [], selecionados: [], pagina, limite, tem_mais: false, raio_km: raio };
+    const respostaProdutos = await banco.from("produtos")
+        .select("id_produto, id_restaurante, nome, descricao, categorias(nome, ativo, arquivado, cardapios(ativo))")
+        .in("id_restaurante", ids).eq("disponivel", true).eq("arquivado", false).limit(500);
+    if (respostaProdutos.error) throw respostaProdutos.error;
+    const produtosPorRestaurante = new Map();
+    for (const produto of respostaProdutos.data ?? []) {
+        if (produto.categorias?.ativo === false || produto.categorias?.arquivado === true || produto.categorias?.cardapios?.ativo === false) continue;
+        const textoProduto = normalizarBuscaCatalogo(`${produto.nome} ${produto.descricao ?? ""} ${produto.categorias?.nome ?? ""}`);
+        const lista = produtosPorRestaurante.get(produto.id_restaurante) ?? [];
+        lista.push({ ...produto, corresponde: !termo || textoProduto.includes(termo) });
+        produtosPorRestaurante.set(produto.id_restaurante, lista);
+    }
+    const candidatos = noRaio.map((restaurante) => {
+        const produtos = produtosPorRestaurante.get(restaurante.id_restaurante) ?? [];
+        const restauranteCorresponde = !termo || normalizarBuscaCatalogo(restaurante.nome).includes(termo);
+        const correspondentes = restauranteCorresponde ? produtos : produtos.filter((produto) => produto.corresponde);
+        return { ...restaurante, produtos: correspondentes.slice(0, 5).map(({ corresponde, ...produto }) => produto), tem_catalogo_publicado: produtos.length > 0 };
+    }).filter((item) => item.tem_catalogo_publicado && (!termo || normalizarBuscaCatalogo(item.nome).includes(termo) || item.produtos.length));
+    candidatos.sort((a, b) => a.distancia_km - b.distancia_km || a.nome.localeCompare(b.nome, "pt-BR"));
+    const inicio = (pagina - 1) * limite;
+    const restaurantesSelecionados = new Set(preferencias.filter((item) => item.tipo === "RESTAURANTE_FAVORITO").map((item) => Number(item.id_restaurante)));
+    const pratosSelecionados = new Set(preferencias.filter((item) => item.tipo === "PRATO_FAVORITO").map((item) => Number(item.id_produto)));
+    const selecionados = candidatos.filter((item) => restaurantesSelecionados.has(Number(item.id_restaurante)) || item.produtos.some((produto) => pratosSelecionados.has(Number(produto.id_produto))));
+    return { itens: candidatos.slice(inicio, inicio + limite), selecionados, pagina, limite, tem_mais: candidatos.length > inicio + limite, raio_km: raio };
+}
+
+rotinaRouter.get("/catalogo/busca", async (req, res) => {
+    const banco = bancoRotina(res); if (!banco) return;
+    try { return res.json(await buscarCatalogoNoRaio(banco, res.locals.profileId, req.query)); }
+    catch (error) { return res.status(error.status ?? 400).json({ code: error.code ?? "ROUTINE_CATALOG_SEARCH_FAILED", error: error.message ?? "Não foi possível pesquisar o catálogo." }); }
 });
 
 rotinaRouter.get("/catalogo", async (_req, res) => {

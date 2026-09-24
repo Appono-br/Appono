@@ -14,7 +14,7 @@ export default function AuthCallbackPage() {
                 const errorDescription = currentUrl.searchParams.get("error_description") ??
                     new URLSearchParams(window.location.hash.slice(1)).get("error_description");
                 if (errorDescription) {
-                    throw new Error(errorDescription);
+                    throw new Error("Não foi possível confirmar o acesso. Tente novamente.");
                 }
                 const code = currentUrl.searchParams.get("code");
                 if (code) {
@@ -38,6 +38,10 @@ export default function AuthCallbackPage() {
                 const { data: { session }, } = await supabase.auth.getSession();
                 if (!session) {
                     throw new Error("Não foi possível recuperar a sessão confirmada.");
+                }
+                const emailVerificado = session.user?.user_metadata?.email_verified === true || Boolean(session.user?.email_confirmed_at);
+                if (!emailVerificado || !session.user?.email) {
+                    throw new Error("Confirme seu e-mail para continuar.");
                 }
                 await persistAuthResponse({ session });
                 setMessage("Buscando seu perfil...");
@@ -63,9 +67,8 @@ export default function AuthCallbackPage() {
                 window.location.replace(destino ?? getDashboardPath(profile.tipo));
             }
             catch (error) {
-                setMessage(error instanceof Error
-                    ? error.message
-                    : "Não foi possível confirmar seu cadastro.");
+                const permitidas = ["Não foi possível confirmar o acesso. Tente novamente.", "Confirme seu e-mail para continuar."];
+                setMessage(permitidas.includes(error?.message) ? error.message : "Não foi possível confirmar o acesso. Tente novamente.");
                 window.setTimeout(() => {
                     window.location.replace("/login");
                 }, 3500);
@@ -79,7 +82,7 @@ export default function AuthCallbackPage() {
         <p className="mt-4 text-[10px] font-bold uppercase tracking-[0.28em] text-app-caramelo-torrado">
           APPONO
         </p>
-        <h1 className="mt-3 text-2xl font-bold">Cadastro confirmado</h1>
+        <h1 className="mt-3 text-2xl font-bold">Confirmando acesso</h1>
         <p className="mt-2 text-sm leading-6 text-app-mocha">{message}</p>
         <div className="mx-auto mt-6 h-1.5 w-36 overflow-hidden rounded-full bg-app-baunilha-dourada">
           <div className="h-full w-1/2 animate-pulse rounded-full bg-app-dourado-mel"/>

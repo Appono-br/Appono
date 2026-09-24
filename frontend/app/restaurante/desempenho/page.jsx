@@ -28,6 +28,8 @@ export default function RestaurantPerformancePage() {
     const [mensagem, setMensagem] = useState("Carregando avaliações...");
     const [demandaRotina, setDemandaRotina] = useState({ itens: [], coorte_minima: 5 });
     const [mensagemDemanda, setMensagemDemanda] = useState("Carregando previsão de demanda...");
+    const [periodo, setPeriodo] = useState(30);
+    const [desempenho, setDesempenho] = useState(null);
     const isRestaurant = session?.type === "restaurant";
     useEffect(() => {
         if (!isRestaurant) return;
@@ -58,6 +60,12 @@ export default function RestaurantPerformancePage() {
             });
         return () => controller.abort();
     }, [isRestaurant]);
+    useEffect(() => {
+        if (!isRestaurant) return;
+        const controller = new AbortController();
+        apiRequest(`/restaurante/desempenho?dias=${periodo}`, { signal: controller.signal, cacheTtlMs: 0 }).then(setDesempenho).catch(() => setDesempenho(null));
+        return () => controller.abort();
+    }, [isRestaurant, periodo]);
     const volumes = useMemo(() => {
         const meses = Array.from({ length: 6 }, (_, index) => { const data = new Date(); data.setMonth(data.getMonth() - (5 - index)); return { chave: `${data.getFullYear()}-${data.getMonth()}`, label: data.toLocaleDateString(localeUI, { month: "short" }), total: 0 }; });
         for (const item of dados.items ?? []) { const data = new Date(item.created_at); const ponto = meses.find((mes) => mes.chave === `${data.getFullYear()}-${data.getMonth()}`); if (ponto) ponto.total += 1; }
@@ -82,6 +90,13 @@ export default function RestaurantPerformancePage() {
           <h1 className="mt-2 text-4xl font-medium leading-tight text-app-cafe-profundo sm:text-5xl">{ui("Desempenho & Avaliações")}</h1>
           <p className="mt-4 max-w-2xl text-sm leading-6 text-app-cinza sm:text-base">{ui("Acompanhe a experiência dos clientes e os principais indicadores de atendimento.")}</p>
         </div>
+
+        <section className="mt-8 rounded-xl border border-app-baunilha-dourada/60 p-6">
+          <div className="flex flex-wrap items-center justify-between gap-4"><div><h2 className="text-2xl font-semibold">{ui("Indicadores do per?odo")}</h2><p className="mt-1 text-sm text-app-cinza">{ui("Calculados com reservas, pedidos e avalia??es deste restaurante.")}</p></div><select value={periodo} onChange={(e) => setPeriodo(Number(e.target.value))} className="rounded-lg border border-app-baunilha-dourada px-4 py-2"><option value="7">7 dias</option><option value="30">30 dias</option><option value="90">90 dias</option></select></div>
+          {!desempenho ? <p className="mt-5 text-sm text-app-cinza">{ui("Carregando indicadores...")}</p> : !desempenho.possui_amostra ? <p className="mt-5 rounded-lg bg-app-creme-leve p-4 text-sm text-app-cinza">{ui("Ainda n?o h? opera??es neste per?odo para calcular desempenho.")}</p> : <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {[["Reservas criadas", desempenho.reservas.criadas], ["Reservas conclu?das", desempenho.reservas.concluidas], ["Cancelamentos", desempenho.reservas.canceladas], ["N?o comparecimentos", desempenho.reservas.nao_comparecimentos], ["Pedidos criados", desempenho.pedidos.criados], ["Pedidos entregues", desempenho.pedidos.entregues], ["Taxa de conclus?o", desempenho.reservas.taxa_conclusao == null ? "Sem amostra" : `${desempenho.reservas.taxa_conclusao}%`], ["Ticket m?dio", desempenho.pedidos.ticket_medio == null ? "Sem amostra" : new Intl.NumberFormat(localeUI, { style: "currency", currency: "BRL" }).format(desempenho.pedidos.ticket_medio)]].map(([label, valor]) => <article key={label} className="rounded-lg bg-app-creme-leve p-4"><p className="text-sm text-app-cinza">{ui(label)}</p><strong className="mt-2 block text-2xl">{ui(String(valor))}</strong></article>)}
+          </div>}
+        </section>
 
         <section className="mt-10 grid gap-8 lg:grid-cols-[0.42fr_1fr]">
           <article className="rounded-[8px] bg-white p-7 shadow-sm ring-1 ring-app-baunilha-dourada/45 sm:p-8">
