@@ -14,13 +14,18 @@ export function validarJanela(form) {
     return "";
 }
 
+export function refeicaoCancelada(refeicao) {
+    if (["RECUSADA", "CANCELADA"].includes(refeicao?.status)) return true;
+    return ["CANCELADA", "RECUSADA", "NAO_COMPARECEU"].includes(refeicao?.reservas?.status_reserva);
+}
+
 export function estadoPlanejamento({ perfil, planejamento, refeicoes, agora = new Date() }) {
     if (!perfil) return { titulo: "Configure sua rotina", descricao: "Defina seus dias e preferências para começar.", acao: "configurar" };
     if (!planejamento) return { titulo: "Sua semana ainda não foi gerada", descricao: "Seu perfil está salvo. Gere as sugestões para os próximos almoços.", acao: "gerar" };
     const hoje = agora.toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" });
     if (planejamento.semana_fim < hoje) return { titulo: "Planejamento encerrado", descricao: "A semana anterior terminou. Gere um novo planejamento.", acao: "gerar" };
     const futuras = refeicoes.filter((item) => new Date(`${item.data_refeicao}T${item.horario_sugerido || "00:00:00"}-03:00`) > agora);
-    const proxima = futuras.find((item) => item.id_restaurante && !["RECUSADA", "CANCELADA"].includes(item.status));
+    const proxima = futuras.find((item) => item.id_restaurante && !refeicaoCancelada(item));
     if (proxima) return { proxima, titulo: proxima.restaurantes?.nome ?? "Sua próxima refeição", acao: "ver" };
     if (futuras.some((item) => !item.id_restaurante)) {
         const motivos = [...new Set(futuras.filter((item) => !item.id_restaurante).map((item) => item.motivo_recomendacao).filter(Boolean))];

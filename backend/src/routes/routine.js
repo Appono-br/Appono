@@ -9,6 +9,7 @@ const paymentConfig = require("../services/pagamentos/config");
 const { geocodificarEnderecoRotina } = require("../services/geolocalizacao");
 const { registrarSinalComportamental } = require("../domain/routine-behavior-signals");
 const { resolverPoliticaInteligenciaRotina } = require("../domain/routine-intelligence-policy");
+const { resolverPoliticaV2_1Titular } = require("../domain/routine-intelligence-v2-1-titular");
 const { candidataCongeladaDisponivel } = require("../domain/routine-intelligence-operational");
 const { enderecoAtivo, normalizarEnderecos } = require("../domain/routine-addresses");
 
@@ -441,6 +442,49 @@ async function carregarFeedbacksPersonalizacao(banco, idCliente, restaurantes, c
     })));
 }
 
+function cancelamentoVinculado(refeicao) {
+    return ["CANCELADA", "RECUSADA", "NAO_COMPARECEU"].includes(refeicao?.reservas?.status_reserva);
+}
+
+async function sincronizarCancelamentosPlanejamento(banco, planejamento, refeicoes) {
+    const alteracoes = (refeicoes ?? []).map((item) => {
+        if (!item.status?.startsWith("CONVERTIDA")) return null;
+        if (cancelamentoVinculado(item)) return { id: item.id_refeicao_planejada, status: "CANCELADA" };
+        if (item.status === "CONVERTIDA_PEDIDO" && item.pedidos?.status_pedido === "CANCELADO") {
+            const reservaAtiva = ["PENDENTE", "CONFIRMADA", "CHECK_IN"].includes(item.reservas?.status_reserva);
+            return { id: item.id_refeicao_planejada, status: reservaAtiva ? "CONVERTIDA_RESERVA" : "CANCELADA" };
+        }
+        return null;
+    }).filter(Boolean);
+    if (!alteracoes.length) return { planejamento, refeicoes };
+    for (const status of ["CANCELADA", "CONVERTIDA_RESERVA"]) {
+        const ids = alteracoes.filter((item) => item.status === status).map((item) => item.id);
+        if (!ids.length) continue;
+        const { error } = await banco.from("refeicoes_planejadas")
+            .update({ status })
+            .in("id_refeicao_planejada", ids)
+            .in("status", STATUS_CONVERTIDOS);
+        if (error) throw new Error(error.message);
+    }
+    const novosStatus = new Map(alteracoes.map((item) => [item.id, item.status]));
+    const atualizadas = refeicoes.map((item) => novosStatus.has(item.id_refeicao_planejada)
+        ? { ...item, status: novosStatus.get(item.id_refeicao_planejada) }
+        : item);
+    const ativas = atualizadas.filter((item) => !["RECUSADA", "CANCELADA"].includes(item.status));
+    const resumo = {
+        ...(planejamento.resumo ?? {}),
+        total_refeicoes: ativas.length,
+        total_convertidas: ativas.filter((item) => item.status?.startsWith("CONVERTIDA")).length,
+        total_com_sugestao: ativas.filter((item) => item.id_restaurante).length,
+        custo_estimado_total: ativas.reduce((total, item) => total + Number(item.preco_estimado ?? 0), 0),
+    };
+    const { error: erroPlano } = await banco.from("planejamentos_rotina")
+        .update({ status: "PARCIAL", resumo })
+        .eq("id_planejamento_rotina", planejamento.id_planejamento_rotina);
+    if (erroPlano) throw new Error(erroPlano.message);
+    return { planejamento: { ...planejamento, status: "PARCIAL", resumo }, refeicoes: atualizadas };
+}
+
 async function buscarPlanejamentoComRefeicoes(banco, idCliente, filtros = {}) {
     let consulta = banco
         .from("planejamentos_rotina")
@@ -457,8 +501,10 @@ async function buscarPlanejamentoComRefeicoes(banco, idCliente, filtros = {}) {
         .maybeSingle();
     if (error) throw new Error(error.message);
     if (!planejamento) return { planejamento: null, refeicoes: [] };
-    const { refeicoes_planejadas: refeicoes, ...campos } = planejamento;
-    const refeicoesOrdenadas = (refeicoes ?? []).sort((a, b) => a.data_refeicao.localeCompare(b.data_refeicao));
+    const { refeicoes_planejadas: refeicoes, ...camposOriginais } = planejamento;
+    const sincronizado = await sincronizarCancelamentosPlanejamento(banco, camposOriginais, refeicoes ?? []);
+    const campos = sincronizado.planejamento;
+    const refeicoesOrdenadas = sincronizado.refeicoes.sort((a, b) => a.data_refeicao.localeCompare(b.data_refeicao));
     const idsRefeicoes = refeicoesOrdenadas.map((item) => item.id_refeicao_planejada).filter(Boolean);
     if (!idsRefeicoes.length) return { planejamento: campos, refeicoes: refeicoesOrdenadas };
     const { data: feedbacks, error: erroFeedback } = await banco
@@ -757,10 +803,13 @@ rotinaRouter.post("/planejamento/gerar", async (req, res) => {
             idCliente: res.locals.profileId,
             consentimentoAtivo: consentimento?.habilitado === true && Boolean(consentimento.concedido_em),
         });
+        const politicaV2_1 = resolverPoliticaV2_1Titular({
+            consentimentoAtivo: consentimento?.habilitado === true && Boolean(consentimento.concedido_em),
+        });
         const candidataDisponivel = candidataCongeladaDisponivel();
         const politicaOperacional = candidataDisponivel
-            ? politicaInteligencia
-            : { ...politicaInteligencia, usarV2: false, motivo: "CANDIDATA_NAO_CONGELADA" };
+            ? { ...politicaInteligencia, ...politicaV2_1 }
+            : { ...politicaInteligencia, ...politicaV2_1, usarV2: false };
         const planejamentoGerado = gerarPlanejamentoRotina({
             perfil: dadosPerfil.perfil,
             janelasAlimentacao: dadosPerfil.janelas,

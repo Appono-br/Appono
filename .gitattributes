@@ -1,0 +1,4 @@
+backend/**/*.js text eol=lf
+backend/**/*.json text eol=lf
+backend/reports/**/*.md text eol=lf
+backend/reports/**/*.csv text eol=lf

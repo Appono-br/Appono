@@ -6,6 +6,7 @@ const { MODELO_INTELIGENCIA_ROTINA_V2, pontuarInteligenciaRotinaV2 } = require("
 const { compararRankingSombra, ordenarPorPontuacao } = require("./routine-shadow-evaluation");
 const { decidirCandidatoInteligencia } = require("./routine-intelligence-policy");
 const { criarDiagnosticoOperacional } = require("./routine-intelligence-operational");
+const { criarDiagnosticoV2_1, decidirCandidatoV2_1Titular, selecionarCandidatoV2_1 } = require("./routine-intelligence-v2-1-titular");
 
 const DIAS_SEMANA = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
 const DIAS_UTEIS_PADRAO = ["monday", "tuesday", "wednesday", "thursday", "friday"];
@@ -379,6 +380,7 @@ function criarCandidatos({ perfil, restaurantes, preferencias = [], restricoes =
                 pontuacaoDesafiante: Number((score.pontuacao + ajusteFeedback + inteligencia.ajuste).toFixed(2)),
                 pontuacaoDesafianteV2: Number((score.pontuacao + ajusteFeedback + inteligenciaV2.ajuste).toFixed(2)),
                 pesos: { ...score.componentes, feedback_controlado: ajusteFeedback },
+                combinaPreferenciaExplicita: combinaPreferencia,
                 inteligencia,
                 inteligenciaV2,
             });
@@ -483,6 +485,9 @@ function gerarPlanejamentoRotina({
     const usoProdutoV2 = new Map(usoProduto);
     const usoCategoriaV2 = new Map(usoCategoria);
     const sequenciaV2 = {};
+    const historicoV2_1 = [...baseDiversidade];
+    const historicoSemanaV2_1 = [...refeicoesExistentes];
+    let anteriorV2_1 = null;
     const modelosDecisao = new Set();
     let saldoSemanal = numeroValido(perfil.orcamento_semanal) ?? Infinity;
     saldoSemanal -= refeicoesExistentes.reduce((total, item) => total + Number(item.preco_estimado ?? 0), 0);
@@ -537,9 +542,25 @@ function gerarPlanejamentoRotina({
         const rankingDesafianteV2 = ordenarPorPontuacao(opcoesDoDia, "pontuacaoDesafianteV2");
         const candidatoControle = rankingControle[0];
         const candidatoV2 = rankingDesafianteV2[0];
-        const decisao = decidirCandidatoInteligencia({ controle: candidatoControle, v2: candidatoV2, politica: politicaInteligencia });
+        const resultadoV2_1 = politicaInteligencia?.usarV2_1 ? selecionarCandidatoV2_1({
+            candidatos: opcoesDoDia,
+            perfil: perfilDaJanela,
+            preferencias,
+            historico: historicoV2_1,
+            historicoSemana: historicoSemanaV2_1,
+            sinais: politicaInteligencia.personalizacaoConsentida ? feedbacks : [],
+            tipoJanela: item.janela.tipo,
+            referencia: agora,
+            anterior: anteriorV2_1,
+        }) : null;
+        const decisao = politicaInteligencia?.usarV2_1
+            ? decidirCandidatoV2_1Titular({ controle: candidatoControle, resultadoV2_1, politica: politicaInteligencia })
+            : decidirCandidatoInteligencia({ controle: candidatoControle, v2: candidatoV2, politica: politicaInteligencia });
         const candidato = decisao.candidato;
-        const diagnosticoInteligencia = criarDiagnosticoOperacional({ decisao, requestId });
+        modelosDecisao.add(decisao.modelo);
+        const diagnosticoInteligencia = decisao.usouV2_1
+            ? criarDiagnosticoV2_1({ decisao, requestId })
+            : criarDiagnosticoOperacional({ decisao, requestId });
         const avaliacaoSombraV1 = compararRankingSombra(candidatoControle, rankingDesafianteV1[0], {
             controle: MODELO_RECOMENDACAO_ROTINA.versao,
             desafiante: MODELO_INTELIGENCIA_ROTINA.versao,
@@ -552,7 +573,9 @@ function gerarPlanejamentoRotina({
             inteligencia: "inteligenciaV2",
         });
         if (!candidato) {
-            const motivo = candidatos.length && !candidatos.some((item) => item.preco_estimado <= saldoSemanal)
+            const motivo = decisao.motivo === "V2_1_SEM_DIVERSIDADE"
+                ? "A única opção disponível já foi usada nesta semana. Aumente a janela da refeição ou use uma localização com mais restaurantes próximos."
+                : candidatos.length && !candidatos.some((item) => item.preco_estimado <= saldoSemanal)
                 ? "O saldo do orçamento semanal não comporta outra refeição."
                 : candidatos.length
                     ? janelasLivres.length
@@ -574,7 +597,19 @@ function gerarPlanejamentoRotina({
                 status: "SUGERIDA",
                 motivo_recomendacao: motivo,
                 pontuacao: 0,
-                metadados: { sem_sugestao: true, diagnostico, janela: { tipo: item.janela.tipo, nome: item.janela.nome } },
+                metadados: {
+                    sem_sugestao: true,
+                    diagnostico,
+                    modelo_recomendacao: decisao.modelo,
+                    decisao_inteligencia: {
+                        segmento: decisao.segmento,
+                        motivo: decisao.motivo,
+                        confianca: decisao.confianca,
+                        amostras: decisao.amostras,
+                    },
+                    diagnostico_inteligencia: diagnosticoInteligencia,
+                    janela: { tipo: item.janela.tipo, nome: item.janela.nome },
+                },
             });
             continue;
         }
@@ -598,7 +633,23 @@ function gerarPlanejamentoRotina({
                 delete sequenciaV2.id_produto_anterior;
             }
         }
-        modelosDecisao.add(decisao.modelo);
+        if (decisao.usouV2_1 && candidato) {
+            const categoriaV2_1 = candidato.produto?.categorias?.nome ?? null;
+            historicoV2_1.push({
+                id_restaurante: candidato.restaurante.id_restaurante,
+                id_produto: candidato.produto?.id_produto ?? null,
+                categoria: categoriaV2_1,
+            });
+            historicoSemanaV2_1.push({
+                id_restaurante: candidato.restaurante.id_restaurante,
+                id_produto: candidato.produto?.id_produto ?? null,
+                categoria: categoriaV2_1,
+            });
+            anteriorV2_1 = {
+                restaurant_id: candidato.restaurante.id_restaurante,
+                product_id: candidato.produto?.id_produto ?? `sem-produto-${candidato.restaurante.id_restaurante}`,
+            };
+        }
         saldoSemanal = Number((saldoSemanal - candidato.preco_estimado).toFixed(2));
         for (const avaliacaoSombra of [avaliacaoSombraV1, avaliacaoSombraV2]) {
             if (!avaliacaoSombra) continue;
@@ -619,7 +670,7 @@ function gerarPlanejamentoRotina({
             distancia_km: candidato.distancia_km,
             tempo_estimado_minutos: candidato.janela.tempo_estimado_minutos,
             motivo_recomendacao: motivoRecomendacao(candidato),
-            pontuacao: candidato.pontuacaoControle ?? candidato.pontuacao,
+            pontuacao: decisao.usouV2_1 ? decisao.pontuacao : candidato.pontuacaoControle ?? candidato.pontuacao,
             status: "SUGERIDA",
             metadados: {
                 pesos: candidato.pesos,
@@ -632,7 +683,7 @@ function gerarPlanejamentoRotina({
                     nome: candidato.produto.nome,
                     preco: candidato.produto.preco,
                 } : null,
-                alternativas: (decisao.usouV2 ? rankingDesafianteV2 : rankingControle)
+                alternativas: (decisao.usouV2 || decisao.usouV2_1 ? rankingDesafianteV2 : rankingControle)
                     .filter((alternativa) => alternativa !== candidato)
                     .slice(0, 3).map((alternativa) => ({
                     id_restaurante: alternativa.restaurante.id_restaurante,
@@ -642,8 +693,8 @@ function gerarPlanejamentoRotina({
                     diferenca_preco: Number((alternativa.preco_estimado - candidato.preco_estimado).toFixed(2)),
                     diferenca_distancia_km: alternativa.distancia_km === null || candidato.distancia_km === null
                         ? null : Number((alternativa.distancia_km - candidato.distancia_km).toFixed(2)),
-                    diferenca_aderencia: Number(((decisao.usouV2 ? alternativa.pontuacaoDesafianteV2 : alternativa.pontuacaoControle)
-                        - (decisao.usouV2 ? candidato.pontuacaoDesafianteV2 : candidato.pontuacaoControle)).toFixed(2)),
+                    diferenca_aderencia: Number((((decisao.usouV2 || decisao.usouV2_1) ? alternativa.pontuacaoDesafianteV2 : alternativa.pontuacaoControle)
+                        - ((decisao.usouV2 || decisao.usouV2_1) ? candidato.pontuacaoDesafianteV2 : candidato.pontuacaoControle)).toFixed(2)),
                 })),
                 modelo_recomendacao: decisao.modelo,
                 decisao_inteligencia: {

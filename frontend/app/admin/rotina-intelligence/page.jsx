@@ -16,26 +16,33 @@ export default function AdminRotinaIntelligencePage() {
     const [carregando, setCarregando] = useState(true);
 
     useEffect(() => {
-        setCarregando(true);
-        setErro("");
         apiRequest(`/admin/rotina-intelligence/resumo?dias=${dias}`, { forceRefresh: true })
-            .then(setDados)
+            .then((resposta) => {
+                setDados(resposta);
+                setErro("");
+            })
             .catch((error) => setErro(error instanceof Error ? error.message : "Nao foi possivel carregar o experimento."))
             .finally(() => setCarregando(false));
     }, [dias]);
+
+    function alterarPeriodo(event) {
+        setCarregando(true);
+        setErro("");
+        setDias(Number(event.target.value));
+    }
 
     return (
         <main className="min-h-screen bg-white px-5 py-10 text-app-cafe-profundo sm:px-8">
             <section className="mx-auto max-w-7xl">
                 <div className="flex flex-col gap-5 rounded-[16px] bg-app-cafe-profundo p-7 text-app-creme-leve shadow-lg sm:flex-row sm:items-end sm:justify-between">
                     <div>
-                        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-baunilha-dourada">Experimento privado</p>
-                        <h1 className="mt-3 text-3xl font-semibold">Appono Intelligence V2</h1>
-                        <p className="mt-3 max-w-2xl text-sm leading-6 text-app-creme-suave">Comparacao agregada, estado operacional e guardrails da IA. O painel nao exibe sinais individuais, identidades da allowlist ou configuracoes secretas.</p>
+                        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-baunilha-dourada">Demonstração acadêmica</p>
+                        <h1 className="mt-3 text-3xl font-semibold">Appono Intelligence V2.1</h1>
+                        <p className="mt-3 max-w-2xl text-sm leading-6 text-app-creme-suave">Versão experimental titular da demonstração, com controle determinístico disponível como fallback.</p>
                     </div>
                     <div className="flex gap-3">
                         <Link href="/admin/financeiro" className="rounded-[8px] border border-app-baunilha-dourada/70 px-4 py-2 text-sm font-bold">Financeiro</Link>
-                        <select value={dias} onChange={(event) => setDias(Number(event.target.value))} className="rounded-[8px] bg-app-creme-leve px-4 py-2 text-sm font-bold text-app-cafe-profundo" aria-label="Periodo de avaliacao">
+                        <select value={dias} onChange={alterarPeriodo} className="rounded-[8px] bg-app-creme-leve px-4 py-2 text-sm font-bold text-app-cafe-profundo" aria-label="Periodo de avaliacao">
                             <option value={7}>7 dias</option>
                             <option value={30}>30 dias</option>
                             <option value={90}>90 dias</option>

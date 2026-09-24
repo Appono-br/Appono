@@ -351,6 +351,45 @@ test("allowlist interna entrega a decisao da V2 com confianca e registra fallbac
     assert.equal(semConfianca.refeicoes[0].metadados.decisao_inteligencia.motivo, "V2_CONFIANCA_INSUFICIENTE");
 });
 
+test("V2.1 titular escolhe preferencia explicita para todos e registra o modelo executado", () => {
+    const produtoMassa = { ...restaurante().produtos[0], id_produto: 10, id_restaurante: 1, nome: "Massa", preco: 20, categorias: { nome: "Massas", ativo: true, arquivado: false, cardapios: { ativo: true } } };
+    const produtoVegetariano = { ...restaurante().produtos[0], id_produto: 20, id_restaurante: 2, nome: "Bowl", preco: 40, categorias: { nome: "Vegetariana", ativo: true, arquivado: false, cardapios: { ativo: true } } };
+    const planejamento = planejar({ dias_semana: ["monday"], orcamento_diario: 60 }, [
+        restaurante({ id_restaurante: 1, nome: "Mais barato", produtos: [produtoMassa] }),
+        restaurante({ id_restaurante: 2, nome: "Preferido", produtos: [produtoVegetariano] }),
+    ], {
+        preferencias: ["Vegetariana"],
+        politicaInteligencia: { usarV2_1: true, segmento: "demonstracao_publica", motivo: "V2_1_TITULAR", personalizacaoConsentida: false },
+    });
+    assert.equal(planejamento.refeicoes[0].id_restaurante, 2);
+    assert.equal(planejamento.refeicoes[0].metadados.modelo_recomendacao, "appono-intelligence-v2-1");
+    assert.equal(planejamento.refeicoes[0].metadados.decisao_inteligencia.motivo, "V2_1_SELECIONADA");
+    assert.equal(planejamento.refeicoes[0].metadados.diagnostico_inteligencia.decision_source, "V2_1");
+    assert.equal(planejamento.resumo.modelo, "appono-intelligence-v2-1");
+});
+
+test("V2.1 titular nao repete restaurante enquanto existe alternativa elegivel na semana", () => {
+    const planejamento = planejar({ dias_semana: ["monday", "tuesday"] }, [
+        restaurante({ id_restaurante: 1, nome: "Vencedor base" }),
+        restaurante({ id_restaurante: 2, nome: "Alternativa elegivel" }),
+    ], {
+        politicaInteligencia: { usarV2_1: true, segmento: "demonstracao_publica", motivo: "V2_1_TITULAR", personalizacaoConsentida: false },
+    });
+    assert.deepEqual(planejamento.refeicoes.map((item) => item.id_restaurante), [1, 2]);
+});
+
+test("V2.1 titular deixa a refeicao sem sugestao em vez de repetir a unica opcao", () => {
+    const planejamento = planejar({ dias_semana: ["monday", "tuesday"] }, [restaurante()], {
+        politicaInteligencia: { usarV2_1: true, segmento: "demonstracao_publica", motivo: "V2_1_TITULAR", personalizacaoConsentida: false },
+    });
+    assert.equal(planejamento.refeicoes[0].id_restaurante, 1);
+    assert.equal(planejamento.refeicoes[1].id_restaurante, undefined);
+    assert.match(planejamento.refeicoes[1].motivo_recomendacao, /única opção.*já foi usada/);
+    assert.equal(planejamento.refeicoes[1].metadados.sem_sugestao, true);
+    assert.equal(planejamento.refeicoes[1].metadados.decisao_inteligencia.motivo, "V2_1_SEM_DIVERSIDADE");
+    assert.equal(planejamento.resumo.modelo, "appono-intelligence-v2-1");
+});
+
 test("bloqueia geração de planejamento para semana anterior à atual", () => {
     assert.throws(() => planejar({}, undefined, { semanaInicio: "2026-09-07", agora: new Date("2026-09-16T12:00:00-03:00") }), /semana anterior/);
     assert.doesNotThrow(() => planejar({}, undefined, { semanaInicio: "2026-09-14", agora: new Date("2026-09-16T12:00:00-03:00") }));

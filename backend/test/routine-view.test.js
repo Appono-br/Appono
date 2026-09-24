@@ -2,9 +2,10 @@
 const { test, before } = require("node:test");
 const assert = require("node:assert/strict");
 let estadoPlanejamento;
+let refeicaoCancelada;
 let validarJanela;
 before(async () => {
-    ({ estadoPlanejamento, validarJanela } = await import("../../frontend/lib/routine-view.mjs"));
+    ({ estadoPlanejamento, refeicaoCancelada, validarJanela } = await import("../../frontend/lib/routine-view.mjs"));
 });
 const base = { perfil: {}, planejamento: { semana_fim: "2026-09-20" }, refeicoes: [], agora: new Date("2026-09-14T12:00:00-03:00") };
 
@@ -18,6 +19,11 @@ test("nao anuncia como proxima uma refeicao passada no mesmo dia ou recusada", (
     const refeicoes = [{ data_refeicao: "2026-09-14", horario_sugerido: "11:00:00", id_restaurante: 1 },
         { data_refeicao: "2026-09-15", horario_sugerido: "12:00:00", id_restaurante: 1, status: "RECUSADA" }];
     assert.equal(estadoPlanejamento({ ...base, refeicoes }).titulo, "Sem próximas refeições");
+});
+test("oculta refeicao quando a reserva vinculada foi cancelada", () => {
+    const refeicao = { status: "CONVERTIDA_PEDIDO", reservas: { status_reserva: "CANCELADA" }, pedidos: { status_pedido: "CANCELADO" } };
+    assert.equal(refeicaoCancelada(refeicao), true);
+    assert.equal(refeicaoCancelada({ ...refeicao, reservas: { status_reserva: "CONFIRMADA" } }), false);
 });
 test("semana expirada nao aparece como vazia", () => {
     assert.equal(estadoPlanejamento({ ...base, planejamento: { semana_fim: "2026-09-13" } }).titulo, "Planejamento encerrado");
