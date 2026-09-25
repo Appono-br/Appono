@@ -4,7 +4,7 @@ import Link from "next/link";
 export default function CompleteProfilePage() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-app-chantilly px-5 py-10 text-app-cafe-profundo">
-      <section className="w-full max-w-3xl rounded-2xl bg-app-creme-leve p-6 text-center shadow-2xl ring-1 ring-app-baunilha-dourada sm:p-8">
+      <section className="auth-publica w-full max-w-3xl rounded-3xl bg-white p-6 text-center shadow-2xl sm:p-8">
         <Image
           src="/brand/appono-mark.svg"
           alt="Appono"

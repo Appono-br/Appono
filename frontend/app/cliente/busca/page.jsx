@@ -7,13 +7,12 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { apiRequest } from "@/lib/api";
 import { filtrarOrdenarPorBusca, textoBusca } from "@/lib/busca-avancada";
+import { VitrinePratos } from "@/components/cliente/vitrine-pratos";
 
 const filtrosBusca = [
   { id: "todos", label: "Todos" },
   { id: "favoritos", label: "Favoritos" },
   { id: "bem-avaliados", label: "4+ estrelas" },
-  { id: "reserva", label: "Aceita reserva" },
-  { id: "cardapio", label: "Com cardápio" },
 ];
 
 const opcoesRaio = [
@@ -80,6 +79,7 @@ function mapearRestaurante(restaurant) {
     favoriteCount: restaurant.total_favoritos ?? 0,
     isFavorite: Boolean(restaurant.favorito_cliente),
     matchedProducts: restaurant.produtos_encontrados ?? [],
+    publishedDishes: restaurant.pratos_publicados ?? [],
     matchedCategories: restaurant.categorias_encontradas ?? [],
     matchedMenus: restaurant.cardapios_encontrados ?? [],
     publishedCategories: restaurant.categorias_publicadas ?? [],
@@ -114,10 +114,6 @@ function BuscaClienteContent() {
   const [filtroBusca, setFiltroBusca] = useState("todos");
   const [ordenacaoBusca, setOrdenacaoBusca] = useState("relevancia");
   const [raioKm, setRaioKm] = useState("5");
-  const [localizacaoCliente, setLocalizacaoCliente] = useState(null);
-  const [localizacaoManual, setLocalizacaoManual] = useState("");
-  const [localizacaoManualAplicada, setLocalizacaoManualAplicada] = useState("");
-  const [statusLocalizacao, setStatusLocalizacao] = useState("idle");
   const [restaurantes, setRestaurantes] = useState([]);
   const [carregando, setCarregando] = useState(true);
   const [mensagem, setMensagem] = useState("");
@@ -129,32 +125,28 @@ function BuscaClienteContent() {
   }, [termo]);
 
   useEffect(() => {
+    let cancelado = false;
     async function carregarRestaurantes() {
       setCarregando(true);
       setMensagem("");
       try {
-        const endpoint = new URLSearchParams();
+        const endpoint = new URLSearchParams({ incluir_pratos: "1" });
         if (debouncedTermo) endpoint.set("q", debouncedTermo);
-        if (localizacaoCliente) {
-          endpoint.set("latitude", String(localizacaoCliente.latitude));
-          endpoint.set("longitude", String(localizacaoCliente.longitude));
-        } else if (localizacaoManualAplicada) {
-          endpoint.set("localizacao", localizacaoManualAplicada);
-        }
-        if ((localizacaoCliente || localizacaoManualAplicada) && raioKm !== "todos") {
-          endpoint.set("raio_km", raioKm);
-        }
         const queryString = endpoint.toString();
         const data = await apiRequest(`/restaurantes${queryString ? `?${queryString}` : ""}`, { forceRefresh: true });
-        setRestaurantes((data ?? []).map(mapearRestaurante));
+        if (!cancelado) setRestaurantes((data ?? []).map(mapearRestaurante));
       } catch (error) {
-        setMensagem(error instanceof Error ? error.message : "Não foi possível carregar os restaurantes.");
+        if (!cancelado) {
+          setRestaurantes([]);
+          setMensagem(error instanceof Error ? error.message : "Não foi possível carregar os restaurantes.");
+        }
       } finally {
-        setCarregando(false);
+        if (!cancelado) setCarregando(false);
       }
     }
     carregarRestaurantes();
-  }, [debouncedTermo, localizacaoCliente, localizacaoManualAplicada, raioKm]);
+    return () => { cancelado = true; };
+  }, [debouncedTermo]);
 
   const resultados = useMemo(() => {
     const base = debouncedTermo ? filtrarOrdenarPorBusca(restaurantes, debouncedTermo, obterCamposRestaurante) : restaurantes;
@@ -181,36 +173,13 @@ function BuscaClienteContent() {
     return filtrados;
   }, [debouncedTermo, filtroBusca, ordenacaoBusca, restaurantes]);
 
+  const totalPratos = resultados.reduce((total, restaurante) => total + restaurante.publishedDishes.length, 0);
+
   function submeterBusca(event) {
     event.preventDefault();
     const params = new URLSearchParams();
     if (termo.trim()) params.set("q", termo.trim());
     router.replace(`/cliente/busca${params.toString() ? `?${params.toString()}` : ""}`);
-  }
-
-  function solicitarLocalizacao() {
-    if (!("geolocation" in navigator)) {
-      setStatusLocalizacao("unsupported");
-      return;
-    }
-    setStatusLocalizacao("loading");
-    navigator.geolocation.getCurrentPosition((posicao) => {
-      setLocalizacaoCliente({
-        latitude: Number(posicao.coords.latitude.toFixed(7)),
-        longitude: Number(posicao.coords.longitude.toFixed(7)),
-      });
-      setLocalizacaoManualAplicada("");
-      setStatusLocalizacao("ready");
-    }, () => setStatusLocalizacao("denied"));
-  }
-
-  function aplicarLocalizacaoManual(event) {
-    event.preventDefault();
-    const localizacao = localizacaoManual.trim();
-    if (!localizacao) return;
-    setLocalizacaoCliente(null);
-    setLocalizacaoManualAplicada(localizacao);
-    setStatusLocalizacao("manual");
   }
 
   async function alternarFavorito(id) {
@@ -239,39 +208,34 @@ function BuscaClienteContent() {
 
   return (
     <main className="min-h-screen bg-white text-app-cafe-profundo">
-      <section className="border-b border-app-baunilha-dourada/50 bg-app-cafe-profundo px-5 py-10 text-app-creme-leve">
+      <section className="border-b border-app-baunilha-dourada/50 bg-app-cafe-profundo px-5 py-6 text-app-creme-leve sm:py-8">
         <div className="mx-auto max-w-7xl">
           <Link href="/cliente/dashboard" className="inline-flex items-center gap-2 text-sm font-bold text-app-baunilha-dourada transition hover:text-white">
             <Icon type="arrow" className="h-4 w-4" />{ui("Voltar ao início")}</Link>
-          <div className="mt-8 grid gap-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-end">
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-app-baunilha-dourada">{ui("Busca avançada")}</p>
-              <h1 className="mt-3 max-w-2xl text-4xl font-semibold leading-tight sm:text-5xl">{ui("Encontre o restaurante certo para sua próxima reserva.")}</h1>
-              <p className="mt-4 max-w-xl text-sm leading-6 text-app-creme-suave">{ui("Pesquise por restaurante, endereço, categoria ou prato do cardápio.")}</p>
-            </div>
+          <h1 className="mt-5 text-4xl font-semibold leading-tight sm:text-5xl">{ui("Busca avançada")}</h1>
+        </div>
+      </section>
 
-            <form onSubmit={submeterBusca} className="rounded-[18px] bg-white p-3 text-app-cafe-profundo shadow-xl ring-1 ring-white/20">
-              <label className="campo-busca-app flex h-12 items-center gap-3 rounded-[10px] border border-app-baunilha-dourada bg-white px-4 text-app-mocha">
+      <div className="mx-auto max-w-7xl px-5 pt-6">
+            <form onSubmit={submeterBusca}>
+              <label className="campo-busca-app flex h-11 items-center gap-3 rounded-full border border-app-baunilha-dourada bg-white px-4 text-app-mocha">
                 <Icon type="search" className="h-5 w-5" />
-                <span className="sr-only">{ui("Buscar restaurantes")}</span>
+                <span className="sr-only">{ui("Buscar pratos ou restaurantes")}</span>
                 <input value={termo} onChange={(event) => setTermo(event.target.value)} placeholder={ui("Busque por lasanha, bairro, restaurante...")} className="input-busca-app h-full min-w-0 flex-1 bg-transparent text-sm text-app-cafe-profundo outline-none placeholder:text-app-cinza" />
                 <button type="submit" className="hidden h-9 rounded-[8px] bg-app-cafe-profundo px-4 text-[10px] font-bold uppercase tracking-[0.14em] text-app-creme-leve transition hover:bg-app-caramelo-torrado sm:inline-flex sm:items-center">{ui("Buscar")}</button>
               </label>
             </form>
-          </div>
-        </div>
-      </section>
+      </div>
 
       <section className="mx-auto grid max-w-7xl gap-6 px-5 py-8 lg:grid-cols-[280px_1fr]">
-        <aside className="h-fit rounded-[18px] border border-app-baunilha-dourada/65 bg-white p-4 shadow-sm lg:sticky lg:top-28">
+        <aside aria-label={ui("Filtros de busca")} tabIndex={0} className="h-fit rounded-[18px] border border-app-baunilha-dourada/65 bg-white p-4 shadow-sm lg:sticky lg:top-28 lg:max-h-[calc(100dvh-8rem)] lg:overflow-y-auto lg:overscroll-contain lg:[scrollbar-gutter:stable]">
           <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{ui("Filtros")}</p>
           <div className="mt-4 grid gap-2">
             {filtrosBusca.map((filtro) => (
-              <button key={filtro.id} type="button" onClick={() => setFiltroBusca(filtro.id)} className={`flex h-10 items-center justify-between rounded-[10px] px-3 text-left text-xs font-bold uppercase tracking-[0.1em] transition ${filtroBusca === filtro.id
-                ? "bg-app-cafe-profundo text-app-creme-leve shadow-sm"
+              <button key={filtro.id} type="button" onClick={() => setFiltroBusca(filtro.id)} aria-pressed={filtroBusca === filtro.id} className={`flex h-10 items-center justify-between rounded-[10px] px-3 text-left text-xs font-bold uppercase tracking-[0.1em] transition ${filtroBusca === filtro.id
+                ? "bg-app-botao-aba-ativa text-app-botao-aba-ativa-texto shadow-none"
                 : "bg-white text-app-mocha ring-1 ring-app-baunilha-dourada/70 hover:bg-app-chantilly hover:text-app-cafe-profundo"}`}>
                 {ui(filtro.label)}
-                {filtroBusca === filtro.id ? <span className="h-1.5 w-1.5 rounded-full bg-app-baunilha-dourada" /> : null}
               </button>
             ))}
           </div>
@@ -290,41 +254,29 @@ function BuscaClienteContent() {
             </label>
           </div>
 
-          <div className="mt-5 border-t border-app-baunilha-dourada/45 pt-5">
-            <button type="button" onClick={solicitarLocalizacao} className="flex h-11 w-full items-center justify-center gap-2 rounded-[10px] bg-app-caramelo-torrado px-4 text-xs font-bold uppercase tracking-[0.12em] text-white shadow-sm transition hover:bg-app-cafe-profundo disabled:opacity-60" disabled={statusLocalizacao === "loading"}>
-              <Icon type="pin" className="h-4 w-4" />
-              {ui(statusLocalizacao === "loading" ? "Localizando" : "Usar localização")}
-            </button>
-            <form onSubmit={aplicarLocalizacaoManual} className="mt-3 grid gap-2">
-              <input value={localizacaoManual} onChange={(event) => setLocalizacaoManual(event.target.value)} placeholder={ui("Bairro, cidade ou CEP")} className="h-11 rounded-[10px] border border-app-baunilha-dourada bg-white px-3 text-sm text-app-cafe-profundo outline-none transition placeholder:text-app-cinza focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-caramelo-torrado/15" />
-              <button type="submit" className="h-10 rounded-[10px] border border-app-baunilha-dourada bg-white text-[10px] font-bold uppercase tracking-[0.14em] text-app-mocha transition hover:bg-app-chantilly hover:text-app-cafe-profundo">{ui("Aplicar local")}</button>
-            </form>
-            {statusLocalizacao === "denied" ? <p className="mt-3 text-xs leading-5 text-app-caramelo-torrado">{ui("Permissão negada no navegador. Informe um local manualmente.")}</p> : null}
-            {statusLocalizacao === "manual" && localizacaoManualAplicada ? <p className="mt-3 text-xs leading-5 text-app-cinza">{ui("Usando: ")}{localizacaoManualAplicada}</p> : null}
-          </div>
         </aside>
 
-        <section>
-          <div className="mb-4 flex flex-col gap-3 rounded-[16px] border border-app-baunilha-dourada/60 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+        <section className="min-w-0">
+          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">{ui("Resultados")}</p>
               <h2 className="mt-1 text-2xl font-semibold text-app-cafe-profundo">
-                {carregando ? ui("Buscando restaurantes") : ui("{0} restaurante(s) encontrado(s)", [resultados.length])}
+                {carregando ? ui("Buscando pratos e restaurantes") : ui("{0} prato(s) e {1} restaurante(s)", [totalPratos, resultados.length])}
               </h2>
             </div>
             <button type="button" onClick={() => {
               setTermo("");
               setFiltroBusca("todos");
               setOrdenacaoBusca("relevancia");
-              setLocalizacaoCliente(null);
-              setLocalizacaoManual("");
-              setLocalizacaoManualAplicada("");
-              setStatusLocalizacao("idle");
               router.replace("/cliente/busca");
             }} className="h-10 rounded-[10px] border border-app-baunilha-dourada bg-white px-4 text-[10px] font-bold uppercase tracking-[0.14em] text-app-mocha transition hover:bg-app-chantilly hover:text-app-cafe-profundo">{ui("Limpar filtros")}</button>
           </div>
 
           {mensagem ? <p role="status" className="mb-4 rounded-[10px] border border-app-baunilha-dourada bg-white p-3 text-sm font-semibold text-app-caramelo-torrado">{ui(mensagem)}</p> : null}
+
+          <VitrinePratos key={`${debouncedTermo}-${filtroBusca}-${ordenacaoBusca}`} restaurantes={resultados} carregando={carregando} />
+
+          <h2 className="mb-4 text-2xl font-semibold text-app-cafe-profundo">{ui("Restaurantes")}</h2>
 
           {carregando ? (
             <div className="grid gap-3">
@@ -339,9 +291,9 @@ function BuscaClienteContent() {
                 return (
                   <article key={restaurant.id} className="group relative overflow-hidden rounded-[16px] border border-app-baunilha-dourada/65 bg-white p-3 shadow-sm transition hover:-translate-y-0.5 hover:border-app-caramelo-torrado/55 hover:shadow-md">
                     <div className="grid gap-4 md:grid-cols-[128px_1fr_auto] md:items-center">
-                      <Link href={`/cliente/restaurantes/${restaurant.id}`} className="relative h-32 overflow-hidden rounded-[12px] bg-white ring-1 ring-app-baunilha-dourada/50 md:h-28">
+                      <Link href={`/cliente/restaurantes/${restaurant.id}`} className={`relative block h-28 w-28 shrink-0 overflow-hidden rounded-xl ring-1 ring-app-baunilha-dourada/50 md:h-32 md:w-32 ${restaurant.imageUrl ? "bg-[#ffffff]" : "bg-app-chantilly"}`}>
                         {restaurant.imageUrl ? (
-                          <Image src={restaurant.imageUrl} alt={restaurant.name} fill sizes="128px" className="object-contain p-3 transition duration-300 group-hover:scale-105" />
+                          <Image src={restaurant.imageUrl} alt={restaurant.name} fill sizes="(min-width: 768px) 128px, 112px" className="object-contain p-2" />
                         ) : (
                           <div className="flex h-full items-center justify-center bg-app-chantilly text-xs font-bold uppercase tracking-[0.16em] text-app-mocha">{ui("Appono")}</div>
                         )}
@@ -350,7 +302,6 @@ function BuscaClienteContent() {
                       <Link href={`/cliente/restaurantes/${restaurant.id}`} className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
                           {restaurant.acceptsReservation ? <span className="rounded-full bg-app-cafe-profundo px-2.5 py-1 text-[10px] font-bold uppercase text-app-creme-leve">{ui("Reservas")}</span> : null}
-                          {restaurant.hasMenu ? <span className="rounded-full border border-app-baunilha-dourada bg-white px-2.5 py-1 text-[10px] font-bold uppercase text-app-caramelo-torrado">{restaurant.menuItemsCount}{ui(" itens")}</span> : null}
                           {Number.isFinite(Number(restaurant.distanceKm)) ? <span className="rounded-full border border-app-baunilha-dourada bg-white px-2.5 py-1 text-[10px] font-bold uppercase text-app-mocha">{formatarDistancia(restaurant.distanceKm)}</span> : null}
                         </div>
                         <h3 className="mt-3 text-2xl font-semibold text-app-cafe-profundo">{restaurant.name}</h3>
@@ -361,10 +312,10 @@ function BuscaClienteContent() {
 
                       <div className="flex items-center justify-between gap-3 md:grid md:justify-items-end">
                         <div className="flex items-center gap-3 text-sm font-semibold text-app-mocha">
-                          <span className="inline-flex items-center gap-1">
+                          {restaurant.rating != null ? <span className="inline-flex items-center gap-1">
                             <Icon type="star" filled className="h-4 w-4 text-app-dourado-mel" />
-                            {ui(restaurant.rating?.toFixed(1) ?? "Novo")}
-                          </span>
+                            {ui(restaurant.rating.toFixed(1))}
+                          </span> : null}
                           <span className="inline-flex items-center gap-1">
                             <Icon type="heart" filled={restaurant.isFavorite} className={`h-4 w-4 ${restaurant.isFavorite ? "text-app-vermelho-erro" : "text-app-cinza"}`} />
                             {restaurant.favoriteCount}

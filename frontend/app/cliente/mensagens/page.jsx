@@ -112,8 +112,8 @@ export default function MessagesPage() {
           </div>
         </div>
 
-        <label className="campo-busca-app mt-5 flex h-20 items-center gap-4 rounded-[24px_48px_24px_48px] bg-white px-6 text-app-cafe-profundo shadow-sm ring-1 ring-app-baunilha-dourada/60 transition focus-within:ring-app-caramelo-torrado sm:px-8">
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-app-chantilly text-app-caramelo-torrado">
+        <label className="campo-busca-app mt-5 flex h-12 items-center gap-2 rounded-full bg-white px-3 text-app-cafe-profundo shadow-sm ring-1 ring-app-baunilha-dourada/60 transition focus-within:ring-app-caramelo-torrado sm:gap-3 sm:px-4">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-app-chantilly text-app-caramelo-torrado">
             <Icon type="search" className="h-5 w-5" />
           </span>
           <input value={busca} onChange={(event) => setBusca(event.target.value)} placeholder={ui("Buscar restaurante ou mensagem")} className="input-busca-app h-full min-w-0 flex-1 bg-transparent text-base outline-none placeholder:text-app-cinza/70" />
@@ -152,12 +152,12 @@ export default function MessagesPage() {
               ))}
             </div>
           ) : (
-            <div className="flex min-h-[340px] flex-col items-center justify-center rounded-[18px] bg-white px-6 py-12 text-center shadow-sm ring-1 ring-app-baunilha-dourada/45">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-app-baunilha-dourada text-app-cafe-profundo">
+            <div className="flex flex-col items-center px-4 py-8 text-center">
+              <div className="text-app-caramelo-torrado">
                 <Icon type="message" />
               </div>
-              <h2 className="mt-5 text-xl font-semibold text-app-cafe-profundo">{ui("Nenhuma conversa disponível")}</h2>
-              <p className="mt-2 max-w-md text-sm leading-6 text-app-cinza">{ui("Abra o perfil de um restaurante para iniciar uma conversa segura.")}</p>
+              <h2 className="mt-3 text-base font-semibold text-app-cafe-profundo">{ui("Nenhuma conversa disponível")}</h2>
+              <p className="mt-1 max-w-md text-sm leading-6 text-app-cinza">{ui("Abra o perfil de um restaurante para iniciar uma conversa segura.")}</p>
             </div>
           )}
         </div>

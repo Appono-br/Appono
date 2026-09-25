@@ -1004,5 +1004,15 @@
   "venda bruta": "Gross sales",
   "verificando permissão de localização para ordenar restaurantes próximos.": "Checking location permission to sort nearby restaurants.",
   "você informou que não irá comparecer. a reserva e pedidos vinculados foram cancelados.": "You reported that you will not attend. The reservation and linked orders were cancelled.",
-  "whatsapp": "WhatsApp"
+  "whatsapp": "WhatsApp",
+  "pratos": "Dishes",
+  "sem foto": "No photo",
+  "carregando pratos...": "Loading dishes...",
+  "ver mais pratos": "See more dishes",
+  "nenhum prato encontrado para esta busca.": "No dishes found for this search.",
+  "nenhum prato disponível no momento.": "No dishes available right now.",
+  "buscar pratos ou restaurantes": "Search dishes or restaurants",
+  "buscando pratos e restaurantes": "Searching dishes and restaurants",
+  "{0} prato(s) e {1} restaurante(s)": "{0} dish(es) and {1} restaurant(s)",
+  "{0}, {1}. ver cardápio de {2}": "{0}, {1}. View the menu at {2}"
 }

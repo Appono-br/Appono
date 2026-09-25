@@ -1,5 +1,15 @@
 @import "tailwindcss";
 
+.resultado-busca-restaurante:hover,
+.resultado-busca-restaurante:focus-visible {
+  background-color: var(--app-chantilly-hover);
+}
+
+html[data-tema="escuro"] .resultado-busca-restaurante:hover,
+html[data-tema="escuro"] .resultado-busca-restaurante:focus-visible {
+  background-color: #35261e;
+}
+
 .home-carousel {
   height: min(560px, calc(100svh - var(--home-header-height, 80px)));
   background: #241713;

@@ -182,7 +182,6 @@ export default function PaginaRestaurante({ params }) {
   const horarioSelecionado = slotSelecionado?.horario ?? "";
   const horarioFimSelecionado = slotSelecionado?.horario_fim ?? (horarioSelecionado ? adicionarDuasHoras(horarioSelecionado) : "");
   const operacaoConfigurada = disponibilidade.operacao_configurada === true;
-  const resumoCardapio = ui(produtos.length === 1 ? "{0} item publicado" : "{0} itens publicados", [produtos.length]);
   const avaliacaoMedia = Number(restaurante?.avaliacao_media ?? 0);
   const totalAvaliacoes = Number(restaurante?.total_avaliacoes ?? 0);
   const avaliacoesRecentes = restaurante?.avaliacoes_recentes ?? [];
@@ -366,7 +365,6 @@ export default function PaginaRestaurante({ params }) {
                   <Icon type="utensils" className="h-12 w-12" />
                 </div>
               )}
-              <span className="absolute bottom-4 left-4 rounded-full bg-white/95 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-app-caramelo-torrado shadow-sm">{ui("Parceiro Appono")}</span>
             </div>
 
             <div className="flex min-w-0 flex-col justify-between p-5 sm:p-6 lg:p-7">
@@ -408,16 +406,17 @@ export default function PaginaRestaurante({ params }) {
                   <span className={`rounded-full px-3 py-1 text-xs font-bold ${operacaoConfigurada ? "bg-app-cafe-profundo text-app-creme-leve" : "bg-white text-app-caramelo-torrado"}`}>
                     {ui(operacaoConfigurada ? "Reservas disponíveis" : "Operação em configuracao")}
                   </span>
-                  <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-app-mocha">{resumoCardapio}</span>
-                  <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-xs font-bold text-app-mocha">
-                    {totalAvaliacoes ? <EstrelasNota nota={avaliacaoMedia} /> : <Icon type="star" className="h-3.5 w-3.5 text-app-dourado-mel" />}
-                    {totalAvaliacoes ? ui("{0} ({1})", [avaliacaoMedia.toFixed(1), totalAvaliacoes]) : ui("Novo na Appono")}
-                  </span>
+                  {totalAvaliacoes > 0 ? (
+                    <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-xs font-bold text-app-mocha">
+                      <EstrelasNota nota={avaliacaoMedia} />
+                      {ui("{0} ({1})", [avaliacaoMedia.toFixed(1), totalAvaliacoes])}
+                    </span>
+                  ) : null}
                 </div>
               </div>
 
               <div className="mt-5 rounded-[14px] bg-white p-3 ring-1 ring-app-baunilha-dourada/60">
-                <div className="min-w-0 rounded-[10px] bg-white px-3 py-3 ring-1 ring-app-baunilha-dourada/45">
+                <div className="min-w-0 px-3 py-3">
                   <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-app-cinza">{ui("Horário")}</p>
                   <div className="mt-2 grid gap-1.5">
                     {linhasHorarioFuncionamento.map((linha) => (
@@ -471,7 +470,6 @@ export default function PaginaRestaurante({ params }) {
                     <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-dourado-mel">{ui("Selecionados pelo restaurante")}</p>
                     <h2 className="mt-1 text-2xl font-bold">{ui("Destaques do cardápio")}</h2>
                   </div>
-                  <span className="rounded-full bg-app-mocha px-3 py-1 text-xs font-bold text-app-creme-suave">{ui("Boa pedida para antecipar")}</span>
                 </div>
                 <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                   {produtosDestaque.map((produto) => (
