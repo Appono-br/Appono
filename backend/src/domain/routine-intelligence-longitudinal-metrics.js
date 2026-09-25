@@ -53,10 +53,15 @@ function rate(numerator, denominator) {
     return { numerator, denominator, rate: denominator ? rounded(numerator / denominator) : null };
 }
 
-function validateRawReport(report) {
+function validateRawReport(report, { allowReserve = false } = {}) {
     requireCondition(report?.metadata?.schema_version === "routine-longitudinal-raw-report-v1", "RAW_SCHEMA");
-    requireCondition(["desenvolvimento_v1", "validacao_v1"].includes(report.metadata.dataset_id), "DATASET");
-    requireCondition(report.metadata.reserve_accessed === false, "RESERVE_ACCESSED");
+    if (allowReserve) {
+        requireCondition(report.metadata.dataset_id === "reserva_prospectiva_v1", "DATASET");
+        requireCondition(report.metadata.reserve_accessed === true, "RESERVE_NOT_MARKED");
+    } else {
+        requireCondition(["desenvolvimento_v1", "validacao_v1"].includes(report.metadata.dataset_id), "DATASET");
+        requireCondition(report.metadata.reserve_accessed === false, "RESERVE_ACCESSED");
+    }
     requireCondition(Array.isArray(report.decisions) && report.decisions.length === 900, "DECISION_COUNT");
     requireCondition(report.content_sha256 === canonicalHash({ metadata: report.metadata, summary: report.summary, decisions: report.decisions }), "RAW_CONTENT_HASH");
     const keys = new Set();
@@ -125,8 +130,8 @@ function indexSnapshot(snapshot) {
     return index;
 }
 
-function enrichDecisions({ report, snapshot, personasArtifact }) {
-    validateRawReport(report);
+function enrichDecisions({ report, snapshot, personasArtifact, allowReserve = false }) {
+    validateRawReport(report, { allowReserve });
     requireCondition(snapshot.partition.id === report.metadata.dataset_id, "SNAPSHOT_DATASET");
     requireCondition(snapshot.scenarios_sha256 === report.metadata.scenarios_sha256, "SNAPSHOT_HASH");
     const scenarios = indexSnapshot(snapshot);
@@ -395,8 +400,8 @@ function acceptanceResults(report, globalByModel, byPersona, acceptance) {
     };
 }
 
-function evaluateDataset({ report, snapshot, personasArtifact, baselineManifest }) {
-    const records = enrichDecisions({ report, snapshot, personasArtifact });
+function evaluateDataset({ report, snapshot, personasArtifact, baselineManifest, allowReserve = false }) {
+    const records = enrichDecisions({ report, snapshot, personasArtifact, allowReserve });
     const globalByModel = groupAggregates(records, ["model_version"]);
     const byPersona = groupAggregates(records, ["persona_id", "model_version"]);
     const byWeek = groupAggregates(records, ["virtual_week", "model_version"]);
@@ -444,7 +449,7 @@ function evaluateDataset({ report, snapshot, personasArtifact, baselineManifest 
         tie_epsilon: EPSILON,
         primary_concentration_metric: "maximum_restaurant_share_by_persona",
         synthetic_offline_only: true,
-        reserve_accessed: false,
+        reserve_accessed: allowReserve,
     };
     const payload = {
         metadata,

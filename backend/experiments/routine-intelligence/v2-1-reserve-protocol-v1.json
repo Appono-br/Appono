@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "protocol_version": "appono-intelligence-v2-1-reserve-v1",
+  "candidate_version": "appono-intelligence-v2-1",
+  "state": "SEALED_NOT_AUTHORIZED",
+  "purpose": "Confirmar generalizacao de uma candidata ja avaliada, sem recalibracao posterior.",
+  "requires_explicit_authorization": true,
+  "authorization": { "state": "PENDING", "authorization_hash": null, "authorized_by": null, "authorized_at": null },
+  "partition": { "id": "reserva_prospectiva_v2_1_v1", "new_ids_required": true, "overlap_must_be_zero": true },
+  "candidate": { "state_required": "FROZEN_FOR_VALIDATION", "manifest_path": "backend/experiments/routine-intelligence/v2-1-candidate-manifest-v1.json" },
+  "execution": { "once_only": true, "arbitrary_dataset": false, "arbitrary_seed": false, "arbitrary_quantity": false, "recalibration_after_execution": false },
+  "human_review": "REVISAO_HUMANA_PENDENTE",
+  "real_data": "DADOS_REAIS_AUSENTES",
+  "public_rollout_percent": 0,
+  "reserve_accessed": false,
+  "canonical_sha256": "TO_BE_COMPUTED"
+}

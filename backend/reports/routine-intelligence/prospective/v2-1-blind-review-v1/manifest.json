@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "manifest_version": "appono-intelligence-v2-1-blind-review-manifest-v1",
+  "package_content_sha256": "fc278cd729af1bb7c83141a5f78acf8aa5d37a6921a60d8093153449de5ecc65",
+  "answer_key_commitment_sha256": "f2ee2938caae9ed7dcbb06207814ca3dc5f4f74f484974e76dbc031c1f93f069",
+  "cases": 24,
+  "responses_filled": 0,
+  "human_review_state": "REVISAO_HUMANA_PENDENTE",
+  "reserve_accessed": false,
+  "public_rollout_percent": 0,
+  "content_sha256": "0075c080d8de0dd226ce050196cfdf022de6c3bb3475aaef58ecb6fb4a985155"
+}

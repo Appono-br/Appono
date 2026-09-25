@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "config_version": "appono-intelligence-v2-1-local-titular-v1",
+  "runtime_mode": "local",
+  "local_only": true,
+  "candidate_version": "appono-intelligence-v2-1",
+  "candidate_state": "FROZEN_FOR_VALIDATION",
+  "candidate_hash": "e99aaddc70a876269b6b0b087883f23ac01a16a0e60cd6a0b9ff0aa3ac66051d",
+  "internal_flag": true,
+  "identity": "local-synthetic-user",
+  "allowlist": ["local-synthetic-user"],
+  "consent_active": true,
+  "kill_switch": false,
+  "public_rollout_percent": 0,
+  "production_eligible": false,
+  "note": "Somente para fixtures locais. Nao e uma aprovacao operacional nem rollout."
+}

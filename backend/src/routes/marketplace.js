@@ -47,7 +47,7 @@ function obterRedirectUriMercadoPago() {
 }
 
 function obterUrlRetornoFrontend(status, detalhe = "") {
-    const url = new URL(`${obterFrontendOrigin()}/restaurante/financeiro`);
+    const url = new URL(`${obterFrontendOrigin()}/restaurante/configuracoes/mercado-pago`);
     url.searchParams.set("mercado_pago", status);
     if (detalhe) {
         url.searchParams.set("detalhe", detalhe);

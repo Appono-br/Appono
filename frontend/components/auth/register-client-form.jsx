@@ -219,14 +219,13 @@ export function RegisterClientForm({ googleFlow = false }) {
               if (!cpfEstaCompleto(form.cpf)) {
                 return;
               }
+              if (!isGoogleFlow) return;
 
               try {
-                await apiRequest(
-                  `/validacoes/cpf/${somenteNumeros(form.cpf)}`,
-                  {
-                    auth: false,
-                  }
+                const resultado = await apiRequest(
+                  `/validacoes/cpf/${somenteNumeros(form.cpf)}?data_nascimento=${encodeURIComponent(form.birthDate)}`
                 );
+                if (!resultado.consultado) setMessage(resultado.message);
               } catch (error) {
                 setMessage(
                   error instanceof Error

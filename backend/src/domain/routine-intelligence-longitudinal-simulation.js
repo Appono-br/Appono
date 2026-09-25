@@ -43,7 +43,7 @@ function finite(value, code) {
     return number;
 }
 
-function validateProtocol(protocol, { snapshot, partitionsArtifact, personasArtifact }) {
+function validateProtocol(protocol, { snapshot, partitionsArtifact, personasArtifact, allowReserveExecution = false }) {
     requireCondition(protocol?.schema_version === 1, "PROTOCOL_SCHEMA");
     requireCondition(protocol.protocol_version === "appono-intelligence-longitudinal-prospective-v1", "PROTOCOL_VERSION");
     requireCondition(protocol.executor_version === LONGITUDINAL_SIMULATION_VERSION, "EXECUTOR_VERSION");
@@ -51,10 +51,16 @@ function validateProtocol(protocol, { snapshot, partitionsArtifact, personasArti
     requireCondition(protocol.report?.schema_version === RAW_REPORT_SCHEMA_VERSION, "REPORT_SCHEMA");
     requireCondition(protocol.calibration_allowed === false, "CALIBRATION_MUST_BE_DISABLED");
     requireCondition(protocol.synthetic_offline_only === true, "SYNTHETIC_ONLY_REQUIRED");
-    requireCondition(protocol.reserve?.prospective_state === "SEALED_UNMATERIALIZED", "RESERVE_NOT_SEALED");
-    requireCondition(protocol.reserve?.access_allowed === false, "RESERVE_ACCESS_FORBIDDEN");
-    requireCondition(ALLOWED_DATASETS.has(snapshot?.partition?.id), "DATASET_NOT_ALLOWED");
-    requireCondition(!/reserva|reserve/i.test(snapshot.partition.id), "RESERVE_IS_SEALED");
+    if (allowReserveExecution) {
+        requireCondition(protocol.reserve?.prospective_state === "OPENED_ONCE_EXECUTABLE", "RESERVE_NOT_OPENED");
+        requireCondition(protocol.reserve?.access_allowed === true, "RESERVE_ACCESS_NOT_AUTHORIZED");
+        requireCondition(/^reserva_prospectiva_v1$/.test(snapshot?.partition?.id), "RESERVE_DATASET_INVALID");
+    } else {
+        requireCondition(protocol.reserve?.prospective_state === "SEALED_UNMATERIALIZED", "RESERVE_NOT_SEALED");
+        requireCondition(protocol.reserve?.access_allowed === false, "RESERVE_ACCESS_FORBIDDEN");
+        requireCondition(ALLOWED_DATASETS.has(snapshot?.partition?.id), "DATASET_NOT_ALLOWED");
+        requireCondition(!/reserva|reserve/i.test(snapshot.partition.id), "RESERVE_IS_SEALED");
+    }
     requireCondition(protocol.personas?.canonical_sha256 === snapshot.personas_sha256, "PERSONAS_HASH_MISMATCH");
     requireCondition(protocol.partitions?.canonical_sha256 === snapshot.partitions_sha256, "PARTITIONS_HASH_MISMATCH");
     requireCondition(protocol.personas.canonical_sha256 === canonicalHash(personasArtifact), "PERSONAS_ARTIFACT_MISMATCH");
@@ -314,10 +320,10 @@ function executeSafely(args, overrides = {}) {
     }
 }
 
-function simulateLongitudinal({ snapshot, partitionsArtifact, personasArtifact, protocol, modelOverrides = {} }) {
+function simulateLongitudinal({ snapshot, partitionsArtifact, personasArtifact, protocol, modelOverrides = {}, allowReserveExecution = false }) {
     validateScenarioSnapshot(snapshot, { partitionsArtifact, personasArtifact });
-    validateProtocol(protocol, { snapshot, partitionsArtifact, personasArtifact });
-    const plan = orderLongitudinalScenarios(snapshot);
+    validateProtocol(protocol, { snapshot, partitionsArtifact, personasArtifact, allowReserveExecution });
+    const plan = orderLongitudinalScenarios(snapshot, { allowReserveExecution });
     const personas = personaMap(personasArtifact);
     const states = new Map();
     for (const personaId of plan.persona_ids) {
@@ -455,7 +461,7 @@ function simulateLongitudinal({ snapshot, partitionsArtifact, personasArtifact, 
         model_versions: MODEL_VERSIONS,
         external_utility_version: protocol.external_utility.version,
         synthetic_offline_only: true,
-        reserve_accessed: false,
+        reserve_accessed: allowReserveExecution,
     };
     const summary = {
         personas: plan.persona_ids.length,

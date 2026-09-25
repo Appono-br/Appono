@@ -42,8 +42,17 @@ O prazo comporta concluir e integrar a IA. Ele nao comporta provar eficacia com 
 - [x] `29/09` - Metricas comparativas concluidas: dados integros e reproduziveis; V2 supera o controle, mas reprova o criterio de arrependimento contra a V1. Evidencias: [checkpoint de 29/09](appono-intelligence-v2-checkpoint-2026-09-29.md).
 - [x] `30/09` - Guardrails e regressoes cobertos por contratos executaveis; nenhuma recalibracao foi feita. Evidencias: [checkpoint de 30/09](appono-intelligence-v2-checkpoint-2026-09-30.md).
 - [x] `01/10` - Pacote de revisao humana cega concluido com 24 casos randomizados, chave separada e respostas vazias. Evidencias: [checkpoint de 01/10](appono-intelligence-v2-checkpoint-2026-10-01.md).
+- [x] `02/10` - Decisao tecnica concluida: V2 mantida sem ajuste, com revisao humana pendente e nenhuma hipotese V2.1 aceita. Evidencias: [checkpoint de 02/10](appono-intelligence-v2-checkpoint-2026-10-02.md).
+- [x] `03/10` - Reserva tecnica concluida com estabilizacao, manifesto de congelamento preparado e matriz de integracao documentada; sem recalibracao ou nova simulacao. Evidencias: [checkpoint de 03/10](appono-intelligence-v2-checkpoint-2026-10-03.md).
+- [x] `04/10` - Auditoria final de prontidao concluida: 13 riscos aprovados, checklist de congelamento preparado e nenhum artefato experimental alterado. Evidencias: [checkpoint de 04/10](appono-intelligence-v2-checkpoint-2026-10-04.md).
+- [x] `05/10` - V2 atual congelada formalmente como candidata tecnica, com regressao final aprovada, sem recalibracao e sem rollout publico. Evidencias: [checkpoint de 05/10](appono-intelligence-v2-checkpoint-2026-10-05.md).
+- [x] `06/10` - Integracao controlada da V2 congelada ao planejamento real, com politica, allowlist, fallback, diagnostico seguro e rollout publico zero. Evidencias: [checkpoint de 06/10](appono-intelligence-v2-checkpoint-2026-10-06.md).
+- [x] `07/10` - Validacao offline e reserva prospectiva executadas uma unica vez, sem recalibracao e com rollout publico zero. Evidencias: [checkpoint de 07/10](appono-intelligence-v2-checkpoint-2026-10-07.md).
+- [x] `08/10` - Homologacao interna controlada verificada com allowlist, fallback, kill switch e rollout publico zero; ressalva documentada sobre o verificador corrigido. Evidencias: [checkpoint de 08/10](appono-intelligence-v2-checkpoint-2026-10-08.md).
+- [x] `09/10` - Verificacao final ponta a ponta concluida com ressalva documentada, smoke tests aprovados e rollout publico zero. Evidencias: [checkpoint de 09/10](appono-intelligence-v2-checkpoint-2026-10-09.md).
+- [x] `10/10` - Demonstracao interna concluida com ressalvas: fixture sintetica, V2 sob allowlist, fallback, kill switch, diagnostico seguro e rollout publico zero. Evidencias: [checkpoint de 10/10](appono-intelligence-v2-checkpoint-2026-10-10.md).
 
-Os demais marcos permanecem abertos. A existencia antecipada de alguns artefatos nao equivale a conclusao das respectivas datas.
+Os marcos previstos foram concluídos em ambiente local/homologacao controlada. Isso nao equivale a validacao comercial, piloto publico ou release.
 
 ## Marcos de controle
 

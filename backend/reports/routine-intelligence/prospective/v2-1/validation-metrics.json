@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "candidate_version": "appono-intelligence-v2-1",
+  "dataset": "validacao_v1",
+  "raw_content_sha256": "4bde6fea87dcc0d52af81605004c673a091aa6fba99f510f6e3b5fe68c001aaf",
+  "metrics": {
+    "scenarios": 300,
+    "utility_mean": 6.666853,
+    "regret_mean": 2.388391,
+    "failures": 0,
+    "fallbacks": 0,
+    "eliminatory_violations": 0,
+    "no_history_neutral": true
+  },
+  "comparisons": [
+    {
+      "model": "deterministico-v3",
+      "paired": 300,
+      "candidate_regret_mean": 2.388391,
+      "baseline_regret_mean": 5.372953,
+      "regret_delta_candidate_minus_baseline": -2.984562,
+      "utility_delta_candidate_minus_baseline": 4.717227,
+      "candidate_wins_regret": 106,
+      "baseline_wins_regret": 57,
+      "ties": 137
+    },
+    {
+      "model": "appono-intelligence-v1",
+      "paired": 300,
+      "candidate_regret_mean": 2.388391,
+      "baseline_regret_mean": 4.263973,
+      "regret_delta_candidate_minus_baseline": -1.875582,
+      "utility_delta_candidate_minus_baseline": 3.200558,
+      "candidate_wins_regret": 89,
+      "baseline_wins_regret": 64,
+      "ties": 147
+    },
+    {
+      "model": "appono-intelligence-v2",
+      "paired": 300,
+      "candidate_regret_mean": 2.388391,
+      "baseline_regret_mean": 4.926099,
+      "regret_delta_candidate_minus_baseline": -2.537707,
+      "utility_delta_candidate_minus_baseline": 4.175119,
+      "candidate_wins_regret": 98,
+      "baseline_wins_regret": 60,
+      "ties": 142
+    }
+  ],
+  "reserve_accessed": false,
+  "formulas_changed": false
+}

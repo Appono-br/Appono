@@ -1,0 +1,105 @@
+{
+  "schema_version": 1,
+  "report_version": "routine-technical-decision-report-v1",
+  "decision_protocol_version": "routine-technical-decision-v1",
+  "milestone_decision": "DECISAO_TECNICA_CONCLUIDA_COM_REVISAO_PENDENTE",
+  "substantive_decision": "MANTER_V2_SEM_AJUSTE",
+  "input_hashes": {
+    "decision_protocol": "bda3b9feb4b4bc04b977b1253d7b60d217bc9439eb706be8998b151da42d8b33",
+    "comparison": "26bdeba2d2cc4ca42d2f4c4ce3fbf2fa9d4dc646182d85d5200c17270bdecf2a",
+    "guardrails": "27480414de60dbd0e9c4b009ee1b715f4c8497738a97a95b653a1b9b57e06121",
+    "blind_package": "15783281156afc526a2a5c5dbf8361ceba510bf93db7d73384fd30bbbd26b668",
+    "blind_key_commitment": "1313c2dee80fc64028f430bb1c60df17316757e776c9c7d0670c68770e4c325a",
+    "human_submission_file": null
+  },
+  "human_review": {
+    "state": "REVISAO_HUMANA_PENDENTE",
+    "reviewer_count": 0,
+    "valid_responses": 0,
+    "aggregation_present": false,
+    "evidence": null
+  },
+  "key_commitment_status": "COMMITMENT_PRESENT_NOT_AGGREGATED",
+  "automated_evidence": {
+    "validation_primary": true,
+    "executions_total": 1800,
+    "eliminatory_violations": 0,
+    "failures": 0,
+    "fallbacks": 0,
+    "validation_mean_regret": {
+      "deterministico-v3": 5.372953,
+      "appono-intelligence-v1": 4.263973,
+      "appono-intelligence-v2": 4.926099
+    },
+    "validation_v2_minus_control": -0.446854,
+    "validation_v2_minus_v1": 0.662126,
+    "v2_vs_control_status": "PASS",
+    "v2_vs_v1_status": "FAIL",
+    "v2_confidence_at_least_025": {
+      "numerator": 102,
+      "denominator": 300,
+      "rate": 0.34
+    },
+    "acceptance_criteria": {
+      "eliminatory_violations": "PASS",
+      "deterministic": "PASS",
+      "neutral_without_history": "PASS",
+      "v2_regret_not_worse_than_v1": "FAIL",
+      "v2_regret_not_worse_than_control": "PASS",
+      "maximum_persona_regret_regression": "PASS",
+      "explicit_preference_regression_margin": "PASS",
+      "concentration_not_worse_than_v1": "PASS",
+      "minimum_internal_confidence": "INSUFFICIENT_EVIDENCE",
+      "active_consent_required": "PASS",
+      "fallback_on_error_low_confidence_or_no_history": "INSUFFICIENT_EVIDENCE"
+    },
+    "regressions_total": 53,
+    "regressions_by_classification": {
+      "PREFERENCIA_EXPLICITA_PERDIDA": 11,
+      "INFERENCIA_FRACA_SUPERESTIMADA": 0,
+      "CONFIANCA_INSUFICIENTE": 24,
+      "CONTRADICAO_MAL_COMPENSADA": 1,
+      "REPETICAO_EXCESSIVA": 0,
+      "PENALIDADE_DE_REPETICAO_EXCESSIVA": 0,
+      "MUDANCA_GRADUAL_LENTA": 0,
+      "MUDANCA_GRADUAL_ABRUPTA": 0,
+      "DISTANCIA_MAL_PRIORIZADA": 8,
+      "PRECO_MAL_PRIORIZADO": 2,
+      "FAVORITO_IGNORADO": 0,
+      "DIVERSIDADE_INSUFICIENTE": 0,
+      "EMPATE_TECNICO": 0,
+      "SEM_VIOLACAO_DE_GUARDRAIL": 0,
+      "DEFEITO_DE_FIXTURE": 0,
+      "DEFEITO_DE_AVALIADOR": 0,
+      "HIPOTESE_PARA_V2_1": 7
+    },
+    "guardrails": {
+      "COVERED_BY_CONTRACT_TEST": 7,
+      "PASS": 3
+    },
+    "safety_is_not_quality_superiority": true,
+    "fallback_does_not_credit_native_v2": true,
+    "synthetic_customers_only": true
+  },
+  "hypothesis_summary": {
+    "DEFERRED_HUMAN_REVIEW": 1,
+    "INSUFFICIENT_EVIDENCE": 3
+  },
+  "accepted_hypothesis_ids": [],
+  "justification": "Nenhuma hipotese confirmou mecanismo geral e fixture independente suficientes; a V2 permanece sem ajuste.",
+  "consequences": [
+    "Preparar congelamento da V2 atual.",
+    "Manter fallback por baixa confianca.",
+    "Manter revisao humana como evidencia auxiliar pendente."
+  ],
+  "limitations": [
+    "Dados sinteticos e offline nao representam clientes reais.",
+    "Nenhuma resposta humana foi recebida ou agregada.",
+    "A V2 supera o controle, mas nao atende ao criterio congelado contra a V1."
+  ],
+  "reserve_accessed": false,
+  "formulas_changed": false,
+  "models_executed": 0,
+  "public_rollout_percent": 0,
+  "canonical_sha256": "acf4349cafaaf1be165ae0fa695eacae25d83131a7c6e51b5b8bec4d75f4125a"
+}

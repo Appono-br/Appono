@@ -19,6 +19,18 @@ function removerComplementoEndereco(endereco) {
         .trim();
 }
 
+function normalizarConsultaEndereco(endereco) {
+    return String(endereco ?? "")
+        .replace(/[–—]/g, "-")
+        .replace(/\bCEP\s*:?[\s-]*/gi, "")
+        .replace(/\s+-\s+([A-Z]{2})(?=\s*(?:,|$))/gi, ", $1")
+        .replace(/\s*,\s*/g, ", ")
+        .replace(/(?:,\s*){2,}/g, ", ")
+        .replace(/\s{2,}/g, " ")
+        .replace(/^,\s*|,\s*$/g, "")
+        .trim();
+}
+
 function extrairEnderecoEstruturado(endereco, cep) {
     const partes = String(endereco ?? "")
         .split(",")
@@ -91,9 +103,16 @@ async function geocodificarLocalizacao(texto) {
 }
 
 async function geocodificarEnderecoRotina(endereco) {
-    const consulta = String(endereco ?? "").trim();
+    const consulta = normalizarConsultaEndereco(endereco);
     if (consulta.length < 6) return [];
-    return consultarNominatimResultados({ q: `${consulta}, Brasil` }, 5);
+    const cep = consulta.match(/\b\d{5}-?\d{3}\b/)?.[0] ?? null;
+    const semCep = cep ? consulta.replace(cep, "").replace(/,\s*,/g, ",").replace(/,\s*$/g, "").trim() : consulta;
+    const tentativas = [...new Set([consulta, semCep, cep].filter((item) => item && item.length >= 6))];
+    for (const tentativa of tentativas) {
+        const resultados = await consultarNominatimResultados({ q: `${tentativa}, Brasil` }, 5);
+        if (resultados.length) return resultados;
+    }
+    return [];
 }
 
 async function geocodificarEnderecoRestaurante(restauranteOuEndereco, cepInformado) {
@@ -126,4 +145,5 @@ module.exports = {
     geocodificarEnderecoRestaurante,
     geocodificarEnderecoRotina,
     geocodificarLocalizacao,
+    normalizarConsultaEndereco,
 };

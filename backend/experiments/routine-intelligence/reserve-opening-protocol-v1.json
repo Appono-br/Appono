@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "protocol_version": "routine-reserve-opening-v1",
+  "planned_date": "2026-10-07",
+  "timezone": "America/Sao_Paulo",
+  "purpose": "Executar uma unica vez a reserva prospectiva da candidata congelada, sem recalibracao.",
+  "candidate_version": "appono-intelligence-v2",
+  "candidate_state": "FROZEN",
+  "source_hashes": {
+    "partitions_canonical_sha256": "40f7bc5b657e77ce334cd3fb9d71c856f191f23392e66f3ceab076f20c710ab7",
+    "personas_canonical_sha256": "dea25c57dd68942582dcf9de062fbb93c6208ec9b5245a73aed8a7ceb6290474",
+    "candidate_manifest_canonical_sha256": "b1910fc3d0b5b64333be8b08ebac3b661947ea9863b4249f5ae98bd9db26712b",
+    "candidate_report_canonical_sha256": "9a15814d7c33e34f3dd8a793c6b5f0bcb2565c8a5b4efaa48dcc465394367b54",
+    "reserve_commitment_file_sha256": "0090784fb4dfd54603aef5581f14a2d4fc6950d9ba965ab2b34083aa8c908300"
+  },
+  "authorized_partition": "reserva_prospectiva_v1",
+  "operation": {
+    "opening_confirmation": "OPEN_PROSPECTIVE_RESERVE",
+    "single_execution": true,
+    "materialization": "IN_MEMORY_THEN_NEW_INTERNAL_REPORT",
+    "historical_reserve_allowed": false,
+    "calibration_allowed": false,
+    "recalibration_allowed": false,
+    "public_rollout_percent": 0
+  },
+  "outputs": {
+    "directory": "backend/reports/routine-intelligence/prospective/internal/reserve-v1",
+    "opening_manifest": "opening-manifest.json",
+    "snapshot": "snapshot.json",
+    "raw_report": "raw-report.json",
+    "metrics": "metrics.json",
+    "summary": "summary.json"
+  },
+  "prohibited_inputs": ["historical_reserve", "real_customer_data", "pii", "remote_service", "arbitrary_seed", "arbitrary_dataset"],
+  "initial_state": "SEALED_UNMATERIALIZED"
+}

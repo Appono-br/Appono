@@ -138,12 +138,8 @@ export function LoginForm() {
       setRecoveryMessage(
         "Enviamos um link para redefinir sua senha. Confira sua caixa de entrada e spam."
       );
-    } catch (error) {
-      setRecoveryMessage(
-        error instanceof Error
-          ? error.message
-          : "Não foi possível enviar o e-mail de recuperação."
-      );
+    } catch {
+      setRecoveryMessage("Não foi possível enviar o link agora. Verifique sua conexão e tente novamente.");
     } finally {
       setIsSendingRecovery(false);
     }
@@ -244,6 +240,8 @@ export function LoginForm() {
               </span>
 
               <input
+                type="email"
+                autoComplete="email"
                 value={identifier}
                 onChange={(event) => {
                   setIdentifier(event.target.value);
@@ -263,6 +261,7 @@ export function LoginForm() {
               <div className="flex h-11 items-center rounded-xl border border-app-baunilha-dourada bg-white transition hover:border-app-caramelo-torrado focus-within:border-app-dourado-mel focus-within:ring-2 focus-within:ring-app-dourado-mel/20">
                 <input
                   type={showPassword ? "text" : "password"}
+                  autoComplete="current-password"
                   value={password}
                   onChange={(event) => {
                     setPassword(event.target.value);
@@ -314,7 +313,7 @@ export function LoginForm() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex h-10 w-full items-center justify-center gap-2 rounded-full bg-app-dourado-mel text-xs font-bold uppercase tracking-wide text-white shadow-md transition hover:-translate-y-0.5 hover:bg-app-caramelo-torrado hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-app-dourado-mel/25 disabled:cursor-not-allowed disabled:translate-y-0 disabled:opacity-70 disabled:shadow-none"
+              className="flex h-10 w-full items-center justify-center gap-2 rounded-full bg-app-dourado-mel text-sm font-semibold text-white shadow-md transition hover:-translate-y-0.5 hover:bg-app-caramelo-torrado hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-app-dourado-mel/25 disabled:cursor-not-allowed disabled:translate-y-0 disabled:opacity-70 disabled:shadow-none"
             >
               {isSubmitting ? (
                 <>
@@ -348,7 +347,7 @@ export function LoginForm() {
             <button
               type="button"
               onClick={() => setRegisterDialog(true)}
-              className="flex h-10 w-full items-center justify-center rounded-full border-2 border-app-mocha text-xs font-bold uppercase tracking-wide text-app-caramelo-torrado transition hover:-translate-y-0.5 hover:bg-app-cafe-profundo hover:text-app-creme-leve"
+              className="flex h-10 w-full items-center justify-center rounded-full border-2 border-app-mocha text-sm font-semibold text-app-caramelo-torrado transition hover:-translate-y-0.5 hover:bg-app-cafe-profundo hover:text-app-creme-leve"
             >
               Cadastrar
             </button>
@@ -374,7 +373,7 @@ export function LoginForm() {
             type="button"
             onClick={entrarComGoogle}
             disabled={isGoogleSubmitting}
-            className="botao-google mt-4 flex h-10 w-full items-center justify-center gap-2 rounded-full border border-[#dadce0] bg-white text-xs font-bold uppercase tracking-wide text-[#3c4043] transition hover:-translate-y-0.5 hover:border-[#c8d3e2] hover:bg-[#f8fafd] focus:outline-none focus:ring-4 focus:ring-[#4285f4]/15"
+            className="botao-google mt-4 flex h-10 w-full items-center justify-center gap-2 rounded-full border border-[#dadce0] bg-white text-sm font-semibold text-[#3c4043] transition hover:-translate-y-0.5 hover:border-[#c8d3e2] hover:bg-[#f8fafd] focus:outline-none focus:ring-4 focus:ring-[#4285f4]/15"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -402,7 +401,7 @@ export function LoginForm() {
 
             {isGoogleSubmitting
               ? "Redirecionando..."
-              : "Google"}
+              : "Continuar com Google"}
           </button>
 
           <p className="mt-3 text-center text-[9px] uppercase leading-4 tracking-[0.12em] text-app-cinza">
@@ -627,7 +626,7 @@ export function LoginForm() {
                 <button
                   type="button"
                   onClick={() => setRecoveryDialog(false)}
-                  className="h-11 rounded-full border border-app-baunilha-dourada text-xs font-bold uppercase tracking-wide text-app-cafe-profundo transition hover:bg-app-creme-suave"
+                  className="h-11 rounded-full border border-app-baunilha-dourada text-sm font-semibold text-app-cafe-profundo transition hover:bg-app-creme-suave"
                 >
                   Voltar
                 </button>
@@ -635,7 +634,7 @@ export function LoginForm() {
                 <button
                   type="submit"
                   disabled={isSendingRecovery}
-                  className="h-11 rounded-full bg-app-dourado-mel px-5 text-xs font-bold uppercase tracking-wide text-white shadow-md transition hover:-translate-y-0.5 hover:bg-app-caramelo-torrado hover:shadow-lg disabled:cursor-not-allowed disabled:translate-y-0 disabled:opacity-70 disabled:shadow-none"
+                  className="h-11 rounded-full bg-app-dourado-mel px-5 text-sm font-semibold text-white shadow-md transition hover:-translate-y-0.5 hover:bg-app-caramelo-torrado hover:shadow-lg disabled:cursor-not-allowed disabled:translate-y-0 disabled:opacity-70 disabled:shadow-none"
                 >
                   {isSendingRecovery
                     ? "Enviando..."

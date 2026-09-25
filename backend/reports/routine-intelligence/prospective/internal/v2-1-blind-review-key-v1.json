@@ -1,0 +1,150 @@
+{
+  "schema_version": 1,
+  "package_content_sha256": "fc278cd729af1bb7c83141a5f78acf8aa5d37a6921a60d8093153449de5ecc65",
+  "cases": [
+    {
+      "blind_case_id": "v2-1-caso-01",
+      "scenario_id": "1127139734d4d7b376828e6471e11049c595155160934bf86d0c7cb2bb21de7e",
+      "candidate_choice": "syn-candidate-validacao_v1-controle_sem_historico-21-0",
+      "baseline_choice": "syn-candidate-validacao_v1-controle_sem_historico-21-3"
+    },
+    {
+      "blind_case_id": "v2-1-caso-02",
+      "scenario_id": "618f048a7f319b21059ee81f5ea5ed5eb1d73d5b67ba68c500172ef329e2992c",
+      "candidate_choice": "syn-candidate-validacao_v1-avesso_repeticao-26-1",
+      "baseline_choice": "syn-candidate-validacao_v1-avesso_repeticao-26-3"
+    },
+    {
+      "blind_case_id": "v2-1-caso-03",
+      "scenario_id": "1527618cf9aa13adad2f96a5b728909c7a55d8c16117bceb2ae133f0671054f9",
+      "candidate_choice": "syn-candidate-validacao_v1-fiel_restaurante-24-0",
+      "baseline_choice": "syn-candidate-validacao_v1-fiel_restaurante-24-3"
+    },
+    {
+      "blind_case_id": "v2-1-caso-04",
+      "scenario_id": "49a4a7e39bd22ac963c5382a9afc3ab393802a258da447a72d90e919b90a3430",
+      "candidate_choice": "syn-candidate-validacao_v1-controle_sem_historico-03-0",
+      "baseline_choice": "syn-candidate-validacao_v1-controle_sem_historico-03-3"
+    },
+    {
+      "blind_case_id": "v2-1-caso-05",
+      "scenario_id": "022b6eea37b68b6e8483b30ce66f93d0ae466b5a7b8e703d33a9aeaad1d7f340",
+      "candidate_choice": "syn-candidate-validacao_v1-fiel_prato-02-0",
+      "baseline_choice": "syn-candidate-validacao_v1-fiel_prato-02-2"
+    },
+    {
+      "blind_case_id": "v2-1-caso-06",
+      "scenario_id": "f83c492e9a0da6c295f3f89619c769752a91377ca74a421aa7b1dbbab7ddfd73",
+      "candidate_choice": "syn-candidate-validacao_v1-economico-14-2",
+      "baseline_choice": "syn-candidate-validacao_v1-economico-14-3"
+    },
+    {
+      "blind_case_id": "v2-1-caso-07",
+      "scenario_id": "f8349ad6c12bd7a1a8f90c8aa1eb5054a6a2640c46fbab8ba6a3cb5dbb7a4618",
+      "candidate_choice": "syn-candidate-validacao_v1-explorador-08-2",
+      "baseline_choice": "syn-candidate-validacao_v1-explorador-08-3"
+    },
+    {
+      "blind_case_id": "v2-1-caso-08",
+      "scenario_id": "85b58fd1d0efd46860d3dca91df719ace51c1031df67f90466c891a47c57887c",
+      "candidate_choice": "syn-candidate-validacao_v1-sensivel_distancia-07-0",
+      "baseline_choice": "syn-candidate-validacao_v1-sensivel_distancia-07-1"
+    },
+    {
+      "blind_case_id": "v2-1-caso-09",
+      "scenario_id": "ec8936e004e37fdb076372648d1389f0f07eb93f6aee8647673e719550b4b9dc",
+      "candidate_choice": "syn-candidate-validacao_v1-sensivel_distancia-28-1",
+      "baseline_choice": "syn-candidate-validacao_v1-sensivel_distancia-28-2"
+    },
+    {
+      "blind_case_id": "v2-1-caso-10",
+      "scenario_id": "4657a3fd9824792db9ffdfb88a2cc531057c2182afa604f64e47866624b4f2c5",
+      "candidate_choice": "syn-candidate-validacao_v1-sensivel_distancia-22-0",
+      "baseline_choice": "syn-candidate-validacao_v1-sensivel_distancia-22-2"
+    },
+    {
+      "blind_case_id": "v2-1-caso-11",
+      "scenario_id": "20ef712613685c1bf3dd94efde8140986b5bfcfa98f4ef9ab314bbbad6ada71d",
+      "candidate_choice": "syn-candidate-validacao_v1-avesso_repeticao-27-1",
+      "baseline_choice": "syn-candidate-validacao_v1-avesso_repeticao-27-2"
+    },
+    {
+      "blind_case_id": "v2-1-caso-12",
+      "scenario_id": "3a13ed5eb2640f6b3e6b7b28b03ad9a473fe8dd6aa385310bd9f6d77ec4cd02a",
+      "candidate_choice": "syn-candidate-validacao_v1-controle_sem_historico-27-0",
+      "baseline_choice": "syn-candidate-validacao_v1-controle_sem_historico-27-2"
+    },
+    {
+      "blind_case_id": "v2-1-caso-13",
+      "scenario_id": "4eae8422ba25371b00568e195524997238a13e8f90758fbfc34e8154f6f8b999",
+      "candidate_choice": "syn-candidate-validacao_v1-sensivel_distancia-16-0",
+      "baseline_choice": "syn-candidate-validacao_v1-sensivel_distancia-16-2"
+    },
+    {
+      "blind_case_id": "v2-1-caso-14",
+      "scenario_id": "7b65d501b21fa52024e2a5aa4d282ce482cecbe7a80dabc443c79dd7b1a7635a",
+      "candidate_choice": "syn-candidate-validacao_v1-explorador-11-0",
+      "baseline_choice": "syn-candidate-validacao_v1-explorador-11-3"
+    },
+    {
+      "blind_case_id": "v2-1-caso-15",
+      "scenario_id": "357a6eec0fcaf0c561a59e491ac4c4370be4a0c3889bf10194862fa601ad8503",
+      "candidate_choice": "syn-candidate-validacao_v1-economico-06-2",
+      "baseline_choice": "syn-candidate-validacao_v1-economico-06-3"
+    },
+    {
+      "blind_case_id": "v2-1-caso-16",
+      "scenario_id": "c52ad7ff40a84ce7c1a7d767f462e4543b89cf97ceb960c34492c7a4e9bd956c",
+      "candidate_choice": "syn-candidate-validacao_v1-avesso_repeticao-11-1",
+      "baseline_choice": "syn-candidate-validacao_v1-avesso_repeticao-11-2"
+    },
+    {
+      "blind_case_id": "v2-1-caso-17",
+      "scenario_id": "24fb4e10214301c357ddc63ddeae8be1c0d69cb7fdc27d5c784eac9f5664fd2f",
+      "candidate_choice": "syn-candidate-validacao_v1-fiel_restaurante-06-0",
+      "baseline_choice": "syn-candidate-validacao_v1-fiel_restaurante-06-2"
+    },
+    {
+      "blind_case_id": "v2-1-caso-18",
+      "scenario_id": "72d132bd8cc7942b3860079a91f3811c2ecbcc811350ded5400d3bc245394afa",
+      "candidate_choice": "syn-candidate-validacao_v1-controle_sem_historico-02-0",
+      "baseline_choice": "syn-candidate-validacao_v1-controle_sem_historico-02-2"
+    },
+    {
+      "blind_case_id": "v2-1-caso-19",
+      "scenario_id": "b04b0d6b5335bdfdd38d8eef34c6694f9edac7fb5b7e8db37f8261fe5759696c",
+      "candidate_choice": "syn-candidate-validacao_v1-economico-05-2",
+      "baseline_choice": "syn-candidate-validacao_v1-economico-05-3"
+    },
+    {
+      "blind_case_id": "v2-1-caso-20",
+      "scenario_id": "9e57ca57b0ba14a36dc1e40aac588fa8ead202eb39100a2a572008df163c5be7",
+      "candidate_choice": "syn-candidate-validacao_v1-controle_sem_historico-23-0",
+      "baseline_choice": "syn-candidate-validacao_v1-controle_sem_historico-23-2"
+    },
+    {
+      "blind_case_id": "v2-1-caso-21",
+      "scenario_id": "8421db04114226978158320c5d31c052f71054fab9d13e5803f5482f7e588ec0",
+      "candidate_choice": "syn-candidate-validacao_v1-fiel_restaurante-26-1",
+      "baseline_choice": "syn-candidate-validacao_v1-fiel_restaurante-26-3"
+    },
+    {
+      "blind_case_id": "v2-1-caso-22",
+      "scenario_id": "997a8e54a5bb8ba4cd23cb4e7acf0a3032c3715a1346c4a0d1796f9c380aa76f",
+      "candidate_choice": "syn-candidate-validacao_v1-preferencia_forte-02-0",
+      "baseline_choice": "syn-candidate-validacao_v1-preferencia_forte-02-3"
+    },
+    {
+      "blind_case_id": "v2-1-caso-23",
+      "scenario_id": "6b6493719dae323d4805b0b96764004465038ef542cd1c1547566a7c9e9d21a3",
+      "candidate_choice": "syn-candidate-validacao_v1-avesso_repeticao-16-1",
+      "baseline_choice": "syn-candidate-validacao_v1-avesso_repeticao-16-2"
+    },
+    {
+      "blind_case_id": "v2-1-caso-24",
+      "scenario_id": "23ee6f7af8dceefd49ac159196faf811b6661d2dcfabfa68d3373703f4961aa3",
+      "candidate_choice": "syn-candidate-validacao_v1-explorador-28-0",
+      "baseline_choice": "syn-candidate-validacao_v1-explorador-28-2"
+    }
+  ]
+}

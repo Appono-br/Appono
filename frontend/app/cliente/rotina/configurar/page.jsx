@@ -22,6 +22,8 @@ const diasSemana = [
 const estadoInicial = {
     nome: "Rotina principal",
     endereco_base: "",
+    endereco_ativo_id: "casa",
+    enderecos_rotina: [{ id: "casa", tipo: "CASA", nome: "Casa", endereco: "", ativo: true }],
     dias_semana: ["monday", "tuesday", "wednesday", "thursday", "friday"],
     horario_inicio: "12:00",
     horario_fim: "14:00",
@@ -42,6 +44,13 @@ const estadoInicial = {
 };
 
 const rotulosJanela = { CAFE: "Café", ALMOCO: "Almoço", JANTAR: "Jantar", PERSONALIZADA: "Personalizada" };
+
+const rotulosEndereco = { CASA: "Casa", ESCOLA: "Escola", TRABALHO: "Trabalho", OUTRO: "Outro" };
+
+function enderecoPadrao(tipo = "OUTRO", indice = 0) {
+    const id = `${tipo.toLowerCase()}-${indice + 1}`;
+    return { id, tipo, nome: rotulosEndereco[tipo] ?? "Outro", endereco: "", ativo: false };
+}
 
 function janelaPadrao(tipo = "ALMOCO", ordem = 0) {
     const horarios = { CAFE: ["07:00", "09:30"], ALMOCO: ["12:00", "14:00"], JANTAR: ["19:00", "21:30"], PERSONALIZADA: ["15:00", "17:00"] };
@@ -77,7 +86,10 @@ export default function ConfigurarRotinaPage() {
     const [etapa, setEtapa] = useState(0);
     const [mensagem, setMensagem] = useState("");
     const [salvando, setSalvando] = useState(false);
-    const [catalogo, setCatalogo] = useState([]);
+    const [resultadosCatalogo, setResultadosCatalogo] = useState([]);
+    const [selecoesCatalogo, setSelecoesCatalogo] = useState({});
+    const [carregandoBusca, setCarregandoBusca] = useState(false);
+    const [erroBusca, setErroBusca] = useState("");
     const [carregando, setCarregando] = useState(true);
     const [falhaCarga, setFalhaCarga] = useState(false);
     const [erroCarga, setErroCarga] = useState("");
@@ -93,7 +105,6 @@ export default function ConfigurarRotinaPage() {
     const [candidatosEndereco, setCandidatosEndereco] = useState([]);
     const [geocodificacaoSelecionada, setGeocodificacaoSelecionada] = useState("");
     const erroJanela = form.janelas_alimentacao.map((janela) => validarJanela(janela)).find(Boolean) ?? "";
-    const correspondeBusca = (texto) => texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().includes(buscaPreferidos.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase());
 
     useEffect(() => {
         let cancelado = false;
@@ -110,6 +121,10 @@ export default function ConfigurarRotinaPage() {
                         ...estadoInicial,
                         nome: perfil.nome ?? estadoInicial.nome,
                         endereco_base: perfil.endereco_base ?? "",
+                        endereco_ativo_id: perfil.endereco_ativo_id ?? perfil.enderecos_rotina?.find((item) => item.ativo)?.id ?? "casa",
+                        enderecos_rotina: perfil.enderecos_rotina?.length
+                            ? perfil.enderecos_rotina
+                            : [{ id: "casa", tipo: "CASA", nome: "Casa", endereco: perfil.endereco_base ?? "", ativo: true }],
                         dias_semana: perfil.dias_semana?.length ? perfil.dias_semana : estadoInicial.dias_semana,
                         horario_inicio: String(perfil.horario_inicio ?? "12:00").slice(0, 5),
                         horario_fim: String(perfil.horario_fim ?? "14:00").slice(0, 5),
@@ -129,11 +144,10 @@ export default function ConfigurarRotinaPage() {
                 setForm(proximoForm);
                 setFormSalvo(proximoForm);
                 try {
-                    const restaurantes = await apiRequest("/rotina/catalogo");
-                    if (!cancelado) setCatalogo(restaurantes);
+                    const catalogoInicial = await apiRequest("/rotina/catalogo/busca?limite=1");
+                    if (!cancelado) registrarSelecoes(catalogoInicial.selecionados ?? []);
                 } catch {
-                    // The catalog only feeds optional favorites and must not prevent saving the routine.
-                    if (!cancelado) setCatalogo([]);
+                    if (!cancelado) setSelecoesCatalogo({});
                 }
             } catch (error) {
                 if (!cancelado) {
@@ -151,6 +165,45 @@ export default function ConfigurarRotinaPage() {
         carregarConfiguracao();
         return () => { cancelado = true; };
     }, []);
+
+    function registrarSelecoes(restaurantes) {
+        setSelecoesCatalogo((atual) => {
+            const proximo = { ...atual };
+            for (const restaurante of restaurantes ?? []) {
+                proximo[`r:${restaurante.id_restaurante}`] = { tipo: "restaurante", id: restaurante.id_restaurante, nome: restaurante.nome };
+                for (const produto of restaurante.produtos ?? []) proximo[`p:${produto.id_produto}`] = { tipo: "prato", id: produto.id_produto, nome: produto.nome, restaurante: restaurante.nome };
+            }
+            return proximo;
+        });
+    }
+
+    useEffect(() => {
+        if (etapa !== 2 || buscaPreferidos.trim().length < 2) return;
+        const controlador = new AbortController();
+        const temporizador = window.setTimeout(async () => {
+            setCarregandoBusca(true); setErroBusca("");
+            try {
+                const resultado = await apiRequest(`/rotina/catalogo/busca?q=${encodeURIComponent(buscaPreferidos.trim())}&limite=10`, { signal: controlador.signal, cacheTtlMs: 0 });
+                setResultadosCatalogo(resultado.itens ?? []);
+                registrarSelecoes([...(resultado.itens ?? []), ...(resultado.selecionados ?? [])]);
+            } catch (error) {
+                if (error?.name !== "AbortError") setErroBusca(error instanceof Error ? error.message : "Não foi possível pesquisar agora.");
+            } finally { if (!controlador.signal.aborted) setCarregandoBusca(false); }
+        }, 350);
+        return () => { window.clearTimeout(temporizador); controlador.abort(); };
+    }, [buscaPreferidos, etapa]);
+
+    function alternarRestaurante(restaurante) {
+        registrarSelecoes([restaurante]);
+        const id = Number(restaurante.id_restaurante);
+        atualizar("restaurantes_favoritos_rotina", form.restaurantes_favoritos_rotina.includes(id) ? form.restaurantes_favoritos_rotina.filter((item) => item !== id) : [...form.restaurantes_favoritos_rotina, id]);
+    }
+
+    function alternarPrato(restaurante, produto) {
+        registrarSelecoes([{ ...restaurante, produtos: [produto] }]);
+        const id = Number(produto.id_produto);
+        atualizar("pratos_favoritos_rotina", form.pratos_favoritos_rotina.includes(id) ? form.pratos_favoritos_rotina.filter((item) => item !== id) : [...form.pratos_favoritos_rotina, id]);
+    }
 
     useEffect(() => {
         let cancelado = false;
@@ -226,6 +279,38 @@ export default function ConfigurarRotinaPage() {
         setForm((atual) => ({ ...atual, [campo]: valor }));
     }
 
+    function atualizarEndereco(indice, campo, valor) {
+        setForm((atual) => ({ ...atual, enderecos_rotina: atual.enderecos_rotina.map((item, posicao) => posicao === indice ? { ...item, [campo]: valor } : item) }));
+        if (campo === "endereco" && form.enderecos_rotina[indice]?.id === form.endereco_ativo_id) {
+            atualizar("endereco_base", valor);
+            setCandidatosEndereco([]);
+            setGeocodificacaoSelecionada("");
+        }
+    }
+
+    function selecionarEndereco(id) {
+        setForm((atual) => {
+            const selecionado = atual.enderecos_rotina.find((item) => item.id === id);
+            return { ...atual, endereco_ativo_id: id, endereco_base: selecionado?.endereco ?? "", enderecos_rotina: atual.enderecos_rotina.map((item) => ({ ...item, ativo: item.id === id })) };
+        });
+        setCandidatosEndereco([]);
+        setGeocodificacaoSelecionada("");
+    }
+
+    function adicionarEndereco(tipo) {
+        setForm((atual) => ({ ...atual, enderecos_rotina: [...atual.enderecos_rotina, enderecoPadrao(tipo, atual.enderecos_rotina.length)] }));
+    }
+
+    function removerEndereco(indice) {
+        setForm((atual) => {
+            if (atual.enderecos_rotina.length <= 1) return atual;
+            const removido = atual.enderecos_rotina[indice];
+            const enderecos = atual.enderecos_rotina.filter((_, posicao) => posicao !== indice);
+            const ativo = removido.id === atual.endereco_ativo_id ? enderecos[0] : enderecos.find((item) => item.id === atual.endereco_ativo_id) ?? enderecos[0];
+            return { ...atual, endereco_ativo_id: ativo.id, enderecos_rotina: enderecos.map((item) => ({ ...item, ativo: item.id === ativo.id })) };
+        });
+    }
+
     function alternarDia(dia) {
         setForm((atual) => {
             const selecionado = atual.dias_semana.includes(dia);
@@ -280,12 +365,17 @@ export default function ConfigurarRotinaPage() {
                 setVersaoPerfil(versaoAtual);
             }
             const janelaPrincipal = form.janelas_alimentacao.find((janela) => janela.tipo === "ALMOCO") ?? form.janelas_alimentacao[0];
+            const enderecosParaSalvar = form.enderecos_rotina.map((item) => item.id === form.endereco_ativo_id
+                ? { ...item, endereco: form.endereco_base, ativo: true }
+                : { ...item, ativo: false });
             const perfilSalvo = await apiRequest("/rotina/perfil", {
                 method: "POST",
                 body: JSON.stringify({
                     versao_perfil: versaoParaSalvar,
                     nome: form.nome,
                     endereco_base: form.endereco_base,
+                    endereco_ativo_id: form.endereco_ativo_id,
+                    enderecos_rotina: enderecosParaSalvar,
                     dias_semana: janelaPrincipal.dias_semana,
                     horario_inicio: janelaPrincipal.horario_inicio,
                     horario_fim: janelaPrincipal.horario_fim,
@@ -418,6 +508,16 @@ export default function ConfigurarRotinaPage() {
                         </div>
                         <p className="mt-4 max-w-2xl text-sm leading-6 text-app-cinza">{ui("Usamos o endereço apenas para encontrar restaurantes próximos. As coordenadas são calculadas com segurança no servidor e não ficam editáveis nesta tela.")}</p>
                         {candidatosEndereco.length > 0 ? <fieldset className="mt-5 rounded-2xl border border-app-baunilha-dourada bg-app-chantilly/40 p-4"><legend className="px-1 text-xs font-bold uppercase tracking-[0.14em] text-app-mocha">{ui("Qual endereço corresponde à sua base?")}</legend><div className="mt-3 grid gap-2">{candidatosEndereco.map((candidato) => <label key={candidato.place_id} className="flex cursor-pointer items-start gap-3 rounded-xl bg-white p-3 text-sm text-app-cafe-profundo ring-1 ring-app-baunilha-dourada/55"><input type="radio" name="endereco-geocodificado" value={candidato.place_id} checked={geocodificacaoSelecionada === candidato.place_id} onChange={(event) => setGeocodificacaoSelecionada(event.target.value)} className="mt-0.5 accent-app-caramelo-torrado" /><span>{candidato.nome}</span></label>)}</div></fieldset> : null}
+                        <section className="mt-5 rounded-2xl border border-app-baunilha-dourada/70 bg-app-chantilly/25 p-4">
+                            <div className="flex flex-wrap items-start justify-between gap-3"><div><h2 className="text-lg font-semibold">{ui("Meus enderecos")}</h2><p className="mt-1 text-sm leading-6 text-app-cinza">{ui("Escolha onde voce esta. O endereco ativo define a distancia usada nas sugestoes.")}</p></div><span className="text-xs font-bold text-app-mocha">{form.enderecos_rotina.length}/10</span></div>
+                            <div className="mt-4 grid gap-3">
+                                {form.enderecos_rotina.map((endereco, indice) => <article key={endereco.id} className={`rounded-xl border p-3 ${endereco.id === form.endereco_ativo_id ? "border-app-caramelo-torrado bg-white" : "border-app-baunilha-dourada/60 bg-white/70"}`}>
+                                    <div className="flex flex-wrap items-center gap-3"><label className="flex items-center gap-2 text-sm font-semibold"><input type="radio" name="endereco-ativo" checked={endereco.id === form.endereco_ativo_id} onChange={() => selecionarEndereco(endereco.id)} className="accent-app-caramelo-torrado" />{ui("Usar neste momento")}</label><select value={endereco.tipo} onChange={(event) => atualizarEndereco(indice, "tipo", event.target.value)} className="h-9 rounded-lg border border-app-baunilha-dourada bg-white px-2 text-xs font-bold uppercase tracking-wider"><option value="CASA">{ui("Casa")}</option><option value="ESCOLA">{ui("Escola")}</option><option value="TRABALHO">{ui("Trabalho")}</option><option value="OUTRO">{ui("Outro")}</option></select>{form.enderecos_rotina.length > 1 ? <button type="button" onClick={() => removerEndereco(indice)} className="ml-auto text-xs font-bold uppercase tracking-wider text-red-700">{ui("Remover")}</button> : null}</div>
+                                    <div className="mt-3 grid gap-3 sm:grid-cols-2"><label className="grid gap-1 text-xs font-bold uppercase tracking-wider text-app-mocha">{ui("Nome")}<input value={endereco.nome} onChange={(event) => atualizarEndereco(indice, "nome", event.target.value)} className="h-10 rounded-lg border border-app-baunilha-dourada px-3 text-sm font-semibold normal-case tracking-normal" /></label><label className="grid gap-1 text-xs font-bold uppercase tracking-wider text-app-mocha sm:col-span-2">{ui("Endereco")}<input value={endereco.endereco} onChange={(event) => atualizarEndereco(indice, "endereco", event.target.value)} required={indice === 0} placeholder={ui("Ex: Rua, numero, bairro, cidade e UF")} className="h-10 rounded-lg border border-app-baunilha-dourada px-3 text-sm font-semibold normal-case tracking-normal" /></label></div>
+                                </article>)}
+                            </div>
+                            <div className="mt-3 flex flex-wrap gap-2">{["CASA", "ESCOLA", "TRABALHO", "OUTRO"].map((tipo) => <button key={tipo} type="button" disabled={form.enderecos_rotina.length >= 10} onClick={() => adicionarEndereco(tipo)} className="min-h-9 rounded-full border border-app-baunilha-dourada px-3 text-[10px] font-bold uppercase tracking-wider text-app-mocha disabled:opacity-40">+ {ui(rotulosEndereco[tipo])}</button>)}</div>
+                        </section>
                     </section>
 
                     <section className={`${etapa === 0 ? "" : "hidden "}rounded-[24px] bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada/55`}>
@@ -483,7 +583,7 @@ export default function ConfigurarRotinaPage() {
                                         {conexao?.ultima_sincronizacao_em ? <p className="mt-3 text-xs text-app-cinza">{ui("Última sincronização")}: {new Date(conexao.ultima_sincronizacao_em).toLocaleString("pt-BR")}</p> : null}
                                         {conexao?.erro_codigo ? <p className="mt-2 text-xs font-semibold text-red-700">{ui("A última sincronização falhou; os dados anteriores foram preservados.")}</p> : null}
                                         {conectado && item.provedor === "GOOGLE" && !conexao?.pode_escrever ? <p className="mt-2 text-xs font-semibold text-amber-700">{ui("Reconecte uma vez para permitir que o planejamento seja criado no Google Agenda.")}</p> : null}
-                                        {item.provedor === "GOOGLE" && !item.configurado ? <p className="mt-2 text-xs font-semibold text-red-700">{ui("As credenciais do Google Agenda ainda não foram configuradas no backend deste ambiente.")}</p> : null}
+                                        {item.provedor === "GOOGLE" && !item.configurado ? <p className="mt-2 text-xs font-semibold text-red-700">{ui("A conexão com o Google Agenda está indisponível no momento.")}</p> : null}
                                         <div className="mt-4 flex flex-wrap gap-2">
                                             {conectado ? <>
                                                 <button type="button" disabled={Boolean(acaoAgenda)} onClick={() => sincronizarAgenda(item.provedor)} className="min-h-10 rounded-full bg-app-cafe-profundo px-4 text-[10px] font-bold uppercase tracking-wider text-white disabled:opacity-50">{ui(acaoAgenda === `sincronizar:${item.provedor}` ? "Sincronizando..." : "Sincronizar")}</button>
@@ -497,30 +597,25 @@ export default function ConfigurarRotinaPage() {
                         )}
                     </section>
 
-                    <section className={`${etapa === 2 ? "grid" : "hidden"} gap-5 rounded-[24px] bg-white p-5 shadow-sm ring-1 ring-app-baunilha-dourada/55 sm:grid-cols-2`}>
-                        <label className="grid gap-2 text-sm font-semibold sm:col-span-2">{ui("Buscar restaurante ou prato")}
-                            <input type="search" value={buscaPreferidos} onChange={(event) => setBuscaPreferidos(event.target.value)} className="h-11 min-w-0 w-full rounded-lg border border-app-baunilha-dourada bg-white px-3" />
-                        </label>
-                        <fieldset className="min-w-0">
-                            <legend className="text-sm font-semibold">{ui("Restaurantes para priorizar")} ({form.restaurantes_favoritos_rotina.length})</legend>
-                            <div className="mt-3 grid max-h-64 gap-2 overflow-y-auto">
-                                {catalogo.filter((item) => correspondeBusca(item.nome)).map((item) => <label key={item.id_restaurante} className="flex items-center gap-3 rounded-lg border border-app-baunilha-dourada/60 p-3 text-sm hover:bg-app-chantilly">
-                                    <input type="checkbox" checked={form.restaurantes_favoritos_rotina.includes(item.id_restaurante)} onChange={(event) => atualizar("restaurantes_favoritos_rotina", event.target.checked ? [...form.restaurantes_favoritos_rotina, item.id_restaurante] : form.restaurantes_favoritos_rotina.filter((id) => id !== item.id_restaurante))} className="h-4 w-4 shrink-0 accent-app-caramelo-torrado" />
-                                    <span>{item.nome}{item.favorito_cliente ? <span className="block text-xs text-app-cinza">{ui("Já está nos seus favoritos")}</span> : null}</span>
-                                </label>)}
-                                {!catalogo.some((item) => correspondeBusca(item.nome)) ? <p className="text-sm text-app-cinza">{ui("Nenhum restaurante encontrado.")}</p> : null}
+                    <section className={`${etapa === 2 ? "grid" : "hidden"} gap-5 rounded-[24px] bg-white p-5 shadow-sm ring-1 ring-app-baunilha-dourada/55`}>
+                        <div>
+                            <label htmlFor="busca-catalogo-rotina" className="text-sm font-semibold">{ui("Buscar restaurante, tipo de cozinha ou prato")}</label>
+                            <input id="busca-catalogo-rotina" type="search" role="combobox" aria-expanded={resultadosCatalogo.length > 0} aria-controls="resultados-catalogo-rotina" aria-autocomplete="list" value={buscaPreferidos} onChange={(event) => { const valor = event.target.value; setBuscaPreferidos(valor); if (valor.trim().length < 2) { setResultadosCatalogo([]); setErroBusca(""); } }} placeholder={ui("Digite ao menos 2 letras")} className="mt-2 h-11 min-w-0 w-full rounded-lg border border-app-baunilha-dourada bg-white px-3 focus:outline-none focus:ring-2 focus:ring-app-caramelo-torrado" />
+                            <div id="resultados-catalogo-rotina" role="listbox" aria-busy={carregandoBusca} className="mt-3 grid gap-2">
+                                {carregandoBusca ? <p className="text-sm text-app-cinza">{ui("Pesquisando op??es dentro do seu raio...")}</p> : null}
+                                {erroBusca ? <p role="alert" className="text-sm text-red-700">{ui(erroBusca)}</p> : null}
+                                {!carregandoBusca && buscaPreferidos.trim().length >= 2 && !erroBusca && resultadosCatalogo.length === 0 ? <p className="text-sm text-app-cinza">{ui("Nenhuma op??o compat?vel foi encontrada nesse raio.")}</p> : null}
+                                {resultadosCatalogo.map((restaurante) => <article role="option" aria-selected={form.restaurantes_favoritos_rotina.includes(Number(restaurante.id_restaurante))} key={restaurante.id_restaurante} className="rounded-xl border border-app-baunilha-dourada/60 p-3">
+                                    <div className="flex flex-wrap items-center justify-between gap-3"><div><p className="font-semibold">{restaurante.nome}</p><p className="text-xs text-app-cinza">{Number(restaurante.distancia_km).toFixed(1)} km</p></div><button type="button" onClick={() => alternarRestaurante(restaurante)} className="rounded-full border border-app-caramelo-torrado px-4 py-2 text-xs font-semibold text-app-caramelo-torrado">{ui(form.restaurantes_favoritos_rotina.includes(Number(restaurante.id_restaurante)) ? "Remover restaurante" : "Priorizar restaurante")}</button></div>
+                                    {restaurante.produtos?.length ? <div className="mt-3 flex flex-wrap gap-2">{restaurante.produtos.map((produto) => <button type="button" key={produto.id_produto} onClick={() => alternarPrato(restaurante, produto)} className={`rounded-full px-3 py-2 text-xs ${form.pratos_favoritos_rotina.includes(Number(produto.id_produto)) ? "bg-app-cafe-profundo text-white" : "bg-app-chantilly text-app-mocha"}`}>{produto.nome}{produto.categorias?.nome ? ` ? ${produto.categorias.nome}` : ""}</button>)}</div> : null}
+                                </article>)}
                             </div>
-                        </fieldset>
-                        <fieldset className="min-w-0">
-                            <legend className="text-sm font-semibold">{ui("Pratos para repetir")} ({form.pratos_favoritos_rotina.length})</legend>
-                            <div className="mt-3 grid max-h-64 gap-2 overflow-y-auto">
-                                {catalogo.flatMap((item) => item.produtos.filter((produto) => correspondeBusca(`${item.nome} ${produto.nome}`)).map((produto) => <label key={produto.id_produto} className="flex items-center gap-3 rounded-lg border border-app-baunilha-dourada/60 p-3 text-sm hover:bg-app-chantilly">
-                                    <input type="checkbox" checked={form.pratos_favoritos_rotina.includes(produto.id_produto)} onChange={(event) => atualizar("pratos_favoritos_rotina", event.target.checked ? [...form.pratos_favoritos_rotina, produto.id_produto] : form.pratos_favoritos_rotina.filter((id) => id !== produto.id_produto))} className="h-4 w-4 shrink-0 accent-app-caramelo-torrado" />
-                                    <span>{produto.nome}<span className="block text-xs text-app-cinza">{item.nome}</span></span>
-                                </label>))}
-                                {!catalogo.some((item) => item.produtos.some((produto) => correspondeBusca(`${item.nome} ${produto.nome}`))) ? <p className="text-sm text-app-cinza">{ui("Nenhum prato publicado encontrado.")}</p> : null}
-                            </div>
-                        </fieldset>
+                        </div>
+                        <div><p className="text-sm font-semibold">{ui("Suas sele??es")}</p><div className="mt-3 flex flex-wrap gap-2">
+                            {form.restaurantes_favoritos_rotina.map((id) => { const item = selecoesCatalogo[`r:${id}`]; return <button type="button" key={`r:${id}`} onClick={() => alternarRestaurante({ id_restaurante: id, nome: item?.nome ?? "", produtos: [] })} className="rounded-full border border-app-baunilha-dourada px-3 py-2 text-xs">{item?.nome ?? ui("Restaurante selecionado")} ?</button>; })}
+                            {form.pratos_favoritos_rotina.map((id) => { const item = selecoesCatalogo[`p:${id}`]; return <button type="button" key={`p:${id}`} onClick={() => alternarPrato({ nome: item?.restaurante, produtos: [] }, { id_produto: id, nome: item?.nome })} className="rounded-full border border-app-baunilha-dourada px-3 py-2 text-xs">{item?.nome ?? ui("Prato selecionado")} ?</button>; })}
+                            {!form.restaurantes_favoritos_rotina.length && !form.pratos_favoritos_rotina.length ? <p className="text-sm text-app-cinza">{ui("Nenhum restaurante ou prato priorizado.")}</p> : null}
+                        </div></div>
                         <p className="text-sm text-app-cinza sm:col-span-2">{ui("Seleção opcional. Seus favoritos já ganham prioridade; outros restaurantes e pratos continuam elegíveis. Somente pratos publicados aparecem aqui.")}</p>
                         {textoParaLista(form.alergias).length > 0 ? <p className="text-sm text-app-cinza sm:col-span-2">{ui("Com alergias informadas, as sugestões serão apenas de mesa. Os pratos selecionados ficam salvos, mas não serão recomendados. Confirme ingredientes e contaminação cruzada com o restaurante antes de pedir.")}</p> : null}
                     </section>

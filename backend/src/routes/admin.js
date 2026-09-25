@@ -8,6 +8,7 @@ const supabase_1 = require("../lib/supabase");
 const auth_1 = require("../middleware/auth");
 const { agregarMetricasExperimento } = require("../domain/routine-experiment-metrics");
 const { diagnosticoConfiguracaoInteligencia } = require("../domain/routine-intelligence-policy");
+const { diagnosticoConfiguracaoV2_1 } = require("../domain/routine-intelligence-v2-1-titular");
 
 exports.adminRouter = (0, express_1.Router)();
 
@@ -153,11 +154,12 @@ exports.adminRouter.get("/rotina-intelligence/resumo", async (req, res) => {
         .limit(5000);
     if (error) return res.status(503).json({ code: "ROUTINE_EXPERIMENT_UNAVAILABLE", error: "Nao foi possivel carregar as metricas do experimento." });
     const resumo = agregarMetricasExperimento(data ?? []);
+    const configuracaoV2_1 = diagnosticoConfiguracaoV2_1();
     return res.json({
         periodo_dias: dias,
-        modelo_oficial: data?.[0]?.modelo_controle ?? "deterministico-v3",
-        decisao_atual: "MANTER_EM_SOMBRA",
-        configuracao: diagnosticoConfiguracaoInteligencia(),
+        modelo_oficial: configuracaoV2_1.habilitada_para_todos ? configuracaoV2_1.modelo_titular : "deterministico-v3",
+        decisao_atual: configuracaoV2_1.habilitada_para_todos ? "V2_1_TITULAR_DEMONSTRACAO" : "FALLBACK_DETERMINISTICO",
+        configuracao: { ...diagnosticoConfiguracaoInteligencia(), ...configuracaoV2_1 },
         ...resumo,
     });
 });

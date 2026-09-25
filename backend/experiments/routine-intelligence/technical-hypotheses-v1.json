@@ -1,0 +1,197 @@
+{
+  "schema_version": 1,
+  "hypotheses_version": "routine-technical-hypotheses-v1",
+  "decision_protocol_version": "routine-technical-decision-v1",
+  "decision_protocol_sha256": "bda3b9feb4b4bc04b977b1253d7b60d217bc9439eb706be8998b151da42d8b33",
+  "human_review_state": "REVISAO_HUMANA_PENDENTE",
+  "accepted_count": 0,
+  "hypotheses": [
+    {
+      "id": "confidence_is_not_quality_calibration",
+      "status": "INSUFFICIENT_EVIDENCE",
+      "problem": "Confianca interna elevada pode coexistir com arrependimento alto.",
+      "evidence": {
+        "matching_regressions": 31,
+        "validation_regressions": 21,
+        "acceptance_criterion": "minimum_internal_confidence",
+        "acceptance_status": "INSUFFICIENT_EVIDENCE",
+        "human_review_state": "REVISAO_HUMANA_PENDENTE"
+      },
+      "checks": {
+        "general_mechanism": false,
+        "reproducible_validation_evidence": true,
+        "independent_general_fixture": true,
+        "preexisting_guardrail_or_criterion": true,
+        "eliminatory_filters_preserved": true,
+        "consent_privacy_idempotency_and_causality_preserved": true,
+        "no_history_neutrality_preserved": true,
+        "no_reserve_dependency": true,
+        "no_case_removal": true,
+        "objective_abandonment_criterion": true,
+        "not_score_tuning": true
+      },
+      "counterevidence": null,
+      "overfitting_risk": "Ajustar a formula aos cenarios conhecidos de desenvolvimento e validacao.",
+      "immutable_invariants": [
+        "filtros_eliminatorios",
+        "consentimento",
+        "causalidade",
+        "neutralidade_sem_historico",
+        "limite_de_ajuste"
+      ],
+      "allowed_conceptual_change": null,
+      "prohibited_changes": [
+        "ajustar_peso_para_placar",
+        "remover_casos",
+        "usar_reserva"
+      ],
+      "future_fixture": "routine-intelligence-v2.test.js",
+      "development_success": "Fixture geral passa sem regressao dos guardrails.",
+      "validation_acceptance": "Candidata congelada atende aos criterios pre-registrados sem piorar V1 ou controle.",
+      "abandonment_criterion": "Abandonar se o mecanismo nao for reproduzido por fixture independente ou regredir guardrails.",
+      "requires_new_model_version": false,
+      "reserve_used": false
+    },
+    {
+      "id": "explicit_preference_requires_broader_precedence",
+      "status": "DEFERRED_HUMAN_REVIEW",
+      "problem": "Personalizacao pode escolher categoria nao preferida em divergencias com preferencia explicita.",
+      "evidence": {
+        "matching_regressions": 11,
+        "validation_regressions": 3,
+        "acceptance_criterion": "explicit_preference_regression_margin",
+        "acceptance_status": "PASS",
+        "human_review_state": "REVISAO_HUMANA_PENDENTE"
+      },
+      "checks": {
+        "general_mechanism": false,
+        "reproducible_validation_evidence": true,
+        "independent_general_fixture": true,
+        "preexisting_guardrail_or_criterion": true,
+        "eliminatory_filters_preserved": true,
+        "consent_privacy_idempotency_and_causality_preserved": true,
+        "no_history_neutrality_preserved": true,
+        "no_reserve_dependency": true,
+        "no_case_removal": true,
+        "objective_abandonment_criterion": true,
+        "not_score_tuning": true
+      },
+      "counterevidence": "O criterio agregado relacionado passou em validacao.",
+      "overfitting_risk": "Ajustar a formula aos cenarios conhecidos de desenvolvimento e validacao.",
+      "immutable_invariants": [
+        "filtros_eliminatorios",
+        "consentimento",
+        "causalidade",
+        "neutralidade_sem_historico",
+        "limite_de_ajuste"
+      ],
+      "allowed_conceptual_change": null,
+      "prohibited_changes": [
+        "ajustar_peso_para_placar",
+        "remover_casos",
+        "usar_reserva"
+      ],
+      "future_fixture": "routine-intelligence-guardrails.test.js",
+      "development_success": "Fixture geral passa sem regressao dos guardrails.",
+      "validation_acceptance": "Candidata congelada atende aos criterios pre-registrados sem piorar V1 ou controle.",
+      "abandonment_criterion": "Abandonar se o mecanismo nao for reproduzido por fixture independente ou regredir guardrails.",
+      "requires_new_model_version": false,
+      "reserve_used": false
+    },
+    {
+      "id": "distance_tradeoff_requires_recalibration",
+      "status": "INSUFFICIENT_EVIDENCE",
+      "problem": "Ajuste comportamental pode superar diferencas de distancia em cenarios sinteticos.",
+      "evidence": {
+        "matching_regressions": 8,
+        "validation_regressions": 7,
+        "acceptance_criterion": "maximum_persona_regret_regression",
+        "acceptance_status": "PASS",
+        "human_review_state": "REVISAO_HUMANA_PENDENTE"
+      },
+      "checks": {
+        "general_mechanism": false,
+        "reproducible_validation_evidence": true,
+        "independent_general_fixture": true,
+        "preexisting_guardrail_or_criterion": true,
+        "eliminatory_filters_preserved": true,
+        "consent_privacy_idempotency_and_causality_preserved": true,
+        "no_history_neutrality_preserved": true,
+        "no_reserve_dependency": true,
+        "no_case_removal": true,
+        "objective_abandonment_criterion": true,
+        "not_score_tuning": true
+      },
+      "counterevidence": "O criterio agregado relacionado passou em validacao.",
+      "overfitting_risk": "Ajustar a formula aos cenarios conhecidos de desenvolvimento e validacao.",
+      "immutable_invariants": [
+        "filtros_eliminatorios",
+        "consentimento",
+        "causalidade",
+        "neutralidade_sem_historico",
+        "limite_de_ajuste"
+      ],
+      "allowed_conceptual_change": null,
+      "prohibited_changes": [
+        "ajustar_peso_para_placar",
+        "remover_casos",
+        "usar_reserva"
+      ],
+      "future_fixture": "routine-intelligence-personas.test.js",
+      "development_success": "Fixture geral passa sem regressao dos guardrails.",
+      "validation_acceptance": "Candidata congelada atende aos criterios pre-registrados sem piorar V1 ou controle.",
+      "abandonment_criterion": "Abandonar se o mecanismo nao for reproduzido por fixture independente ou regredir guardrails.",
+      "requires_new_model_version": false,
+      "reserve_used": false
+    },
+    {
+      "id": "gradual_change_transition_requires_new_formula",
+      "status": "INSUFFICIENT_EVIDENCE",
+      "problem": "A transicao temporal pode reagir de forma inadequada a sinais recentes ou contraditorios.",
+      "evidence": {
+        "matching_regressions": 8,
+        "validation_regressions": 5,
+        "acceptance_criterion": "v2_regret_not_worse_than_v1",
+        "acceptance_status": "FAIL",
+        "human_review_state": "REVISAO_HUMANA_PENDENTE"
+      },
+      "checks": {
+        "general_mechanism": false,
+        "reproducible_validation_evidence": true,
+        "independent_general_fixture": true,
+        "preexisting_guardrail_or_criterion": true,
+        "eliminatory_filters_preserved": true,
+        "consent_privacy_idempotency_and_causality_preserved": true,
+        "no_history_neutrality_preserved": true,
+        "no_reserve_dependency": true,
+        "no_case_removal": true,
+        "objective_abandonment_criterion": true,
+        "not_score_tuning": true
+      },
+      "counterevidence": null,
+      "overfitting_risk": "Ajustar a formula aos cenarios conhecidos de desenvolvimento e validacao.",
+      "immutable_invariants": [
+        "filtros_eliminatorios",
+        "consentimento",
+        "causalidade",
+        "neutralidade_sem_historico",
+        "limite_de_ajuste"
+      ],
+      "allowed_conceptual_change": null,
+      "prohibited_changes": [
+        "ajustar_peso_para_placar",
+        "remover_casos",
+        "usar_reserva"
+      ],
+      "future_fixture": "routine-intelligence-personas.test.js",
+      "development_success": "Fixture geral passa sem regressao dos guardrails.",
+      "validation_acceptance": "Candidata congelada atende aos criterios pre-registrados sem piorar V1 ou controle.",
+      "abandonment_criterion": "Abandonar se o mecanismo nao for reproduzido por fixture independente ou regredir guardrails.",
+      "requires_new_model_version": false,
+      "reserve_used": false
+    }
+  ],
+  "reserve_accessed": false,
+  "formulas_changed": false,
+  "canonical_sha256": "962f08e8bb2e87327252feb80398d710f61696e3561fc0287f97ec77ad99347a"
+}

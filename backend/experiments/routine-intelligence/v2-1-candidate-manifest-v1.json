@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "manifest_version": "appono-intelligence-v2-1-candidate-manifest-v1",
+  "candidate_version": "appono-intelligence-v2-1",
+  "state": "FROZEN_FOR_VALIDATION",
+  "frozen_at": "2026-09-23T00:00:00-03:00",
+  "protocol_sha256": "db83cb2841a742920d26ff3079921543128315e86bdf7c17ebb676d977099ea8",
+  "source_hashes": {
+    "implementation": "538bf23fd110ee71e818edb8eb9a3b4dfc7c5b060ca6af0d26c3233d0f20371a",
+    "evaluation": "87bdd03d6c8ae35dd5cbc47f1738a3b58503ff48a65dcb4b2931f16031686cae",
+    "focused_tests": "0d47018d913162b6641315fd118a0f21d869861cea3f7181b6a36a5f16d56888"
+  },
+  "baseline_hashes": {
+    "control": "0e276cd125b533dd5df381cdb95732804e3002ae31eb34efbdffe51694e31a18",
+    "v1": "41dfae64aaae0b53ec81cc70bdd74ae0807f6b83a30348ff0f663dbfcea0831b",
+    "v2": "f21157716c2c1c396dfc45bf89e66744c693bb98414906b893d7d82038335bc4"
+  },
+  "development": {
+    "raw_content_sha256": "b302b1bb5f529679f416108f97d659104fa94067787edd22f3895bca9549c980",
+    "scenarios": 300,
+    "passed": true
+  },
+  "validation": {
+    "state": "COMPLETED",
+    "frozen_candidate_required": true,
+    "raw_content_sha256": "4bde6fea87dcc0d52af81605004c673a091aa6fba99f510f6e3b5fe68c001aaf",
+    "scenarios": 300,
+    "regret_mean": 2.388391,
+    "comparisons": {
+      "deterministico-v3": -2.984562,
+      "appono-intelligence-v1": -1.875582,
+      "appono-intelligence-v2": -2.537707
+    },
+    "passed": true
+  },
+  "reserve": { "state": "SEALED_NOT_AUTHORIZED", "accessed": false },
+  "rollout": { "public_rollout_percent": 0, "enabled_by_default": false },
+  "formulas_changed": false,
+  "canonical_sha256": "e99aaddc70a876269b6b0b087883f23ac01a16a0e60cd6a0b9ff0aa3ac66051d"
+}

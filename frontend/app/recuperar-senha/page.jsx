@@ -22,7 +22,7 @@ export default function RecuperarSenhaPage() {
         const parametrosHash = new URLSearchParams(window.location.hash.slice(1));
         const descricaoErro = urlAtual.searchParams.get("error_description") ?? parametrosHash.get("error_description");
         if (descricaoErro) {
-          throw new Error(descricaoErro);
+          throw new Error("Este link de recuperação é inválido ou expirou. Solicite um novo link.");
         }
 
         const codigo = urlAtual.searchParams.get("code");
@@ -54,9 +54,9 @@ export default function RecuperarSenhaPage() {
 
         setLinkValido(true);
         setMensagem("Digite sua nova senha para recuperar o acesso.");
-      } catch (error) {
+      } catch {
         setLinkValido(false);
-        setMensagem(error instanceof Error ? error.message : "Não foi possível validar o link de recuperação.");
+        setMensagem("Este link de recuperação é inválido ou expirou. Solicite um novo link.");
       }
     }
 
@@ -87,8 +87,8 @@ export default function RecuperarSenhaPage() {
       clearAuthResponse();
       setSenhaAlterada(true);
       setMensagem("Senha alterada com sucesso. Agora entre novamente com sua nova senha.");
-    } catch (error) {
-      setMensagem(error instanceof Error ? error.message : "Não foi possível alterar sua senha.");
+    } catch {
+      setMensagem("Não foi possível alterar sua senha agora. Solicite um novo link e tente novamente.");
     } finally {
       setSalvando(false);
     }
@@ -163,7 +163,7 @@ export default function RecuperarSenhaPage() {
             <button
               type="submit"
               disabled={salvando}
-              className="flex h-11 w-full items-center justify-center rounded-full bg-app-dourado-mel px-5 text-xs font-bold uppercase tracking-wide text-white shadow-md transition hover:-translate-y-0.5 hover:bg-app-caramelo-torrado hover:shadow-lg disabled:cursor-not-allowed disabled:translate-y-0 disabled:opacity-70 disabled:shadow-none"
+              className="flex h-11 w-full items-center justify-center rounded-full bg-app-dourado-mel px-5 text-sm font-semibold text-white shadow-md transition hover:-translate-y-0.5 hover:bg-app-caramelo-torrado hover:shadow-lg disabled:cursor-not-allowed disabled:translate-y-0 disabled:opacity-70 disabled:shadow-none"
             >
               {salvando ? "Salvando..." : "Salvar nova senha"}
             </button>
@@ -172,7 +172,7 @@ export default function RecuperarSenhaPage() {
 
         <Link
           href="/login"
-          className="mt-5 flex h-11 w-full items-center justify-center rounded-full border border-app-baunilha-dourada text-xs font-bold uppercase tracking-wide text-app-cafe-profundo transition hover:bg-app-creme-suave"
+          className="mt-5 flex h-11 w-full items-center justify-center rounded-full border border-app-baunilha-dourada text-sm font-semibold text-app-cafe-profundo transition hover:bg-app-creme-suave"
         >
           Voltar para login
         </Link>

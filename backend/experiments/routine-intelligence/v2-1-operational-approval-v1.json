@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "approval_version": "appono-intelligence-v2-1-operational-approval-v1",
+  "candidate_version": "appono-intelligence-v2-1",
+  "state": "PENDING",
+  "required_gates": ["reserve_or_independent_evidence", "human_review_or_explicit_pending", "consented_anonymized_data_or_synthetic_limit", "internal_allowlist", "monitored_internal_use", "rollback_and_kill_switch"],
+  "approvals": { "product": null, "engineering": null, "privacy": null, "security": null, "operations": null },
+  "public_rollout_percent": 0,
+  "enabled_by_default": false,
+  "kill_switch_required": true,
+  "decision": "NOT_APPROVED_FOR_ROLLOUT"
+}

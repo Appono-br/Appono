@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "report_version": "routine-v2-1-evolution-decision-v1",
+  "protocol_version": "routine-v2-1-evolution-v1",
+  "protocol_sha256": "00bdf44da2a98996d633039eeebecd18cc3109f09d5d838db39ea8ec2359b68a",
+  "hypotheses_sha256": "2e5397b9c62cd590a419f74662806dfeb078e9ed98bf7ac9c0a2827b3e603b83",
+  "decision": "V2_1_INSUFFICIENTE_AGUARDAR_DADOS",
+  "substantive_decision": "MANTER_V2_SEM_AJUSTE",
+  "candidate_version": "appono-intelligence-v2-1",
+  "baseline_version": "appono-intelligence-v2",
+  "control_version": "deterministico-v3",
+  "reference_version": "appono-intelligence-v1",
+  "human_review": { "state": "REVISAO_HUMANA_PENDENTE", "reviewer_count": 0, "valid_responses": 0, "aggregation_present": false },
+  "real_customer_data": { "state": "DADOS_REAIS_AUSENTES", "used": false, "anonymized_manifest_sha256": null },
+  "automated_evidence": {
+    "source": "frozen_2026-10-02_decision_and_2026-10-07_validation",
+    "v2_beats_control": true,
+    "v2_not_worse_than_v1": false,
+    "v2_validation_minus_control": -0.446854,
+    "v2_validation_minus_v1": 0.662126,
+    "eliminatory_violations": 0,
+    "quality_recalibration_performed": false,
+    "evidence_is_synthetic": true
+  },
+  "hypotheses": {
+    "accepted": [],
+    "rejected": [],
+    "deferred_human_review": ["explicit_preference_requires_broader_precedence"],
+    "insufficient_evidence": ["confidence_is_not_quality_calibration", "distance_tradeoff_requires_recalibration", "gradual_change_transition_requires_new_formula"]
+  },
+  "decision_reason": "Nao existem dados reais consentidos, respostas humanas validas ou mecanismo geral confirmado que autorize uma candidata V2.1. A V2 supera o controle, mas falha o criterio pre-registrado contra a V1.",
+  "consequences": [
+    "Manter a V2 congelada como baseline operacional sob fallback.",
+    "Nao implementar ou ativar V2.1 neste marco.",
+    "Preparar coleta consentida e nova revisao cega somente com protocolo aprovado.",
+    "Manter rollout publico em zero."
+  ],
+  "safety": {
+    "v2_formula_changed": false,
+    "v2_1_implemented": false,
+    "reserve_accessed": false,
+    "historical_reserve_used": false,
+    "public_rollout_percent": 0,
+    "fallback_version": "deterministico-v3",
+    "guardrails_preserved": true
+  },
+  "limitations": [
+    "Nenhum cliente real consentido foi usado.",
+    "Nenhuma resposta humana valida foi submetida.",
+    "Resultados sinteticos nao demonstram eficacia comercial.",
+    "A V2 falhou o criterio congelado de nao ser pior que a V1.",
+    "Uma nova reserva nao foi aberta nem usada."
+  ],
+  "canonical_sha256": "fe493d7aae08aa5cf8d887822c9e75e9a295768051eccc8fa9b6b5e8b67c5c82"
+}

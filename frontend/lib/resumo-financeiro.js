@@ -5,11 +5,11 @@ function numeroDisponivel(valor) {
 }
 
 export function obterIndicadoresFinanceiros(resumo, repasses) {
-  if (!resumo || !Array.isArray(repasses)) return { bruto: null, liquido: null, pendente: null };
+  if (!resumo || !Array.isArray(repasses)) return { bruto: null, taxas: null, estornos: null, liquido: null, pendente: null, disponivel: null };
   let bruto = 0;
   let pendente = 0;
   if (Number(resumo.quantidade_pagamentos) > repasses.length) {
-    return { bruto: null, liquido: numeroDisponivel(resumo.valor_restaurante), pendente: null };
+    return { bruto: null, taxas: numeroDisponivel(resumo.valor_comissao_app), estornos: numeroDisponivel(resumo.valor_reembolsado), liquido: numeroDisponivel(resumo.valor_restaurante), pendente: null, disponivel: numeroDisponivel(resumo.valor_liberado) };
   }
   for (const pagamento of repasses) {
     if (!pagamento.status_pagamento || !pagamento.pedido?.status_pedido) {
@@ -34,5 +34,5 @@ export function obterIndicadoresFinanceiros(resumo, repasses) {
       pendente = null;
     }
   }
-  return { bruto, liquido: numeroDisponivel(resumo.valor_restaurante), pendente };
+  return { bruto, taxas: numeroDisponivel(resumo.valor_comissao_app), estornos: numeroDisponivel(resumo.valor_reembolsado), liquido: numeroDisponivel(resumo.valor_restaurante), pendente, disponivel: numeroDisponivel(resumo.valor_liberado) };
 }
