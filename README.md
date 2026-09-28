@@ -243,9 +243,10 @@ MERCADO_PAGO_PERMITIR_PRODUCAO=false
 | `FRONTEND_ORIGIN` | Padrão local `http://localhost:3000` | CORS e construção do callback de cadastro; use uma origem no ambiente local |
 | `SUPABASE_ALLOW_INSECURE_TLS` | Manter `false` | Preserva a validação de certificados |
 | `APPONO_ADMIN_EMAILS` | Para administração | E-mails de contas autorizadas, separados por vírgula; não cria usuários |
-| `FRONTEND_PUBLIC_URL` | Para retornos de pagamento/OAuth | URL do frontend alcançável no fluxo externo |
+| `FRONTEND_PUBLIC_URL` | Obrigatória para checkout/retornos do Mercado Pago | URL HTTPS pública real do frontend, sem localhost nem domínio de exemplo |
 | `BACKEND_PUBLIC_URL` | Para integrações externas | URL HTTPS pública da API, sem o sufixo `/api` |
 | `MERCADO_PAGO_TEST_ACCESS_TOKEN` | Para checkout com credencial de teste | Token da conta de testes; tem prioridade quando produção está desabilitada |
+| `MERCADO_PAGO_TEST_PAYER_EMAIL` | Obrigatória em modo de teste para assinatura Profissional | E-mail `@testuser.com` de um Comprador de teste do mesmo site do Vendedor (MLB para Brasil); obtido na resposta da API `POST /users/test` |
 | `MERCADO_PAGO_ACCESS_TOKEN` | Conforme o modo financeiro | Token padrão; com produção desabilitada, só é usado como fallback se começar com `TEST-` |
 | `MERCADO_PAGO_MODO_REPASSE` | Padrão `SIMULADO` | Seleciona o fluxo financeiro; não equivale a comprovação de estorno no gateway |
 | `MERCADO_PAGO_PERMITIR_PRODUCAO` | Manter `false` em desenvolvimento | Controla a permissão de uso do fluxo de produção |

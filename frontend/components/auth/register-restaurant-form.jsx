@@ -61,6 +61,7 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
   const [imagemPreview, setImagemPreview] = useState("");
   const [googleSession, setGoogleSession] = useState(null);
   const [etapa, setEtapa] = useState("dados");
+  const [confirmarPlano, setConfirmarPlano] = useState(false);
 
     const isGoogleFlow = googleFlow;
 
@@ -213,7 +214,6 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
 
       setIsSubmitting(true);
       setMessage("");
-
       try {
         const response = await apiRequest(
           isGoogleFlow
@@ -227,6 +227,10 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
         );
 
         const session = response.session ?? googleSession;
+
+        if (!session && form.plano === "PROFISSIONAL") {
+          window.sessionStorage.setItem("appono_checkout_profissional_pendente", "1");
+        }
 
         await persistAuthResponse({
           ...response,
@@ -246,12 +250,18 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
           }
 
           if (form.plano === "PROFISSIONAL") {
-            const contratacao = await apiRequest("/planos/checkout", {
-              method: "POST",
-              body: JSON.stringify({ plano: "PROFISSIONAL" }),
-            });
-            if (contratacao.checkout_url) {
-              window.location.assign(contratacao.checkout_url);
+            try {
+              const contratacao = await apiRequest("/planos/checkout", {
+                method: "POST",
+                body: JSON.stringify({ plano: "PROFISSIONAL" }),
+              });
+              if (contratacao.checkout_url) {
+                window.location.assign(contratacao.checkout_url);
+                return;
+              }
+              throw new Error("Não foi possível abrir o checkout do Plano Profissional.");
+            } catch {
+              window.location.assign("/restaurante/plano?checkout=pendente");
               return;
             }
           }
@@ -261,7 +271,9 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
 
         setMessage(
           response.message ??
-            "Conta criada. Confirme seu e-mail para entrar direto no painel."
+            (form.plano === "PROFISSIONAL"
+              ? "Conta criada. Confirme seu e-mail; depois, você seguirá ao Mercado Pago para concluir a assinatura Profissional."
+              : "Conta criada. Confirme seu e-mail para entrar direto no painel.")
         );
       } catch (error) {
         if (error?.code === "AUTH_USER_ALREADY_EXISTS") {
@@ -629,7 +641,7 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
             <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center">
               <button
               type="button"
-              onClick={etapa === "dados" ? avancarParaPlanos : criarRestaurante}
+              onClick={etapa === "dados" ? avancarParaPlanos : () => form.plano === "PROFISSIONAL" ? setConfirmarPlano(true) : criarRestaurante()}
               disabled={isSubmitting}
               className="flex h-10 w-full items-center justify-center gap-2 rounded-full bg-app-dourado-mel px-6 text-xs font-bold uppercase tracking-wide text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-app-caramelo-torrado hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-app-dourado-mel/25 disabled:cursor-not-allowed disabled:translate-y-0 disabled:opacity-70 disabled:shadow-none sm:w-auto"
             >
@@ -664,6 +676,18 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
             </div>
           </div>
         </div>
+        {confirmarPlano ? (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !isSubmitting) setConfirmarPlano(false); }}>
+            <section role="dialog" aria-modal="true" aria-labelledby="confirmar-plano-titulo" className="w-full max-w-md rounded-2xl bg-white p-6 text-app-cafe-profundo shadow-2xl">
+              <h2 id="confirmar-plano-titulo" className="text-xl font-bold">Confirmar Plano Profissional</h2>
+              <p className="mt-3 text-sm leading-6 text-app-mocha">A assinatura custa R$ 200 por mês, com 3% de comissão por prato vendido. Após criar sua conta, você será encaminhado ao checkout seguro do Mercado Pago para concluir a contratação.</p>
+              <div className="mt-6 flex justify-end gap-3">
+                <button type="button" disabled={isSubmitting} onClick={() => setConfirmarPlano(false)} className="rounded-lg border border-app-baunilha-dourada px-4 py-2 text-sm font-semibold">Voltar</button>
+                <button type="button" disabled={isSubmitting} onClick={() => { setConfirmarPlano(false); criarRestaurante(); }} className="rounded-lg bg-app-dourado-mel px-4 py-2 text-sm font-bold text-white disabled:opacity-60">{isSubmitting ? "Criando conta..." : "Confirmar e criar conta"}</button>
+              </div>
+            </section>
+          </div>
+        ) : null}
       </div>
     );
   }

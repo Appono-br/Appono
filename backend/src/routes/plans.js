@@ -6,14 +6,41 @@ const { supabaseAdmin, createUserSupabaseClient } = require("../lib/supabase");
 const { requireAuth, requireRole } = require("../middleware/auth");
 const { obterAccessTokenMercadoPago, criarAssinaturaMercadoPago, consultarAssinaturaMercadoPago, atualizarAssinaturaMercadoPago } = require("../services/pagamentos/mercado-pago");
 const { assinaturaObrigatoria, validarAssinaturaWebhookMercadoPago } = require("../services/pagamentos/webhook-security");
-const { PLANOS, planoValido, obterAssinaturaRestaurante, exigirPlanoProfissional } = require("../services/planos-restaurante");
+const { PLANOS, planoValido, garantirAssinaturaInicial, obterAssinaturaRestaurante, exigirPlanoProfissional } = require("../services/planos-restaurante");
 
 const plansRouter = Router();
 const PUBLIC_PLANOS = Object.values(PLANOS);
 
-function frontendOrigin() { return (process.env.FRONTEND_PUBLIC_URL ?? process.env.FRONTEND_ORIGIN ?? "http://localhost:3000").split(",")[0].trim().replace(/\/$/, ""); }
+function frontendOrigin() {
+  const configurada = String(process.env.FRONTEND_PUBLIC_URL ?? "").split(",")[0].trim();
+  let url;
+  try {
+    url = new URL(configurada);
+  } catch {
+    url = null;
+  }
+  const host = url?.hostname.toLowerCase() ?? "";
+  if (!url || url.protocol !== "https:" || !host.includes(".") || host === "localhost" || host.endsWith(".localhost") || host.includes("seu-frontend")) {
+    const erro = new Error("Configure FRONTEND_PUBLIC_URL com a URL HTTPS pública do frontend para habilitar o checkout mensal do Mercado Pago.");
+    erro.statusCode = 503;
+    throw erro;
+  }
+  return url.origin;
+}
 function backendPublicUrl() { return String(process.env.BACKEND_PUBLIC_URL ?? "").trim().replace(/\/$/, ""); }
 function arredondar(valor) { return Math.round(Number(valor ?? 0) * 100) / 100; }
+function emailPagadorAssinatura(restaurante) {
+  const producaoPermitida = String(process.env.MERCADO_PAGO_PERMITIR_PRODUCAO ?? "false").trim().toLowerCase() === "true";
+  if (producaoPermitida) return restaurante.email;
+  const emailTeste = String(process.env.MERCADO_PAGO_TEST_PAYER_EMAIL ?? "").trim().toLowerCase();
+  if (!/^[^\s@]+@testuser\.com$/i.test(emailTeste)) {
+    const erro = new Error("O Mercado Pago está em modo de teste. Configure MERCADO_PAGO_TEST_PAYER_EMAIL com o e-mail @testuser.com retornado para uma conta Comprador de teste do site MLB. O e-mail genérico test@testuser.com pode pertencer a outro site.");
+    erro.statusCode = 409;
+    erro.code = "MERCADO_PAGO_TEST_PAYER_REQUIRED";
+    throw erro;
+  }
+  return emailTeste;
+}
 function statusAssinaturaMercadoPago(status) {
   const valor = String(status ?? "").toLowerCase();
   if (["authorized", "active"].includes(valor)) return "ATIVA";
@@ -23,7 +50,7 @@ function statusAssinaturaMercadoPago(status) {
 }
 async function obterRestaurante(res) {
   const supabase = createUserSupabaseClient(res.locals.accessToken);
-  const { data, error } = await supabase.from("restaurantes").select("id_restaurante,nome,email").eq("id_auth", res.locals.user.id).maybeSingle();
+  const { data, error } = await supabase.from("restaurantes").select("id_restaurante,nome,email,ativo").eq("id_auth", res.locals.user.id).maybeSingle();
   if (error) throw new Error(error.message);
   if (!data) { const erro = new Error("Apenas restaurantes podem usar este recurso."); erro.statusCode = 403; throw erro; }
   return data;
@@ -69,7 +96,12 @@ plansRouter.use((req, res, next) => {
 plansRouter.get("/assinatura", async (req, res) => {
   try {
     const restaurante = await obterRestaurante(res);
-    const assinatura = await obterAssinaturaRestaurante(restaurante.id_restaurante);
+    let assinatura = await obterAssinaturaRestaurante(restaurante.id_restaurante);
+    if (!assinatura) {
+      const planoEsperado = restaurante.ativo === false ? "PROFISSIONAL" : "INICIAL";
+      await garantirAssinaturaInicial(restaurante.id_restaurante, planoEsperado);
+      assinatura = await obterAssinaturaRestaurante(restaurante.id_restaurante);
+    }
     const { data: cobrancas, error } = await supabaseAdmin.from("cobrancas_assinatura_restaurante").select("id_cobranca,valor,status,vencimento_em,pago_em,criado_em").eq("id_assinatura", assinatura?.id_assinatura ?? 0).order("criado_em", { ascending: false }).limit(12);
     if (error) throw new Error(error.message);
     return res.json({ planos: PUBLIC_PLANOS, assinatura, cobrancas: cobrancas ?? [] });
@@ -82,13 +114,20 @@ plansRouter.post("/checkout", async (req, res) => {
     const plano = planoValido(req.body?.plano);
     if (!plano) return res.status(400).json({ error: "Plano inválido." });
     if (plano.codigo === "INICIAL") return res.status(400).json({ error: "O Plano Inicial não precisa de pagamento." });
-    const assinatura = await obterAssinaturaRestaurante(restaurante.id_restaurante);
+    let assinatura = await obterAssinaturaRestaurante(restaurante.id_restaurante);
+    if (!assinatura) {
+      await garantirAssinaturaInicial(restaurante.id_restaurante, plano.codigo);
+      assinatura = await obterAssinaturaRestaurante(restaurante.id_restaurante);
+    }
     if (!assinatura) return res.status(409).json({ error: "Assinatura ainda não foi criada. Atualize o cadastro e tente novamente." });
+    if (assinatura.codigo_plano === plano.codigo && assinatura.status === "PENDENTE_PAGAMENTO" && assinatura.checkout_url) {
+      return res.json({ checkout_url: assinatura.checkout_url, reutilizado: true });
+    }
     const token = obterAccessTokenMercadoPago();
     if (!token) return res.status(409).json({ code: "SUBSCRIPTION_PAYMENT_UNAVAILABLE", error: "Configure as credenciais do Mercado Pago para contratar o Plano Profissional." });
     const referencia = `assinatura:${assinatura.id_assinatura}:${crypto.randomUUID()}`;
     const resposta = await criarAssinaturaMercadoPago({
-      token, referencia, email: restaurante.email, planoId: process.env.APPONO_MERCADO_PAGO_PROFESSIONAL_PLAN_ID,
+      token, referencia, email: emailPagadorAssinatura(restaurante), planoId: process.env.APPONO_MERCADO_PAGO_PROFESSIONAL_PLAN_ID,
       reason: "Appono Plano Profissional", amount: plano.mensalidade,
       backUrl: `${frontendOrigin()}/restaurante/plano?assinatura=retorno`, notificationUrl: backendPublicUrl() ? `${backendPublicUrl()}/api/planos/webhook/mercado-pago` : null,
     });
