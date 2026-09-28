@@ -18,6 +18,11 @@ function obterAccessTokenMercadoPago() {
     return tokenPadrao;
 }
 
+function credenciaisTesteMercadoPagoValidas() {
+    const tokenTeste = process.env.MERCADO_PAGO_TEST_ACCESS_TOKEN?.trim() ?? "";
+    return Boolean(tokenTeste);
+}
+
 function criarClienteMercadoPago(accessToken = obterAccessTokenMercadoPago()) {
     if (!accessToken) {
         return null;
@@ -157,6 +162,10 @@ async function requisitarAssinaturaMercadoPago(path, { method = "GET", token = o
     return dados;
 }
 
+async function consultarContaMercadoPago(token = obterAccessTokenMercadoPago()) {
+    return requisitarAssinaturaMercadoPago("/users/me", { token });
+}
+
 async function criarAssinaturaMercadoPago({ token, referencia, email, planoId, reason, amount, backUrl, notificationUrl }) {
     const body = {
         reason,
@@ -168,6 +177,18 @@ async function criarAssinaturaMercadoPago({ token, referencia, email, planoId, r
         ...(notificationUrl ? { notification_url: notificationUrl } : {}),
     };
     return requisitarAssinaturaMercadoPago("/preapproval", { method: "POST", token, body });
+}
+
+async function criarPlanoAssinaturaMercadoPago({ token, reason, amount, backUrl }) {
+    return requisitarAssinaturaMercadoPago("/preapproval_plan", {
+        method: "POST",
+        token,
+        body: {
+            reason,
+            auto_recurring: { frequency: 1, frequency_type: "months", transaction_amount: Number(amount), currency_id: "BRL" },
+            back_url: backUrl,
+        },
+    });
 }
 
 async function consultarAssinaturaMercadoPago(id, token = obterAccessTokenMercadoPago()) {
@@ -216,7 +237,10 @@ module.exports = {
     estornarPagamentoMercadoPago,
     mapearStatusMercadoPago,
     obterAccessTokenMercadoPago,
+    credenciaisTesteMercadoPagoValidas,
+    consultarContaMercadoPago,
     criarAssinaturaMercadoPago,
+    criarPlanoAssinaturaMercadoPago,
     consultarAssinaturaMercadoPago,
     atualizarAssinaturaMercadoPago,
 };

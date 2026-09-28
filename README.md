@@ -245,14 +245,14 @@ MERCADO_PAGO_PERMITIR_PRODUCAO=false
 | `APPONO_ADMIN_EMAILS` | Para administração | E-mails de contas autorizadas, separados por vírgula; não cria usuários |
 | `FRONTEND_PUBLIC_URL` | Obrigatória para checkout/retornos do Mercado Pago | URL HTTPS pública real do frontend, sem localhost nem domínio de exemplo |
 | `BACKEND_PUBLIC_URL` | Para integrações externas | URL HTTPS pública da API, sem o sufixo `/api` |
-| `MERCADO_PAGO_TEST_ACCESS_TOKEN` | Para checkout com credencial de teste | Token da conta de testes; tem prioridade quando produção está desabilitada |
-| `MERCADO_PAGO_TEST_PAYER_EMAIL` | Obrigatória em modo de teste para assinatura Profissional | E-mail `@testuser.com` de um Comprador de teste do mesmo site do Vendedor (MLB para Brasil); obtido na resposta da API `POST /users/test` |
+| `MERCADO_PAGO_TEST_ACCESS_TOKEN` | Para checkout com credencial de teste | Token da conta de testes; tem prioridade quando produção está desabilitada |. The hosted monthly checkout does not require a payer email.
 | `MERCADO_PAGO_ACCESS_TOKEN` | Conforme o modo financeiro | Token padrão; com produção desabilitada, só é usado como fallback se começar com `TEST-` |
 | `MERCADO_PAGO_MODO_REPASSE` | Padrão `SIMULADO` | Seleciona o fluxo financeiro; não equivale a comprovação de estorno no gateway |
 | `MERCADO_PAGO_PERMITIR_PRODUCAO` | Manter `false` em desenvolvimento | Controla a permissão de uso do fluxo de produção |
 | `MERCADO_PAGO_MARKETPLACE_FEE_PERCENTUAL` | Opcional; padrão `13` | Percentual da comissão |
 | `MERCADO_PAGO_APP_ID` e `MERCADO_PAGO_CLIENT_SECRET` | Para OAuth do restaurante | Credenciais da aplicação Mercado Pago |
 | `MERCADO_PAGO_REDIRECT_URI` | Para OAuth do restaurante | Callback público com o caminho `/api/marketplace/mercado-pago/callback` |
+For the hosted monthly plan, enable `subscription_preapproval` notifications in Mercado Pago and point them to `https://<BACKEND_PUBLIC_URL>/api/planos/webhook/mercado-pago`. The backend creates one recurring plan per restaurant and matches the subscription webhook by plan ID.
 | `MERCADO_PAGO_WEBHOOK_SECRET` | Para validar a assinatura do webhook | Obrigatório em produção; um webhook sem assinatura válida é rejeitado |
 | `MERCADO_PAGO_WEBHOOK_SIGNATURE_REQUIRED` | Reforço de webhook | Mantenha `true` em homologação e produção para rejeitar chamadas sem segredo/assinatura |
 | `APPONO_MERCADO_PAGO_TOKEN_ENCRYPTION_KEY` | Para OAuth do restaurante | Chave de 32 bytes em Base64 ou 64 caracteres hexadecimais, exclusiva do backend; cifra os tokens OAuth do restaurante |

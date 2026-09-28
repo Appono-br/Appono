@@ -4,7 +4,7 @@ const crypto = require("node:crypto");
 const { Router } = require("express");
 const { supabaseAdmin, createUserSupabaseClient } = require("../lib/supabase");
 const { requireAuth, requireRole } = require("../middleware/auth");
-const { obterAccessTokenMercadoPago, criarAssinaturaMercadoPago, consultarAssinaturaMercadoPago, atualizarAssinaturaMercadoPago } = require("../services/pagamentos/mercado-pago");
+const { obterAccessTokenMercadoPago, credenciaisTesteMercadoPagoValidas, consultarContaMercadoPago, criarPlanoAssinaturaMercadoPago, consultarAssinaturaMercadoPago, atualizarAssinaturaMercadoPago } = require("../services/pagamentos/mercado-pago");
 const { assinaturaObrigatoria, validarAssinaturaWebhookMercadoPago } = require("../services/pagamentos/webhook-security");
 const { PLANOS, planoValido, garantirAssinaturaInicial, obterAssinaturaRestaurante, exigirPlanoProfissional } = require("../services/planos-restaurante");
 
@@ -27,20 +27,7 @@ function frontendOrigin() {
   }
   return url.origin;
 }
-function backendPublicUrl() { return String(process.env.BACKEND_PUBLIC_URL ?? "").trim().replace(/\/$/, ""); }
 function arredondar(valor) { return Math.round(Number(valor ?? 0) * 100) / 100; }
-function emailPagadorAssinatura(restaurante) {
-  const producaoPermitida = String(process.env.MERCADO_PAGO_PERMITIR_PRODUCAO ?? "false").trim().toLowerCase() === "true";
-  if (producaoPermitida) return restaurante.email;
-  const emailTeste = String(process.env.MERCADO_PAGO_TEST_PAYER_EMAIL ?? "").trim().toLowerCase();
-  if (!/^[^\s@]+@testuser\.com$/i.test(emailTeste)) {
-    const erro = new Error("O Mercado Pago está em modo de teste. Configure MERCADO_PAGO_TEST_PAYER_EMAIL com o e-mail @testuser.com retornado para uma conta Comprador de teste do site MLB. O e-mail genérico test@testuser.com pode pertencer a outro site.");
-    erro.statusCode = 409;
-    erro.code = "MERCADO_PAGO_TEST_PAYER_REQUIRED";
-    throw erro;
-  }
-  return emailTeste;
-}
 function statusAssinaturaMercadoPago(status) {
   const valor = String(status ?? "").toLowerCase();
   if (["authorized", "active"].includes(valor)) return "ATIVA";
@@ -120,23 +107,36 @@ plansRouter.post("/checkout", async (req, res) => {
       assinatura = await obterAssinaturaRestaurante(restaurante.id_restaurante);
     }
     if (!assinatura) return res.status(409).json({ error: "Assinatura ainda não foi criada. Atualize o cadastro e tente novamente." });
-    if (assinatura.codigo_plano === plano.codigo && assinatura.status === "PENDENTE_PAGAMENTO" && assinatura.checkout_url) {
-      return res.json({ checkout_url: assinatura.checkout_url, reutilizado: true });
+    const modoProducao = String(process.env.MERCADO_PAGO_PERMITIR_PRODUCAO ?? "false").trim().toLowerCase() === "true";
+    if (!modoProducao && !credenciaisTesteMercadoPagoValidas()) {
+      return res.status(409).json({ code: "MP_TEST_SELLER_CREDENTIALS_REQUIRED", error: "Configure o Access Token da aplicacao do vendedor de teste para iniciar uma assinatura de teste." });
     }
     const token = obterAccessTokenMercadoPago();
     if (!token) return res.status(409).json({ code: "SUBSCRIPTION_PAYMENT_UNAVAILABLE", error: "Configure as credenciais do Mercado Pago para contratar o Plano Profissional." });
+    const contaMercadoPago = await consultarContaMercadoPago(token);
+    const { data: cobrancasPendentes, error: cobrancasPendentesError } = await supabaseAdmin.from("cobrancas_assinatura_restaurante").select("dados_provedor").eq("id_assinatura", assinatura.id_assinatura).eq("status", "PENDENTE").order("criado_em", { ascending: false }).limit(20);
+    if (cobrancasPendentesError) throw new Error(cobrancasPendentesError.message);
+    const checkoutDaContaAtual = (cobrancasPendentes ?? []).some((cobranca) =>
+      String(cobranca.dados_provedor?.preapproval_plan_id ?? "") === String(assinatura.mercadopago_preapproval_plan_id ?? "") &&
+      String(cobranca.dados_provedor?.collector_id ?? "") === String(contaMercadoPago?.id ?? "")
+    );
+    if (assinatura.codigo_plano === plano.codigo && assinatura.status === "PENDENTE_PAGAMENTO" && assinatura.checkout_url && assinatura.mercadopago_preapproval_plan_id && checkoutDaContaAtual) {
+      return res.json({ checkout_url: assinatura.checkout_url, reutilizado: true });
+    }
+    const backUrl = `${frontendOrigin()}/restaurante/plano?assinatura=retorno`;
+    let planoMPId = assinatura.mercadopago_preapproval_plan_id;
+    let checkoutUrl = assinatura.checkout_url;
+    if (!planoMPId || !checkoutUrl || !checkoutDaContaAtual || assinatura.codigo_plano !== plano.codigo || assinatura.status !== "PENDENTE_PAGAMENTO") {
+      const planoMP = await criarPlanoAssinaturaMercadoPago({ token, reason: `Appono Plano Profissional - restaurante ${restaurante.id_restaurante}`, amount: plano.mensalidade, backUrl });
+      planoMPId = String(planoMP?.id ?? "");
+      checkoutUrl = planoMP?.init_point ?? planoMP?.sandbox_init_point;
+      if (!planoMPId || !checkoutUrl || String(planoMP?.collector_id ?? "") !== String(contaMercadoPago?.id ?? "")) throw new Error("Nao foi possivel confirmar o vendedor associado ao plano no Mercado Pago.");
+    }
     const referencia = `assinatura:${assinatura.id_assinatura}:${crypto.randomUUID()}`;
-    const resposta = await criarAssinaturaMercadoPago({
-      token, referencia, email: emailPagadorAssinatura(restaurante), planoId: process.env.APPONO_MERCADO_PAGO_PROFESSIONAL_PLAN_ID,
-      reason: "Appono Plano Profissional", amount: plano.mensalidade,
-      backUrl: `${frontendOrigin()}/restaurante/plano?assinatura=retorno`, notificationUrl: backendPublicUrl() ? `${backendPublicUrl()}/api/planos/webhook/mercado-pago` : null,
-    });
-    const checkoutUrl = resposta?.init_point ?? resposta?.sandbox_init_point;
-    if (!resposta?.id || !checkoutUrl) throw new Error("O Mercado Pago não retornou o checkout da assinatura.");
-    const { error: assinaturaError } = await supabaseAdmin.from("assinaturas_restaurante").update({ codigo_plano: plano.codigo, status: "PENDENTE_PAGAMENTO", mensalidade: plano.mensalidade, percentual_comissao: plano.percentual_comissao, mercadopago_preapproval_id: String(resposta.id), checkout_url: checkoutUrl }).eq("id_assinatura", assinatura.id_assinatura);
+    const { error: assinaturaError } = await supabaseAdmin.from("assinaturas_restaurante").update({ codigo_plano: plano.codigo, status: "PENDENTE_PAGAMENTO", mensalidade: plano.mensalidade, percentual_comissao: plano.percentual_comissao, mercadopago_preapproval_id: null, mercadopago_preapproval_plan_id: planoMPId, checkout_url: checkoutUrl }).eq("id_assinatura", assinatura.id_assinatura);
     if (assinaturaError) throw new Error(assinaturaError.message);
     await supabaseAdmin.from("historico_assinaturas_restaurante").insert({ id_assinatura: assinatura.id_assinatura, codigo_plano_anterior: assinatura.codigo_plano, codigo_plano_novo: plano.codigo, status_anterior: assinatura.status, status_novo: "PENDENTE_PAGAMENTO", motivo: "Contratação do Plano Profissional iniciada" });
-    const { error: cobrancaError } = await supabaseAdmin.from("cobrancas_assinatura_restaurante").insert({ id_assinatura: assinatura.id_assinatura, referencia_externa: referencia, valor: plano.mensalidade, status: "PENDENTE", dados_provedor: { preapproval_id: String(resposta.id) } });
+    const { error: cobrancaError } = await supabaseAdmin.from("cobrancas_assinatura_restaurante").insert({ id_assinatura: assinatura.id_assinatura, referencia_externa: referencia, valor: plano.mensalidade, status: "PENDENTE", dados_provedor: { preapproval_plan_id: planoMPId, collector_id: String(contaMercadoPago.id) } });
     if (cobrancaError) throw new Error(cobrancaError.message);
     return res.status(201).json({ checkout_url: checkoutUrl });
   } catch (error) { return res.status(error.statusCode ?? 400).json({ code: error.code, error: error.message ?? "Não foi possível iniciar a contratação." }); }
@@ -195,11 +195,29 @@ plansRouter.get("/campanhas/:id/metricas", async (req, res) => {
 });
 
 plansRouter.post("/webhook/mercado-pago", async (req, res) => {
+  const topic = String(req.body?.type ?? req.body?.topic ?? req.query?.type ?? req.query?.topic ?? "").toLowerCase();
+  if (topic && !["subscription_preapproval", "preapproval"].includes(topic)) return res.json({ status: "ignored" });
   const preapprovalId = String(req.body?.data?.id ?? req.query?.id ?? "");
-  if (!preapprovalId) return res.status(400).json({ error: "Evento de assinatura inválido." });
-  if (!validarAssinaturaWebhookMercadoPago(req, preapprovalId) && assinaturaObrigatoria()) return res.status(401).json({ error: "Assinatura do webhook inválida." });
-  try { const assinaturaMP = await consultarAssinaturaMercadoPago(preapprovalId); if (!assinaturaMP) return res.status(202).json({ status: "ignored" }); const { data: assinatura, error } = await supabaseAdmin.from("assinaturas_restaurante").select("*").eq("mercadopago_preapproval_id", preapprovalId).maybeSingle(); if (error) throw new Error(error.message); if (!assinatura) return res.status(202).json({ status: "ignored" }); let status = statusAssinaturaMercadoPago(assinaturaMP.status); if (assinatura.cancelar_no_fim_do_periodo && assinatura.periodo_fim_em && new Date(assinatura.periodo_fim_em) > new Date()) status = "ATIVA"; const periodoInicio = assinatura.periodo_inicio_em ?? assinaturaMP.date_created ?? new Date().toISOString(); const periodoFim = assinatura.periodo_fim_em ?? new Date(new Date(periodoInicio).setMonth(new Date(periodoInicio).getMonth() + 1)).toISOString(); const { error: updateError } = await supabaseAdmin.from("assinaturas_restaurante").update({ status, periodo_inicio_em: periodoInicio, periodo_fim_em: periodoFim }).eq("id_assinatura", assinatura.id_assinatura); if (updateError) throw new Error(updateError.message); if (status === "ATIVA") { await supabaseAdmin.from("restaurantes").update({ ativo: true }).eq("id_restaurante", assinatura.id_restaurante); await supabaseAdmin.from("cobrancas_assinatura_restaurante").update({ status: "APROVADA", pago_em: new Date().toISOString(), dados_provedor: assinaturaMP }).eq("id_assinatura", assinatura.id_assinatura).eq("status", "PENDENTE"); } return res.json({ status: "ok" });
-  } catch (error) { return res.status(500).json({ error: "Não foi possível processar a assinatura." }); }
+  if (!preapprovalId) return res.status(400).json({ error: "Evento de assinatura invalido." });
+  if (!validarAssinaturaWebhookMercadoPago(req, preapprovalId) && assinaturaObrigatoria()) return res.status(401).json({ error: "Assinatura do webhook invalida." });
+  try {
+    const assinaturaMP = await consultarAssinaturaMercadoPago(preapprovalId);
+    if (!assinaturaMP?.preapproval_plan_id) return res.status(202).json({ status: "ignored" });
+    const { data: assinatura, error } = await supabaseAdmin.from("assinaturas_restaurante").select("*").eq("mercadopago_preapproval_plan_id", String(assinaturaMP.preapproval_plan_id)).maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!assinatura) return res.status(202).json({ status: "ignored" });
+    let status = statusAssinaturaMercadoPago(assinaturaMP.status);
+    if (assinatura.cancelar_no_fim_do_periodo && assinatura.periodo_fim_em && new Date(assinatura.periodo_fim_em) > new Date()) status = "ATIVA";
+    const periodoInicio = assinatura.periodo_inicio_em ?? assinaturaMP.date_created ?? new Date().toISOString();
+    const periodoFim = assinatura.periodo_fim_em ?? new Date(new Date(periodoInicio).setMonth(new Date(periodoInicio).getMonth() + 1)).toISOString();
+    const { error: updateError } = await supabaseAdmin.from("assinaturas_restaurante").update({ status, mercadopago_preapproval_id: preapprovalId, periodo_inicio_em: periodoInicio, periodo_fim_em: periodoFim }).eq("id_assinatura", assinatura.id_assinatura);
+    if (updateError) throw new Error(updateError.message);
+    if (status === "ATIVA") {
+      await supabaseAdmin.from("restaurantes").update({ ativo: true }).eq("id_restaurante", assinatura.id_restaurante);
+      await supabaseAdmin.from("cobrancas_assinatura_restaurante").update({ status: "APROVADA", pago_em: new Date().toISOString(), dados_provedor: assinaturaMP }).eq("id_assinatura", assinatura.id_assinatura).eq("status", "PENDENTE");
+    }
+    return res.json({ status: "ok" });
+  } catch (error) { return res.status(500).json({ error: "Nao foi possivel processar a assinatura." }); }
 });
 
 module.exports = { plansRouter };

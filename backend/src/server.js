@@ -40,9 +40,16 @@ app.set("trust proxy", confiarNoProxy);
 const FRONTEND_ORIGIN =
   process.env.FRONTEND_ORIGIN ?? "http://localhost:3000";
 
-const allowedOrigins = FRONTEND_ORIGIN.split(",")
+const allowedOrigins = [
+  ...FRONTEND_ORIGIN.split(","),
+  process.env.FRONTEND_PUBLIC_URL ?? "",
+]
   .map((origin) => origin.trim())
-  .filter(Boolean);
+  .filter(Boolean)
+  .map((origin) => {
+    try { return new URL(origin).origin; }
+    catch { return origin.replace(/\/$/, ""); }
+  });
 
 const allowVercelPreviews = String(process.env.CORS_ALLOW_VERCEL_PREVIEWS ?? "false").trim().toLowerCase() === "true";
 const vercelPreviewProjectHint = String(process.env.CORS_VERCEL_PROJECT_HINT ?? "appono").toLowerCase();
