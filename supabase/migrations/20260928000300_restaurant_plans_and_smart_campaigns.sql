@@ -177,6 +177,7 @@ alter table public.eventos_campanha_inteligente enable row level security;
 alter table public.consentimentos_ofertas_cliente enable row level security;
 revoke all on public.planos_restaurante,public.assinaturas_restaurante,public.historico_assinaturas_restaurante,public.cobrancas_assinatura_restaurante,public.campanhas_inteligentes_restaurante,public.campanhas_inteligentes_produtos,public.resgates_campanha_inteligente,public.eventos_campanha_inteligente,public.consentimentos_ofertas_cliente from anon,authenticated;
 grant select on public.consentimentos_ofertas_cliente to authenticated;
+drop policy if exists "Cliente le consentimento de ofertas proprio" on public.consentimentos_ofertas_cliente;
 create policy "Cliente le consentimento de ofertas proprio" on public.consentimentos_ofertas_cliente for select to authenticated using (id_cliente in (select id_cliente from public.clientes where id_auth = (select auth.uid())));
 
 notify pgrst, 'reload schema';
