@@ -47,7 +47,7 @@ async function listar(query = {}, produtos = [prato], erroProdutos = null) {
 test("lista pratos com foto, preço numérico e restaurante correto, sem alterar chamadas existentes", async () => {
     const comPratos = await listar({ incluir_pratos: "1" });
     assert.equal(comPratos.statusCode, 200);
-    assert.deepEqual(comPratos.body[0].pratos_publicados, [{ id_produto: 11, nome: "Lasanha", preco: 39.9, imagem_url: prato.imagem_url }]);
+    assert.deepEqual(comPratos.body[0].pratos_publicados, [{ id_produto: 11, nome: "Lasanha", categoria: "Massas", preco: 39.9, imagem_url: prato.imagem_url }]);
     const semPratos = await listar();
     assert.equal(Object.hasOwn(semPratos.body[0], "pratos_publicados"), false);
 });

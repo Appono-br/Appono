@@ -228,6 +228,7 @@ async function obterDadosCardapioBusca(termo, incluirPratos = false) {
                 adicionarUnico(resumoAtual.pratos_publicados, {
                     id_produto: produto.id_produto,
                     nome: produto.nome,
+                    categoria: categoria.nome,
                     preco,
                     imagem_url: produto.imagem_url,
                     ordem_exibicao: produto.ordem_exibicao,

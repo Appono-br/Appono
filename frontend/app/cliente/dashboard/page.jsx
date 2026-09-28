@@ -500,6 +500,32 @@ export default function DashboardPage() {
         </div>
       </section>
 
+      {highlightedRestaurants.length ? <section className="mx-auto max-w-7xl px-5 py-10">
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">{ui("Restaurantes")}</p>
+          <h2 className="mt-2 text-3xl font-semibold text-app-cafe-profundo sm:text-4xl">{ui("Mais Curtidos")}</h2>
+        </div>
+        <div className="mt-6 grid gap-3 lg:grid-cols-3">
+          {highlightedRestaurants.map((restaurant, index) => <article key={restaurant.id} className="group relative min-w-0 rounded-[8px] border border-app-baunilha-dourada bg-white p-2.5 shadow-sm transition hover:-translate-y-0.5 hover:border-app-caramelo-torrado/55 hover:shadow-md">
+            <Link href={`/cliente/restaurantes/${restaurant.id}`} className="flex min-w-0 gap-3" aria-label={`Ver ${restaurant.name}`}>
+              <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-[8px] bg-white ring-1 ring-app-baunilha-dourada/45">
+                {restaurant.imageUrl ? <Image src={restaurant.imageUrl} alt={restaurant.name} fill sizes="96px" className="object-contain p-2 transition duration-300 group-hover:scale-105"/> : <div className="flex h-full items-center justify-center bg-app-baunilha-dourada/45 px-2 text-center text-xs font-medium leading-4 text-app-mocha">{ui("Imagem em breve")}</div>}
+              </div>
+              <div className="min-w-0 flex-1 py-0.5 pr-7">
+                <div className="flex items-center gap-2"><span className="rounded-full bg-app-cafe-profundo px-2 py-0.5 text-[10px] font-bold text-app-creme-leve">#{index + 1}</span><span className="truncate text-[11px] font-bold uppercase tracking-[0.12em] text-app-caramelo-torrado">{ui("Mais curtido")}</span></div>
+                <h3 className="mt-2 truncate text-[15px] font-semibold leading-5 text-app-cafe-profundo antialiased">{restaurant.name}</h3>
+                <p className="mt-0.5 truncate text-xs font-medium leading-4 text-app-mocha antialiased">{restaurant.rating != null ? <>{ui(restaurant.rating.toFixed(1))}<span className="mx-1.5 text-app-cinza">|</span></> : null}{restaurant.favoriteCount}{ui(" favorito(s)")}</p>
+                <p className="mt-1 truncate text-xs leading-4 text-app-mocha antialiased">{restaurant.neighborhood ?? ui("Endereço em atualização")}</p>
+                <span className="mt-2 inline-flex rounded-[5px] bg-white px-2 py-0.5 text-xs font-semibold leading-4 text-app-caramelo-torrado antialiased">{ui("Reserva e pedido antecipado")}</span>
+              </div>
+            </Link>
+            <button type="button" disabled={updatingFavorite === restaurant.id} onClick={() => alternarFavorito(restaurant.id)} className={`absolute right-2 top-2 z-10 flex h-8 w-8 items-center justify-center rounded-full p-1.5 transition disabled:opacity-50 ${restaurant.isFavorite ? "bg-white text-app-vermelho-erro" : "text-app-mocha hover:bg-app-chantilly hover:text-app-vermelho-erro"}`} aria-label={`${restaurant.isFavorite ? "Remover" : "Adicionar"} ${restaurant.name} dos favoritos`} aria-pressed={restaurant.isFavorite}>
+              <Icon type="heart" filled={restaurant.isFavorite} className="h-full w-full"/>
+            </button>
+          </article>)}
+        </div>
+      </section> : null}
+
       <section className="mx-auto max-w-7xl px-5 py-10">
         {message ? (<p role="status" className="mb-4 rounded-[8px] bg-white p-3 text-sm font-semibold text-app-caramelo-torrado">
             {ui(message)}
@@ -527,62 +553,8 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {!query.trim() ? <VitrinePratos restaurantes={restaurants} carregando={carregandoPratos} limiteInicial={8} mensagemVazia="Nenhum prato disponível no momento." /> : null}
+        <VitrinePratos restaurantes={restaurants} carregando={carregandoPratos} limiteInicial={8} mensagemVazia="Nenhum prato disponível no momento." horizontal agrupada limitePorLinha={8} maxCategorias={3} maxRestaurantes={3} />
 
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-[10px] font-bold uppercase text-app-caramelo-torrado">{ui("Os favoritos da comunidade")}</p>
-            <h1 className="mt-2 text-3xl font-semibold text-app-cafe-profundo sm:text-4xl">{ui("Mais Curtidos")}</h1>
-          </div>
-          <Link href="/cliente/favoritos" className="w-fit text-[10px] font-bold uppercase text-app-caramelo-torrado underline underline-offset-4">{ui("Ver todos")}</Link>
-        </div>
-
-        <div className="mt-6">
-          {highlightedRestaurants.length ? (
-            <div className="grid gap-3 lg:grid-cols-3">
-              {highlightedRestaurants.map((restaurant, index) => (
-                <article key={restaurant.id} className="group relative min-w-0 rounded-[8px] border border-app-baunilha-dourada bg-white p-2.5 shadow-sm transition hover:-translate-y-0.5 hover:border-app-caramelo-torrado/55 hover:shadow-md">
-                  <Link href={`/cliente/restaurantes/${restaurant.id}`} className="flex min-w-0 gap-3" aria-label={`Ver ${restaurant.name}`}>
-                    <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-[8px] bg-white ring-1 ring-app-baunilha-dourada/45">
-                      {restaurant.imageUrl ? (
-                        <Image src={restaurant.imageUrl} alt={restaurant.name} fill sizes="96px" className="object-contain p-2 transition duration-300 group-hover:scale-105"/>
-                      ) : (
-                        <div className="flex h-full items-center justify-center bg-app-baunilha-dourada/45 px-2 text-center text-xs font-medium leading-4 text-app-mocha">{ui("Imagem em breve")}</div>
-                      )}
-                    </div>
-
-                    <div className="min-w-0 flex-1 py-0.5 pr-7">
-                      <div className="flex items-center gap-2">
-                        <span className="rounded-full bg-app-cafe-profundo px-2 py-0.5 text-[10px] font-bold text-app-creme-leve">
-                          #{index + 1}
-                        </span>
-                        <span className="truncate text-[11px] font-bold uppercase tracking-[0.12em] text-app-caramelo-torrado">{ui("Mais curtido")}</span>
-                      </div>
-                      <h3 className="mt-2 truncate text-[15px] font-semibold leading-5 text-app-cafe-profundo antialiased">
-                        {restaurant.name}
-                      </h3>
-                      <p className="mt-0.5 truncate text-xs font-medium leading-4 text-app-mocha antialiased">
-                        {restaurant.rating != null ? <>{ui(restaurant.rating.toFixed(1))}<span className="mx-1.5 text-app-cinza">|</span></> : null}
-                        {restaurant.favoriteCount}{ui(" favorito(s)")}</p>
-                      <p className="mt-1 truncate text-xs leading-4 text-app-mocha antialiased">
-                        {restaurant.neighborhood ?? ui("Endereço em atualização")}
-                      </p>
-                      <span className="mt-2 inline-flex rounded-[5px] bg-white px-2 py-0.5 text-xs font-semibold leading-4 text-app-caramelo-torrado antialiased">{ui("Reserva e pedido antecipado")}</span>
-                    </div>
-                  </Link>
-
-                  <button type="button" disabled={updatingFavorite === restaurant.id} onClick={() => alternarFavorito(restaurant.id)} className={`absolute right-2 top-2 z-10 flex h-8 w-8 items-center justify-center rounded-full p-1.5 transition disabled:opacity-50 ${restaurant.isFavorite
-                    ? "bg-white text-app-vermelho-erro"
-                    : "text-app-mocha hover:bg-app-chantilly hover:text-app-vermelho-erro"}`} aria-label={`${restaurant.isFavorite ? "Remover" : "Adicionar"} ${restaurant.name} dos favoritos`} aria-pressed={restaurant.isFavorite}>
-                    <Icon type="heart" filled={restaurant.isFavorite} className="h-full w-full"/>
-                  </button>
-                </article>
-              ))}
-            </div>
-          ) : (
-            <EmptyState title={ui("Nenhum restaurante curtido ainda")} description={ui("Os restaurantes aparecerão aqui quando receberem favoritos dos clientes.")}/>
-          )}
-        </div>
       </section>
 
       <section className="mx-auto max-w-7xl px-5 py-8">
