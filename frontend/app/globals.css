@@ -1130,11 +1130,11 @@ html {
 :where(html:not([data-tema=escuro])) .home-publica .bg-white\/95,
 :where(html:not([data-tema=escuro])) .home-publica .bg-white\/90,
 :where(html:not([data-tema=escuro])) .home-publica .bg-white\/80 {
-  background-color: #ffffff !important;
+  background-color: var(--app-chantilly) !important;
 }
 
 :where(html:not([data-tema=escuro])) .home-publica header.bg-white\/95 {
-  background-color: rgb(255 255 255 / 0.95) !important;
+  background-color: color-mix(in srgb, var(--app-chantilly) 95%, transparent) !important;
 }
 
 :where(html:not([data-tema=escuro])) .home-publica .hover\:bg-white\/10:hover {
@@ -1168,5 +1168,16 @@ html {
 :where(html:not([data-tema=escuro])) .hover\:bg-app-creme-suave:hover,
 :where(html:not([data-tema=escuro])) .hover\:bg-app-creme-leve:hover {
   background-color: var(--app-chantilly-hover) !important;
+}
+
+/* Fundo contínuo da aplicação no tema claro. */
+:where(html:not([data-tema=escuro])) body,
+:where(html:not([data-tema=escuro])) .home-publica,
+:where(html:not([data-tema=escuro])) .home-publica.bg-white,
+:where(html:not([data-tema=escuro])) .auth-publica,
+:where(html:not([data-tema=escuro])) .auth-publica.bg-white,
+:where(html:not([data-tema=escuro])) .area-autenticada,
+:where(html:not([data-tema=escuro])) .area-autenticada main {
+  background-color: var(--app-chantilly) !important;
 }
 
