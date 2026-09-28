@@ -1,6 +1,7 @@
 "use strict";
 
 const { MercadoPagoConfig, Preference, Payment } = require("mercadopago");
+const crypto = require("node:crypto");
 
 const MERCADO_PAGO_API = "https://api.mercadopago.com";
 
@@ -143,6 +144,41 @@ async function consultarPagamentoPorPreferênciaMercadoPago(preferenceId, access
     const ordem = resultado?.elements?.[0];
     return pagamentoDaOrdemMercadoPago(ordem);
 }
+async function requisitarAssinaturaMercadoPago(path, { method = "GET", token = obterAccessTokenMercadoPago(), body } = {}) {
+    const accessToken = String(token ?? "").trim();
+    if (!accessToken) throw new Error("Credenciais do Mercado Pago não estão configuradas.");
+    const resposta = await fetch(`${MERCADO_PAGO_API}${path}`, {
+        method,
+        headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json", ...(body ? { "X-Idempotency-Key": `appono-${crypto.randomUUID()}` } : {}) },
+        body: body ? JSON.stringify(body) : undefined,
+    });
+    const dados = await resposta.json().catch(() => null);
+    if (!resposta.ok) throw new Error(dados?.message ?? "Mercado Pago não conseguiu processar a assinatura.");
+    return dados;
+}
+
+async function criarAssinaturaMercadoPago({ token, referencia, email, planoId, reason, amount, backUrl, notificationUrl }) {
+    const body = {
+        reason,
+        external_reference: referencia,
+        payer_email: email,
+        back_url: backUrl,
+        status: "pending",
+        ...(planoId ? { preapproval_plan_id: planoId } : { auto_recurring: { frequency: 1, frequency_type: "months", transaction_amount: Number(amount), currency_id: "BRL" } }),
+        ...(notificationUrl ? { notification_url: notificationUrl } : {}),
+    };
+    return requisitarAssinaturaMercadoPago("/preapproval", { method: "POST", token, body });
+}
+
+async function consultarAssinaturaMercadoPago(id, token = obterAccessTokenMercadoPago()) {
+    if (!id) return null;
+    return requisitarAssinaturaMercadoPago(`/preapproval/${encodeURIComponent(id)}`, { token });
+}
+
+async function atualizarAssinaturaMercadoPago(id, body, token = obterAccessTokenMercadoPago()) {
+    return requisitarAssinaturaMercadoPago(`/preapproval/${encodeURIComponent(id)}`, { method: "PUT", token, body });
+}
+
 async function estornarPagamentoMercadoPago(paymentId, accessToken = obterAccessTokenMercadoPago(), amount = null) {
     const token = accessToken?.trim?.() ?? "";
     if (!token || !paymentId) throw new Error("Pagamento sem credenciais para estorno.");
@@ -180,4 +216,7 @@ module.exports = {
     estornarPagamentoMercadoPago,
     mapearStatusMercadoPago,
     obterAccessTokenMercadoPago,
+    criarAssinaturaMercadoPago,
+    consultarAssinaturaMercadoPago,
+    atualizarAssinaturaMercadoPago,
 };

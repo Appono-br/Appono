@@ -9,6 +9,7 @@ const comum_1 = require("../services/validacoes/comum");
 const cpf_1 = require("../services/validacoes/cpf");
 const auth_1 = require("../middleware/auth");
 const geolocalizacao_1 = require("../services/geolocalizacao");
+const planos_restaurante_1 = require("../services/planos-restaurante");
 exports.authRouter = (0, express_1.Router)();
 const frontendOrigin = (process.env.FRONTEND_ORIGIN ?? "http://localhost:3000").replace(/\/$/, "");
 function verificarCamposObrigatorios(body, fields) {
@@ -136,6 +137,10 @@ async function garantirPerfilRestauranteDoMetadata(user, profile) {
         throw new Error(restauranteExistenteError.message);
     }
     if (restauranteExistente) {
+        await (0, planos_restaurante_1.garantirAssinaturaInicial)(restauranteExistente.id_restaurante, profile.plano);
+        if (profile.plano === "PROFISSIONAL") {
+            await supabase_1.supabaseAdmin.from("restaurantes").update({ ativo: false }).eq("id_restaurante", restauranteExistente.id_restaurante);
+        }
         return { tipo: "restaurante", perfil: restauranteExistente };
     }
     const quantidadeMesas = Math.max(Number.parseInt(String(profile.quantidade_mesas), 10) || 0, 0);
@@ -151,6 +156,7 @@ async function garantirPerfilRestauranteDoMetadata(user, profile) {
         cep: (0, comum_1.somenteNumeros)(profile.cep),
         endereco: profile.endereco,
         horario_funcionamento: profile.horario_funcionamento ?? "A definir",
+        ativo: profile.plano !== "PROFISSIONAL",
     })
         .select("*")
         .single();
@@ -170,6 +176,7 @@ async function garantirPerfilRestauranteDoMetadata(user, profile) {
             throw new Error(mesasError.message);
         }
     }
+    await (0, planos_restaurante_1.garantirAssinaturaInicial)(restaurante.id_restaurante, profile.plano);
     return { tipo: "restaurante", perfil: restaurante };
 }
 async function garantirPerfilDoMetadata(user) {
@@ -351,6 +358,7 @@ async function criarPerfilRestauranteGoogle(res, body) {
         cep: validatedCep.cep,
         endereco: montarEndereco(validatedAddressBody.address, validatedAddressBody.number, validatedAddressBody.complement, validatedAddressBody.neighborhood, validatedAddressBody.city, validatedAddressBody.uf),
         horario_funcionamento: "A definir",
+        ativo: (0, planos_restaurante_1.planoValido)(body.plano)?.codigo !== "PROFISSIONAL",
     })
         .select("*")
         .single();
@@ -371,6 +379,7 @@ async function criarPerfilRestauranteGoogle(res, body) {
             throw new Error(mesasError.message);
         }
     }
+    await (0, planos_restaurante_1.garantirAssinaturaInicial)(restaurante.id_restaurante, body.plano);
     return atualizarGeolocalizacaoRestaurantePerfil({ tipo: "restaurante", perfil: restaurante });
 }
 async function confirmarEEntrarComUsuarioCriado(userId, email, password) {
@@ -685,6 +694,7 @@ exports.authRouter.post("/register/restaurant", async (req, res) => {
                     endereco: montarEndereco(validatedAddressBody.address, validatedAddressBody.number, validatedAddressBody.complement, validatedAddressBody.neighborhood, validatedAddressBody.city, validatedAddressBody.uf),
                     horario_funcionamento: "A definir",
                     quantidade_mesas: body.tables,
+                    plano: (0, planos_restaurante_1.planoValido)(body.plano)?.codigo ?? "INICIAL",
                 },
             },
         },

@@ -17,6 +17,7 @@ const { sincronizarReservasNaoComparecidas } = require("../services/reservas/exp
 const { decifrarTokenMercadoPago } = require("../services/pagamentos/credenciais-restaurante");
 const { assinaturaObrigatoria, validarAssinaturaWebhookMercadoPago } = require("../services/pagamentos/webhook-security");
 const { criarRateLimiter } = require("../middleware/rate-limit");
+const { resolverComissaoDoRestaurante } = require("../services/planos-restaurante");
 
 exports.paymentsRouter = (0, express_1.Router)();
 const limitarWebhookMercadoPago = criarRateLimiter({ janelaMs: 60_000, limite: 120 });
@@ -98,13 +99,15 @@ function arredondarMoeda(valor) {
     return Math.round(Number(valor ?? 0) * 100) / 100;
 }
 
-function calcularResumoFinanceiro(valorTotal, conexaoRestaurante) {
-    const percentualComissao = obterPercentualComissaoAppono();
+async function calcularResumoFinanceiro(valorTotal, conexaoRestaurante, idRestaurante) {
+    const politicaPlano = await resolverComissaoDoRestaurante(idRestaurante);
+    const percentualComissao = politicaPlano.percentual_comissao;
     const { gross: valorPedido, fee: valorComissao, restaurant: valorRestaurante } = calculateSplit(valorTotal, percentualComissao);
     const usaMarketplaceReal = marketplaceRealAtivo() && conexaoRestaurante;
     return {
         tipo_fluxo_pagamento: usaMarketplaceReal ? "MARKETPLACE_RESTAURANTE" : "SIMULADO_APPONO",
         percentual_comissao_app: percentualComissao,
+        codigo_plano_comissao: politicaPlano.codigo_plano,
         valor_comissao_app: valorComissao,
         valor_restaurante: valorRestaurante,
         mercado_pago_restaurante_user_id: usaMarketplaceReal ? conexaoRestaurante?.mercado_pago_user_id ?? null : null,
@@ -237,6 +240,7 @@ async function salvarPagamento(dados) {
         id_transacao_gateway: dados.mercado_pago_payment_id ?? existente?.id_transacao_gateway ?? null,
         checkout_url: dados.checkout_url ?? existente?.checkout_url ?? null,
         tipo_fluxo_pagamento: tipoFluxoPagamento,
+        codigo_plano_comissao: dados.codigo_plano_comissao ?? existente?.codigo_plano_comissao ?? null,
         percentual_comissao_app: dados.percentual_comissao_app ?? existente?.percentual_comissao_app ?? null,
         valor_comissao_app: dados.valor_comissao_app ?? existente?.valor_comissao_app ?? null,
         valor_restaurante: dados.valor_restaurante ?? existente?.valor_restaurante ?? null,
@@ -319,6 +323,9 @@ async function registrarEventoFinanceiro(dados) {
             tipo_evento: dados.tipo_evento,
             descricao: dados.descricao,
             valor: dados.valor ?? null,
+            codigo_plano_comissao: dados.codigo_plano_comissao ?? null,
+            percentual_comissao_app: dados.percentual_comissao_app ?? null,
+            valor_comissao_app: dados.valor_comissao_app ?? null,
         });
     if (error) {
         console.warn("Falha ao registrar evento financeiro:", error.message);
@@ -374,6 +381,7 @@ async function aplicarPagamentoMercadoPago(pagamentoMercadoPago, fallbackReferen
         const resumoFinanceiro = pagamentoExistente
             ? {
                 tipo_fluxo_pagamento: pagamentoExistente.tipo_fluxo_pagamento,
+                codigo_plano_comissao: pagamentoExistente.codigo_plano_comissao,
                 percentual_comissao_app: pagamentoExistente.percentual_comissao_app,
                 valor_comissao_app: pagamentoExistente.valor_comissao_app,
                 valor_restaurante: pagamentoExistente.valor_restaurante,
@@ -401,6 +409,15 @@ async function aplicarPagamentoMercadoPago(pagamentoMercadoPago, fallbackReferen
             mercado_pago_payment_id: pagamentoId,
             ...resumoFinanceiro,
         });
+        await supabase_1.supabaseAdmin
+            .from("pedidos")
+            .update({
+            codigo_plano_comissao: resumoFinanceiro.codigo_plano_comissao,
+            percentual_comissao_app: resumoFinanceiro.percentual_comissao_app,
+            valor_comissao_app: resumoFinanceiro.valor_comissao_app,
+        })
+            .eq("id_pedido", pedido.id_pedido)
+            .is("codigo_plano_comissao", null);
         await registrarEventoFinanceiro({
             id_pagamento: pagamento.id_pagamento,
             id_pedido: pedido.id_pedido,
@@ -411,6 +428,17 @@ async function aplicarPagamentoMercadoPago(pagamentoMercadoPago, fallbackReferen
                 : `Pagamento ${statusPagamentoFinal.toLowerCase()} conciliado pelo Mercado Pago.`,
             valor: valorPago || Number(pedido.valor_total ?? 0),
         });
+        if (statusPagamentoFinal === "APROVADO") {
+            const { data: resgates } = await supabase_1.supabaseAdmin.from("resgates_campanha_inteligente")
+                .select("id_campanha").eq("id_pedido", pedido.id_pedido).eq("status", "RESERVADO");
+            for (const resgate of resgates ?? []) {
+                const { data: existente } = await supabase_1.supabaseAdmin.from("eventos_campanha_inteligente")
+                    .select("id_evento").eq("id_campanha", resgate.id_campanha).eq("id_pedido", pedido.id_pedido).eq("tipo", "PEDIDO_PAGO").maybeSingle();
+                if (!existente) await supabase_1.supabaseAdmin.from("eventos_campanha_inteligente")
+                    .insert({ id_campanha: resgate.id_campanha, tipo: "PEDIDO_PAGO", id_cliente: pedido.id_cliente, id_reserva: pedido.id_reserva, id_pedido: pedido.id_pedido });
+            }
+            await supabase_1.supabaseAdmin.from("resgates_campanha_inteligente").update({ status: "APLICADO" }).eq("id_pedido", pedido.id_pedido).eq("status", "RESERVADO");
+        }
         const pedidoAtualizado = await atualizarPedidoPorPagamento(
             pedido.id_pedido,
             obterStatusPedidoPorPagamento(statusPagamentoFinal),
@@ -590,7 +618,7 @@ exports.paymentsRouter.post("/pedido/:id/preferência", async (req, res) => {
                 error: "Token Mercado Pago não configurado para o modo atual do backend.",
             });
         }
-        const resumoFinanceiro = calcularResumoFinanceiro(pedido.valor_total, conexaoRestaurante);
+        const resumoFinanceiro = await calcularResumoFinanceiro(pedido.valor_total, conexaoRestaurante, pedido.id_restaurante);
         const referencia = `pedido:${pedido.id_pedido}`;
         const pagamentoExistente = await obterPagamentoExistentePorReferencia(referencia);
         const podeReutilizarCheckoutExistente = mercadoPagoProducaoPermitida();
@@ -692,6 +720,9 @@ exports.paymentsRouter.post("/pedido/:id/preferência", async (req, res) => {
             id_pagamento: pagamento.id_pagamento,
             id_pedido: pedido.id_pedido,
             id_reserva: pedido.id_reserva,
+            codigo_plano_comissao: resumoFinanceiro.codigo_plano_comissao,
+            percentual_comissao_app: resumoFinanceiro.percentual_comissao_app,
+            valor_comissao_app: resumoFinanceiro.valor_comissao_app,
             tipo_evento: "PAGAMENTO_CRIADO",
             descricao: "Preferência de pagamento criada no Mercado Pago.",
             valor: Number(pedido.valor_total),

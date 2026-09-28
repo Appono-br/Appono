@@ -25,6 +25,7 @@ const { rotinaRouter } = require("./routes/routine");
 const { agendaRotinaRouter } = require("./routes/routine-calendar");
 const { rotinaInsightsRouter } = require("./routes/routine-insights");
 const { rotinaGroupsRouter } = require("./routes/routine-groups");
+const { plansRouter } = require("./routes/plans");
 const { requestContext } = require("./middleware/observability");
 const { criarRateLimiter } = require("./middleware/rate-limit");
 const crypto = require("node:crypto");
@@ -186,6 +187,7 @@ app.use("/api/rotina/agenda", agendaRotinaRouter);
 app.use("/api/rotina/insights", rotinaInsightsRouter);
 app.use("/api/rotina/grupos", rotinaGroupsRouter);
 app.use("/api/rotina", rotinaRouter);
+app.use("/api/planos", plansRouter);
 
 app.use((error, _req, res, _next) => {
   const mensagem = String(error?.message ?? "");

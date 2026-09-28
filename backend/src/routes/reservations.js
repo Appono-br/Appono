@@ -285,7 +285,16 @@ exports.reservationsRouter.post("/", (0, auth_1.requireRole)("cliente"), async (
         !body.quantidade_pessoas) {
         return res.status(400).json({ error: "Dados da reserva incompletos." });
     }
-    const { data, error } = await supabase.rpc("criar_reserva_com_mesa_disponivel", {
+    const usarCampanha = Number.isInteger(Number(body.id_campanha)) && Number(body.id_campanha) > 0;
+    const { data, error } = await supabase.rpc(usarCampanha ? "criar_reserva_com_campanha" : "criar_reserva_com_mesa_disponivel", usarCampanha ? {
+        restaurante_id: body.id_restaurante,
+        data_escolhida: body.data_reserva,
+        inicio: body.horario_inicio,
+        fim: body.horario_fim,
+        pessoas: body.quantidade_pessoas,
+        observacoes_cliente: body.observacoes ?? null,
+        p_campanha_id: Number(body.id_campanha),
+    } : {
         restaurante_id: body.id_restaurante,
         data_escolhida: body.data_reserva,
         inicio: body.horario_inicio,
@@ -350,7 +359,18 @@ exports.reservationsRouter.post("/com-pedido", async (req, res) => {
     catch (erro) {
         return res.status(400).json({ error: erro instanceof Error ? erro.message : "Itens do pedido inválidos." });
     }
-    const { data, error } = await supabase.rpc("criar_reserva_com_pedido_antecipado", {
+    const usarCampanha = Number.isInteger(Number(body.id_campanha)) && Number(body.id_campanha) > 0;
+    const { data, error } = await supabase.rpc(usarCampanha ? "criar_reserva_com_pedido_antecipado_com_campanha" : "criar_reserva_com_pedido_antecipado", usarCampanha ? {
+        restaurante_id: body.id_restaurante,
+        data_escolhida: body.data_reserva,
+        inicio: body.horario_inicio,
+        fim: body.horario_fim,
+        pessoas: body.quantidade_pessoas,
+        observacoes_reserva: body.observacoes_reserva ?? null,
+        itens: itensNormalizados,
+        observacoes_pedido: body.observacoes_pedido ?? null,
+        p_campanha_id: Number(body.id_campanha),
+    } : {
         restaurante_id: body.id_restaurante,
         data_escolhida: body.data_reserva,
         inicio: body.horario_inicio,

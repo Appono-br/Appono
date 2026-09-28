@@ -12,6 +12,8 @@ const itens = [
     ["Dashboard", "dashboard", "M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z"],
     ["Gestão de cardápio", "cardapio", "M4 3h16v18H4zM8 7h8M8 12h8M8 17h5"],
     ["Desempenho", "desempenho", "M4 20h16M7 16v-5M12 16V4M17 16V8"],
+    ["Campanhas Inteligentes", "campanhas", "M4 7h16M4 12h16M4 17h10M18 5v4M16 7h4"],
+    ["Plano e faturamento", "plano", "M4 5h16v14H4zM8 9h8M8 13h5"],
     ["Relatório financeiro", "financeiro", "M4 5h16v14H4zM4 9h16M8 14h3M15 14h1"],
     ["Reservas", "reservas", "M4 5h16v16H4zM8 3v4M16 3v4M4 10h16M8 14h2M14 14h2"],
     ["Cozinha", "pedidos", "M4 3v7h6V3M7 3v18M17 3v18M17 3c5 3 5 9 0 9"],
