@@ -22,19 +22,30 @@ export default function PlanoRestaurantePage() {
   const [dados, setDados] = useState(null);
   const [mensagem, setMensagem] = useState("Carregando plano e faturamento...");
   const [carregando, setCarregando] = useState(false);
-  const carregar = () => apiRequest("/planos/assinatura", { forceRefresh: true }).then((resposta) => { setDados(resposta); setMensagem(""); return resposta; }).catch((error) => { setMensagem(error.message); return null; });
+  const carregar = () => apiRequest("/planos/assinatura", { forceRefresh: true }).then((resposta) => { setDados(resposta); setMensagem(resposta.sincronizacao_pendente ? "Nao foi possivel confirmar o pagamento agora. Tentaremos novamente automaticamente." : ""); return resposta; }).catch((error) => { setMensagem(error.message); return null; });
   useEffect(() => {
-    carregar();
-    if (typeof window === "undefined" || new URLSearchParams(window.location.search).get("assinatura") !== "retorno") return;
-    let tentativas = 0;
+    let encerrado = false;
+    let emAndamento = false;
     let timer;
     const verificarPagamento = async () => {
-      const resposta = await carregar();
-      tentativas += 1;
-      if (resposta?.assinatura?.status !== "ATIVA" && tentativas < 12) timer = setTimeout(verificarPagamento, 3000);
+      if (encerrado || emAndamento) return;
+      clearTimeout(timer);
+      emAndamento = true;
+      let resposta;
+      try {
+        if (document.visibilityState === "visible") resposta = await carregar();
+      } finally {
+        emAndamento = false;
+        if (!encerrado) timer = setTimeout(verificarPagamento, resposta?.assinatura?.status === "PENDENTE_PAGAMENTO" ? 5000 : 30000);
+      }
     };
-    timer = setTimeout(verificarPagamento, 2000);
-    return () => clearTimeout(timer);
+    verificarPagamento();
+    window.addEventListener("focus", verificarPagamento);
+    return () => {
+      encerrado = true;
+      clearTimeout(timer);
+      window.removeEventListener("focus", verificarPagamento);
+    };
   }, []);
   async function contratar() {
     setCarregando(true); setMensagem("");

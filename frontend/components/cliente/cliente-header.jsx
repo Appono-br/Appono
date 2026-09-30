@@ -8,6 +8,7 @@ import { useInterface } from "@/lib/use-interface";
 import { ItemHeaderNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 
 const itens = [
+    ["Ofertas", "/cliente/ofertas"],
     ["Início", "/cliente/dashboard"],
     ["Appono Rotina", "/cliente/rotina"],
     ["Detalhes do pedido", "/cliente/detalhes-pedido"],

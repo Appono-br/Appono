@@ -208,6 +208,21 @@ async function consultarAssinaturaMercadoPago(id, token = obterAccessTokenMercad
     return requisitarAssinaturaMercadoPago(`/preapproval/${encodeURIComponent(id)}`, { token });
 }
 
+async function consultarFaturaAssinaturaMercadoPago(id) {
+    return requisitarAssinaturaMercadoPago(`/authorized_payments/${encodeURIComponent(id)}`);
+}
+
+async function buscarFaturasAssinaturaMercadoPago(id) {
+    const results = [];
+    for (let offset = 0; ;) {
+        const query = new URLSearchParams({ preapproval_id: String(id), offset: String(offset) });
+        const page = await requisitarAssinaturaMercadoPago(`/authorized_payments/search?${query}`);
+        results.push(...(page.results ?? []));
+        if (!page.results?.length || results.length >= Number(page.paging?.total ?? results.length)) return results;
+        offset += page.results.length;
+    }
+}
+
 async function atualizarAssinaturaMercadoPago(id, body, token = obterAccessTokenMercadoPago()) {
     return requisitarAssinaturaMercadoPago(`/preapproval/${encodeURIComponent(id)}`, { method: "PUT", token, body });
 }
@@ -239,6 +254,8 @@ async function estornarPagamentoMercadoPago(paymentId, accessToken = obterAccess
 }
 
 module.exports = {
+    consultarFaturaAssinaturaMercadoPago,
+    buscarFaturasAssinaturaMercadoPago,
     consultarPagamentoMercadoPago,
     consultarPagamentoPorOrdemMercadoPago,
     consultarPagamentoPorPreferÃªnciaMercadoPago,

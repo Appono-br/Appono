@@ -1,13 +1,15 @@
-"use client";
-
+﻿"use client";
+import {useEffect,useState} from "react";
+import {useParams} from "next/navigation";
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
-import { apiRequest } from "@/lib/api";
-
-export default function MetricasCampanhaPage() {
-  const [metricas, setMetricas] = useState(null); const [erro, setErro] = useState("");
-  const { id } = useParams();
-  useEffect(() => { if (id) apiRequest(`/planos/campanhas/${id}/metricas`, { forceRefresh: true }).then(setMetricas).catch((error) => setErro(error.message)); }, [id]);
-  return <main className="min-h-screen bg-white px-5 py-10 text-app-cafe-profundo"><section className="mx-auto max-w-4xl"><Link href="/restaurante/campanhas" className="text-sm font-bold text-app-caramelo-torrado">← Voltar para campanhas</Link><h1 className="mt-5 text-4xl font-semibold">Resultado da campanha</h1>{erro ? <p className="mt-6 rounded-lg bg-app-creme-leve p-4 text-sm">{erro}</p> : null}{metricas ? <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{[["Visualizações",metricas.visualizacoes],["Cliques",metricas.cliques],["Reservas iniciadas",metricas.reservas_iniciadas],["Resgates",metricas.resgates],["Pedidos pagos",metricas.pedidos_pagos],["Faturamento atribuído",new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL"}).format(metricas.faturamento_bruto)],["Usos",`${metricas.usos}/${metricas.limite_usos}`]].map(([titulo,valor]) => <article key={titulo} className="rounded-xl border border-app-baunilha-dourada p-5"><p className="text-sm text-app-cinza">{titulo}</p><strong className="mt-2 block text-2xl">{valor}</strong></article>)}</div> : !erro ? <p className="mt-6 text-sm text-app-cinza">Carregando métricas...</p> : null}</section></main>;
+import {apiRequest} from "@/lib/api";
+export default function Campanha(){
+ const {id}=useParams();const [m,setM]=useState(null),[resgates,setR]=useState([]),[erro,setErro]=useState(""),[inicio,setInicio]=useState(""),[fim,setFim]=useState(""),[busy,setBusy]=useState(false);
+ async function carregar(){try{const q=new URLSearchParams();if(inicio)q.set("inicio",inicio+"T00:00:00-03:00");if(fim)q.set("fim",fim+"T23:59:59-03:00");setM(await apiRequest("/campanhas/"+id+"/metricas?"+q,{forceRefresh:true}));setR((await apiRequest("/campanhas/"+id+"/resgates",{forceRefresh:true})).resgates);}catch(e){setErro(e.message);}}
+ useEffect(()=>{if(id)carregar();},[id]);
+ async function entregar(r){setBusy(true);try{await apiRequest("/campanhas/resgates/"+r.id_resgate+"/entregar",{method:"POST"});await carregar();}catch(e){setErro(e.message);}finally{setBusy(false);}}
+ return <main className="mx-auto max-w-5xl p-6"><Link href="/restaurante/campanhas">Voltar às campanhas</Link><h1 className="my-5 text-3xl">Resultados e entregas</h1>{erro&&<p role="alert">{erro}</p>}
+ <form className="flex flex-wrap gap-3" onSubmit={e=>{e.preventDefault();carregar();}}><label>De<input type="date" value={inicio} onChange={e=>setInicio(e.target.value)}/></label><label>Até<input type="date" value={fim} onChange={e=>setFim(e.target.value)}/></label><button>Filtrar resultados</button></form>
+ {m&&<><div className="my-6 grid gap-3 sm:grid-cols-3">{[["Visualizações",m.visualizacoes],["Cliques",m.cliques],["Reservas iniciadas",m.reservas_iniciadas],["Resgates",m.resgates],["Pedidos pagos",m.pedidos_pagos],["Receita atribuída após estornos","R$ "+m.faturamento_bruto.toFixed(2)],["Descontos concedidos","R$ "+m.valor_beneficios.toFixed(2)],["Cliques / visualizações",(m.taxa_clique*100).toFixed(1)+"%"],["Pedidos pagos / reservas iniciadas",(m.taxa_conversao*100).toFixed(1)+"%"]].map(([t,v])=><article className="rounded-xl border p-4" key={t}><h2>{t}</h2><strong>{v}</strong></article>)}</div><p>Interações únicas por cliente, campanha e dia. Receita atribuída não representa lucro ou crescimento comprovado. O período considera a data do resgate, com o estado financeiro atual.</p>{m.historico_limitado&&<p>Há eventos antigos sem deduplicação; comparações históricas têm limitações.</p>}</>}
+ <h2 className="my-5 text-2xl">Benefícios reservados</h2>{resgates.map(r=><article key={r.id_resgate} className="my-3 rounded-xl border p-4"><h3>Reserva #{r.id_reserva} · {r.status.toLowerCase()}</h3><p>{r.condicoes?.titulo??"Condições históricas não disponíveis"}</p>{r.condicoes?.itens_oferecidos?.map(i=><p key={i.id_produto}>{i.quantidade} × {i.nome}</p>)}<p>Desconto: R$ {Number(r.valor_beneficio).toFixed(2)}</p>{r.entregue_em?<p>Entrega confirmada em {new Date(r.entregue_em).toLocaleString("pt-BR")}</p>:r.status!=="CANCELADO"&&<button disabled={busy} onClick={()=>entregar(r)}>Confirmar entrega após check-in</button>}</article>)}</main>;
 }

@@ -195,6 +195,7 @@ app.use("/api/rotina/insights", rotinaInsightsRouter);
 app.use("/api/rotina/grupos", rotinaGroupsRouter);
 app.use("/api/rotina", rotinaRouter);
 app.use("/api/planos", plansRouter);
+app.use("/api/campanhas", require("./routes/campaigns").campaignsRouter);
 
 app.use((error, _req, res, _next) => {
   const mensagem = String(error?.message ?? "");
