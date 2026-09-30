@@ -21,6 +21,7 @@
   padding: 24px 16px;
   display: flex;
   flex-direction: column;
+  border-bottom: 1px solid var(--ui-borda, #e5d5c4);
   z-index: 35;
 }
 

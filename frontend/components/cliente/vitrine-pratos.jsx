@@ -44,16 +44,20 @@ function CartaoPrato({ prato, restaurante, moeda, ui }) {
 function LinhaPratos({ titulo, itens, restaurante, moeda, ui, limitePorLinha }) {
   return <section className="dish-row" aria-label={titulo}>
     <div className="dish-row-heading">
-      <h3>{titulo}</h3>
+      {restaurante ? <div className="dish-row-restaurant-title"><LogoRestaurante restaurante={restaurante} /><h3>{titulo}</h3></div> : <h3>{titulo}</h3>}
       {restaurante ? <Link href={`/cliente/restaurantes/${restaurante.id}`} className="dish-row-link">{ui("Ver cardápio")}</Link> : null}
     </div>
     <div className="dish-grid">
       {itens.slice(0, limitePorLinha).map(({ prato, restaurante: restauranteDoPrato }) => <CartaoPrato key={`${restauranteDoPrato.id}-${prato.id_produto}`} prato={prato} restaurante={restauranteDoPrato} moeda={moeda} ui={ui} />)}
+      {restaurante && itens.length > limitePorLinha ? <Link href={`/cliente/restaurantes/${restaurante.id}`} className="dish-show-more" aria-label={ui("Ver mais pratos de {0}", [restaurante.name])}>
+        <span className="dish-show-more-icon" aria-hidden="true">→</span>
+        <span>{ui("Ver mais")}</span>
+      </Link> : null}
     </div>
   </section>;
 }
 
-export function VitrinePratos({ restaurantes, carregando, limiteInicial = 12, mensagemVazia = "Nenhum prato encontrado para esta busca.", horizontal = false, agrupada = false, limitePorLinha = 8, maxCategorias = 3, maxRestaurantes = 3 }) {
+export function VitrinePratos({ restaurantes, carregando, limiteInicial = 12, mensagemVazia = "Nenhum prato encontrado para esta busca.", horizontal = false, agrupada = false, limitePorLinha = 7, maxCategorias = 3, maxRestaurantes = 3 }) {
   const { ui, localeUI } = useInterface();
   const [limite, setLimite] = useState(limiteInicial);
   const pratosPorRestaurante = restaurantes.map((restaurante) => (restaurante.publishedDishes ?? []).map((prato) => ({ prato, restaurante })));
@@ -92,8 +96,8 @@ export function VitrinePratos({ restaurantes, carregando, limiteInicial = 12, me
         {categoriasDestaque.map(([categoria, itens]) => <LinhaPratos key={categoria} titulo={categoria} itens={itens} moeda={moeda} ui={ui} limitePorLinha={limitePorLinha} />)}
       </div>
       <section className="dish-grouping" aria-labelledby="pratos-por-restaurante">
-        <h3 id="pratos-por-restaurante" className="dish-grouping-title dish-most-liked-title">{ui("Mais curtidos")}</h3>
-        {gruposPorRestaurante.map(({ restaurante, itens }) => <LinhaPratos key={restaurante.id} titulo={ui("Do restaurante {0}", [restaurante.name])} itens={itens} restaurante={restaurante} moeda={moeda} ui={ui} limitePorLinha={limitePorLinha} />)}
+        <h3 id="pratos-por-restaurante" className="dish-grouping-title dish-most-liked-title">{ui("Restaurantes mais curtidos")}</h3>
+        {gruposPorRestaurante.map(({ restaurante, itens }) => <LinhaPratos key={restaurante.id} titulo={restaurante.name} itens={itens} restaurante={restaurante} moeda={moeda} ui={ui} limitePorLinha={limitePorLinha} />)}
       </section>
     </div> : pratos.length ? <>
       <div className="dish-grid">

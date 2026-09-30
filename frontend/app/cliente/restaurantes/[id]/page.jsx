@@ -644,11 +644,6 @@ export default function PaginaRestaurante({ params }) {
               </button>
               {mensagem ? <p className="mt-3 text-sm font-semibold text-app-caramelo-torrado">{ui(mensagem)}</p> : null}
             </form>
-
-            <section className="mt-5 rounded-[14px] bg-white p-4 text-xs leading-5 text-app-mocha">
-              <h2 className="text-sm font-bold text-app-cafe-profundo">{ui("Sobre a experiência")}</h2>
-              <p className="mt-2">{ui("Reserve sua mesa normalmente ou antecipe o pedido. O consumo mínimo só passa a valer quando houver pedido antecipado.")}</p>
-            </section>
           </aside>
         </div>
       </div>

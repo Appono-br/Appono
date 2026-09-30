@@ -148,6 +148,27 @@ function mapearRestaurante(restaurant) {
         resolvedLocation: restaurant.localizacao_resolvida,
     };
 }
+function ProximaReservaCard({ proximaReserva, localeUI, ui }) {
+    return <section className="mx-auto max-w-7xl px-5 pt-5">
+        <div className="rounded-[12px] bg-app-cafe-profundo p-5 text-app-creme-leve shadow-sm ring-1 ring-app-baunilha-dourada/35 sm:p-6">
+            <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+                <div>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-baunilha-dourada">{ui("Próxima reserva")}</p>
+                    {proximaReserva ? (<>
+                        <h2 className="mt-2 text-2xl font-semibold">{proximaReserva.restaurantes?.nome ?? ui("Restaurante")}</h2>
+                        <p className="mt-2 text-sm capitalize text-app-creme-suave">{formatarDataReserva(proximaReserva.data_reserva, localeUI)}{ui(" às ")}{formatarHorario(proximaReserva.horario_inicio)}</p>
+                        <p className="mt-1 text-sm text-app-baunilha-dourada">{proximaReserva.quantidade_pessoas}{ui(" pessoas | Consumo mínimo ")}{formatarMoeda(proximaReserva.valor_minimo_total, localeUI)}</p>
+                    </>) : (<>
+                        <h2 className="mt-2 text-2xl font-semibold">{ui("Nenhuma reserva ativa")}</h2>
+                        <p className="mt-2 text-sm text-app-creme-suave">{ui("Escolha um restaurante para agendar sua próxima experiência.")}</p>
+                    </>)}
+                </div>
+                <Link href="/cliente/reservas" className="inline-flex h-11 w-fit items-center justify-center rounded-[8px] bg-app-baunilha-dourada px-5 text-xs font-bold uppercase tracking-[0.14em] text-app-cafe-profundo transition hover:bg-app-dourado-mel hover:text-white">{ui("Ver reservas")}</Link>
+            </div>
+        </div>
+    </section>;
+}
+
 export default function DashboardPage() {
     const { ui , localeUI } = useInterface();
     const [activeFilter, setActiveFilter] = useState(filters[0]);
@@ -385,9 +406,15 @@ export default function DashboardPage() {
         ].filter((colecao) => colecao.itens.length > 0);
     }, [restaurants]);
     const nearbyRestaurants = useMemo(() => nearbyRestaurantItems
-        .filter((restaurant) => Number.isFinite(Number(restaurant.distanceKm)))
-        .sort((a, b) => Number(a.distanceKm) - Number(b.distanceKm))
-        .slice(0, 6), [nearbyRestaurantItems]);
+        .filter((restaurant) => raioKm === "todos" || Number.isFinite(Number(restaurant.distanceKm)))
+        .sort((a, b) => {
+            const distanciaA = Number(a.distanceKm);
+            const distanciaB = Number(b.distanceKm);
+            if (!Number.isFinite(distanciaA)) return Number.isFinite(distanciaB) ? 1 : 0;
+            if (!Number.isFinite(distanciaB)) return -1;
+            return distanciaA - distanciaB;
+        })
+        .slice(0, 6), [nearbyRestaurantItems, raioKm]);
     function buscarPorLocalizacaoManual(event) {
         event.preventDefault();
         const localizacao = localizacaoManual.trim();
@@ -474,7 +501,7 @@ export default function DashboardPage() {
             </div>
 
             <div className="mt-6">
-              <VitrinePratos key={`${debouncedQuery}-${filtroBusca}-${ordenacaoBusca}`} restaurantes={searchResults} carregando={carregandoBusca || query.trim() !== debouncedQuery} limiteInicial={8} />
+              <VitrinePratos key={`${debouncedQuery}-${filtroBusca}-${ordenacaoBusca}`} restaurantes={searchResults} carregando={carregandoBusca || query.trim() !== debouncedQuery} limiteInicial={8} horizontal />
             </div>
             {searchResults.length ? (<div className="mt-3 grid gap-2">
               <h2 className="mb-2 text-xl font-semibold text-app-cafe-profundo">{ui("Restaurantes")}</h2>
@@ -500,6 +527,8 @@ export default function DashboardPage() {
         </div>
       </section>
 
+      <ProximaReservaCard proximaReserva={proximaReserva} localeUI={localeUI} ui={ui} />
+
       {highlightedRestaurants.length ? <section className="mx-auto max-w-7xl px-5 py-10">
         <div>
           <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">{ui("Restaurantes")}</p>
@@ -508,7 +537,7 @@ export default function DashboardPage() {
         <div className="mt-6 grid gap-3 lg:grid-cols-3">
           {highlightedRestaurants.map((restaurant, index) => <article key={restaurant.id} className="group relative min-w-0 rounded-[8px] border border-app-baunilha-dourada bg-white p-2.5 shadow-sm transition hover:-translate-y-0.5 hover:border-app-caramelo-torrado/55 hover:shadow-md">
             <Link href={`/cliente/restaurantes/${restaurant.id}`} className="flex min-w-0 gap-3" aria-label={`Ver ${restaurant.name}`}>
-              <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-[8px] bg-white ring-1 ring-app-baunilha-dourada/45">
+              <div className="restaurant-most-liked-logo relative h-24 w-24 shrink-0 overflow-hidden rounded-[8px] bg-white ring-1 ring-app-baunilha-dourada/45">
                 {restaurant.imageUrl ? <Image src={restaurant.imageUrl} alt={restaurant.name} fill sizes="96px" className="object-contain p-2 transition duration-300 group-hover:scale-105"/> : <div className="flex h-full items-center justify-center bg-app-baunilha-dourada/45 px-2 text-center text-xs font-medium leading-4 text-app-mocha">{ui("Imagem em breve")}</div>}
               </div>
               <div className="min-w-0 flex-1 py-0.5 pr-7">
@@ -530,30 +559,7 @@ export default function DashboardPage() {
         {message ? (<p role="status" className="mb-4 rounded-[8px] bg-white p-3 text-sm font-semibold text-app-caramelo-torrado">
             {ui(message)}
           </p>) : null}
-        <div className="mb-8 rounded-[12px] bg-app-cafe-profundo p-5 text-app-creme-leve shadow-sm ring-1 ring-app-baunilha-dourada/35 sm:p-6">
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-baunilha-dourada">{ui("Próxima reserva")}</p>
-              {proximaReserva ? (<>
-                  <h2 className="mt-2 text-2xl font-semibold">
-                    {proximaReserva.restaurantes?.nome ?? ui("Restaurante")}
-                  </h2>
-                  <p className="mt-2 text-sm capitalize text-app-creme-suave">
-                    {formatarDataReserva(proximaReserva.data_reserva, localeUI)}{ui(" às ")}{formatarHorario(proximaReserva.horario_inicio)}
-                  </p>
-                  <p className="mt-1 text-sm text-app-baunilha-dourada">
-                    {proximaReserva.quantidade_pessoas}{ui(" pessoas | Consumo mínimo ")}{formatarMoeda(proximaReserva.valor_minimo_total, localeUI)}
-                  </p>
-                </>) : (<>
-                  <h2 className="mt-2 text-2xl font-semibold">{ui("Nenhuma reserva ativa")}</h2>
-                  <p className="mt-2 text-sm text-app-creme-suave">{ui("Escolha um restaurante para agendar sua próxima experiência.")}</p>
-                </>)}
-            </div>
-            <Link href="/cliente/reservas" className="inline-flex h-11 w-fit items-center justify-center rounded-[8px] bg-app-baunilha-dourada px-5 text-xs font-bold uppercase tracking-[0.14em] text-app-cafe-profundo transition hover:bg-app-dourado-mel hover:text-white">{ui("Ver reservas")}</Link>
-          </div>
-        </div>
-
-        <VitrinePratos restaurantes={restaurants} carregando={carregandoPratos} limiteInicial={8} mensagemVazia="Nenhum prato disponível no momento." horizontal agrupada limitePorLinha={8} maxCategorias={3} maxRestaurantes={3} />
+        <VitrinePratos restaurantes={restaurants} carregando={carregandoPratos} limiteInicial={8} mensagemVazia="Nenhum prato disponível no momento." horizontal agrupada limitePorLinha={7} maxCategorias={3} maxRestaurantes={3} />
 
       </section>
 
@@ -586,7 +592,7 @@ export default function DashboardPage() {
             <span className="sr-only">{ui("Buscar por bairro, cidade ou CEP")}</span>
             <input value={localizacaoManual} onChange={(event) => setLocalizacaoManual(event.target.value)} placeholder={ui("Bairro, cidade ou CEP")} className="h-full min-w-0 flex-1 bg-transparent text-base outline-none placeholder:text-app-cinza/70"/>
           </label>
-          <button type="submit" className="h-9 shrink-0 rounded-full bg-app-dourado-mel px-4 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-app-caramelo-torrado">{ui("Buscar")}</button>
+          <button type="submit" className="h-9 shrink-0 rounded-full px-4 text-xs font-bold uppercase tracking-[0.12em] text-app-creme-leve transition hover:text-app-baunilha-dourada">{ui("Buscar")}</button>
         </form>
         </div>
 

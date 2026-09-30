@@ -311,11 +311,11 @@ export default function RestaurantMenuManagementPage() {
                         </div>
                     </form>
 
-                    <div className="grid gap-3">
+                    <div className="grid self-start gap-3">
                         <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">{ui("Categorias cadastradas")}</p>
-                        <div className="grid max-h-72 gap-2 overflow-auto pr-1">
+                        <div className="grid max-h-72 gap-2 overflow-auto p-px pr-2">
                             {categorias.length ? categorias.map((categoria) => (
-                                <article key={categoria.id_categoria} className="grid gap-3 rounded-[8px] bg-app-creme-suave p-3 ring-1 ring-app-baunilha-dourada/45 sm:grid-cols-[1fr_auto] sm:items-center">
+                                <article key={categoria.id_categoria} className="grid gap-3 rounded-[8px] border border-app-baunilha-dourada/45 bg-app-creme-suave p-3 sm:grid-cols-[1fr_auto] sm:items-center">
                                     <div>
                                         <h3 className="text-sm font-bold text-app-cafe-profundo">{categoria.nome}</h3>
                                         <p className="text-xs text-app-mocha">{ui("Ordem ")}{categoria.ordem_exibicao ?? 0}{categoria.descricao ? ` - ${categoria.descricao}` : ""}

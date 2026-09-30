@@ -1,13 +1,19 @@
 .dish-showcase { min-width: 0; margin-bottom: 36px; }
-.dish-section-title { margin: 0 0 16px; color: var(--app-cafe-profundo); font-size: 22px; font-weight: 600; }
+.dish-section-title { margin: 0 0 16px; color: var(--app-cafe-profundo); font-size: 30px; font-weight: 600; }
 .dish-groupings { display: grid; gap: 32px; }
 .dish-grouping { display: grid; gap: 20px; }
 .dish-grouping-title { margin: 0; color: var(--app-caramelo-torrado); font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
-.dish-most-liked-title { color: var(--app-cafe-profundo); font-size: 20px; letter-spacing: .02em; }
+.dish-most-liked-title { color: var(--app-cafe-profundo); font-size: 26px; letter-spacing: .02em; }
 .dish-row { min-width: 0; }
 .dish-row-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 12px; }
-.dish-row-heading h3 { margin: 0; color: var(--app-cafe-profundo); font-size: 17px; font-weight: 600; }
-.dish-row-link { flex: none; color: var(--app-caramelo-torrado); font-size: 12px; font-weight: 700; text-decoration: underline; text-underline-offset: 4px; }
+.dish-row-heading h3 { margin: 0; color: var(--app-cafe-profundo); font-size: 22px; font-weight: 600; }
+.dish-row-restaurant-title { display: flex; min-width: 0; align-items: center; gap: 9px; }
+.dish-row-heading .dish-restaurant-logo { position: relative; top: auto; right: auto; width: 88px; height: 88px; flex: none; }
+.dish-row-link { flex: none; color: var(--app-caramelo-torrado); font-size: 13px; font-weight: 700; text-decoration: underline; text-underline-offset: 4px; }
+.dish-show-more { display: inline-flex; flex: 0 0 auto; align-items: center; align-self: center; gap: 10px; padding: 8px 4px; color: var(--app-caramelo-torrado); font-size: 14px; font-weight: 700; text-decoration: none; }
+.dish-show-more-icon { display: inline-flex; width: 44px; height: 44px; align-items: center; justify-content: center; border: 1px solid var(--app-baunilha-dourada); border-radius: 50%; font-size: 22px; line-height: 1; transition: background-color .2s ease, color .2s ease, transform .2s ease; }
+.dish-show-more:hover .dish-show-more-icon { background: var(--app-baunilha-dourada); color: var(--app-cafe-profundo); transform: translateX(3px); }
+.dish-show-more:focus-visible { outline: 2px solid var(--app-caramelo-torrado); outline-offset: 4px; border-radius: 999px; }
 .dish-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px 16px; }
 .dish-card { display: flex; min-width: 0; flex-direction: column; color: var(--app-cafe-profundo); text-decoration: none; }
 .dish-photo-wrap { position: relative; display: block; overflow: hidden; aspect-ratio: 4 / 3; border-radius: 12px; background: var(--app-chantilly); }
