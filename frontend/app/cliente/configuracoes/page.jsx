@@ -2,7 +2,6 @@
 import { useInterface } from "@/lib/use-interface";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { SeletorTema } from "@/components/configuracoes/seletor-tema";
 import { BotaoIdioma } from "@/components/configuracoes/botao-idioma";
 import { apiRequest } from "@/lib/api";
 import { atualizarNomeSessao, encerrarSessao } from "@/lib/session";
@@ -28,6 +27,8 @@ function Icon({ type, className = "h-5 w-5", }) {
         "log-out": "M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9",
         menu: "M4 7h16M4 12h16M4 17h16",
         user: "M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z",
+        appearance: "M12 3v2M12 19v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M3 12h2M19 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10z",
+        support: "M4 19.5V12a8 8 0 0 1 16 0v7.5M4 16h3v4H5a1 1 0 0 1-1-1v-3ZM20 16h-3v4h2a1 1 0 0 0 1-1v-3ZM12 20h2",
     };
     return (<svg aria-hidden="true" viewBox="0 0 24 24" className={className}>
       <path d={paths[type]} fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8"/>
@@ -46,10 +47,7 @@ export default function SettingsPage() {
     const [formularioConta, setFormularioConta] = useState(formularioContaInicial);
     const [mensagemConta, setMensagemConta] = useState("Carregando dados cadastrados...");
     const [salvandoConta, setSalvandoConta] = useState(false);
-    const [consentimento, setConsentimento] = useState(false);
-    const [carregandoConsentimento, setCarregandoConsentimento] = useState(true);
-    const [salvandoConsentimento, setSalvandoConsentimento] = useState(false);
-    const [mensagemConsentimento, setMensagemConsentimento] = useState("");
+    const [painelAtivo, setPainelAtivo] = useState("conta");
     useEffect(() => {
         window.localStorage.removeItem("appono:paymentDraft");
     }, []);
@@ -72,13 +70,6 @@ export default function SettingsPage() {
             .catch((error) => {
             setMensagemConta(error instanceof Error ? error.message : "Não foi possível carregar os dados.");
         });
-    }, [session]);
-    useEffect(() => {
-        if (session?.type !== "client") return;
-        apiRequest("/rotina/consentimento-personalizacao")
-            .then(({ consentimento: atual }) => setConsentimento(atual?.habilitado === true))
-            .catch((error) => setMensagemConsentimento(error instanceof Error ? error.message : "Nao foi possivel carregar esta preferencia."))
-            .finally(() => setCarregandoConsentimento(false));
     }, [session]);
     function atualizarCampoConta(campo, valor) {
         setFormularioConta((atual) => ({ ...atual, [campo]: valor }));
@@ -110,27 +101,6 @@ export default function SettingsPage() {
         await encerrarSessao();
         window.location.assign("/");
     }
-    async function alterarConsentimento() {
-        const habilitado = !consentimento;
-        setSalvandoConsentimento(true);
-        setMensagemConsentimento("");
-        try {
-            const { consentimento: atualizado } = await apiRequest("/rotina/consentimento-personalizacao", {
-                method: "PUT",
-                body: JSON.stringify({ habilitado }),
-            });
-            setConsentimento(atualizado?.habilitado === true);
-            setMensagemConsentimento(habilitado
-                ? "Personalizacao ativada. Somente novas interacoes consentidas serao usadas."
-                : "Personalizacao desativada. Suas novas sugestoes nao usarao essas interacoes.");
-        }
-        catch (error) {
-            setMensagemConsentimento(error instanceof Error ? error.message : "Nao foi possivel atualizar esta preferencia.");
-        }
-        finally {
-            setSalvandoConsentimento(false);
-        }
-    }
     const profileName = session?.name || t("settings.unknownProfile");
     const profileType = session?.type === "restaurant"
         ? "Conta de restaurante"
@@ -139,104 +109,74 @@ export default function SettingsPage() {
             : t("settings.completeProfile");
     return (<main className="flex min-h-screen flex-col bg-white text-app-cafe-profundo">
       <section className="mx-auto w-full max-w-7xl flex-1 px-5 py-10 sm:py-14">
-        <div className="grid gap-8 lg:grid-cols-[0.42fr_1fr]">
-          <aside className="grid gap-6">
-            <section className="rounded-[8px] bg-app-creme-leve p-7 shadow-sm ring-1 ring-app-baunilha-dourada/60 sm:p-8">
-              <p className="text-[10px] font-bold uppercase text-app-caramelo-torrado">{t("settings.eyebrow")}</p>
-              <h1 className="mt-3 text-3xl font-medium italic leading-tight text-app-cafe-profundo">{t("settings.title")}</h1>
-              <p className="mt-5 text-sm leading-6 text-app-mocha">{ui("Gerencie os dados da conta e as preferências da sua experiência.")}</p>
-            </section>
+        <div className="grid items-start gap-8 lg:grid-cols-[0.42fr_1fr]">
+          <aside className="rounded-[8px] bg-app-creme-leve p-5 shadow-sm ring-1 ring-app-baunilha-dourada/60 sm:p-6">
+            <h1 className="text-3xl font-medium italic leading-tight text-app-cafe-profundo">{t("settings.title")}</h1>
+            <div className="mt-6 px-3">
+              <strong className="block text-sm text-app-cafe-profundo">{profileName}</strong>
+              <span className="mt-1 block text-xs text-app-cinza">{ui(profileType)}</span>
+            </div>
 
-            <nav className="rounded-[8px] bg-white p-2 shadow-sm ring-1 ring-app-baunilha-dourada/45">
-              <Link href="/cliente/configuracoes" className="flex w-full items-center justify-between gap-4 rounded-[8px] bg-app-creme-suave px-5 py-4 text-left text-app-cafe-profundo transition hover:bg-app-creme-leve">
-                <span className="flex min-w-0 items-center gap-3">
-                  <Icon type="user" className="h-5 w-5 shrink-0"/>
-                  <span className="min-w-0">
-                    <strong className="block truncate text-sm">{profileName}</strong>
-                    <span className="mt-1 block text-xs text-app-cinza">{ui(profileType)}</span>
-                  </span>
-                </span>
-                <Icon type="chevron-right" className="h-4 w-4 shrink-0"/>
+            <nav aria-label={ui("Seções de configurações")} className="mt-7 grid gap-2">
+              <button type="button" onClick={() => setPainelAtivo("conta")} aria-current={painelAtivo === "conta" ? "page" : undefined} className={`flex min-h-12 w-full items-center gap-3 rounded-[8px] px-3 text-left text-sm font-bold outline-none transition focus-visible:ring-2 focus-visible:ring-app-caramelo-torrado ${painelAtivo === "conta" ? "bg-app-cafe-profundo text-app-creme-leve" : "text-app-cafe-profundo hover:bg-white"}`}>
+                <Icon type="user" />
+                {ui("Conta")}
+              </button>
+              <button type="button" onClick={() => setPainelAtivo("aparencia")} aria-current={painelAtivo === "aparencia" ? "page" : undefined} className={`flex min-h-12 w-full items-center gap-3 rounded-[8px] px-3 text-left text-sm font-bold outline-none transition focus-visible:ring-2 focus-visible:ring-app-caramelo-torrado ${painelAtivo === "aparencia" ? "bg-app-cafe-profundo text-app-creme-leve" : "text-app-cafe-profundo hover:bg-white"}`}>
+                <Icon type="appearance" />
+                {ui("Aparência")}
+              </button>
+              <Link href="/cliente/suporte" className="flex min-h-12 items-center gap-3 rounded-[8px] px-3 text-sm font-bold text-app-cafe-profundo outline-none transition hover:bg-white focus-visible:ring-2 focus-visible:ring-app-caramelo-torrado">
+                <Icon type="support" />
+                {ui("Suporte")}
               </Link>
+              <button type="button" onClick={logout} className="mt-3 flex min-h-12 w-full items-center gap-3 rounded-[8px] px-3 text-left text-sm font-bold text-app-vermelho-erro outline-none transition hover:bg-app-vermelho-claro focus-visible:ring-2 focus-visible:ring-app-vermelho-erro">
+                <Icon type="log-out" />
+                {t("settings.logout")}
+              </button>
             </nav>
           </aside>
 
-          <form onSubmit={salvarConta} className="rounded-[8px] bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada/45 sm:p-8">
-            <div className="border-b border-app-baunilha-dourada/60 pb-7">
-              <h2 className="text-3xl font-medium text-app-cafe-profundo">{ui("Dados da Conta")}</h2>
-              <p className="mt-2 max-w-md text-sm leading-6 text-app-mocha">{ui("Atualize suas informações de contato. Data de nascimento e documento permanecem bloqueados por segurança.")}</p>
-            </div>
-
-            <section className="mt-8 grid gap-6 sm:grid-cols-2">
-              <label className="grid gap-2 sm:col-span-2">
-                <span className="text-xs font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">{ui("Nome completo")}</span>
-                <input value={formularioConta.name} onChange={(event) => atualizarCampoConta("name", event.target.value)} className="h-12 rounded-[8px] border border-app-baunilha-dourada bg-app-creme-suave px-4 text-sm text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20" />
-              </label>
-
-              <label className="grid gap-2">
-                <span className="text-xs font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">{ui("Data de nascimento")}</span>
-                <input type="date" value={formularioConta.birthDate} readOnly disabled className="h-12 rounded-[8px] border border-app-baunilha-dourada bg-app-creme-suave px-4 text-sm text-app-cinza disabled:cursor-not-allowed" />
-              </label>
-
-              <label className="grid gap-2">
-                <span className="text-xs font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">{ui(formularioConta.documentLabel)}</span>
-                <input value={formularioConta.cpf} readOnly disabled className="h-12 rounded-[8px] border border-app-baunilha-dourada bg-app-creme-suave px-4 text-sm text-app-cinza disabled:cursor-not-allowed" />
-              </label>
-
-              <label className="grid gap-2">
-                <span className="text-xs font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">{ui("Endereço de e-mail")}</span>
-                <input type="email" value={formularioConta.email} onChange={(event) => atualizarCampoConta("email", event.target.value)} className="h-12 rounded-[8px] border border-app-baunilha-dourada bg-app-creme-suave px-4 text-sm text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20" />
-              </label>
-
-              <label className="grid gap-2">
-                <span className="text-xs font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">{ui("Telefone")}</span>
-                <input value={formularioConta.phone} onChange={(event) => atualizarCampoConta("phone", aplicarMascaraTelefone(event.target.value))} inputMode="tel" maxLength={15} className="h-12 rounded-[8px] border border-app-baunilha-dourada bg-app-creme-suave px-4 text-sm text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20" />
-              </label>
-            </section>
-
-            <div className="mt-10 flex justify-end">
-              <button type="submit" disabled={salvandoConta} className="h-11 rounded-[8px] bg-app-dourado-mel px-8 text-xs font-bold uppercase tracking-[0.18em] text-white transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-60">
-                {ui(salvandoConta ? "Salvando..." : "Salvar alterações")}
-              </button>
-            </div>
-
-            {mensagemConta ? <p className="mt-4 text-sm font-semibold text-app-caramelo-torrado">{ui(mensagemConta)}</p> : null}
-          </form>
-
-          <section className="rounded-[8px] bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada/45 sm:p-8 lg:col-start-2">
-            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">Appono Rotina</p>
-            <h2 className="mt-2 text-2xl font-medium text-app-cafe-profundo">Personalizar minhas sugestoes</h2>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-app-mocha">
-              Quando ativado, o Appono pode considerar novas aprovacoes, recusas, trocas, edicoes e conversoes para ajustar sugestoes futuras. Preferencias explicitas e regras de seguranca continuam tendo prioridade.
-            </p>
-            <p className="mt-2 text-sm leading-6 text-app-cinza">
-              A opcao vem desativada e pode ser revogada a qualquer momento. Reservas, pedidos e registros financeiros nao sao apagados pela revogacao.
-            </p>
-            <div className="mt-6 flex flex-wrap items-center gap-4">
-              <button
-                type="button"
-                role="switch"
-                aria-checked={consentimento}
-                disabled={carregandoConsentimento || salvandoConsentimento}
-                onClick={alterarConsentimento}
-                className={`inline-flex min-h-11 items-center rounded-[8px] px-6 text-sm font-bold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-caramelo-torrado ${consentimento ? "bg-app-cafe-profundo text-app-creme-leve" : "bg-app-creme-suave text-app-cafe-profundo ring-1 ring-app-baunilha-dourada"}`}
-              >
-                {carregandoConsentimento ? "Carregando..." : salvandoConsentimento ? "Salvando..." : consentimento ? "Personalizacao ativada" : "Ativar personalizacao"}
-              </button>
-              <span className="text-xs font-semibold text-app-cinza">Versao do consentimento: rotina-personalizacao-v1</span>
-            </div>
-            {mensagemConsentimento ? <p className="mt-4 text-sm font-semibold text-app-caramelo-torrado" role="status">{mensagemConsentimento}</p> : null}
+          <section className="rounded-[8px] bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada/45 sm:p-8">
+            {painelAtivo === "conta" ? (
+              <form onSubmit={salvarConta}>
+                <h2 className="text-3xl font-medium text-app-cafe-profundo">{ui("Dados da Conta")}</h2>
+                <div className="mt-8 grid gap-6 sm:grid-cols-2">
+                  <label className="grid gap-2 sm:col-span-2">
+                    <span className="text-xs font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">{ui("Nome completo")}</span>
+                    <input value={formularioConta.name} onChange={(event) => atualizarCampoConta("name", event.target.value)} className="h-12 rounded-[8px] border border-app-baunilha-dourada bg-app-creme-suave px-4 text-sm text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20" />
+                  </label>
+                  <label className="grid gap-2">
+                    <span className="text-xs font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">{ui("Data de nascimento")}</span>
+                    <input type="date" value={formularioConta.birthDate} readOnly disabled className="h-12 rounded-[8px] border border-app-baunilha-dourada bg-app-creme-suave px-4 text-sm text-app-cinza disabled:cursor-not-allowed" />
+                  </label>
+                  <label className="grid gap-2">
+                    <span className="text-xs font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">{ui(formularioConta.documentLabel)}</span>
+                    <input value={formularioConta.cpf} readOnly disabled className="h-12 rounded-[8px] border border-app-baunilha-dourada bg-app-creme-suave px-4 text-sm text-app-cinza disabled:cursor-not-allowed" />
+                  </label>
+                  <label className="grid gap-2">
+                    <span className="text-xs font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">{ui("Endereço de e-mail")}</span>
+                    <input type="email" value={formularioConta.email} onChange={(event) => atualizarCampoConta("email", event.target.value)} className="h-12 rounded-[8px] border border-app-baunilha-dourada bg-app-creme-suave px-4 text-sm text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20" />
+                  </label>
+                  <label className="grid gap-2">
+                    <span className="text-xs font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">{ui("Telefone")}</span>
+                    <input value={formularioConta.phone} onChange={(event) => atualizarCampoConta("phone", aplicarMascaraTelefone(event.target.value))} inputMode="tel" maxLength={15} className="h-12 rounded-[8px] border border-app-baunilha-dourada bg-app-creme-suave px-4 text-sm text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20" />
+                  </label>
+                </div>
+                <div className="mt-10 flex justify-end">
+                  <button type="submit" disabled={salvandoConta} className="h-11 rounded-[8px] bg-app-dourado-mel px-8 text-xs font-bold uppercase tracking-[0.18em] text-white transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-60">
+                    {ui(salvandoConta ? "Salvando..." : "Salvar alterações")}
+                  </button>
+                </div>
+                {mensagemConta ? <p className="mt-4 text-sm font-semibold text-app-caramelo-torrado">{ui(mensagemConta)}</p> : null}
+              </form>
+            ) : (
+              <div>
+                <h2 className="text-3xl font-medium text-app-cafe-profundo">{ui("Aparência")}</h2>
+                <BotaoIdioma embutido />
+              </div>
+            )}
           </section>
-        </div>
-
-        <BotaoIdioma />
-        <SeletorTema />
-
-        <div className="mx-auto mt-7 max-w-md border-t border-app-baunilha-dourada/60 pt-5 text-center">
-          <button type="button" onClick={logout} className="inline-flex items-center gap-3 text-sm font-bold text-app-vermelho-erro transition hover:text-app-cafe-profundo">
-            <Icon type="log-out"/>
-            {t("settings.logout")}
-          </button>
         </div>
       </section>
 

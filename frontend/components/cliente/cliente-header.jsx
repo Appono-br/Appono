@@ -13,7 +13,6 @@ const itens = [
     ["Reservas", "/cliente/reservas"],
     ["Favoritos", "/cliente/favoritos"],
     ["Mensagens", "/cliente/mensagens"],
-    ["Suporte", "/cliente/suporte"],
 ];
 function HeaderIcon({ type }) {
     const paths = {
@@ -22,7 +21,7 @@ function HeaderIcon({ type }) {
         menu: "M4 7h16M4 12h16M4 17h16",
     };
 
-    return <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8"><path d={paths[type]} /></svg>;
+    return <svg aria-hidden="true" viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8"><path d={paths[type]} /></svg>;
 }
 
 function estaAtivo(pathname, href) {
@@ -39,18 +38,18 @@ export function ClienteHeader() {
             <Link href="/cliente/dashboard" aria-label={ui("Ir para o início da Appono")} className="w-fit rounded-md outline-none focus-visible:ring-2 focus-visible:ring-app-caramelo-torrado focus-visible:ring-offset-2">
                 <Image src="/brand/appono-mark.svg" alt={ui("Appono")} width={88} height={88} priority className="h-11 w-11 lg:h-14 lg:w-14" />
             </Link>
-            <nav aria-label={ui("Navegação principal do cliente")} className="hidden items-center justify-self-center gap-7 text-xs font-semibold text-app-cinza lg:flex">
-                {itens.map(([label, href]) => <Link key={href} href={href} aria-current={estaAtivo(pathname, href) ? "page" : undefined} className="rounded-md px-1 py-2 outline-none transition hover:text-app-cafe-profundo focus-visible:ring-2 focus-visible:ring-app-caramelo-torrado aria-[current=page]:text-app-cafe-profundo aria-[current=page]:underline aria-[current=page]:decoration-app-caramelo-torrado aria-[current=page]:decoration-2 aria-[current=page]:underline-offset-8">{ui(label)}</Link>)}
+            <nav aria-label={ui("Navegação principal do cliente")} className="hidden items-center justify-self-center gap-8 text-sm font-semibold text-app-cinza lg:flex">
+                {itens.map(([label, href]) => <Link key={href} href={href} aria-current={estaAtivo(pathname, href) ? "page" : undefined} className="rounded-md px-2 py-3 outline-none transition hover:text-app-cafe-profundo focus-visible:ring-2 focus-visible:ring-app-caramelo-torrado aria-[current=page]:text-app-cafe-profundo aria-[current=page]:underline aria-[current=page]:decoration-app-caramelo-torrado aria-[current=page]:decoration-2 aria-[current=page]:underline-offset-8">{ui(label)}</Link>)}
             </nav>
-            <div className="col-start-3 flex items-center justify-self-end gap-3 text-app-cafe-profundo">
-                <Link href="/cliente/detalhes-pedido" aria-label={ui("Sacola")} className="flex h-9 w-9 items-center justify-center rounded-md outline-none transition hover:text-app-caramelo-torrado focus-visible:ring-2 focus-visible:ring-app-caramelo-torrado focus-visible:ring-offset-2">
+            <div className="col-start-3 flex items-center justify-self-end gap-4 text-app-cafe-profundo">
+                <Link href="/cliente/detalhes-pedido" aria-label={ui("Sacola")} aria-current={estaAtivo(pathname, "/cliente/detalhes-pedido") ? "page" : undefined} className="relative flex h-11 w-11 items-center justify-center rounded-md outline-none transition hover:text-app-caramelo-torrado focus-visible:ring-2 focus-visible:ring-app-caramelo-torrado focus-visible:ring-offset-2 aria-[current=page]:text-app-cafe-profundo aria-[current=page]:after:absolute aria-[current=page]:after:bottom-0 aria-[current=page]:after:h-0.5 aria-[current=page]:after:w-5 aria-[current=page]:after:rounded-full aria-[current=page]:after:bg-[var(--app-caramelo-torrado)]">
                     <HeaderIcon type="bag" />
                 </Link>
-                <Link href="/cliente/configuracoes" aria-label={ui("Configurações")} title={ui("Configurações")} aria-current={estaAtivo(pathname, "/cliente/configuracoes") ? "page" : undefined} onClick={() => setMenuAberto(false)} className="flex h-9 w-9 items-center justify-center rounded-md outline-none transition hover:text-app-caramelo-torrado focus-visible:ring-2 focus-visible:ring-app-caramelo-torrado focus-visible:ring-offset-2">
+                <Link href="/cliente/configuracoes" aria-label={ui("Configurações")} title={ui("Configurações")} aria-current={estaAtivo(pathname, "/cliente/configuracoes") ? "page" : undefined} onClick={() => setMenuAberto(false)} className="relative flex h-11 w-11 items-center justify-center rounded-md outline-none transition hover:text-app-caramelo-torrado focus-visible:ring-2 focus-visible:ring-app-caramelo-torrado focus-visible:ring-offset-2 aria-[current=page]:text-app-cafe-profundo aria-[current=page]:after:absolute aria-[current=page]:after:bottom-0 aria-[current=page]:after:h-0.5 aria-[current=page]:after:w-5 aria-[current=page]:after:rounded-full aria-[current=page]:after:bg-[var(--app-caramelo-torrado)]">
                     <HeaderIcon type="settings" />
                 </Link>
-                <div className="flex h-9 w-9 items-center justify-center">
-                    <LinkNotificacoes href="/cliente/notificacoes" />
+                <div className="flex h-11 w-11 items-center justify-center">
+                    <LinkNotificacoes href="/cliente/notificacoes" iconeClassName="h-6 w-6" ariaCurrent={estaAtivo(pathname, "/cliente/notificacoes") ? "page" : undefined} />
                 </div>
                 <button type="button" onClick={() => setMenuAberto((aberto) => !aberto)} className="flex h-9 w-9 items-center justify-center rounded-[8px] border border-app-baunilha-dourada bg-white text-app-cafe-profundo outline-none transition hover:bg-app-chantilly focus-visible:ring-2 focus-visible:ring-app-caramelo-torrado lg:hidden" aria-label={ui(menuAberto ? "Fechar menu" : "Abrir menu")} aria-expanded={menuAberto} aria-controls="cliente-menu-compartilhado">
                     <HeaderIcon type="menu" />

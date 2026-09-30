@@ -16,7 +16,7 @@ export default function FavoritosPage() {
 
     useEffect(() => {
         const controller = new AbortController();
-        apiRequest("/restaurantes", { signal: controller.signal })
+        apiRequest("/restaurantes?incluir_pratos=1", { forceRefresh: true, signal: controller.signal })
             .then((data) => {
                 setRestaurantes(data ?? []);
                 setMensagem("");
@@ -52,10 +52,7 @@ export default function FavoritosPage() {
     return (
         <main className="min-h-screen bg-white px-5 py-10 text-app-cafe-profundo">
             <section className="mx-auto max-w-6xl">
-                <Link href="/cliente/dashboard" className="text-sm font-bold text-app-caramelo-torrado">{ui("← Voltar")}</Link>
-
-                <p className="mt-8 text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{ui("Sua selecao")}</p>
-                <h1 className="mt-2 text-4xl font-semibold sm:text-5xl">{ui("Restaurantes favoritos")}</h1>
+                <h1 className="text-4xl font-semibold sm:text-5xl">{ui("Restaurantes favoritos")}</h1>
 
                 {mensagem ? <p role="status" className="mt-6 text-sm font-semibold text-app-mocha">{ui(mensagem)}</p> : null}
 

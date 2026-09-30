@@ -1180,3 +1180,14 @@ html {
   background-color: var(--app-chantilly-hover) !important;
 }
 
+.nearby-radius-control .nearby-radius-select {
+  background-color: transparent !important;
+  color: #f7ead6 !important;
+  color-scheme: dark;
+}
+
+.nearby-radius-control .nearby-radius-select option {
+  background-color: #241713;
+  color: #f7ead6;
+}
+

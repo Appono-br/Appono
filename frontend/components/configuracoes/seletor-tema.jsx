@@ -22,26 +22,24 @@ export function SeletorTema() {
         {
             valor: "claro",
             titulo: "Modo claro",
-            descricao: "Fundo quente, cards claros e texto forte.",
         },
         {
             valor: "escuro",
             titulo: "Modo escuro",
-            descricao: "Fundo profundo, superfícies separadas e acento dourado.",
         },
     ];
 
     return (
-        <fieldset className="mx-auto mt-7 w-full max-w-xl rounded-[8px] bg-app-chantilly p-5 shadow-sm ring-1 ring-app-baunilha-dourada/45">
-            <legend className="float-left mb-4 w-full text-xs font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">{ui("Aparencia")}</legend>
-            <div className="clear-both grid gap-3 sm:grid-cols-2">
+        <fieldset className="mt-5 pt-1">
+            <legend className="mb-4 text-xs font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">{ui("Aparencia")}</legend>
+            <div className="grid gap-3 sm:grid-cols-2">
                 {opcoes.map((opcao) => {
                     const selecionado = tema === opcao.valor;
 
                     return (
                         <label
                             key={opcao.valor}
-                            className={`flex cursor-pointer items-start gap-3 rounded-[8px] border p-4 transition ${
+                            className={`flex min-w-0 cursor-pointer items-center gap-3 rounded-[8px] border p-4 transition focus-within:ring-2 focus-within:ring-app-caramelo-torrado/40 ${
                                 selecionado
                                     ? "border-app-caramelo-torrado bg-app-creme-suave"
                                     : "border-app-baunilha-dourada/65 bg-app-creme-leve hover:border-app-caramelo-torrado/70"
@@ -53,18 +51,15 @@ export function SeletorTema() {
                                 value={opcao.valor}
                                 checked={selecionado}
                                 onChange={() => atualizarTema(opcao.valor)}
-                                className="mt-1 h-4 w-4 shrink-0 accent-app-caramelo-torrado"
+                                className="h-4 w-4 shrink-0 accent-app-caramelo-torrado"
                             />
-                            <span className="mt-0.5 text-app-caramelo-torrado">
-                                <IconeTema tema={opcao.valor} />
-                            </span>
-                            <span>
-                                <strong className="block text-sm text-app-cafe-profundo">
+                            <span className="flex min-w-0 items-center gap-2.5">
+                                <span aria-hidden="true" className="text-app-caramelo-torrado">
+                                    <IconeTema tema={opcao.valor} />
+                                </span>
+                                <strong className="block truncate text-sm text-app-cafe-profundo">
                                     {ui(opcao.titulo)}
                                 </strong>
-                                <span className="mt-1 block text-xs leading-5 text-app-cinza">
-                                    {ui(opcao.descricao)}
-                                </span>
                             </span>
                         </label>
                     );

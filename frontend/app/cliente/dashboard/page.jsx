@@ -28,6 +28,8 @@ function Icon({ type, className = "h-5 w-5", filled = false, }) {
         pin: "M12 21s6-5.2 6-11a6 6 0 0 0-12 0c0 5.8 6 11 6 11z M12 12a2 2 0 1 0 0-4 2 2 0 0 0 0 4z",
         search: "m21 21-4.35-4.35M11 18a7 7 0 1 1 0-14 7 7 0 0 1 0 14z",
         sliders: "M4 7h7M15 7h5M13 5v4M4 12h4M12 12h8M10 10v4M4 17h9M17 17h3M15 15v4",
+        close: "M6 6l12 12M18 6 6 18",
+        cutlery: "M4 3v6a2 2 0 0 0 4 0V3M6 3v18M18 3v18M18 3c-4 2-4 9 0 9",
     };
     return (<svg aria-hidden="true" viewBox="0 0 24 24" className={`shrink-0 overflow-visible ${className}`}>
       <path d={paths[type]} fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8"/>
@@ -96,13 +98,10 @@ function obterMensagemOrigemLocalizacao(status) {
     if (status === "ready") {
         return "Restaurantes ordenados pela sua localização atual.";
     }
-    if (status === "manual") {
-        return "Restaurantes ordenados pelo local informado.";
-    }
     if (status === "loading") {
         return "Buscando sua localização para carregar os restaurantes mais próximos.";
     }
-    return "Informe bairro, cidade ou CEP para encontrar restaurantes próximos.";
+    return "Ative a localização do navegador para encontrar restaurantes próximos.";
 }
 function obterCamposRestaurante(restaurant) {
     return [
@@ -185,9 +184,7 @@ export default function DashboardPage() {
     const [message, setMessage] = useState("");
     const [updatingFavorite, setUpdatingFavorite] = useState("");
     const [localizacaoCliente, setLocalizacaoCliente] = useState(null);
-    const [localizacaoManual, setLocalizacaoManual] = useState("");
-    const [localizacaoManualAplicada, setLocalizacaoManualAplicada] = useState("");
-    const [raioKm, setRaioKm] = useState("5");
+    const [raioKm, setRaioKm] = useState("20");
     const [statusLocalizacao, setStatusLocalizacao] = useState("checking");
     const [carregandoRestaurantes, setCarregandoRestaurantes] = useState(true);
     useEffect(() => {
@@ -244,11 +241,11 @@ export default function DashboardPage() {
     }, [debouncedQuery]);
     useEffect(() => {
         async function loadNearbyRestaurants() {
-            if (["checking", "loading"].includes(statusLocalizacao) && !localizacaoCliente && !localizacaoManualAplicada) {
+            if (["checking", "loading"].includes(statusLocalizacao) && !localizacaoCliente) {
                 setCarregandoRestaurantes(false);
                 return;
             }
-            if (!localizacaoCliente && !localizacaoManualAplicada) {
+            if (!localizacaoCliente) {
                 setNearbyRestaurantItems([]);
                 setCarregandoRestaurantes(false);
                 return;
@@ -259,9 +256,6 @@ export default function DashboardPage() {
                 if (localizacaoCliente) {
                     endpoint.set("latitude", String(localizacaoCliente.latitude));
                     endpoint.set("longitude", String(localizacaoCliente.longitude));
-                }
-                else if (localizacaoManualAplicada) {
-                    endpoint.set("localizacao", localizacaoManualAplicada);
                 }
                 if (raioKm !== "todos") {
                     endpoint.set("raio_km", raioKm);
@@ -280,7 +274,7 @@ export default function DashboardPage() {
             }
         }
         loadNearbyRestaurants();
-    }, [localizacaoCliente, localizacaoManualAplicada, raioKm, statusLocalizacao]);
+    }, [localizacaoCliente, raioKm, statusLocalizacao]);
     useEffect(() => {
         let cancelado = false;
         function solicitarLocalizacao() {
@@ -294,7 +288,6 @@ export default function DashboardPage() {
                     latitude: Number(posicao.coords.latitude.toFixed(7)),
                     longitude: Number(posicao.coords.longitude.toFixed(7)),
                 });
-                setLocalizacaoManualAplicada("");
                 setStatusLocalizacao("ready");
             }, () => {
                 setStatusLocalizacao("denied");
@@ -415,17 +408,9 @@ export default function DashboardPage() {
             return distanciaA - distanciaB;
         })
         .slice(0, 6), [nearbyRestaurantItems, raioKm]);
-    function buscarPorLocalizacaoManual(event) {
-        event.preventDefault();
-        const localizacao = localizacaoManual.trim();
-        if (!localizacao) {
-            setStatusLocalizacao("idle");
-            setLocalizacaoManualAplicada("");
-            return;
-        }
-        setLocalizacaoCliente(null);
-        setLocalizacaoManualAplicada(localizacao);
-        setStatusLocalizacao("manual");
+    function limparBusca() {
+        setQuery("");
+        setDebouncedQuery("");
     }
     async function alternarFavorito(id) {
         const atual = [...restaurants, ...searchRestaurants, ...nearbyRestaurantItems].find((restaurant) => restaurant.id === id);
@@ -450,12 +435,15 @@ export default function DashboardPage() {
         }
     }
     return (<main className="min-h-screen bg-white text-app-cafe-profundo">
-      <section className="border-b border-app-baunilha-dourada/50 bg-white px-5 py-5">
+      <section className="px-5 py-5">
         <div className="mx-auto max-w-7xl">
           <label className="campo-busca-app mx-auto flex h-12 max-w-xl items-center gap-3 rounded-[8px] border border-app-baunilha-dourada bg-white px-4 text-app-mocha shadow-sm">
             <Icon type="search" className="h-5 w-5 shrink-0"/>
             <span className="sr-only">{ui("Buscar pratos ou restaurantes")}</span>
             <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={ui("Buscar")} className="input-busca-app h-full min-w-0 flex-1 bg-transparent text-sm text-app-cafe-profundo outline-none placeholder:text-app-cinza"/>
+            {query ? <button type="button" onClick={limparBusca} aria-label={ui("Limpar busca")} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-app-mocha transition hover:bg-app-chantilly hover:text-app-cafe-profundo">
+              <Icon type="close" className="h-4 w-4"/>
+            </button> : null}
           </label>
 
           <div className="hidden">
@@ -473,7 +461,6 @@ export default function DashboardPage() {
                 <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">{ui("Resultado da busca")}</p>
                 <p className="mt-1 text-sm font-semibold text-app-cafe-profundo">{searchResults.length ? ui("{0} restaurante(s) encontrado(s)", [searchResults.length]) : ui("Nenhum restaurante encontrado")}</p>
               </div>
-              <button type="button" onClick={() => setQuery("")} className="rounded-[8px] border border-app-baunilha-dourada px-3 py-2 text-[11px] font-bold uppercase text-app-mocha transition hover:bg-app-chantilly">{ui("Limpar")}</button>
             </div>
 
             <div className="mt-3 rounded-[12px] border border-app-baunilha-dourada/60 bg-app-chantilly/45 p-3">
@@ -510,7 +497,7 @@ export default function DashboardPage() {
                 return (
                   <Link key={restaurant.id} href={`/cliente/restaurantes/${restaurant.id}`} className="resultado-busca-restaurante group flex items-center gap-3 rounded-lg p-2 transition">
                     <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-[8px] bg-white ring-1 ring-app-baunilha-dourada/55">
-                      {restaurant.imageUrl ? (<Image src={restaurant.imageUrl} alt={restaurant.name} fill sizes="56px" className="object-contain p-1.5 transition group-hover:scale-105"/>) : (<div className="flex h-full items-center justify-center text-[10px] font-semibold text-app-mocha">{ui("Appono")}</div>)}
+                      {restaurant.imageUrl ? (<Image src={restaurant.imageUrl} alt={restaurant.name} fill sizes="56px" className="object-contain p-1.5 transition group-hover:scale-105"/>) : (<div className="flex h-full items-center justify-center bg-app-creme-leve text-app-caramelo-torrado"><Icon type="cutlery" className="h-6 w-6" /></div>)}
                     </div>
                     <div className="min-w-0 flex-1">
                       <h3 className="truncate text-sm font-bold text-app-cafe-profundo">{restaurant.name}</h3>
@@ -531,14 +518,13 @@ export default function DashboardPage() {
 
       {highlightedRestaurants.length ? <section className="mx-auto max-w-7xl px-5 py-10">
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">{ui("Restaurantes")}</p>
-          <h2 className="mt-2 text-3xl font-semibold text-app-cafe-profundo sm:text-4xl">{ui("Mais Curtidos")}</h2>
+          <h2 className="text-3xl font-semibold text-app-cafe-profundo sm:text-4xl">{ui("Restaurantes mais curtidos")}</h2>
         </div>
         <div className="mt-6 grid gap-3 lg:grid-cols-3">
           {highlightedRestaurants.map((restaurant, index) => <article key={restaurant.id} className="group relative min-w-0 rounded-[8px] border border-app-baunilha-dourada bg-white p-2.5 shadow-sm transition hover:-translate-y-0.5 hover:border-app-caramelo-torrado/55 hover:shadow-md">
             <Link href={`/cliente/restaurantes/${restaurant.id}`} className="flex min-w-0 gap-3" aria-label={`Ver ${restaurant.name}`}>
-              <div className="restaurant-most-liked-logo relative h-24 w-24 shrink-0 overflow-hidden rounded-[8px] bg-white ring-1 ring-app-baunilha-dourada/45">
-                {restaurant.imageUrl ? <Image src={restaurant.imageUrl} alt={restaurant.name} fill sizes="96px" className="object-contain p-2 transition duration-300 group-hover:scale-105"/> : <div className="flex h-full items-center justify-center bg-app-baunilha-dourada/45 px-2 text-center text-xs font-medium leading-4 text-app-mocha">{ui("Imagem em breve")}</div>}
+              <div className="restaurant-most-liked-logo relative h-24 w-24 shrink-0 overflow-hidden rounded-[8px] bg-white ring-2 ring-app-baunilha-dourada/70">
+                {restaurant.imageUrl ? <Image src={restaurant.imageUrl} alt={restaurant.name} fill sizes="96px" className="object-contain p-2 transition duration-300 group-hover:scale-105"/> : <div className="flex h-full items-center justify-center bg-app-creme-leve text-app-caramelo-torrado"><Icon type="cutlery" className="h-7 w-7" /></div>}
               </div>
               <div className="min-w-0 flex-1 py-0.5 pr-7">
                 <div className="flex items-center gap-2"><span className="rounded-full bg-app-cafe-profundo px-2 py-0.5 text-[10px] font-bold text-app-creme-leve">#{index + 1}</span><span className="truncate text-[11px] font-bold uppercase tracking-[0.12em] text-app-caramelo-torrado">{ui("Mais curtido")}</span></div>
@@ -565,35 +551,22 @@ export default function DashboardPage() {
 
       <section className="mx-auto max-w-7xl px-5 py-8">
         <div className="rounded-[26px] bg-app-cafe-profundo px-7 py-8 text-app-creme-leve shadow-sm sm:px-10 sm:py-10">
-          <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-app-baunilha-dourada">{ui("Localização")}</p>
-          <h2 className="mt-2 text-4xl font-medium sm:text-5xl">{ui("Perto de Você")}</h2>
-          <p className="mt-3 max-w-xl text-sm leading-6 text-app-creme-suave">
-            {ui(obterMensagemOrigemLocalizacao(statusLocalizacao))}
-          </p>
-        </div>
-
-        <div className="mt-5 grid gap-3 sm:grid-cols-[minmax(0,1fr)_220px]">
-          <label className="order-2 flex h-12 items-center rounded-full bg-white px-5 text-app-cafe-profundo shadow-sm ring-1 ring-app-baunilha-dourada/60">
-            <span className="sr-only">{ui("Raio de busca")}</span>
-            <select value={raioKm} onChange={(event) => setRaioKm(event.target.value)} className="h-full min-w-0 flex-1 bg-transparent text-sm font-semibold outline-none">
-              <option value="2">{ui("Até 2 km")}</option>
-              <option value="5">{ui("Até 5 km")}</option>
-              <option value="10">{ui("Até 10 km")}</option>
-              <option value="20">{ui("Até 20 km")}</option>
-              <option value="todos">{ui("Qualquer distância")}</option>
-            </select>
-          </label>
-
-        <form onSubmit={buscarPorLocalizacaoManual} className="order-1 flex h-12 min-w-0 items-center gap-2 rounded-full bg-white px-3 text-app-cafe-profundo shadow-sm ring-1 ring-app-baunilha-dourada/60 transition focus-within:ring-app-caramelo-torrado sm:gap-3 sm:px-4">
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-app-chantilly text-app-caramelo-torrado">
-            <Icon type="pin" className="h-5 w-5"/>
-          </span>
-          <label className="flex h-full min-w-0 flex-1 items-center">
-            <span className="sr-only">{ui("Buscar por bairro, cidade ou CEP")}</span>
-            <input value={localizacaoManual} onChange={(event) => setLocalizacaoManual(event.target.value)} placeholder={ui("Bairro, cidade ou CEP")} className="h-full min-w-0 flex-1 bg-transparent text-base outline-none placeholder:text-app-cinza/70"/>
-          </label>
-          <button type="submit" className="h-9 shrink-0 rounded-full px-4 text-xs font-bold uppercase tracking-[0.12em] text-app-creme-leve transition hover:text-app-baunilha-dourada">{ui("Buscar")}</button>
-        </form>
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-4xl font-medium sm:text-5xl">{ui("Perto de Você")}</h2>
+              <p className="mt-3 max-w-xl text-sm leading-6 text-app-creme-suave">{ui(obterMensagemOrigemLocalizacao(statusLocalizacao))}</p>
+            </div>
+            <label className="nearby-radius-control flex h-11 w-full max-w-56 items-center rounded-[8px] border border-app-baunilha-dourada/60 px-4 text-app-creme-leve sm:w-56">
+              <span className="sr-only">{ui("Raio de busca")}</span>
+              <select value={raioKm} onChange={(event) => setRaioKm(event.target.value)} className="nearby-radius-select h-full min-w-0 flex-1 bg-transparent text-sm font-semibold outline-none">
+                <option value="2">{ui("Até 2 km")}</option>
+                <option value="5">{ui("Até 5 km")}</option>
+                <option value="10">{ui("Até 10 km")}</option>
+                <option value="20">{ui("Até 20 km")}</option>
+                <option value="todos">{ui("Qualquer distância")}</option>
+              </select>
+            </label>
+          </div>
         </div>
 
         {statusLocalizacao === "denied" ? (
@@ -604,13 +577,13 @@ export default function DashboardPage() {
           ) : null}
 
         <div className="pt-8">
-            {carregandoRestaurantes && (statusLocalizacao === "loading" || localizacaoCliente || localizacaoManualAplicada) ? (
-              <LocationEmptyState title={ui("Carregando restaurantes próximos")} description={ui("Estamos calculando a distância dos restaurantes para ordenar a lista.")}/>
-            ) : (localizacaoCliente || localizacaoManualAplicada) && nearbyRestaurants.length ? (<div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {carregandoRestaurantes && (statusLocalizacao === "loading" || localizacaoCliente) ? (
+              null
+            ) : localizacaoCliente && nearbyRestaurants.length ? (<div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
                 {nearbyRestaurants.map((restaurant) => (<article key={restaurant.id} className="group relative min-w-0 rounded-[8px] border border-app-baunilha-dourada bg-white p-2.5 shadow-sm transition hover:-translate-y-0.5 hover:border-app-caramelo-torrado/55 hover:shadow-md">
                     <Link href={`/cliente/restaurantes/${restaurant.id}`} className="flex min-w-0 gap-3" aria-label={`Ver ${restaurant.name}`}>
-                      <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-[8px] bg-white">
-                        {restaurant.imageUrl ? (<Image src={restaurant.imageUrl} alt={restaurant.name} fill sizes="96px" className="object-cover transition duration-300 group-hover:scale-105"/>) : (<div className="flex h-full items-center justify-center bg-app-baunilha-dourada/45 px-2 text-center text-xs font-medium leading-4 text-app-mocha">{ui("Imagem em breve")}</div>)}
+                      <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-[8px] bg-white ring-2 ring-app-baunilha-dourada/70">
+                        {restaurant.imageUrl ? (<Image src={restaurant.imageUrl} alt={restaurant.name} fill sizes="96px" className="object-cover transition duration-300 group-hover:scale-105"/>) : (<div className="flex h-full items-center justify-center bg-app-creme-leve text-app-caramelo-torrado"><Icon type="cutlery" className="h-7 w-7" /></div>)}
                       </div>
 
                       <div className="min-w-0 flex-1 py-0.5 pr-7">
@@ -649,14 +622,13 @@ export default function DashboardPage() {
                       <Icon type="heart" filled={restaurant.isFavorite} className="h-full w-full"/>
                     </button>
                   </article>))}
-              </div>) : (localizacaoCliente || localizacaoManualAplicada) ? (<LocationEmptyState title={ui("Nenhum restaurante neste raio")} description={ui("Tente aumentar o raio de busca ou usar outra cidade, bairro ou CEP.")}/>) : (<LocationEmptyState title={ui("Permita sua localização")} description={ui("Ao autorizar o navegador, a Appono carrega automaticamente os restaurantes mais próximos e permite filtrar por raio.")}/>)}
+              </div>) : localizacaoCliente ? (<LocationEmptyState title={ui("Nenhum restaurante neste raio")} description={ui("Tente aumentar o raio de busca para encontrar mais opções.")}/>) : statusLocalizacao === "denied" ? (<LocationEmptyState title={ui("Permita sua localização")} description={ui("Ao autorizar o navegador, a Appono carrega automaticamente os restaurantes mais próximos e permite filtrar por raio.")}/>) : null}
           </div>
       </section>
 
       <section className="mx-auto max-w-7xl px-5 py-10">
         <div>
-          <p className="text-[10px] font-bold uppercase text-app-caramelo-torrado">{ui("Descobrir")}</p>
-          <h2 className="mt-2 text-3xl font-semibold text-app-cafe-profundo sm:text-4xl">{ui("Encontre algo diferente")}</h2>
+          <h2 className="text-3xl font-semibold text-app-cafe-profundo sm:text-4xl">{ui("Encontre algo diferente")}</h2>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-app-cinza">{ui("Conheça restaurantes pelo cardápio, avaliações e faixa de preço, sem precisar usar a busca.")}</p>
         </div>
         {colecoesDescoberta.length ? <div className="mt-7 grid gap-7 lg:grid-cols-2">
@@ -675,8 +647,7 @@ export default function DashboardPage() {
 
       <section className="mx-auto max-w-7xl px-5 py-12">
         <div className="text-center">
-          <p className="text-[10px] font-bold uppercase text-app-caramelo-torrado">{ui("A arte da escolha")}</p>
-          <h2 className="mt-3 text-4xl font-medium text-app-cafe-profundo sm:text-5xl">{ui("Especialidades em Destaque")}</h2>
+          <h2 className="text-4xl font-medium text-app-cafe-profundo sm:text-5xl">{ui("Especialidades em Destaque")}</h2>
         </div>
 
         <div className="mt-10">

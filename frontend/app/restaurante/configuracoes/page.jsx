@@ -3,7 +3,6 @@ import { useInterface } from "@/lib/use-interface";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { SeletorTema } from "@/components/configuracoes/seletor-tema";
 import { BotaoIdioma } from "@/components/configuracoes/botao-idioma";
 import { apiRequest } from "@/lib/api";
 import { atualizarNomeSessao, encerrarSessao } from "@/lib/session";
@@ -256,7 +255,6 @@ export default function RestaurantSettingsPage() {
         </div>
 
         <BotaoIdioma />
-        <SeletorTema />
 
         <div className="mx-auto mt-7 max-w-md border-t border-app-baunilha-dourada/60 pt-5 text-center">
           <button type="button" onClick={logout} className="inline-flex items-center gap-3 text-sm font-bold text-app-vermelho-erro transition hover:text-app-cafe-profundo">

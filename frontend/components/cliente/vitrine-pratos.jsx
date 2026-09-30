@@ -22,11 +22,14 @@ function FotoPrato({ src, nome }) {
 
 function LogoRestaurante({ restaurante }) {
   const [falhou, setFalhou] = useState(false);
-  const iniciais = restaurante.name?.trim().split(/\s+/).slice(0, 2).map((parte) => parte[0]).join("") || "AP";
   return <span className="dish-restaurant-logo" title={restaurante.name}>
     {restaurante.imageUrl && !falhou
       ? <Image src={restaurante.imageUrl} alt={restaurante.name} fill sizes="36px" className="dish-logo-image" onError={() => setFalhou(true)} />
-      : <span aria-label={restaurante.name}>{iniciais}</span>}
+      : <span className="dish-logo-placeholder" aria-label={restaurante.name}>
+        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M4 3v6a2 2 0 0 0 4 0V3M6 3v18M18 3v18M18 3c-4 2-4 9 0 9" />
+        </svg>
+      </span>}
   </span>;
 }
 
