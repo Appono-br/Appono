@@ -4,10 +4,19 @@ const {Router}=require("express");
 const {supabaseAdmin:db,createUserSupabaseClient}=require("../lib/supabase");
 const {requireAuth,requireRole}=require("../middleware/auth");
 const {exigirPlanoProfissional}=require("../services/planos-restaurante");
-const {validarCampanha,calcularMetricas}=require("../domain/campaigns");
+const {validarCampanha,validarPeriodoMetricas,analisarDemandaCampanha,gerarSugestoesCampanha,calcularMetricas}=require("../domain/campaigns");
 const campaignsRouter=Router();
-const run=fn=>async(req,res)=>{try{res.set("Cache-Control","no-store");await fn(req,res);}catch(e){res.status(e.statusCode??(e.code==="PT409"?409:400)).json({error:e.message,code:e.code});}};
+const run=fn=>async(req,res)=>{try{res.set("Cache-Control","no-store");await fn(req,res);}catch(e){res.status(e.statusCode??(e.code==="PT409"?409:e.code==="PT429"?429:400)).json({error:e.message,code:e.code});}};
 async function result(q){const {data,error}=await q;if(error)throw error;return data;}
+async function resultAll(makeQuery, pageSize = 1000, maxRows = 100000) {
+ const rows=[];
+ for(let from=0;from<maxRows;from+=pageSize){
+  const page=await result(makeQuery().range(from,from+pageSize-1));
+  rows.push(...(page??[]));
+  if(!page||page.length<pageSize)return rows;
+ }
+ const error=new Error("Consulta excede o limite operacional. Reduza o período.");error.statusCode=422;throw error;
+}
 async function restaurante(res){const r=await result(db.from("restaurantes").select("id_restaurante,configuracao_operacao").eq("id_auth",res.locals.user.id).single());await exigirPlanoProfissional(r.id_restaurante);return r;}
 async function publicas(id) {
  let q=db.from("campanhas_inteligentes_restaurante").select("*,campanhas_inteligentes_produtos(id_produto)").in("status",["ATIVA","AGENDADA"]).eq("precisa_configuracao",false).lte("inicio_em",new Date().toISOString()).gt("fim_em",new Date().toISOString());
@@ -51,12 +60,10 @@ campaignsRouter.get("/ofertas",requireRole("cliente"),run(async(req,res)=>{
 campaignsRouter.post("/:id/eventos",requireRole("cliente"),run(async(req,res)=>{
  const tipo=req.body.tipo;if(!["IMPRESSION","CLICK","RESERVA_INICIADA"].includes(tipo))throw new Error("Evento inválido.");
  const id=Number(req.params.id);
- if(!(await publicas()).some(c=>c.id_campanha===id))return res.json({registrado:false});
- const chave=crypto.createHash("sha256").update(res.locals.user.id+":"+new Date().toISOString().slice(0,10)).digest("hex");
- const {count,error}=await db.from("eventos_campanha_inteligente").select("id_evento",{count:"exact",head:true}).eq("id_cliente",res.locals.profileId).gte("criado_em",new Date(Date.now()-3600000).toISOString());
- if(error)throw error;if(count>=200)return res.status(429).json({error:"Limite de eventos atingido."});
- const {error:err}=await db.from("eventos_campanha_inteligente").insert({id_campanha:id,tipo,id_cliente:res.locals.profileId,chave_deduplicacao:chave});
- if(err&&err.code!=="23505")throw err;res.json({registrado:true});
+ const hoje=new Intl.DateTimeFormat("en-CA",{timeZone:"America/Sao_Paulo",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
+ const chave=crypto.createHash("sha256").update(res.locals.profileId+":"+hoje).digest("hex");
+ const registrado=await result(db.rpc("registrar_evento_campanha_atomico",{p_actor:res.locals.user.id,p_id_cliente:res.locals.profileId,p_id_campanha:id,p_tipo:tipo,p_chave_deduplicacao:chave}));
+ res.json({registrado:Boolean(registrado)});
 }));
 campaignsRouter.get("/meus-beneficios",requireRole("cliente"),run(async(req,res)=>{
  const reservas=await result(db.from("reservas").select("id_reserva").eq("id_cliente",res.locals.profileId));
@@ -80,30 +87,30 @@ async function salvar(req,res,id){
 campaignsRouter.get("/sugestoes",run(async(req,res)=>{
  const r=await restaurante(res);
  const user=createUserSupabaseClient(res.locals.accessToken);
- const demanda=await result(user.rpc("metricas_demanda_rotina_restaurante",{p_inicio:new Date().toISOString().slice(0,10),p_fim:new Date(Date.now()+30*86400000).toISOString().slice(0,10)}));
+ const formatarData=(data)=>new Intl.DateTimeFormat("en-CA",{timeZone:"America/Sao_Paulo",year:"numeric",month:"2-digit",day:"2-digit"}).format(data);
+ const fim=formatarData(new Date());
+ const inicio=formatarData(new Date(Date.now()-89*86400000));
+ const demanda=await result(user.rpc("metricas_demanda_rotina_restaurante",{p_inicio:inicio,p_fim:fim}));
  const produtos=await result(db.from("produtos").select("id_produto,nome,preco").eq("id_restaurante",r.id_restaurante).eq("disponivel",true).eq("arquivado",false).order("preco").limit(30));
- const sugestoes=(demanda?.itens??[]).filter(i=>i.demanda_estimada>=(demanda.coorte_minima??5)).slice(0,6).map(i=>{
- const faixa=String(i.faixa_horario).toLowerCase();const hora=faixa.includes("noite")||faixa.includes("jantar")?19:faixa.includes("tarde")?15:12;
- const produto=produtos[0];
- return {mensagem:"Demanda agregada em "+i.faixa_horario,limitacao:"Revise o benefício e o horário de funcionamento. Demanda não garante reservas.",
- rascunho:{titulo:"Oferta "+(produto?.nome??"especial"),tipo_beneficio:"DESCONTO_PERCENTUAL",valor_beneficio:5,produtos:produto?[produto.id_produto]:[],
- inicio_em:i.data+"T"+hora+":00:00-03:00",fim_em:i.data+"T"+(hora+2)+":00:00-03:00",status:"RASCUNHO",limite_usos:10}};
- });
- res.json({sugestoes});
+ const analise=analisarDemandaCampanha(demanda);
+ const sugestoes=gerarSugestoesCampanha(demanda,produtos);
+ res.json({tipo:"REGRAS_FIXAS",periodo:{inicio,fim},coorte_minima:Math.max(5,Number(demanda?.coorte_minima)||5),analise,sugestoes,
+  motivo_sem_sugestao:sugestoes.length?null:produtos.length?"Ainda não há sinais agregados suficientes dos últimos 90 dias para sugerir uma campanha.":"Cadastre produtos disponíveis para receber sugestões de campanha."});
 }));
 campaignsRouter.get("/:id/resgates",run(async(req,res)=>{
  const r=await restaurante(res);await result(db.from("campanhas_inteligentes_restaurante").select("id_campanha").eq("id_campanha",req.params.id).eq("id_restaurante",r.id_restaurante).single());
- res.json({resgates:await result(db.from("resgates_campanha_inteligente").select("*").eq("id_campanha",req.params.id).order("criado_em",{ascending:false}))});
+ res.json({resgates:await resultAll(()=>db.from("resgates_campanha_inteligente").select("*").eq("id_campanha",req.params.id).order("criado_em",{ascending:false}))});
 }));
 campaignsRouter.post("/resgates/:id/entregar",run(async(req,res)=>res.json({resgate:await result(db.rpc("entregar_beneficio_campanha",{p_actor:res.locals.user.id,p_resgate:Number(req.params.id)}))})));
 campaignsRouter.get("/:id/metricas",run(async(req,res)=>{
  const r=await restaurante(res);
  const campanha=await result(db.from("campanhas_inteligentes_restaurante").select("*").eq("id_campanha",req.params.id).eq("id_restaurante",r.id_restaurante).single());
- const inicio=req.query.inicio?new Date(req.query.inicio).toISOString():"2000-01-01T00:00:00Z",fim=req.query.fim?new Date(req.query.fim).toISOString():new Date().toISOString();
- const eventos=await result(db.from("eventos_campanha_inteligente").select("tipo,chave_deduplicacao").eq("id_campanha",campanha.id_campanha).gte("criado_em",inicio).lte("criado_em",fim));
- const resgates=await result(db.from("resgates_campanha_inteligente").select("*").eq("id_campanha",campanha.id_campanha).gte("criado_em",inicio).lte("criado_em",fim));
- const ids=resgates.map(x=>x.id_pedido).filter(Boolean);
- const pagamentos=ids.length?await result(db.from("pagamentos").select("id_pedido,status_pagamento,valor,valor_pago,valor_reembolsado").in("id_pedido",ids)):[];
- res.json({...calcularMetricas(eventos,resgates,pagamentos),usos:campanha.usos_confirmados,limite_usos:campanha.limite_usos});
+ const periodo=validarPeriodoMetricas(req.query.inicio,req.query.fim,campanha.criado_em);
+ const eventos=await resultAll(()=>db.from("eventos_campanha_inteligente").select("tipo,id_cliente,chave_deduplicacao").eq("id_campanha",campanha.id_campanha).gte("criado_em",periodo.inicio).lte("criado_em",periodo.fim));
+ const resgates=await resultAll(()=>db.from("resgates_campanha_inteligente").select("id_resgate,id_pedido,status,entregue_em,valor_beneficio,criado_em").eq("id_campanha",campanha.id_campanha).gte("criado_em",periodo.inicio).lte("criado_em",periodo.fim));
+ const ids=[...new Set(resgates.map(x=>x.id_pedido).filter(Boolean))];
+ const pagamentos=[];
+ for(let i=0;i<ids.length;i+=100){pagamentos.push(...await resultAll(()=>db.from("pagamentos").select("id_pedido,status_pagamento,valor,valor_pago,valor_reembolsado").in("id_pedido",ids.slice(i,i+100)),100,10000));}
+ res.json({...calcularMetricas(eventos,resgates,pagamentos),periodo,usos:campanha.usos_confirmados,limite_usos:campanha.limite_usos});
 }));
 module.exports={campaignsRouter,publicas};

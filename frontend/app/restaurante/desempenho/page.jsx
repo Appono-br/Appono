@@ -25,52 +25,48 @@ export default function RestaurantPerformancePage() {
         return storedSession ? JSON.parse(storedSession) : null;
     });
     const [dados, setDados] = useState({ items: [], total: 0, metricas: {} });
-    const [mensagem, setMensagem] = useState("Carregando avaliações...");
-    const [demandaRotina, setDemandaRotina] = useState({ itens: [], coorte_minima: 5 });
-    const [mensagemDemanda, setMensagemDemanda] = useState("Carregando previsão de demanda...");
+    const [estadoAvaliacoes, setEstadoAvaliacoes] = useState("carregando");
+    const [erroAvaliacoes, setErroAvaliacoes] = useState("");
     const [periodo, setPeriodo] = useState(30);
     const [desempenho, setDesempenho] = useState(null);
+    const [estadoDesempenho, setEstadoDesempenho] = useState("carregando");
     const isRestaurant = session?.type === "restaurant";
     useEffect(() => {
         if (!isRestaurant) return;
         const controller = new AbortController();
-        apiRequest("/restaurantes/me/avaliacoes?page_size=50", { signal: controller.signal }).then((resposta) => { setDados(resposta); setMensagem(""); }).catch((error) => {
-            if (error?.name !== "AbortError") setMensagem(error instanceof Error ? error.message : "Não foi possível carregar as avaliações.");
-        });
-        return () => controller.abort();
+        let expirou = false;
+        const timeout = window.setTimeout(() => { expirou = true; controller.abort(); }, 10000);
+        apiRequest("/restaurantes/me/avaliacoes?page_size=50", { signal: controller.signal }).then((resposta) => {
+            setDados(resposta ?? { items: [], total: 0, metricas: {} });
+            setEstadoAvaliacoes((resposta?.total ?? 0) > 0 ? "com_dados" : "vazio");
+        }).catch((error) => {
+            if (error?.name !== "AbortError" || expirou) {
+                setEstadoAvaliacoes("erro");
+                setErroAvaliacoes(expirou ? "As avaliações demoraram demais para carregar. Tente novamente." : error instanceof Error ? error.message : "Não foi possível carregar as avaliações.");
+            }
+        }).finally(() => window.clearTimeout(timeout));
+        return () => { window.clearTimeout(timeout); controller.abort(); };
     }, [isRestaurant]);
     useEffect(() => {
         if (!isRestaurant) return;
         const controller = new AbortController();
-        const inicio = new Date();
-        const fim = new Date();
-        fim.setDate(fim.getDate() + 30);
-        const formatarData = (data) => {
-            const ano = data.getFullYear();
-            const mes = String(data.getMonth() + 1).padStart(2, "0");
-            const dia = String(data.getDate()).padStart(2, "0");
-            return `${ano}-${mes}-${dia}`;
-        };
-        apiRequest(`/rotina/insights/demanda?inicio=${formatarData(inicio)}&fim=${formatarData(fim)}`, { signal: controller.signal })
-            .then((resposta) => { setDemandaRotina(resposta ?? { itens: [], coorte_minima: 5 }); setMensagemDemanda(""); })
-            .catch((error) => {
-                if (error?.name !== "AbortError") setMensagemDemanda(error?.code === "ROUTINE_INSIGHTS_DISABLED"
-                    ? "Previsão de demanda em ativação para este ambiente."
-                    : "Não foi possível atualizar a previsão de demanda agora.");
-            });
-        return () => controller.abort();
-    }, [isRestaurant]);
-    useEffect(() => {
-        if (!isRestaurant) return;
-        const controller = new AbortController();
-        apiRequest(`/restaurante/desempenho?dias=${periodo}`, { signal: controller.signal, cacheTtlMs: 0 }).then(setDesempenho).catch(() => setDesempenho(null));
-        return () => controller.abort();
+        let expirou = false;
+        const timeout = window.setTimeout(() => { expirou = true; controller.abort(); }, 10000);
+        apiRequest(`/restaurante/desempenho?dias=${periodo}`, { signal: controller.signal, cacheTtlMs: 0 }).then((resultado) => {
+            setDesempenho(resultado);
+            setEstadoDesempenho("pronto");
+        }).catch((error) => {
+            if (error?.name !== "AbortError" || expirou) setEstadoDesempenho("erro");
+        }).finally(() => window.clearTimeout(timeout));
+        return () => { window.clearTimeout(timeout); controller.abort(); };
     }, [isRestaurant, periodo]);
     const volumes = useMemo(() => {
         const meses = Array.from({ length: 6 }, (_, index) => { const data = new Date(); data.setMonth(data.getMonth() - (5 - index)); return { chave: `${data.getFullYear()}-${data.getMonth()}`, label: data.toLocaleDateString(localeUI, { month: "short" }), total: 0 }; });
         for (const item of dados.items ?? []) { const data = new Date(item.created_at); const ponto = meses.find((mes) => mes.chave === `${data.getFullYear()}-${data.getMonth()}`); if (ponto) ponto.total += 1; }
         return meses;
     }, [dados.items, localeUI]);
+    const comentarios = useMemo(() => (dados.items ?? []).filter((item) => item.comentario), [dados.items]);
+    const alterarPeriodo = (valor) => { setEstadoDesempenho("carregando"); setPeriodo(Number(valor)); };
     if (!isRestaurant) {
         return (<main className="flex min-h-screen items-center justify-center bg-white px-5 text-app-cafe-profundo">
         <section className="w-full max-w-lg rounded-[8px] bg-app-creme-leve p-8 text-center shadow-sm ring-1 ring-app-baunilha-dourada">
@@ -92,15 +88,16 @@ export default function RestaurantPerformancePage() {
         </div>
 
         <section className="mt-8 rounded-xl border border-app-baunilha-dourada/60 p-6">
-          <div className="flex flex-wrap items-center justify-between gap-4"><div><h2 className="text-2xl font-semibold">{ui("Indicadores do per?odo")}</h2><p className="mt-1 text-sm text-app-cinza">{ui("Calculados com reservas, pedidos e avalia??es deste restaurante.")}</p></div><select value={periodo} onChange={(e) => setPeriodo(Number(e.target.value))} className="rounded-lg border border-app-baunilha-dourada px-4 py-2"><option value="7">7 dias</option><option value="30">30 dias</option><option value="90">90 dias</option></select></div>
-          {!desempenho ? <p className="mt-5 text-sm text-app-cinza">{ui("Carregando indicadores...")}</p> : !desempenho.possui_amostra ? <p className="mt-5 rounded-lg bg-app-creme-leve p-4 text-sm text-app-cinza">{ui("Ainda n?o h? opera??es neste per?odo para calcular desempenho.")}</p> : <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {[["Reservas criadas", desempenho.reservas.criadas], ["Reservas conclu?das", desempenho.reservas.concluidas], ["Cancelamentos", desempenho.reservas.canceladas], ["N?o comparecimentos", desempenho.reservas.nao_comparecimentos], ["Pedidos criados", desempenho.pedidos.criados], ["Pedidos entregues", desempenho.pedidos.entregues], ["Taxa de conclus?o", desempenho.reservas.taxa_conclusao == null ? "Sem amostra" : `${desempenho.reservas.taxa_conclusao}%`], ["Ticket m?dio", desempenho.pedidos.ticket_medio == null ? "Sem amostra" : new Intl.NumberFormat(localeUI, { style: "currency", currency: "BRL" }).format(desempenho.pedidos.ticket_medio)]].map(([label, valor]) => <article key={label} className="rounded-lg bg-app-creme-leve p-4"><p className="text-sm text-app-cinza">{ui(label)}</p><strong className="mt-2 block text-2xl">{ui(String(valor))}</strong></article>)}
+          <div className="flex flex-wrap items-center justify-between gap-4"><div><h2 className="text-2xl font-semibold">{ui("Indicadores do período")}</h2><p className="mt-1 text-sm text-app-cinza">{ui("Calculados com reservas, pedidos e avaliações deste restaurante.")}</p></div><select value={periodo} onChange={(e) => alterarPeriodo(e.target.value)} className="rounded-lg border border-app-baunilha-dourada px-4 py-2"><option value="7">7 dias</option><option value="30">30 dias</option><option value="90">90 dias</option></select></div>
+          {estadoDesempenho === "carregando" ? <p className="mt-5 text-sm text-app-cinza">{ui("Carregando indicadores...")}</p> : estadoDesempenho === "erro" ? <p role="alert" className="mt-5 rounded-lg bg-app-creme-leve p-4 text-sm text-app-cinza">{ui("Não foi possível carregar os indicadores agora.")}</p> : !desempenho?.possui_amostra ? <p className="mt-5 rounded-lg bg-app-creme-leve p-4 text-sm text-app-cinza">{ui("Ainda não há operações neste período para calcular desempenho.")}</p> : <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {[["Reservas criadas", desempenho.reservas.criadas], ["Reservas concluídas", desempenho.reservas.concluidas], ["Cancelamentos", desempenho.reservas.canceladas], ["Não comparecimentos", desempenho.reservas.nao_comparecimentos], ["Pedidos criados", desempenho.pedidos.criados], ["Pedidos entregues", desempenho.pedidos.entregues], ["Taxa de conclusão", desempenho.reservas.taxa_conclusao == null ? "Sem amostra" : `${desempenho.reservas.taxa_conclusao}%`], ["Ticket médio", desempenho.pedidos.ticket_medio == null ? "Sem amostra" : new Intl.NumberFormat(localeUI, { style: "currency", currency: "BRL" }).format(desempenho.pedidos.ticket_medio)]].map(([label, valor]) => <article key={label} className="rounded-lg bg-app-creme-leve p-4"><p className="text-sm text-app-cinza">{ui(label)}</p><strong className="mt-2 block text-2xl">{ui(String(valor))}</strong></article>)}
           </div>}
+          <div className="mt-6 border-t border-app-baunilha-dourada/60 pt-5"><p className="text-sm text-app-cinza">{ui("Para criar uma campanha, escolha uma sugestão da Appono quando houver dados agregados suficientes ou crie sua própria oferta.")}</p><Link href="/restaurante/campanhas#sugestoes-appono" className="mt-3 inline-flex rounded-lg bg-app-cafe-profundo px-4 py-2 text-sm font-semibold text-white">{ui("Ver sugestões para campanhas")}</Link></div>
         </section>
 
-        <section className="mt-10 grid gap-8 lg:grid-cols-[0.42fr_1fr]">
+        {estadoAvaliacoes === "com_dados" ? <><section className="mt-10 grid gap-8 lg:grid-cols-[0.42fr_1fr]">
           <article className="rounded-[8px] bg-white p-7 shadow-sm ring-1 ring-app-baunilha-dourada/45 sm:p-8">
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-app-mocha">{ui("Media geral")}</p>
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-app-mocha">{ui("Média geral")}</p>
             <div className="mt-8 flex items-end gap-3">
               <strong className="text-6xl font-medium leading-none text-app-cafe-profundo">
                 {ui(dados.metricas?.avaliacao_media?.toFixed(1) ?? "--")}
@@ -132,23 +129,12 @@ export default function RestaurantPerformancePage() {
           </article>
         </section>
 
-        <section className="mt-8 rounded-[8px] bg-app-creme-suave p-6 shadow-sm ring-1 ring-app-baunilha-dourada/60 sm:p-8">
+        {comentarios.length ? <section className="mt-8 rounded-[8px] bg-app-creme-suave p-6 shadow-sm ring-1 ring-app-baunilha-dourada/60 sm:p-8">
           <h2 className="text-2xl font-medium text-app-cafe-profundo">{ui("O que dizem os frequentadores")}</h2>
-
-          {mensagem ? <p className="mt-6 text-sm font-semibold text-app-mocha">{ui(mensagem)}</p> : null}
-          <div className="mt-8 grid gap-4 lg:grid-cols-2">{(dados.items ?? []).filter((item) => item.comentario).map((item) => <article key={item.id_avaliacao} className="rounded-[10px] bg-white p-5 ring-1 ring-app-baunilha-dourada/60"><p className="font-bold text-app-caramelo-torrado">{item.nota}/5</p><p className="mt-2 text-sm leading-6 text-app-mocha">{item.comentario}</p><p className="mt-3 text-xs text-app-cinza">{item.clientes?.nome ?? ui("Cliente Appono")}</p></article>)}</div>
-        </section>
-
-        <section className="mt-8 rounded-[8px] bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada/45 sm:p-8">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-            <div><p className="text-xs font-bold uppercase tracking-[0.18em] text-app-mocha">{ui("Demanda prevista")}</p><h2 className="mt-2 text-2xl font-medium text-app-cafe-profundo">{ui("Sinais agregados da Appono Rotina")}</h2></div>
-            <span className="text-xs text-app-cinza">{ui("Exibido apenas com coorte mínima de {0} clientes.", [demandaRotina.coorte_minima ?? 5])}</span>
-          </div>
-          {mensagemDemanda ? <p className="mt-5 text-sm text-app-cinza">{ui(mensagemDemanda)}</p> : null}
-          {!mensagemDemanda && !(demandaRotina.itens ?? []).length ? <p className="mt-5 rounded-[8px] bg-app-creme-leve p-4 text-sm text-app-cinza">{ui("Ainda não há volume agregado suficiente para exibir uma tendência. Isso não representa reservas garantidas.")}</p> : null}
-          <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">{(demandaRotina.itens ?? []).map((item) => <article key={`${item.data}-${item.faixa_horario}-${item.faixa_preco}`} className="rounded-[8px] border border-app-baunilha-dourada/60 p-4"><p className="text-xs font-bold uppercase tracking-[0.14em] text-app-caramelo-torrado">{new Date(`${item.data}T12:00:00`).toLocaleDateString(localeUI, { day: "2-digit", month: "short" })} · {ui(item.faixa_horario.replaceAll("_", " "))}</p><strong className="mt-3 block text-2xl text-app-cafe-profundo">{ui("{0} interesse(s)", [item.demanda_estimada])}</strong><p className="mt-2 text-sm text-app-cinza">{ui("Faixa de preço: {0}", [item.faixa_preco.replaceAll("_", " ")])}</p>{item.categorias?.length ? <p className="mt-1 text-sm text-app-cinza">{item.categorias.join(", ")}</p> : null}</article>)}</div>
-          <p className="mt-5 text-xs leading-5 text-app-cinza">{ui("A previsão é agregada e não identifica pessoas, endereços, alergias ou reservas individuais.")}</p>
-        </section>
+          <div className="mt-8 grid gap-4 lg:grid-cols-2">{comentarios.map((item) => <article key={item.id_avaliacao} className="rounded-[10px] bg-white p-5 ring-1 ring-app-baunilha-dourada/60"><p className="font-bold text-app-caramelo-torrado">{item.nota}/5</p><p className="mt-2 text-sm leading-6 text-app-mocha">{item.comentario}</p><p className="mt-3 text-xs text-app-cinza">{item.clientes?.nome ?? ui("Cliente Appono")}</p></article>)}</div>
+        </section> : null}</> : null}
+        {estadoAvaliacoes === "vazio" ? <p className="mt-8 text-sm text-app-cinza">{ui("Ainda não há avaliações recebidas.")}</p> : null}
+        {estadoAvaliacoes === "erro" ? <p role="alert" className="mt-8 text-sm text-app-cinza">{ui(erroAvaliacoes)}</p> : null}
 
         <p className="mt-8 text-sm text-app-cinza">{ui("As notas atuais representam a experiência geral. Categorias detalhadas serão disponibilizadas quando o formulário passar a coletar essas dimensões.")}</p>
       </section>

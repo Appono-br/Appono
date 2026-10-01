@@ -322,8 +322,8 @@ export default function RestaurantFinancialReportPage() {
         <section className="mt-8 rounded-[8px] bg-app-creme-leve p-6 shadow-sm ring-1 ring-app-baunilha-dourada/60 sm:p-8">
           <p className="text-xs font-bold text-app-caramelo-torrado">Mercado Pago</p>
           <h2 className="mt-2 text-2xl font-medium text-app-cafe-profundo">Conta de recebimento</h2>
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-app-mocha">A conex?o e as credenciais de recebimento s?o administradas nas configura??es do restaurante.</p>
-          <Link href="/restaurante/configuracoes/mercado-pago" className="mt-5 inline-flex rounded-full bg-app-cafe-profundo px-5 py-3 text-sm font-semibold text-white">Gerenciar conex?o</Link>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-app-mocha">A conexão e as credenciais de recebimento são administradas nas configurações do restaurante.</p>
+          <Link href="/restaurante/configuracoes/mercado-pago" className="mt-5 inline-flex rounded-full bg-app-cafe-profundo px-5 py-3 text-sm font-semibold text-white">Gerenciar conexão</Link>
         </section>
 
         <section className="mt-10">

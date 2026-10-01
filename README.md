@@ -380,6 +380,7 @@ O [inicializador do backend](backend/scripts/start.js) preserva certificados ext
 | [Credenciais do Appono Rotina](docs/appono-rotina-credenciais.md) | Passo a passo seguro para Supabase, Mercado Pago, Resend, Google Agenda, Outlook e geocodificação |
 | [Preparação do Supabase](docs/preparacao-supabase.md) | Limitações do schema inicial, Auth, Storage e migrations |
 | [Fluxos operacionais](docs/fluxos-operacionais.md) | Regras e endpoints de reservas, cozinha, pagamentos, reembolsos, chat e suporte |
+| [Campanhas inteligentes](docs/campanhas-inteligentes.md) | Sugestões, métricas, eventos e requisitos de operação de campanhas |
 | [Operação e implantação](docs/operacao-producao.md) | Requisitos de ambientes, backup, observabilidade e conciliação |
 | [Plano de piloto](docs/piloto-controlado.md) | Etapas, limites propostos e critérios de parada |
 | [Privacidade e incidentes](docs/lgpd-e-incidentes.md) | Base operacional que ainda exige revisão jurídica |
