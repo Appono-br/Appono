@@ -391,10 +391,10 @@ export default function PaginaRestaurante({ params }) {
 
         <section className="mt-5 overflow-hidden rounded-[18px] bg-white shadow-[0_18px_55px_rgba(74,44,10,0.10)] ring-1 ring-app-baunilha-dourada">
           <div className="grid lg:grid-cols-[0.72fr_1fr]">
-            <div className="relative flex min-h-44 items-center justify-center bg-white p-5 sm:min-h-52 lg:min-h-[280px]">
+            <div className="relative flex min-h-56 items-center justify-center bg-white p-5 sm:min-h-72 lg:min-h-[360px]">
               {restaurante.logo_url ? (
-                <div className="logo-restaurante-circular relative h-36 w-36 overflow-hidden rounded-full bg-white ring-2 ring-app-baunilha-dourada/70 sm:h-44 sm:w-44">
-                  <Image src={restaurante.logo_url} alt={restaurante.nome} fill priority sizes="176px" className="object-cover" />
+                <div className="logo-restaurante-circular relative h-48 w-48 overflow-hidden rounded-full bg-white ring-2 ring-app-baunilha-dourada/70 sm:h-64 sm:w-64 lg:h-72 lg:w-72">
+                  <Image src={restaurante.logo_url} alt={restaurante.nome} fill priority sizes="(max-width: 639px) 192px, (max-width: 1023px) 256px, 288px" className="object-cover" />
                 </div>
               ) : (
                 <div className="flex h-full min-h-40 items-center justify-center text-app-caramelo-torrado">
