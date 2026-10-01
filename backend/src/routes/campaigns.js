@@ -49,13 +49,16 @@ campaignsRouter.put("/consentimento",requireRole("cliente"),run(async(req,res)=>
 }));
 campaignsRouter.get("/ofertas",requireRole("cliente"),run(async(req,res)=>{
  const c=await result(db.from("consentimentos_ofertas_cliente").select("habilitado,atualizado_em").eq("id_cliente",res.locals.profileId).maybeSingle());
- if(!c?.habilitado)return res.json({campanhas:[]});
- // Somente escolhas explicitas de restaurantes favoritos; nenhum dado sensivel.
- const prefs=await result(db.from("preferencias_rotina_cliente").select("id_restaurante").eq("id_cliente",res.locals.profileId).eq("tipo","RESTAURANTE_FAVORITO"));
+ const prefs=c?.habilitado?await result(db.from("preferencias_rotina_cliente").select("id_restaurante").eq("id_cliente",res.locals.profileId).eq("tipo","RESTAURANTE_FAVORITO")):[];
  const favoritos=new Set(prefs.map(p=>p.id_restaurante));
- const campanhas=(await publicas()).filter(x=>favoritos.has(x.id_restaurante)).slice(0,10).map(x=>({...x,explicacao:"Oferta de um restaurante que você marcou como favorito."}));
- const atual=await result(db.from("consentimentos_ofertas_cliente").select("habilitado,atualizado_em").eq("id_cliente",res.locals.profileId).maybeSingle());
- res.json({campanhas:atual?.habilitado&&atual.atualizado_em===c.atualizado_em?campanhas:[]});
+ const campanhasPublicas=await publicas();
+ const restaurantes=campanhasPublicas.length?await result(db.from("restaurantes").select("id_restaurante,nome,logo_url").in("id_restaurante",[...new Set(campanhasPublicas.map(x=>x.id_restaurante))])):[];
+ const idsProdutos=[...new Set(campanhasPublicas.flatMap(campanha=>[...(campanha.campanhas_inteligentes_produtos??[]).map(produto=>produto.id_produto),...(campanha.beneficio_itens??[]).map(produto=>produto.id_produto)]))];
+ const produtos=idsProdutos.length?await result(db.from("produtos").select("id_produto,nome,imagem_url").in("id_produto",idsProdutos).eq("disponivel",true).eq("arquivado",false)):[];
+ const porRestaurante=new Map(restaurantes.map(restaurante=>[restaurante.id_restaurante,restaurante]));
+ const porProduto=new Map(produtos.map(produto=>[produto.id_produto,produto]));
+ const campanhas=campanhasPublicas.map(campanha=>{const produtosElegiveis=[...(campanha.campanhas_inteligentes_produtos??[]),...(campanha.beneficio_itens??[])].map(produto=>porProduto.get(produto.id_produto)).filter((produto,indice,lista)=>produto&&lista.findIndex(item=>item.id_produto===produto.id_produto)===indice);return {...campanha,restaurante:porRestaurante.get(campanha.id_restaurante)??null,produtos:produtosElegiveis,personalizada:favoritos.has(campanha.id_restaurante)};}).sort((a,b)=>Number(b.personalizada)-Number(a.personalizada)).slice(0,12);
+ res.json({campanhas,personalizacao_habilitada:Boolean(c?.habilitado)});
 }));
 campaignsRouter.post("/:id/eventos",requireRole("cliente"),run(async(req,res)=>{
  const tipo=req.body.tipo;if(!["IMPRESSION","CLICK","RESERVA_INICIADA"].includes(tipo))throw new Error("Evento inválido.");

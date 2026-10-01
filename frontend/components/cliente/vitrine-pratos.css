@@ -19,7 +19,7 @@
 .dish-photo-wrap { position: relative; display: block; overflow: hidden; aspect-ratio: 4 / 3; border-radius: 12px; background: color-mix(in srgb, var(--app-baunilha-dourada) 42%, var(--app-creme-suave)); }
 .dish-photo { object-fit: cover; transition: transform .2s ease; }
 .dish-restaurant-logo { position: absolute; top: 8px; right: 8px; z-index: 1; display: flex; width: 36px; height: 36px; align-items: center; justify-content: center; overflow: hidden; border: 2px solid var(--app-baunilha-dourada); border-radius: 50%; background: var(--app-creme-suave); color: var(--app-cafe-profundo); box-shadow: 0 2px 8px #0004; font-size: 10px; font-weight: 700; }
-.dish-logo-image { object-fit: contain; padding: 3px; }
+.dish-logo-image { object-fit: cover; }
 .dish-logo-placeholder { display: flex; height: 100%; width: 100%; align-items: center; justify-content: center; color: var(--app-caramelo-torrado); }
 .dish-logo-placeholder svg { height: 38%; width: 38%; }
 .dish-name { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; min-height: 40px; margin: 10px 0 4px; font-size: 14px; font-weight: 500; line-height: 20px; overflow-wrap: anywhere; }
@@ -33,7 +33,7 @@
 .dish-load-more:hover { background: var(--app-chantilly); }
 .dish-skeleton { aspect-ratio: 4 / 3; margin-bottom: 64px; border-radius: 12px; background: var(--app-baunilha-dourada); opacity: .2; }
 html[data-tema="escuro"] .dish-photo-wrap { background: #35261e; }
-html[data-tema="escuro"] .dish-restaurant-logo { background: #35261e; border-color: var(--app-baunilha-dourada); }
+html[data-tema="escuro"] .dish-restaurant-logo { background: #fff; border-color: var(--app-baunilha-dourada); }
 @media (min-width: 600px) { .dish-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (min-width: 1280px) { .dish-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 .dish-showcase-horizontal .dish-grid { display: flex; overflow-x: auto; gap: 16px; padding: 0 2px 12px; scroll-snap-type: x mandatory; scrollbar-width: thin; }

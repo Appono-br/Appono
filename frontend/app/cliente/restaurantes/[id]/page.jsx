@@ -113,6 +113,22 @@ function TextoDinamicoTraduzido({ texto, className = "", as: Elemento = "span" }
   return <Elemento className={className}>{traducao}</Elemento>;
 }
 
+function SecaoAvaliacoes({ totalAvaliacoes, avaliacaoMedia, avaliacoesRecentes, localeUI, ui }) {
+  return <section className="rounded-[18px] bg-white p-5 shadow-sm ring-1 ring-app-baunilha-dourada sm:p-6">
+    <div className="flex flex-wrap items-center justify-between gap-3">
+      <div>
+        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{ui("Avaliações")}</p>
+        <h2 className="mt-1 text-2xl font-bold">{ui("Experiências de clientes")}</h2>
+      </div>
+      <div className="flex w-fit items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-bold text-app-cafe-profundo ring-1 ring-app-baunilha-dourada/60">
+        {totalAvaliacoes ? <EstrelasNota nota={avaliacaoMedia} /> : <Icon type="star" className="h-4 w-4 text-app-dourado-mel" />}
+        {totalAvaliacoes ? ui("{0} de 5", [avaliacaoMedia.toFixed(1)]) : ui("Sem avaliações")}
+      </div>
+    </div>
+    {avaliacoesRecentes.length ? <div className="mt-5 grid gap-3 md:grid-cols-2">{avaliacoesRecentes.map((avaliacao) => <article key={avaliacao.id_avaliacao} className="rounded-[12px] bg-white p-4 ring-1 ring-app-baunilha-dourada/60"><div className="flex items-center justify-between gap-3"><strong className="truncate text-sm text-app-cafe-profundo">{avaliacao.clientes?.nome ?? ui("Cliente Appono")}</strong><span className="inline-flex items-center gap-2 rounded-full bg-white px-2.5 py-1 text-xs font-bold text-app-caramelo-torrado"><EstrelasNota nota={avaliacao.nota} />{avaliacao.nota}/5</span></div><p className="mt-3 text-sm leading-6 text-app-mocha">{avaliacao.comentario}</p><p className="mt-3 text-xs text-app-cinza">{formatarDataAvaliacao(avaliacao.created_at, localeUI)}</p></article>)}</div> : <p className="mt-4 text-sm leading-6 text-app-cinza">{ui("Ainda não há comentários de clientes.")}</p>}
+  </section>;
+}
+
 export default function PaginaRestaurante({ params }) {
     const { ui, localeUI, horarioUI } = useInterface();
   const [restauranteId, setRestauranteId] = useState(null);
@@ -367,7 +383,9 @@ export default function PaginaRestaurante({ params }) {
           <div className="grid lg:grid-cols-[0.72fr_1fr]">
             <div className="relative flex min-h-44 items-center justify-center bg-white p-5 sm:min-h-52 lg:min-h-[280px]">
               {restaurante.logo_url ? (
-                <Image src={restaurante.logo_url} alt={restaurante.nome} fill priority sizes="(min-width: 1024px) 360px, 100vw" className="object-contain p-6" />
+                <div className="logo-restaurante-circular relative h-36 w-36 overflow-hidden rounded-full bg-white ring-2 ring-app-baunilha-dourada/70 sm:h-44 sm:w-44">
+                  <Image src={restaurante.logo_url} alt={restaurante.nome} fill priority sizes="176px" className="object-cover" />
+                </div>
               ) : (
                 <div className="flex h-full min-h-40 items-center justify-center text-app-caramelo-torrado">
                   <Icon type="utensils" className="h-12 w-12" />
@@ -438,8 +456,8 @@ export default function PaginaRestaurante({ params }) {
         </section>
 
         <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
-          <section className="grid gap-6">
-            <section className="rounded-[18px] bg-white p-5 shadow-sm ring-1 ring-app-baunilha-dourada sm:p-6">
+          <section className="flex flex-col gap-6">
+            {false && <section className="rounded-[18px] bg-white p-5 shadow-sm ring-1 ring-app-baunilha-dourada sm:p-6">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{ui("Avaliacoes")}</p>
@@ -469,7 +487,7 @@ export default function PaginaRestaurante({ params }) {
               ) : (
                 <p className="mt-4 rounded-[12px] bg-white p-4 text-sm leading-6 text-app-mocha ring-1 ring-app-baunilha-dourada/60">{ui("As avaliações aparecerão aqui depois que os clientes concluírem reservas ou pedidos.")}</p>
               )}
-            </section>
+            </section>}
 
             {produtosDestaque.length ? (
               <section className="rounded-[18px] bg-app-cafe-profundo p-5 text-app-creme-leve shadow-sm ring-1 ring-app-baunilha-dourada/50 sm:p-6">
@@ -565,10 +583,11 @@ export default function PaginaRestaurante({ params }) {
                 <p className="mt-1">{ui("Este restaurante ainda não publicou itens. Você ainda pode reservar uma mesa normalmente.")}</p>
               </section>
             )}
+            <SecaoAvaliacoes totalAvaliacoes={totalAvaliacoes} avaliacaoMedia={avaliacaoMedia} avaliacoesRecentes={avaliacoesRecentes} localeUI={localeUI} ui={ui} />
           </section>
 
           <aside id="reserva" className="h-fit rounded-[18px] bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada lg:sticky lg:top-6">
-            <VisibilidadeCampanhas campanhas={campanhas}/>{campanhas.length ? <section className="rounded-[18px] border border-app-dourado-mel/50 bg-app-creme-leve p-5 shadow-sm sm:p-6"><div className="flex flex-wrap items-end justify-between gap-3"><div><p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">Oferta Profissional</p><h2 className="mt-1 text-2xl font-bold">Ofertas disponíveis</h2></div><span className="rounded-full bg-app-cafe-profundo px-3 py-1 text-xs font-bold text-app-creme-leve">Regras visíveis antes da reserva</span></div><div className="mt-4 grid gap-3 md:grid-cols-2">{campanhas.map((campanha) => <button data-campanha-id={campanha.id_campanha} key={campanha.id_campanha} type="button" onClick={() => { registrarCampanha(campanha.id_campanha,"CLICK"); setCampanhaSelecionada((atual) => atual?.id_campanha === campanha.id_campanha ? null : campanha); }} className={`rounded-[12px] border p-4 text-left transition ${campanhaSelecionada?.id_campanha === campanha.id_campanha ? "border-app-caramelo-torrado bg-white" : "border-app-baunilha-dourada bg-white/70 hover:bg-white"}`}><div className="flex justify-between gap-3"><strong>{campanha.titulo}</strong><span className="text-xs font-bold text-app-caramelo-torrado">{campanhaSelecionada?.id_campanha === campanha.id_campanha ? "Selecionada" : "Selecionar"}</span></div><p className="mt-2 text-sm text-app-mocha">{campanha.descricao}</p><p className="mt-2 text-sm">{campanha.tipo_beneficio.replaceAll("_"," ")}{campanha.tipo_beneficio==="DESCONTO_PERCENTUAL" ? ": "+campanha.valor_beneficio+"%" : campanha.tipo_beneficio==="DESCONTO_FIXO" ? ": R$ "+campanha.valor_beneficio : campanha.tipo_beneficio==="COMBO" ? ": R$ "+campanha.preco_combo : ""}</p>{campanha.beneficio_itens?.map(i=><p key={i.id_produto}>{i.quantidade} ? {i.nome??("Produto #"+i.id_produto)}</p>)}<p className="text-xs">M?nimo: {campanha.minimo_pessoas??1} pessoa(s), {campanha.minimo_itens??0} item(ns).</p><p className="mt-3 text-xs leading-5 text-app-cinza">Válida de {new Date(campanha.inicio_em).toLocaleDateString(localeUI)} até {new Date(campanha.fim_em).toLocaleDateString(localeUI)}. {campanha.regras ?? "Confira as condições na confirmação."}</p></button>)}</div>{campanhaSelecionada ? <p className="mt-4 text-sm text-app-mocha">Oferta selecionada: <strong>{campanhaSelecionada.titulo}</strong>. Ela será validada novamente na confirmação, considerando data, horário, itens e limite de uso.</p> : null}</section> : null}
+            <VisibilidadeCampanhas campanhas={campanhas}/>{campanhas.length ? <section className="rounded-[18px] border border-app-dourado-mel/50 bg-app-creme-leve p-5 shadow-sm sm:p-6"><div className="flex flex-wrap items-end justify-between gap-3"><div><p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">Oferta Profissional</p><h2 className="mt-1 text-2xl font-bold">Ofertas disponíveis</h2></div><span className="rounded-full bg-app-cafe-profundo px-3 py-1 text-xs font-bold text-app-creme-leve">Regras visíveis antes da reserva</span></div><div className="mt-4 grid gap-3 md:grid-cols-2">{campanhas.map((campanha) => <button data-campanha-id={campanha.id_campanha} key={campanha.id_campanha} type="button" onClick={() => { registrarCampanha(campanha.id_campanha,"CLICK"); setCampanhaSelecionada((atual) => atual?.id_campanha === campanha.id_campanha ? null : campanha); }} className={`rounded-[12px] border p-4 text-left transition ${campanhaSelecionada?.id_campanha === campanha.id_campanha ? "border-app-caramelo-torrado bg-white" : "border-app-baunilha-dourada bg-white/70 hover:bg-white"}`}><div className="flex justify-between gap-3"><strong>{campanha.titulo}</strong><span className="text-xs font-bold text-app-caramelo-torrado">{campanhaSelecionada?.id_campanha === campanha.id_campanha ? "Selecionada" : "Selecionar"}</span></div><p className="mt-2 text-sm text-app-mocha">{campanha.descricao}</p><p className="mt-2 text-sm">{campanha.tipo_beneficio.replaceAll("_"," ")}{campanha.tipo_beneficio==="DESCONTO_PERCENTUAL" ? ": "+campanha.valor_beneficio+"%" : campanha.tipo_beneficio==="DESCONTO_FIXO" ? ": R$ "+campanha.valor_beneficio : campanha.tipo_beneficio==="COMBO" ? ": R$ "+campanha.preco_combo : ""}</p>{campanha.beneficio_itens?.map(i=><p key={i.id_produto}>{i.quantidade} × {i.nome??("Produto #"+i.id_produto)}</p>)}<p className="text-xs">Mínimo: {campanha.minimo_pessoas??1} pessoa(s), {campanha.minimo_itens??0} item(ns).</p><p className="mt-3 text-xs leading-5 text-app-cinza">Válida de {new Date(campanha.inicio_em).toLocaleDateString(localeUI)} até {new Date(campanha.fim_em).toLocaleDateString(localeUI)}. {campanha.regras ?? "Confira as condições na confirmação."}</p></button>)}</div>{campanhaSelecionada ? <p className="mt-4 text-sm text-app-mocha">Oferta selecionada: <strong>{campanhaSelecionada.titulo}</strong>. Ela será validada novamente na confirmação, considerando data, horário, itens e limite de uso.</p> : null}</section> : null}
 
             <form onSubmit={reservar}>
               <div className="flex items-center gap-3">

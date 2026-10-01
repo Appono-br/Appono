@@ -32,7 +32,7 @@ export function textoTipoEvento(tipo) {
         MENSAGEM_RECEBIDA: "Mensagem recebida",
         SUPORTE_CHAMADO_ABERTO: "Chamado de suporte",
         SUPORTE_RESPOSTA_RECEBIDA: "Resposta no suporte",
-        SUPORTE_DECISAO_FINAL: "DecisÃ£o do suporte",
+        SUPORTE_DECISAO_FINAL: "Decisão do suporte",
         INFORMATIVO: "Informativo",
     };
     return eventos[tipo] ?? formatarCodigoSistema(tipo, "Notificação");
@@ -113,7 +113,7 @@ export function textoStatusSuporte(status) {
         ABERTO: "Aberto",
         AGUARDANDO_RESTAURANTE: "Aguardando restaurante",
         AGUARDANDO_CLIENTE: "Aguardando cliente",
-        EM_ANALISE_ADMIN: "Em anÃ¡lise Appono",
+        EM_ANALISE_ADMIN: "Em análise Appono",
         RESOLVIDO: "Resolvido",
         RECUSADO: "Recusado",
         CANCELADO: "Cancelado",
@@ -123,13 +123,13 @@ export function textoStatusSuporte(status) {
 
 export function textoMotivoSuporte(motivo) {
     const motivoMap = {
-        PEDIDO_NAO_PRONTO: "Pedido nÃ£o estava pronto",
+        PEDIDO_NAO_PRONTO: "Pedido não estava pronto",
         PEDIDO_INCORRETO: "Pedido incorreto",
-        RESERVA_NAO_RECONHECIDA: "Reserva nÃ£o reconhecida",
-        MESA_INDISPONIVEL: "Mesa indisponÃ­vel",
-        RESTAURANTE_INDISPONIVEL: "Restaurante indisponÃ­vel",
+        RESERVA_NAO_RECONHECIDA: "Reserva não reconhecida",
+        MESA_INDISPONIVEL: "Mesa indisponível",
+        RESTAURANTE_INDISPONIVEL: "Restaurante indisponível",
         PAGAMENTO: "Problema com pagamento",
-        REEMBOLSO: "SolicitaÃ§Ã£o de reembolso",
+        REEMBOLSO: "Solicitação de reembolso",
         ATENDIMENTO: "Atendimento",
         OUTRO: "Outro problema",
     };

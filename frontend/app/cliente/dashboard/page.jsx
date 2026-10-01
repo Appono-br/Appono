@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { apiRequest } from "@/lib/api";
 import { filtrarOrdenarPorBusca, textoBusca } from "@/lib/busca-avancada";
 import { VitrinePratos } from "@/components/cliente/vitrine-pratos";
-const specialties = [];
+import { VitrineOfertas } from "@/components/cliente/vitrine-ofertas";
 const filters = [
     "Todas Especialidades",
     "Slow Food",
@@ -378,26 +378,6 @@ export default function DashboardPage() {
         .filter((restaurant) => Number(restaurant.favoriteCount) > 0)
         .sort((a, b) => Number(b.favoriteCount) - Number(a.favoriteCount))
         .slice(0, 3), [restaurants]);
-    const colecoesDescoberta = useMemo(() => {
-        const elegiveis = restaurants.filter((restaurant) => restaurant.hasMenu);
-        const categorias = (restaurant) => restaurant.publishedCategories.join(" ").toLowerCase();
-        const bemAvaliados = [...elegiveis]
-            .filter((restaurant) => Number(restaurant.reviewCount) > 0)
-            .sort((a, b) => Number(b.rating ?? 0) - Number(a.rating ?? 0) || Number(b.reviewCount) - Number(a.reviewCount))
-            .slice(0, 3);
-        const paraAlmoco = elegiveis.filter((restaurant) => /almo[cç]o|executivo|brasileira|caseira|massa/.test(`${categorias(restaurant)} ${restaurant.name.toLowerCase()}`)).slice(0, 3);
-        const paraJantar = elegiveis.filter((restaurant) => /jantar|pizza|hamb|japon|italiana|bar/.test(`${categorias(restaurant)} ${restaurant.name.toLowerCase()}`)).slice(0, 3);
-        const faixaAcessivel = [...elegiveis]
-            .filter((restaurant) => Number.isFinite(Number(restaurant.minimumReservationValue)))
-            .sort((a, b) => Number(a.minimumReservationValue) - Number(b.minimumReservationValue) || a.name.localeCompare(b.name, "pt-BR"))
-            .slice(0, 3);
-        return [
-            { titulo: "Bem avaliados", criterio: "Com avaliações registradas e maior média", itens: bemAvaliados },
-            { titulo: "Para almoço", criterio: "Opções com categorias adequadas ao almoço", itens: paraAlmoco },
-            { titulo: "Para jantar", criterio: "Opções com categorias adequadas ao jantar", itens: paraJantar },
-            { titulo: "Faixa de preço acessível", criterio: "Menor valor mínimo de reserva informado", itens: faixaAcessivel },
-        ].filter((colecao) => colecao.itens.length > 0);
-    }, [restaurants]);
     const nearbyRestaurants = useMemo(() => nearbyRestaurantItems
         .filter((restaurant) => raioKm === "todos" || Number.isFinite(Number(restaurant.distanceKm)))
         .sort((a, b) => {
@@ -496,8 +476,8 @@ export default function DashboardPage() {
                 const correspondencias = obterRotulosCorrespondencia(restaurant);
                 return (
                   <Link key={restaurant.id} href={`/cliente/restaurantes/${restaurant.id}`} className="resultado-busca-restaurante group flex items-center gap-3 rounded-lg p-2 transition">
-                    <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-[8px] bg-white ring-1 ring-app-baunilha-dourada/55">
-                      {restaurant.imageUrl ? (<Image src={restaurant.imageUrl} alt={restaurant.name} fill sizes="56px" className="object-contain p-1.5 transition group-hover:scale-105"/>) : (<div className="flex h-full items-center justify-center bg-app-creme-leve text-app-caramelo-torrado"><Icon type="cutlery" className="h-6 w-6" /></div>)}
+                    <div className="logo-restaurante-circular relative h-14 w-14 shrink-0 overflow-hidden rounded-full bg-white ring-1 ring-app-baunilha-dourada/55">
+                      {restaurant.imageUrl ? (<Image src={restaurant.imageUrl} alt={restaurant.name} fill sizes="56px" className="object-cover transition group-hover:scale-105"/>) : (<div className="flex h-full items-center justify-center bg-app-creme-leve text-app-caramelo-torrado"><Icon type="cutlery" className="h-6 w-6" /></div>)}
                     </div>
                     <div className="min-w-0 flex-1">
                       <h3 className="truncate text-sm font-bold text-app-cafe-profundo">{restaurant.name}</h3>
@@ -516,6 +496,8 @@ export default function DashboardPage() {
 
       <ProximaReservaCard proximaReserva={proximaReserva} localeUI={localeUI} ui={ui} />
 
+      <VitrineOfertas />
+
       {highlightedRestaurants.length ? <section className="mx-auto max-w-7xl px-5 py-10">
         <div>
           <h2 className="text-3xl font-semibold text-app-cafe-profundo sm:text-4xl">{ui("Restaurantes mais curtidos")}</h2>
@@ -523,8 +505,8 @@ export default function DashboardPage() {
         <div className="mt-6 grid gap-3 lg:grid-cols-3">
           {highlightedRestaurants.map((restaurant, index) => <article key={restaurant.id} className="group relative min-w-0 rounded-[8px] border border-app-baunilha-dourada bg-white p-2.5 shadow-sm transition hover:-translate-y-0.5 hover:border-app-caramelo-torrado/55 hover:shadow-md">
             <Link href={`/cliente/restaurantes/${restaurant.id}`} className="flex min-w-0 gap-3" aria-label={`Ver ${restaurant.name}`}>
-              <div className="restaurant-most-liked-logo relative h-24 w-24 shrink-0 overflow-hidden rounded-[8px] bg-white ring-2 ring-app-baunilha-dourada/70">
-                {restaurant.imageUrl ? <Image src={restaurant.imageUrl} alt={restaurant.name} fill sizes="96px" className="object-contain p-2 transition duration-300 group-hover:scale-105"/> : <div className="flex h-full items-center justify-center bg-app-creme-leve text-app-caramelo-torrado"><Icon type="cutlery" className="h-7 w-7" /></div>}
+              <div className="restaurant-most-liked-logo logo-restaurante-circular relative h-24 w-24 shrink-0 overflow-hidden rounded-full bg-white ring-2 ring-app-baunilha-dourada/70">
+                {restaurant.imageUrl ? <Image src={restaurant.imageUrl} alt={restaurant.name} fill sizes="96px" className="object-cover transition duration-300 group-hover:scale-105"/> : <div className="flex h-full items-center justify-center bg-app-creme-leve text-app-caramelo-torrado"><Icon type="cutlery" className="h-7 w-7" /></div>}
               </div>
               <div className="min-w-0 flex-1 py-0.5 pr-7">
                 <div className="flex items-center gap-2"><span className="rounded-full bg-app-cafe-profundo px-2 py-0.5 text-[10px] font-bold text-app-creme-leve">#{index + 1}</span><span className="truncate text-[11px] font-bold uppercase tracking-[0.12em] text-app-caramelo-torrado">{ui("Mais curtido")}</span></div>
@@ -582,7 +564,7 @@ export default function DashboardPage() {
             ) : localizacaoCliente && nearbyRestaurants.length ? (<div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
                 {nearbyRestaurants.map((restaurant) => (<article key={restaurant.id} className="group relative min-w-0 rounded-[8px] border border-app-baunilha-dourada bg-white p-2.5 shadow-sm transition hover:-translate-y-0.5 hover:border-app-caramelo-torrado/55 hover:shadow-md">
                     <Link href={`/cliente/restaurantes/${restaurant.id}`} className="flex min-w-0 gap-3" aria-label={`Ver ${restaurant.name}`}>
-                      <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-[8px] bg-white ring-2 ring-app-baunilha-dourada/70">
+                      <div className="logo-restaurante-circular relative h-24 w-24 shrink-0 overflow-hidden rounded-full bg-white ring-2 ring-app-baunilha-dourada/70">
                         {restaurant.imageUrl ? (<Image src={restaurant.imageUrl} alt={restaurant.name} fill sizes="96px" className="object-cover transition duration-300 group-hover:scale-105"/>) : (<div className="flex h-full items-center justify-center bg-app-creme-leve text-app-caramelo-torrado"><Icon type="cutlery" className="h-7 w-7" /></div>)}
                       </div>
 
@@ -626,6 +608,7 @@ export default function DashboardPage() {
           </div>
       </section>
 
+      {false && <>
       <section className="mx-auto max-w-7xl px-5 py-10">
         <div>
           <h2 className="text-3xl font-semibold text-app-cafe-profundo sm:text-4xl">{ui("Encontre algo diferente")}</h2>
@@ -661,7 +644,6 @@ export default function DashboardPage() {
             </div>) : (<EmptyState title={ui("Especialidades ainda não disponíveis")} description={ui("As categorias em destaque serão exibidas assim que houver restaurantes e cardápios cadastrados.")}/>)}
         </div>
       </section>
-
-
+      </>}
     </main>);
 }

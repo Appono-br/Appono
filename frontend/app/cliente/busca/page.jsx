@@ -291,9 +291,9 @@ function BuscaClienteContent() {
                 return (
                   <article key={restaurant.id} className="group relative overflow-hidden rounded-[16px] border border-app-baunilha-dourada/65 bg-white p-3 shadow-sm transition hover:-translate-y-0.5 hover:border-app-caramelo-torrado/55 hover:shadow-md">
                     <div className="grid gap-4 md:grid-cols-[128px_1fr_auto] md:items-center">
-                      <Link href={`/cliente/restaurantes/${restaurant.id}`} className={`relative block h-28 w-28 shrink-0 overflow-hidden rounded-xl ring-1 ring-app-baunilha-dourada/50 md:h-32 md:w-32 ${restaurant.imageUrl ? "bg-[#ffffff]" : "bg-app-chantilly"}`}>
+                      <Link href={`/cliente/restaurantes/${restaurant.id}`} className={`logo-restaurante-circular relative block h-28 w-28 shrink-0 overflow-hidden rounded-full ring-1 ring-app-baunilha-dourada/50 md:h-32 md:w-32 ${restaurant.imageUrl ? "bg-[#ffffff]" : "bg-app-chantilly"}`}>
                         {restaurant.imageUrl ? (
-                          <Image src={restaurant.imageUrl} alt={restaurant.name} fill sizes="(min-width: 768px) 128px, 112px" className="object-contain p-2" />
+                          <Image src={restaurant.imageUrl} alt={restaurant.name} fill sizes="(min-width: 768px) 128px, 112px" className="object-cover" />
                         ) : (
                           <div className="flex h-full items-center justify-center bg-app-chantilly text-xs font-bold uppercase tracking-[0.16em] text-app-mocha">{ui("Appono")}</div>
                         )}

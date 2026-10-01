@@ -6,44 +6,62 @@ const { supabaseAdmin } = require("../src/lib/supabase");
 const EMAIL_DOMAIN = "example.com";
 const CONFIRMATION = "confirmado";
 const DAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
+const RESTAURANT_IMAGES = [
+    "https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&w=800&q=85",
+    "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&w=800&q=85",
+    "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=85",
+    "https://images.unsplash.com/photo-1552566626-52f8b828add9?auto=format&fit=crop&w=800&q=85",
+    "https://images.unsplash.com/photo-1508424757105-b6d5ad9329d0?auto=format&fit=crop&w=800&q=85",
+    "https://images.unsplash.com/photo-1579684947550-22e945225d9a?auto=format&fit=crop&w=800&q=85",
+];
+const DISH_IMAGES = [
+    "https://images.unsplash.com/photo-1473093295043-cdd812d0e601?auto=format&fit=crop&w=1000&q=85",
+    "https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=1000&q=85",
+    "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=1000&q=85",
+    "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=1000&q=85",
+    "https://images.unsplash.com/photo-1569058242253-92a9c755a0ec?auto=format&fit=crop&w=1000&q=85",
+    "https://images.unsplash.com/photo-1515003197210-e0cd71810b5f?auto=format&fit=crop&w=1000&q=85",
+    "https://images.unsplash.com/photo-1551218808-94e220e084d2?auto=format&fit=crop&w=1000&q=85",
+    "https://images.unsplash.com/photo-1482049016688-2d3e1b311543?auto=format&fit=crop&w=1000&q=85",
+];
 
 const restaurants = [
-    { slug: "esquina-brasa", name: "[DEMO] Esquina da Brasa", address: "Alameda Rio Negro, 500, Barueri - SP", cep: "06454000", lat: -23.5035, lng: -46.8488, minimum: 28, categories: { "Grelhados": [
+    { slug: "esquina-brasa", name: "Esquina da Brasa", address: "Alameda Rio Negro, 500, Barueri - SP", cep: "06454000", lat: -23.5035, lng: -46.8488, minimum: 28, categories: { "Grelhados": [
         ["Frango grelhado com legumes", "Frango, arroz integral e legumes sazonais.", 39.9, ["frango", "arroz integral", "abobrinha", "cenoura"], []],
         ["Contra-filé executivo", "Contra-filé, arroz, feijão e salada.", 54.9, ["carne bovina", "arroz", "feijão", "folhas"], []],
         ["Legumes na brasa", "Legumes, grão-de-bico e molho de ervas.", 34.9, ["abobrinha", "berinjela", "grão-de-bico", "ervas"], []],
     ] } },
-    { slug: "trattoria-urbana", name: "[DEMO] Trattoria Urbana", address: "Alameda Madeira, 180, Barueri - SP", cep: "06454100", lat: -23.5011, lng: -46.8509, minimum: 35, categories: { "Massas": [
+    { slug: "trattoria-urbana", name: "Trattoria Urbana", address: "Alameda Madeira, 180, Barueri - SP", cep: "06454100", lat: -23.5011, lng: -46.8509, minimum: 35, categories: { "Massas": [
         ["Penne ao pomodoro", "Massa de trigo, tomate, manjericão e parmesão.", 38.9, ["massa de trigo", "tomate", "manjericão", "parmesão"], [["TRIGO_GLUTEN", "PRESENTE"], ["LEITE", "PRESENTE"]]],
         ["Nhoque de mandioquinha", "Nhoque artesanal com molho de tomates assados.", 44.9, ["mandioquinha", "farinha de trigo", "tomate"], [["TRIGO_GLUTEN", "PRESENTE"]]],
         ["Lasanha da casa", "Lasanha bolonhesa com queijo gratinado.", 52.9, ["massa de trigo", "carne bovina", "leite", "queijo"], [["TRIGO_GLUTEN", "PRESENTE"], ["LEITE", "PRESENTE"]]],
     ] } },
-    { slug: "verde-grao", name: "[DEMO] Verde & Grão", address: "Alameda Araguaia, 900, Barueri - SP", cep: "06455000", lat: -23.5074, lng: -46.8521, minimum: 24, categories: { "Bowls": [
+    { slug: "verde-grao", name: "Verde & Grão", address: "Alameda Araguaia, 900, Barueri - SP", cep: "06455000", lat: -23.5074, lng: -46.8521, minimum: 24, categories: { "Bowls": [
         ["Bowl mediterrâneo", "Quinoa, grão-de-bico, tomate, pepino e tahine.", 36.9, ["quinoa", "grão-de-bico", "tomate", "pepino", "gergelim"], [["GERGELIM", "PRESENTE"]]],
         ["Bowl brasileiro", "Arroz integral, feijão, abóbora e couve.", 32.9, ["arroz integral", "feijão", "abóbora", "couve"], []],
         ["Salada crocante", "Folhas, cenoura, castanhas e molho cítrico.", 29.9, ["folhas", "cenoura", "castanhas", "limão"], [["OLEAGINOSAS", "PRESENTE"]]],
     ] } },
-    { slug: "bento-paulista", name: "[DEMO] Bento Paulista", address: "Avenida Copacabana, 320, Barueri - SP", cep: "06472001", lat: -23.4968, lng: -46.8451, minimum: 30, categories: { "Oriental": [
+    { slug: "bento-paulista", name: "Bento Paulista", address: "Avenida Copacabana, 320, Barueri - SP", cep: "06472001", lat: -23.4968, lng: -46.8451, minimum: 30, categories: { "Oriental": [
         ["Bento de salmão", "Salmão grelhado, arroz japonês e legumes.", 58.9, ["salmão", "arroz", "legumes", "soja"], [["PEIXES", "PRESENTE"], ["SOJA", "PRESENTE"]]],
         ["Frango teriyaki", "Frango, arroz e molho teriyaki.", 42.9, ["frango", "arroz", "soja", "trigo"], [["SOJA", "PRESENTE"], ["TRIGO_GLUTEN", "PRESENTE"]]],
         ["Tofu com legumes", "Tofu dourado, arroz e legumes orientais.", 37.9, ["tofu", "soja", "arroz", "legumes"], [["SOJA", "PRESENTE"]]],
     ] } },
-    { slug: "cantina-bairro", name: "[DEMO] Cantina do Bairro", address: "Calçada das Margaridas, 60, Barueri - SP", cep: "06453038", lat: -23.5092, lng: -46.8467, minimum: 26, categories: { "Comida caseira": [
+    { slug: "cantina-bairro", name: "Cantina do Bairro", address: "Calçada das Margaridas, 60, Barueri - SP", cep: "06453038", lat: -23.5092, lng: -46.8467, minimum: 26, categories: { "Comida caseira": [
         ["Picadinho caseiro", "Carne em cubos, arroz, feijão e farofa.", 41.9, ["carne bovina", "arroz", "feijão", "farinha de mandioca"], []],
         ["Filé de frango à parmegiana", "Frango empanado, queijo, arroz e molho de tomate.", 46.9, ["frango", "trigo", "ovo", "leite", "tomate"], [["TRIGO_GLUTEN", "PRESENTE"], ["OVOS", "PRESENTE"], ["LEITE", "PRESENTE"]]],
         ["Omelete de forno", "Ovos, queijo, tomate e salada.", 31.9, ["ovos", "leite", "queijo", "tomate"], [["OVOS", "PRESENTE"], ["LEITE", "PRESENTE"]]],
     ] } },
-    { slug: "cafe-estacao", name: "[DEMO] Café Estação", address: "Alameda Mamoré, 700, Barueri - SP", cep: "06454040", lat: -23.5002, lng: -46.8556, minimum: 18, open: "07:00", categories: { "Café e lanches": [
+    { slug: "cafe-estacao", name: "Café Estação", address: "Alameda Mamoré, 700, Barueri - SP", cep: "06454040", lat: -23.5002, lng: -46.8556, minimum: 18, open: "07:00", categories: { "Café e lanches": [
         ["Tostada de avocado", "Pão de fermentação natural, avocado e ovo.", 28.9, ["trigo", "avocado", "ovo"], [["TRIGO_GLUTEN", "PRESENTE"], ["OVOS", "PRESENTE"]]],
         ["Tapioca caprese", "Tapioca, queijo, tomate e manjericão.", 24.9, ["mandioca", "leite", "tomate", "manjericão"], [["LEITE", "PRESENTE"]]],
         ["Sanduíche de frango", "Pão integral, frango desfiado e salada.", 27.9, ["trigo", "frango", "folhas"], [["TRIGO_GLUTEN", "PRESENTE"]]],
     ] } },
-    { slug: "levante-casual", name: "[DEMO] Levante Casual", address: "Avenida Andrômeda, 250, Barueri - SP", cep: "06473000", lat: -23.5126, lng: -46.8494, minimum: 25, categories: { "Árabe": [
+    { slug: "levante-casual", name: "Levante Casual", address: "Avenida Andrômeda, 250, Barueri - SP", cep: "06473000", lat: -23.5126, lng: -46.8494, minimum: 25, categories: { "Árabe": [
         ["Prato de falafel", "Falafel, homus, tabule e pão sírio.", 35.9, ["grão-de-bico", "gergelim", "trigo", "salsa"], [["GERGELIM", "PRESENTE"], ["TRIGO_GLUTEN", "PRESENTE"]]],
         ["Kafta com arroz", "Kafta bovina, arroz com lentilha e salada.", 43.9, ["carne bovina", "arroz", "lentilha", "trigo"], [["TRIGO_GLUTEN", "PODE_CONTER"]]],
         ["Tabule com homus", "Tabule, homus e legumes assados.", 29.9, ["trigo", "grão-de-bico", "gergelim", "legumes"], [["TRIGO_GLUTEN", "PRESENTE"], ["GERGELIM", "PRESENTE"]]],
     ] } },
-    { slug: "panela-minas", name: "[DEMO] Panela de Minas", address: "Alameda Tocantins, 410, Barueri - SP", cep: "06455020", lat: -23.5059, lng: -46.8428, minimum: 29, categories: { "Brasileira": [
+    { slug: "panela-minas", name: "Panela de Minas", address: "Alameda Tocantins, 410, Barueri - SP", cep: "06455020", lat: -23.5059, lng: -46.8428, minimum: 29, categories: { "Brasileira": [
         ["Frango com quiabo", "Frango, quiabo, arroz e angu.", 39.9, ["frango", "quiabo", "arroz", "milho"], []],
         ["Tropeiro vegetariano", "Feijão, farinha de mandioca, couve, ovo e queijo.", 36.9, ["feijão", "mandioca", "couve", "ovo", "leite"], [["OVOS", "PRESENTE"], ["LEITE", "PRESENTE"]]],
         ["Carne de panela", "Carne cozida, batata, arroz e feijão.", 45.9, ["carne bovina", "batata", "arroz", "feijão"], []],
@@ -51,16 +69,16 @@ const restaurants = [
 ];
 
 const clients = [
-    ["ana", "[DEMO] Ana Planejada", "Massas", 55, 4, "ALMOCO"],
-    ["bruno", "[DEMO] Bruno Econômico", "Comida caseira", 38, 5, "ALMOCO"],
-    ["carla", "[DEMO] Carla Vegetariana", "Vegetariano", 45, 6, "ALMOCO"],
-    ["diego", "[DEMO] Diego Grelhados", "Grelhados", 65, 8, "JANTAR"],
-    ["elisa", "[DEMO] Elisa Oriental", "Oriental", 70, 5, "ALMOCO"],
-    ["fabio", "[DEMO] Fábio Café", "Café", 32, 3, "CAFE"],
-    ["gabriela", "[DEMO] Gabriela Brasileira", "Brasileira", 50, 7, "ALMOCO"],
-    ["henrique", "[DEMO] Henrique Árabe", "Árabe", 48, 6, "JANTAR"],
-    ["iris", "[DEMO] Íris Saudável", "Bowls", 42, 4, "ALMOCO"],
-    ["joao", "[DEMO] João Variado", "Experimentar sabores", 75, 10, "ALMOCO"],
+    ["ana", "Ana Planejada", "Massas", 55, 4, "ALMOCO"],
+    ["bruno", "Bruno Econômico", "Comida caseira", 38, 5, "ALMOCO"],
+    ["carla", "Carla Vegetariana", "Vegetariano", 45, 6, "ALMOCO"],
+    ["diego", "Diego Grelhados", "Grelhados", 65, 8, "JANTAR"],
+    ["elisa", "Elisa Oriental", "Oriental", 70, 5, "ALMOCO"],
+    ["fabio", "Fábio Café", "Café", 32, 3, "CAFE"],
+    ["gabriela", "Gabriela Brasileira", "Brasileira", 50, 7, "ALMOCO"],
+    ["henrique", "Henrique Árabe", "Árabe", 48, 6, "JANTAR"],
+    ["iris", "Íris Saudável", "Bowls", 42, 4, "ALMOCO"],
+    ["joao", "João Variado", "Experimentar sabores", 75, 10, "ALMOCO"],
 ].map(([slug, name, preference, budget, radius, meal], index) => ({ slug, name, preference, budget, radius, meal, index }));
 
 function cpf(seed) {
@@ -144,6 +162,7 @@ async function ensureRestaurant(definition, index, password) {
     const { error: updateError } = await supabaseAdmin.from("restaurantes").update({
         latitude: definition.lat, longitude: definition.lng, geocodificado_em: new Date().toISOString(),
         valor_minimo_reserva_por_pessoa: definition.minimum, configuracao_operacao: operation(definition.open), ativo: true,
+        logo_url: RESTAURANT_IMAGES[index % RESTAURANT_IMAGES.length],
     }).eq("id_restaurante", restaurant.id_restaurante);
     if (updateError) throw updateError;
 
@@ -163,7 +182,7 @@ async function ensureRestaurant(definition, index, password) {
         }
         for (const [name, description, price, ingredients, allergens] of products) {
             let product = await one("produtos", { id_restaurante: restaurant.id_restaurante, nome: name }, "id_produto");
-            const payload = { id_restaurante: restaurant.id_restaurante, id_categoria: category.id_categoria, nome: name, descricao: description, preco: price, tempo_preparo_minutos: 25, disponivel: true, destaque: productCount === 0, arquivado: false, ordem_exibicao: productCount };
+            const payload = { id_restaurante: restaurant.id_restaurante, id_categoria: category.id_categoria, nome: name, descricao: description, preco: price, tempo_preparo_minutos: 25, imagem_url: DISH_IMAGES[productCount % DISH_IMAGES.length], disponivel: true, destaque: productCount === 0, arquivado: false, ordem_exibicao: productCount };
             if (product) {
                 const response = await supabaseAdmin.from("produtos").update(payload).eq("id_produto", product.id_produto);
                 if (response.error) throw response.error;
@@ -206,7 +225,7 @@ async function ensureClient(definition, password) {
     const meal = definition.meal;
     const times = meal === "CAFE" ? ["07:30", "09:00"] : meal === "JANTAR" ? ["18:30", "21:00"] : ["11:30", "14:00"];
     let profile = await one("perfis_rotina_cliente", { id_cliente: client.id_cliente, ativo: true }, "id_perfil_rotina");
-    const profilePayload = { id_cliente: client.id_cliente, nome: "[DEMO] Rotina principal", endereco_base: "Alphaville, Barueri - SP", endereco_normalizado: "Alphaville, Barueri - SP", latitude: -23.5045, longitude: -46.8499, status_geocodificacao: "CONFIRMADO", geocodificado_em: new Date().toISOString(), dias_semana: ["monday", "tuesday", "wednesday", "thursday", "friday"], horario_inicio: times[0], horario_fim: times[1], tempo_maximo_minutos: 60, orcamento_diario: definition.budget, orcamento_semanal: definition.budget * 5, raio_km: definition.radius, origem_agenda: "MANUAL", ativo: true };
+    const profilePayload = { id_cliente: client.id_cliente, nome: "Rotina principal", endereco_base: "Alphaville, Barueri - SP", endereco_normalizado: "Alphaville, Barueri - SP", latitude: -23.5045, longitude: -46.8499, status_geocodificacao: "CONFIRMADO", geocodificado_em: new Date().toISOString(), dias_semana: ["monday", "tuesday", "wednesday", "thursday", "friday"], horario_inicio: times[0], horario_fim: times[1], tempo_maximo_minutos: 60, orcamento_diario: definition.budget, orcamento_semanal: definition.budget * 5, raio_km: definition.radius, origem_agenda: "MANUAL", ativo: true };
     if (profile) {
         const response = await supabaseAdmin.from("perfis_rotina_cliente").update(profilePayload).eq("id_perfil_rotina", profile.id_perfil_rotina);
         if (response.error) throw response.error;
@@ -245,9 +264,15 @@ async function cleanup() {
 }
 
 async function verifyPopulation() {
-    const { data: restaurantRows, error: restaurantError } = await supabaseAdmin.from("restaurantes").select("id_restaurante,nome").like("nome", "[DEMO]%");
+    const authUsers = (await allUsers()).filter((user) => user.email?.startsWith("demo.rotina.") && user.email?.endsWith(`@${EMAIL_DOMAIN}`));
+    const authIds = authUsers.map((user) => user.id);
+    const { data: restaurantRows, error: restaurantError } = authIds.length
+        ? await supabaseAdmin.from("restaurantes").select("id_restaurante,nome").in("id_auth", authIds)
+        : { data: [], error: null };
     if (restaurantError) throw restaurantError;
-    const { data: clientRows, error: clientError } = await supabaseAdmin.from("clientes").select("id_cliente,nome").like("nome", "[DEMO]%");
+    const { data: clientRows, error: clientError } = authIds.length
+        ? await supabaseAdmin.from("clientes").select("id_cliente,nome").in("id_auth", authIds)
+        : { data: [], error: null };
     if (clientError) throw clientError;
     const restaurantIds = (restaurantRows ?? []).map((item) => item.id_restaurante);
     const clientIds = (clientRows ?? []).map((item) => item.id_cliente);
@@ -263,7 +288,6 @@ async function verifyPopulation() {
         clientIds.length ? supabaseAdmin.from("janelas_alimentacao_rotina").select("id_janela_alimentacao", { count: "exact", head: true }).in("id_cliente", clientIds).eq("ativa", true) : { count: 0 },
     ]);
     for (const response of [menus, safety, profiles, windows]) if (response.error) throw response.error;
-    const authUsers = (await allUsers()).filter((user) => user.email?.startsWith("demo.rotina.") && user.email?.endsWith(`@${EMAIL_DOMAIN}`));
     return {
         auth_users: authUsers.length,
         restaurants: restaurantRows?.length ?? 0,
@@ -279,7 +303,7 @@ async function verifyPopulation() {
 async function main() {
     const command = process.argv.includes("--cleanup") ? "cleanup" : process.argv.includes("--preview") ? "preview" : process.argv.includes("--verify") ? "verify" : "seed";
     if (command === "preview") {
-        console.log(JSON.stringify({ mode: "preview", restaurants: restaurants.length, products: restaurants.reduce((total, item) => total + Object.values(item.categories).flat().length, 0), clients: clients.length, realPeople: 0, markedAsDemo: true }, null, 2));
+        console.log(JSON.stringify({ mode: "preview", restaurants: restaurants.length, products: restaurants.reduce((total, item) => total + Object.values(item.categories).flat().length, 0), clients: clients.length, realPeople: 0, syntheticData: true }, null, 2));
         return;
     }
     if (command === "verify") {

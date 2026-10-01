@@ -66,8 +66,8 @@ export default function FavoritosPage() {
                 <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                     {favoritos.map((restaurante) => (
                         <article key={restaurante.id_restaurante} className="overflow-hidden rounded-[14px] bg-white shadow-sm ring-1 ring-app-baunilha-dourada/70">
-                            <div className="relative h-40 bg-app-baunilha-dourada/40">
-                                {restaurante.logo_url ? <Image src={restaurante.logo_url} alt={restaurante.nome} fill className="object-cover" /> : null}
+                            <div className="flex h-40 items-center justify-center bg-app-baunilha-dourada/40">
+                                {restaurante.logo_url ? <div className="logo-restaurante-circular relative h-28 w-28 overflow-hidden rounded-full bg-white ring-2 ring-app-baunilha-dourada/70"><Image src={restaurante.logo_url} alt={restaurante.nome} fill className="object-cover" /></div> : null}
                             </div>
                             <div className="p-5">
                                 <h2 className="text-xl font-bold">{restaurante.nome}</h2>
