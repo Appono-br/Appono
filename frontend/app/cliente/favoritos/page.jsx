@@ -16,7 +16,7 @@ export default function FavoritosPage() {
 
     useEffect(() => {
         const controller = new AbortController();
-        apiRequest("/restaurantes", { signal: controller.signal })
+        apiRequest("/restaurantes?incluir_pratos=1", { forceRefresh: true, signal: controller.signal })
             .then((data) => {
                 setRestaurantes(data ?? []);
                 setMensagem("");
@@ -52,10 +52,7 @@ export default function FavoritosPage() {
     return (
         <main className="min-h-screen bg-white px-5 py-10 text-app-cafe-profundo">
             <section className="mx-auto max-w-6xl">
-                <Link href="/cliente/dashboard" className="text-sm font-bold text-app-caramelo-torrado">{ui("← Voltar")}</Link>
-
-                <p className="mt-8 text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{ui("Sua selecao")}</p>
-                <h1 className="mt-2 text-4xl font-semibold sm:text-5xl">{ui("Restaurantes favoritos")}</h1>
+                <h1 className="text-4xl font-semibold sm:text-5xl">{ui("Restaurantes favoritos")}</h1>
 
                 {mensagem ? <p role="status" className="mt-6 text-sm font-semibold text-app-mocha">{ui(mensagem)}</p> : null}
 
@@ -75,7 +72,7 @@ export default function FavoritosPage() {
                             <div className="p-5">
                                 <h2 className="text-xl font-bold">{restaurante.nome}</h2>
                                 <p className="mt-2 text-sm text-app-cinza">
-                                    {ui(restaurante.avaliacao_media?.toFixed(1) ?? "Novo")} · {restaurante.total_avaliacoes ?? 0}{ui(" avaliações")}</p>
+                                    {restaurante.avaliacao_media != null ? <>{ui(restaurante.avaliacao_media.toFixed(1))} · </> : null}{restaurante.total_avaliacoes ?? 0}{ui(" avaliações")}</p>
                                 <div className="mt-5 flex gap-3">
                                     <Link href={`/cliente/restaurantes/${restaurante.id_restaurante}`} className="flex h-10 flex-1 items-center justify-center rounded-[8px] bg-app-dourado-mel text-xs font-bold uppercase text-white">{ui("Ver restaurante")}</Link>
                                     <button type="button" disabled={atualizando === String(restaurante.id_restaurante)} onClick={() => setFavoritoParaRemover(restaurante)} className="rounded-[8px] border border-app-caramelo-torrado px-4 text-xs font-bold text-app-caramelo-torrado disabled:opacity-50">{ui("Remover")}</button>

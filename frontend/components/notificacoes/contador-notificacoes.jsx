@@ -28,7 +28,7 @@ function IconeSino({ className = "h-5 w-5" }) {
     );
 }
 
-export function LinkNotificacoes({ href }) {
+export function LinkNotificacoes({ href, iconeClassName, ariaCurrent }) {
     const { ui } = useInterface();
     const [naoLidas, setNaoLidas] = useState(0);
 
@@ -65,8 +65,8 @@ export function LinkNotificacoes({ href }) {
     }, []);
 
     return (
-        <Link href={href} className="relative transition hover:text-app-caramelo-torrado focus:outline-none focus:ring-2 focus:ring-app-dourado-mel" aria-label={ui(naoLidas ? `${naoLidas} notificações não lidas` : "Notificações")}>
-            <IconeSino />
+        <Link href={href} aria-current={ariaCurrent} className={`relative transition hover:text-app-caramelo-torrado focus:outline-none focus-visible:ring-2 focus-visible:ring-app-dourado-mel aria-[current=page]:after:absolute aria-[current=page]:after:bottom-0 aria-[current=page]:after:left-1/2 aria-[current=page]:after:h-0.5 aria-[current=page]:after:w-5 aria-[current=page]:after:-translate-x-1/2 aria-[current=page]:after:rounded-full aria-[current=page]:after:bg-[var(--app-caramelo-torrado)] ${ariaCurrent ? "flex h-11 w-11 items-center justify-center" : ""}`} aria-label={ui(naoLidas ? `${naoLidas} notificações não lidas` : "Notificações")}>
+            <IconeSino className={iconeClassName} />
             {naoLidas > 0 ? (
                 <span className="absolute -right-2 -top-2 flex h-4 min-w-4 animate-pulse items-center justify-center rounded-full bg-app-vermelho-erro px-1 text-[10px] font-bold leading-none text-white">
                     {ui(naoLidas > 9 ? "9+" : naoLidas)}

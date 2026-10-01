@@ -232,8 +232,8 @@ export function PainelSuporte({ perfil }) {
             <section className="mx-auto max-w-7xl">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                        <Link href={perfil === "cliente" ? "/cliente/dashboard" : perfil === "restaurante" ? "/restaurante/dashboard" : "/admin/financeiro"} className="text-sm font-bold text-app-caramelo-torrado">
-                            {ui("← Voltar")}
+                        <Link href={perfil === "cliente" ? "/cliente/configuracoes" : perfil === "restaurante" ? "/restaurante/dashboard" : "/admin/financeiro"} className="text-sm font-bold text-app-caramelo-torrado">
+                            {ui(perfil === "cliente" ? "← Voltar às configurações" : "← Voltar")}
                         </Link>
                         <p className="mt-8 text-[10px] font-bold uppercase tracking-[0.22em] text-app-caramelo-torrado">{ui("Suporte Appono")}</p>
                         <h1 className="mt-2 text-4xl font-semibold sm:text-5xl">{ui(perfil === "cliente" ? "Meus chamados" : "Central de suporte")}</h1>
