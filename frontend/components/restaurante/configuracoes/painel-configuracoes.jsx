@@ -1,0 +1,300 @@
+"use client";
+import { useInterface } from "@/lib/use-interface";
+import Image from "next/image";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { BotaoIdioma } from "@/components/configuracoes/botao-idioma";
+import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
+import { apiRequest } from "@/lib/api";
+import { atualizarNomeSessao, encerrarSessao } from "@/lib/session";
+import { TelaCarregandoSessao, useSessaoLocal } from "@/lib/use-sessao-local";
+import { aplicarMascaraCep } from "@/lib/validacoes/cep";
+import { aplicarMascaraCnpj } from "@/lib/validacoes/cnpj";
+import { aplicarMascaraTelefone } from "@/lib/validacoes/telefone";
+import { enviarImagemRestaurante, validarImagemRestaurante, } from "@/lib/imagem-restaurante";
+import Endereco from "./endereco";
+import Notificacoes from "./notificacoes";
+import Seguranca from "./seguranca";
+import MercadoPago from "./mercado-pago";
+import Operacao from "./operacao";
+import DadosBancarios from "./dados-bancarios";
+
+const paineis = { endereco: Endereco, notificacoes: Notificacoes, seguranca: Seguranca, "mercado-pago": MercadoPago, operacao: Operacao, "dados-bancarios": DadosBancarios };
+const initialForm = {
+    storeName: "",
+    document: "",
+    legalName: "",
+    phone: "",
+    email: "",
+    address: "",
+    postalCode: "",
+    logoUrl: "",
+    minimumReservationValue: "0",
+};
+const settingsItems = [
+    { label: "Informações da loja", icon: "store", href: "/restaurante/configuracoes" },
+    { label: "Endereço da loja", icon: "map-pin", href: "/restaurante/configuracoes/endereco" },
+    {
+        label: "Preferências de notificação",
+        icon: "bell",
+        href: "/restaurante/configuracoes/notificacoes",
+    },
+    {
+        label: "Segurança e acesso",
+        icon: "shield",
+        href: "/restaurante/configuracoes/seguranca",
+    },
+    {
+        label: "Mercado Pago",
+        icon: "card",
+        href: "/restaurante/configuracoes/mercado-pago",
+    },
+    {
+        label: "Operação & logística",
+        icon: "settings",
+        href: "/restaurante/configuracoes/operacao",
+    },
+];
+function Icon({ type, className = "h-5 w-5", }) {
+    const paths = {
+        appearance: "M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M5.6 18.4 7 17M17 7l1.4-1.4M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10z",
+        bell: "M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0",
+        camera: "M4 8h4l2-3h4l2 3h4v12H4V8z M12 17a4 4 0 1 0 0-8 4 4 0 0 0 0 8z",
+        card: "M4 7h16v10H4V7z M4 10h16M8 14h3",
+        "chevron-right": "m9 18 6-6-6-6",
+        "map-pin": "M12 21s6-5.2 6-11a6 6 0 0 0-12 0c0 5.8 6 11 6 11z M12 12a2 2 0 1 0 0-4 2 2 0 0 0 0 4z",
+        menu: "M4 7h16M4 12h16M4 17h16",
+        "log-out": "M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9",
+        settings: "M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 0 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21a2 2 0 0 1-4 0v-.2a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1A2 2 0 0 1 4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H3a2 2 0 0 1 0-4h.2a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1A2 2 0 0 1 7 4.2l.1.1a1.7 1.7 0 0 0 1.9.3h.1A1.7 1.7 0 0 0 10 3.2V3a2 2 0 0 1 4 0v.2a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1A2 2 0 0 1 19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9v.1a1.7 1.7 0 0 0 1.6.9H21a2 2 0 0 1 0 4h-.2a1.7 1.7 0 0 0-1.6 1z",
+        shield: "M12 21s7-3.2 7-9.8V5l-7-3-7 3v6.2C5 17.8 12 21 12 21z",
+        store: "M4 10h16l-1-5H5l-1 5z M6 10v10h12V10M9 20v-6h6v6",
+    };
+    return (<svg aria-hidden="true" viewBox="0 0 24 24" className={className}>
+      <path d={paths[type]} fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8"/>
+    </svg>);
+}
+function Field({ label, value, onChange, className = "", disabled = false, }) {
+    const { ui } = useInterface();
+    return (<label className={`grid gap-2 ${className}`}>
+      <span className="text-xs font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">
+        {ui(label)}
+      </span>
+      <input value={value} onChange={(event) => onChange(event.target.value)} disabled={disabled} className="h-12 rounded-[8px] border border-app-baunilha-dourada bg-app-creme-suave px-4 text-sm text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20 disabled:cursor-not-allowed disabled:opacity-65"/>
+    </label>);
+}
+export default function RestaurantSettings({ painelInicial = "conta" }) {
+    const [painelAtivo, setPainelAtivo] = useState(painelInicial);
+    const [confirmandoSaida, setConfirmandoSaida] = useState(false);
+    const [saindo, setSaindo] = useState(false);
+    const PainelAtivo = paineis[painelAtivo];
+    const { ui } = useInterface();
+    const { sessao, sessaoCarregada } = useSessaoLocal();
+    const [form, setForm] = useState(initialForm);
+    const [message, setMessage] = useState("Carregando dados cadastrados...");
+    const [salvando, setSalvando] = useState(false);
+    const [novaImagem, setNovaImagem] = useState(null);
+    useEffect(() => {
+        if (!sessaoCarregada || sessao?.type !== "restaurant" || painelAtivo !== "conta") {
+            return;
+        }
+        async function carregarDadosCadastrados() {
+            try {
+                const resposta = await apiRequest("/me");
+                const restaurante = resposta.perfil;
+                setForm({
+                    storeName: restaurante.nome ?? "",
+                    document: aplicarMascaraCnpj(restaurante.cnpj ?? ""),
+                    legalName: restaurante.razao_social ?? "",
+                    phone: aplicarMascaraTelefone(restaurante.telefone ?? ""),
+                    email: restaurante.email ?? "",
+                    address: restaurante.endereco ?? "",
+                    postalCode: aplicarMascaraCep(restaurante.cep ?? ""),
+                    logoUrl: restaurante.logo_url ?? "",
+                    minimumReservationValue: String(restaurante.valor_minimo_reserva_por_pessoa ?? 0),
+                });
+                setMessage("");
+            }
+            catch (error) {
+                setMessage(error instanceof Error
+                    ? error.message
+                    : "Não foi possível carregar os dados cadastrados.");
+            }
+        }
+        carregarDadosCadastrados();
+    }, [sessao, sessaoCarregada, painelAtivo]);
+    function updateField(field, value) {
+        setForm((current) => ({ ...current, [field]: value }));
+        setMessage("");
+    }
+    function selecionarImagem(arquivo) {
+        if (!arquivo) {
+            return;
+        }
+        const erro = validarImagemRestaurante(arquivo);
+        if (erro) {
+            setMessage(erro);
+            return;
+        }
+        setNovaImagem(arquivo);
+        setForm((atual) => ({ ...atual, logoUrl: URL.createObjectURL(arquivo) }));
+        setMessage("");
+    }
+    async function submitForm(event) {
+        event.preventDefault();
+        setSalvando(true);
+        try {
+            const resposta = await apiRequest("/me", {
+                method: "PATCH",
+                body: JSON.stringify({
+                    nome: form.storeName,
+                    telefone: form.phone,
+                    email: form.email,
+                    endereco: form.address,
+                    cep: form.postalCode,
+                    valor_minimo_reserva_por_pessoa: Number(form.minimumReservationValue),
+                }),
+            });
+            if (novaImagem) {
+                const logoUrl = await enviarImagemRestaurante(novaImagem);
+                setForm((atual) => ({ ...atual, logoUrl }));
+                setNovaImagem(null);
+            }
+            atualizarNomeSessao(resposta.perfil.nome);
+            setMessage(resposta.message ?? "Alterações salvas com sucesso.");
+        }
+        catch (error) {
+            setMessage(error instanceof Error ? error.message : "Não foi possível salvar as alterações.");
+        }
+        finally {
+            setSalvando(false);
+        }
+    }
+    async function logout() {
+        if (saindo) return;
+        setSaindo(true);
+        await encerrarSessao();
+        window.location.assign("/");
+    }
+    if (!sessaoCarregada) {
+        return <TelaCarregandoSessao />;
+    }
+    if (sessao?.type !== "restaurant") {
+        return (<main className="flex min-h-screen items-center justify-center bg-white px-5 text-app-cafe-profundo">
+        <section className="w-full max-w-lg rounded-[8px] bg-app-creme-leve p-8 text-center shadow-sm ring-1 ring-app-baunilha-dourada">
+          <Image src="/brand/appono-mark.svg" alt={ui("Appono")} width={88} height={88} className="mx-auto h-20 w-20" priority/>
+          <h1 className="mt-6 text-3xl font-semibold">{ui("Acesso restrito")}</h1>
+          <p className="mt-3 text-sm leading-6 text-app-cinza">{ui("Esta área é destinada a contas de restaurante.")}</p>
+          <Link href="/login" className="mt-6 inline-flex h-11 items-center justify-center rounded-[8px] bg-app-dourado-mel px-6 text-sm font-bold text-white transition hover:bg-app-caramelo-torrado">{ui("Entrar")}</Link>
+        </section>
+      </main>);
+    }
+    return (<main className="flex min-h-screen flex-col bg-white text-app-cafe-profundo">
+
+
+      <section className="mx-auto w-full max-w-7xl flex-1 px-5 py-10 sm:py-14">
+        <div className="grid gap-8 items-start lg:grid-cols-[minmax(250px,0.42fr)_minmax(0,1fr)]">
+          <aside className="rounded-[8px] bg-app-creme-leve p-5 shadow-sm ring-1 ring-app-baunilha-dourada/60 sm:p-6">
+            <section>
+              <h1 className="text-3xl font-medium italic leading-tight text-app-cafe-profundo">{ui("Configurações do Perfil")}</h1>
+            </section>
+
+            <nav aria-label={ui("Configurações do restaurante")} className="mt-7 grid gap-2">
+              {settingsItems.map((item) => {
+                const painel = item.href.split("/").pop() === "configuracoes" ? "conta" : item.href.split("/").pop();
+                return <button type="button" key={item.label} onClick={() => setPainelAtivo(painel)} aria-current={painelAtivo === painel ? "page" : undefined} className={`flex w-full items-center justify-between gap-4 rounded-[8px] px-5 py-4 text-left transition ${painelAtivo === painel
+                ? "bg-app-botao-aba-ativa text-app-botao-aba-ativa-texto"
+                : "text-app-mocha hover:bg-app-creme-leve"}`}>
+                  <span className="flex items-center gap-3">
+                    <Icon type={item.icon} className="h-5 w-5"/>
+                    <span className="text-sm font-semibold">{ui(item.label)}</span>
+                  </span>
+                  <Icon type="chevron-right" className="h-4 w-4"/>
+                </button>;
+              })}
+              <button type="button" onClick={() => setPainelAtivo("aparencia")} aria-current={painelAtivo === "aparencia" ? "page" : undefined} className={`flex w-full items-center gap-3 rounded-[8px] px-5 py-4 text-left text-sm font-semibold transition ${painelAtivo === "aparencia" ? "bg-app-botao-aba-ativa text-app-botao-aba-ativa-texto" : "text-app-mocha hover:bg-app-creme-leve"}`}>
+                <Icon type="appearance" />{ui("Aparência")}
+              </button>
+              <button type="button" onClick={() => setConfirmandoSaida(true)} disabled={saindo} aria-busy={saindo} className="mt-3 flex w-full items-center gap-3 rounded-[8px] px-5 py-4 text-left text-sm font-bold text-app-vermelho-erro transition hover:bg-app-creme-suave">
+                <Icon type="log-out" />{ui("Sair da conta")}
+              </button>
+            </nav>
+          </aside>
+
+          <section className="min-w-0 rounded-[8px] bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada/45 sm:p-8">
+          {PainelAtivo ? <PainelAtivo onVoltar={() => setPainelAtivo("conta")} /> : painelAtivo === "aparencia" ? (
+            <div><h2 className="text-3xl font-medium text-app-cafe-profundo">{ui("Aparência")}</h2><BotaoIdioma embutido /></div>
+          ) : (
+          <form onSubmit={submitForm}>
+            <div className="flex flex-col gap-6 border-b border-app-baunilha-dourada/60 pb-7 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <h2 className="text-3xl font-medium text-app-cafe-profundo">{ui("Dados Cadastrais")}</h2>
+              </div>
+            </div>
+
+            <section className="mt-8 flex flex-col gap-5 sm:flex-row sm:items-center">
+              <label className="relative flex h-24 w-24 shrink-0 cursor-pointer items-center justify-center overflow-visible rounded-[8px] bg-app-cafe-profundo bg-cover bg-center text-app-creme-leve" style={form.logoUrl ? { backgroundImage: `url("${form.logoUrl}")` } : undefined}>
+                {!form.logoUrl ? <Icon type="store" className="h-10 w-10"/> : null}
+                <span className="absolute -bottom-2 -right-2 flex h-9 w-9 items-center justify-center rounded-full bg-app-caramelo-torrado text-app-chantilly ring-4 ring-app-chantilly">
+                  <Icon type="camera" className="h-4 w-4"/>
+                </span>
+                <input type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => selecionarImagem(event.target.files?.[0])} className="sr-only"/>
+              </label>
+              <div>
+                <h3 className="text-lg font-semibold text-app-cafe-profundo">{ui("Logotipo da Loja")}</h3>
+                <p className="mt-2 text-sm leading-6 text-app-cinza">{ui("Formatos suportados: JPG, PNG. Tamanho recomendado: 500x500px.")}</p>
+              </div>
+            </section>
+
+            <section className="mt-8 grid gap-6 sm:grid-cols-2">
+              <Field label={ui("Nome da loja")} value={form.storeName} onChange={(value) => updateField("storeName", value)}/>
+              <Field label={ui("CNPJ")} value={form.document} onChange={(value) => updateField("document", value)} disabled/>
+              <Field label={ui("Razão social")} value={form.legalName} onChange={(value) => updateField("legalName", value)} disabled/>
+              <Field label={ui("Telefone de contato")} value={form.phone} onChange={(value) => updateField("phone", value)}/>
+              <Field label={ui("Email comercial")} value={form.email} onChange={(value) => updateField("email", value)} className="sm:col-span-2"/>
+              <Field label={ui("Consumo mínimo por pessoa (R$)")} value={form.minimumReservationValue} onChange={(value) => updateField("minimumReservationValue", value.replace(/[^\d.,]/g, "").replace(",", "."))} className="sm:col-span-2"/>
+            </section>
+
+            <section className="mt-8 border-t border-app-baunilha-dourada/60 pt-8">
+              <h3 className="flex items-center gap-2 text-2xl font-medium italic text-app-cafe-profundo">
+                <Icon type="map-pin" className="h-5 w-5"/>{ui("Localização")}</h3>
+
+              <div className="mt-6 grid gap-6 sm:grid-cols-[1fr_0.42fr]">
+                <Field label={ui("Endereço")} value={form.address} onChange={(value) => updateField("address", value)}/>
+                <Field label={ui("CEP")} value={form.postalCode} onChange={(value) => updateField("postalCode", value)}/>
+              </div>
+            </section>
+
+            <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:justify-end">
+              <button type="button" onClick={() => {
+            setForm(initialForm);
+            setMessage("");
+        }} className="h-11 rounded-[8px] px-8 text-xs font-bold uppercase tracking-[0.18em] text-app-mocha transition hover:bg-app-creme-leve">{ui("Descartar")}</button>
+              <button type="submit" disabled={salvando} className="h-11 rounded-[8px] bg-app-dourado-mel px-8 text-xs font-bold uppercase text-white transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-60">
+                {ui(salvando ? "Salvando..." : "Salvar alterações")}
+              </button>
+            </div>
+
+            {message ? (<p className="mt-4 text-sm font-semibold text-app-caramelo-torrado">
+                {ui(message)}
+              </p>) : null}
+          </form>
+          )}
+          </section>
+        </div>
+
+      </section>
+
+
+      <ConfirmationDialog
+        open={confirmandoSaida}
+        title="Sair da conta?"
+        description="Tem certeza de que deseja sair da sua conta?"
+        confirmLabel="Sair da conta"
+        cancelLabel="Cancelar"
+        variant="default"
+        loading={saindo}
+        onConfirm={logout}
+        onCancel={() => setConfirmandoSaida(false)}
+      />
+    </main>);
+}

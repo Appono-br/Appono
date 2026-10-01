@@ -117,7 +117,7 @@ function obterCamposRestaurante(restaurant) {
 function obterRotulosCorrespondencia(restaurant) {
     return [
         ...(restaurant.matchedProducts ?? []).map((produto) => `Prato: ${produto.nome}`),
-        ...(restaurant.matchedCategories ?? []).map((categoria) => `Categoria: ${categoria.nome}`),
+        ...(restaurant.matchedCategories ?? []).map((categoria) => `Seção: ${categoria.nome}`),
         ...(restaurant.matchedMenus ?? []).map((cardapio) => `Cardápio: ${cardapio.nome}`),
     ].filter(Boolean).slice(0, 3);
 }
@@ -393,8 +393,8 @@ export default function DashboardPage() {
             .slice(0, 3);
         return [
             { titulo: "Bem avaliados", criterio: "Com avaliações registradas e maior média", itens: bemAvaliados },
-            { titulo: "Para almoço", criterio: "Opções com categorias adequadas ao almoço", itens: paraAlmoco },
-            { titulo: "Para jantar", criterio: "Opções com categorias adequadas ao jantar", itens: paraJantar },
+            { titulo: "Para almoço", criterio: "Opções com seções adequadas ao almoço", itens: paraAlmoco },
+            { titulo: "Para jantar", criterio: "Opções com seções adequadas ao jantar", itens: paraJantar },
             { titulo: "Faixa de preço acessível", criterio: "Menor valor mínimo de reserva informado", itens: faixaAcessivel },
         ].filter((colecao) => colecao.itens.length > 0);
     }, [restaurants]);
@@ -509,7 +509,7 @@ export default function DashboardPage() {
                 );
               })}
               <Link href={`/cliente/busca?q=${encodeURIComponent(query.trim())}`} className="mt-1 flex h-11 items-center justify-center rounded-[10px] border border-app-baunilha-dourada bg-white text-[10px] font-bold uppercase tracking-[0.14em] text-app-caramelo-torrado transition hover:bg-app-chantilly hover:text-app-cafe-profundo">{ui("Ver todos os resultados")}</Link>
-            </div>) : (<p className="px-2 py-5 text-center text-sm text-app-cinza">{ui("Tente buscar por restaurante, bairro, endereço, categoria ou prato do cardápio.")}</p>)}
+            </div>) : (<p className="px-2 py-5 text-center text-sm text-app-cinza">{ui("Tente buscar por restaurante, bairro, endereço, seção ou prato do cardápio.")}</p>)}
           </section>) : null}
         </div>
       </section>
@@ -658,7 +658,7 @@ export default function DashboardPage() {
                       {ui(specialty.description)}
                     </p>) : null}
                 </article>))}
-            </div>) : (<EmptyState title={ui("Especialidades ainda não disponíveis")} description={ui("As categorias em destaque serão exibidas assim que houver restaurantes e cardápios cadastrados.")}/>)}
+            </div>) : (<EmptyState title={ui("Especialidades ainda não disponíveis")} description={ui("As seções em destaque serão exibidas assim que houver restaurantes e cardápios cadastrados.")}/>)}
         </div>
       </section>
 

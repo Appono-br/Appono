@@ -93,8 +93,8 @@ function RepassesTable({ repasses }) {
     const { ui , localeUI } = useInterface();
     if (!repasses.length) {
         return (<div className="overflow-hidden rounded-[8px] bg-white shadow-sm ring-1 ring-app-baunilha-dourada/45">
-      <div className="grid gap-4 bg-app-creme-suave px-6 py-5 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha lg:grid-cols-[0.8fr_1fr_1.1fr_0.9fr_1fr_0.8fr_0.9fr]">
-        {tableHeaders.map((header) => (<span key={header}>{ui(header)}</span>))}
+      <div className="grid items-center gap-4 bg-app-creme-suave px-6 py-5 text-center text-xs font-bold uppercase tracking-[0.12em] text-app-mocha lg:grid-cols-[0.8fr_1fr_1.1fr_0.9fr_1fr_0.8fr_0.9fr]">
+        {tableHeaders.map((header, index) => (<span key={`${header}-${index}`}>{ui(header)}</span>))}
       </div>
       <div className="flex min-h-56 flex-col justify-center border-t border-app-baunilha-dourada/45 px-6 py-10">
         <h3 className="text-xl font-semibold text-app-cafe-profundo">{ui("Nenhum repasse registrado")}</h3>
@@ -103,8 +103,8 @@ function RepassesTable({ repasses }) {
     </div>);
     }
     return (<div className="overflow-hidden rounded-[8px] bg-white shadow-sm ring-1 ring-app-baunilha-dourada/45">
-      <div className="hidden gap-4 bg-app-creme-suave px-6 py-5 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha lg:grid lg:grid-cols-[0.8fr_1fr_1.1fr_0.9fr_1fr_0.8fr_0.9fr]">
-        {tableHeaders.map((header) => (<span key={header}>{ui(header)}</span>))}
+      <div className="hidden items-center gap-4 bg-app-creme-suave px-6 py-5 text-center text-xs font-bold uppercase tracking-[0.12em] text-app-mocha lg:grid lg:grid-cols-[0.8fr_1fr_1.1fr_0.9fr_1fr_0.8fr_0.9fr]">
+        {tableHeaders.map((header, index) => (<span key={`${header}-${index}`}>{ui(header)}</span>))}
       </div>
       <div className="divide-y divide-app-baunilha-dourada/45 border-t border-app-baunilha-dourada/45">
         {repasses.map((repasse) => {
@@ -290,10 +290,9 @@ export default function RestaurantFinancialReportPage() {
 
 
       <section className="mx-auto w-full max-w-7xl flex-1 px-5 py-10 sm:py-14">
-        <div className="grid gap-6 border-t border-app-baunilha-dourada/60 pt-10 lg:grid-cols-[1fr_auto] lg:items-end">
+        <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end">
           <div>
-            <p className="text-[10px] font-bold uppercase text-app-caramelo-torrado">{ui("Financeiro")}</p>
-            <h1 className="mt-2 text-4xl font-medium leading-tight text-app-cafe-profundo sm:text-5xl">{ui("Relatório financeiro")}</h1>
+            <h1 className="text-4xl font-medium leading-tight text-app-cafe-profundo sm:text-5xl">{ui("Relatório financeiro")}</h1>
             <Link href="/restaurante/reembolsos" className="mt-5 inline-flex rounded-[8px] border border-app-caramelo-torrado px-5 py-2.5 text-xs font-bold uppercase tracking-[0.12em] text-app-caramelo-torrado">{ui("Analisar reembolsos")}</Link>
             <p className="mt-4 max-w-2xl text-sm leading-6 text-app-cinza sm:text-base">{ui("Acompanhe valores pagos, reembolsos e repasses. Ausência avisada pode manter o mínimo do restaurante e devolver apenas o excedente ao cliente.")}</p>
           </div>
@@ -322,8 +321,8 @@ export default function RestaurantFinancialReportPage() {
         <section className="mt-8 rounded-[8px] bg-app-creme-leve p-6 shadow-sm ring-1 ring-app-baunilha-dourada/60 sm:p-8">
           <p className="text-xs font-bold text-app-caramelo-torrado">Mercado Pago</p>
           <h2 className="mt-2 text-2xl font-medium text-app-cafe-profundo">Conta de recebimento</h2>
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-app-mocha">A conex?o e as credenciais de recebimento s?o administradas nas configura??es do restaurante.</p>
-          <Link href="/restaurante/configuracoes/mercado-pago" className="mt-5 inline-flex rounded-full bg-app-cafe-profundo px-5 py-3 text-sm font-semibold text-white">Gerenciar conex?o</Link>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-app-mocha">A conexão e as credenciais de recebimento são administradas nas configurações do restaurante.</p>
+          <Link href="/restaurante/configuracoes/mercado-pago" className="mt-5 inline-flex rounded-full bg-app-cafe-profundo px-5 py-3 text-sm font-semibold text-white">Gerenciar conexão</Link>
         </section>
 
         <section className="mt-10">

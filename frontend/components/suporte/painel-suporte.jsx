@@ -91,7 +91,9 @@ function obterParametrosIniciais() {
     return new URLSearchParams(window.location.search);
 }
 
-export function PainelSuporte({ perfil }) {
+export function PainelSuporte({ perfil, embutido = false }) {
+    const Container = embutido ? "div" : "main";
+    const Heading = embutido ? "h2" : "h1";
     const { ui, localeUI } = useInterface();
     const parametrosIniciais = useMemo(() => obterParametrosIniciais(), []);
     const [chamados, setChamados] = useState([]);
@@ -228,15 +230,15 @@ export function PainelSuporte({ perfil }) {
     const reembolsoDetalhe = obterReembolso(detalhe);
 
     return (
-        <main className="min-h-screen bg-white px-5 py-10 text-app-cafe-profundo">
+        <Container className={embutido ? "min-w-0 text-app-cafe-profundo" : "min-h-screen bg-white px-5 py-10 text-app-cafe-profundo"}>
             <section className="mx-auto max-w-7xl">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                        <Link href={perfil === "cliente" ? "/cliente/configuracoes" : perfil === "restaurante" ? "/restaurante/dashboard" : "/admin/financeiro"} className="text-sm font-bold text-app-caramelo-torrado">
+                        {!embutido && <Link href={perfil === "cliente" ? "/cliente/configuracoes" : perfil === "restaurante" ? "/restaurante/dashboard" : "/admin/financeiro"} className="text-sm font-bold text-app-caramelo-torrado">
                             {ui(perfil === "cliente" ? "← Voltar às configurações" : "← Voltar")}
-                        </Link>
-                        <p className="mt-8 text-[10px] font-bold uppercase tracking-[0.22em] text-app-caramelo-torrado">{ui("Suporte Appono")}</p>
-                        <h1 className="mt-2 text-4xl font-semibold sm:text-5xl">{ui(perfil === "cliente" ? "Meus chamados" : "Central de suporte")}</h1>
+                        </Link>}
+                        <p className={`${embutido ? "" : "mt-8 "}text-[10px] font-bold uppercase tracking-[0.22em] text-app-caramelo-torrado`}>{ui("Suporte Appono")}</p>
+                        <Heading className={embutido ? "mt-2 text-3xl font-medium" : "mt-2 text-4xl font-semibold sm:text-5xl"}>{ui(perfil === "cliente" ? "Meus chamados" : "Central de suporte")}</Heading>
                         <p className="mt-3 max-w-2xl text-sm leading-6 text-app-cinza">
                             {ui("Registre, acompanhe e resolva ocorrências com protocolo, contexto e histórico preservado.")}
                         </p>
@@ -253,8 +255,7 @@ export function PainelSuporte({ perfil }) {
                     <section className="mt-8 rounded-[16px] bg-white p-5 shadow-sm ring-1 ring-app-baunilha-dourada/70">
                         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                             <div>
-                                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">{ui("Novo protocolo")}</p>
-                                <h2 className="mt-1 text-2xl font-semibold">{ui("Abrir chamado")}</h2>
+                                <h2 className="text-2xl font-semibold">{ui("Abrir chamado")}</h2>
                             </div>
                             <button type="button" onClick={() => setMostrarNovo((atual) => !atual)} className="rounded-[8px] bg-app-cafe-profundo px-5 py-3 text-xs font-bold uppercase tracking-[0.12em] text-app-creme-leve transition hover:bg-app-caramelo-torrado">
                                 {ui(mostrarNovo ? "Fechar formulário" : "Novo chamado")}
@@ -295,7 +296,7 @@ export function PainelSuporte({ perfil }) {
                     </section>
                 ) : null}
 
-                <section className="mt-8 grid gap-6 lg:grid-cols-[420px_minmax(0,1fr)]">
+                <section className={`mt-8 grid gap-6 ${embutido ? "" : "lg:grid-cols-[420px_minmax(0,1fr)]"}`}>
                     <aside className="rounded-[16px] bg-white p-4 shadow-sm ring-1 ring-app-baunilha-dourada/70">
                         <label className="campo-busca-app flex h-11 items-center rounded-[10px] border border-app-baunilha-dourada/70 bg-white px-4 transition">
                             <input value={busca} onChange={(event) => setBusca(event.target.value)} placeholder={ui("Buscar chamado, cliente, restaurante ou pedido...")} className="input-busca-app h-full min-w-0 flex-1 bg-transparent text-sm text-app-cafe-profundo placeholder:text-app-cinza/60" />
@@ -427,6 +428,6 @@ export function PainelSuporte({ perfil }) {
                 }}
                 details={detalhe ? <p className="font-semibold">{ui("Chamado #")}{detalhe.id_chamado} · {ui(textoMotivoSuporte(detalhe.motivo))}</p> : null}
             />
-        </main>
+        </Container>
     );
 }

@@ -1,8 +1,10 @@
 "use client";
 import { useInterface } from "@/lib/use-interface";
-import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { PainelSuporte } from "@/components/suporte/painel-suporte";
+import { Suspense, useEffect, useState } from "react";
 import { BotaoIdioma } from "@/components/configuracoes/botao-idioma";
+import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { apiRequest } from "@/lib/api";
 import { atualizarNomeSessao, encerrarSessao } from "@/lib/session";
 import { useTraducao } from "@/lib/use-traducao";
@@ -35,6 +37,13 @@ function Icon({ type, className = "h-5 w-5", }) {
     </svg>);
 }
 export default function SettingsPage() {
+    return <Suspense><SettingsRoute /></Suspense>;
+}
+function SettingsRoute() {
+    const searchParams = useSearchParams();
+    return <SettingsContent key={searchParams.toString()} painelInicial={searchParams.get("painel") === "suporte" ? "suporte" : "conta"} />;
+}
+function SettingsContent({ painelInicial }) {
     const { ui } = useInterface();
     const { t } = useTraducao();
     const [session] = useState(() => {
@@ -47,7 +56,9 @@ export default function SettingsPage() {
     const [formularioConta, setFormularioConta] = useState(formularioContaInicial);
     const [mensagemConta, setMensagemConta] = useState("Carregando dados cadastrados...");
     const [salvandoConta, setSalvandoConta] = useState(false);
-    const [painelAtivo, setPainelAtivo] = useState("conta");
+    const [painelAtivo, setPainelAtivo] = useState(painelInicial);
+    const [confirmandoSaida, setConfirmandoSaida] = useState(false);
+    const [saindo, setSaindo] = useState(false);
     useEffect(() => {
         window.localStorage.removeItem("appono:paymentDraft");
     }, []);
@@ -98,24 +109,16 @@ export default function SettingsPage() {
         }
     }
     async function logout() {
+        if (saindo) return;
+        setSaindo(true);
         await encerrarSessao();
         window.location.assign("/");
     }
-    const profileName = session?.name || t("settings.unknownProfile");
-    const profileType = session?.type === "restaurant"
-        ? "Conta de restaurante"
-        : session?.type === "client"
-            ? t("settings.clientAccount")
-            : t("settings.completeProfile");
     return (<main className="flex min-h-screen flex-col bg-white text-app-cafe-profundo">
       <section className="mx-auto w-full max-w-7xl flex-1 px-5 py-10 sm:py-14">
         <div className="grid items-start gap-8 lg:grid-cols-[0.42fr_1fr]">
           <aside className="rounded-[8px] bg-app-creme-leve p-5 shadow-sm ring-1 ring-app-baunilha-dourada/60 sm:p-6">
             <h1 className="text-3xl font-medium italic leading-tight text-app-cafe-profundo">{t("settings.title")}</h1>
-            <div className="mt-6 px-3">
-              <strong className="block text-sm text-app-cafe-profundo">{profileName}</strong>
-              <span className="mt-1 block text-xs text-app-cinza">{ui(profileType)}</span>
-            </div>
 
             <nav aria-label={ui("Seções de configurações")} className="mt-7 grid gap-2">
               <button type="button" onClick={() => setPainelAtivo("conta")} aria-current={painelAtivo === "conta" ? "page" : undefined} className={`flex min-h-12 w-full items-center gap-3 rounded-[8px] px-3 text-left text-sm font-bold outline-none transition focus-visible:ring-2 focus-visible:ring-app-caramelo-torrado ${painelAtivo === "conta" ? "bg-app-cafe-profundo text-app-creme-leve" : "text-app-cafe-profundo hover:bg-white"}`}>
@@ -126,18 +129,18 @@ export default function SettingsPage() {
                 <Icon type="appearance" />
                 {ui("Aparência")}
               </button>
-              <Link href="/cliente/suporte" className="flex min-h-12 items-center gap-3 rounded-[8px] px-3 text-sm font-bold text-app-cafe-profundo outline-none transition hover:bg-white focus-visible:ring-2 focus-visible:ring-app-caramelo-torrado">
+              <button type="button" onClick={() => setPainelAtivo("suporte")} aria-current={painelAtivo === "suporte" ? "page" : undefined} className={`flex min-h-12 w-full items-center gap-3 rounded-[8px] px-3 text-left text-sm font-bold outline-none transition focus-visible:ring-2 focus-visible:ring-app-caramelo-torrado ${painelAtivo === "suporte" ? "bg-app-cafe-profundo text-app-creme-leve" : "text-app-cafe-profundo hover:bg-white"}`}>
                 <Icon type="support" />
                 {ui("Suporte")}
-              </Link>
-              <button type="button" onClick={logout} className="mt-3 flex min-h-12 w-full items-center gap-3 rounded-[8px] px-3 text-left text-sm font-bold text-app-vermelho-erro outline-none transition hover:bg-app-vermelho-claro focus-visible:ring-2 focus-visible:ring-app-vermelho-erro">
+              </button>
+              <button type="button" onClick={() => setConfirmandoSaida(true)} className="mt-3 flex min-h-12 w-full items-center gap-3 rounded-[8px] px-3 text-left text-sm font-bold text-app-vermelho-erro outline-none transition hover:bg-app-vermelho-claro focus-visible:ring-2 focus-visible:ring-app-vermelho-erro">
                 <Icon type="log-out" />
                 {t("settings.logout")}
               </button>
             </nav>
           </aside>
 
-          <section className="rounded-[8px] bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada/45 sm:p-8">
+          <section className="min-w-0 rounded-[8px] bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada/45 sm:p-8">
             {painelAtivo === "conta" ? (
               <form onSubmit={salvarConta}>
                 <h2 className="text-3xl font-medium text-app-cafe-profundo">{ui("Dados da Conta")}</h2>
@@ -170,6 +173,8 @@ export default function SettingsPage() {
                 </div>
                 {mensagemConta ? <p className="mt-4 text-sm font-semibold text-app-caramelo-torrado">{ui(mensagemConta)}</p> : null}
               </form>
+            ) : painelAtivo === "suporte" ? (
+              <PainelSuporte perfil="cliente" embutido />
             ) : (
               <div>
                 <h2 className="text-3xl font-medium text-app-cafe-profundo">{ui("Aparência")}</h2>
@@ -181,5 +186,16 @@ export default function SettingsPage() {
       </section>
 
 
+      <ConfirmationDialog
+        open={confirmandoSaida}
+        title="Sair da conta?"
+        description="Tem certeza de que deseja sair da sua conta?"
+        confirmLabel={t("settings.logout")}
+        cancelLabel="Cancelar"
+        variant="default"
+        loading={saindo}
+        onConfirm={logout}
+        onCancel={() => setConfirmandoSaida(false)}
+      />
     </main>);
 }

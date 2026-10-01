@@ -551,7 +551,7 @@ export default function ReservationsPage() {
                             <Icon type="message" className="h-4 w-4"/>
                             {ui(abrindoChatReservaId === reservation.id ? "Abrindo..." : "Falar com restaurante")}
                           </button>
-                          <Link href={`/cliente/suporte?${reservation.activeOrder?.id ? `pedido=${reservation.activeOrder.id}&motivo=PEDIDO_NAO_PRONTO` : `reserva=${reservation.id}&motivo=MESA_INDISPONIVEL`}`} className="rounded-[8px] border border-app-baunilha-dourada px-4 py-2 text-xs font-bold text-app-mocha transition hover:bg-app-chantilly">
+                          <Link href={`/cliente/configuracoes?painel=suporte&${reservation.activeOrder?.id ? `pedido=${reservation.activeOrder.id}&motivo=PEDIDO_NAO_PRONTO` : `reserva=${reservation.id}&motivo=MESA_INDISPONIVEL`}`} className="rounded-[8px] border border-app-baunilha-dourada px-4 py-2 text-xs font-bold text-app-mocha transition hover:bg-app-chantilly">
                             {ui("Abrir suporte")}
                           </Link>
                           {podeResponderPresenca(reservation) ? (<>

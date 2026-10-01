@@ -335,8 +335,7 @@ export default function PaginaPedidoAntecipado({ params }) {
                                 <article key={categoria.id_categoria} className="rounded-[14px] bg-white p-5 shadow-sm ring-1 ring-app-baunilha-dourada sm:p-6">
                                     <div className="flex flex-wrap items-end justify-between gap-3">
                                         <div>
-                                            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{categoria.cardapio}</p>
-                                            <h2 className="mt-1 text-2xl font-bold">{categoria.nome}</h2>
+                                            <h2 className="text-2xl font-bold">{categoria.nome}</h2>
                                         </div>
                                         <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-app-mocha">
                                             {(categoria.produtos ?? []).length}{ui(" itens")}</span>

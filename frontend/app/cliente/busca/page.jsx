@@ -62,7 +62,7 @@ function obterCamposRestaurante(restaurant) {
 function obterRotulosCorrespondencia(restaurant) {
   return [
     ...(restaurant.matchedProducts ?? []).map((produto) => `Prato: ${produto.nome}`),
-    ...(restaurant.matchedCategories ?? []).map((categoria) => `Categoria: ${categoria.nome}`),
+    ...(restaurant.matchedCategories ?? []).map((categoria) => `Seção: ${categoria.nome}`),
     ...(restaurant.matchedMenus ?? []).map((cardapio) => `Cardápio: ${cardapio.nome}`),
   ].filter(Boolean).slice(0, 3);
 }

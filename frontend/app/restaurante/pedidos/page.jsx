@@ -363,13 +363,11 @@ export default function RestaurantOrdersPage() {
 
     return (
         <main className="flex min-h-screen flex-col bg-white text-app-cafe-profundo">
-            <div className="px-5 pt-6"><Link href="/restaurante/notificacoes" className="inline-flex items-center gap-2 text-sm font-semibold text-app-caramelo-torrado"><span aria-hidden="true">&larr;</span>{ui("Notificações")}</Link></div>
 
             <section className="mx-auto w-full max-w-7xl flex-1 px-5 py-10 sm:py-14">
-                <div className="border-t border-app-baunilha-dourada/60 pt-10">
+                <div>
                     <div>
-                        <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-app-caramelo-torrado">{ui("Cozinha Appono")}</p>
-                        <h1 className="mt-2 whitespace-nowrap text-3xl font-medium leading-tight text-app-cafe-profundo sm:text-4xl lg:text-5xl">{ui("Cozinha")}</h1>
+                        <h1 className="whitespace-nowrap text-3xl font-medium leading-tight text-app-cafe-profundo sm:text-4xl lg:text-5xl">{ui("Cozinha")}</h1>
                         <p className="mt-4 max-w-2xl text-sm leading-6 text-app-cinza sm:text-base">{ui("Acompanhe os pedidos pagos, a ordem das reservas e as entregas vinculadas ao atendimento.")}</p>
                     </div>
 
