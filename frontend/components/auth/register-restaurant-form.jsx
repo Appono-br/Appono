@@ -17,7 +17,10 @@
     cnpjEstaCompleto,
   } from "@/lib/validacoes/cnpj";
   import { somenteNumeros } from "@/lib/validacoes/comum";
-  import { aplicarMascaraTelefone } from "@/lib/validacoes/telefone";
+import { aplicarMascaraTelefone } from "@/lib/validacoes/telefone";
+import { senhaValida } from "@/lib/politica-senha";
+import { PasswordRequirements } from "@/components/auth/password-requirements";
+import { CATEGORIAS_CULINARIAS } from "@/lib/categorias-culinarias";
   import {
     enviarImagemRestaurante,
     validarImagemRestaurante,
@@ -39,6 +42,7 @@
     tables: "",
     password: "",
     plano: "INICIAL",
+    categorias_culinarias: [],
   };
 
 function redirecionarParaLogin(email) {
@@ -110,7 +114,7 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
           form.uf &&
           form.number &&
           form.tables &&
-          (isGoogleFlow || form.password)
+          (isGoogleFlow || senhaValida(form.password))
       );
     }
 
@@ -379,6 +383,8 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
               className="sm:col-span-2"
             />
 
+            <label className="grid gap-2 sm:col-span-2"><span className="text-sm font-semibold text-app-cafe-profundo">Categorias culinárias</span><select multiple value={form.categorias_culinarias} onChange={(event) => atualizarCampo("categorias_culinarias", [...event.target.selectedOptions].map((option) => option.value))} className="min-h-28 rounded-lg border border-app-baunilha-dourada bg-white px-3 py-2 text-sm" aria-label="Categorias culinárias">{CATEGORIAS_CULINARIAS.map((categoria) => <option key={categoria} value={categoria}>{categoria}</option>)}</select><span className="text-xs text-app-cinza">Selecione até 8 categorias.</span></label>
+
             <FormField
               label="E-mail"
               type="email"
@@ -517,7 +523,7 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
               className="sm:col-span-2"
             />
 
-            {!isGoogleFlow ? (
+            {!isGoogleFlow ? (<>
               <FormField
                 label="Senha"
                 type="password"
@@ -530,7 +536,8 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
                 minLength={6}
                 className="sm:col-span-2"
               />
-            ) : null}
+              <PasswordRequirements value={form.password} />
+            </>) : null}
 
             <label className="group grid gap-3 rounded-xl border-2 border-dashed border-app-baunilha-dourada/50 bg-white p-5 text-center transition hover:border-app-caramelo-torrado hover:bg-app-chantilly sm:col-span-2">
 

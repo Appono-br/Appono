@@ -11,6 +11,7 @@ import { aplicarMascaraCep } from "@/lib/validacoes/cep";
 import { aplicarMascaraCnpj } from "@/lib/validacoes/cnpj";
 import { aplicarMascaraTelefone } from "@/lib/validacoes/telefone";
 import { enviarImagemRestaurante, validarImagemRestaurante, } from "@/lib/imagem-restaurante";
+import { CATEGORIAS_CULINARIAS } from "@/lib/categorias-culinarias";
 const initialForm = {
     storeName: "",
     document: "",
@@ -21,6 +22,7 @@ const initialForm = {
     postalCode: "",
     logoUrl: "",
     minimumReservationValue: "0",
+    categorias_culinarias: [],
 };
 const settingsItems = [
     { label: "Informações da loja", icon: "store", href: "/restaurante/configuracoes" },
@@ -97,6 +99,7 @@ export default function RestaurantSettingsPage() {
                     postalCode: aplicarMascaraCep(restaurante.cep ?? ""),
                     logoUrl: restaurante.logo_url ?? "",
                     minimumReservationValue: String(restaurante.valor_minimo_reserva_por_pessoa ?? 0),
+                    categorias_culinarias: restaurante.categorias_culinarias ?? [],
                 });
                 setMessage("");
             }
@@ -138,6 +141,7 @@ export default function RestaurantSettingsPage() {
                     endereco: form.address,
                     cep: form.postalCode,
                     valor_minimo_reserva_por_pessoa: Number(form.minimumReservationValue),
+                    categorias_culinarias: form.categorias_culinarias,
                 }),
             });
             if (novaImagem) {
@@ -221,6 +225,7 @@ export default function RestaurantSettingsPage() {
 
             <section className="mt-8 grid gap-6 sm:grid-cols-2">
               <Field label={ui("Nome da loja")} value={form.storeName} onChange={(value) => updateField("storeName", value)}/>
+              <label className="grid gap-2 sm:col-span-2"><span className="text-xs font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">Categorias culinárias</span><select multiple value={form.categorias_culinarias} onChange={(event) => updateField("categorias_culinarias", [...event.target.selectedOptions].map((option) => option.value))} className="min-h-28 rounded-[8px] border border-app-baunilha-dourada bg-app-creme-suave px-3 py-2 text-sm"><option disabled>Selecione até 8 categorias</option>{CATEGORIAS_CULINARIAS.map((categoria) => <option key={categoria} value={categoria}>{categoria}</option>)}</select></label>
               <Field label={ui("CNPJ")} value={form.document} onChange={(value) => updateField("document", value)} disabled/>
               <Field label={ui("Razão social")} value={form.legalName} onChange={(value) => updateField("legalName", value)} disabled/>
               <Field label={ui("Telefone de contato")} value={form.phone} onChange={(value) => updateField("phone", value)}/>

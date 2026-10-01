@@ -4,6 +4,7 @@ import { VisibilidadeCampanhas, registrarCampanha } from "@/components/campanha-
 import { useInterface } from "@/lib/use-interface";
 import Image from "next/image";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { BotaoVoltar } from "@/components/botao-voltar";
 import { apiRequest } from "@/lib/api";
@@ -131,6 +132,8 @@ function SecaoAvaliacoes({ totalAvaliacoes, avaliacaoMedia, avaliacoesRecentes, 
 
 export default function PaginaRestaurante({ params }) {
     const { ui, localeUI, horarioUI } = useInterface();
+  const searchParams = useSearchParams();
+  const campanhaDaVitrine = Number(searchParams.get("campanha"));
   const [restauranteId, setRestauranteId] = useState(null);
   const [restaurante, setRestaurante] = useState(null);
   const [cardapios, setCardapios] = useState([]);
@@ -195,6 +198,11 @@ export default function PaginaRestaurante({ params }) {
   const produtosSelecionados = useMemo(() => obterProdutosSelecionados(produtos, quantidades), [produtos, quantidades]);
   const totalItens = produtosSelecionados.reduce((soma, produto) => soma + produto.quantidade, 0);
   const totalPedido = produtosSelecionados.reduce((soma, produto) => soma + Number(produto.preco ?? 0) * produto.quantidade, 0);
+  const idsProdutosElegiveis = new Set((campanhaSelecionada?.campanhas_inteligentes_produtos ?? []).map((item) => Number(item.id_produto)));
+  const totalElegivelCampanha = produtosSelecionados.filter((produto) => !idsProdutosElegiveis.size || idsProdutosElegiveis.has(Number(produto.id_produto))).reduce((soma, produto) => soma + Number(produto.preco ?? 0) * produto.quantidade, 0);
+  const descontoCampanha = campanhaSelecionada?.tipo_beneficio === "DESCONTO_PERCENTUAL" ? totalElegivelCampanha * Number(campanhaSelecionada.valor_beneficio ?? 0) / 100 : campanhaSelecionada?.tipo_beneficio === "DESCONTO_FIXO" ? Math.min(totalElegivelCampanha, Number(campanhaSelecionada.valor_beneficio ?? 0)) : 0;
+  const produtoComDesconto = (produto) => campanhaSelecionada?.tipo_beneficio === "DESCONTO_PERCENTUAL" && (!idsProdutosElegiveis.size || idsProdutosElegiveis.has(Number(produto.id_produto)));
+  const precoExibidoProduto = (produto) => produtoComDesconto(produto) ? Number(produto.preco ?? 0) * (1 - Number(campanhaSelecionada.valor_beneficio ?? 0) / 100) : Number(produto.preco ?? 0);
   const temPedidoAntecipado = totalItens > 0;
   const faltaParaMinimo = temPedidoAntecipado ? Math.max(0, valorMinimoTotal - totalPedido) : 0;
   const horariosComStatus = disponibilidade.horarios ?? [];
@@ -210,6 +218,15 @@ export default function PaginaRestaurante({ params }) {
   const chaveHorariosDisponiveis = horariosDisponiveis.map((slot) => slot.horario).join("|");
   const primeiroHorarioDisponivel = horariosDisponiveis[0]?.horario ?? "";
   const horarioEstaDisponivel = horariosDisponiveis.some((slot) => slot.horario === horario);
+
+  useEffect(() => {
+    if (!Number.isSafeInteger(campanhaDaVitrine) || campanhaDaVitrine < 1 || !campanhas.length) return;
+    const campanha = campanhas.find((item) => Number(item.id_campanha) === campanhaDaVitrine);
+    if (!campanha) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- sincroniza a oferta aberta pelo link da vitrine.
+    setCampanhaSelecionada(campanha);
+    queueMicrotask(() => document.getElementById("reserva")?.scrollIntoView({ behavior: "smooth", block: "start" }));
+  }, [campanhaDaVitrine, campanhas]);
 
   useEffect(() => {
     if (!restauranteId || !restaurante) return;
@@ -506,7 +523,7 @@ export default function PaginaRestaurante({ params }) {
                       <div className="p-3">
                         <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">{produto.categoria}</p>
                         <h3 className="mt-1 line-clamp-2 break-words text-sm font-bold">{produto.nome}</h3>
-                        <strong className="mt-2 block text-sm text-app-caramelo-torrado">{formatarMoeda(produto.preco, localeUI)}</strong>
+                        <strong className="mt-2 block text-sm text-app-caramelo-torrado">{produtoComDesconto(produto) ? <><span className="mr-2 text-app-cinza line-through">{formatarMoeda(produto.preco, localeUI)}</span>{formatarMoeda(precoExibidoProduto(produto), localeUI)}</> : formatarMoeda(produto.preco, localeUI)}</strong>
                       </div>
                     </article>
                   ))}
@@ -553,7 +570,7 @@ export default function PaginaRestaurante({ params }) {
                                 {alergenos.slice(0, 3).map((item) => <span key={`${item.tipo}-${item.alergenos_catalogo?.codigo}`} className="text-app-mocha">{item.tipo === "PRESENTE" ? ui("Contém") : item.tipo === "PODE_CONTER" ? ui("Pode conter") : ui("Risco de contaminação")}: {item.alergenos_catalogo?.nome}</span>)}
                               </div>;
                             })()}
-                            <p className="mt-2 text-base font-bold text-app-caramelo-torrado">{formatarMoeda(produto.preco, localeUI)}</p>
+                            <p className="mt-2 text-base font-bold text-app-caramelo-torrado">{produtoComDesconto(produto) ? <><span className="mr-2 text-app-cinza line-through">{formatarMoeda(produto.preco, localeUI)}</span>{formatarMoeda(precoExibidoProduto(produto), localeUI)}</> : formatarMoeda(produto.preco, localeUI)}</p>
                           </div>
                           <div className="flex items-center justify-between gap-3 md:col-span-2 xl:col-span-1 xl:justify-end">
                             <button type="button" onClick={() => alterarQuantidade(produto.id_produto, -1)} className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-app-cafe-profundo ring-1 ring-app-baunilha-dourada transition hover:bg-app-baunilha-dourada">
@@ -648,9 +665,10 @@ export default function PaginaRestaurante({ params }) {
                   <span className="text-app-mocha">{temPedidoAntecipado ? ui("Mínimo para {0} pessoa(s)", [pessoas]) : ui("Aplicado somente se houver pedido")}</span>
                   <strong>{formatarMoeda(valorMinimoTotal, localeUI)}</strong>
                 </div>
+                {campanhaSelecionada && temPedidoAntecipado ? <div className="flex justify-between gap-4 text-app-caramelo-torrado"><span>Desconto da oferta</span><strong>- {formatarMoeda(descontoCampanha, localeUI)}</strong></div> : null}
                 <div className="flex items-center justify-between border-t border-app-baunilha-dourada pt-4">
                   <span className="font-bold">{ui(temPedidoAntecipado ? "Total do pedido" : "Total a pagar agora")}</span>
-                  <strong className="text-2xl text-app-cafe-profundo">{formatarMoeda(temPedidoAntecipado ? totalPedido : 0, localeUI)}</strong>
+                  <strong className="text-2xl text-app-cafe-profundo">{formatarMoeda(temPedidoAntecipado ? totalPedido - descontoCampanha : 0, localeUI)}</strong>
                 </div>
               </div>
 

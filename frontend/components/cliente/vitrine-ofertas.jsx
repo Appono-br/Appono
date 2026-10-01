@@ -62,7 +62,7 @@ export function VitrineOfertas() {
             <div className="flex items-start justify-between gap-3"><h3 className="text-xl font-semibold leading-snug text-app-cafe-profundo">{campanha.titulo}</h3><span className="shrink-0 rounded-full bg-app-creme-leve px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-app-caramelo-torrado">Oferta</span></div>
             {prato ? <p className="mt-3 text-sm font-medium text-app-mocha">Válida para {prato.nome}{campanha.produtos.length > 1 ? ` e mais ${campanha.produtos.length - 1}` : ""}</p> : null}
             <p className="mt-3 line-clamp-2 text-sm leading-5 text-app-cinza">{campanha.descricao || campanha.regras || "Confira as condições da campanha antes de reservar."}</p>
-            <div className="mt-5 flex items-center justify-between gap-3 border-t border-app-baunilha-dourada/50 pt-4"><span className="text-xs font-medium text-app-cinza">Termina em {validade(campanha.fim_em)}</span><Link href={`/cliente/restaurantes/${campanha.id_restaurante}`} className="rounded-full bg-app-cafe-profundo px-4 py-2 text-sm font-semibold text-app-creme-leve transition hover:bg-app-caramelo-torrado">Ver oferta</Link></div>
+            <div className="mt-5 flex items-center justify-between gap-3 border-t border-app-baunilha-dourada/50 pt-4"><span className="text-xs font-medium text-app-cinza">Termina em {validade(campanha.fim_em)}</span><Link href={`/cliente/restaurantes/${campanha.id_restaurante}?campanha=${campanha.id_campanha}#reserva`} className="rounded-full bg-app-cafe-profundo px-4 py-2 text-sm font-semibold text-app-creme-leve transition hover:bg-app-caramelo-torrado">Escolher oferta</Link></div>
           </div>
         </div>
       </article>;

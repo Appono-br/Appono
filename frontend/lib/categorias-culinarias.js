@@ -1,0 +1,1 @@
+export const CATEGORIAS_CULINARIAS = ["Brasileira", "Italiana", "Japonesa", "Chinesa", "Árabe", "Mexicana", "Hamburgueria", "Pizzaria", "Vegetariana", "Vegana", "Cafeteria", "Padaria", "Doceria", "Saudável", "Frutos do mar", "Churrascaria", "Contemporânea", "Outra"];

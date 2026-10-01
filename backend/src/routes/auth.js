@@ -10,6 +10,8 @@ const cpf_1 = require("../services/validacoes/cpf");
 const auth_1 = require("../middleware/auth");
 const geolocalizacao_1 = require("../services/geolocalizacao");
 const planos_restaurante_1 = require("../services/planos-restaurante");
+const password_policy_1 = require("../domain/password-policy");
+const restaurant_categories_1 = require("../domain/restaurant-categories");
 exports.authRouter = (0, express_1.Router)();
 const frontendOrigin = (process.env.FRONTEND_ORIGIN ?? "http://localhost:3000").replace(/\/$/, "");
 function verificarCamposObrigatorios(body, fields) {
@@ -144,6 +146,7 @@ async function garantirPerfilRestauranteDoMetadata(user, profile) {
         return { tipo: "restaurante", perfil: restauranteExistente };
     }
     const quantidadeMesas = Math.max(Number.parseInt(String(profile.quantidade_mesas), 10) || 0, 0);
+    const categoriasCulinarias = (0, restaurant_categories_1.normalizarCategorias)(profile.categorias_culinarias) ?? [];
     const { data: restaurante, error } = await supabase_1.supabaseAdmin
         .from("restaurantes")
         .insert({
@@ -156,6 +159,7 @@ async function garantirPerfilRestauranteDoMetadata(user, profile) {
         cep: (0, comum_1.somenteNumeros)(profile.cep),
         endereco: profile.endereco,
         horario_funcionamento: profile.horario_funcionamento ?? "A definir",
+        categorias_culinarias: categoriasCulinarias,
         ativo: profile.plano !== "PROFISSIONAL",
     })
         .select("*")
@@ -297,6 +301,8 @@ async function criarPerfilRestauranteGoogle(res, body) {
     }
     const cnpj = (0, comum_1.somenteNumeros)(body.cnpj);
     const cep = (0, comum_1.somenteNumeros)(body.cep);
+    const categoriasCulinarias = (0, restaurant_categories_1.normalizarCategorias)(body.categorias_culinarias);
+    if (categoriasCulinarias === null) throw Object.assign(new Error("Escolha até 8 categorias culinárias válidas."), { statusCode: 400 });
     let validatedCnpj = {
         cnpj,
         razaoSocial: body.legalName,
@@ -358,6 +364,7 @@ async function criarPerfilRestauranteGoogle(res, body) {
         cep: validatedCep.cep,
         endereco: montarEndereco(validatedAddressBody.address, validatedAddressBody.number, validatedAddressBody.complement, validatedAddressBody.neighborhood, validatedAddressBody.city, validatedAddressBody.uf),
         horario_funcionamento: "A definir",
+        categorias_culinarias: categoriasCulinarias ?? [],
         ativo: (0, planos_restaurante_1.planoValido)(body.plano)?.codigo !== "PROFISSIONAL",
     })
         .select("*")
@@ -541,6 +548,9 @@ exports.authRouter.post("/register/client", async (req, res) => {
     if (missing) {
         return res.status(400).json({ error: missing });
     }
+    if (!(0, password_policy_1.senhaValida)(body.password)) {
+        return res.status(400).json({ code: "AUTH_WEAK_PASSWORD", error: (0, password_policy_1.mensagemSenhaInvalida)() });
+    }
     if (!(0, cpf_1.validarCpf)(body.cpf)) {
         return res.status(400).json({ error: "Informe um CPF válido." });
     }
@@ -620,6 +630,9 @@ exports.authRouter.post("/register/restaurant", async (req, res) => {
     if (missing) {
         return res.status(400).json({ error: missing });
     }
+    if (!(0, password_policy_1.senhaValida)(body.password)) {
+        return res.status(400).json({ code: "AUTH_WEAK_PASSWORD", error: (0, password_policy_1.mensagemSenhaInvalida)() });
+    }
     const cnpj = (0, comum_1.somenteNumeros)(body.cnpj);
     const cep = (0, comum_1.somenteNumeros)(body.cep);
     if (!(0, cnpj_1.validarCnpj)(cnpj)) {
@@ -677,6 +690,8 @@ exports.authRouter.post("/register/restaurant", async (req, res) => {
         city: validatedCep.cidade || body.city,
         uf: validatedCep.estado || body.uf,
     };
+    const categoriasCulinarias = (0, restaurant_categories_1.normalizarCategorias)(body.categorias_culinarias);
+    if (categoriasCulinarias === null) return res.status(400).json({ error: "Escolha até 8 categorias culinárias válidas." });
     const { data: authData, error: authError } = await supabase_1.supabaseAuth.auth.signUp({
         email: body.email,
         password: body.password,
@@ -695,6 +710,7 @@ exports.authRouter.post("/register/restaurant", async (req, res) => {
                     horario_funcionamento: "A definir",
                     quantidade_mesas: body.tables,
                     plano: (0, planos_restaurante_1.planoValido)(body.plano)?.codigo ?? "INICIAL",
+                    categorias_culinarias: categoriasCulinarias ?? [],
                 },
             },
         },

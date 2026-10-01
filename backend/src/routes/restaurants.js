@@ -70,7 +70,7 @@ async function consultarRestaurantesPublicos() {
     const cliente = obterClienteLeituraPublica();
     const consulta = cliente
         .from("restaurantes")
-        .select("id_restaurante, nome, razao_social, telefone, email, cep, endereco, horario_funcionamento, logo_url, valor_minimo_reserva_por_pessoa, configuracao_operacao, latitude, longitude")
+        .select("id_restaurante, nome, razao_social, telefone, email, cep, endereco, horario_funcionamento, logo_url, categorias_culinarias, valor_minimo_reserva_por_pessoa, configuracao_operacao, latitude, longitude")
         .eq("ativo", true)
         .order("nome");
     const resposta = await consulta;
@@ -79,7 +79,7 @@ async function consultarRestaurantesPublicos() {
     }
     return cliente
         .from("restaurantes")
-        .select("id_restaurante, nome, razao_social, telefone, email, cep, endereco, horario_funcionamento, logo_url, valor_minimo_reserva_por_pessoa, configuracao_operacao")
+        .select("id_restaurante, nome, razao_social, telefone, email, cep, endereco, horario_funcionamento, logo_url, categorias_culinarias, valor_minimo_reserva_por_pessoa, configuracao_operacao")
         .eq("ativo", true)
         .order("nome");
 }
@@ -87,7 +87,7 @@ async function consultarRestaurantePublicoPorId(restaurantId) {
     const cliente = obterClienteLeituraPublica();
     const resposta = await cliente
         .from("restaurantes")
-        .select("id_restaurante, nome, telefone, email, endereco, horario_funcionamento, logo_url, valor_minimo_reserva_por_pessoa, configuracao_operacao, latitude, longitude")
+        .select("id_restaurante, nome, telefone, email, endereco, horario_funcionamento, logo_url, categorias_culinarias, valor_minimo_reserva_por_pessoa, configuracao_operacao, latitude, longitude")
         .eq("id_restaurante", restaurantId)
         .eq("ativo", true)
         .single();
@@ -96,7 +96,7 @@ async function consultarRestaurantePublicoPorId(restaurantId) {
     }
     return cliente
         .from("restaurantes")
-        .select("id_restaurante, nome, telefone, email, endereco, horario_funcionamento, logo_url, valor_minimo_reserva_por_pessoa, configuracao_operacao")
+        .select("id_restaurante, nome, telefone, email, endereco, horario_funcionamento, logo_url, categorias_culinarias, valor_minimo_reserva_por_pessoa, configuracao_operacao")
         .eq("id_restaurante", restaurantId)
         .eq("ativo", true)
         .single();
@@ -411,7 +411,7 @@ exports.restaurantsRouter.get("/", async (req, res) => {
                     pratos_publicados: (resumo.pratos_publicados ?? [])
                         .filter((prato) => restauranteCorrespondeBusca(item, termoBusca) || prato.corresponde_busca)
                         .sort(ordenarPorExibicaoENome)
-                        .map(({ id_produto, nome, preco, imagem_url }) => ({ id_produto, nome, preco, imagem_url })),
+                        .map(({ id_produto, nome, categoria, preco, imagem_url }) => ({ id_produto, nome, categoria, preco, imagem_url })),
                 } : {}),
                 total_itens_cardapio: resumo.total_itens_cardapio ?? 0,
                 tem_cardapio_publicado: Number(resumo.total_itens_cardapio ?? 0) > 0,
