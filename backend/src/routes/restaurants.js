@@ -255,16 +255,6 @@ async function obterDadosCardapioBusca(termo, incluirPratos = false) {
     return { correspondencias, resumo };
 }
 const diasSemanaOperacao = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
-function obterDataLocalSaoPaulo() {
-    return new Date(new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
-}
-function formatarDataLocal(data) {
-    return [
-        data.getFullYear(),
-        String(data.getMonth() + 1).padStart(2, "0"),
-        String(data.getDate()).padStart(2, "0"),
-    ].join("-");
-}
 function converterHoraParaMinutos(horario) {
     const [hora, minuto] = String(horario ?? "").split(":").map(Number);
     if (!Number.isFinite(hora) || !Number.isFinite(minuto)) return null;
@@ -278,7 +268,7 @@ function converterMinutosParaHora(totalMinutos) {
 function obterFimReserva(horarioInicio) {
     const inicio = converterHoraParaMinutos(horarioInicio);
     if (inicio === null) return null;
-    return converterMinutosParaHora((inicio + 120) % (24 * 60));
+    return converterMinutosParaHora(inicio + 120);
 }
 function intervalosSobrepoem(inicioA, fimA, inicioB, fimB) {
     return inicioA < fimB && fimA > inicioB;
@@ -293,7 +283,7 @@ function obterDiaOperacao(configuracao, dataReserva) {
     const data = new Date(`${dataReserva}T12:00:00`);
     return configuracao.days?.find((day) => day.id === diasSemanaOperacao[data.getDay()]);
 }
-function montarHorariosOperacionais({ restaurante, dataReserva, pessoas, reservas, mesas }) {
+function montarHorariosOperacionais({ restaurante, dataReserva, pessoas, reservas, mesas, agora = new Date() }) {
     const configuracao = restaurante.configuracao_operacao ?? {};
     if (!restauranteTemOperacaoConfigurada(configuracao)) {
         return {
@@ -310,10 +300,8 @@ function montarHorariosOperacionais({ restaurante, dataReserva, pessoas, reserva
             motivo: "Restaurante fechado nesta data.",
         };
     }
-    const agora = obterDataLocalSaoPaulo();
-    const hoje = formatarDataLocal(agora);
     const antecedenciaMinima = Math.max(Number(configuracao.antecedenciaMinutosReserva ?? 60), 0);
-    const minimoMesmoDia = dataReserva === hoje ? agora.getHours() * 60 + agora.getMinutes() + antecedenciaMinima : 0;
+    const inicioMinimo = agora.getTime() + antecedenciaMinima * 60 * 1000;
     const duracaoReserva = 120;
     const mesasCompativeis = (mesas ?? []).filter((mesa) => Number(mesa.capacidade ?? 0) >= pessoas);
     const horarios = [];
@@ -326,7 +314,8 @@ function montarHorariosOperacionais({ restaurante, dataReserva, pessoas, reserva
             const horario = converterMinutosParaHora(minuto);
             const fim = minuto + duracaoReserva;
             let motivo = null;
-            if (minuto < minimoMesmoDia) {
+            const inicioSlot = new Date(`${dataReserva}T${horario}:00-03:00`).getTime();
+            if (inicioSlot < inicioMinimo) {
                 motivo = "antecedência mínima";
             }
             else if (!mesasCompativeis.length) {
