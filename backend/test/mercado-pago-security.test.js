@@ -5,6 +5,7 @@ const assert = require("node:assert/strict");
 const crypto = require("node:crypto");
 const { cifrarTokenMercadoPago, decifrarTokenMercadoPago } = require("../src/services/pagamentos/credenciais-restaurante");
 const { validarAssinaturaWebhookMercadoPago } = require("../src/services/pagamentos/webhook-security");
+const { obterAccessTokenMercadoPago, credenciaisTesteMercadoPagoValidas } = require("../src/services/pagamentos/mercado-pago");
 
 function comAmbiente(valores, executar) {
     const anterior = Object.fromEntries(Object.keys(valores).map((chave) => [chave, process.env[chave]]));
@@ -39,5 +40,16 @@ test("webhook assinado é aceito com o manifesto do Mercado Pago", () => {
         const manifest = "id:123;request-id:req-1;ts:1700000000;";
         const assinatura = crypto.createHmac("sha256", "segredo-webhook").update(manifest).digest("hex");
         assert.equal(validarAssinaturaWebhookMercadoPago({ headers: { "x-request-id": "req-1", "x-signature": `ts=1700000000,v1=${assinatura}` } }, "123"), true);
+    });
+});
+
+test("credencial APP_USR configurada no modo simulado Ã© tratada como teste", () => {
+    comAmbiente({
+        MERCADO_PAGO_PERMITIR_PRODUCAO: "false",
+        MERCADO_PAGO_TEST_ACCESS_TOKEN: "",
+        MERCADO_PAGO_ACCESS_TOKEN: "APP_USR-token-de-teste",
+    }, () => {
+        assert.equal(obterAccessTokenMercadoPago(), "APP_USR-token-de-teste");
+        assert.equal(credenciaisTesteMercadoPagoValidas(), true);
     });
 });
