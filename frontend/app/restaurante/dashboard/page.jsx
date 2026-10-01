@@ -110,8 +110,8 @@ export default function RestaurantDashboardPage() {
       <section className="mx-auto w-full max-w-7xl flex-1 px-5 py-10 sm:py-14">
         <div className="border-t border-app-baunilha-dourada/60 pt-10">
           <p className="text-[10px] font-bold uppercase text-app-caramelo-torrado">{ui("Painel administrativo")}</p>
-          <h1 className="mt-2 text-4xl font-medium leading-tight text-app-cafe-profundo sm:text-5xl">{ui("Visao Geral do Restaurante")}</h1>
-          <p className="mt-4 max-w-2xl text-sm leading-6 text-app-cinza sm:text-base">{ui("Acompanhe o desempenho da cozinha, do salao e das reservas do dia.")}</p>
+          <h1 className="mt-2 text-4xl font-medium leading-tight text-app-cafe-profundo sm:text-5xl">{ui("Visão Geral do Restaurante")}</h1>
+          <p className="mt-4 max-w-2xl text-sm leading-6 text-app-cinza sm:text-base">{ui("Acompanhe o desempenho da cozinha, do salão e das reservas do dia.")}</p>
         </div>
 
         <section className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
