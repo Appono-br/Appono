@@ -2,7 +2,27 @@
 import { getAccessToken, obterTokensAutenticacao, salvarTokensAutenticacao } from "./session";
 import { supabase } from "./supabase";
 
-const API_URL = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001/api").replace(/\/$/, "");
+const API_URL_CONFIGURADA = process.env.NEXT_PUBLIC_API_URL?.trim();
+const API_URL_LOCAL = "http://localhost:3001/api";
+const API_URL_PRODUCAO = "https://appono-backend.vercel.app/api";
+
+function resolverApiUrl() {
+    const ambienteProducao = process.env.NODE_ENV === "production";
+    if (!API_URL_CONFIGURADA) return ambienteProducao ? API_URL_PRODUCAO : API_URL_LOCAL;
+    if (!ambienteProducao) return API_URL_CONFIGURADA.replace(/\/$/, "");
+
+    try {
+        const url = new URL(API_URL_CONFIGURADA);
+        if (["localhost", "127.0.0.1", "0.0.0.0"].includes(url.hostname)) return API_URL_PRODUCAO;
+    }
+    catch {
+        if (API_URL_CONFIGURADA.startsWith("/")) return API_URL_CONFIGURADA.replace(/\/$/, "");
+    }
+
+    return API_URL_CONFIGURADA.replace(/\/$/, "");
+}
+
+const API_URL = resolverApiUrl();
 const TEMPO_CACHE_GET_MS = 15000;
 const cacheGet = new Map();
 const requisicoesEmAndamento = new Map();

@@ -243,15 +243,16 @@ MERCADO_PAGO_PERMITIR_PRODUCAO=false
 | `FRONTEND_ORIGIN` | Padrão local `http://localhost:3000` | CORS e construção do callback de cadastro; use uma origem no ambiente local |
 | `SUPABASE_ALLOW_INSECURE_TLS` | Manter `false` | Preserva a validação de certificados |
 | `APPONO_ADMIN_EMAILS` | Para administração | E-mails de contas autorizadas, separados por vírgula; não cria usuários |
-| `FRONTEND_PUBLIC_URL` | Para retornos de pagamento/OAuth | URL do frontend alcançável no fluxo externo |
+| `FRONTEND_PUBLIC_URL` | Obrigatória para checkout/retornos do Mercado Pago | URL HTTPS pública real do frontend, sem localhost nem domínio de exemplo |
 | `BACKEND_PUBLIC_URL` | Para integrações externas | URL HTTPS pública da API, sem o sufixo `/api` |
-| `MERCADO_PAGO_TEST_ACCESS_TOKEN` | Para checkout com credencial de teste | Token da conta de testes; tem prioridade quando produção está desabilitada |
+| `MERCADO_PAGO_TEST_ACCESS_TOKEN` | Para checkout com credencial de teste | Token da conta de testes; tem prioridade quando produção está desabilitada |. The hosted monthly checkout does not require a payer email.
 | `MERCADO_PAGO_ACCESS_TOKEN` | Conforme o modo financeiro | Token padrão; com produção desabilitada, só é usado como fallback se começar com `TEST-` |
 | `MERCADO_PAGO_MODO_REPASSE` | Padrão `SIMULADO` | Seleciona o fluxo financeiro; não equivale a comprovação de estorno no gateway |
 | `MERCADO_PAGO_PERMITIR_PRODUCAO` | Manter `false` em desenvolvimento | Controla a permissão de uso do fluxo de produção |
 | `MERCADO_PAGO_MARKETPLACE_FEE_PERCENTUAL` | Opcional; padrão `13` | Percentual da comissão |
 | `MERCADO_PAGO_APP_ID` e `MERCADO_PAGO_CLIENT_SECRET` | Para OAuth do restaurante | Credenciais da aplicação Mercado Pago |
 | `MERCADO_PAGO_REDIRECT_URI` | Para OAuth do restaurante | Callback público com o caminho `/api/marketplace/mercado-pago/callback` |
+For the hosted monthly plan, enable `subscription_preapproval` notifications in Mercado Pago and point them to `https://<BACKEND_PUBLIC_URL>/api/planos/webhook/mercado-pago`. The backend creates one recurring plan per restaurant and matches the subscription webhook by plan ID.
 | `MERCADO_PAGO_WEBHOOK_SECRET` | Para validar a assinatura do webhook | Obrigatório em produção; um webhook sem assinatura válida é rejeitado |
 | `MERCADO_PAGO_WEBHOOK_SIGNATURE_REQUIRED` | Reforço de webhook | Mantenha `true` em homologação e produção para rejeitar chamadas sem segredo/assinatura |
 | `APPONO_MERCADO_PAGO_TOKEN_ENCRYPTION_KEY` | Para OAuth do restaurante | Chave de 32 bytes em Base64 ou 64 caracteres hexadecimais, exclusiva do backend; cifra os tokens OAuth do restaurante |
@@ -379,6 +380,7 @@ O [inicializador do backend](backend/scripts/start.js) preserva certificados ext
 | [Credenciais do Appono Rotina](docs/appono-rotina-credenciais.md) | Passo a passo seguro para Supabase, Mercado Pago, Resend, Google Agenda, Outlook e geocodificação |
 | [Preparação do Supabase](docs/preparacao-supabase.md) | Limitações do schema inicial, Auth, Storage e migrations |
 | [Fluxos operacionais](docs/fluxos-operacionais.md) | Regras e endpoints de reservas, cozinha, pagamentos, reembolsos, chat e suporte |
+| [Campanhas inteligentes](docs/campanhas-inteligentes.md) | Sugestões, métricas, eventos e requisitos de operação de campanhas |
 | [Operação e implantação](docs/operacao-producao.md) | Requisitos de ambientes, backup, observabilidade e conciliação |
 | [Plano de piloto](docs/piloto-controlado.md) | Etapas, limites propostos e critérios de parada |
 | [Privacidade e incidentes](docs/lgpd-e-incidentes.md) | Base operacional que ainda exige revisão jurídica |

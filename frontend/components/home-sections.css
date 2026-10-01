@@ -1,6 +1,6 @@
 .home-discover {
   --discover-surface: #f8f6f2;
-  --discover-card: #fff;
+  --discover-card: var(--app-chantilly, #f8f6f2);
   --discover-text: #241713;
   --discover-muted: #66564a;
   --discover-accent: #7f4325;

@@ -38,6 +38,7 @@
     complement: "",
     tables: "",
     password: "",
+    plano: "INICIAL",
   };
 
 function redirecionarParaLogin(email) {
@@ -59,6 +60,8 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
   const [imagem, setImagem] = useState(null);
   const [imagemPreview, setImagemPreview] = useState("");
   const [googleSession, setGoogleSession] = useState(null);
+  const [etapa, setEtapa] = useState("dados");
+  const [confirmarPlano, setConfirmarPlano] = useState(false);
 
     const isGoogleFlow = googleFlow;
 
@@ -109,6 +112,16 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
           form.tables &&
           (isGoogleFlow || form.password)
       );
+    }
+
+    function avancarParaPlanos() {
+      if (!dadosRestauranteEstaoPreenchidos()) {
+        setMessage("Preencha os dados obrigatórios do restaurante para continuar.");
+        return;
+      }
+
+      setMessage("");
+      setEtapa("plano");
     }
 
     function selecionarImagem(arquivo) {
@@ -201,7 +214,6 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
 
       setIsSubmitting(true);
       setMessage("");
-
       try {
         const response = await apiRequest(
           isGoogleFlow
@@ -215,6 +227,10 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
         );
 
         const session = response.session ?? googleSession;
+
+        if (!session && form.plano === "PROFISSIONAL") {
+          window.sessionStorage.setItem("appono_checkout_profissional_pendente", "1");
+        }
 
         await persistAuthResponse({
           ...response,
@@ -233,13 +249,31 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
             }
           }
 
+          if (form.plano === "PROFISSIONAL") {
+            try {
+              const contratacao = await apiRequest("/planos/checkout", {
+                method: "POST",
+                body: JSON.stringify({ plano: "PROFISSIONAL" }),
+              });
+              if (contratacao.checkout_url) {
+                window.location.assign(contratacao.checkout_url);
+                return;
+              }
+              throw new Error("Não foi possível abrir o checkout do Plano Profissional.");
+            } catch {
+              window.location.assign("/restaurante/plano?checkout=pendente");
+              return;
+            }
+          }
           window.location.href = getDashboardPath(response.tipo);
           return;
         }
 
         setMessage(
           response.message ??
-            "Conta criada. Confirme seu e-mail para entrar direto no painel."
+            (form.plano === "PROFISSIONAL"
+              ? "Conta criada. Confirme seu e-mail; depois, você seguirá ao Mercado Pago para concluir a assinatura Profissional."
+              : "Conta criada. Confirme seu e-mail para entrar direto no painel.")
         );
       } catch (error) {
         if (error?.code === "AUTH_USER_ALREADY_EXISTS") {
@@ -258,8 +292,8 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
     }
 
     return (
-      <div className="mx-auto w-full max-w-xl">
-        <div className="rounded-2xl bg-white px-6 py-7 shadow-sm ring-1 ring-app-baunilha-dourada/45 sm:px-9">
+      <div className={`mx-auto w-full ${etapa === "plano" ? "max-w-3xl" : "max-w-xl"}`}>
+        <div className={`rounded-2xl bg-white shadow-sm ring-1 ring-app-baunilha-dourada/45 ${etapa === "plano" ? "px-5 py-6 sm:px-7" : "px-6 py-7 sm:px-9"}`}>
 
           <div className="mb-5 flex justify-center">
             <Image
@@ -274,7 +308,13 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
 
           <div className="mb-5 flex items-center justify-between gap-3">
             <Link
-              href="/"
+              href={etapa === "plano" ? "#" : "/"}
+              onClick={(event) => {
+                if (etapa === "plano") {
+                  event.preventDefault();
+                  setEtapa("dados");
+                }
+              }}
               className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-bold text-app-caramelo-torrado transition hover:bg-app-chantilly hover:text-app-cafe-profundo"
             >
               <svg
@@ -300,16 +340,22 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
             </p>
           </div>
 
-          <h1 className="text-2xl font-bold text-app-cafe-profundo">
-            Torne-se um parceiro APPONO
-          </h1>
+          <div className="flex items-start justify-between gap-4">
+            <h1 className="text-2xl font-bold text-app-cafe-profundo">
+              {etapa === "dados" ? "Torne-se um parceiro APPONO" : "Escolha o plano ideal"}
+            </h1>
+            <span className="shrink-0 rounded-full bg-app-creme-suave px-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">
+              {etapa === "dados" ? "1 de 2" : "2 de 2"}
+            </span>
+          </div>
 
           <p className="mt-1 text-sm leading-5 text-app-cinza">
-            Informe os dados operacionais do estabelecimento. A conta
-            Mercado Pago poderá ser conectada depois, nas configurações.
+            {etapa === "dados"
+              ? "Informe os dados operacionais do estabelecimento. A conta Mercado Pago poderá ser conectada depois, nas configurações."
+              : "Comece sem mensalidade ou potencialize suas vendas com recursos profissionais."}
           </p>
 
-          <div className="mt-6 grid gap-3 sm:grid-cols-2">
+          {etapa === "dados" ? <div className="mt-6 grid gap-3 sm:grid-cols-2">
 
             <FormField
               label="Nome da loja"
@@ -559,18 +605,43 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
                 className="hidden"
               />
             </label>
-          </div>
+          </div> : (
+            <section className="mt-9 grid gap-4 lg:grid-cols-2">
+              <label className={`relative flex min-h-[390px] cursor-pointer flex-col rounded-2xl border bg-white p-5 transition duration-200 sm:p-6 ${form.plano === "INICIAL" ? "border-app-baunilha-dourada -translate-y-0.5 shadow-md" : "border-app-baunilha-dourada hover:-translate-y-0.5 hover:border-app-caramelo-torrado hover:shadow-md"}`}>
+                <input className="sr-only" type="radio" name="plano" checked={form.plano === "INICIAL"} onChange={() => atualizarCampo("plano", "INICIAL")} />
+                <div className="flex items-start justify-between gap-3"><div><h2 className="text-2xl font-bold text-app-cafe-profundo">Inicial</h2><p className="mt-2 text-sm text-app-cinza">Para começar a vender na Appono.</p></div>{form.plano === "INICIAL" ? <span className="rounded-full bg-app-caramelo-torrado px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-white">Selecionado</span> : null}</div>
+                <div className="mt-7"><span className="text-4xl font-bold tracking-tight text-app-cafe-profundo">R$ 0</span><span className="ml-1 text-sm text-app-cinza">/mês</span><p className="mt-1 text-xs font-semibold text-app-caramelo-torrado">8% de comissão por prato vendido</p></div>
+                <p className="mt-7 text-xs font-bold uppercase tracking-[.14em] text-app-cafe-profundo">O essencial para operar</p>
+                <ul className="mt-4 grid gap-3 text-sm leading-5 text-app-mocha"><li>✓ Perfil e cardápio na Appono</li><li>✓ Reservas e pedidos antecipados</li><li>✓ Gestão operacional do restaurante</li><li>✓ Relatórios básicos de vendas</li></ul>
+                <span className={`mt-8 flex h-11 items-center justify-center rounded-lg text-sm font-bold transition ${form.plano === "INICIAL" ? "bg-app-caramelo-torrado text-white" : "bg-app-creme-suave text-app-cafe-profundo"}`}>{form.plano === "INICIAL" ? "Plano selecionado" : "Selecionar Inicial"}</span>
+              </label>
 
-          <div className="mt-6 flex flex-col-reverse gap-3 border-t border-app-creme-suave pt-5 sm:flex-row sm:items-center sm:justify-between">
+              <label className={`relative flex min-h-[390px] cursor-pointer flex-col rounded-2xl border-2 bg-app-cafe-profundo p-5 text-white transition duration-200 sm:p-6 ${form.plano === "PROFISSIONAL" ? "border-app-dourado-mel bg-[#3a1e12]" : "border-app-caramelo-torrado hover:-translate-y-0.5 hover:border-app-dourado-mel hover:bg-[#32180f] hover:shadow-xl"}`}>
+                <span className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-app-dourado-mel px-4 py-1 text-[10px] font-bold uppercase tracking-wide text-white shadow-sm">Recomendado</span>
+                <input className="sr-only" type="radio" name="plano" checked={form.plano === "PROFISSIONAL"} onChange={() => atualizarCampo("plano", "PROFISSIONAL")} />
+                <div className="flex items-start justify-between gap-3"><div><h2 className="text-2xl font-bold">Profissional</h2><p className="mt-2 text-sm text-app-creme-suave/80">Para crescer com mais visibilidade e inteligência.</p></div>{form.plano === "PROFISSIONAL" ? <span className="rounded-full bg-white px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-app-cafe-profundo">Selecionado</span> : null}</div>
+                <div className="mt-7"><span className="text-4xl font-bold tracking-tight">R$ 200</span><span className="ml-1 text-sm text-app-creme-suave/80">/mês</span><p className="mt-1 text-xs font-semibold text-app-dourado-mel">+ apenas 3% de comissão por prato vendido</p></div>
+                <p className="mt-7 text-xs font-bold uppercase tracking-[.14em] text-app-dourado-mel">Tudo do Inicial, mais</p>
+                <ul className="mt-4 grid gap-3 text-sm leading-5 text-app-creme-suave"><li>✓ Destaque profissional para mais clientes</li><li>✓ Campanhas Inteligentes para horários ociosos</li><li>✓ Métricas de alcance, resgates e conversão</li><li>✓ Menor comissão em cada prato vendido</li></ul>
+                <span className={`mt-8 flex h-11 items-center justify-center rounded-lg text-sm font-bold transition ${form.plano === "PROFISSIONAL" ? "bg-white text-app-cafe-profundo shadow-sm" : "bg-app-dourado-mel text-white"}`}>{form.plano === "PROFISSIONAL" ? "Plano selecionado" : "Selecionar Profissional"}</span>
+              </label>
+            </section>
+          )}
 
-            <p className="text-[10px] leading-4 text-app-cinza">
-              Ao finalizar, você concorda com nossos Termos e
-              Política de Privacidade.
-            </p>
+          <div className="mt-16 flex flex-col gap-5 border-t border-app-creme-suave pt-6 sm:flex-row sm:items-end sm:justify-between">
+            <div className="space-y-2 text-sm text-app-cinza">
+              <p className="text-[10px] leading-4">Ao finalizar, você concorda com nossos Termos e Política de Privacidade.</p>
+              <span>
+                Já possui uma conta?{" "}
+                <Link href="/login" className="font-bold text-app-caramelo-torrado transition hover:text-app-dourado-mel">Entrar</Link>
+              </span>
+              {message ? <p className="text-xs font-semibold text-app-caramelo-torrado">{message}</p> : null}
+            </div>
 
-            <button
+            <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center">
+              <button
               type="button"
-              onClick={criarRestaurante}
+              onClick={etapa === "dados" ? avancarParaPlanos : () => form.plano === "PROFISSIONAL" ? setConfirmarPlano(true) : criarRestaurante()}
               disabled={isSubmitting}
               className="flex h-10 w-full items-center justify-center gap-2 rounded-full bg-app-dourado-mel px-6 text-xs font-bold uppercase tracking-wide text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-app-caramelo-torrado hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-app-dourado-mel/25 disabled:cursor-not-allowed disabled:translate-y-0 disabled:opacity-70 disabled:shadow-none sm:w-auto"
             >
@@ -600,31 +671,23 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
 
                   Criando...
                 </>
-              ) : (
-                "Criar conta"
-              )}
-            </button>
-          </div>
-
-          <div className="mt-3 flex flex-col gap-2 text-sm text-app-cinza sm:flex-row sm:items-center sm:justify-between">
-            <span>
-              Já possui uma conta?{" "}
-
-              <Link
-                href="/login"
-                className="font-bold text-app-caramelo-torrado transition hover:text-app-dourado-mel"
-              >
-                Entrar
-              </Link>
-            </span>
-
-            {message ? (
-              <span className="rounded-full bg-white px-3 py-1 font-semibold text-app-caramelo-torrado ring-1 ring-app-baunilha-dourada/45">
-                {message}
-              </span>
-            ) : null}
+              ) : etapa === "dados" ? "Continuar" : "Criar conta"}
+              </button>
+            </div>
           </div>
         </div>
+        {confirmarPlano ? (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !isSubmitting) setConfirmarPlano(false); }}>
+            <section role="dialog" aria-modal="true" aria-labelledby="confirmar-plano-titulo" className="w-full max-w-md rounded-2xl bg-white p-6 text-app-cafe-profundo shadow-2xl">
+              <h2 id="confirmar-plano-titulo" className="text-xl font-bold">Confirmar Plano Profissional</h2>
+              <p className="mt-3 text-sm leading-6 text-app-mocha">A assinatura custa R$ 200 por mês, com 3% de comissão por prato vendido. Após criar sua conta, você será encaminhado ao checkout seguro do Mercado Pago para concluir a contratação.</p>
+              <div className="mt-6 flex justify-end gap-3">
+                <button type="button" disabled={isSubmitting} onClick={() => setConfirmarPlano(false)} className="rounded-lg border border-app-baunilha-dourada px-4 py-2 text-sm font-semibold">Voltar</button>
+                <button type="button" disabled={isSubmitting} onClick={() => { setConfirmarPlano(false); criarRestaurante(); }} className="rounded-lg bg-app-dourado-mel px-4 py-2 text-sm font-bold text-white disabled:opacity-60">{isSubmitting ? "Criando conta..." : "Confirmar e criar conta"}</button>
+              </div>
+            </section>
+          </div>
+        ) : null}
       </div>
     );
   }

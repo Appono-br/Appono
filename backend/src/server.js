@@ -25,6 +25,7 @@ const { rotinaRouter } = require("./routes/routine");
 const { agendaRotinaRouter } = require("./routes/routine-calendar");
 const { rotinaInsightsRouter } = require("./routes/routine-insights");
 const { rotinaGroupsRouter } = require("./routes/routine-groups");
+const { plansRouter } = require("./routes/plans");
 const { requestContext } = require("./middleware/observability");
 const { criarRateLimiter } = require("./middleware/rate-limit");
 const crypto = require("node:crypto");
@@ -39,9 +40,16 @@ app.set("trust proxy", confiarNoProxy);
 const FRONTEND_ORIGIN =
   process.env.FRONTEND_ORIGIN ?? "http://localhost:3000";
 
-const allowedOrigins = FRONTEND_ORIGIN.split(",")
+const allowedOrigins = [
+  ...FRONTEND_ORIGIN.split(","),
+  process.env.FRONTEND_PUBLIC_URL ?? "",
+]
   .map((origin) => origin.trim())
-  .filter(Boolean);
+  .filter(Boolean)
+  .map((origin) => {
+    try { return new URL(origin).origin; }
+    catch { return origin.replace(/\/$/, ""); }
+  });
 
 const allowVercelPreviews = String(process.env.CORS_ALLOW_VERCEL_PREVIEWS ?? "false").trim().toLowerCase() === "true";
 const vercelPreviewProjectHint = String(process.env.CORS_VERCEL_PROJECT_HINT ?? "appono").toLowerCase();
@@ -186,6 +194,8 @@ app.use("/api/rotina/agenda", agendaRotinaRouter);
 app.use("/api/rotina/insights", rotinaInsightsRouter);
 app.use("/api/rotina/grupos", rotinaGroupsRouter);
 app.use("/api/rotina", rotinaRouter);
+app.use("/api/planos", plansRouter);
+app.use("/api/campanhas", require("./routes/campaigns").campaignsRouter);
 
 app.use((error, _req, res, _next) => {
   const mensagem = String(error?.message ?? "");

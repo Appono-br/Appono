@@ -62,11 +62,31 @@ export default function AuthCallbackPage() {
                         : "Não foi possível carregar seu perfil Appono.");
                 }
                 await persistAuthResponse({ ...profile, session });
+                const checkoutProfissionalPendente = sessionStorage.getItem("appono_checkout_profissional_pendente") === "1";
+                if (checkoutProfissionalPendente && profile.tipo === "restaurante") {
+                    setMessage("Preparando o checkout do Plano Profissional...");
+                    const contratacao = await apiRequest("/planos/checkout", {
+                        method: "POST",
+                        body: JSON.stringify({ plano: "PROFISSIONAL" }),
+                    });
+                    if (contratacao.checkout_url) {
+                        sessionStorage.removeItem("appono_checkout_profissional_pendente");
+                        window.location.replace(contratacao.checkout_url);
+                        return;
+                    }
+                    throw new Error("Não foi possível abrir o checkout do Plano Profissional.");
+                }
                 const destino = obterRetornoRestaurante(sessionStorage.getItem(chaveRetornoRestaurante), profile.tipo);
                 sessionStorage.removeItem(chaveRetornoRestaurante);
                 window.location.replace(destino ?? getDashboardPath(profile.tipo));
             }
             catch (error) {
+                if (sessionStorage.getItem("appono_checkout_profissional_pendente") === "1") {
+                    setMessage("Não foi possível abrir o checkout do Plano Profissional. Você poderá tentar novamente no módulo de restaurante.");
+                    sessionStorage.removeItem("appono_checkout_profissional_pendente");
+                    window.setTimeout(() => window.location.replace("/restaurante/plano?checkout=pendente"), 1800);
+                    return;
+                }
                 const permitidas = ["Não foi possível confirmar o acesso. Tente novamente.", "Confirme seu e-mail para continuar."];
                 setMessage(permitidas.includes(error?.message) ? error.message : "Não foi possível confirmar o acesso. Tente novamente.");
                 window.setTimeout(() => {

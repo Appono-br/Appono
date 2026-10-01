@@ -1,4 +1,5 @@
 "use client";
+import { VisibilidadeCampanhas, registrarCampanha } from "@/components/campanha-eventos";
 
 import { useInterface } from "@/lib/use-interface";
 import Image from "next/image";
@@ -117,6 +118,8 @@ export default function PaginaRestaurante({ params }) {
   const [restauranteId, setRestauranteId] = useState(null);
   const [restaurante, setRestaurante] = useState(null);
   const [cardapios, setCardapios] = useState([]);
+  const [campanhas, setCampanhas] = useState([]);
+  const [campanhaSelecionada, setCampanhaSelecionada] = useState(null);
   const [data, setData] = useState(obterDataPermitida);
   const [horario, setHorario] = useState("");
   const [pessoas, setPessoas] = useState(2);
@@ -140,10 +143,12 @@ export default function PaginaRestaurante({ params }) {
     Promise.all([
       apiRequest(`/restaurantes/${restauranteId}`),
       apiRequest(`/restaurantes/${restauranteId}/cardapio`),
+      apiRequest(`/planos/campanhas-publicas?restaurante_id=${restauranteId}`, { auth: false }),
     ])
-      .then(([dadosRestaurante, dadosCardapio]) => {
+      .then(([dadosRestaurante, dadosCardapio, dadosCampanhas]) => {
         setRestaurante(dadosRestaurante);
         setCardapios(dadosCardapio ?? []);
+        setCampanhas(dadosCampanhas?.campanhas ?? []);
         setMensagem("");
       })
       .catch((erro) => setMensagem(erro instanceof Error ? erro.message : "Não foi possível carregar o restaurante."));
@@ -296,6 +301,7 @@ export default function PaginaRestaurante({ params }) {
       return;
     }
 
+    registrarCampanha(campanhaSelecionada?.id_campanha,"RESERVA_INICIADA");
     setEnviando(true);
     setMensagem("");
 
@@ -310,6 +316,7 @@ export default function PaginaRestaurante({ params }) {
             horario_fim: horarioFimSelecionado,
             quantidade_pessoas: pessoas,
             observacoes: observacoesReserva,
+            id_campanha: campanhaSelecionada?.id_campanha ?? null,
           }),
         });
         window.location.assign("/cliente/reservas");
@@ -332,6 +339,7 @@ export default function PaginaRestaurante({ params }) {
           observacoes_reserva: observacoesReserva,
           itens,
           observacoes_pedido: observacoesPedido,
+          id_campanha: campanhaSelecionada?.id_campanha ?? null,
         }),
       });
       window.location.assign(`/cliente/pagamentos/pedido/${fluxoCriado.pedido.id_pedido}`);
@@ -558,6 +566,8 @@ export default function PaginaRestaurante({ params }) {
           </section>
 
           <aside id="reserva" className="h-fit rounded-[18px] bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada lg:sticky lg:top-6">
+            <VisibilidadeCampanhas campanhas={campanhas}/>{campanhas.length ? <section className="rounded-[18px] border border-app-dourado-mel/50 bg-app-creme-leve p-5 shadow-sm sm:p-6"><div className="flex flex-wrap items-end justify-between gap-3"><div><p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">Oferta Profissional</p><h2 className="mt-1 text-2xl font-bold">Ofertas disponíveis</h2></div><span className="rounded-full bg-app-cafe-profundo px-3 py-1 text-xs font-bold text-app-creme-leve">Regras visíveis antes da reserva</span></div><div className="mt-4 grid gap-3 md:grid-cols-2">{campanhas.map((campanha) => <button data-campanha-id={campanha.id_campanha} key={campanha.id_campanha} type="button" onClick={() => { registrarCampanha(campanha.id_campanha,"CLICK"); setCampanhaSelecionada((atual) => atual?.id_campanha === campanha.id_campanha ? null : campanha); }} className={`rounded-[12px] border p-4 text-left transition ${campanhaSelecionada?.id_campanha === campanha.id_campanha ? "border-app-caramelo-torrado bg-white" : "border-app-baunilha-dourada bg-white/70 hover:bg-white"}`}><div className="flex justify-between gap-3"><strong>{campanha.titulo}</strong><span className="text-xs font-bold text-app-caramelo-torrado">{campanhaSelecionada?.id_campanha === campanha.id_campanha ? "Selecionada" : "Selecionar"}</span></div><p className="mt-2 text-sm text-app-mocha">{campanha.descricao}</p><p className="mt-2 text-sm">{campanha.tipo_beneficio.replaceAll("_"," ")}{campanha.tipo_beneficio==="DESCONTO_PERCENTUAL" ? ": "+campanha.valor_beneficio+"%" : campanha.tipo_beneficio==="DESCONTO_FIXO" ? ": R$ "+campanha.valor_beneficio : campanha.tipo_beneficio==="COMBO" ? ": R$ "+campanha.preco_combo : ""}</p>{campanha.beneficio_itens?.map(i=><p key={i.id_produto}>{i.quantidade} ? {i.nome??("Produto #"+i.id_produto)}</p>)}<p className="text-xs">M?nimo: {campanha.minimo_pessoas??1} pessoa(s), {campanha.minimo_itens??0} item(ns).</p><p className="mt-3 text-xs leading-5 text-app-cinza">Válida de {new Date(campanha.inicio_em).toLocaleDateString(localeUI)} até {new Date(campanha.fim_em).toLocaleDateString(localeUI)}. {campanha.regras ?? "Confira as condições na confirmação."}</p></button>)}</div>{campanhaSelecionada ? <p className="mt-4 text-sm text-app-mocha">Oferta selecionada: <strong>{campanhaSelecionada.titulo}</strong>. Ela será validada novamente na confirmação, considerando data, horário, itens e limite de uso.</p> : null}</section> : null}
+
             <form onSubmit={reservar}>
               <div className="flex items-center gap-3">
                 <span className="flex h-11 w-11 items-center justify-center rounded-[10px] bg-app-baunilha-dourada text-app-cafe-profundo">
