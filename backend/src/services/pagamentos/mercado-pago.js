@@ -9,18 +9,20 @@ function obterAccessTokenMercadoPago() {
     const producaoPermitida = String(process.env.MERCADO_PAGO_PERMITIR_PRODUCAO ?? "false").toLowerCase() === "true";
     const tokenTeste = process.env.MERCADO_PAGO_TEST_ACCESS_TOKEN?.trim();
     const tokenPadrao = process.env.MERCADO_PAGO_ACCESS_TOKEN?.trim() ?? "";
-    if (!producaoPermitida && tokenTeste) {
-        return tokenTeste;
-    }
-    if (!producaoPermitida) {
-        return /^TEST-/i.test(tokenPadrao) ? tokenPadrao : "";
-    }
-    return tokenPadrao;
+    if (producaoPermitida) return tokenPadrao;
+
+    // O Mercado Pago usa APP_USR- tanto para tokens de teste quanto para
+    // tokens de producao. Neste modo, a origem da credencial (variavel de
+    // teste ou modo de producao bloqueado) define qual token pode ser usado;
+    // o prefixo TEST- nao identifica corretamente as credenciais atuais.
+    return tokenTeste || tokenPadrao;
 }
 
 function credenciaisTesteMercadoPagoValidas() {
     const tokenTeste = process.env.MERCADO_PAGO_TEST_ACCESS_TOKEN?.trim() ?? "";
-    return Boolean(tokenTeste);
+    const tokenPadrao = process.env.MERCADO_PAGO_ACCESS_TOKEN?.trim() ?? "";
+    const producaoPermitida = String(process.env.MERCADO_PAGO_PERMITIR_PRODUCAO ?? "false").toLowerCase() === "true";
+    return Boolean(tokenTeste || (!producaoPermitida && tokenPadrao));
 }
 
 function criarClienteMercadoPago(accessToken = obterAccessTokenMercadoPago()) {
@@ -274,4 +276,3 @@ module.exports = {
     consultarAssinaturaMercadoPago,
     atualizarAssinaturaMercadoPago,
 };
-
