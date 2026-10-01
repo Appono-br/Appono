@@ -29,7 +29,7 @@ const initialForm = {
     address: "",
     postalCode: "",
     logoUrl: "",
-    minimumReservationValue: "0",
+    reservationPrice: "0",
 };
 const settingsItems = [
     { label: "Informações da loja", icon: "store", href: "/restaurante/configuracoes" },
@@ -110,7 +110,7 @@ export default function RestaurantSettings({ painelInicial = "conta" }) {
                     address: restaurante.endereco ?? "",
                     postalCode: aplicarMascaraCep(restaurante.cep ?? ""),
                     logoUrl: restaurante.logo_url ?? "",
-                    minimumReservationValue: String(restaurante.valor_minimo_reserva_por_pessoa ?? 0),
+                    reservationPrice: String(restaurante.valor_minimo_reserva_por_pessoa ?? 0),
                 });
                 setMessage("");
             }
@@ -151,7 +151,7 @@ export default function RestaurantSettings({ painelInicial = "conta" }) {
                     email: form.email,
                     endereco: form.address,
                     cep: form.postalCode,
-                    valor_minimo_reserva_por_pessoa: Number(form.minimumReservationValue),
+                    valor_minimo_reserva_por_pessoa: Number(form.reservationPrice),
                 }),
             });
             if (novaImagem) {
@@ -188,7 +188,7 @@ export default function RestaurantSettings({ painelInicial = "conta" }) {
         </section>
       </main>);
     }
-    return (<main className="flex min-h-screen flex-col bg-white text-app-cafe-profundo">
+    return (<main className="configuracoes-restaurante flex min-h-screen flex-col bg-white text-app-cafe-profundo">
 
 
       <section className="mx-auto w-full max-w-7xl flex-1 px-5 py-10 sm:py-14">
@@ -251,7 +251,7 @@ export default function RestaurantSettings({ painelInicial = "conta" }) {
               <Field label={ui("Razão social")} value={form.legalName} onChange={(value) => updateField("legalName", value)} disabled/>
               <Field label={ui("Telefone de contato")} value={form.phone} onChange={(value) => updateField("phone", value)}/>
               <Field label={ui("Email comercial")} value={form.email} onChange={(value) => updateField("email", value)} className="sm:col-span-2"/>
-              <Field label={ui("Consumo mínimo por pessoa (R$)")} value={form.minimumReservationValue} onChange={(value) => updateField("minimumReservationValue", value.replace(/[^\d.,]/g, "").replace(",", "."))} className="sm:col-span-2"/>
+              <Field label={ui("Preço da reserva (R$)")} value={form.reservationPrice} onChange={(value) => updateField("reservationPrice", value.replace(/[^\d.,]/g, "").replace(",", "."))} className="sm:col-span-2"/>
             </section>
 
             <section className="mt-8 border-t border-app-baunilha-dourada/60 pt-8">

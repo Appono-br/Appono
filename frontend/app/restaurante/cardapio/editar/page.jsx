@@ -295,7 +295,6 @@ function RestaurantMenuItemEditorContent() {
                                         </option>
                                     ))}
                                 </select>
-                                <Icon type="chevron-down" className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-app-cinza" />
                             </span>
                         </label>
                         <Field label={ui("Preço (R$)")} value={form.price} onChange={(value) => updateField("price", normalizarPrecoDigitado(value))} inputMode="decimal" placeholder={ui("Ex: 49,90")} required />

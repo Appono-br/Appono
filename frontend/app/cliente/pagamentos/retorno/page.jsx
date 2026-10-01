@@ -193,7 +193,7 @@ function PagamentoRetornoContent() {
                             </div>
                             <div>
                                 <p className="text-[10px] font-bold uppercase text-app-cinza">{ui("Valor")}</p>
-                                <p className="mt-1 font-semibold">{formatarMoeda(dados.pedido.valor_total, localeUI)}</p>
+                                <p className="mt-1 font-semibold">{formatarMoeda(dados.pagamento?.valor_pago ?? dados.pedido.valor_total, localeUI)}</p>
                             </div>
                             <div>
                                 <p className="text-[10px] font-bold uppercase text-app-cinza">{ui("Pagamento")}</p>

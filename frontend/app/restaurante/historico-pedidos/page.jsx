@@ -763,7 +763,7 @@ export default function RestaurantOrderHistoryPage() {
 
                                             <div className="grid gap-2 text-sm text-app-mocha lg:min-w-72 lg:text-right">
                                                 <strong className="text-lg text-app-cafe-profundo">{reserva.quantidade_pessoas}{ui(" pessoa(s)")}</strong>
-                                                <span>{ui("Consumo mínimo ")}{formatarMoeda(reserva.valor_minimo_total, localeUI)}</span>
+                                                <span>{ui("Preço da reserva ")}{formatarMoeda(reserva.valor_minimo_total, localeUI)}</span>
                                                 {pedidoPrincipal ? <span>{ui("Pedido #")}{pedidoPrincipal.id_pedido} - {ui(textoStatusPedido(pedidoPrincipal.status_pedido))}</span> : <span>{ui("Sem pedido antecipado")}</span>}
                                             </div>
                                         </div>

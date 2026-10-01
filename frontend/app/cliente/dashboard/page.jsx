@@ -156,7 +156,7 @@ function ProximaReservaCard({ proximaReserva, localeUI, ui }) {
                     {proximaReserva ? (<>
                         <h2 className="mt-2 text-2xl font-semibold">{proximaReserva.restaurantes?.nome ?? ui("Restaurante")}</h2>
                         <p className="mt-2 text-sm capitalize text-app-creme-suave">{formatarDataReserva(proximaReserva.data_reserva, localeUI)}{ui(" às ")}{formatarHorario(proximaReserva.horario_inicio)}</p>
-                        <p className="mt-1 text-sm text-app-baunilha-dourada">{proximaReserva.quantidade_pessoas}{ui(" pessoas | Consumo mínimo ")}{formatarMoeda(proximaReserva.valor_minimo_total, localeUI)}</p>
+                        <p className="mt-1 text-sm text-app-baunilha-dourada">{proximaReserva.quantidade_pessoas}{ui(" pessoas | Preço da reserva ")}{formatarMoeda(proximaReserva.valor_minimo_total, localeUI)}</p>
                     </>) : (<>
                         <h2 className="mt-2 text-2xl font-semibold">{ui("Nenhuma reserva ativa")}</h2>
                         <p className="mt-2 text-sm text-app-creme-suave">{ui("Escolha um restaurante para agendar sua próxima experiência.")}</p>
@@ -378,26 +378,6 @@ export default function DashboardPage() {
         .filter((restaurant) => Number(restaurant.favoriteCount) > 0)
         .sort((a, b) => Number(b.favoriteCount) - Number(a.favoriteCount))
         .slice(0, 3), [restaurants]);
-    const colecoesDescoberta = useMemo(() => {
-        const elegiveis = restaurants.filter((restaurant) => restaurant.hasMenu);
-        const categorias = (restaurant) => restaurant.publishedCategories.join(" ").toLowerCase();
-        const bemAvaliados = [...elegiveis]
-            .filter((restaurant) => Number(restaurant.reviewCount) > 0)
-            .sort((a, b) => Number(b.rating ?? 0) - Number(a.rating ?? 0) || Number(b.reviewCount) - Number(a.reviewCount))
-            .slice(0, 3);
-        const paraAlmoco = elegiveis.filter((restaurant) => /almo[cç]o|executivo|brasileira|caseira|massa/.test(`${categorias(restaurant)} ${restaurant.name.toLowerCase()}`)).slice(0, 3);
-        const paraJantar = elegiveis.filter((restaurant) => /jantar|pizza|hamb|japon|italiana|bar/.test(`${categorias(restaurant)} ${restaurant.name.toLowerCase()}`)).slice(0, 3);
-        const faixaAcessivel = [...elegiveis]
-            .filter((restaurant) => Number.isFinite(Number(restaurant.minimumReservationValue)))
-            .sort((a, b) => Number(a.minimumReservationValue) - Number(b.minimumReservationValue) || a.name.localeCompare(b.name, "pt-BR"))
-            .slice(0, 3);
-        return [
-            { titulo: "Bem avaliados", criterio: "Com avaliações registradas e maior média", itens: bemAvaliados },
-            { titulo: "Para almoço", criterio: "Opções com seções adequadas ao almoço", itens: paraAlmoco },
-            { titulo: "Para jantar", criterio: "Opções com seções adequadas ao jantar", itens: paraJantar },
-            { titulo: "Faixa de preço acessível", criterio: "Menor valor mínimo de reserva informado", itens: faixaAcessivel },
-        ].filter((colecao) => colecao.itens.length > 0);
-    }, [restaurants]);
     const nearbyRestaurants = useMemo(() => nearbyRestaurantItems
         .filter((restaurant) => raioKm === "todos" || Number.isFinite(Number(restaurant.distanceKm)))
         .sort((a, b) => {
@@ -441,7 +421,7 @@ export default function DashboardPage() {
             <Icon type="search" className="h-5 w-5 shrink-0"/>
             <span className="sr-only">{ui("Buscar pratos ou restaurantes")}</span>
             <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={ui("Buscar")} className="input-busca-app h-full min-w-0 flex-1 bg-transparent text-sm text-app-cafe-profundo outline-none placeholder:text-app-cinza"/>
-            {query ? <button type="button" onClick={limparBusca} aria-label={ui("Limpar busca")} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-app-mocha transition hover:bg-app-chantilly hover:text-app-cafe-profundo">
+            {query ? <button type="button" onClick={limparBusca} aria-label={ui("Limpar busca")} className="app-icon-button flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-app-mocha transition hover:bg-app-chantilly hover:text-app-cafe-profundo">
               <Icon type="close" className="h-4 w-4"/>
             </button> : null}
           </label>
@@ -534,7 +514,7 @@ export default function DashboardPage() {
                 <span className="mt-2 inline-flex rounded-[5px] bg-white px-2 py-0.5 text-xs font-semibold leading-4 text-app-caramelo-torrado antialiased">{ui("Reserva e pedido antecipado")}</span>
               </div>
             </Link>
-            <button type="button" disabled={updatingFavorite === restaurant.id} onClick={() => alternarFavorito(restaurant.id)} className={`absolute right-2 top-2 z-10 flex h-8 w-8 items-center justify-center rounded-full p-1.5 transition disabled:opacity-50 ${restaurant.isFavorite ? "bg-white text-app-vermelho-erro" : "text-app-mocha hover:bg-app-chantilly hover:text-app-vermelho-erro"}`} aria-label={`${restaurant.isFavorite ? "Remover" : "Adicionar"} ${restaurant.name} dos favoritos`} aria-pressed={restaurant.isFavorite}>
+            <button type="button" disabled={updatingFavorite === restaurant.id} onClick={() => alternarFavorito(restaurant.id)} className={`app-icon-button absolute right-2 top-2 z-10 flex h-8 w-8 items-center justify-center rounded-full p-1.5 transition disabled:opacity-50 ${restaurant.isFavorite ? "bg-white text-app-vermelho-erro" : "text-app-mocha hover:bg-app-chantilly hover:text-app-vermelho-erro"}`} aria-label={`${restaurant.isFavorite ? "Remover" : "Adicionar"} ${restaurant.name} dos favoritos`} aria-pressed={restaurant.isFavorite}>
               <Icon type="heart" filled={restaurant.isFavorite} className="h-full w-full"/>
             </button>
           </article>)}
@@ -616,7 +596,7 @@ export default function DashboardPage() {
                       </div>
                     </Link>
 
-                    <button type="button" disabled={updatingFavorite === restaurant.id} onClick={() => alternarFavorito(restaurant.id)} className={`absolute right-2 top-2 z-10 flex h-8 w-8 items-center justify-center rounded-full p-1.5 transition disabled:opacity-50 ${restaurant.isFavorite
+                    <button type="button" disabled={updatingFavorite === restaurant.id} onClick={() => alternarFavorito(restaurant.id)} className={`app-icon-button absolute right-2 top-2 z-10 flex h-8 w-8 items-center justify-center rounded-full p-1.5 transition disabled:opacity-50 ${restaurant.isFavorite
                     ? "bg-white text-app-vermelho-erro"
                     : "text-app-mocha hover:bg-app-chantilly hover:text-app-vermelho-erro"}`} aria-label={`${restaurant.isFavorite ? "Remover" : "Adicionar"} ${restaurant.name} dos favoritos`} aria-pressed={restaurant.isFavorite}>
                       <Icon type="heart" filled={restaurant.isFavorite} className="h-full w-full"/>
@@ -624,25 +604,6 @@ export default function DashboardPage() {
                   </article>))}
               </div>) : localizacaoCliente ? (<LocationEmptyState title={ui("Nenhum restaurante neste raio")} description={ui("Tente aumentar o raio de busca para encontrar mais opções.")}/>) : statusLocalizacao === "denied" ? (<LocationEmptyState title={ui("Permita sua localização")} description={ui("Ao autorizar o navegador, a Appono carrega automaticamente os restaurantes mais próximos e permite filtrar por raio.")}/>) : null}
           </div>
-      </section>
-
-      <section className="mx-auto max-w-7xl px-5 py-10">
-        <div>
-          <h2 className="text-3xl font-semibold text-app-cafe-profundo sm:text-4xl">{ui("Encontre algo diferente")}</h2>
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-app-cinza">{ui("Conheça restaurantes pelo cardápio, avaliações e faixa de preço, sem precisar usar a busca.")}</p>
-        </div>
-        {colecoesDescoberta.length ? <div className="mt-7 grid gap-7 lg:grid-cols-2">
-          {colecoesDescoberta.map((colecao) => <section key={colecao.titulo} className="rounded-[14px] border border-app-baunilha-dourada/60 bg-app-creme-leve p-5">
-            <h3 className="text-xl font-semibold text-app-cafe-profundo">{ui(colecao.titulo)}</h3>
-            <p className="mt-1 text-xs text-app-cinza">{ui(colecao.criterio)}</p>
-            <div className="mt-4 grid gap-3">{colecao.itens.map((restaurant) => <Link key={restaurant.id} href={`/cliente/restaurantes/${restaurant.id}`} className="flex items-center justify-between gap-4 rounded-[10px] bg-white p-4 transition hover:shadow-sm">
-              <div className="min-w-0"><p className="truncate font-semibold text-app-cafe-profundo">{restaurant.name}</p><p className="mt-1 truncate text-sm text-app-cinza">{restaurant.publishedCategories.slice(0, 2).join(" · ") || ui("Cardápio disponível")}</p></div>
-              <div className="shrink-0 text-right"><p className="text-sm font-semibold text-app-caramelo-torrado">{restaurant.rating == null ? ui("Novo") : `★ ${Number(restaurant.rating).toFixed(1)}`}</p>{Number.isFinite(Number(restaurant.minimumReservationValue)) ? <p className="mt-1 text-xs text-app-cinza">{formatarMoeda(restaurant.minimumReservationValue, localeUI)}</p> : null}</div>
-            </Link>)}</div>
-          </section>)}
-        </div> : (
-          <EmptyState compact title={ui("Ainda não há coleções disponíveis")} description={ui("As opções aparecerão aqui quando os restaurantes tiverem cardápio publicado e dados suficientes.")}/>
-        )}
       </section>
 
       <section className="mx-auto max-w-7xl px-5 py-12">

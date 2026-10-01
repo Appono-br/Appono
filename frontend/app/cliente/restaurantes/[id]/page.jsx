@@ -154,8 +154,8 @@ export default function PaginaRestaurante({ params }) {
       .catch((erro) => setMensagem(erro instanceof Error ? erro.message : "Não foi possível carregar o restaurante."));
   }, [restauranteId]);
 
-  const valorMinimoPorPessoa = Number(restaurante?.valor_minimo_reserva_por_pessoa ?? 0);
-  const valorMinimoTotal = valorMinimoPorPessoa * pessoas;
+  const precoReserva = Number(restaurante?.valor_minimo_reserva_por_pessoa ?? 0);
+  const valorMinimoTotal = precoReserva;
 
   const produtosPorCategoria = useMemo(() => {
     return cardapios
@@ -180,7 +180,6 @@ export default function PaginaRestaurante({ params }) {
   const totalItens = produtosSelecionados.reduce((soma, produto) => soma + produto.quantidade, 0);
   const totalPedido = produtosSelecionados.reduce((soma, produto) => soma + Number(produto.preco ?? 0) * produto.quantidade, 0);
   const temPedidoAntecipado = totalItens > 0;
-  const faltaParaMinimo = temPedidoAntecipado ? Math.max(0, valorMinimoTotal - totalPedido) : 0;
   const horariosComStatus = disponibilidade.horarios ?? [];
   const horariosDisponiveis = horariosComStatus.filter((item) => item.disponivel);
   const slotSelecionado = horariosDisponiveis.find((item) => item.horario === horario) ?? horariosDisponiveis[0] ?? null;
@@ -296,10 +295,6 @@ export default function PaginaRestaurante({ params }) {
       setMensagem("Escolha um horário disponível dentro do funcionamento do restaurante.");
       return;
     }
-    if (temPedidoAntecipado && faltaParaMinimo > 0) {
-      setMensagem(`Para reservar com pedido antecipado, ainda faltam ${formatarMoeda(faltaParaMinimo, localeUI)} para atingir o consumo mínimo.`);
-      return;
-    }
 
     registrarCampanha(campanhaSelecionada?.id_campanha,"RESERVA_INICIADA");
     setEnviando(true);
@@ -307,7 +302,7 @@ export default function PaginaRestaurante({ params }) {
 
     try {
       if (!temPedidoAntecipado) {
-        await apiRequest("/reservas", {
+        const reservaCriada = await apiRequest("/reservas", {
           method: "POST",
           body: JSON.stringify({
             id_restaurante: restaurante.id_restaurante,
@@ -319,7 +314,7 @@ export default function PaginaRestaurante({ params }) {
             id_campanha: campanhaSelecionada?.id_campanha ?? null,
           }),
         });
-        window.location.assign("/cliente/reservas");
+        window.location.assign(Number(reservaCriada.valor_minimo_total) > 0 ? `/cliente/pagamentos/reserva/${reservaCriada.id_reserva}` : "/cliente/reservas");
         return;
       }
 
@@ -536,11 +531,11 @@ export default function PaginaRestaurante({ params }) {
                             <p className="mt-2 text-base font-bold text-app-caramelo-torrado">{formatarMoeda(produto.preco, localeUI)}</p>
                           </div>
                           <div className="flex items-center justify-between gap-3 md:col-span-2 xl:col-span-1 xl:justify-end">
-                            <button type="button" onClick={() => alterarQuantidade(produto.id_produto, -1)} className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-app-cafe-profundo ring-1 ring-app-baunilha-dourada transition hover:bg-app-baunilha-dourada">
+                            <button type="button" onClick={() => alterarQuantidade(produto.id_produto, -1)} className="app-icon-button flex h-10 w-10 items-center justify-center rounded-full bg-white text-app-cafe-profundo ring-1 ring-app-baunilha-dourada transition hover:bg-app-baunilha-dourada">
                               <Icon type="minus" className="h-4 w-4" />
                             </button>
                             <span className="min-w-8 text-center text-lg font-bold">{quantidade}</span>
-                            <button type="button" onClick={() => alterarQuantidade(produto.id_produto, 1)} disabled={quantidade >= LIMITE_UNIDADES_POR_ITEM || !restaurante.pedidos_antecipados_habilitados} className="flex h-10 w-10 items-center justify-center rounded-full bg-app-dourado-mel text-white transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-45">
+                            <button type="button" onClick={() => alterarQuantidade(produto.id_produto, 1)} disabled={quantidade >= LIMITE_UNIDADES_POR_ITEM || !restaurante.pedidos_antecipados_habilitados} className="app-icon-button flex h-10 w-10 items-center justify-center rounded-full bg-app-dourado-mel text-white transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-45">
                               <Icon type="plus" className="h-4 w-4" />
                             </button>
                           </div>
@@ -618,24 +613,18 @@ export default function PaginaRestaurante({ params }) {
               ) : null}
 
               <div className="mt-5 grid gap-3 rounded-[14px] bg-white p-4 text-sm ring-1 ring-app-baunilha-dourada/60">
-                <p className="rounded-[10px] bg-white px-3 py-2 text-xs leading-5 text-app-mocha">{ui("Pedido antecipado possui consumo mínimo de ")}<strong className="text-app-cafe-profundo">{formatarMoeda(valorMinimoPorPessoa, localeUI)}</strong>{ui(" por pessoa.")}</p>
+                <p className="rounded-[10px] bg-white px-3 py-2 text-xs leading-5 text-app-mocha">{ui("Valor fixo por reserva, independentemente do número de pessoas.")}</p>
                 <div className="flex justify-between gap-4">
-                  <span className="text-app-mocha">{ui("Consumo mínimo por pessoa")}</span>
-                  <strong>{formatarMoeda(valorMinimoPorPessoa, localeUI)}</strong>
-                </div>
-                <div className="flex justify-between gap-4">
-                  <span className="text-app-mocha">{temPedidoAntecipado ? ui("Mínimo para {0} pessoa(s)", [pessoas]) : ui("Aplicado somente se houver pedido")}</span>
+                  <span className="text-app-mocha">{ui("Preço da reserva")}</span>
                   <strong>{formatarMoeda(valorMinimoTotal, localeUI)}</strong>
                 </div>
+                {temPedidoAntecipado ? <div className="flex justify-between gap-4"><span className="text-app-mocha">{ui("Valor do pedido")}</span><strong>{formatarMoeda(totalPedido, localeUI)}</strong></div> : null}
                 <div className="flex items-center justify-between border-t border-app-baunilha-dourada pt-4">
-                  <span className="font-bold">{ui(temPedidoAntecipado ? "Total do pedido" : "Total a pagar agora")}</span>
-                  <strong className="text-2xl text-app-cafe-profundo">{formatarMoeda(temPedidoAntecipado ? totalPedido : 0, localeUI)}</strong>
+                  <span className="font-bold">{ui("Total a pagar")}</span>
+                  <strong className="text-2xl text-app-cafe-profundo">{formatarMoeda(totalPedido + valorMinimoTotal, localeUI)}</strong>
                 </div>
               </div>
 
-              {temPedidoAntecipado && faltaParaMinimo > 0 ? (
-                <p className="mt-5 rounded-[8px] bg-white p-3 text-sm font-semibold leading-6 text-app-caramelo-torrado">{ui("Faltam ")}{formatarMoeda(faltaParaMinimo, localeUI)}{ui(" para atingir o consumo mínimo do pedido antecipado.")}</p>
-              ) : null}
               {!operacaoConfigurada ? (
                 <p className="mt-5 rounded-[8px] bg-white p-3 text-sm font-semibold leading-6 text-app-caramelo-torrado">
                   {ui(disponibilidade.motivo ?? "Este restaurante ainda precisa configurar os horários de funcionamento antes de receber reservas.")}
@@ -647,8 +636,8 @@ export default function PaginaRestaurante({ params }) {
                 </p>
               ) : null}
 
-              <button type="submit" disabled={enviando || !operacaoConfigurada || !horariosDisponiveis.length || (temPedidoAntecipado && faltaParaMinimo > 0)} className="mt-5 h-12 w-full rounded-[8px] bg-app-dourado-mel text-xs font-bold uppercase tracking-wide text-white transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-50">
-                {ui(enviando ? "Confirmando..." : temPedidoAntecipado ? "Confirmar reserva e pagar pedido" : "Confirmar reserva sem pedido")}
+              <button type="submit" disabled={enviando || !operacaoConfigurada || !horariosDisponiveis.length} className="mt-5 h-12 w-full rounded-[8px] bg-app-dourado-mel text-xs font-bold uppercase tracking-wide text-white transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-50">
+                {ui(enviando ? "Confirmando..." : temPedidoAntecipado ? "Pagar pedido e reserva" : valorMinimoTotal > 0 ? "Pagar reserva" : "Confirmar reserva sem pedido")}
               </button>
               {mensagem ? <p className="mt-3 text-sm font-semibold text-app-caramelo-torrado">{ui(mensagem)}</p> : null}
             </form>

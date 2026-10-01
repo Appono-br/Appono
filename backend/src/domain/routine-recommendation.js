@@ -326,19 +326,18 @@ function criarCandidatos({ perfil, restaurantes, preferencias = [], restricoes =
             diagnostico[motivo] = (diagnostico[motivo] ?? 0) + 1;
             continue;
         }
-        const minimo = numeroValido(restaurante.valor_minimo_reserva_por_pessoa) ?? 0;
+        const precoReserva = numeroValido(restaurante.valor_minimo_reserva_por_pessoa) ?? 0;
         const produtos = obterProdutosRestaurante(restaurante);
         const produtosCompativeis = produtos.filter((produto) =>
             !produtoIncompativel(produto, restaurante, restricoes) && produtoSeguroParaAlergias(produto, alergias));
-        const produtosNoMinimo = produtosCompativeis.filter((produto) => (numeroValido(produto.preco) ?? 0) >= minimo);
-        const produtosParaPontuar = produtosNoMinimo;
+        const produtosParaPontuar = produtosCompativeis;
         if (!produtosParaPontuar.length && produtos.length && !alergias.length) {
             diagnostico.sem_item_compativel = (diagnostico.sem_item_compativel ?? 0) + 1;
             continue;
         }
         const produtosCandidatos = produtosParaPontuar.length ? produtosParaPontuar : [null];
         for (const produto of produtosCandidatos) {
-            const preco = numeroValido(produto?.preco) ?? minimo;
+            const preco = (numeroValido(produto?.preco) ?? 0) + precoReserva;
             const favoritoRestaurante = Boolean(restaurante.favorito_cliente) || favoritosRestaurantes.has(Number(restaurante.id_restaurante));
             const pratoFavorito = produto ? pratosFavoritos.has(Number(produto.id_produto)) : false;
             const dentroOrcamento = !Number.isFinite(orcamento) || preco <= orcamento;
@@ -587,7 +586,7 @@ function gerarPlanejamentoRotina({
                             diagnostico.fora_raio ? "Há restaurantes fora da distância máxima." : null,
                             diagnostico.sem_localizacao ? "Há restaurantes sem localização cadastrada." : null,
                             diagnostico.fora_orcamento ? "Há opções acima do orçamento diário." : null,
-                            diagnostico.sem_item_compativel ? "Há cardápios incompatíveis com as restrições ou o consumo mínimo." : null,
+                            diagnostico.sem_item_compativel ? "Há cardápios incompatíveis com as restrições ou os horários disponíveis." : null,
                         ].filter(Boolean).join(" ") || "Nenhuma opção atende aos critérios da rotina.";
             refeicoes.push({
                 data_refeicao: item.data,

@@ -17,7 +17,7 @@ Pagamento aprovado e check-in são estados independentes: o pagamento confirma o
 Quando `MERCADO_PAGO_PERMITIR_PRODUCAO=false`, o backend entrega exclusivamente `sandbox_init_point`; nunca utiliza `init_point`, independentemente do prefixo da credencial. Pagamentos reais legados exigem uma credencial de produção com permissão de pagamentos para serem estornados, ou estorno manual pelo painel Mercado Pago.
 Nos fluxos que consultam o gateway, uma nova tentativa após estorno manual reconhece `refunded` e sincroniza os registros sem solicitar outro estorno.
 
-A confirmação de presença ou o aviso de ausência pode ocorrer até uma hora antes da reserva. A ausência cancela os pedidos elegíveis e calcula o reembolso pelo excedente: valor pago menos consumo mínimo e comissão, limitado a zero. A comissão padrão é 13%, configurável por `MERCADO_PAGO_MARKETPLACE_FEE_PERCENTUAL`. As regras estão em [reservation-time.js](../backend/src/domain/reservation-time.js) e na migration de confirmação de presença.
+A confirmação de presença ou o aviso de ausência pode ocorrer até uma hora antes da reserva. A ausência cancela os pedidos elegíveis e calcula o reembolso pelo excedente: valor pago menos preço da reserva e comissão, limitado a zero. A comissão padrão é 13%, configurável por `MERCADO_PAGO_MARKETPLACE_FEE_PERCENTUAL`. As regras estão em [reservation-time.js](../backend/src/domain/reservation-time.js) e na migration de confirmação de presença.
 
 ## Reembolsos no ambiente atual
 
@@ -81,7 +81,7 @@ Segurança aplicada:
 
 `GET /api/pedidos?page=1&limit=12` retorna uma listagem resumida e paginada no formato `{ items, pagination }`; `GET /api/pedidos/:id` carrega relacionamentos e itens somente para o pedido aberto. A tela de pedidos direciona cada registro para `/cliente/pedidos/:id`, onde ficam pagamento, cancelamento e acesso à avaliação. Rotas estáticas, como `/api/pedidos/historico/restaurante`, são declaradas antes da rota dinâmica por ID.
 
-Na página do restaurante, o cliente pode selecionar quantidades diretamente no cardápio. Sem itens, `POST /api/reservas` cria somente a reserva; com itens e o consumo mínimo atingido, `POST /api/reservas/com-pedido` cria reserva e pedido antecipado na mesma transação e direciona ao checkout do pedido.
+Na página do restaurante, o cliente pode selecionar quantidades diretamente no cardápio. Sem itens, `POST /api/reservas` cria somente a reserva; com itens selecionados, `POST /api/reservas/com-pedido` cria reserva e pedido antecipado na mesma transação e direciona ao checkout do pedido.
 
 ## Fila operacional de reservas e cozinha
 
@@ -190,3 +190,5 @@ UX atual:
 Durante a revisão da documentação, também foi identificada uma inconsistência no trecho de conciliação em [payments.js](../backend/src/routes/payments.js): a variável declarada como `conciliacao` é acessada em seguida como `conciliação`. O trecho precisa de correção e validação antes de considerar esse caminho funcional. Esta revisão não alterou o código da aplicação.
 
 Os critérios acima continuam sujeitos a validação em ambientes isolados. Consulte o [plano de piloto](piloto-controlado.md) e o [guia de operação](operacao-producao.md); seus limites e rotinas são requisitos operacionais, não uma confirmação de implementação automática.
+
+O preço da reserva é fixo e independe da quantidade de pessoas. Sem pedido, o cliente paga somente a reserva. Com pedido antecipado, o checkout soma o valor dos pratos e o preço da reserva em um único pagamento; não existe exigência de gasto com pratos. A reserva paga não é cobrada novamente ao adicionar um pedido posteriormente.

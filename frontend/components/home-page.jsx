@@ -92,7 +92,7 @@ export default function HomePage() {
           type="button"
           onClick={() => atualizarTema(tema === "escuro" ? "claro" : "escuro")}
           data-appono-sem-traducao
-          className="flex h-10 w-10 shrink-0 items-center justify-center whitespace-nowrap rounded-full border border-app-baunilha-dourada text-app-cafe-profundo transition hover:bg-app-chantilly"
+          className="app-icon-button flex h-10 w-10 shrink-0 items-center justify-center whitespace-nowrap rounded-full border border-app-baunilha-dourada text-app-cafe-profundo transition hover:bg-app-chantilly"
           aria-label={tema === "escuro" ? (idioma === "en" ? "Enable light mode" : "Ativar modo claro") : (idioma === "en" ? "Enable dark mode" : "Ativar modo escuro")}
           title={tema === "escuro" ? (idioma === "en" ? "Enable light mode" : "Ativar modo claro") : (idioma === "en" ? "Enable dark mode" : "Ativar modo escuro")}
         >
@@ -184,7 +184,7 @@ export default function HomePage() {
               <button
                 type="button"
                 onClick={() => setProfileDialog(null)}
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-app-baunilha-dourada text-app-cafe-profundo transition hover:bg-app-chantilly"
+                className="app-icon-button flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-app-baunilha-dourada text-app-cafe-profundo transition hover:bg-app-chantilly"
                 aria-label="Fechar"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

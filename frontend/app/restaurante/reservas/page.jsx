@@ -418,7 +418,7 @@ export default function RestaurantReservationsPage() {
                                 />
                             </label>
 
-                            <label className="grid gap-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado sm:min-w-56">{ui("Ordenar por")}<select value={ordenacaoReserva} onChange={(event) => setOrdenacaoReserva(event.target.value)} className="h-11 rounded-[10px] border border-app-baunilha-dourada bg-white px-3 text-sm font-semibold normal-case tracking-normal text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-caramelo-torrado/15">
+                            <label className="grid gap-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado sm:min-w-56">{ui("Ordenar por")}<select value={ordenacaoReserva} onChange={(event) => setOrdenacaoReserva(event.target.value)} className="h-11 rounded-[10px] border border-app-baunilha-dourada bg-white pl-3 pr-10 text-sm font-semibold normal-case tracking-normal text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado">
                                     {ordenacoesReserva.map((item) => <option key={item.value} value={item.value}>{ui(item.label)}</option>)}
                                 </select>
                             </label>
@@ -507,7 +507,7 @@ export default function RestaurantReservationsPage() {
                                                     <strong className="mt-1 block text-app-cafe-profundo">{ui(reserva.mesas?.numero_mesa ?? "-")}</strong>
                                                 </div>
                                                 <div className="rounded-[10px] bg-white px-4 py-3 ring-1 ring-app-baunilha-dourada/55">
-                                                    <span className="block text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">{ui("Consumo mínimo")}</span>
+                                                    <span className="block text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">{ui("Preço da reserva")}</span>
                                                     <strong className="mt-1 block text-app-cafe-profundo">{formatarMoeda(reserva.valor_minimo_total, localeUI)}</strong>
                                                 </div>
                                             </div>

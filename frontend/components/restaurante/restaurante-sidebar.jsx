@@ -22,7 +22,7 @@ const itens = [
     ["Histórico", "historico-pedidos", "M3 11a9 9 0 1 1 3 8M3 4v7h7M12 7v5l3 2"],
     ["Mensagens", "mensagens", "M4 4h16v13H9l-5 4zM8 8h8M8 12h5"],
     ["Suporte", "suporte", "M4 14v-3a8 8 0 0 1 16 0v3M4 12H2v6h4v-6zM20 12h2v6h-4v-6zM20 18v3h-7"],
-    ["Configurações", "configuracoes", "M4 7h16M4 17h16M8 4v6M16 14v6"],
+    ["Configurações", "configuracoes", "M9.5 3h5l.5 2.2 1.6.9 2.1-.7 2.5 4.2-1.7 1.5v1.8l1.7 1.5-2.5 4.2-2.1-.7-1.6.9-.5 2.2h-5L9 18.8l-1.6-.9-2.1.7-2.5-4.2 1.7-1.5v-1.8L2.8 9.6l2.5-4.2 2.1.7L9 5.2 9.5 3Z M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0"],
 ];
 
 function Icone({ caminho }) {

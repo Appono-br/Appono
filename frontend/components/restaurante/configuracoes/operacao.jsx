@@ -272,13 +272,13 @@ export default function RestaurantOperationSettingsPage() {
                 shifts: current.shifts.length > 1
                     ? current.shifts.slice(0, -1)
                     : current.shifts,
-            }))} className="flex h-9 w-9 items-center justify-center rounded-full bg-app-creme-suave text-app-vermelho-erro transition hover:bg-app-areia-quente" aria-label={ui("Remover turno de {0}", [ui(day.label)])}>
+            }))} className="app-icon-button flex h-9 w-9 items-center justify-center rounded-full bg-app-creme-suave text-app-vermelho-erro transition hover:bg-app-areia-quente" aria-label={ui("Remover turno de {0}", [ui(day.label)])}>
                       <Icon type="minus" className="h-4 w-4"/>
                     </button>
                     <button type="button" onClick={() => updateDay(day.id, (current) => ({
                 ...current,
                 shifts: [...current.shifts, { open: "", close: "" }],
-            }))} className="flex h-9 w-9 items-center justify-center rounded-full bg-app-creme-suave text-app-cafe-profundo transition hover:bg-app-areia-quente" aria-label={ui("Adicionar turno em {0}", [ui(day.label)])}>
+            }))} className="app-icon-button flex h-9 w-9 items-center justify-center rounded-full bg-app-creme-suave text-app-cafe-profundo transition hover:bg-app-areia-quente" aria-label={ui("Adicionar turno em {0}", [ui(day.label)])}>
                       <Icon type="plus" className="h-4 w-4"/>
                     </button>
                     <button type="button" onClick={() => updateDay(day.id, (current) => ({

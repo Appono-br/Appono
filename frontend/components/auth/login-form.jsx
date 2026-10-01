@@ -445,7 +445,7 @@ export function LoginForm() {
               <button
                 type="button"
                 onClick={() => setRegisterDialog(false)}
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-app-baunilha-dourada text-app-cafe-profundo transition hover:bg-app-chantilly"
+                className="app-icon-button flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-app-baunilha-dourada text-app-cafe-profundo transition hover:bg-app-chantilly"
                 aria-label="Fechar"
               >
                 <svg
@@ -570,7 +570,7 @@ export function LoginForm() {
               <button
                 type="button"
                 onClick={() => setRecoveryDialog(false)}
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-app-baunilha-dourada text-app-cafe-profundo transition hover:bg-app-creme-suave"
+                className="app-icon-button flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-app-baunilha-dourada text-app-cafe-profundo transition hover:bg-app-creme-suave"
                 aria-label="Fechar recuperação de senha"
               >
                 <svg

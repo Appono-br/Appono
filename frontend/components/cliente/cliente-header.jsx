@@ -8,12 +8,12 @@ import { useInterface } from "@/lib/use-interface";
 import { LinkNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 
 const itens = [
-    ["Ofertas", "/cliente/ofertas"],
     ["Início", "/cliente/dashboard"],
     ["Appono Rotina", "/cliente/rotina"],
     ["Reservas", "/cliente/reservas"],
     ["Favoritos", "/cliente/favoritos"],
     ["Mensagens", "/cliente/mensagens"],
+    ["Ofertas", "/cliente/ofertas"],
 ];
 function HeaderIcon({ type }) {
     const paths = {
@@ -52,7 +52,7 @@ export function ClienteHeader() {
                 <div className="flex h-11 w-11 items-center justify-center">
                     <LinkNotificacoes href="/cliente/notificacoes" iconeClassName="h-6 w-6" ariaCurrent={estaAtivo(pathname, "/cliente/notificacoes") ? "page" : undefined} />
                 </div>
-                <button type="button" onClick={() => setMenuAberto((aberto) => !aberto)} className="flex h-9 w-9 items-center justify-center rounded-[8px] border border-app-baunilha-dourada bg-white text-app-cafe-profundo outline-none transition hover:bg-app-chantilly focus-visible:ring-2 focus-visible:ring-app-caramelo-torrado lg:hidden" aria-label={ui(menuAberto ? "Fechar menu" : "Abrir menu")} aria-expanded={menuAberto} aria-controls="cliente-menu-compartilhado">
+                <button type="button" onClick={() => setMenuAberto((aberto) => !aberto)} className="app-icon-button flex h-9 w-9 items-center justify-center rounded-[8px] border border-app-baunilha-dourada bg-white text-app-cafe-profundo outline-none transition hover:bg-app-chantilly focus-visible:ring-2 focus-visible:ring-app-caramelo-torrado lg:hidden" aria-label={ui(menuAberto ? "Fechar menu" : "Abrir menu")} aria-expanded={menuAberto} aria-controls="cliente-menu-compartilhado">
                     <HeaderIcon type="menu" />
                 </button>
             </div>

@@ -482,7 +482,7 @@ export default function ReservationsPage() {
                             {reservation.people} {ui(reservation.people === 1 ? "pessoa" : "pessoas")}
                           </span>
                           <span className="flex items-center gap-2">
-                            <Icon type="wallet" className="h-4 w-4 text-app-caramelo-torrado"/>{ui("Consumo mínimo")}{ui(" ")}
+                            <Icon type="wallet" className="h-4 w-4 text-app-caramelo-torrado"/>{ui("Preço da reserva")}{ui(" ")}
                             {formatarMoeda(reservation.minimumTotal, localeUI)}
                           </span>
                         </div>
@@ -547,6 +547,7 @@ export default function ReservationsPage() {
                             </p>
                           </div>) : null}
                         <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-app-baunilha-dourada/60 pt-4">
+                          {reservation.status === "PENDENTE" ? <Link href={reservation.activeOrder ? `/cliente/pagamentos/pedido/${reservation.activeOrder.id}` : `/cliente/pagamentos/reserva/${reservation.id}`} className="rounded-[8px] bg-app-dourado-mel px-4 py-2 text-xs font-bold text-white">{ui(reservation.activeOrder ? "Pagar pedido e reserva" : "Pagar reserva")}</Link> : null}
                         <button type="button" disabled={abrindoChatReservaId === reservation.id} onClick={() => abrirChatReserva(reservation)} className="inline-flex items-center gap-2 rounded-[8px] border border-app-caramelo-torrado px-4 py-2 text-xs font-bold text-app-caramelo-torrado transition hover:bg-app-chantilly disabled:cursor-not-allowed disabled:opacity-60">
                             <Icon type="message" className="h-4 w-4"/>
                             {ui(abrindoChatReservaId === reservation.id ? "Abrindo..." : "Falar com restaurante")}
@@ -641,7 +642,7 @@ export default function ReservationsPage() {
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{ui("Confirmar ausência")}</p>
             <h2 className="mt-3 text-2xl font-semibold">{ui("Você não irá comparecer?")}</h2>
             <p className="mt-3 text-sm leading-6 text-app-mocha">{ui("Ao confirmar, sua reserva será cancelada, o pedido antecipado vinculado também será cancelado e o restaurante será avisado para não preparar a comanda.")}</p>
-            {reservaParaRecusarPresenca.activeOrder ? (<p className="mt-3 rounded-[10px] bg-white p-3 text-sm font-semibold leading-6 text-app-cafe-profundo ring-1 ring-app-baunilha-dourada/60">{ui("Como existe pedido pago ou vinculado, o reembolso será calculado pelo excedente: valor pago menos consumo mínimo da reserva e comissão Appono de ")}{reservaParaRecusarPresenca.attendanceCommissionPercent}%.
+            {reservaParaRecusarPresenca.activeOrder ? (<p className="mt-3 rounded-[10px] bg-white p-3 text-sm font-semibold leading-6 text-app-cafe-profundo ring-1 ring-app-baunilha-dourada/60">{ui("Como existe pedido pago ou vinculado, o reembolso será calculado pelo excedente: valor pago menos preço da reserva e comissão Appono de ")}{reservaParaRecusarPresenca.attendanceCommissionPercent}%.
               </p>) : null}
             {reservaParaRecusarPresenca.activeOrder ? (
               <div className="mt-4 grid gap-3 rounded-[10px] bg-white p-4 text-sm ring-1 ring-app-baunilha-dourada/60 sm:grid-cols-3">

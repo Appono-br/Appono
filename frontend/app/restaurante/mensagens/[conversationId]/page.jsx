@@ -164,7 +164,7 @@ export default function RestaurantConversationPage() {
 
           <form onSubmit={enviarMensagem} className="mt-5 flex items-center gap-3 rounded-[16px] bg-white p-3 shadow-sm ring-1 ring-app-baunilha-dourada/60 transition focus-within:ring-app-caramelo-torrado">
             <textarea value={draft} onChange={(event) => setDraft(event.target.value)} onKeyDown={enviarComEnter} maxLength={1200} placeholder={ui("Escreva sua resposta...")} className="h-12 flex-1 resize-none bg-transparent px-2 py-3 text-sm leading-6 outline-none placeholder:text-app-cinza/60" />
-            <button type="submit" disabled={enviando || !draft.trim()} className="flex h-12 w-12 shrink-0 cursor-pointer items-center justify-center rounded-[12px] bg-app-dourado-mel text-white hover:!translate-y-0 disabled:cursor-not-allowed disabled:opacity-50" aria-label={ui("Enviar mensagem")}>
+            <button type="submit" disabled={enviando || !draft.trim()} className="app-icon-button flex h-12 w-12 shrink-0 cursor-pointer items-center justify-center rounded-[12px] bg-app-dourado-mel text-white hover:!translate-y-0 disabled:cursor-not-allowed disabled:opacity-50" aria-label={ui("Enviar mensagem")}>
               <Icon type="send" />
             </button>
           </form>
