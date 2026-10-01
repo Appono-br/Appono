@@ -205,19 +205,18 @@ export default function PaginaRestaurante({ params }) {
   const precoExibidoProduto = (produto) => produtoComDesconto(produto) ? Number(produto.preco ?? 0) * (1 - Number(campanhaSelecionada.valor_beneficio ?? 0) / 100) : Number(produto.preco ?? 0);
   const temPedidoAntecipado = totalItens > 0;
   const faltaParaMinimo = temPedidoAntecipado ? Math.max(0, valorMinimoTotal - totalPedido) : 0;
-  const horariosComStatus = disponibilidade.horarios ?? [];
+  const chaveDisponibilidade = `${restauranteId}:${data}:${pessoas}`;
+  const carregandoHorarios = disponibilidade.chave !== chaveDisponibilidade;
+  const horariosComStatus = carregandoHorarios ? [] : disponibilidade.horarios ?? [];
   const horariosDisponiveis = horariosComStatus.filter((item) => item.disponivel);
   const slotSelecionado = horariosDisponiveis.find((item) => item.horario === horario) ?? horariosDisponiveis[0] ?? null;
   const horarioSelecionado = slotSelecionado?.horario ?? "";
   const horarioFimSelecionado = slotSelecionado?.horario_fim ?? (horarioSelecionado ? adicionarDuasHoras(horarioSelecionado) : "");
-  const operacaoConfigurada = disponibilidade.operacao_configurada === true;
+  const operacaoConfigurada = !carregandoHorarios && disponibilidade.operacao_configurada === true;
   const avaliacaoMedia = Number(restaurante?.avaliacao_media ?? 0);
   const totalAvaliacoes = Number(restaurante?.total_avaliacoes ?? 0);
   const avaliacoesRecentes = restaurante?.avaliacoes_recentes ?? [];
   const linhasHorarioFuncionamento = obterLinhasHorarioFuncionamento(restaurante?.horario_funcionamento);
-  const chaveHorariosDisponiveis = horariosDisponiveis.map((slot) => slot.horario).join("|");
-  const primeiroHorarioDisponivel = horariosDisponiveis[0]?.horario ?? "";
-  const horarioEstaDisponivel = horariosDisponiveis.some((slot) => slot.horario === horario);
 
   useEffect(() => {
     if (!Number.isSafeInteger(campanhaDaVitrine) || campanhaDaVitrine < 1 || !campanhas.length) return;
@@ -230,34 +229,27 @@ export default function PaginaRestaurante({ params }) {
 
   useEffect(() => {
     if (!restauranteId || !restaurante) return;
+    let cancelado = false;
 
     const parametros = new URLSearchParams({
       data,
       pessoas: String(pessoas),
     });
 
-    apiRequest(`/restaurantes/${restauranteId}/disponibilidade?${parametros.toString()}`)
-      .then((resultado) => setDisponibilidade(resultado))
-      .catch((erro) =>
-        setDisponibilidade({
+    apiRequest(`/restaurantes/${restauranteId}/disponibilidade?${parametros.toString()}`, { cacheTtlMs: 0 })
+      .then((resultado) => {
+        if (!cancelado) setDisponibilidade({ ...resultado, chave: chaveDisponibilidade });
+      })
+      .catch((erro) => {
+        if (!cancelado) setDisponibilidade({
+          chave: chaveDisponibilidade,
           operacao_configurada: false,
           horarios: [],
           motivo: erro instanceof Error ? erro.message : "Não foi possível carregar os horários.",
-        }),
-      );
-  }, [data, pessoas, restaurante, restauranteId]);
-
-  useEffect(() => {
-    if (!chaveHorariosDisponiveis) {
-      if (horario) {
-        queueMicrotask(() => setHorario(""));
-      }
-      return;
-    }
-    if (!horarioEstaDisponivel) {
-      queueMicrotask(() => setHorario(primeiroHorarioDisponivel));
-    }
-  }, [chaveHorariosDisponiveis, horario, horarioEstaDisponivel, primeiroHorarioDisponivel]);
+        });
+      });
+    return () => { cancelado = true; };
+  }, [data, pessoas, restaurante, restauranteId, chaveDisponibilidade]);
 
   function alterarQuantidade(produtoId, diferenca) {
     if (diferenca > 0 && !restaurante?.pedidos_antecipados_habilitados) {
@@ -321,6 +313,7 @@ export default function PaginaRestaurante({ params }) {
   async function reservar(event) {
     event.preventDefault();
     if (!restaurante) return;
+    if (carregandoHorarios) return;
     if (!operacaoConfigurada) {
       setMensagem("Este restaurante ainda não configurou horários de funcionamento para receber reservas.");
       return;
@@ -626,7 +619,7 @@ export default function PaginaRestaurante({ params }) {
                         {slot.horario}
                       </option>
                     )) : (
-                      <option value="">{ui("Sem horários disponíveis")}</option>
+                      <option value="">{ui(carregandoHorarios ? "Carregando horários..." : "Sem horários disponíveis")}</option>
                     )}
                   </select>
                 </label>
@@ -675,7 +668,7 @@ export default function PaginaRestaurante({ params }) {
               {temPedidoAntecipado && faltaParaMinimo > 0 ? (
                 <p className="mt-5 rounded-[8px] bg-white p-3 text-sm font-semibold leading-6 text-app-caramelo-torrado">{ui("Faltam ")}{formatarMoeda(faltaParaMinimo, localeUI)}{ui(" para atingir o consumo mínimo do pedido antecipado.")}</p>
               ) : null}
-              {!operacaoConfigurada ? (
+              {!carregandoHorarios && !operacaoConfigurada ? (
                 <p className="mt-5 rounded-[8px] bg-white p-3 text-sm font-semibold leading-6 text-app-caramelo-torrado">
                   {ui(disponibilidade.motivo ?? "Este restaurante ainda precisa configurar os horários de funcionamento antes de receber reservas.")}
                 </p>
