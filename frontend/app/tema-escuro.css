@@ -1,3 +1,22 @@
+html[data-tema="escuro"] button.botao-confirmacao-marrom {
+  background-color: #946746;
+  color: #ffffff;
+  border: 1px solid #c49a78;
+}
+
+html[data-tema="escuro"] button.botao-confirmacao-marrom:hover:not(:disabled) {
+  background-color: #805637;
+}
+
+html[data-tema="escuro"] button.botao-confirmacao-marrom:focus-visible {
+  outline: 2px solid #eadcc8;
+  outline-offset: 3px;
+}
+
+html[data-tema="escuro"] button.botao-confirmacao-marrom:disabled {
+  opacity: 0.6;
+}
+
 html[data-tema="escuro"] {
   color-scheme: dark;
   --ui-fundo: #0b0b0b;
@@ -193,13 +212,13 @@ html[data-tema="escuro"] :is(button, a)[class*="border-app"] {
   border-color: var(--ui-borda-controle);
 }
 html[data-tema="escuro"] :is(button, a, summary, [role="button"], [role="option"], [role="menuitem"]):not(:disabled):not([aria-disabled="true"]):not(:is(.botao-acao-critica, .bg-app-vermelho-erro, .text-app-vermelho-erro, .text-red-700, .text-red-800)):is(
-  [class*="hover:bg-"], [class*="hover:border-"], [class*="hover:brightness"], .bg-app-botao-aba-ativa):hover {
+  [class*="hover:bg-"], [class*="hover:border-"], [class*="hover:brightness"], .bg-app-botao-aba-ativa):hover:not(.botao-confirmacao-marrom) {
   background-color: var(--ui-hover);
   color: var(--ui-texto-inverso);
   border-color: var(--ui-hover);
 }
 html[data-tema="escuro"] :is(button, a, summary, [role="button"], [role="option"], [role="menuitem"]):not(:disabled):not([aria-disabled="true"]):not(:is(.botao-acao-critica, .bg-app-vermelho-erro, .text-app-vermelho-erro, .text-red-700, .text-red-800)):is(
-  [class*="hover:bg-"], [class*="hover:border-"], [class*="hover:brightness"], .bg-app-botao-aba-ativa):hover :is(span, strong, p, svg, div, small, h2, h3) {
+  [class*="hover:bg-"], [class*="hover:border-"], [class*="hover:brightness"], .bg-app-botao-aba-ativa):hover:not(.botao-confirmacao-marrom) :is(span, strong, p, svg, div, small, h2, h3) {
   color: var(--ui-texto-inverso);
 }
 html[data-tema="escuro"] :is(button, a):is([class*="hover:bg-"], [class*="hover:border-"]):hover :is(.bg-app-chantilly, .bg-app-creme-suave, .bg-app-caramelo-torrado) {

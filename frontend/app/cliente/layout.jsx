@@ -5,6 +5,7 @@ import { ClienteHeader } from "@/components/cliente/cliente-header";
 import { useTemaLocal } from "@/lib/use-tema-local";
 import { useIdiomaLocal } from "@/lib/use-idioma-local";
 import { TelaCarregandoSessao } from "@/lib/use-sessao-local";
+const perfisPermitidos = ["client"];
 function inscrever() {
     return () => { };
 }
@@ -24,7 +25,7 @@ export default function LayoutCliente({ children }) {
     if (!estaNoNavegador) {
         return <TelaCarregandoSessao />;
     }
-    return (<RotaProtegida perfisPermitidos={["client"]}>
+    return (<RotaProtegida perfisPermitidos={perfisPermitidos}>
       <div data-appono-sem-traducao className={`area-autenticada area-cliente min-h-full ${tema === "escuro" ? "tema-escuro" : ""}`}>
         <ClienteHeader />
         {children}

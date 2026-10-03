@@ -176,6 +176,7 @@ const textosInterfaceEn = {
   "cardápio": "Menu",
   "gestão de cardápio": "Menu management",
   "categorias": "Categories",
+  "seções": "Sections",
   "produtos": "Products",
   "disponibilidade": "Availability",
   "disponível": "Available",

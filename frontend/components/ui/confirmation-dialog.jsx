@@ -70,7 +70,7 @@ export function ConfirmationDialog({
 
     const confirmClass = variant === "danger"
         ? "botao-acao-critica"
-        : "bg-app-cafe-profundo text-app-creme-leve hover:bg-app-caramelo-torrado";
+        : "botao-confirmacao-marrom bg-app-cafe-profundo text-app-creme-leve hover:bg-app-caramelo-torrado";
 
     return (
         <div ref={dialogRef} tabIndex={-1} className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 px-5 backdrop-blur-[3px]" role="dialog" aria-modal="true" aria-labelledby={titleId} aria-describedby={description ? descriptionId : undefined}>

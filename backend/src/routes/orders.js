@@ -383,9 +383,7 @@ exports.ordersRouter.post("/", (0, auth_1.requireRole)("cliente"), async (req, r
                     ? "Não é possível criar pedido para uma reserva que já iniciou."
                     : error.message.includes("reserva confirmada")
                         ? "O pedido antecipado exige uma reserva confirmada."
-                        : error.message.includes("consumo mínimo")
-                            ? "O pedido precisa atingir o consumo mínimo da reserva."
-                            : error.message;
+                        : error.message;
         return res.status(409).json({ error: mensagem });
     }
     await Promise.all([

@@ -11,6 +11,7 @@ const mercado_pago_1 = require("../services/pagamentos/mercado-pago");
 const notificacoes_1 = require("../services/notificacoes");
 const { log } = require("../middleware/observability");
 const { calculateSplit, nextTransferStatus, strongestPaymentStatus } = require("../domain/payment-state");
+const { reservationCheckoutTotals } = require("../domain/reservation-price");
 const { lateApprovalDecision, paymentEligibility } = require("../domain/payment-eligibility");
 const paymentConfig = require("../services/pagamentos/config");
 const { sincronizarReservasNaoComparecidas } = require("../services/reservas/expiracao");
@@ -177,7 +178,7 @@ async function obterPedidoDoCliente(supabase, pedidoId, userId) {
     }
     const { data: pedido, error } = await supabase
         .from("pedidos")
-        .select("id_pedido, id_cliente, id_restaurante, id_reserva, status_pedido, valor_total, restaurantes(nome), reservas(data_reserva, horario_inicio, status_reserva)")
+        .select("id_pedido, id_cliente, id_restaurante, id_reserva, status_pedido, valor_total, restaurantes(nome), reservas(data_reserva, horario_inicio, status_reserva, valor_minimo_total)")
         .eq("id_pedido", pedidoId)
         .eq("id_cliente", cliente.id_cliente)
         .maybeSingle();
@@ -367,12 +368,16 @@ async function aplicarPagamentoMercadoPago(pagamentoMercadoPago, fallbackReferen
     const statusMapeado = (0, mercado_pago_1.mapearStatusMercadoPago)(pagamentoMercadoPago.status);
     const valorPago = Number(pagamentoMercadoPago.transaction_amount ?? 0);
     const pagamentoId = String(pagamentoMercadoPago.id);
+    const esperado = await obterPagamentoExistentePorReferencia(referencia);
+    if (esperado && Math.round(valorPago * 100) !== Math.round(Number(esperado.valor_pago) * 100)) {
+        throw new Error("O valor pago difere do total do checkout.");
+    }
 
     if (referenciaInfo.tipo === "pedido") {
         const pagamentoExistente = await obterPagamentoExistentePorReferencia(referencia);
         const { data: pedido, error: pedidoError } = await supabase_1.supabaseAdmin
             .from("pedidos")
-            .select("id_pedido, id_cliente, id_restaurante, id_reserva, valor_total, status_pedido, reservas(data_reserva, horario_inicio, status_reserva)")
+            .select("id_pedido, id_cliente, id_restaurante, id_reserva, valor_total, status_pedido, reservas(data_reserva, horario_inicio, status_reserva, valor_minimo_total)")
             .eq("id_pedido", referenciaInfo.id)
             .maybeSingle();
         if (pedidoError || !pedido) {
@@ -482,24 +487,39 @@ async function aplicarPagamentoMercadoPago(pagamentoMercadoPago, fallbackReferen
 
     const { data: reserva, error: reservaError } = await supabase_1.supabaseAdmin
         .from("reservas")
-        .select("id_reserva, valor_minimo_total, status_reserva")
+        .select("id_reserva, id_restaurante, valor_minimo_total, status_reserva, data_reserva, horario_inicio")
         .eq("id_reserva", referenciaInfo.id)
         .maybeSingle();
     if (reservaError || !reserva) {
         throw new Error(reservaError?.message ?? "Reserva não encontrada para conciliacao.");
     }
+    const pagamentoExistente = await obterPagamentoExistentePorReferencia(referencia);
+    const decisao = lateApprovalDecision({ gatewayStatus: statusMapeado.pagamento,
+        existingStatus: pagamentoExistente?.status_pagamento, reservation: reserva, payment: pagamentoMercadoPago });
+    if (decisao.shouldRefund) {
+        const conexao = await obterConexaoMercadoPagoRestaurante(reserva.id_restaurante);
+        const token = marketplaceRealAtivo() ? conexao?.accessToken : (0, mercado_pago_1.obterAccessTokenMercadoPago)();
+        await (0, mercado_pago_1.estornarPagamentoMercadoPago)(pagamentoId, token);
+    }
     const pagamento = await salvarPagamento({
         id_reserva: reserva.id_reserva,
         valor_pago: valorPago || Number(reserva.valor_minimo_total ?? 0),
-        status_pagamento: statusMapeado.pagamento,
+        status_pagamento: decisao.finalStatus,
+        tipo_fluxo_pagamento: pagamentoExistente?.tipo_fluxo_pagamento,
+        codigo_plano_comissao: pagamentoExistente?.codigo_plano_comissao,
+        percentual_comissao_app: pagamentoExistente?.percentual_comissao_app,
+        valor_comissao_app: pagamentoExistente?.valor_comissao_app,
+        valor_restaurante: pagamentoExistente?.valor_restaurante,
+        mercado_pago_restaurante_user_id: pagamentoExistente?.mercado_pago_restaurante_user_id,
+        status_repasse: pagamentoExistente?.status_repasse,
         referencia_externa: referencia,
         mercado_pago_payment_id: pagamentoId,
     });
-    const reservaAtualizada = await atualizarReservaPorPagamento(reserva.id_reserva, statusMapeado.reserva);
+    const reservaAtualizada = await atualizarReservaPorPagamento(reserva.id_reserva, obterStatusReservaPedidoPorPagamento(decisao.finalStatus));
     return {
         pagamento,
         reserva: reservaAtualizada ?? reserva,
-        status_pagamento: statusMapeado.pagamento,
+        status_pagamento: decisao.finalStatus,
     };
 }
 
@@ -571,7 +591,8 @@ exports.paymentsRouter.use(auth_1.requireAuth);
 exports.paymentsRouter.use((0, auth_1.requireRole)("cliente"));
 exports.paymentsRouter.use(limitarOperacoesPagamento);
 
-exports.paymentsRouter.post("/pedido/:id/preferência", async (req, res) => {
+exports.paymentsRouter.post(["/pedido/:id/preferência", "/reserva/:id/preferência"], async (req, res) => {
+    const somenteReserva = req.path.startsWith("/reserva/");
     const pedidoId = Number(req.params.id);
     if (!Number.isInteger(pedidoId) || pedidoId <= 0) {
         return res.status(400).json({ error: "Pedido inválido." });
@@ -579,7 +600,24 @@ exports.paymentsRouter.post("/pedido/:id/preferência", async (req, res) => {
     const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
     try {
         await sincronizarReservasNaoComparecidas();
-        const { cliente, pedido } = await obterPedidoDoCliente(supabase, pedidoId, res.locals.user.id);
+        const resultado = somenteReserva
+            ? await obterReservaDoCliente(supabase, pedidoId, res.locals.user.id)
+            : await obterPedidoDoCliente(supabase, pedidoId, res.locals.user.id);
+        const { cliente } = resultado;
+        const pedido = somenteReserva && resultado.reserva ? {
+            id_pedido: null, id_reserva: resultado.reserva.id_reserva,
+            id_restaurante: resultado.reserva.id_restaurante,
+            status_pedido: resultado.reserva.status_reserva,
+            valor_total: 0, restaurantes: resultado.reserva.restaurantes,
+            reservas: resultado.reserva,
+        } : resultado.pedido;
+        if (somenteReserva && pedido) {
+            const { data: ativo, error: ativoError } = await supabase.from("pedidos")
+                .select("id_pedido").eq("id_reserva", pedido.id_reserva)
+                .in("status_pedido", ["PENDENTE", "CONFIRMADO", "EM_PREPARO", "PRONTO"]).limit(1);
+            if (ativoError) throw new Error(ativoError.message);
+            if (ativo?.length) return res.status(409).json({ error: "Pague a reserva junto com o pedido antecipado.", id_pedido: ativo[0].id_pedido });
+        }
         if (!cliente || !pedido) {
             return res.status(404).json({ error: "Pedido não encontrado para este cliente." });
         }
@@ -588,10 +626,11 @@ exports.paymentsRouter.post("/pedido/:id/preferência", async (req, res) => {
         }
         const elegibilidade = paymentEligibility(pedido.reservas);
         if (!elegibilidade.allowed) {
-            await expirarPedidoPendente(pedido, elegibilidade.message);
+            if (!somenteReserva) await expirarPedidoPendente(pedido, elegibilidade.message);
             return res.status(409).json({ error: elegibilidade.message, code: elegibilidade.code });
         }
-        if (Number(pedido.valor_total ?? 0) <= 0) {
+        const totais = reservationCheckoutTotals({ reservation: pedido.reservas, orderTotal: pedido.valor_total });
+        if (totais.valor_total_checkout <= 0) {
             return res.status(400).json({ error: "Valor do pedido inválido." });
         }
         const conexaoMercadoPagoRestaurante = await obterConexaoMercadoPagoRestaurante(pedido.id_restaurante);
@@ -618,19 +657,23 @@ exports.paymentsRouter.post("/pedido/:id/preferência", async (req, res) => {
                 error: "Token Mercado Pago não configurado para o modo atual do backend.",
             });
         }
-        const resumoFinanceiro = await calcularResumoFinanceiro(pedido.valor_total, conexaoRestaurante, pedido.id_restaurante);
-        const referencia = `pedido:${pedido.id_pedido}`;
+        const resumoFinanceiro = await calcularResumoFinanceiro(totais.valor_total_checkout, conexaoRestaurante, pedido.id_restaurante);
+        const referencia = somenteReserva ? `reserva:${pedido.id_reserva}` : `pedido:${pedido.id_pedido}`;
+        const retornoQuery = somenteReserva ? `reserva=${pedido.id_reserva}` : `pedido=${pedido.id_pedido}`;
         const pagamentoExistente = await obterPagamentoExistentePorReferencia(referencia);
         const podeReutilizarCheckoutExistente = mercadoPagoProducaoPermitida();
         if (pagamentoExistente?.status_pagamento === "PENDENTE" &&
             pagamentoExistente.mercado_pago_preference_id &&
             pagamentoExistente.checkout_url &&
+            Number(pagamentoExistente.valor_pago) === totais.valor_total_checkout &&
             podeReutilizarCheckoutExistente) {
             return res.status(200).json({
-                pedido,
+                pedido: somenteReserva ? null : pedido,
+                reserva: somenteReserva ? resultado.reserva : pedido.reservas,
+                ...totais,
                 pagamento: pagamentoExistente,
                 checkout_url: pagamentoExistente.checkout_url,
-                return_url: `${obterFrontendOrigin()}/cliente/pagamentos/retorno?pedido=${pedido.id_pedido}`,
+                return_url: `${obterFrontendOrigin()}/cliente/pagamentos/retorno?${retornoQuery}`,
                 auto_return: null,
                 preference_id: pagamentoExistente.mercado_pago_preference_id,
                 financeiro: {
@@ -643,19 +686,22 @@ exports.paymentsRouter.post("/pedido/:id/preferência", async (req, res) => {
             });
         }
         const frontendOrigin = obterFrontendOrigin();
-        const backUrl = `${frontendOrigin}/cliente/pagamentos/retorno?pedido=${pedido.id_pedido}`;
+        const backUrl = `${frontendOrigin}/cliente/pagamentos/retorno?${retornoQuery}`;
         const body = {
             expires: true,
             expiration_date_to: elegibilidade.deadline.toISOString(),
             items: [
-                {
-                    id: String(pedido.id_pedido),
+                ...(totais.valor_itens > 0 ? [{
+                    id: `pedido:${pedido.id_pedido}`,
                     title: `Pedido Appono - ${pedido.restaurantes?.nome ?? "Restaurante"}`,
-                    description: `Pedido antecipado para reserva ${pedido.reservas?.data_reserva ?? ""} as ${String(pedido.reservas?.horario_inicio ?? "").slice(0, 5)}`,
-                    quantity: 1,
-                    currency_id: "BRL",
-                    unit_price: Number(pedido.valor_total),
-                },
+                    quantity: 1, currency_id: "BRL", unit_price: totais.valor_itens,
+                }] : []),
+                ...(totais.preco_reserva > 0 ? [{
+                    id: `reserva:${pedido.id_reserva}`,
+                    title: "Preço da reserva",
+                    description: "Valor fixo por reserva, independentemente do número de pessoas.",
+                    quantity: 1, currency_id: "BRL", unit_price: totais.preco_reserva,
+                }] : []),
             ],
             payer: {
                 name: cliente.nome,
@@ -709,7 +755,7 @@ exports.paymentsRouter.post("/pedido/:id/preferência", async (req, res) => {
         const pagamento = await salvarPagamento({
             id_pedido: pedido.id_pedido,
             id_reserva: pedido.id_reserva,
-            valor_pago: Number(pedido.valor_total),
+            valor_pago: totais.valor_total_checkout,
             status_pagamento: "PENDENTE",
             referencia_externa: referencia,
             mercado_pago_preference_id: preferência.id,
@@ -725,10 +771,12 @@ exports.paymentsRouter.post("/pedido/:id/preferência", async (req, res) => {
             valor_comissao_app: resumoFinanceiro.valor_comissao_app,
             tipo_evento: "PAGAMENTO_CRIADO",
             descricao: "Preferência de pagamento criada no Mercado Pago.",
-            valor: Number(pedido.valor_total),
+            valor: totais.valor_total_checkout,
         });
         return res.status(201).json({
-            pedido,
+            pedido: somenteReserva ? null : pedido,
+            reserva: somenteReserva ? resultado.reserva : pedido.reservas,
+            ...totais,
             pagamento,
             checkout_url: checkoutUrl,
             return_url: backUrl,
@@ -805,9 +853,9 @@ exports.paymentsRouter.get("/pedido/:id/status", async (req, res) => {
         let statusPagamento = "PENDENTE";
         if (pagamentoMercadoPago?.status) {
             const conciliacao = await aplicarPagamentoMercadoPago(pagamentoMercadoPago, referencia);
-            pagamento = conciliação?.pagamento ?? null;
-            statusPagamento = conciliação?.status_pagamento ?? "PENDENTE";
-            if (conciliação?.pedido) {
+            pagamento = conciliacao?.pagamento ?? null;
+            statusPagamento = conciliacao?.status_pagamento ?? "PENDENTE";
+            if (conciliacao?.pedido) {
                 pedido.status_pedido = conciliacao.pedido.status_pedido;
             }
         }
@@ -845,10 +893,20 @@ exports.paymentsRouter.get("/reserva/:id/status", async (req, res) => {
         if (!reserva) {
             return res.status(404).json({ error: "Reserva não encontrada para este cliente." });
         }
-        return res.json({
-            reserva,
-            pagamento: null,
-            status_pagamento: "NAO_APLICAVEL",
+        const referencia = `reserva:${reserva.id_reserva}`;
+        const paymentId = obterPaymentIdRetornoMercadoPago(req.query);
+        {
+            const conexao = await obterConexaoMercadoPagoRestaurante(reserva.id_restaurante);
+            const token = marketplaceRealAtivo() ? conexao?.accessToken : (0, mercado_pago_1.obterAccessTokenMercadoPago)();
+            const pagamentoGateway = paymentId
+                ? await (0, mercado_pago_1.consultarPagamentoMercadoPago)(paymentId, token)
+                : await (0, mercado_pago_1.consultarPagamentoPorReferenciaMercadoPago)(referencia, token);
+            if (pagamentoGateway?.external_reference === referencia) await aplicarPagamentoMercadoPago(pagamentoGateway, referencia);
+        }
+        const pagamento = await obterPagamentoExistentePorReferencia(referencia);
+        const { reserva: atualizada } = await obterReservaDoCliente(supabase, reservaId, res.locals.user.id);
+        return res.json({ reserva: atualizada, pagamento,
+            status_pagamento: pagamento?.status_pagamento ?? (Number(reserva.valor_minimo_total) === 0 ? "NAO_APLICAVEL" : "PENDENTE"),
         });
     }
     catch (error) {

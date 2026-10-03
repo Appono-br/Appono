@@ -47,27 +47,26 @@ async function cancelarReservaSemConfirmacao(reserva, agoraIso, statusPermitidos
     }
 
     const idsPedidos = (pedidos ?? []).map((pedido) => pedido.id_pedido);
-    let pagamentos = [];
-    if (idsPedidos.length) {
-        const { data, error } = await supabaseAdmin
-            .from("pagamentos")
-            .select("id_pagamento, id_pedido, id_reserva, status_pagamento, status_repasse, tipo_fluxo_pagamento, mercado_pago_payment_id, valor_pago, valor, valor_reembolsado")
-            .in("id_pedido", idsPedidos);
-        if (error) throw new Error(error.message);
-        pagamentos = data ?? [];
-    }
+    const { data: pagamentosReserva, error: pagamentosError } = await supabaseAdmin
+        .from("pagamentos")
+        .select("id_pagamento, id_pedido, id_reserva, status_pagamento, status_repasse, tipo_fluxo_pagamento, mercado_pago_payment_id, valor_pago, valor, valor_reembolsado")
+        .eq("id_reserva", reserva.id_reserva);
+    if (pagamentosError) throw new Error(pagamentosError.message);
+    const pagamentos = pagamentosReserva ?? [];
 
     const percentualComissaoAppono = apponoCommissionPercentage();
     const pagamentosAprovados = pagamentos.filter((pagamento) => pagamento.status_pagamento === "APROVADO");
     const valorPorPagamento = new Map();
     const politicaPorPagamento = new Map();
+    let precoReservaRestante = Number(reserva.valor_minimo_total ?? 0);
     for (const pagamento of pagamentosAprovados) {
         const valorBase = Number(pagamento.valor_pago ?? pagamento.valor ?? 0) - Number(pagamento.valor_reembolsado ?? 0);
         const politica = calculateAttendanceRefundPolicy({
             paidAmount: valorBase,
-            minimumTotal: reserva.valor_minimo_total,
+            minimumTotal: precoReservaRestante,
             commissionPercentage: percentualComissaoAppono,
         });
+        precoReservaRestante = Math.max(0, precoReservaRestante - Math.min(valorBase, precoReservaRestante));
         politicaPorPagamento.set(pagamento.id_pagamento, politica);
         if (politica.refund > 0) {
             valorPorPagamento.set(pagamento.id_pagamento, arredondarMoeda(politica.refund));
@@ -134,7 +133,7 @@ async function cancelarReservaSemConfirmacao(reserva, agoraIso, statusPermitidos
                 id_restaurante: reserva.id_restaurante,
                 valor_solicitado: valorReembolso,
                 motivo: "Prazo de confirmação de presença expirado sem resposta do cliente.",
-                resposta: "Reembolso parcial processado automaticamente: valor pago menos consumo mínimo da reserva e comissão Appono.",
+                resposta: "Reembolso parcial processado automaticamente: valor pago menos preço da reserva e comissão Appono.",
                 status_reembolso: "CONCLUIDO",
                 modo_execucao: paymentConfig.productionAllowed() ? "MERCADO_PAGO_PRODUCAO" : "MERCADO_PAGO_TESTE",
                 analisado_em: agoraIso,
@@ -146,7 +145,7 @@ async function cancelarReservaSemConfirmacao(reserva, agoraIso, statusPermitidos
                 id_pedido: pagamento.id_pedido,
                 id_reserva: reserva.id_reserva,
                 tipo_evento: "REEMBOLSO_PARCIAL_PRESENCA_EXPIRADA",
-                descricao: `Prazo de presenca expirado. Reembolso parcial calculado por excedente: pago menos consumo minimo e comissao Appono de ${percentualComissaoAppono}%.`,
+                descricao: `Prazo de presenca expirado. Reembolso parcial calculado por excedente: pago menos preço da reserva e comissao Appono de ${percentualComissaoAppono}%.`,
                 valor: valorReembolso,
                 origem: "SISTEMA",
             });

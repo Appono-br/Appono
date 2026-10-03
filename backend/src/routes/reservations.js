@@ -105,9 +105,6 @@ function mapearErroReservaPedido(mensagem) {
     if (mensagem.includes("reserva iniciada")) {
         return "Não é possível criar pedido para uma reserva que já iniciou.";
     }
-    if (mensagem.includes("consumo mínimo")) {
-        return "O pedido precisa atingir o consumo mínimo da reserva.";
-    }
     return mensagem;
 }
 
@@ -309,7 +306,7 @@ exports.reservationsRouter.post("/", (0, auth_1.requireRole)("cliente"), async (
     const clienteAtualizacao = supabase_1.supabaseAdmin ?? supabase;
     const { data: reservaConfirmada, error: atualizacaoError } = await clienteAtualizacao
         .from("reservas")
-        .update({ status_reserva: "CONFIRMADA" })
+        .update({ status_reserva: Number(data.valor_minimo_total ?? 0) > 0 ? "PENDENTE" : "CONFIRMADA" })
         .eq("id_reserva", data.id_reserva)
         .select("*")
         .single();
@@ -320,10 +317,10 @@ exports.reservationsRouter.post("/", (0, auth_1.requireRole)("cliente"), async (
     }
     await Promise.all([
         (0, notificacoes_1.notificarCliente)(reservaConfirmada.id_cliente, {
-            titulo: "Reserva confirmada",
-            mensagem: "Sua reserva foi confirmada. Agora você já pode acompanhar ou antecipar seu pedido.",
+            titulo: reservaConfirmada.status_reserva === "PENDENTE" ? "Reserva aguardando pagamento" : "Reserva confirmada",
+            mensagem: reservaConfirmada.status_reserva === "PENDENTE" ? "Pague o preço da reserva para confirmar sua mesa." : "Sua reserva foi confirmada. Agora você já pode acompanhar ou antecipar seu pedido.",
             tipo_evento: "RESERVA_CONFIRMADA",
-            link_destino: "/cliente/reservas",
+            link_destino: reservaConfirmada.status_reserva === "PENDENTE" ? `/cliente/pagamentos/reserva/${reservaConfirmada.id_reserva}` : "/cliente/reservas",
             dados: { id_reserva: reservaConfirmada.id_reserva },
         }),
         (0, notificacoes_1.notificarRestaurante)(reservaConfirmada.id_restaurante, {
@@ -539,26 +536,25 @@ exports.reservationsRouter.patch("/:id/presenca", (0, auth_1.requireRole)("clien
         }
 
         const idsPedidos = (pedidos ?? []).map((pedido) => pedido.id_pedido);
-        let pagamentos = [];
-        if (idsPedidos.length) {
-            const { data, error } = await supabase_1.supabaseAdmin
-                .from("pagamentos")
-                .select("id_pagamento, id_pedido, id_reserva, status_pagamento, status_repasse, tipo_fluxo_pagamento, mercado_pago_payment_id, valor_pago, valor, valor_reembolsado")
-                .in("id_pedido", idsPedidos);
-            if (error) throw new Error(error.message);
-            pagamentos = data ?? [];
-        }
+        const { data: pagamentosReserva, error: pagamentosError } = await supabase_1.supabaseAdmin
+            .from("pagamentos")
+            .select("id_pagamento, id_pedido, id_reserva, status_pagamento, status_repasse, tipo_fluxo_pagamento, mercado_pago_payment_id, valor_pago, valor, valor_reembolsado")
+            .eq("id_reserva", reservationId);
+        if (pagamentosError) throw new Error(pagamentosError.message);
+        const pagamentos = pagamentosReserva ?? [];
         const percentualComissaoAppono = apponoCommissionPercentage();
         const pagamentosAprovados = pagamentos.filter((pagamento) => pagamento.status_pagamento === "APROVADO");
         const valorPorPagamento = new Map();
         const politicaPorPagamento = new Map();
+        let precoReservaRestante = Number(reserva.valor_minimo_total ?? 0);
         for (const pagamento of pagamentosAprovados) {
             const valorBase = Number(pagamento.valor_pago ?? pagamento.valor ?? 0) - Number(pagamento.valor_reembolsado ?? 0);
             const politica = calculateAttendanceRefundPolicy({
                 paidAmount: valorBase,
-                minimumTotal: reserva.valor_minimo_total,
+                minimumTotal: precoReservaRestante,
                 commissionPercentage: percentualComissaoAppono,
             });
+            precoReservaRestante = Math.max(0, precoReservaRestante - Math.min(valorBase, precoReservaRestante));
             politicaPorPagamento.set(pagamento.id_pagamento, politica);
             const valorReembolso = politica.refund;
             if (valorReembolso > 0) {
@@ -626,7 +622,7 @@ exports.reservationsRouter.patch("/:id/presenca", (0, auth_1.requireRole)("clien
                     id_restaurante: reserva.id_restaurante,
                     valor_solicitado: valorReembolso,
                     motivo: "Cliente informou ausencia antes do prazo de confirmação de presença.",
-                    resposta: "Reembolso parcial processado automaticamente: valor pago menos consumo mínimo da reserva e comissão Appono.",
+                    resposta: "Reembolso parcial processado automaticamente: valor pago menos preço da reserva e comissão Appono.",
                     status_reembolso: "CONCLUIDO",
                     modo_execucao: paymentConfig.productionAllowed() ? "MERCADO_PAGO_PRODUCAO" : "MERCADO_PAGO_TESTE",
                     analisado_em: agora,
@@ -638,7 +634,7 @@ exports.reservationsRouter.patch("/:id/presenca", (0, auth_1.requireRole)("clien
                     id_pedido: pagamento.id_pedido,
                     id_reserva: reservationId,
                     tipo_evento: "REEMBOLSO_PARCIAL_AUSENCIA",
-                    descricao: `Cliente avisou ausencia. Reembolso parcial calculado por excedente: pago menos consumo minimo e comissao Appono de ${percentualComissaoAppono}%.`,
+                    descricao: `Cliente avisou ausencia. Reembolso parcial calculado por excedente: pago menos preço da reserva e comissao Appono de ${percentualComissaoAppono}%.`,
                     valor: valorReembolso,
                     origem: "CLIENTE",
                 });
@@ -711,7 +707,7 @@ exports.reservationsRouter.patch("/:id/presenca", (0, auth_1.requireRole)("clien
             }),
             (0, notificacoes_1.notificarAdministradores)({
                 titulo: "Ausencia informada",
-                mensagem: `Reserva #${reservationId} cancelada pelo cliente com reembolso do excedente apos consumo minimo e comissao Appono.`,
+                mensagem: `Reserva #${reservationId} cancelada pelo cliente com reembolso do excedente apos preço da reserva e comissao Appono.`,
                 tipo_evento: "REEMBOLSO_PARCIAL_AUSENCIA",
                 link_destino: "/admin/financeiro",
                 dados: { id_reserva: reservationId, valor_reembolso: arredondarMoeda(totalReembolsado) },
@@ -932,10 +928,9 @@ exports.reservationsRouter.patch("/:id/cancelar-restaurante", (0, auth_1.require
         if (ordersError) throw new Error(ordersError.message);
         const elegibilidade = restaurantCancellationEligibility(reserva, (pedidos ?? []).map((pedido) => pedido.status_pedido), new Date());
         if (!elegibilidade.allowed) return res.status(409).json({ error: elegibilidade.reason === "PEDIDO_EM_ANDAMENTO" ? "A reserva não pode ser desmarcada depois que o preparo ou atendimento comecou." : elegibilidade.reason === "RESERVA_INICIADA" ? "A reserva não pode ser desmarcada depois do horário de início." : "Esta reserva não pode mais ser desmarcada." });
-        const idsPedidos = (pedidos ?? []).map((pedido) => pedido.id_pedido);
         let pagamentos = [];
-        if (idsPedidos.length) {
-            const result = await supabase_1.supabaseAdmin.from("pagamentos").select("id_pagamento, id_pedido, status_pagamento, mercado_pago_payment_id, valor_pago").in("id_pedido", idsPedidos);
+        {
+            const result = await supabase_1.supabaseAdmin.from("pagamentos").select("id_pagamento, id_pedido, status_pagamento, mercado_pago_payment_id, valor_pago").eq("id_reserva", reservationId);
             if (result.error) throw new Error(result.error.message);
             pagamentos = result.data ?? [];
         }

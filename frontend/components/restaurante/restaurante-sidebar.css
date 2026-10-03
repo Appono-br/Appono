@@ -43,7 +43,9 @@
 }
 .restaurant-sidebar-nav a:hover { background: var(--ui-hover, #f5efe7); transform: translateX(3px); font-weight: 700; color: var(--ui-texto-inverso, #241711); }
 .restaurant-sidebar-nav a[aria-current="page"] { background: #eadcc8; color: #241713; font-weight: 700; }
-.restaurant-sidebar-notifications { margin-top: auto; padding: 24px 12px 8px; display: flex; align-items: center; gap: 12px; font-size: 13px; }
+.restaurant-sidebar-notifications { margin-top: auto; padding: 12px; border-radius: 10px; display: flex; align-items: center; gap: 12px; font-size: 13px; transition: background-color .2s, transform .2s; }
+.restaurant-sidebar-notifications:hover { background: var(--ui-hover, #f5efe7); transform: translateX(3px); font-weight: 700; color: var(--ui-texto-inverso, #241711); }
+.restaurant-sidebar-notifications:hover a { color: inherit; }
 .restaurant-sidebar-notifications a[aria-current="page"] { font-weight: 700; }
 .restaurant-sidebar-logout {
   display: flex;
@@ -59,7 +61,7 @@
   text-align: left;
   cursor: pointer;
 }
-.restaurant-sidebar-logout:hover:not(:disabled) { background: var(--ui-hover, #f5efe7); }
+.restaurant-sidebar-logout:hover:not(:disabled) { background: var(--ui-hover, #f5efe7); color: var(--ui-texto-inverso, #241713); }
 .restaurant-sidebar-logout:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
 .restaurant-sidebar-logout:disabled { cursor: wait; opacity: .6; }
 .restaurant-menu-trigger { display: none; }
@@ -76,6 +78,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .restaurant-sidebar-nav a { transition: none; }
-  .restaurant-sidebar-nav a:hover { transform: none; }
+  .restaurant-sidebar-nav a,
+  .restaurant-sidebar-notifications { transition: none; }
+  .restaurant-sidebar-nav a:hover,
+  .restaurant-sidebar-notifications:hover { transform: none; }
 }

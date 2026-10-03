@@ -1,0 +1,173 @@
+"use client";
+
+import { useInterface } from "@/lib/use-interface";
+import Image from "next/image";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { apiRequest } from "@/lib/api";
+import { BotaoVoltar } from "@/components/botao-voltar";
+
+function formatarMoeda(valor, localeUI = "pt-BR") {
+    return new Intl.NumberFormat(localeUI, {
+        style: "currency",
+        currency: "BRL",
+    }).format(Number(valor ?? 0));
+}
+
+function formatarData(data, localeUI = "pt-BR") {
+    if (!data) {
+        return "Não informado";
+    }
+    return new Date(`${data}T12:00:00`).toLocaleDateString(localeUI, {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+    });
+}
+
+function Icon({ type, className = "h-5 w-5" }) {
+    const paths = {
+        check: "m5 12 4 4L19 6",
+        lock: "M7 11V8a5 5 0 0 1 10 0v3M6 11h12v10H6V11z M12 15v2",
+        shield: "M12 21s7-3.2 7-9.8V5l-7-3-7 3v6.2C5 17.8 12 21 12 21z",
+    };
+
+    return (
+        <svg aria-hidden="true" viewBox="0 0 24 24" className={className}>
+            <path d={paths[type]} fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" />
+        </svg>
+    );
+}
+
+export default function PagamentoCheckout({ params, tipo = "pedido" }) {
+    const { ui , localeUI } = useInterface();
+    const [pedidoId, setPedidoId] = useState(null);
+    const [preferência, setPreferência] = useState(null);
+    const [mensagem, setMensagem] = useState("Preparando checkout seguro...");
+
+    useEffect(() => {
+        params.then(({ id }) => setPedidoId(Number(id)));
+    }, [params]);
+
+    useEffect(() => {
+        if (!pedidoId) {
+            return;
+        }
+        apiRequest(`/pagamentos/${tipo}/${pedidoId}/preferência`, {
+            method: "POST",
+        })
+            .then((resposta) => {
+                setPreferência(resposta);
+                setMensagem("");
+            })
+            .catch((error) => {
+                setMensagem(error instanceof Error ? error.message : "Não foi possível preparar o pagamento.");
+            });
+    }, [pedidoId, tipo]);
+
+    const pedido = preferência?.pedido ?? (preferência?.reserva ? {
+        restaurantes: preferência.reserva.restaurantes, reservas: preferência.reserva,
+    } : null);
+    const totalCheckout = preferência?.valor_total_checkout ?? pedido?.valor_total;
+    const precoReserva = preferência?.preco_reserva ?? 0;
+    const valorItens = preferência?.valor_itens ?? pedido?.valor_total ?? 0;
+    const preferenceId = preferência?.preference_id;
+    const checkoutUrl = preferência?.checkout_url;
+    const hrefDetalhesPedido = pedidoId ? `/cliente/pedidos/${pedidoId}` : "/cliente/detalhes-pedido";
+
+    return (
+        <main className="flex min-h-screen flex-col bg-white px-4 py-8 text-app-cafe-profundo sm:px-5">
+            <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col justify-center">
+                <BotaoVoltar href={hrefDetalhesPedido} className="text-sm font-bold text-app-caramelo-torrado transition hover:text-app-cafe-profundo">{ui("Voltar aos detalhes do pedido")}</BotaoVoltar>
+
+                <section className="mt-6 grid overflow-hidden rounded-[18px] bg-white shadow-sm ring-1 ring-app-baunilha-dourada/70 lg:grid-cols-[minmax(0,1fr)_minmax(360px,430px)]">
+                    <div className="min-w-0 p-5 sm:p-10">
+                        <Image src="/brand/appono-mark.svg" alt={ui("Appono")} width={88} height={88} className="h-16 w-16" priority />
+                        <p className="mt-8 text-[10px] font-bold uppercase tracking-[0.22em] text-app-caramelo-torrado">{ui("Checkout Pro")}</p>
+                        <h1 className="mt-2 text-3xl font-bold leading-tight text-app-cafe-profundo sm:text-4xl">{ui(tipo === "reserva" ? "Finalize o pagamento da reserva" : "Finalize o pagamento do pedido e da reserva")}</h1>
+                        <p className="mt-4 max-w-xl text-sm leading-6 text-app-mocha">{ui("O pagamento é processado pelo Mercado Pago. O valor do pedido e o preço da reserva são somados em um único pagamento. A reserva é confirmada após a aprovação.")}</p>
+
+                        <div className="mt-6 grid gap-2 text-sm">
+                            {tipo === "pedido" ? <p className="flex justify-between gap-4"><span>{ui("Valor do pedido")}</span><strong>{formatarMoeda(valorItens, localeUI)}</strong></p> : null}
+                            <p className="flex justify-between gap-4"><span>{ui("Preço da reserva")}</span><strong>{formatarMoeda(precoReserva, localeUI)}</strong></p>
+                            <p className="text-app-mocha">{ui("Valor fixo por reserva, independentemente do número de pessoas.")}</p>
+                        </div>
+
+                        <div className="mt-8 grid gap-3 rounded-[12px] bg-white p-5 ring-1 ring-app-baunilha-dourada/60 sm:grid-cols-2">
+                            <div>
+                                <p className="text-[10px] font-bold uppercase text-app-cinza">{ui(tipo === "reserva" ? "Reserva" : "Pedido")}</p>
+                                <p className="mt-1 font-semibold">#{ui(pedido?.id_pedido ?? pedidoId ?? "--")}</p>
+                            </div>
+                            <div>
+                                <p className="text-[10px] font-bold uppercase text-app-cinza">{ui("Restaurante")}</p>
+                                <p className="mt-1 font-semibold">{pedido?.restaurantes?.nome ?? ui("Restaurante")}</p>
+                            </div>
+                            <div>
+                                <p className="text-[10px] font-bold uppercase text-app-cinza">{ui("Reserva")}</p>
+                                <p className="mt-1 font-semibold">
+                                    {formatarData(pedido?.reservas?.data_reserva, localeUI)}{ui(" às ")}{ui(pedido?.reservas?.horario_inicio?.slice(0, 5) ?? "--")}
+                                </p>
+                            </div>
+                            <div>
+                                <p className="text-[10px] font-bold uppercase text-app-cinza">{ui("Total")}</p>
+                                <p className="mt-1 font-semibold">{formatarMoeda(totalCheckout, localeUI)}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <aside className="min-w-0 bg-app-cafe-profundo p-5 text-app-creme-leve sm:p-8 lg:flex lg:flex-col lg:justify-center">
+                        <div className="rounded-[18px] border border-app-baunilha-dourada/25 bg-white/8 p-5 shadow-sm">
+                            <div className="flex items-start gap-4">
+                                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[14px] bg-app-baunilha-dourada text-app-cafe-profundo">
+                                    <Icon type="shield" className="h-6 w-6" />
+                                </span>
+                                <div>
+                                    <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-app-baunilha-dourada">{ui("Mercado Pago")}</p>
+                                    <h2 className="mt-1 text-2xl font-semibold">{ui("Pagamento seguro")}</h2>
+                                </div>
+                            </div>
+
+                            <p className="mt-5 text-sm leading-6 text-app-creme-suave">{ui("Clique no botão oficial abaixo para abrir o Checkout Pro com cartão, Pix, boleto e saldo Mercado Pago, conforme disponibilidade da sua conta.")}</p>
+
+                            <div className="mt-6 rounded-[14px] bg-app-cacau-intenso/45 p-4 ring-1 ring-app-baunilha-dourada/20">
+                                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-baunilha-dourada">{ui("Total a pagar")}</p>
+                                <strong className="mt-2 block text-3xl text-app-creme-leve">
+                                    {formatarMoeda(totalCheckout, localeUI)}
+                                </strong>
+                            </div>
+
+                            <div className="mt-6 rounded-[12px] bg-white p-3 text-app-cafe-profundo ring-1 ring-app-baunilha-dourada/35">
+                                {checkoutUrl ? (
+                                    <a
+                                        href={checkoutUrl}
+                                        className="flex h-12 w-full items-center justify-center rounded-[10px] bg-[#ffe600] px-4 text-sm font-black uppercase tracking-[0.08em] text-[#03264c] shadow-sm transition hover:brightness-95"
+                                    >{ui("Pagar com Mercado Pago")}</a>
+                                ) : (
+                                    <p className="text-center text-sm font-semibold text-app-caramelo-torrado">
+                                        {ui(mensagem || "Carregando botão de pagamento...")}
+                                    </p>
+                                )}
+                                {preferenceId ? (
+                                    <p className="mt-3 text-center text-[11px] font-semibold text-app-mocha">{ui("Checkout Pro seguro, processado pelo Mercado Pago.")}</p>
+                                ) : null}
+                            </div>
+
+                            <div className="mt-5 grid gap-2 text-xs text-app-creme-suave">
+                                <p className="flex items-center gap-2">
+                                    <Icon type="lock" className="h-4 w-4 text-app-baunilha-dourada" />{ui("Pagamento processado fora da Appono, direto pelo Mercado Pago.")}</p>
+                                <p className="flex items-center gap-2">
+                                    <Icon type="check" className="h-4 w-4 text-app-baunilha-dourada" />{ui("O pedido será confirmado automaticamente após aprovação.")}</p>
+                            </div>
+                        </div>
+
+                        {mensagem && preferenceId ? (
+                            <p className="mt-4 rounded-[8px] bg-white/10 p-3 text-sm text-app-creme-suave">
+                                {ui(mensagem)}
+                            </p>
+                        ) : null}
+                    </aside>
+                </section>
+            </div>
+        </main>
+    );
+}

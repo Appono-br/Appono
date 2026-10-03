@@ -177,7 +177,7 @@ exports.menuRouter.get("/", async (_req, res) => {
         }
         const { data, error } = await supabase
             .from("cardapios")
-            .select("id_cardapio, nome, descricao, ativo, categorias(id_categoria, nome, descricao, ativo, arquivado, ordem_exibicao, produtos(id_produto, nome, descricao, preco, tempo_preparo_minutos, imagem_url, disponivel, destaque, arquivado, ordem_exibicao))")
+            .select("id_cardapio, nome, descricao, ativo, seções(id_categoria, nome, descricao, ativo, arquivado, ordem_exibicao, produtos(id_produto, nome, descricao, preco, tempo_preparo_minutos, imagem_url, disponivel, destaque, arquivado, ordem_exibicao))")
             .eq("id_restaurante", restaurante.id_restaurante)
             .order("nome", { ascending: true });
         if (error) {
@@ -214,12 +214,12 @@ exports.menuRouter.post("/categorias", async (req, res) => {
     const descricao = textoObrigatorio(req.body?.description);
     const ordemExibicao = normalizarInteiro(req.body?.displayOrder);
     if (!nome) {
-        return res.status(400).json({ error: "Informe o nome da categoria." });
+        return res.status(400).json({ error: "Informe o nome da seção." });
     }
     try {
         const restaurante = await obterRestauranteLogado(supabase, res.locals.user.id);
         if (!restaurante) {
-            return res.status(403).json({ error: "Apenas restaurantes podem criar categorias." });
+            return res.status(403).json({ error: "Apenas restaurantes podem criar seções." });
         }
         const cardapio = await obterOuCriarCardapio(supabase, restaurante.id_restaurante);
         const { data: categoria, error } = await supabase
@@ -237,11 +237,11 @@ exports.menuRouter.post("/categorias", async (req, res) => {
         if (error) {
             return res.status(400).json({ error: error.message });
         }
-        return res.status(201).json({ message: "Categoria criada.", categoria });
+        return res.status(201).json({ message: "Seção criada.", categoria });
     }
     catch (error) {
         return res.status(400).json({
-            error: error instanceof Error ? error.message : "Não foi possível criar a categoria.",
+            error: error instanceof Error ? error.message : "Não foi possível criar a seção.",
         });
     }
 });
@@ -253,19 +253,19 @@ exports.menuRouter.put("/categorias/:id", async (req, res) => {
     const descricao = textoObrigatorio(req.body?.description);
     const ordemExibicao = normalizarInteiro(req.body?.displayOrder);
     if (!categoriaId) {
-        return res.status(400).json({ error: "Categoria invalida." });
+        return res.status(400).json({ error: "Seção invalida." });
     }
     if (!nome) {
-        return res.status(400).json({ error: "Informe o nome da categoria." });
+        return res.status(400).json({ error: "Informe o nome da seção." });
     }
     try {
         const restaurante = await obterRestauranteLogado(supabase, res.locals.user.id);
         if (!restaurante) {
-            return res.status(403).json({ error: "Apenas restaurantes podem editar categorias." });
+            return res.status(403).json({ error: "Apenas restaurantes podem editar seções." });
         }
         const categoriaExistente = await obterCategoriaDoRestaurante(supabase, categoriaId, restaurante.id_restaurante);
         if (!categoriaExistente) {
-            return res.status(404).json({ error: "Categoria não encontrada." });
+            return res.status(404).json({ error: "Seção não encontrada." });
         }
         const { data: categoria, error } = await supabase
             .from("categorias")
@@ -282,11 +282,11 @@ exports.menuRouter.put("/categorias/:id", async (req, res) => {
         if (error) {
             return res.status(400).json({ error: error.message });
         }
-        return res.json({ message: "Categoria atualizada.", categoria });
+        return res.json({ message: "Seção atualizada.", categoria });
     }
     catch (error) {
         return res.status(400).json({
-            error: error instanceof Error ? error.message : "Não foi possível atualizar a categoria.",
+            error: error instanceof Error ? error.message : "Não foi possível atualizar a seção.",
         });
     }
 });
@@ -295,16 +295,16 @@ exports.menuRouter.delete("/categorias/:id", async (req, res) => {
     const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
     const categoriaId = normalizarProdutoId(req.params.id);
     if (!categoriaId) {
-        return res.status(400).json({ error: "Categoria invalida." });
+        return res.status(400).json({ error: "Seção invalida." });
     }
     try {
         const restaurante = await obterRestauranteLogado(supabase, res.locals.user.id);
         if (!restaurante) {
-            return res.status(403).json({ error: "Apenas restaurantes podem arquivar categorias." });
+            return res.status(403).json({ error: "Apenas restaurantes podem arquivar seções." });
         }
         const categoriaExistente = await obterCategoriaDoRestaurante(supabase, categoriaId, restaurante.id_restaurante);
         if (!categoriaExistente) {
-            return res.status(404).json({ error: "Categoria não encontrada." });
+            return res.status(404).json({ error: "Seção não encontrada." });
         }
         const { error: produtosError } = await supabase
             .from("produtos")
@@ -325,11 +325,11 @@ exports.menuRouter.delete("/categorias/:id", async (req, res) => {
         if (error) {
             return res.status(400).json({ error: error.message });
         }
-        return res.json({ message: "Categoria arquivada junto com seus itens." });
+        return res.json({ message: "Seção arquivada junto com seus itens." });
     }
     catch (error) {
         return res.status(400).json({
-            error: error instanceof Error ? error.message : "Não foi possível arquivar a categoria.",
+            error: error instanceof Error ? error.message : "Não foi possível arquivar a seção.",
         });
     }
 });
@@ -347,7 +347,7 @@ exports.menuRouter.get("/produtos/:id", async (req, res) => {
         }
         const { data: produto, error } = await supabase
             .from("produtos")
-            .select("id_produto, id_categoria, nome, descricao, preco, tempo_preparo_minutos, imagem_url, disponivel, destaque, arquivado, ordem_exibicao, categorias(nome)")
+            .select("id_produto, id_categoria, nome, descricao, preco, tempo_preparo_minutos, imagem_url, disponivel, destaque, arquivado, ordem_exibicao, seções(nome)")
             .eq("id_produto", produtoId)
             .eq("id_restaurante", restaurante.id_restaurante)
             .eq("arquivado", false)
@@ -383,7 +383,7 @@ exports.menuRouter.post("/produtos", async (req, res) => {
     const ordemExibicao = normalizarInteiro(body.displayOrder);
     if (!nome || !categoriaNome || !Number.isFinite(preco) || preco <= 0) {
         return res.status(400).json({
-            error: "Informe nome, categoria e preço válido para publicar o item.",
+            error: "Informe nome, seção e preço válido para publicar o item.",
         });
     }
     try {
@@ -442,7 +442,7 @@ exports.menuRouter.put("/produtos/:id", async (req, res) => {
     const ordemExibicao = normalizarInteiro(body.displayOrder);
     if (!nome || !categoriaNome || !Number.isFinite(preco) || preco <= 0) {
         return res.status(400).json({
-            error: "Informe nome, categoria e preço válido para atualizar o item.",
+            error: "Informe nome, seção e preço válido para atualizar o item.",
         });
     }
     try {

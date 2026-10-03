@@ -83,7 +83,7 @@ function validarFormularioCardapio(form) {
         return "Informe o nome do item.";
     }
     if (!form.category.trim()) {
-        return "Selecione a categoria do item.";
+        return "Selecione a seção do item.";
     }
     if (!Number.isFinite(preco) || preco <= 0) {
         return "Informe um preço válido maior que zero.";
@@ -285,7 +285,7 @@ function RestaurantMenuItemEditorContent() {
 
                     <div className="grid gap-5 sm:grid-cols-3">
                         <label className="grid gap-2">
-                            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-cinza">{ui("Categoria")}</span>
+                            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-cinza">{ui("Seção")}</span>
                             <span className="relative">
                                 <select value={form.category} onChange={(event) => updateField("category", event.target.value)} required className="h-12 w-full appearance-none rounded-[8px] border border-app-baunilha-dourada bg-app-creme-suave px-3 pr-10 text-base text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado">
                                     <option value="">{ui("Selecione")}</option>
@@ -295,7 +295,6 @@ function RestaurantMenuItemEditorContent() {
                                         </option>
                                     ))}
                                 </select>
-                                <Icon type="chevron-down" className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-app-cinza" />
                             </span>
                         </label>
                         <Field label={ui("Preço (R$)")} value={form.price} onChange={(value) => updateField("price", normalizarPrecoDigitado(value))} inputMode="decimal" placeholder={ui("Ex: 49,90")} required />

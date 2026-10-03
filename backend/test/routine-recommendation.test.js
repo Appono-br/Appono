@@ -39,7 +39,7 @@ function restaurante(overrides = {}) {
         latitude: overrides.latitude ?? -23.5617,
         longitude: overrides.longitude ?? -46.6559,
         logo_url: null,
-        valor_minimo_reserva_por_pessoa: overrides.valor_minimo_reserva_por_pessoa ?? 15,
+        valor_minimo_reserva_por_pessoa: overrides.valor_minimo_reserva_por_pessoa ?? 0,
         avaliacao_media: overrides.avaliacao_media ?? 4.6,
         favorito_cliente: overrides.favorito_cliente ?? false,
         score_operacional: overrides.score_operacional ?? 100,
@@ -418,4 +418,17 @@ test("gera refeicao sem sugestao quando todas as opcoes violam restricoes", () =
 
     assert.equal(planejamento.refeicoes[0].id_restaurante, undefined);
     assert.equal(planejamento.refeicoes[0].metadados.sem_sugestao, true);
+});
+
+
+test("routine allows cheaper dishes and adds the fixed reservation price to the budget", () => {
+    const local = restaurante({ valor_minimo_reserva_por_pessoa: 25,
+        produtos: [{ ...restaurante().produtos[0], preco: 5 }] });
+    const accepted = gerarPlanejamentoRotina({ perfil: { ...perfilBase, dias_semana: ["monday"], orcamento_diario: 30 },
+        restaurantes: [local], semanaInicio: "2026-09-14", agora: new Date("2026-09-12T12:00:00-03:00") });
+    assert.equal(accepted.refeicoes[0].id_produto, 10);
+    assert.equal(accepted.refeicoes[0].preco_estimado, 30);
+    const rejected = gerarPlanejamentoRotina({ perfil: { ...perfilBase, dias_semana: ["monday"], orcamento_diario: 29 },
+        restaurantes: [local], semanaInicio: "2026-09-14", agora: new Date("2026-09-12T12:00:00-03:00") });
+    assert.ok(!rejected.refeicoes[0].id_restaurante);
 });

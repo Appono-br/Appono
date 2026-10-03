@@ -560,7 +560,6 @@ function mapearErroConversao(mensagem) {
     if (mensagem.includes("mesa")) return "Não há mesa disponível para o horário sugerido.";
     if (mensagem.includes("funcionamento")) return "O horário sugerido está fora do funcionamento do restaurante.";
     if (mensagem.includes("anteced")) return "O horário sugerido não respeita a antecedência mínima do restaurante.";
-    if (mensagem.includes("consumo minimo") || mensagem.includes("consumo mínimo")) return "O pedido não atingiu o consumo mínimo da reserva.";
     if (mensagem.includes("indispon")) return "Um item sugerido ficou indisponível no cardápio.";
     return mensagem;
 }
@@ -1200,7 +1199,7 @@ rotinaRouter.post("/refeicoes/:id/converter-reserva", async (req, res) => {
         await Promise.allSettled([
             notificarCliente(res.locals.profileId, {
                 titulo: "Reserva criada pela rotina",
-                mensagem: "Sua sugestão da rotina virou uma reserva confirmada.",
+                mensagem: reservaConfirmada.status_reserva === "PENDENTE" ? "Sua reserva foi criada. Pague o preço da reserva para confirmar." : "Sua sugestão da rotina virou uma reserva confirmada.",
                 tipo_evento: "RESERVA_CONFIRMADA",
                 link_destino: "/cliente/reservas",
                 dados: { id_reserva: reservaConfirmada.id_reserva, id_refeicao_planejada: idRefeicao },
@@ -1213,7 +1212,7 @@ rotinaRouter.post("/refeicoes/:id/converter-reserva", async (req, res) => {
                 dados: { id_reserva: reservaConfirmada.id_reserva },
             }),
         ]);
-        return res.status(201).json({ refeicao: refeicaoAtualizada, reserva: reservaConfirmada });
+        return res.status(201).json({ refeicao: refeicaoAtualizada, reserva: reservaConfirmada, checkout_href: reservaConfirmada.status_reserva === "PENDENTE" ? `/cliente/pagamentos/reserva/${reservaConfirmada.id_reserva}` : null });
     } catch (error) {
         return res.status(error.status ?? 400).json({ error: error instanceof Error ? error.message : "Não foi possível converter em reserva." });
     }

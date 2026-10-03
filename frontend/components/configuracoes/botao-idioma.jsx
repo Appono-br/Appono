@@ -35,6 +35,7 @@ export function BotaoIdioma({ embutido = false }) {
           {emIngles ? t("settings.switchToPortuguese") : t("settings.switchToEnglish")}
         </button>
       </div>
+      <hr className="mt-5 border-0 border-t border-app-baunilha-dourada/60" />
       <SeletorTema />
     </section>
   );

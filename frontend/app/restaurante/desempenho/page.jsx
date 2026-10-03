@@ -81,9 +81,8 @@ export default function RestaurantPerformancePage() {
 
 
       <section className="mx-auto w-full max-w-7xl flex-1 px-5 py-10 sm:py-14">
-        <div className="border-t border-app-baunilha-dourada/60 pt-10">
-          <p className="text-[10px] font-bold uppercase text-app-caramelo-torrado">{ui("Avaliações")}</p>
-          <h1 className="mt-2 text-4xl font-medium leading-tight text-app-cafe-profundo sm:text-5xl">{ui("Desempenho & Avaliações")}</h1>
+        <div>
+          <h1 className="text-4xl font-medium leading-tight text-app-cafe-profundo sm:text-5xl">{ui("Desempenho & Avaliações")}</h1>
           <p className="mt-4 max-w-2xl text-sm leading-6 text-app-cinza sm:text-base">{ui("Acompanhe a experiência dos clientes e os principais indicadores de atendimento.")}</p>
         </div>
 

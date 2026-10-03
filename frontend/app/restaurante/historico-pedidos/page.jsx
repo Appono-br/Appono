@@ -591,10 +591,9 @@ export default function RestaurantOrderHistoryPage() {
 
 
             <section className="mx-auto w-full max-w-7xl flex-1 px-5 py-10 sm:py-14">
-                <div className="grid gap-6 border-t border-app-baunilha-dourada/60 pt-10 lg:grid-cols-[1fr_auto] lg:items-end">
+                <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end">
                     <div>
-                        <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-app-caramelo-torrado">{ui("Histórico operacional")}</p>
-                        <h1 className="mt-2 text-4xl font-medium leading-tight text-app-cafe-profundo sm:text-5xl">{ui("Histórico")}</h1>
+                        <h1 className="text-4xl font-medium leading-tight text-app-cafe-profundo sm:text-5xl">{ui("Histórico")}</h1>
                         <p className="mt-4 max-w-2xl text-sm leading-6 text-app-cinza sm:text-base">{ui("Consulte pedidos e reservas em um único lugar, separando cozinha e recepção sem perder rastreabilidade.")}</p>
                     </div>
 
@@ -764,7 +763,7 @@ export default function RestaurantOrderHistoryPage() {
 
                                             <div className="grid gap-2 text-sm text-app-mocha lg:min-w-72 lg:text-right">
                                                 <strong className="text-lg text-app-cafe-profundo">{reserva.quantidade_pessoas}{ui(" pessoa(s)")}</strong>
-                                                <span>{ui("Consumo mínimo ")}{formatarMoeda(reserva.valor_minimo_total, localeUI)}</span>
+                                                <span>{ui("Preço da reserva ")}{formatarMoeda(reserva.valor_minimo_total, localeUI)}</span>
                                                 {pedidoPrincipal ? <span>{ui("Pedido #")}{pedidoPrincipal.id_pedido} - {ui(textoStatusPedido(pedidoPrincipal.status_pedido))}</span> : <span>{ui("Sem pedido antecipado")}</span>}
                                             </div>
                                         </div>

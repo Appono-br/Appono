@@ -72,7 +72,7 @@ function RestaurantPreview({ restaurant, english, onClose }) {
         <div><dt>{copy("Endereço", "Address")}</dt><dd>{info.endereco || copy("Endereço não informado", "Address not provided")}</dd></div>
         <div><dt>{copy("Funcionamento", "Opening hours")}</dt><dd>{info.horario_funcionamento || copy("Horário não informado", "Hours not provided")}</dd></div>
         {info.telefone && <div><dt>{copy("Telefone", "Phone")}</dt><dd>{info.telefone}</dd></div>}
-        {minimum > 0 && <div><dt>{copy("Valor mínimo por pessoa", "Minimum per person")}</dt><dd>{currency(minimum)}</dd></div>}
+        {minimum > 0 && <div><dt>{copy("Preço da reserva", "Reservation price")}</dt><dd>{currency(minimum)}</dd></div>}
       </dl>
       {details.status === "loading" && <p role="status" className="public-preview-notice">{copy("Carregando informações e cardápio…", "Loading information and menu…")}</p>}
       {details.status === "error" && <div role="alert" className="public-preview-notice"><p>{copy("Não foi possível carregar as informações atualizadas.", "We could not load the latest information.")}</p><button type="button" className="discover-text-link" onClick={() => { setDetails((current) => ({ ...current, status: "loading" })); setRetry((current) => current + 1); }}>{copy("Tentar novamente", "Try again")}</button></div>}

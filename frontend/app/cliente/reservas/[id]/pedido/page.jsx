@@ -112,8 +112,7 @@ export default function PaginaPedidoAntecipado({ params }) {
     const produtosSelecionados = useMemo(() => obterProdutosSelecionados(produtos, quantidades), [produtos, quantidades]);
     const totalItens = produtosSelecionados.reduce((soma, produto) => soma + produto.quantidade, 0);
     const total = produtosSelecionados.reduce((soma, produto) => soma + Number(produto.preco) * produto.quantidade, 0);
-    const consumoMinimo = Number(dados?.reserva?.valor_minimo_total ?? 0);
-    const faltaParaMinimo = Math.max(0, consumoMinimo - total);
+    const precoReserva = Number(dados?.reserva?.valor_minimo_total ?? 0);
     const pedidoAtivo = dados?.reserva.pedidos?.find((pedido) => ["PENDENTE", "CONFIRMADO", "EM_PREPARO", "PRONTO"].includes(pedido.status_pedido));
     const reservaConfirmada = dados?.reserva.status_reserva === "CONFIRMADA";
     const reservaIniciada = reservaJaIniciou(dados?.reserva);
@@ -158,10 +157,6 @@ export default function PaginaPedidoAntecipado({ params }) {
         }));
         if (!itens.length) {
             setMensagem("Escolha ao menos um item do cardápio.");
-            return;
-        }
-        if (faltaParaMinimo > 0) {
-            setMensagem(`O pedido precisa atingir o consumo mínimo. Ainda faltam ${formatarMoeda(faltaParaMinimo, localeUI)}.`);
             return;
         }
         setEnviando(true);
@@ -335,8 +330,7 @@ export default function PaginaPedidoAntecipado({ params }) {
                                 <article key={categoria.id_categoria} className="rounded-[14px] bg-white p-5 shadow-sm ring-1 ring-app-baunilha-dourada sm:p-6">
                                     <div className="flex flex-wrap items-end justify-between gap-3">
                                         <div>
-                                            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{categoria.cardapio}</p>
-                                            <h2 className="mt-1 text-2xl font-bold">{categoria.nome}</h2>
+                                            <h2 className="text-2xl font-bold">{categoria.nome}</h2>
                                         </div>
                                         <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-app-mocha">
                                             {(categoria.produtos ?? []).length}{ui(" itens")}</span>
@@ -374,11 +368,11 @@ export default function PaginaPedidoAntecipado({ params }) {
                                                     </div>
 
                                                     <div className="flex items-center justify-between gap-3 sm:justify-end">
-                                                        <button type="button" onClick={() => alterarQuantidade(produto.id_produto, -1)} className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-app-cafe-profundo ring-1 ring-app-baunilha-dourada transition hover:bg-app-baunilha-dourada">
+                                                        <button type="button" onClick={() => alterarQuantidade(produto.id_produto, -1)} className="app-icon-button flex h-10 w-10 items-center justify-center rounded-full bg-white text-app-cafe-profundo ring-1 ring-app-baunilha-dourada transition hover:bg-app-baunilha-dourada">
                                                             <Icon type="minus" className="h-4 w-4" />
                                                         </button>
                                                         <span className="min-w-8 text-center text-lg font-bold">{quantidade}</span>
-                                                        <button type="button" onClick={() => alterarQuantidade(produto.id_produto, 1)} disabled={quantidade >= LIMITE_UNIDADES_POR_ITEM} className="flex h-10 w-10 items-center justify-center rounded-full bg-app-dourado-mel text-white transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-45">
+                                                        <button type="button" onClick={() => alterarQuantidade(produto.id_produto, 1)} disabled={quantidade >= LIMITE_UNIDADES_POR_ITEM} className="app-icon-button flex h-10 w-10 items-center justify-center rounded-full bg-app-dourado-mel text-white transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-45">
                                                             <Icon type="plus" className="h-4 w-4" />
                                                         </button>
                                                     </div>
@@ -441,8 +435,8 @@ export default function PaginaPedidoAntecipado({ params }) {
 
                             <div className="mt-5 grid gap-3 border-t border-app-baunilha-dourada pt-5">
                                 <div className="flex items-center justify-between text-sm">
-                                    <span className="text-app-mocha">{ui("Consumo mínimo")}</span>
-                                    <strong>{formatarMoeda(consumoMinimo, localeUI)}</strong>
+                                    <span className="text-app-mocha">{ui("Preço da reserva")}</span>
+                                    <strong>{formatarMoeda(precoReserva, localeUI)}</strong>
                                 </div>
                                 <div className="flex items-center justify-between">
                                     <span className="font-bold">{ui("Total")}</span>
@@ -456,11 +450,8 @@ export default function PaginaPedidoAntecipado({ params }) {
                             {reservaIniciada ? (
                                 <p className="mt-5 rounded-[8px] bg-white p-3 text-sm font-semibold text-app-caramelo-torrado">{ui("Esta reserva já iniciou. Para preservar a operação do restaurante, não é mais possível adicionar pedido antecipado.")}</p>
                             ) : null}
-                            {faltaParaMinimo > 0 && total > 0 ? (
-                                <p className="mt-5 rounded-[8px] bg-white p-3 text-sm font-semibold text-app-caramelo-torrado">{ui("Faltam ")}{formatarMoeda(faltaParaMinimo, localeUI)}{ui(" para atingir o consumo mínimo da reserva.")}</p>
-                            ) : null}
-                            <button type="button" onClick={criarPedido} disabled={enviando || total <= 0 || !reservaConfirmada || reservaIniciada || faltaParaMinimo > 0} className="mt-5 h-12 w-full rounded-[8px] bg-app-dourado-mel text-xs font-bold uppercase tracking-wide text-white transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-50">
-                                {ui(enviando ? "Preparando pagamento..." : "Pagar pedido antecipado")}
+                            <button type="button" onClick={criarPedido} disabled={enviando || total <= 0 || !reservaConfirmada || reservaIniciada} className="mt-5 h-12 w-full rounded-[8px] bg-app-dourado-mel text-xs font-bold uppercase tracking-wide text-white transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-50">
+                                {ui(enviando ? "Criando pedido..." : "Continuar para pagamento")}
                             </button>
                             {mensagem ? <p className="mt-3 text-sm font-semibold text-app-caramelo-torrado">{ui(mensagem)}</p> : null}
                         </aside>

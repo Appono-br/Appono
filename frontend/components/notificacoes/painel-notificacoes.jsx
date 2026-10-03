@@ -299,7 +299,7 @@ export function PainelNotificacoes({ modulo, voltarHref, dashboardHref }) {
                                             <p className="mt-3 text-xs text-app-cinza">{formatarDataHora(notificacao.criado_em, localeUI)}</p>
                                         </div>
                                         <div className="flex flex-wrap gap-2 sm:min-w-52 sm:justify-end">
-                                            <button type="button" onClick={() => alternarFavorita(notificacao)} className={`inline-flex h-9 w-9 items-center justify-center rounded-full border transition ${notificacao.favoritada
+                                            <button type="button" onClick={() => alternarFavorita(notificacao)} className={`app-icon-button inline-flex h-9 w-9 items-center justify-center rounded-full border transition ${notificacao.favoritada
                                                 ? "border-app-dourado-mel bg-app-dourado-mel text-app-cafe-profundo hover:bg-app-baunilha-dourada"
                                                 : "border-app-baunilha-dourada text-app-mocha hover:bg-app-baunilha-dourada hover:text-app-cafe-profundo"}`} aria-label={notificacao.favoritada ? "Remover dos favoritos" : "Favoritar notificação"} title={notificacao.favoritada ? "Remover dos favoritos" : "Favoritar"}>
                                                 <IconeEstrela preenchida={Boolean(notificacao.favoritada)} />

@@ -7,7 +7,7 @@ O script `backend/scripts/seed-routine-evaluation.js` cria uma população sint�
 - 8 restaurantes casuais marcados com `[DEMO]`;
 - 24 produtos distribuídos entre comida brasileira, massas, grelhados, bowls, culinária oriental, árabe e café;
 - ingredientes, alérgenos e ficha de segurança alimentar revisada para cada produto;
-- horários operacionais, coordenadas aproximadas, consumo mínimo e mesas;
+- horários operacionais, coordenadas aproximadas, preço da reserva e mesas;
 - 10 clientes fictícios com orçamento, raio, preferência e janela alimentar distintos;
 - usuários autenticáveis com e-mails no padrão `demo.rotina.*@example.com`.
 

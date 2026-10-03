@@ -38,7 +38,7 @@ O projeto está em desenvolvimento, com módulos implementados e integrações q
 | --- | --- | --- |
 | Contas | Cadastro de cliente e restaurante, login, recuperação de senha e acesso com Google | Supabase Auth e perfis no banco; Google e envio de e-mails exigem configuração externa |
 | Descoberta | Busca, perfis públicos, cardápios, favoritos e avaliações após a entrega | Schema e RLS; geolocalização depende das coordenadas e de consultas externas |
-| Reservas e pedidos | Disponibilidade de mesas, consumo mínimo, pedido antecipado, confirmação de presença e check-in | Funções SQL e migrations; regras operacionais descritas no guia de fluxos |
+| Reservas e pedidos | Disponibilidade de mesas, preço da reserva, pedido antecipado, confirmação de presença e check-in | Funções SQL e migrations; regras operacionais descritas no guia de fluxos |
 | Restaurante | Gestão do cardápio, agenda, fila da cozinha, histórico e indicadores | Perfil autenticado e dados operacionais; a janela da cozinha é definida no código |
 | Pagamentos | Checkout Pro, conexão OAuth de restaurantes, webhook, financeiro e solicitação de reembolso | Credenciais Mercado Pago, URLs de integração e modo financeiro; simulação e estorno no gateway têm comportamentos distintos |
 | Atendimento | Chat entre participantes, notificações internas, chamados e análise administrativa | Migrations de chat e suporte, autenticação e validação de propriedade |

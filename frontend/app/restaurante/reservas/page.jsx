@@ -398,13 +398,11 @@ export default function RestaurantReservationsPage() {
 
     return (
         <main className="flex min-h-screen flex-col bg-white text-app-cafe-profundo">
-            <div className="px-5 pt-6"><Link href="/restaurante/notificacoes" className="inline-flex items-center gap-2 text-sm font-semibold text-app-caramelo-torrado"><span aria-hidden="true">&larr;</span>{ui("Notificações")}</Link></div>
 
             <section className="mx-auto w-full max-w-7xl flex-1 px-5 py-10 sm:py-14">
-                <div className="border-t border-app-baunilha-dourada/60 pt-10">
+                <div>
                     <div>
-                        <p className="text-[10px] font-bold uppercase text-app-caramelo-torrado">{ui("Reservas")}</p>
-                        <h1 className="mt-2 whitespace-nowrap text-3xl font-medium leading-tight text-app-cafe-profundo sm:text-4xl lg:text-5xl">{ui("Agendamentos do Dia")}</h1>
+                        <h1 className="whitespace-nowrap text-3xl font-medium leading-tight text-app-cafe-profundo sm:text-4xl lg:text-5xl">{ui("Agendamentos do Dia")}</h1>
                     </div>
 
                     <div className="mt-6 rounded-[16px] border border-app-baunilha-dourada/65 bg-white p-4 shadow-sm">
@@ -420,7 +418,7 @@ export default function RestaurantReservationsPage() {
                                 />
                             </label>
 
-                            <label className="grid gap-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado sm:min-w-56">{ui("Ordenar por")}<select value={ordenacaoReserva} onChange={(event) => setOrdenacaoReserva(event.target.value)} className="h-11 rounded-[10px] border border-app-baunilha-dourada bg-white px-3 text-sm font-semibold normal-case tracking-normal text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-caramelo-torrado/15">
+                            <label className="grid gap-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado sm:min-w-56">{ui("Ordenar por")}<select value={ordenacaoReserva} onChange={(event) => setOrdenacaoReserva(event.target.value)} className="h-11 rounded-[10px] border border-app-baunilha-dourada bg-white pl-3 pr-10 text-sm font-semibold normal-case tracking-normal text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado">
                                     {ordenacoesReserva.map((item) => <option key={item.value} value={item.value}>{ui(item.label)}</option>)}
                                 </select>
                             </label>
@@ -509,7 +507,7 @@ export default function RestaurantReservationsPage() {
                                                     <strong className="mt-1 block text-app-cafe-profundo">{ui(reserva.mesas?.numero_mesa ?? "-")}</strong>
                                                 </div>
                                                 <div className="rounded-[10px] bg-white px-4 py-3 ring-1 ring-app-baunilha-dourada/55">
-                                                    <span className="block text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">{ui("Consumo mínimo")}</span>
+                                                    <span className="block text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">{ui("Preço da reserva")}</span>
                                                     <strong className="mt-1 block text-app-cafe-profundo">{formatarMoeda(reserva.valor_minimo_total, localeUI)}</strong>
                                                 </div>
                                             </div>
