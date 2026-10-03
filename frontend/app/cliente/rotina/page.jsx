@@ -146,7 +146,6 @@ export default function RotinaClientePage() {
                 <article className={`rounded-[24px] bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada/55 sm:p-7 ${planejamento ? "order-1" : ""}`}>
                     <div className="flex items-start justify-between gap-4">
                         <div className="min-w-0"><p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{ui(planejamento ? "Próxima refeição" : "Comece por aqui")}</p><h2 className="mt-2 text-2xl font-semibold sm:text-3xl">{ui(planejamento ? estado.titulo : "Configure sua rotina")}</h2></div>
-                        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-app-cafe-profundo text-app-creme-leve"><RoutineIcon type="spark" /></div>
                     </div>
                     {planejamento && estado.proxima ? <div className="mt-6 grid gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] sm:items-center">
                         <div className="rounded-[16px] border border-app-baunilha-dourada/45 p-5"><p className="font-semibold capitalize">{formatarData(estado.proxima.data_refeicao, localeUI)} {ui("às")} {String(estado.proxima.horario_sugerido ?? "").slice(0, 5)}</p><p className="mt-2 text-sm text-app-cinza">{estado.proxima.produtos?.nome ?? ui("Reserva sem item definido")}</p><div className="mt-3"><RoutineStatus status={estado.proxima.status} /></div></div>

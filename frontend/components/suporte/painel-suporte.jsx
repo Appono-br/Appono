@@ -243,7 +243,7 @@ export function PainelSuporte({ perfil, embutido = false }) {
                             {ui("Registre, acompanhe e resolva ocorrências com protocolo, contexto e histórico preservado.")}
                         </p>
                     </div>
-                    <article className="rounded-[14px] bg-app-cafe-profundo p-5 text-app-creme-leve shadow-sm sm:min-w-60">
+                    <article className="support-acompanhamento-card rounded-[14px] bg-app-cafe-profundo p-5 text-app-creme-leve shadow-sm sm:min-w-60">
                         <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-baunilha-dourada">{ui("Em acompanhamento")}</p>
                         <strong className="mt-3 block text-3xl">{totalAbertos}</strong>
                     </article>

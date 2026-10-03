@@ -105,6 +105,26 @@ html[data-tema="escuro"] :is(.bg-app-baunilha-dourada, [class*="bg-app-baunilha-
   .bg-app-dourado-mel\/15, .bg-app-dourado-mel\/20) {
   background-color: var(--ui-superficie-destaque);
 }
+
+/* Mantém ações visíveis quando o painel e o token de fundo usam a mesma cor. */
+html[data-tema="escuro"] :is(button, a)[class*="bg-app-cafe-profundo"] {
+  background-color: #4c2f20;
+  color: var(--ui-texto);
+  border: 1px solid var(--ui-borda-controle);
+  box-shadow: 0 3px 10px rgb(0 0 0 / 22%);
+}
+
+html[data-tema="escuro"] :is(button, a)[class*="bg-app-baunilha-dourada"] {
+  background-color: var(--ui-acento-fundo);
+  color: var(--ui-texto-inverso);
+  border: 1px solid #f5ebdd;
+  box-shadow: 0 3px 10px rgb(0 0 0 / 22%);
+}
+
+html[data-tema="escuro"] .support-acompanhamento-card {
+  border: 2px solid var(--ui-borda-controle);
+  box-shadow: 0 8px 20px rgb(0 0 0 / 32%);
+}
 html[data-tema="escuro"] :is(main.home-publica, main.auth-publica, main.bg-white),
 html[data-tema="escuro"] .home-publica > section:not(#inicio),
 html[data-tema="escuro"] .auth-publica > section,
