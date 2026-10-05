@@ -391,10 +391,10 @@ export default function RestaurantMenuManagementPage() {
                                 </div>
                                 <div className="min-w-0 text-left sm:col-start-2 xl:col-start-auto xl:text-right">
                                     <strong className="text-lg text-app-cafe-profundo">{formatarMoeda(produto.preco, localeUI)}</strong>
-                                    <span className={`mt-2 block rounded-full border bg-transparent px-3 py-1 text-xs font-bold uppercase ${produto.disponivel ? "border-green-200 text-green-800" : "border-red-300 text-red-800"}`}>
-                                        {ui(produto.disponivel ? "Disponível" : "Indisponível")}
-                                    </span>
-                                    <div className="mt-3 flex flex-wrap gap-2 sm:justify-end">
+                                    <div className="mt-3 flex flex-wrap items-center gap-2 sm:justify-end">
+                                        <span className={`px-1 py-1 text-xs font-bold uppercase ${produto.disponivel ? "text-green-800" : "text-red-800"}`}>
+                                            {ui(produto.disponivel ? "Disponível" : "Indisponível")}
+                                        </span>
                                         <button type="button" onClick={() => alterarDisponibilidade(produto)} disabled={produtoAtualizandoId === produto.id_produto} className={`inline-flex h-9 items-center justify-center gap-2 rounded-[8px] border bg-transparent px-3 text-xs font-bold uppercase transition disabled:cursor-not-allowed disabled:opacity-60 ${produto.disponivel ? "border-red-300 text-red-800 hover:border-app-vermelho-erro hover:text-app-vermelho-erro" : "border-green-200 text-green-800 hover:border-app-verde-sucesso hover:text-app-verde-sucesso"}`}>
                                             <Icon type="check" className="h-4 w-4" />
                                             {ui(produto.disponivel ? "Pausar" : "Ativar")}

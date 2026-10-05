@@ -14,6 +14,7 @@ const {
     attendanceConfirmationEligibility,
     apponoCommissionPercentage,
     calculateAttendanceRefundPolicy,
+    codigoTelefoneValido,
     restaurantCancellationEligibility,
 } = require("../domain/reservation-time");
 exports.reservationsRouter = (0, express_1.Router)();
@@ -747,7 +748,7 @@ exports.reservationsRouter.patch("/:id/check-in", async (req, res) => {
     const clienteBanco = supabase_1.supabaseAdmin ?? supabase;
     const { data: reserva, error: reservaError } = await clienteBanco
         .from("reservas")
-        .select("id_reserva, id_cliente, id_restaurante, status_reserva, data_reserva, horario_inicio, clientes(nome)")
+        .select("id_reserva, id_cliente, id_restaurante, status_reserva, data_reserva, horario_inicio, clientes(nome, telefone)")
         .eq("id_reserva", reservationId)
         .eq("id_restaurante", restaurante.id_restaurante)
         .maybeSingle();
@@ -759,6 +760,9 @@ exports.reservationsRouter.patch("/:id/check-in", async (req, res) => {
     }
     if (reserva.status_reserva === "CHECK_IN") {
         return res.json(reserva);
+    }
+    if (!codigoTelefoneValido(reserva.clientes?.telefone, req.body?.codigo_telefone)) {
+        return res.status(422).json({ code: "CHECK_IN_PHONE_CODE_INVALID", error: "Informe os quatro últimos números do telefone do cliente." });
     }
     if (reserva.status_reserva !== "CONFIRMADA") {
         return res.status(409).json({ error: "Apenas reservas confirmadas podem receber check-in." });
@@ -819,7 +823,7 @@ exports.reservationsRouter.patch("/:id/concluir", async (req, res) => {
     const clienteBanco = supabase_1.supabaseAdmin ?? supabase;
     const { data: reserva, error: reservaError } = await clienteBanco
         .from("reservas")
-        .select("id_reserva, id_cliente, id_restaurante, status_reserva, clientes(nome)")
+        .select("id_reserva, id_cliente, id_restaurante, status_reserva, clientes(nome, telefone)")
         .eq("id_reserva", reservationId)
         .eq("id_restaurante", restaurante.id_restaurante)
         .maybeSingle();
@@ -831,6 +835,9 @@ exports.reservationsRouter.patch("/:id/concluir", async (req, res) => {
     }
     if (reserva.status_reserva === "CONCLUIDA") {
         return res.json(reserva);
+    }
+    if (!codigoTelefoneValido(reserva.clientes?.telefone, req.body?.codigo_telefone)) {
+        return res.status(422).json({ code: "CHECK_OUT_PHONE_CODE_INVALID", error: "Informe os quatro últimos números do telefone do cliente." });
     }
     if (reserva.status_reserva !== "CHECK_IN") {
         return res.status(409).json({ error: "Apenas reservas com check-in realizado podem ser finalizadas." });

@@ -22,6 +22,28 @@ function obterMinutosAteReserva(reserva, agora = new Date()) {
     return Math.floor((inicio.getTime() - agora.getTime()) / 60000);
 }
 
+function obterTempoPreparoMedioMinutos(pedido) {
+    const itens = Array.isArray(pedido?.itens_pedido) ? pedido.itens_pedido : [];
+    let unidades = 0;
+    let minutos = 0;
+    for (const item of itens) {
+        const quantidade = Math.max(0, Number(item?.quantidade ?? 0));
+        const tempo = Number(item?.produtos?.tempo_preparo_minutos ?? 0);
+        if (!quantidade || !Number.isFinite(tempo) || tempo <= 0) continue;
+        unidades += quantidade;
+        minutos += quantidade * tempo;
+    }
+    return unidades ? Math.max(1, Math.round(minutos / unidades)) : null;
+}
+
+function obterMinutosAteInicioPreparo(pedido, agora = new Date()) {
+    const inicio = pedido?.iniciar_preparo_em ? new Date(pedido.iniciar_preparo_em) : null;
+    if (inicio && !Number.isNaN(inicio.getTime())) return Math.floor((inicio.getTime() - agora.getTime()) / 60000);
+    const minutosAteReserva = obterMinutosAteReserva(pedido?.reservas ?? pedido?.reserva, agora);
+    const tempoMedio = obterTempoPreparoMedioMinutos(pedido);
+    return minutosAteReserva === null || tempoMedio === null ? null : minutosAteReserva - tempoMedio;
+}
+
 function pedidoEstaNaFilaOperacional(pedido, agora = new Date(), janelaMinutos = JANELA_OPERACIONAL_MINUTOS) {
     if (!pedido || pedido.ocultado_cozinha === true || pedido.status_pedido === "PENDENTE") {
         return false;
@@ -86,6 +108,8 @@ module.exports = {
     STATUS_RESERVA_OPERACIONAL_PEDIDO,
     obterDataHoraReserva,
     obterMinutosAteReserva,
+    obterMinutosAteInicioPreparo,
+    obterTempoPreparoMedioMinutos,
     ordenarPorHorarioReserva,
     pedidoPodeIniciarPreparo,
     pedidoEstaNaFilaOperacional,

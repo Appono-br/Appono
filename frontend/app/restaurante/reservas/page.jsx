@@ -233,6 +233,7 @@ export default function RestaurantReservationsPage() {
     const [excluindoReserva, setExcluindoReserva] = useState(false);
     const [registrandoCheckIn, setRegistrandoCheckIn] = useState(null);
     const [finalizandoReserva, setFinalizandoReserva] = useState(null);
+    const [codigoTelefonePorReserva, setCodigoTelefonePorReserva] = useState({});
     const [abrindoChatReservaId, setAbrindoChatReservaId] = useState(null);
     const [mensagem, setMensagem] = useState("");
     const isRestaurant = session?.type === "restaurant";
@@ -270,10 +271,16 @@ export default function RestaurantReservationsPage() {
     }
 
     async function registrarCheckIn(id) {
+        const codigoTelefone = String(codigoTelefonePorReserva[id] ?? "").replace(/\D/g, "");
+        if (codigoTelefone.length !== 4) {
+            setMensagem("Informe os quatro últimos números do telefone do cliente.");
+            return;
+        }
         setRegistrandoCheckIn(id);
         try {
             const atualizada = await apiRequest(`/reservas/${id}/check-in`, {
                 method: "PATCH",
+                body: JSON.stringify({ codigo_telefone: codigoTelefone }),
             });
 
             setReservas((atuais) =>
@@ -289,10 +296,16 @@ export default function RestaurantReservationsPage() {
     }
 
     async function finalizarReserva(id) {
+        const codigoTelefone = String(codigoTelefonePorReserva[id] ?? "").replace(/\D/g, "");
+        if (codigoTelefone.length !== 4) {
+            setMensagem("Informe os quatro últimos números do telefone do cliente.");
+            return;
+        }
         setFinalizandoReserva(id);
         try {
             const atualizada = await apiRequest(`/reservas/${id}/concluir`, {
                 method: "PATCH",
+                body: JSON.stringify({ codigo_telefone: codigoTelefone }),
             });
 
             setReservas((atuais) =>
@@ -543,6 +556,10 @@ export default function RestaurantReservationsPage() {
 
                                             {reserva.status_reserva === "CONFIRMADA" && !reservaJaTerminou(reserva) ? (
                                                 <div className="grid gap-1">
+                                                    <label className="text-[10px] font-bold uppercase tracking-[0.1em] text-app-cinza">
+                                                        {ui("4 últimos números do telefone")}
+                                                        <input inputMode="numeric" autoComplete="off" maxLength={4} value={codigoTelefonePorReserva[reserva.id_reserva] ?? ""} onChange={(event) => setCodigoTelefonePorReserva((atual) => ({ ...atual, [reserva.id_reserva]: event.target.value.replace(/\D/g, "").slice(0, 4) }))} className="mt-1 h-9 w-full rounded-[8px] border border-app-baunilha-dourada bg-white px-3 text-sm font-semibold text-app-cafe-profundo outline-none focus:border-app-caramelo-torrado" aria-label={ui("Código de presença do cliente")} />
+                                                    </label>
                                                     <button
                                                         type="button"
                                                         onClick={() => registrarCheckIn(reserva.id_reserva)}
@@ -560,6 +577,10 @@ export default function RestaurantReservationsPage() {
 
                                             {reserva.status_reserva === "CHECK_IN" ? (
                                                 <div className="grid gap-1">
+                                                    <label className="text-[10px] font-bold uppercase tracking-[0.1em] text-app-cinza">
+                                                        {ui("4 últimos números do telefone")}
+                                                        <input inputMode="numeric" autoComplete="off" maxLength={4} value={codigoTelefonePorReserva[reserva.id_reserva] ?? ""} onChange={(event) => setCodigoTelefonePorReserva((atual) => ({ ...atual, [reserva.id_reserva]: event.target.value.replace(/\D/g, "").slice(0, 4) }))} className="mt-1 h-9 w-full rounded-[8px] border border-app-baunilha-dourada bg-white px-3 text-sm font-semibold text-app-cafe-profundo outline-none focus:border-app-caramelo-torrado" aria-label={ui("Código de presença do cliente")} />
+                                                    </label>
                                                     <button
                                                         type="button"
                                                         onClick={() => finalizarReserva(reserva.id_reserva)}

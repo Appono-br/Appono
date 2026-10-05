@@ -507,6 +507,12 @@ export default function RestaurantOrdersPage() {
                                                     <div className="mt-4 grid gap-2 text-sm text-app-mocha">
                                                         <span className="rounded-[8px] bg-app-creme-leve px-3 py-2 ring-1 ring-app-baunilha-dourada/45">
                                                             {totalItensPedido}{ui(" item(ns)")}</span>
+                                                        <span className="rounded-[8px] bg-app-creme-leve px-3 py-2 ring-1 ring-app-baunilha-dourada/45">
+                                                            {pedido.tempo_preparo_medio_minutos ? ui("Tempo médio: {0} min", [pedido.tempo_preparo_medio_minutos]) : ui("Tempo médio não informado")}
+                                                        </span>
+                                                        {Number.isFinite(pedido.minutos_ate_inicio_preparo) ? <span className="rounded-[8px] bg-app-creme-leve px-3 py-2 ring-1 ring-app-baunilha-dourada/45">
+                                                            {pedido.minutos_ate_inicio_preparo > 0 ? ui("Iniciar preparo em {0} min", [pedido.minutos_ate_inicio_preparo]) : ui("Preparo liberado")}
+                                                        </span> : null}
                                                     </div>
                                                 </div>
 

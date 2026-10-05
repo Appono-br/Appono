@@ -527,7 +527,7 @@ export default function DashboardPage() {
         {message ? (<p role="status" className="mb-4 rounded-[8px] bg-white p-3 text-sm font-semibold text-app-caramelo-torrado">
             {ui(message)}
           </p>) : null}
-        <VitrinePratos restaurantes={restaurants} carregando={carregandoPratos} limiteInicial={8} mensagemVazia="Nenhum prato disponível no momento." horizontal agrupada limitePorLinha={7} maxCategorias={3} maxRestaurantes={3} />
+        <VitrinePratos restaurantes={restaurants} carregando={carregandoPratos} limiteInicial={8} mensagemVazia="Nenhum prato disponível no momento." horizontal limitePorLinha={7} maxRestaurantes={3} />
 
       </section>
 
@@ -538,16 +538,20 @@ export default function DashboardPage() {
               <h2 className="text-4xl font-medium sm:text-5xl">{ui("Perto de Você")}</h2>
               <p className="mt-3 max-w-xl text-sm leading-6 text-app-creme-suave">{ui(obterMensagemOrigemLocalizacao(statusLocalizacao))}</p>
             </div>
-            <label className="nearby-radius-control flex h-11 w-full max-w-56 items-center rounded-[8px] border border-app-baunilha-dourada/60 px-4 text-app-creme-leve sm:w-56">
-              <span className="sr-only">{ui("Raio de busca")}</span>
-              <select value={raioKm} onChange={(event) => setRaioKm(event.target.value)} className="nearby-radius-select h-full min-w-0 flex-1 bg-transparent text-sm font-semibold outline-none">
-                <option value="2">{ui("Até 2 km")}</option>
-                <option value="5">{ui("Até 5 km")}</option>
-                <option value="10">{ui("Até 10 km")}</option>
-                <option value="20">{ui("Até 20 km")}</option>
-                <option value="todos">{ui("Qualquer distância")}</option>
-              </select>
-            </label>
+            <div className="flex w-full flex-wrap gap-2 sm:w-auto sm:justify-end">
+              <Link href="/cliente/busca" className="inline-flex h-11 items-center justify-center rounded-[8px] border border-app-baunilha-dourada/60 px-4 text-xs font-bold uppercase tracking-[0.12em] text-app-creme-leve transition hover:bg-app-baunilha-dourada/20">{ui("Buscar")}</Link>
+              <Link href="/cliente/configuracoes" className="inline-flex h-11 items-center justify-center rounded-[8px] border border-app-baunilha-dourada/60 px-4 text-xs font-bold uppercase tracking-[0.12em] text-app-creme-leve transition hover:bg-app-baunilha-dourada/20">{ui("Por endereço")}</Link>
+              <label className="nearby-radius-control flex h-11 min-w-44 flex-1 items-center rounded-[8px] border border-app-baunilha-dourada/60 px-4 text-app-creme-leve sm:w-56 sm:flex-none">
+                <span className="sr-only">{ui("Raio de busca")}</span>
+                <select value={raioKm} onChange={(event) => setRaioKm(event.target.value)} className="nearby-radius-select h-full min-w-0 flex-1 bg-transparent text-sm font-semibold outline-none">
+                  <option value="2">{ui("Até 2 km")}</option>
+                  <option value="5">{ui("Até 5 km")}</option>
+                  <option value="10">{ui("Até 10 km")}</option>
+                  <option value="20">{ui("Até 20 km")}</option>
+                  <option value="todos">{ui("Qualquer distância")}</option>
+                </select>
+              </label>
+            </div>
           </div>
         </div>
 

@@ -2,6 +2,14 @@
 .dish-section-title { margin: 0 0 16px; color: var(--app-cafe-profundo); font-size: 30px; font-weight: 600; }
 .dish-groupings { display: grid; gap: 32px; }
 .dish-grouping { display: grid; gap: 20px; }
+.dish-category-shortcuts { display: grid; grid-template-columns: repeat(auto-fit, minmax(112px, 1fr)); gap: 12px; margin-bottom: 4px; }
+.dish-category-shortcut { display: flex; min-width: 0; flex-direction: column; align-items: center; gap: 7px; padding: 14px 10px; border: 1px solid var(--app-baunilha-dourada); border-radius: 16px; background: var(--app-creme-suave); color: var(--app-cafe-profundo); text-align: center; text-decoration: none; transition: transform .18s ease, border-color .18s ease, background-color .18s ease; }
+.dish-category-shortcut:hover { transform: translateY(-2px); border-color: var(--app-caramelo-torrado); background: var(--app-chantilly); }
+.dish-category-shortcut:focus-visible { outline: 2px solid var(--app-caramelo-torrado); outline-offset: 3px; }
+.dish-category-icon { position: relative; display: flex; width: 64px; height: 64px; align-items: center; justify-content: center; overflow: hidden; border-radius: 50%; background: var(--app-chantilly); color: var(--app-caramelo-torrado); }
+.dish-category-image { object-fit: cover; }
+.dish-category-name { overflow: hidden; max-width: 100%; font-size: 13px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.dish-category-count { color: var(--app-cinza); font-size: 11px; }
 .dish-grouping-title { margin: 0; color: var(--app-caramelo-torrado); font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
 .dish-most-liked-title { color: var(--app-cafe-profundo); font-size: 26px; letter-spacing: .02em; }
 .dish-row { min-width: 0; }

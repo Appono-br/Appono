@@ -8,7 +8,7 @@ const mercado_pago_1 = require("../services/pagamentos/mercado-pago");
 const paymentConfig = require("../services/pagamentos/config");
 const notificacoes_1 = require("../services/notificacoes");
 const { canTransitionOrder } = require("../domain/order-state");
-const { ordenarPorHorarioReserva, pedidoEstaNaFilaOperacional, pedidoPodeIniciarPreparo } = require("../domain/operational-queue");
+const { ordenarPorHorarioReserva, pedidoEstaNaFilaOperacional, pedidoPodeIniciarPreparo, obterMinutosAteInicioPreparo, obterTempoPreparoMedioMinutos } = require("../domain/operational-queue");
 const { paginationMeta, parsePagination } = require("../domain/pagination");
 const { orderReviewEligibility } = require("../domain/review-state");
 const { decifrarTokenMercadoPago } = require("../services/pagamentos/credenciais-restaurante");
@@ -264,7 +264,12 @@ exports.ordersRouter.get("/historico/restaurante", async (req, res) => {
         ? (data ?? []).filter((pedido) => pedidoEstaNaFilaOperacional(pedido)).sort(ordenarPorHorarioReserva)
         : (data ?? []).filter((pedido) => STATUS_HISTORICO_RESTAURANTE.includes(pedido.status_pedido) ||
             pedido.ocultado_cozinha === true);
-    return res.json(historico);
+    return res.json(historico.map((pedido) => ({
+        ...pedido,
+        tempo_preparo_medio_minutos: obterTempoPreparoMedioMinutos(pedido),
+        minutos_ate_inicio_preparo: obterMinutosAteInicioPreparo(pedido),
+        minutos_ate_reserva: pedido.reservas ? Math.floor((new Date(`${pedido.reservas.data_reserva}T${String(pedido.reservas.horario_inicio ?? "").slice(0, 8)}-03:00`).getTime() - Date.now()) / 60000) : null,
+    })));
 });
 exports.ordersRouter.get("/:id/avaliacao", (0, auth_1.requireRole)("cliente"), async (req, res) => {
     const orderId = Number(req.params.id);

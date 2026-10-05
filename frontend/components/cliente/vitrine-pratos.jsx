@@ -44,6 +44,12 @@ function CartaoPrato({ prato, restaurante, moeda, ui }) {
   </Link>;
 }
 
+function IconeCategoria({ nome }) {
+  const categoria = nome.toLocaleLowerCase("pt-BR");
+  const path = /pizza|italian|italiana/.test(categoria) ? "M12 3 20 21l-8-4-8 4 8-18Zm0 0v14m-4-8h8" : /bebida|café|cafe|doce|sobremesa|doceria/.test(categoria) ? "M8 3h8l1 4-2 2v11H9V9L7 7l1-4Zm1 4h6m-4 4h2" : /japon|sushi|oriental|chinesa|chinês/.test(categoria) ? "M4 8h16a8 8 0 0 1-16 0Zm3 9h10M8 4v2m4-3v3m4-2v2" : /salada|veg|veget|saud|org/.test(categoria) ? "M12 21V11m0 3C5 14 4 8 4 5c4 0 8 2 8 7m0 1c0-6 4-9 8-9 0 5-2 9-8 9" : "M4 11h16a8 8 0 0 1-16 0Zm2-4 2-3m5 3V3m4 4 2-3m-9 14h6";
+  return <svg aria-hidden="true" viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d={path} /></svg>;
+}
+
 function LinhaPratos({ titulo, itens, restaurante, moeda, ui, limitePorLinha }) {
   return <section className="dish-row" aria-label={titulo}>
     <div className="dish-row-heading">
@@ -60,7 +66,7 @@ function LinhaPratos({ titulo, itens, restaurante, moeda, ui, limitePorLinha }) 
   </section>;
 }
 
-export function VitrinePratos({ restaurantes, carregando, limiteInicial = 12, mensagemVazia = "Nenhum prato encontrado para esta busca.", horizontal = false, agrupada = false, limitePorLinha = 7, maxCategorias = 3, maxRestaurantes = 3 }) {
+export function VitrinePratos({ restaurantes, carregando, limiteInicial = 12, mensagemVazia = "Nenhum prato encontrado para esta busca.", horizontal = false, agrupada = false, mostrarCategorias = false, limitePorLinha = 7, maxCategorias = 3, maxRestaurantes = 3 }) {
   const { ui, localeUI } = useInterface();
   const [limite, setLimite] = useState(limiteInicial);
   const pratosPorRestaurante = restaurantes.map((restaurante) => (restaurante.publishedDishes ?? []).map((prato) => ({ prato, restaurante })));
@@ -89,9 +95,11 @@ export function VitrinePratos({ restaurantes, carregando, limiteInicial = 12, me
     .filter(({ itens }) => itens.length)
     .sort(({ restaurante: restauranteA }, { restaurante: restauranteB }) => Number(restauranteB.favoriteCount ?? 0) - Number(restauranteA.favoriteCount ?? 0) || restauranteA.name.localeCompare(restauranteB.name, localeUI))
     .slice(0, maxRestaurantes);
+  const exibirAtalhosCategoria = agrupada || mostrarCategorias;
 
   return <section className={`dish-showcase${horizontal ? " dish-showcase-horizontal" : ""}`} aria-label={ui("Pratos")} aria-busy={carregando}>
     <h2 className="dish-section-title">{ui("Pratos")}</h2>
+    {!carregando && exibirAtalhosCategoria && categoriasDestaque.length ? <nav className="dish-category-shortcuts" aria-label={ui("Categorias de pratos")}>{categoriasDestaque.map(([categoria, itens]) => <Link key={categoria} href={`/cliente/busca?categoria=${encodeURIComponent(categoria)}`} className="dish-category-shortcut" aria-label={ui("Ver restaurantes de {0}", [categoria])}><span className="dish-category-icon">{itens[0]?.prato?.imagem_url ? <Image src={itens[0].prato.imagem_url} alt="" fill sizes="64px" className="dish-category-image" /> : <IconeCategoria nome={categoria} />}</span><span className="dish-category-name">{categoria}</span><span className="dish-category-count">{ui("{0} pratos", [itens.length])}</span></Link>)}</nav> : null}
     {carregando ? <div className="dish-grid" aria-label={ui("Carregando pratos...")}>
       {Array.from({ length: 8 }, (_, indice) => <div key={indice} className="dish-skeleton" aria-hidden="true" />)}
     </div> : pratos.length && agrupada ? <div className="dish-groupings">

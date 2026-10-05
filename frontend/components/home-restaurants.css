@@ -60,7 +60,7 @@
 .public-preview-reserve p { max-width: 280px; color: var(--discover-muted); font-size: 12px; line-height: 1.7; }
 .public-preview-reserve .discover-cta { flex-shrink: 0; }
 @keyframes public-loading { 50% { opacity: 0.5; } }
-@media (min-width: 1280px) {
+@media (min-width: 1024px) {
   .home-publica { --home-header-height: 80px; }
   .home-search-desktop { display: flex; }
   .home-search-mobile-row { display: none; }

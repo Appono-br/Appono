@@ -19,6 +19,13 @@ function restaurantCancellationEligibility(reservation, orderStatuses = [], now 
     return { allowed: true };
 }
 
+function codigoTelefoneValido(telefone, codigo) {
+    const digitosTelefone = String(telefone ?? "").replace(/\D/g, "");
+    const digitosCodigo = String(codigo ?? "").replace(/\D/g, "");
+    if (digitosTelefone.length < 4 || digitosCodigo.length !== 4) return false;
+    return digitosTelefone.slice(-4) === digitosCodigo;
+}
+
 function reservationStartDate(reservation) {
     if (!reservation?.data_reserva || !reservation?.horario_inicio) return null;
     const start = new Date(`${reservation.data_reserva}T${String(reservation.horario_inicio).slice(0, 8)}-03:00`);
@@ -87,6 +94,7 @@ module.exports = {
     attendanceConfirmationExpired,
     attendanceConfirmationEligibility,
     calculateAttendanceRefundPolicy,
+    codigoTelefoneValido,
     intervalsOverlap,
     isReservationInputValid,
     isReservationNoShow,
