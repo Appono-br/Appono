@@ -51,7 +51,7 @@ export default function HomePage() {
   return (
     <main className={`home-publica min-h-screen bg-white text-app-texto-escuro ${tema === "escuro" ? "tema-escuro" : ""}`}>
       <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-white/95 backdrop-blur">
-  <div className="mx-auto flex min-h-20 max-w-7xl items-center justify-between gap-2 px-3 py-2 sm:px-6 xl:grid xl:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
+  <div className="mx-auto flex min-h-20 max-w-7xl items-center justify-between gap-2 px-3 py-2 sm:px-6 lg:grid lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
     <div className="home-header-brand-search flex min-w-0 items-center gap-6">
       <Link href="/" className="flex shrink-0 items-center" onClick={closeMenu}>
         <Image
@@ -65,7 +65,7 @@ export default function HomePage() {
       <RestaurantSearch value={searchInput} onChange={setSearchInput} onSubmit={searchRestaurants} english={idioma === "en"} />
     </div>
 
-    <nav aria-label="Navegação principal" className="hidden min-w-0 items-center justify-self-center gap-2 whitespace-nowrap text-base xl:flex">
+    <nav aria-label="Navegação principal" className="hidden min-w-0 items-center justify-self-center gap-2 whitespace-nowrap text-base lg:flex">
       {headerLinks.map(({ label, href }) => (
         <Link key={href} href={href} className={headerLinkClass}>
           {label}
@@ -73,7 +73,7 @@ export default function HomePage() {
       ))}
     </nav>
 
-    <div className="flex min-w-0 items-center justify-end gap-2 sm:gap-3 xl:justify-self-end">
+    <div className="flex min-w-0 items-center justify-end gap-2 sm:gap-3 lg:justify-self-end">
       <div className="flex items-center gap-2">
         <button
           type="button"
@@ -111,7 +111,6 @@ export default function HomePage() {
         >
           Criar conta
         </button>
-
         <button
           type="button"
           onClick={() => {
@@ -126,7 +125,7 @@ export default function HomePage() {
       <button
         type="button"
         onClick={() => setMenuOpen((current) => !current)}
-        className="shrink-0 rounded-full border border-app-baunilha-dourada px-3 py-2 text-sm font-semibold text-app-cafe-profundo xl:hidden"
+        className="shrink-0 rounded-full border border-app-baunilha-dourada px-3 py-2 text-sm font-semibold text-app-cafe-profundo lg:hidden"
         aria-expanded={menuOpen}
         aria-controls="mobile-menu"
       >
@@ -138,7 +137,7 @@ export default function HomePage() {
   <div className="home-search-mobile-row"><RestaurantSearch value={searchInput} onChange={setSearchInput} onSubmit={searchRestaurants} english={idioma === "en"} mobile /></div>
 
   {menuOpen ? (
-    <div id="mobile-menu" className="border-t border-app-baunilha-dourada/50 bg-white px-5 py-5 xl:hidden">
+    <div id="mobile-menu" className="border-t border-app-baunilha-dourada/50 bg-white px-5 py-5 lg:hidden">
       <nav className="mx-auto flex max-w-7xl flex-col gap-1 text-sm text-app-cafe-profundo">
         {headerLinks.map(({ label, href }) => (
           <Link key={href} href={href} onClick={closeMenu} className={headerLinkClass}>
@@ -155,6 +154,9 @@ export default function HomePage() {
         >
           Criar conta
         </button>
+        <Link href="/login" onClick={closeMenu} className="mt-2 rounded-full border border-app-baunilha-dourada px-5 py-3 text-left font-semibold text-app-cafe-profundo">
+          Entrar
+        </Link>
       </nav>
     </div>
   ) : null}

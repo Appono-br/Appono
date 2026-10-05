@@ -13,6 +13,8 @@ import {
   cpfEstaCompleto,
 } from "@/lib/validacoes/cpf";
 import { aplicarMascaraTelefone } from "@/lib/validacoes/telefone";
+import { senhaValida } from "@/lib/politica-senha";
+import { PasswordRequirements } from "@/components/auth/password-requirements";
 
 const initialForm = {
   name: "",
@@ -80,6 +82,11 @@ export function RegisterClientForm({ googleFlow = false }) {
 
   async function enviarFormulario(event) {
     event.preventDefault();
+
+    if (!isGoogleFlow && !senhaValida(form.password)) {
+      setMessage("A senha precisa ter 6 caracteres, maiúscula, minúscula, número e caractere especial.");
+      return;
+    }
 
     if (!cpfEstaCompleto(form.cpf)) {
       setMessage("Informe um CPF completo e válido.");
@@ -185,7 +192,7 @@ export function RegisterClientForm({ googleFlow = false }) {
         </p>
 
         <div className="mt-5 grid gap-3 sm:grid-cols-2">
-          <FormField
+              <FormField
             label="Nome completo"
             value={form.name}
             onChange={(event) =>
@@ -194,7 +201,7 @@ export function RegisterClientForm({ googleFlow = false }) {
             placeholder="Ex: Maria Silva"
             required
             className="sm:col-span-2"
-          />
+              />
 
           <FormField
             label="Data de nascimento"
@@ -269,7 +276,7 @@ export function RegisterClientForm({ googleFlow = false }) {
             className="sm:col-span-2"
           />
 
-          {!isGoogleFlow ? (
+          {!isGoogleFlow ? (<>
             <FormField
               label="Senha"
               type="password"
@@ -282,7 +289,8 @@ export function RegisterClientForm({ googleFlow = false }) {
               minLength={6}
               className="sm:col-span-2"
             />
-          ) : null}
+            <PasswordRequirements value={form.password} />
+          </>) : null}
         </div>
 
         <div className="mt-5 flex flex-col-reverse gap-3 border-t border-app-baunilha-dourada pt-4 sm:flex-row sm:items-center sm:justify-between">

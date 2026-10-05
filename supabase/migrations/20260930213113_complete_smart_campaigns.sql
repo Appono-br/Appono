@@ -1,21 +1,25 @@
 ﻿begin;
 
 alter table public.campanhas_inteligentes_restaurante
- add column versao bigint not null default 1,
- add column beneficio_itens jsonb not null default '[]',
- add column preco_combo numeric(10,2),
- add column precisa_configuracao boolean not null default false;
-alter table public.campanhas_inteligentes_restaurante add constraint campanha_itens_array check(jsonb_typeof(beneficio_itens)='array');
+ add column if not exists versao bigint not null default 1,
+ add column if not exists beneficio_itens jsonb not null default '[]',
+ add column if not exists preco_combo numeric(10,2),
+ add column if not exists precisa_configuracao boolean not null default false;
+do $$ begin
+ if not exists (select 1 from pg_constraint where conname='campanha_itens_array') then
+  alter table public.campanhas_inteligentes_restaurante add constraint campanha_itens_array check(jsonb_typeof(beneficio_itens)='array');
+ end if;
+end $$;
 update public.campanhas_inteligentes_restaurante set precisa_configuracao=true
  where tipo_beneficio not in ('DESCONTO_FIXO','DESCONTO_PERCENTUAL');
 alter table public.resgates_campanha_inteligente
- add column condicoes jsonb not null default '{}',
- add column entregue_em timestamptz,
- add column entregue_por uuid,
- add column cancelado_em timestamptz;
-alter table public.eventos_campanha_inteligente add column chave_deduplicacao text;
-create unique index campanha_evento_deduplicacao on public.eventos_campanha_inteligente(id_campanha,tipo,chave_deduplicacao) where chave_deduplicacao is not null;
-alter table public.consentimentos_ofertas_cliente add column versao_texto text not null default 'ofertas-v1';
+ add column if not exists condicoes jsonb not null default '{}',
+ add column if not exists entregue_em timestamptz,
+ add column if not exists entregue_por uuid,
+ add column if not exists cancelado_em timestamptz;
+alter table public.eventos_campanha_inteligente add column if not exists chave_deduplicacao text;
+create unique index if not exists campanha_evento_deduplicacao on public.eventos_campanha_inteligente(id_campanha,tipo,chave_deduplicacao) where chave_deduplicacao is not null;
+alter table public.consentimentos_ofertas_cliente add column if not exists versao_texto text not null default 'ofertas-v1';
 
 create or replace function appono_private.campanha_profissional(p_restaurante bigint) returns boolean
 language sql stable security definer set search_path='' as $$
@@ -154,7 +158,9 @@ begin
  end loop;
  return new;
 end $$;
+drop trigger if exists liberar_campanha_reserva on public.reservas;
 create trigger liberar_campanha_reserva after update of status_reserva on public.reservas for each row execute function appono_private.cancelar_resgate_campanha();
+drop trigger if exists liberar_campanha_pedido on public.pedidos;
 create trigger liberar_campanha_pedido after update of status_pedido on public.pedidos for each row execute function appono_private.cancelar_resgate_campanha();
 
 create or replace function public.entregar_beneficio_campanha(p_actor uuid,p_resgate bigint)

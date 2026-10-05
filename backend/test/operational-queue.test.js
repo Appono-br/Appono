@@ -5,7 +5,11 @@ const assert = require("node:assert/strict");
 const {
     JANELA_OPERACIONAL_MINUTOS,
     obterMinutosAteReserva,
+    obterMinutosAteInicioPreparo,
     ordenarPorHorarioReserva,
+    obterTempoPreparoMedioMinutos,
+    obterTempoPreparoTotalMinutos,
+    obterMargemOperacionalMinutos,
     pedidoPodeIniciarPreparo,
     pedidoEstaNaFilaOperacional,
     reservaEstaNaFilaOperacional,
@@ -128,4 +132,41 @@ test("reserva operacional prioriza proximidade e atendimento em curso", () => {
 
     const ordenadas = [reservaEm(120), reservaEm(30)].sort(ordenarPorHorarioReserva);
     assert.equal(obterMinutosAteReserva(ordenadas[0], agora), 30);
+});
+
+test("estimativa de preparo recalcula quantidade e combina cargas paralelas", () => {
+    const pedido = {
+        status_pedido: "CONFIRMADO",
+        reservas: reservaEm(45),
+        itens_pedido: [
+            { id_produto: 1, quantidade: 3, produtos: { nome: "Massa", tempo_preparo_minutos: 20 } },
+            { id_produto: 2, quantidade: 1, produtos: { nome: "Entrada", tempo_preparo_minutos: 10 } },
+        ],
+    };
+    assert.equal(obterTempoPreparoMedioMinutos(pedido), 18);
+    assert.equal(obterTempoPreparoTotalMinutos(pedido), 36);
+    assert.equal(obterMargemOperacionalMinutos(pedido), 41);
+    assert.equal(obterMinutosAteInicioPreparo(pedido, agora), 4);
+});
+
+test("estimativa de preparo usa piso seguro e ignora itens sem tempo válido", () => {
+    const pedido = {
+        itens_pedido: [
+            { quantidade: 0, produtos: { tempo_preparo_minutos: 30 } },
+            { quantidade: 2, produtos: { tempo_preparo_minutos: null } },
+            { quantidade: 1, produtos: { tempo_preparo_minutos: -5 } },
+        ],
+    };
+    assert.equal(obterTempoPreparoMedioMinutos(pedido), null);
+    assert.equal(obterTempoPreparoTotalMinutos(pedido), null);
+    assert.equal(obterMargemOperacionalMinutos(pedido), null);
+});
+
+test("pedidos cancelados, pendentes e reservas encerradas não entram na cozinha", () => {
+    const base = { reservas: reservaEm(30), itens_pedido: [{ quantidade: 1, produtos: { tempo_preparo_minutos: 15 } }] };
+    assert.equal(pedidoEstaNaFilaOperacional({ ...base, status_pedido: "PENDENTE" }, agora), false);
+    assert.equal(pedidoEstaNaFilaOperacional({ ...base, status_pedido: "CANCELADO" }, agora), false);
+    assert.equal(pedidoEstaNaFilaOperacional({ ...base, status_pedido: "CONFIRMADO", reservas: reservaEm(30, "CONCLUIDA") }, agora), false);
+    assert.equal(pedidoEstaNaFilaOperacional({ ...base, status_pedido: "EM_PREPARO" }, agora), true);
+    assert.equal(pedidoEstaNaFilaOperacional({ ...base, status_pedido: "PRONTO" }, agora), true);
 });

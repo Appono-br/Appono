@@ -177,7 +177,7 @@ exports.menuRouter.get("/", async (_req, res) => {
         }
         const { data, error } = await supabase
             .from("cardapios")
-            .select("id_cardapio, nome, descricao, ativo, seções(id_categoria, nome, descricao, ativo, arquivado, ordem_exibicao, produtos(id_produto, nome, descricao, preco, tempo_preparo_minutos, imagem_url, disponivel, destaque, arquivado, ordem_exibicao))")
+            .select("id_cardapio, nome, descricao, ativo, categorias(id_categoria, nome, descricao, ativo, arquivado, ordem_exibicao, produtos(id_produto, nome, descricao, preco, tempo_preparo_minutos, imagem_url, disponivel, destaque, arquivado, ordem_exibicao))")
             .eq("id_restaurante", restaurante.id_restaurante)
             .order("nome", { ascending: true });
         if (error) {
@@ -347,7 +347,7 @@ exports.menuRouter.get("/produtos/:id", async (req, res) => {
         }
         const { data: produto, error } = await supabase
             .from("produtos")
-            .select("id_produto, id_categoria, nome, descricao, preco, tempo_preparo_minutos, imagem_url, disponivel, destaque, arquivado, ordem_exibicao, seções(nome)")
+            .select("id_produto, id_categoria, nome, descricao, preco, tempo_preparo_minutos, imagem_url, disponivel, destaque, arquivado, ordem_exibicao, categorias(nome)")
             .eq("id_produto", produtoId)
             .eq("id_restaurante", restaurante.id_restaurante)
             .eq("arquivado", false)

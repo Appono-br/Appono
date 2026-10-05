@@ -27,7 +27,7 @@ export default function RestaurantPerformancePage() {
     const [dados, setDados] = useState({ items: [], total: 0, metricas: {} });
     const [estadoAvaliacoes, setEstadoAvaliacoes] = useState("carregando");
     const [erroAvaliacoes, setErroAvaliacoes] = useState("");
-    const [periodo, setPeriodo] = useState(30);
+    const [periodo, setPeriodo] = useState("semanal");
     const [desempenho, setDesempenho] = useState(null);
     const [estadoDesempenho, setEstadoDesempenho] = useState("carregando");
     const isRestaurant = session?.type === "restaurant";
@@ -52,7 +52,7 @@ export default function RestaurantPerformancePage() {
         const controller = new AbortController();
         let expirou = false;
         const timeout = window.setTimeout(() => { expirou = true; controller.abort(); }, 10000);
-        apiRequest(`/restaurante/desempenho?dias=${periodo}`, { signal: controller.signal, cacheTtlMs: 0 }).then((resultado) => {
+        apiRequest(`/restaurante/desempenho?periodo=${periodo}`, { signal: controller.signal, cacheTtlMs: 0 }).then((resultado) => {
             setDesempenho(resultado);
             setEstadoDesempenho("pronto");
         }).catch((error) => {
@@ -87,10 +87,11 @@ export default function RestaurantPerformancePage() {
         </div>
 
         <section className="mt-8 rounded-xl border border-app-baunilha-dourada/60 p-6">
-          <div className="flex flex-wrap items-center justify-between gap-4"><div><h2 className="text-2xl font-semibold">{ui("Indicadores do período")}</h2><p className="mt-1 text-sm text-app-cinza">{ui("Calculados com reservas, pedidos e avaliações deste restaurante.")}</p></div><select value={periodo} onChange={(e) => alterarPeriodo(e.target.value)} className="rounded-lg border border-app-baunilha-dourada px-4 py-2"><option value="7">7 dias</option><option value="30">30 dias</option><option value="90">90 dias</option></select></div>
+          <div className="flex flex-wrap items-center justify-between gap-4"><div><h2 className="text-2xl font-semibold">{ui("Indicadores do período")}</h2><p className="mt-1 text-sm text-app-cinza">{ui("Calculados com reservas, pedidos e avaliações deste restaurante.")}</p></div><select value={periodo} onChange={(e) => alterarPeriodo(e.target.value)} className="rounded-lg border border-app-baunilha-dourada px-4 py-2"><option value="semanal">Semanal</option><option value="mensal">Mensal</option></select></div>
           {estadoDesempenho === "carregando" ? <p className="mt-5 text-sm text-app-cinza">{ui("Carregando indicadores...")}</p> : estadoDesempenho === "erro" ? <p role="alert" className="mt-5 rounded-lg bg-app-creme-leve p-4 text-sm text-app-cinza">{ui("Não foi possível carregar os indicadores agora.")}</p> : !desempenho?.possui_amostra ? <p className="mt-5 rounded-lg bg-app-creme-leve p-4 text-sm text-app-cinza">{ui("Ainda não há operações neste período para calcular desempenho.")}</p> : <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {[["Reservas criadas", desempenho.reservas.criadas], ["Reservas concluídas", desempenho.reservas.concluidas], ["Cancelamentos", desempenho.reservas.canceladas], ["Não comparecimentos", desempenho.reservas.nao_comparecimentos], ["Pedidos criados", desempenho.pedidos.criados], ["Pedidos entregues", desempenho.pedidos.entregues], ["Taxa de conclusão", desempenho.reservas.taxa_conclusao == null ? "Sem amostra" : `${desempenho.reservas.taxa_conclusao}%`], ["Ticket médio", desempenho.pedidos.ticket_medio == null ? "Sem amostra" : new Intl.NumberFormat(localeUI, { style: "currency", currency: "BRL" }).format(desempenho.pedidos.ticket_medio)]].map(([label, valor]) => <article key={label} className="rounded-lg bg-app-creme-leve p-4"><p className="text-sm text-app-cinza">{ui(label)}</p><strong className="mt-2 block text-2xl">{ui(String(valor))}</strong></article>)}
           </div>}
+          {desempenho?.serie?.length ? <div className="mt-8 rounded-lg border border-app-baunilha-dourada/60 p-4"><h3 className="font-semibold">{ui("Movimento do período")}</h3><div className="mt-5 grid grid-cols-7 items-end gap-2 sm:grid-cols-10">{desempenho.serie.map((ponto) => { const maximo = Math.max(...desempenho.serie.map((item) => item.pedidos + item.reservas), 1); const altura = Math.max(8, ((ponto.pedidos + ponto.reservas) / maximo) * 100); return <div key={ponto.data} className="flex min-w-0 flex-col items-center gap-2"><div title={`${ponto.pedidos} pedidos · ${ponto.reservas} reservas`} className="w-full rounded-t bg-app-caramelo-torrado" style={{ height: `${altura}px` }}/><span className="max-w-full truncate text-[10px] text-app-cinza">{ponto.data.slice(5, 10)}</span></div>; })}</div></div> : null}
           <div className="mt-6 border-t border-app-baunilha-dourada/60 pt-5"><p className="text-sm text-app-cinza">{ui("Para criar uma campanha, escolha uma sugestão da Appono quando houver dados agregados suficientes ou crie sua própria oferta.")}</p><Link href="/restaurante/campanhas#sugestoes-appono" className="mt-3 inline-flex rounded-lg bg-app-cafe-profundo px-4 py-2 text-sm font-semibold text-white">{ui("Ver sugestões para campanhas")}</Link></div>
         </section>
 

@@ -17,7 +17,10 @@
     cnpjEstaCompleto,
   } from "@/lib/validacoes/cnpj";
   import { somenteNumeros } from "@/lib/validacoes/comum";
-  import { aplicarMascaraTelefone } from "@/lib/validacoes/telefone";
+import { aplicarMascaraTelefone } from "@/lib/validacoes/telefone";
+import { senhaValida } from "@/lib/politica-senha";
+import { PasswordRequirements } from "@/components/auth/password-requirements";
+import { CATEGORIAS_CULINARIAS } from "@/lib/categorias-culinarias";
   import {
     enviarImagemRestaurante,
     validarImagemRestaurante,
@@ -39,6 +42,7 @@
     tables: "",
     password: "",
     plano: "INICIAL",
+    categorias_culinarias: [],
   };
 
 function redirecionarParaLogin(email) {
@@ -110,7 +114,7 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
           form.uf &&
           form.number &&
           form.tables &&
-          (isGoogleFlow || form.password)
+          (isGoogleFlow || senhaValida(form.password))
       );
     }
 
@@ -379,6 +383,8 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
               className="sm:col-span-2"
             />
 
+            <fieldset className="grid gap-2 sm:col-span-2"><legend className="text-sm font-semibold text-app-cafe-profundo">Categorias culinárias</legend><div className="flex flex-wrap gap-2" role="group" aria-label="Categorias culinárias">{CATEGORIAS_CULINARIAS.map((categoria) => { const selecionada = form.categorias_culinarias.includes(categoria); return <button key={categoria} type="button" aria-pressed={selecionada} onClick={() => { if (selecionada) atualizarCampo("categorias_culinarias", form.categorias_culinarias.filter((item) => item !== categoria)); else if (form.categorias_culinarias.length < 8) atualizarCampo("categorias_culinarias", [...form.categorias_culinarias, categoria]); }} className={`rounded-full border px-3 py-2 text-sm transition ${selecionada ? "border-app-cafe-profundo bg-app-cafe-profundo text-white" : "border-app-baunilha-dourada bg-white text-app-mocha hover:bg-app-chantilly"}`}>{categoria}</button>; })}</div><span className="text-xs text-app-cinza">Selecione até 8 categorias.</span></fieldset>
+
             <FormField
               label="E-mail"
               type="email"
@@ -517,7 +523,7 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
               className="sm:col-span-2"
             />
 
-            {!isGoogleFlow ? (
+            {!isGoogleFlow ? (<>
               <FormField
                 label="Senha"
                 type="password"
@@ -530,7 +536,8 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
                 minLength={6}
                 className="sm:col-span-2"
               />
-            ) : null}
+              <PasswordRequirements value={form.password} />
+            </>) : null}
 
             <label className="group grid gap-3 rounded-xl border-2 border-dashed border-app-baunilha-dourada/50 bg-white p-5 text-center transition hover:border-app-caramelo-torrado hover:bg-app-chantilly sm:col-span-2">
 

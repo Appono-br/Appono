@@ -4,6 +4,7 @@ import { VisibilidadeCampanhas, registrarCampanha } from "@/components/campanha-
 import { useInterface } from "@/lib/use-interface";
 import Image from "next/image";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { BotaoVoltar } from "@/components/botao-voltar";
 import { apiRequest } from "@/lib/api";
@@ -113,8 +114,26 @@ function TextoDinamicoTraduzido({ texto, className = "", as: Elemento = "span" }
   return <Elemento className={className}>{traducao}</Elemento>;
 }
 
+function SecaoAvaliacoes({ totalAvaliacoes, avaliacaoMedia, avaliacoesRecentes, localeUI, ui }) {
+  return <section className="rounded-[18px] bg-white p-5 shadow-sm ring-1 ring-app-baunilha-dourada sm:p-6">
+    <div className="flex flex-wrap items-center justify-between gap-3">
+      <div>
+        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{ui("Avaliações")}</p>
+        <h2 className="mt-1 text-2xl font-bold">{ui("Experiências de clientes")}</h2>
+      </div>
+      <div className="flex w-fit items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-bold text-app-cafe-profundo ring-1 ring-app-baunilha-dourada/60">
+        {totalAvaliacoes ? <EstrelasNota nota={avaliacaoMedia} /> : <Icon type="star" className="h-4 w-4 text-app-dourado-mel" />}
+        {totalAvaliacoes ? ui("{0} de 5", [avaliacaoMedia.toFixed(1)]) : ui("Sem avaliações")}
+      </div>
+    </div>
+    {avaliacoesRecentes.length ? <div className="mt-5 grid gap-3 md:grid-cols-2">{avaliacoesRecentes.map((avaliacao) => <article key={avaliacao.id_avaliacao} className="rounded-[12px] bg-white p-4 ring-1 ring-app-baunilha-dourada/60"><div className="flex items-center justify-between gap-3"><strong className="truncate text-sm text-app-cafe-profundo">{avaliacao.clientes?.nome ?? ui("Cliente Appono")}</strong><span className="inline-flex items-center gap-2 rounded-full bg-white px-2.5 py-1 text-xs font-bold text-app-caramelo-torrado"><EstrelasNota nota={avaliacao.nota} />{avaliacao.nota}/5</span></div><p className="mt-3 text-sm leading-6 text-app-mocha">{avaliacao.comentario}</p><p className="mt-3 text-xs text-app-cinza">{formatarDataAvaliacao(avaliacao.created_at, localeUI)}</p></article>)}</div> : <p className="mt-4 text-sm leading-6 text-app-cinza">{ui("Ainda não há comentários de clientes.")}</p>}
+  </section>;
+}
+
 export default function PaginaRestaurante({ params }) {
     const { ui, localeUI, horarioUI } = useInterface();
+  const searchParams = useSearchParams();
+  const campanhaDaVitrine = Number(searchParams.get("campanha"));
   const [restauranteId, setRestauranteId] = useState(null);
   const [restaurante, setRestaurante] = useState(null);
   const [cardapios, setCardapios] = useState([]);
@@ -179,51 +198,64 @@ export default function PaginaRestaurante({ params }) {
   const produtosSelecionados = useMemo(() => obterProdutosSelecionados(produtos, quantidades), [produtos, quantidades]);
   const totalItens = produtosSelecionados.reduce((soma, produto) => soma + produto.quantidade, 0);
   const totalPedido = produtosSelecionados.reduce((soma, produto) => soma + Number(produto.preco ?? 0) * produto.quantidade, 0);
+  const tempoPreparoPedido = useMemo(() => {
+    if (!produtosSelecionados.length) return null;
+    const cargas = produtosSelecionados.map((produto) => Number(produto.tempo_preparo_minutos ?? 0) * (1 + Math.min(Math.max(produto.quantidade - 1, 0), 4) * 0.3)).filter((valor) => valor > 0);
+    if (!cargas.length) return null;
+    const maior = Math.max(...cargas);
+    return Math.max(1, Math.round(maior + cargas.filter((valor) => valor !== maior).reduce((soma, valor) => soma + valor * 0.35, 0) + 5));
+  }, [produtosSelecionados]);
+  const idsProdutosElegiveis = new Set((campanhaSelecionada?.campanhas_inteligentes_produtos ?? []).map((item) => Number(item.id_produto)));
+  const totalElegivelCampanha = produtosSelecionados.filter((produto) => !idsProdutosElegiveis.size || idsProdutosElegiveis.has(Number(produto.id_produto))).reduce((soma, produto) => soma + Number(produto.preco ?? 0) * produto.quantidade, 0);
+  const descontoCampanha = campanhaSelecionada?.tipo_beneficio === "DESCONTO_PERCENTUAL" ? totalElegivelCampanha * Number(campanhaSelecionada.valor_beneficio ?? 0) / 100 : campanhaSelecionada?.tipo_beneficio === "DESCONTO_FIXO" ? Math.min(totalElegivelCampanha, Number(campanhaSelecionada.valor_beneficio ?? 0)) : 0;
+  const produtoComDesconto = (produto) => campanhaSelecionada?.tipo_beneficio === "DESCONTO_PERCENTUAL" && (!idsProdutosElegiveis.size || idsProdutosElegiveis.has(Number(produto.id_produto)));
+  const precoExibidoProduto = (produto) => produtoComDesconto(produto) ? Number(produto.preco ?? 0) * (1 - Number(campanhaSelecionada.valor_beneficio ?? 0) / 100) : Number(produto.preco ?? 0);
   const temPedidoAntecipado = totalItens > 0;
-  const horariosComStatus = disponibilidade.horarios ?? [];
+  const chaveDisponibilidade = `${restauranteId}:${data}:${pessoas}`;
+  const carregandoHorarios = disponibilidade.chave !== chaveDisponibilidade;
+  const horariosComStatus = carregandoHorarios ? [] : disponibilidade.horarios ?? [];
   const horariosDisponiveis = horariosComStatus.filter((item) => item.disponivel);
   const slotSelecionado = horariosDisponiveis.find((item) => item.horario === horario) ?? horariosDisponiveis[0] ?? null;
   const horarioSelecionado = slotSelecionado?.horario ?? "";
   const horarioFimSelecionado = slotSelecionado?.horario_fim ?? (horarioSelecionado ? adicionarDuasHoras(horarioSelecionado) : "");
-  const operacaoConfigurada = disponibilidade.operacao_configurada === true;
+  const operacaoConfigurada = !carregandoHorarios && disponibilidade.operacao_configurada === true;
   const avaliacaoMedia = Number(restaurante?.avaliacao_media ?? 0);
   const totalAvaliacoes = Number(restaurante?.total_avaliacoes ?? 0);
   const avaliacoesRecentes = restaurante?.avaliacoes_recentes ?? [];
   const linhasHorarioFuncionamento = obterLinhasHorarioFuncionamento(restaurante?.horario_funcionamento);
-  const chaveHorariosDisponiveis = horariosDisponiveis.map((slot) => slot.horario).join("|");
-  const primeiroHorarioDisponivel = horariosDisponiveis[0]?.horario ?? "";
-  const horarioEstaDisponivel = horariosDisponiveis.some((slot) => slot.horario === horario);
+
+  useEffect(() => {
+    if (!Number.isSafeInteger(campanhaDaVitrine) || campanhaDaVitrine < 1 || !campanhas.length) return;
+    const campanha = campanhas.find((item) => Number(item.id_campanha) === campanhaDaVitrine);
+    if (!campanha) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- sincroniza a oferta aberta pelo link da vitrine.
+    setCampanhaSelecionada(campanha);
+    queueMicrotask(() => document.getElementById("reserva")?.scrollIntoView({ behavior: "smooth", block: "start" }));
+  }, [campanhaDaVitrine, campanhas]);
 
   useEffect(() => {
     if (!restauranteId || !restaurante) return;
+    let cancelado = false;
 
     const parametros = new URLSearchParams({
       data,
       pessoas: String(pessoas),
     });
 
-    apiRequest(`/restaurantes/${restauranteId}/disponibilidade?${parametros.toString()}`)
-      .then((resultado) => setDisponibilidade(resultado))
-      .catch((erro) =>
-        setDisponibilidade({
+    apiRequest(`/restaurantes/${restauranteId}/disponibilidade?${parametros.toString()}`, { cacheTtlMs: 0 })
+      .then((resultado) => {
+        if (!cancelado) setDisponibilidade({ ...resultado, chave: chaveDisponibilidade });
+      })
+      .catch((erro) => {
+        if (!cancelado) setDisponibilidade({
+          chave: chaveDisponibilidade,
           operacao_configurada: false,
           horarios: [],
           motivo: erro instanceof Error ? erro.message : "Não foi possível carregar os horários.",
-        }),
-      );
-  }, [data, pessoas, restaurante, restauranteId]);
-
-  useEffect(() => {
-    if (!chaveHorariosDisponiveis) {
-      if (horario) {
-        queueMicrotask(() => setHorario(""));
-      }
-      return;
-    }
-    if (!horarioEstaDisponivel) {
-      queueMicrotask(() => setHorario(primeiroHorarioDisponivel));
-    }
-  }, [chaveHorariosDisponiveis, horario, horarioEstaDisponivel, primeiroHorarioDisponivel]);
+        });
+      });
+    return () => { cancelado = true; };
+  }, [data, pessoas, restaurante, restauranteId, chaveDisponibilidade]);
 
   function alterarQuantidade(produtoId, diferenca) {
     if (diferenca > 0 && !restaurante?.pedidos_antecipados_habilitados) {
@@ -287,6 +319,7 @@ export default function PaginaRestaurante({ params }) {
   async function reservar(event) {
     event.preventDefault();
     if (!restaurante) return;
+    if (carregandoHorarios) return;
     if (!operacaoConfigurada) {
       setMensagem("Este restaurante ainda não configurou horários de funcionamento para receber reservas.");
       return;
@@ -360,9 +393,11 @@ export default function PaginaRestaurante({ params }) {
 
         <section className="mt-5 overflow-hidden rounded-[18px] bg-white shadow-[0_18px_55px_rgba(74,44,10,0.10)] ring-1 ring-app-baunilha-dourada">
           <div className="grid lg:grid-cols-[0.72fr_1fr]">
-            <div className="relative flex min-h-44 items-center justify-center bg-white p-5 sm:min-h-52 lg:min-h-[280px]">
+            <div className="relative flex min-h-56 items-center justify-center bg-white p-5 sm:min-h-72 lg:min-h-[360px]">
               {restaurante.logo_url ? (
-                <Image src={restaurante.logo_url} alt={restaurante.nome} fill priority sizes="(min-width: 1024px) 360px, 100vw" className="object-contain p-6" />
+                <div className="logo-restaurante-circular relative h-48 w-48 overflow-hidden rounded-full bg-white ring-2 ring-app-baunilha-dourada/70 sm:h-64 sm:w-64 lg:h-72 lg:w-72">
+                  <Image src={restaurante.logo_url} alt={restaurante.nome} fill priority sizes="(max-width: 639px) 192px, (max-width: 1023px) 256px, 288px" className="object-cover" />
+                </div>
               ) : (
                 <div className="flex h-full min-h-40 items-center justify-center text-app-caramelo-torrado">
                   <Icon type="utensils" className="h-12 w-12" />
@@ -433,8 +468,8 @@ export default function PaginaRestaurante({ params }) {
         </section>
 
         <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
-          <section className="grid gap-6">
-            <section className="rounded-[18px] bg-white p-5 shadow-sm ring-1 ring-app-baunilha-dourada sm:p-6">
+          <section className="flex flex-col gap-6">
+            {false && <section className="rounded-[18px] bg-white p-5 shadow-sm ring-1 ring-app-baunilha-dourada sm:p-6">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{ui("Avaliacoes")}</p>
@@ -464,7 +499,7 @@ export default function PaginaRestaurante({ params }) {
               ) : (
                 <p className="mt-4 rounded-[12px] bg-white p-4 text-sm leading-6 text-app-mocha ring-1 ring-app-baunilha-dourada/60">{ui("As avaliações aparecerão aqui depois que os clientes concluírem reservas ou pedidos.")}</p>
               )}
-            </section>
+            </section>}
 
             {produtosDestaque.length ? (
               <section className="rounded-[18px] bg-app-cafe-profundo p-5 text-app-creme-leve shadow-sm ring-1 ring-app-baunilha-dourada/50 sm:p-6">
@@ -482,7 +517,7 @@ export default function PaginaRestaurante({ params }) {
                       <div className="p-3">
                         <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">{produto.categoria}</p>
                         <h3 className="mt-1 line-clamp-2 break-words text-sm font-bold">{produto.nome}</h3>
-                        <strong className="mt-2 block text-sm text-app-caramelo-torrado">{formatarMoeda(produto.preco, localeUI)}</strong>
+                        <strong className="mt-2 block text-sm text-app-caramelo-torrado">{produtoComDesconto(produto) ? <><span className="mr-2 text-app-cinza line-through">{formatarMoeda(produto.preco, localeUI)}</span>{formatarMoeda(precoExibidoProduto(produto), localeUI)}</> : formatarMoeda(produto.preco, localeUI)}</strong>
                       </div>
                     </article>
                   ))}
@@ -520,6 +555,7 @@ export default function PaginaRestaurante({ params }) {
                             </div>
                             <TextoDinamicoTraduzido texto={produto.nome} as="h3" className="mt-2 break-words text-base font-bold text-app-cafe-profundo sm:text-lg" />
                             {produto.descricao ? <TextoDinamicoTraduzido texto={produto.descricao} as="p" className="mt-1 break-words text-sm leading-6 text-app-mocha" /> : null}
+                            {produto.tempo_preparo_minutos ? <p className="mt-2 text-xs font-semibold text-app-caramelo-torrado">{ui("Preparo médio: {0} min", [produto.tempo_preparo_minutos])}</p> : null}
                             {(() => {
                               const seguranca = Array.isArray(produto.seguranca_alimentar_produto) ? produto.seguranca_alimentar_produto[0] : produto.seguranca_alimentar_produto;
                               const alergenos = produto.alergenos_produto ?? [];
@@ -528,7 +564,7 @@ export default function PaginaRestaurante({ params }) {
                                 {alergenos.slice(0, 3).map((item) => <span key={`${item.tipo}-${item.alergenos_catalogo?.codigo}`} className="text-app-mocha">{item.tipo === "PRESENTE" ? ui("Contém") : item.tipo === "PODE_CONTER" ? ui("Pode conter") : ui("Risco de contaminação")}: {item.alergenos_catalogo?.nome}</span>)}
                               </div>;
                             })()}
-                            <p className="mt-2 text-base font-bold text-app-caramelo-torrado">{formatarMoeda(produto.preco, localeUI)}</p>
+                            <p className="mt-2 text-base font-bold text-app-caramelo-torrado">{produtoComDesconto(produto) ? <><span className="mr-2 text-app-cinza line-through">{formatarMoeda(produto.preco, localeUI)}</span>{formatarMoeda(precoExibidoProduto(produto), localeUI)}</> : formatarMoeda(produto.preco, localeUI)}</p>
                           </div>
                           <div className="flex items-center justify-between gap-3 md:col-span-2 xl:col-span-1 xl:justify-end">
                             <button type="button" onClick={() => alterarQuantidade(produto.id_produto, -1)} className="app-icon-button flex h-10 w-10 items-center justify-center rounded-full bg-white text-app-cafe-profundo ring-1 ring-app-baunilha-dourada transition hover:bg-app-baunilha-dourada">
@@ -558,10 +594,11 @@ export default function PaginaRestaurante({ params }) {
                 <p className="mt-1">{ui("Este restaurante ainda não publicou itens. Você ainda pode reservar uma mesa normalmente.")}</p>
               </section>
             )}
+            <SecaoAvaliacoes totalAvaliacoes={totalAvaliacoes} avaliacaoMedia={avaliacaoMedia} avaliacoesRecentes={avaliacoesRecentes} localeUI={localeUI} ui={ui} />
           </section>
 
           <aside id="reserva" className="h-fit rounded-[18px] bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada lg:sticky lg:top-6">
-            <VisibilidadeCampanhas campanhas={campanhas}/>{campanhas.length ? <section className="rounded-[18px] border border-app-dourado-mel/50 bg-app-creme-leve p-5 shadow-sm sm:p-6"><div className="flex flex-wrap items-end justify-between gap-3"><div><p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">Oferta Profissional</p><h2 className="mt-1 text-2xl font-bold">Ofertas disponíveis</h2></div><span className="rounded-full bg-app-cafe-profundo px-3 py-1 text-xs font-bold text-app-creme-leve">Regras visíveis antes da reserva</span></div><div className="mt-4 grid gap-3 md:grid-cols-2">{campanhas.map((campanha) => <button data-campanha-id={campanha.id_campanha} key={campanha.id_campanha} type="button" onClick={() => { registrarCampanha(campanha.id_campanha,"CLICK"); setCampanhaSelecionada((atual) => atual?.id_campanha === campanha.id_campanha ? null : campanha); }} className={`rounded-[12px] border p-4 text-left transition ${campanhaSelecionada?.id_campanha === campanha.id_campanha ? "border-app-caramelo-torrado bg-white" : "border-app-baunilha-dourada bg-white/70 hover:bg-white"}`}><div className="flex justify-between gap-3"><strong>{campanha.titulo}</strong><span className="text-xs font-bold text-app-caramelo-torrado">{campanhaSelecionada?.id_campanha === campanha.id_campanha ? "Selecionada" : "Selecionar"}</span></div><p className="mt-2 text-sm text-app-mocha">{campanha.descricao}</p><p className="mt-2 text-sm">{campanha.tipo_beneficio.replaceAll("_"," ")}{campanha.tipo_beneficio==="DESCONTO_PERCENTUAL" ? ": "+campanha.valor_beneficio+"%" : campanha.tipo_beneficio==="DESCONTO_FIXO" ? ": R$ "+campanha.valor_beneficio : campanha.tipo_beneficio==="COMBO" ? ": R$ "+campanha.preco_combo : ""}</p>{campanha.beneficio_itens?.map(i=><p key={i.id_produto}>{i.quantidade} ? {i.nome??("Produto #"+i.id_produto)}</p>)}<p className="text-xs">M?nimo: {campanha.minimo_pessoas??1} pessoa(s), {campanha.minimo_itens??0} item(ns).</p><p className="mt-3 text-xs leading-5 text-app-cinza">Válida de {new Date(campanha.inicio_em).toLocaleDateString(localeUI)} até {new Date(campanha.fim_em).toLocaleDateString(localeUI)}. {campanha.regras ?? "Confira as condições na confirmação."}</p></button>)}</div>{campanhaSelecionada ? <p className="mt-4 text-sm text-app-mocha">Oferta selecionada: <strong>{campanhaSelecionada.titulo}</strong>. Ela será validada novamente na confirmação, considerando data, horário, itens e limite de uso.</p> : null}</section> : null}
+            <VisibilidadeCampanhas campanhas={campanhas}/>{campanhas.length ? <section className="rounded-[18px] border border-app-dourado-mel/50 bg-app-creme-leve p-5 shadow-sm sm:p-6"><div className="flex flex-wrap items-end justify-between gap-3"><div><p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">Oferta Profissional</p><h2 className="mt-1 text-2xl font-bold">Ofertas disponíveis</h2></div><span className="rounded-full bg-app-cafe-profundo px-3 py-1 text-xs font-bold text-app-creme-leve">Regras visíveis antes da reserva</span></div><div className="mt-4 grid gap-3 md:grid-cols-2">{campanhas.map((campanha) => <button data-campanha-id={campanha.id_campanha} key={campanha.id_campanha} type="button" onClick={() => { registrarCampanha(campanha.id_campanha,"CLICK"); setCampanhaSelecionada((atual) => atual?.id_campanha === campanha.id_campanha ? null : campanha); }} className={`rounded-[12px] border p-4 text-left transition ${campanhaSelecionada?.id_campanha === campanha.id_campanha ? "border-app-caramelo-torrado bg-white" : "border-app-baunilha-dourada bg-white/70 hover:bg-white"}`}><div className="flex justify-between gap-3"><strong>{campanha.titulo}</strong><span className="text-xs font-bold text-app-caramelo-torrado">{campanhaSelecionada?.id_campanha === campanha.id_campanha ? "Selecionada" : "Selecionar"}</span></div><p className="mt-2 text-sm text-app-mocha">{campanha.descricao}</p><p className="mt-2 text-sm">{campanha.tipo_beneficio.replaceAll("_"," ")}{campanha.tipo_beneficio==="DESCONTO_PERCENTUAL" ? ": "+campanha.valor_beneficio+"%" : campanha.tipo_beneficio==="DESCONTO_FIXO" ? ": R$ "+campanha.valor_beneficio : campanha.tipo_beneficio==="COMBO" ? ": R$ "+campanha.preco_combo : ""}</p>{campanha.beneficio_itens?.map(i=><p key={i.id_produto}>{i.quantidade} × {i.nome??("Produto #"+i.id_produto)}</p>)}<p className="text-xs">Mínimo: {campanha.minimo_pessoas??1} pessoa(s), {campanha.minimo_itens??0} item(ns).</p><p className="mt-3 text-xs leading-5 text-app-cinza">Válida de {new Date(campanha.inicio_em).toLocaleDateString(localeUI)} até {new Date(campanha.fim_em).toLocaleDateString(localeUI)}. {campanha.regras ?? "Confira as condições na confirmação."}</p></button>)}</div>{campanhaSelecionada ? <p className="mt-4 text-sm text-app-mocha">Oferta selecionada: <strong>{campanhaSelecionada.titulo}</strong>. Ela será validada novamente na confirmação, considerando data, horário, itens e limite de uso.</p> : null}</section> : null}
 
             <form onSubmit={reservar}>
               <div className="flex items-center gap-3">
@@ -583,7 +620,7 @@ export default function PaginaRestaurante({ params }) {
                         {slot.horario}
                       </option>
                     )) : (
-                      <option value="">{ui("Sem horários disponíveis")}</option>
+                      <option value="">{ui(carregandoHorarios ? "Carregando horários..." : "Sem horários disponíveis")}</option>
                     )}
                   </select>
                 </label>
@@ -619,13 +656,15 @@ export default function PaginaRestaurante({ params }) {
                   <strong>{formatarMoeda(valorMinimoTotal, localeUI)}</strong>
                 </div>
                 {temPedidoAntecipado ? <div className="flex justify-between gap-4"><span className="text-app-mocha">{ui("Valor do pedido")}</span><strong>{formatarMoeda(totalPedido, localeUI)}</strong></div> : null}
+                {campanhaSelecionada && temPedidoAntecipado ? <div className="flex justify-between gap-4 text-app-caramelo-torrado"><span>Desconto da oferta</span><strong>- {formatarMoeda(descontoCampanha, localeUI)}</strong></div> : null}
+                {tempoPreparoPedido ? <div className="flex justify-between gap-4"><span className="text-app-mocha">{ui("Preparo estimado do pedido")}</span><strong>{ui("aprox. {0} min", [tempoPreparoPedido])}</strong></div> : null}
                 <div className="flex items-center justify-between border-t border-app-baunilha-dourada pt-4">
                   <span className="font-bold">{ui("Total a pagar")}</span>
-                  <strong className="text-2xl text-app-cafe-profundo">{formatarMoeda(totalPedido + valorMinimoTotal, localeUI)}</strong>
+                  <strong className="text-2xl text-app-cafe-profundo">{formatarMoeda(Math.max(0, totalPedido - descontoCampanha) + valorMinimoTotal, localeUI)}</strong>
                 </div>
               </div>
 
-              {!operacaoConfigurada ? (
+              {!carregandoHorarios && !operacaoConfigurada ? (
                 <p className="mt-5 rounded-[8px] bg-white p-3 text-sm font-semibold leading-6 text-app-caramelo-torrado">
                   {ui(disponibilidade.motivo ?? "Este restaurante ainda precisa configurar os horários de funcionamento antes de receber reservas.")}
                 </p>

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { clearAuthResponse } from "@/lib/session";
 import { supabase } from "@/lib/supabase";
+import { senhaValida } from "@/lib/politica-senha";
 
 export default function RecuperarSenhaPage() {
   const [novaSenha, setNovaSenha] = useState("");
@@ -65,8 +66,8 @@ export default function RecuperarSenhaPage() {
 
   async function alterarSenha(event) {
     event.preventDefault();
-    if (novaSenha.length < 6) {
-      setMensagem("A nova senha precisa ter pelo menos 6 caracteres.");
+    if (!senhaValida(novaSenha)) {
+      setMensagem("A senha precisa ter 6 caracteres, maiúscula, minúscula, número e caractere especial.");
       return;
     }
     if (novaSenha !== confirmacaoSenha) {

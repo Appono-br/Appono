@@ -6,9 +6,14 @@ const supabase_1 = require("../lib/supabase");
 const auth_1 = require("../middleware/auth");
 const comum_1 = require("../services/validacoes/comum");
 const geolocalizacao_1 = require("../services/geolocalizacao");
+const restaurant_categories_1 = require("../domain/restaurant-categories");
 exports.meRouter = (0, express_1.Router)();
 function textoOpcional(valor) {
     return typeof valor === "string" ? valor.trim() : undefined;
+}
+const CATEGORIAS_CULINARIAS = new Set(["Brasileira", "Italiana", "Japonesa", "Chinesa", "Árabe", "Mexicana", "Hamburgueria", "Pizzaria", "Vegetariana", "Vegana", "Cafeteria", "Padaria", "Doceria", "Saudável", "Frutos do mar", "Churrascaria", "Contemporânea", "Outra"]);
+function categoriasCulinarias(valor) {
+    return (0, restaurant_categories_1.normalizarCategorias)(valor);
 }
 function prepararPerfilParaResposta(perfil) {
     return perfil;
@@ -98,6 +103,8 @@ exports.meRouter.patch("/", auth_1.requireAuth, async (req, res) => {
     if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
         return res.status(400).json({ error: "Informe um e-mail válido." });
     }
+    const categorias = perfilAtual.tipo === "restaurante" ? categoriasCulinarias(body.categorias_culinarias) : undefined;
+    if (categorias === null) return res.status(400).json({ error: "Escolha até 8 categorias culinárias válidas." });
     const dadosComuns = {
         nome: textoOpcional(body.nome),
         telefone: textoOpcional(body.telefone),
@@ -117,6 +124,7 @@ exports.meRouter.patch("/", auth_1.requireAuth, async (req, res) => {
                 : undefined,
             preferencias_notificacao: body.preferencias_notificacao,
             configuracao_operacao: body.configuracao_operacao,
+            categorias_culinarias: categorias,
         }
         : dadosComuns).filter(([, valor]) => valor !== undefined));
     if (!Object.keys(atualizacao).length) {

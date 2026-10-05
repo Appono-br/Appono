@@ -18,6 +18,14 @@ async function resultAll(makeQuery, pageSize = 1000, maxRows = 100000) {
  const error=new Error("Consulta excede o limite operacional. Reduza o período.");error.statusCode=422;throw error;
 }
 async function restaurante(res){const r=await result(db.from("restaurantes").select("id_restaurante,configuracao_operacao").eq("id_auth",res.locals.user.id).single());await exigirPlanoProfissional(r.id_restaurante);return r;}
+function instanteDentroDaOperacao(configuracao, instante) {
+ const data = new Date(instante); if (Number.isNaN(data.getTime())) return false;
+ const dia = new Intl.DateTimeFormat("en-US", { timeZone: "America/Sao_Paulo", weekday: "long" }).format(data).toLowerCase();
+ const hora = new Intl.DateTimeFormat("en-GB", { timeZone: "America/Sao_Paulo", hour: "2-digit", minute: "2-digit", hour12: false }).format(data);
+ const config = configuracao && Array.isArray(configuracao.days) ? configuracao.days.find((item) => String(item.id).toLowerCase() === dia) : null;
+ if (!config || config.enabled !== true || !Array.isArray(config.shifts)) return false;
+ return config.shifts.some((turno) => hora >= String(turno.open ?? "") && hora < String(turno.close ?? ""));
+}
 async function publicas(id) {
  let q=db.from("campanhas_inteligentes_restaurante").select("*,campanhas_inteligentes_produtos(id_produto)").in("status",["ATIVA","AGENDADA"]).eq("precisa_configuracao",false).lte("inicio_em",new Date().toISOString()).gt("fim_em",new Date().toISOString());
  if(id)q=q.eq("id_restaurante",id);
@@ -49,13 +57,16 @@ campaignsRouter.put("/consentimento",requireRole("cliente"),run(async(req,res)=>
 }));
 campaignsRouter.get("/ofertas",requireRole("cliente"),run(async(req,res)=>{
  const c=await result(db.from("consentimentos_ofertas_cliente").select("habilitado,atualizado_em").eq("id_cliente",res.locals.profileId).maybeSingle());
- if(!c?.habilitado)return res.json({campanhas:[]});
- // Somente escolhas explicitas de restaurantes favoritos; nenhum dado sensivel.
- const prefs=await result(db.from("preferencias_rotina_cliente").select("id_restaurante").eq("id_cliente",res.locals.profileId).eq("tipo","RESTAURANTE_FAVORITO"));
+ const prefs=c?.habilitado?await result(db.from("preferencias_rotina_cliente").select("id_restaurante").eq("id_cliente",res.locals.profileId).eq("tipo","RESTAURANTE_FAVORITO")):[];
  const favoritos=new Set(prefs.map(p=>p.id_restaurante));
- const campanhas=(await publicas()).filter(x=>favoritos.has(x.id_restaurante)).slice(0,10).map(x=>({...x,explicacao:"Oferta de um restaurante que você marcou como favorito."}));
- const atual=await result(db.from("consentimentos_ofertas_cliente").select("habilitado,atualizado_em").eq("id_cliente",res.locals.profileId).maybeSingle());
- res.json({campanhas:atual?.habilitado&&atual.atualizado_em===c.atualizado_em?campanhas:[]});
+ const campanhasPublicas=await publicas();
+ const restaurantes=campanhasPublicas.length?await result(db.from("restaurantes").select("id_restaurante,nome,logo_url").in("id_restaurante",[...new Set(campanhasPublicas.map(x=>x.id_restaurante))])):[];
+ const idsProdutos=[...new Set(campanhasPublicas.flatMap(campanha=>[...(campanha.campanhas_inteligentes_produtos??[]).map(produto=>produto.id_produto),...(campanha.beneficio_itens??[]).map(produto=>produto.id_produto)]))];
+ const produtos=idsProdutos.length?await result(db.from("produtos").select("id_produto,nome,imagem_url").in("id_produto",idsProdutos).eq("disponivel",true).eq("arquivado",false)):[];
+ const porRestaurante=new Map(restaurantes.map(restaurante=>[restaurante.id_restaurante,restaurante]));
+ const porProduto=new Map(produtos.map(produto=>[produto.id_produto,produto]));
+ const campanhas=campanhasPublicas.map(campanha=>{const produtosElegiveis=[...(campanha.campanhas_inteligentes_produtos??[]),...(campanha.beneficio_itens??[])].map(produto=>porProduto.get(produto.id_produto)).filter((produto,indice,lista)=>produto&&lista.findIndex(item=>item.id_produto===produto.id_produto)===indice);return {...campanha,restaurante:porRestaurante.get(campanha.id_restaurante)??null,produtos:produtosElegiveis,personalizada:favoritos.has(campanha.id_restaurante)};}).sort((a,b)=>Number(b.personalizada)-Number(a.personalizada)).slice(0,12);
+ res.json({campanhas,personalizacao_habilitada:Boolean(c?.habilitado)});
 }));
 campaignsRouter.post("/:id/eventos",requireRole("cliente"),run(async(req,res)=>{
  const tipo=req.body.tipo;if(!["IMPRESSION","CLICK","RESERVA_INICIADA"].includes(tipo))throw new Error("Evento inválido.");
@@ -79,8 +90,11 @@ campaignsRouter.get("/",run(async(req,res)=>{
 campaignsRouter.post("/",run(async(req,res)=>{await salvar(req,res,null);}));
 campaignsRouter.patch("/:id",run(async(req,res)=>{await salvar(req,res,Number(req.params.id));}));
 async function salvar(req,res,id){
- await restaurante(res);
+ const restauranteAtual=await restaurante(res);
  const d=validarCampanha(req.body,res.locals.user.id,process.env.SUPABASE_URL);
+ if (["AGENDADA","ATIVA"].includes(d.status) && (!instanteDentroDaOperacao(restauranteAtual.configuracao_operacao,d.inicio_em) || !instanteDentroDaOperacao(restauranteAtual.configuracao_operacao,d.fim_em))) {
+  const erro=new Error("A campanha deve começar e terminar dentro do horário de funcionamento do restaurante."); erro.statusCode=422; throw erro;
+ }
  const campanha=await result(db.rpc("salvar_campanha_atomica",{p_actor:res.locals.user.id,p_id:id,p_versao:req.body.versao??null,p_dados:d}));
  res.json({campanha});
 }

@@ -18,6 +18,7 @@ import Seguranca from "./seguranca";
 import MercadoPago from "./mercado-pago";
 import Operacao from "./operacao";
 import DadosBancarios from "./dados-bancarios";
+import { CATEGORIAS_CULINARIAS } from "@/lib/categorias-culinarias";
 
 const paineis = { endereco: Endereco, notificacoes: Notificacoes, seguranca: Seguranca, "mercado-pago": MercadoPago, operacao: Operacao, "dados-bancarios": DadosBancarios };
 const initialForm = {
@@ -30,6 +31,7 @@ const initialForm = {
     postalCode: "",
     logoUrl: "",
     reservationPrice: "0",
+    categorias_culinarias: [],
 };
 const settingsItems = [
     { label: "Informações da loja", icon: "store", href: "/restaurante/configuracoes" },
@@ -111,6 +113,7 @@ export default function RestaurantSettings({ painelInicial = "conta" }) {
                     postalCode: aplicarMascaraCep(restaurante.cep ?? ""),
                     logoUrl: restaurante.logo_url ?? "",
                     reservationPrice: String(restaurante.valor_minimo_reserva_por_pessoa ?? 0),
+                    categorias_culinarias: restaurante.categorias_culinarias ?? [],
                 });
                 setMessage("");
             }
@@ -152,6 +155,7 @@ export default function RestaurantSettings({ painelInicial = "conta" }) {
                     endereco: form.address,
                     cep: form.postalCode,
                     valor_minimo_reserva_por_pessoa: Number(form.reservationPrice),
+                    categorias_culinarias: form.categorias_culinarias,
                 }),
             });
             if (novaImagem) {
@@ -247,6 +251,7 @@ export default function RestaurantSettings({ painelInicial = "conta" }) {
 
             <section className="mt-8 grid gap-6 sm:grid-cols-2">
               <Field label={ui("Nome da loja")} value={form.storeName} onChange={(value) => updateField("storeName", value)}/>
+              <fieldset className="grid gap-2 sm:col-span-2"><legend className="text-xs font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">{ui("Categorias culinárias")}</legend><div className="flex flex-wrap gap-2" role="group" aria-label={ui("Categorias culinárias")}>{CATEGORIAS_CULINARIAS.map((categoria) => { const selecionada = form.categorias_culinarias.includes(categoria); return <button key={categoria} type="button" aria-pressed={selecionada} onClick={() => { if (selecionada) updateField("categorias_culinarias", form.categorias_culinarias.filter((item) => item !== categoria)); else if (form.categorias_culinarias.length < 8) updateField("categorias_culinarias", [...form.categorias_culinarias, categoria]); }} className={`rounded-full border px-3 py-2 text-sm transition ${selecionada ? "border-app-cafe-profundo bg-app-cafe-profundo text-white" : "border-app-baunilha-dourada bg-app-creme-suave text-app-mocha hover:bg-app-chantilly"}`}>{categoria}</button>; })}</div><span className="text-xs text-app-cinza">{ui("Selecione até 8 categorias.")}</span></fieldset>
               <Field label={ui("CNPJ")} value={form.document} onChange={(value) => updateField("document", value)} disabled/>
               <Field label={ui("Razão social")} value={form.legalName} onChange={(value) => updateField("legalName", value)} disabled/>
               <Field label={ui("Telefone de contato")} value={form.phone} onChange={(value) => updateField("phone", value)}/>

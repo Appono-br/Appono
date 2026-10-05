@@ -1264,3 +1264,13 @@ html[data-tema="escuro"] select[size="1"] {
   color: #ffffff !important;
 }
 
+/* O painel lateral tem largura fixa; ofertas devem ocupar uma coluna para manter o texto legível. */
+#reserva > section > .mt-4.grid {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+#reserva [data-campanha-id] {
+  width: 100%;
+  border-radius: 0.75rem !important;
+}
+

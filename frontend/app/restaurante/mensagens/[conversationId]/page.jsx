@@ -31,9 +31,9 @@ function AvatarRestaurante({ conversa, size = "h-16 w-16" }) {
     const { ui } = useInterface();
   const logoUrl = conversa?.restaurante?.logo_url;
   return (
-    <span className={`relative flex ${size} shrink-0 overflow-hidden rounded-[16px] bg-white text-xs font-bold text-app-cafe-profundo ring-1 ring-app-baunilha-dourada/55`}>
+    <span className={`logo-restaurante-circular relative flex ${size} shrink-0 overflow-hidden rounded-full bg-white text-xs font-bold text-app-cafe-profundo ring-1 ring-app-baunilha-dourada/55`}>
       {logoUrl ? (
-        <Image src={logoUrl} alt={conversa?.restaurante?.nome ?? "Restaurante"} fill sizes="72px" className="object-contain p-2" />
+        <Image src={logoUrl} alt={conversa?.restaurante?.nome ?? "Restaurante"} fill sizes="72px" className="object-cover" />
       ) : (
         <span className="flex h-full w-full items-center justify-center">{ui("AP")}</span>
       )}

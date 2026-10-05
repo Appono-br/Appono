@@ -109,6 +109,7 @@ function BuscaClienteContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const termoInicial = searchParams.get("q") ?? "";
+  const categoriaSelecionada = searchParams.get("categoria")?.trim() ?? "";
   const [termo, setTermo] = useState(termoInicial);
   const [debouncedTermo, setDebouncedTermo] = useState(termoInicial);
   const [filtroBusca, setFiltroBusca] = useState("todos");
@@ -149,7 +150,13 @@ function BuscaClienteContent() {
   }, [debouncedTermo]);
 
   const resultados = useMemo(() => {
-    const base = debouncedTermo ? filtrarOrdenarPorBusca(restaurantes, debouncedTermo, obterCamposRestaurante) : restaurantes;
+    const porCategoria = categoriaSelecionada
+      ? restaurantes.map((restaurant) => ({
+        ...restaurant,
+        publishedDishes: restaurant.publishedDishes.filter((prato) => String(prato.categoria ?? "").trim().toLocaleLowerCase("pt-BR") === categoriaSelecionada.toLocaleLowerCase("pt-BR")),
+      })).filter((restaurant) => restaurant.publishedDishes.length > 0)
+      : restaurantes;
+    const base = debouncedTermo ? filtrarOrdenarPorBusca(porCategoria, debouncedTermo, obterCamposRestaurante) : porCategoria;
     const filtrados = base.filter((restaurant) => {
       if (filtroBusca === "favoritos") return restaurant.isFavorite;
       if (filtroBusca === "bem-avaliados") return Number(restaurant.rating ?? 0) >= 4;
@@ -171,7 +178,7 @@ function BuscaClienteContent() {
       return [...filtrados].sort((a, b) => Number(b.favoriteCount ?? 0) - Number(a.favoriteCount ?? 0));
     }
     return filtrados;
-  }, [debouncedTermo, filtroBusca, ordenacaoBusca, restaurantes]);
+  }, [categoriaSelecionada, debouncedTermo, filtroBusca, ordenacaoBusca, restaurantes]);
 
   const totalPratos = resultados.reduce((total, restaurante) => total + restaurante.publishedDishes.length, 0);
 
@@ -212,7 +219,7 @@ function BuscaClienteContent() {
         <div className="mx-auto max-w-7xl">
           <Link href="/cliente/dashboard" className="inline-flex items-center gap-2 text-sm font-bold text-app-baunilha-dourada transition hover:text-white">
             <Icon type="arrow" className="h-4 w-4" />{ui("Voltar ao início")}</Link>
-          <h1 className="mt-5 text-4xl font-semibold leading-tight sm:text-5xl">{ui("Busca avançada")}</h1>
+          <h1 className="mt-5 text-4xl font-semibold leading-tight sm:text-5xl">{categoriaSelecionada ? ui("Restaurantes de {0}", [categoriaSelecionada]) : ui("Busca avançada")}</h1>
         </div>
       </section>
 
@@ -274,7 +281,7 @@ function BuscaClienteContent() {
 
           {mensagem ? <p role="status" className="mb-4 rounded-[10px] border border-app-baunilha-dourada bg-white p-3 text-sm font-semibold text-app-caramelo-torrado">{ui(mensagem)}</p> : null}
 
-          <VitrinePratos key={`${debouncedTermo}-${filtroBusca}-${ordenacaoBusca}`} restaurantes={resultados} carregando={carregando} />
+          <VitrinePratos key={`${categoriaSelecionada}-${debouncedTermo}-${filtroBusca}-${ordenacaoBusca}`} restaurantes={resultados} carregando={carregando} mostrarCategorias maxCategorias={8} />
 
           <h2 className="mb-4 text-2xl font-semibold text-app-cafe-profundo">{ui("Restaurantes")}</h2>
 
@@ -291,9 +298,9 @@ function BuscaClienteContent() {
                 return (
                   <article key={restaurant.id} className="group relative overflow-hidden rounded-[16px] border border-app-baunilha-dourada/65 bg-white p-3 shadow-sm transition hover:-translate-y-0.5 hover:border-app-caramelo-torrado/55 hover:shadow-md">
                     <div className="grid gap-4 md:grid-cols-[128px_1fr_auto] md:items-center">
-                      <Link href={`/cliente/restaurantes/${restaurant.id}`} className={`relative block h-28 w-28 shrink-0 overflow-hidden rounded-xl ring-1 ring-app-baunilha-dourada/50 md:h-32 md:w-32 ${restaurant.imageUrl ? "bg-[#ffffff]" : "bg-app-chantilly"}`}>
+                      <Link href={`/cliente/restaurantes/${restaurant.id}`} className={`logo-restaurante-circular relative block h-28 w-28 shrink-0 overflow-hidden rounded-full ring-1 ring-app-baunilha-dourada/50 md:h-32 md:w-32 ${restaurant.imageUrl ? "bg-[#ffffff]" : "bg-app-chantilly"}`}>
                         {restaurant.imageUrl ? (
-                          <Image src={restaurant.imageUrl} alt={restaurant.name} fill sizes="(min-width: 768px) 128px, 112px" className="object-contain p-2" />
+                          <Image src={restaurant.imageUrl} alt={restaurant.name} fill sizes="(min-width: 768px) 128px, 112px" className="object-cover" />
                         ) : (
                           <div className="flex h-full items-center justify-center bg-app-chantilly text-xs font-bold uppercase tracking-[0.16em] text-app-mocha">{ui("Appono")}</div>
                         )}

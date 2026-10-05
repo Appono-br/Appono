@@ -82,8 +82,13 @@ html[data-tema="escuro"] :is(.bg-white, .bg-white\/95, .bg-white\/90, .bg-white\
 html[data-tema="escuro"] :is(.bg-app-creme-suave, .bg-white\/70, footer) {
   background-color: var(--ui-superficie-elevada);
 }
-html[data-tema="escuro"] .restaurant-most-liked-logo {
-  background-color: #fff;
+html[data-tema="escuro"] :is(
+  .restaurant-most-liked-logo,
+  .logo-restaurante-circular,
+  .dish-restaurant-logo,
+  .public-restaurant-image
+) {
+  background-color: #fff !important;
 }
 html[data-tema="escuro"] :is(.bg-app-cafe-profundo, .bg-app-cafe-profundo\/55, .bg-app-mocha, .bg-app-mocha\/55) {
   background-color: var(--ui-superficie-destaque);

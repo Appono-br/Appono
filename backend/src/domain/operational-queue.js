@@ -22,6 +22,50 @@ function obterMinutosAteReserva(reserva, agora = new Date()) {
     return Math.floor((inicio.getTime() - agora.getTime()) / 60000);
 }
 
+function obterTempoPreparoMedioMinutos(pedido) {
+    const itens = Array.isArray(pedido?.itens_pedido) ? pedido.itens_pedido : [];
+    let unidades = 0;
+    let minutos = 0;
+    for (const item of itens) {
+        const quantidade = Math.max(0, Number(item?.quantidade ?? 0));
+        const tempo = Number(item?.produtos?.tempo_preparo_minutos ?? 0);
+        if (!quantidade || !Number.isFinite(tempo) || tempo <= 0) continue;
+        unidades += quantidade;
+        minutos += quantidade * tempo;
+    }
+    return unidades ? Math.max(1, Math.round(minutos / unidades)) : null;
+}
+
+function obterTempoPreparoTotalMinutos(pedido) {
+    const itens = Array.isArray(pedido?.itens_pedido) ? pedido.itens_pedido : [];
+    const grupos = new Map();
+    for (const item of itens) {
+        const quantidade = Math.max(0, Number(item?.quantidade ?? 0));
+        const tempo = Number(item?.produtos?.tempo_preparo_minutos ?? 0);
+        if (!quantidade || !Number.isFinite(tempo) || tempo <= 0) continue;
+        const chave = String(item?.id_produto ?? item?.produtos?.id_produto ?? item?.produtos?.nome ?? grupos.size);
+        grupos.set(chave, { quantidade, tempo });
+    }
+    if (!grupos.size) return null;
+    const cargas = [...grupos.values()].map(({ quantidade, tempo }) => tempo * (1 + Math.min(quantidade - 1, 4) * 0.3));
+    const base = Math.max(...cargas);
+    const paralelas = cargas.filter((carga) => carga !== base).reduce((soma, carga) => soma + carga * 0.35, 0);
+    return Math.max(1, Math.round(base + paralelas));
+}
+
+function obterMargemOperacionalMinutos(pedido) {
+    const total = obterTempoPreparoTotalMinutos(pedido);
+    return total === null ? null : Math.max(10, total + 5);
+}
+
+function obterMinutosAteInicioPreparo(pedido, agora = new Date()) {
+    const inicio = pedido?.iniciar_preparo_em ? new Date(pedido.iniciar_preparo_em) : null;
+    if (inicio && !Number.isNaN(inicio.getTime())) return Math.floor((inicio.getTime() - agora.getTime()) / 60000);
+    const minutosAteReserva = obterMinutosAteReserva(pedido?.reservas ?? pedido?.reserva, agora);
+    const margem = obterMargemOperacionalMinutos(pedido);
+    return minutosAteReserva === null ? null : margem === null ? minutosAteReserva : minutosAteReserva - margem;
+}
+
 function pedidoEstaNaFilaOperacional(pedido, agora = new Date(), janelaMinutos = JANELA_OPERACIONAL_MINUTOS) {
     if (!pedido || pedido.ocultado_cozinha === true || pedido.status_pedido === "PENDENTE") {
         return false;
@@ -45,7 +89,9 @@ function pedidoEstaNaFilaOperacional(pedido, agora = new Date(), janelaMinutos =
     }
 
     const minutosAteReserva = obterMinutosAteReserva(pedido.reservas, agora);
-    return minutosAteReserva !== null && minutosAteReserva <= janelaMinutos && minutosAteReserva >= -janelaMinutos;
+    const margemPreparo = obterMargemOperacionalMinutos(pedido);
+    const limiteExibicao = margemPreparo === null ? janelaMinutos : Math.min(janelaMinutos, margemPreparo);
+    return minutosAteReserva !== null && minutosAteReserva <= limiteExibicao && minutosAteReserva >= -janelaMinutos;
 }
 
 function pedidoPodeIniciarPreparo(pedido, agora = new Date(), janelaMinutos = JANELA_OPERACIONAL_MINUTOS) {
@@ -86,6 +132,10 @@ module.exports = {
     STATUS_RESERVA_OPERACIONAL_PEDIDO,
     obterDataHoraReserva,
     obterMinutosAteReserva,
+    obterMinutosAteInicioPreparo,
+    obterTempoPreparoMedioMinutos,
+    obterTempoPreparoTotalMinutos,
+    obterMargemOperacionalMinutos,
     ordenarPorHorarioReserva,
     pedidoPodeIniciarPreparo,
     pedidoEstaNaFilaOperacional,

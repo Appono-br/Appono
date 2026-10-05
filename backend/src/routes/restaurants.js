@@ -70,7 +70,7 @@ async function consultarRestaurantesPublicos() {
     const cliente = obterClienteLeituraPublica();
     const consulta = cliente
         .from("restaurantes")
-        .select("id_restaurante, nome, razao_social, telefone, email, cep, endereco, horario_funcionamento, logo_url, valor_minimo_reserva_por_pessoa, configuracao_operacao, latitude, longitude")
+        .select("id_restaurante, nome, razao_social, telefone, email, cep, endereco, horario_funcionamento, logo_url, categorias_culinarias, valor_minimo_reserva_por_pessoa, configuracao_operacao, latitude, longitude")
         .eq("ativo", true)
         .order("nome");
     const resposta = await consulta;
@@ -79,7 +79,7 @@ async function consultarRestaurantesPublicos() {
     }
     return cliente
         .from("restaurantes")
-        .select("id_restaurante, nome, razao_social, telefone, email, cep, endereco, horario_funcionamento, logo_url, valor_minimo_reserva_por_pessoa, configuracao_operacao")
+        .select("id_restaurante, nome, razao_social, telefone, email, cep, endereco, horario_funcionamento, logo_url, categorias_culinarias, valor_minimo_reserva_por_pessoa, configuracao_operacao")
         .eq("ativo", true)
         .order("nome");
 }
@@ -87,7 +87,7 @@ async function consultarRestaurantePublicoPorId(restaurantId) {
     const cliente = obterClienteLeituraPublica();
     const resposta = await cliente
         .from("restaurantes")
-        .select("id_restaurante, nome, telefone, email, endereco, horario_funcionamento, logo_url, valor_minimo_reserva_por_pessoa, configuracao_operacao, latitude, longitude")
+        .select("id_restaurante, nome, telefone, email, endereco, horario_funcionamento, logo_url, categorias_culinarias, valor_minimo_reserva_por_pessoa, configuracao_operacao, latitude, longitude")
         .eq("id_restaurante", restaurantId)
         .eq("ativo", true)
         .single();
@@ -96,7 +96,7 @@ async function consultarRestaurantePublicoPorId(restaurantId) {
     }
     return cliente
         .from("restaurantes")
-        .select("id_restaurante, nome, telefone, email, endereco, horario_funcionamento, logo_url, valor_minimo_reserva_por_pessoa, configuracao_operacao")
+        .select("id_restaurante, nome, telefone, email, endereco, horario_funcionamento, logo_url, categorias_culinarias, valor_minimo_reserva_por_pessoa, configuracao_operacao")
         .eq("id_restaurante", restaurantId)
         .eq("ativo", true)
         .single();
@@ -255,16 +255,6 @@ async function obterDadosCardapioBusca(termo, incluirPratos = false) {
     return { correspondencias, resumo };
 }
 const diasSemanaOperacao = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
-function obterDataLocalSaoPaulo() {
-    return new Date(new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
-}
-function formatarDataLocal(data) {
-    return [
-        data.getFullYear(),
-        String(data.getMonth() + 1).padStart(2, "0"),
-        String(data.getDate()).padStart(2, "0"),
-    ].join("-");
-}
 function converterHoraParaMinutos(horario) {
     const [hora, minuto] = String(horario ?? "").split(":").map(Number);
     if (!Number.isFinite(hora) || !Number.isFinite(minuto)) return null;
@@ -278,7 +268,7 @@ function converterMinutosParaHora(totalMinutos) {
 function obterFimReserva(horarioInicio) {
     const inicio = converterHoraParaMinutos(horarioInicio);
     if (inicio === null) return null;
-    return converterMinutosParaHora((inicio + 120) % (24 * 60));
+    return converterMinutosParaHora(inicio + 120);
 }
 function intervalosSobrepoem(inicioA, fimA, inicioB, fimB) {
     return inicioA < fimB && fimA > inicioB;
@@ -293,7 +283,7 @@ function obterDiaOperacao(configuracao, dataReserva) {
     const data = new Date(`${dataReserva}T12:00:00`);
     return configuracao.days?.find((day) => day.id === diasSemanaOperacao[data.getDay()]);
 }
-function montarHorariosOperacionais({ restaurante, dataReserva, pessoas, reservas, mesas }) {
+function montarHorariosOperacionais({ restaurante, dataReserva, pessoas, reservas, mesas, agora = new Date() }) {
     const configuracao = restaurante.configuracao_operacao ?? {};
     if (!restauranteTemOperacaoConfigurada(configuracao)) {
         return {
@@ -310,10 +300,8 @@ function montarHorariosOperacionais({ restaurante, dataReserva, pessoas, reserva
             motivo: "Restaurante fechado nesta data.",
         };
     }
-    const agora = obterDataLocalSaoPaulo();
-    const hoje = formatarDataLocal(agora);
     const antecedenciaMinima = Math.max(Number(configuracao.antecedenciaMinutosReserva ?? 60), 0);
-    const minimoMesmoDia = dataReserva === hoje ? agora.getHours() * 60 + agora.getMinutes() + antecedenciaMinima : 0;
+    const inicioMinimo = agora.getTime() + antecedenciaMinima * 60 * 1000;
     const duracaoReserva = 120;
     const mesasCompativeis = (mesas ?? []).filter((mesa) => Number(mesa.capacidade ?? 0) >= pessoas);
     const horarios = [];
@@ -326,7 +314,8 @@ function montarHorariosOperacionais({ restaurante, dataReserva, pessoas, reserva
             const horario = converterMinutosParaHora(minuto);
             const fim = minuto + duracaoReserva;
             let motivo = null;
-            if (minuto < minimoMesmoDia) {
+            const inicioSlot = new Date(`${dataReserva}T${horario}:00-03:00`).getTime();
+            if (inicioSlot < inicioMinimo) {
                 motivo = "antecedência mínima";
             }
             else if (!mesasCompativeis.length) {
@@ -411,7 +400,7 @@ exports.restaurantsRouter.get("/", async (req, res) => {
                     pratos_publicados: (resumo.pratos_publicados ?? [])
                         .filter((prato) => restauranteCorrespondeBusca(item, termoBusca) || prato.corresponde_busca)
                         .sort(ordenarPorExibicaoENome)
-                        .map(({ id_produto, nome, preco, imagem_url }) => ({ id_produto, nome, preco, imagem_url })),
+                        .map(({ id_produto, nome, categoria, preco, imagem_url }) => ({ id_produto, nome, categoria, preco, imagem_url })),
                 } : {}),
                 total_itens_cardapio: resumo.total_itens_cardapio ?? 0,
                 tem_cardapio_publicado: Number(resumo.total_itens_cardapio ?? 0) > 0,
@@ -604,7 +593,7 @@ exports.restaurantsRouter.get("/:id/cardapio", async (req, res) => {
     }
     const { data: cardapios, error: cardapiosError } = await obterClienteLeituraPublica()
         .from("cardapios")
-        .select("id_cardapio, nome, descricao, horario_inicio, horario_fim, categorias(id_categoria, nome, descricao, ativo, arquivado, ordem_exibicao, produtos(id_produto, nome, descricao, preco, imagem_url, disponivel, destaque, arquivado, ordem_exibicao, seguranca_alimentar_produto(status,revisado_em), alergenos_produto(tipo, alergenos_catalogo(codigo,nome))))")
+        .select("id_cardapio, nome, descricao, horario_inicio, horario_fim, categorias(id_categoria, nome, descricao, ativo, arquivado, ordem_exibicao, produtos(id_produto, nome, descricao, preco, imagem_url, disponivel, destaque, arquivado, ordem_exibicao, tempo_preparo_minutos, seguranca_alimentar_produto(status,revisado_em), alergenos_produto(tipo, alergenos_catalogo(codigo,nome))))")
         .eq("id_restaurante", restaurantId)
         .eq("ativo", true)
         .eq("categorias.ativo", true)
