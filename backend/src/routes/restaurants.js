@@ -593,7 +593,7 @@ exports.restaurantsRouter.get("/:id/cardapio", async (req, res) => {
     }
     const { data: cardapios, error: cardapiosError } = await obterClienteLeituraPublica()
         .from("cardapios")
-        .select("id_cardapio, nome, descricao, horario_inicio, horario_fim, categorias(id_categoria, nome, descricao, ativo, arquivado, ordem_exibicao, produtos(id_produto, nome, descricao, preco, imagem_url, disponivel, destaque, arquivado, ordem_exibicao, seguranca_alimentar_produto(status,revisado_em), alergenos_produto(tipo, alergenos_catalogo(codigo,nome))))")
+        .select("id_cardapio, nome, descricao, horario_inicio, horario_fim, categorias(id_categoria, nome, descricao, ativo, arquivado, ordem_exibicao, produtos(id_produto, nome, descricao, preco, imagem_url, disponivel, destaque, arquivado, ordem_exibicao, tempo_preparo_minutos, seguranca_alimentar_produto(status,revisado_em), alergenos_produto(tipo, alergenos_catalogo(codigo,nome))))")
         .eq("id_restaurante", restaurantId)
         .eq("ativo", true)
         .eq("categorias.ativo", true)

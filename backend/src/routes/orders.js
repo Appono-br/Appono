@@ -8,7 +8,7 @@ const mercado_pago_1 = require("../services/pagamentos/mercado-pago");
 const paymentConfig = require("../services/pagamentos/config");
 const notificacoes_1 = require("../services/notificacoes");
 const { canTransitionOrder } = require("../domain/order-state");
-const { ordenarPorHorarioReserva, pedidoEstaNaFilaOperacional, pedidoPodeIniciarPreparo, obterMinutosAteInicioPreparo, obterTempoPreparoMedioMinutos } = require("../domain/operational-queue");
+const { ordenarPorHorarioReserva, pedidoEstaNaFilaOperacional, pedidoPodeIniciarPreparo, obterMinutosAteInicioPreparo, obterTempoPreparoMedioMinutos, obterTempoPreparoTotalMinutos, obterMargemOperacionalMinutos } = require("../domain/operational-queue");
 const { paginationMeta, parsePagination } = require("../domain/pagination");
 const { orderReviewEligibility } = require("../domain/review-state");
 const { decifrarTokenMercadoPago } = require("../services/pagamentos/credenciais-restaurante");
@@ -253,7 +253,7 @@ exports.ordersRouter.get("/historico/restaurante", async (req, res) => {
     const clienteBanco = supabase_1.supabaseAdmin ?? supabase;
     const { data, error } = await clienteBanco
         .from("pedidos")
-        .select("id_pedido, id_reserva, status_pedido, valor_total, data_pedido, horario_entrega_previsto, iniciar_preparo_em, ocultado_cozinha, ocultado_cozinha_em, observacoes, clientes(nome, telefone), reservas(data_reserva, horario_inicio, horario_fim, quantidade_pessoas, status_reserva, status_confirmacao_presenca, mesas(numero_mesa)), pagamentos(id_pagamento, valor_pago, status_pagamento, status_repasse, valor_restaurante, valor_comissao_app, data_pagamento), itens_pedido(quantidade, preco_unitario, observacoes, produtos(nome, descricao, imagem_url, tempo_preparo_minutos))")
+        .select("id_pedido, id_reserva, status_pedido, valor_total, data_pedido, horario_entrega_previsto, iniciar_preparo_em, ocultado_cozinha, ocultado_cozinha_em, observacoes, tempo_estimado_minimo_minutos, tempo_estimado_maximo_minutos, tempo_estimado_central_minutos, clientes(nome, telefone), reservas(data_reserva, horario_inicio, horario_fim, quantidade_pessoas, status_reserva, status_confirmacao_presenca, mesas(numero_mesa)), pagamentos(id_pagamento, valor_pago, status_pagamento, status_repasse, valor_restaurante, valor_comissao_app, data_pagamento), itens_pedido(quantidade, preco_unitario, observacoes, produtos(nome, descricao, imagem_url, tempo_preparo_minutos))")
         .eq("id_restaurante", restaurante.id_restaurante)
         .order("data_pedido", { ascending: false });
     if (error) {
@@ -267,7 +267,10 @@ exports.ordersRouter.get("/historico/restaurante", async (req, res) => {
     return res.json(historico.map((pedido) => ({
         ...pedido,
         tempo_preparo_medio_minutos: obterTempoPreparoMedioMinutos(pedido),
+        tempo_preparo_total_minutos: obterTempoPreparoTotalMinutos(pedido),
+        margem_operacional_minutos: obterMargemOperacionalMinutos(pedido),
         minutos_ate_inicio_preparo: obterMinutosAteInicioPreparo(pedido),
+        preparo_liberado: pedido.status_pedido === "CONFIRMADO" && pedidoPodeIniciarPreparo(pedido),
         minutos_ate_reserva: pedido.reservas ? Math.floor((new Date(`${pedido.reservas.data_reserva}T${String(pedido.reservas.horario_inicio ?? "").slice(0, 8)}-03:00`).getTime() - Date.now()) / 60000) : null,
     })));
 });

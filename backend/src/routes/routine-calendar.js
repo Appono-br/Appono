@@ -54,6 +54,27 @@ function expiraEm(tokens) {
     return new Date(Date.now() + Math.max(60, segundos - 30) * 1000).toISOString();
 }
 
+function idEventoReservaGoogle(idReserva) {
+    return `apponoreserva${crypto.createHash("sha256").update(`appono:reserva:${idReserva}`).digest("hex")}`;
+}
+
+function montarEventoReservaGoogle(reserva, frontendPublicUrl) {
+    const restaurante = Array.isArray(reserva.restaurantes) ? reserva.restaurantes[0] : reserva.restaurantes;
+    const inicio = new Date(`${reserva.data_reserva}T${String(reserva.horario_inicio).slice(0, 8)}-03:00`);
+    const fim = new Date(`${reserva.data_reserva}T${String(reserva.horario_fim ?? reserva.horario_inicio).slice(0, 8)}-03:00`);
+    const origem = String(frontendPublicUrl ?? "").split(",")[0].trim().replace(/\/$/, "");
+    return {
+        summary: `Appono: Reserva em ${String(restaurante?.nome ?? "Restaurante").slice(0, 120)}`,
+        description: `Reserva para ${reserva.quantidade_pessoas} pessoa(s).\nGerenciada pela Appono.`,
+        location: String(restaurante?.endereco ?? "").slice(0, 500),
+        start: { dateTime: inicio.toISOString(), timeZone: "America/Sao_Paulo" },
+        end: { dateTime: fim > inicio ? fim.toISOString() : new Date(inicio.getTime() + 60 * 60000).toISOString(), timeZone: "America/Sao_Paulo" },
+        transparency: "opaque", visibility: "private", reminders: { useDefault: true },
+        extendedProperties: { private: { appono_reserva_id: String(reserva.id_reserva) } },
+        ...(origem ? { source: { title: "Appono", url: `${origem}/cliente/reservas` } } : {}),
+    };
+}
+
 agendaRotinaRouter.get("/:provider/callback", async (req, res) => {
     const provedor = normalizarProvedor(req.params.provider);
     const state = String(req.query.state ?? "");

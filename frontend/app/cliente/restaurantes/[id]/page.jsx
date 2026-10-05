@@ -198,6 +198,13 @@ export default function PaginaRestaurante({ params }) {
   const produtosSelecionados = useMemo(() => obterProdutosSelecionados(produtos, quantidades), [produtos, quantidades]);
   const totalItens = produtosSelecionados.reduce((soma, produto) => soma + produto.quantidade, 0);
   const totalPedido = produtosSelecionados.reduce((soma, produto) => soma + Number(produto.preco ?? 0) * produto.quantidade, 0);
+  const tempoPreparoPedido = useMemo(() => {
+    if (!produtosSelecionados.length) return null;
+    const cargas = produtosSelecionados.map((produto) => Number(produto.tempo_preparo_minutos ?? 0) * (1 + Math.min(Math.max(produto.quantidade - 1, 0), 4) * 0.3)).filter((valor) => valor > 0);
+    if (!cargas.length) return null;
+    const maior = Math.max(...cargas);
+    return Math.max(1, Math.round(maior + cargas.filter((valor) => valor !== maior).reduce((soma, valor) => soma + valor * 0.35, 0) + 5));
+  }, [produtosSelecionados]);
   const idsProdutosElegiveis = new Set((campanhaSelecionada?.campanhas_inteligentes_produtos ?? []).map((item) => Number(item.id_produto)));
   const totalElegivelCampanha = produtosSelecionados.filter((produto) => !idsProdutosElegiveis.size || idsProdutosElegiveis.has(Number(produto.id_produto))).reduce((soma, produto) => soma + Number(produto.preco ?? 0) * produto.quantidade, 0);
   const descontoCampanha = campanhaSelecionada?.tipo_beneficio === "DESCONTO_PERCENTUAL" ? totalElegivelCampanha * Number(campanhaSelecionada.valor_beneficio ?? 0) / 100 : campanhaSelecionada?.tipo_beneficio === "DESCONTO_FIXO" ? Math.min(totalElegivelCampanha, Number(campanhaSelecionada.valor_beneficio ?? 0)) : 0;
@@ -548,6 +555,7 @@ export default function PaginaRestaurante({ params }) {
                             </div>
                             <TextoDinamicoTraduzido texto={produto.nome} as="h3" className="mt-2 break-words text-base font-bold text-app-cafe-profundo sm:text-lg" />
                             {produto.descricao ? <TextoDinamicoTraduzido texto={produto.descricao} as="p" className="mt-1 break-words text-sm leading-6 text-app-mocha" /> : null}
+                            {produto.tempo_preparo_minutos ? <p className="mt-2 text-xs font-semibold text-app-caramelo-torrado">{ui("Preparo médio: {0} min", [produto.tempo_preparo_minutos])}</p> : null}
                             {(() => {
                               const seguranca = Array.isArray(produto.seguranca_alimentar_produto) ? produto.seguranca_alimentar_produto[0] : produto.seguranca_alimentar_produto;
                               const alergenos = produto.alergenos_produto ?? [];
@@ -649,6 +657,7 @@ export default function PaginaRestaurante({ params }) {
                 </div>
                 {temPedidoAntecipado ? <div className="flex justify-between gap-4"><span className="text-app-mocha">{ui("Valor do pedido")}</span><strong>{formatarMoeda(totalPedido, localeUI)}</strong></div> : null}
                 {campanhaSelecionada && temPedidoAntecipado ? <div className="flex justify-between gap-4 text-app-caramelo-torrado"><span>Desconto da oferta</span><strong>- {formatarMoeda(descontoCampanha, localeUI)}</strong></div> : null}
+                {tempoPreparoPedido ? <div className="flex justify-between gap-4"><span className="text-app-mocha">{ui("Preparo estimado do pedido")}</span><strong>{ui("aprox. {0} min", [tempoPreparoPedido])}</strong></div> : null}
                 <div className="flex items-center justify-between border-t border-app-baunilha-dourada pt-4">
                   <span className="font-bold">{ui("Total a pagar")}</span>
                   <strong className="text-2xl text-app-cafe-profundo">{formatarMoeda(Math.max(0, totalPedido - descontoCampanha) + valorMinimoTotal, localeUI)}</strong>

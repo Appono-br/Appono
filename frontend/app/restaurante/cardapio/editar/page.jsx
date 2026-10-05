@@ -13,6 +13,7 @@ const initialForm = {
     name: "",
     category: "",
     price: "",
+    preparationTime: "",
     displayOrder: "0",
     description: "",
     available: true,
@@ -141,6 +142,7 @@ function RestaurantMenuItemEditorContent() {
                     name: produto.nome ?? "",
                     category: produto.categoria ?? "",
                     price: formatarPrecoParaFormulario(produto.preco),
+                    preparationTime: String(produto.tempo_preparo_minutos ?? ""),
                     displayOrder: String(produto.ordem_exibicao ?? 0),
                     description: produto.descricao ?? "",
                     available: produto.disponivel !== false,
@@ -298,6 +300,7 @@ function RestaurantMenuItemEditorContent() {
                             </span>
                         </label>
                         <Field label={ui("Preço (R$)")} value={form.price} onChange={(value) => updateField("price", normalizarPrecoDigitado(value))} inputMode="decimal" placeholder={ui("Ex: 49,90")} required />
+                        <Field label={ui("Tempo médio (min)")} value={form.preparationTime} onChange={(value) => updateField("preparationTime", value.replace(/\D/g, "").slice(0, 3))} inputMode="numeric" placeholder={ui("Ex: 20")} required min="1" max="240" />
                         <Field label={ui("Ordem")} value={form.displayOrder} onChange={(value) => updateField("displayOrder", value.replace(/\D/g, "").slice(0, 4))} inputMode="numeric" placeholder={ui("0")} />
                     </div>
 

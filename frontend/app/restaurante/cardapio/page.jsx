@@ -388,6 +388,7 @@ export default function RestaurantMenuManagementPage() {
                                     </div>
                                     <h3 className="mt-1 text-xl font-bold text-app-cafe-profundo">{produto.nome}</h3>
                                     {produto.descricao ? <p className="mt-2 text-sm leading-6 text-app-mocha">{produto.descricao}</p> : null}
+                                    <p className="mt-2 text-sm font-semibold text-app-caramelo-torrado">{produto.tempo_preparo_minutos ? ui("Tempo médio: {0} min", [produto.tempo_preparo_minutos]) : ui("Tempo médio não informado")}</p>
                                 </div>
                                 <div className="min-w-0 text-left sm:col-start-2 xl:col-start-auto xl:text-right">
                                     <strong className="text-lg text-app-cafe-profundo">{formatarMoeda(produto.preco, localeUI)}</strong>

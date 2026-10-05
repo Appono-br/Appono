@@ -4,6 +4,7 @@ exports.reservationsRouter = void 0;
 const express_1 = require("express");
 const supabase_1 = require("../lib/supabase");
 const auth_1 = require("../middleware/auth");
+const { criarRateLimiter } = require("../middleware/rate-limit");
 const notificacoes_1 = require("../services/notificacoes");
 const { sincronizarReservasNaoComparecidas } = require("../services/reservas/expiracao");
 const { refundApprovedPayments } = require("../services/pagamentos/refund");
@@ -20,6 +21,21 @@ const {
 exports.reservationsRouter = (0, express_1.Router)();
 exports.reservationsRouter.use(auth_1.requireAuth);
 const LIMITE_UNIDADES_POR_ITEM = 10;
+const limitarCodigoPresenca = criarRateLimiter({
+    janelaMs: 5 * 60_000,
+    limite: 8,
+    chave: (req, res) => `${res.locals.user?.id ?? req.ip}:reserva:${req.params.id}`,
+});
+async function registrarAuditoriaPresenca({ reserva, operacao, resultado, codigoTecnico }) {
+    if (!supabase_1.supabaseAdmin || !reserva?.id_reserva || !reserva?.id_restaurante) return;
+    await supabase_1.supabaseAdmin.from("auditoria_presenca_reserva").insert({
+        id_reserva: reserva.id_reserva,
+        id_restaurante: reserva.id_restaurante,
+        operacao,
+        resultado,
+        codigo_tecnico: codigoTecnico ?? null,
+    }).then(() => null).catch(() => null);
+}
 
 async function restaurantePodeReceberPedidoPago(restauranteId) {
     if (!paymentConfig.isRealMarketplace()) {
@@ -727,7 +743,7 @@ exports.reservationsRouter.patch("/:id/presenca", (0, auth_1.requireRole)("clien
         return res.status(400).json({ error: error instanceof Error ? error.message : "Não foi possível atualizar a presença." });
     }
 });
-exports.reservationsRouter.patch("/:id/check-in", async (req, res) => {
+exports.reservationsRouter.patch("/:id/check-in", limitarCodigoPresenca, async (req, res) => {
     await sincronizarReservasNaoComparecidas().catch(() => null);
     const reservationId = Number(req.params.id);
     const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
@@ -758,11 +774,13 @@ exports.reservationsRouter.patch("/:id/check-in", async (req, res) => {
     if (!reserva) {
         return res.status(404).json({ error: "Reserva não encontrada para este restaurante." });
     }
-    if (reserva.status_reserva === "CHECK_IN") {
-        return res.json(reserva);
-    }
     if (!codigoTelefoneValido(reserva.clientes?.telefone, req.body?.codigo_telefone)) {
+        await registrarAuditoriaPresenca({ reserva, operacao: "CHECK_IN", resultado: "CODIGO_INVALIDO", codigoTecnico: "CHECK_IN_PHONE_CODE_INVALID" });
         return res.status(422).json({ code: "CHECK_IN_PHONE_CODE_INVALID", error: "Informe os quatro últimos números do telefone do cliente." });
+    }
+    if (reserva.status_reserva === "CHECK_IN") {
+        await registrarAuditoriaPresenca({ reserva, operacao: "CHECK_IN", resultado: "SUCESSO", codigoTecnico: "ALREADY_CHECKED_IN" });
+        return res.json(reserva);
     }
     if (reserva.status_reserva !== "CONFIRMADA") {
         return res.status(409).json({ error: "Apenas reservas confirmadas podem receber check-in." });
@@ -785,6 +803,7 @@ exports.reservationsRouter.patch("/:id/check-in", async (req, res) => {
     if (error) {
         return res.status(400).json({ error: error.message });
     }
+    await registrarAuditoriaPresenca({ reserva: data, operacao: "CHECK_IN", resultado: "SUCESSO", codigoTecnico: "CHECK_IN_RECORDED" });
     await Promise.all([
         (0, notificacoes_1.notificarCliente)(data.id_cliente, {
             titulo: "Check-in realizado",
@@ -803,7 +822,7 @@ exports.reservationsRouter.patch("/:id/check-in", async (req, res) => {
     ]);
     return res.json(data);
 });
-exports.reservationsRouter.patch("/:id/concluir", async (req, res) => {
+exports.reservationsRouter.patch("/:id/concluir", limitarCodigoPresenca, async (req, res) => {
     const reservationId = Number(req.params.id);
     const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
     if (!Number.isFinite(reservationId)) {
@@ -833,11 +852,13 @@ exports.reservationsRouter.patch("/:id/concluir", async (req, res) => {
     if (!reserva) {
         return res.status(404).json({ error: "Reserva não encontrada para este restaurante." });
     }
-    if (reserva.status_reserva === "CONCLUIDA") {
-        return res.json(reserva);
-    }
     if (!codigoTelefoneValido(reserva.clientes?.telefone, req.body?.codigo_telefone)) {
+        await registrarAuditoriaPresenca({ reserva, operacao: "CHECK_OUT", resultado: "CODIGO_INVALIDO", codigoTecnico: "CHECK_OUT_PHONE_CODE_INVALID" });
         return res.status(422).json({ code: "CHECK_OUT_PHONE_CODE_INVALID", error: "Informe os quatro últimos números do telefone do cliente." });
+    }
+    if (reserva.status_reserva === "CONCLUIDA") {
+        await registrarAuditoriaPresenca({ reserva, operacao: "CHECK_OUT", resultado: "SUCESSO", codigoTecnico: "ALREADY_COMPLETED" });
+        return res.json(reserva);
     }
     if (reserva.status_reserva !== "CHECK_IN") {
         return res.status(409).json({ error: "Apenas reservas com check-in realizado podem ser finalizadas." });
@@ -866,6 +887,7 @@ exports.reservationsRouter.patch("/:id/concluir", async (req, res) => {
     if (error) {
         return res.status(400).json({ error: error.message });
     }
+    await registrarAuditoriaPresenca({ reserva: data, operacao: "CHECK_OUT", resultado: "SUCESSO", codigoTecnico: "CHECK_OUT_RECORDED" });
     await Promise.all([
         (0, notificacoes_1.notificarCliente)(data.id_cliente, {
             titulo: "Reserva finalizada",
