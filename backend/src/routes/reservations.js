@@ -24,7 +24,7 @@ const LIMITE_UNIDADES_POR_ITEM = 10;
 const limitarCodigoPresenca = criarRateLimiter({
     janelaMs: 5 * 60_000,
     limite: 8,
-    chave: (req, res) => `${res.locals.user?.id ?? req.ip}:reserva:${req.params.id}`,
+    chave: (req, res) => `${res.locals.profileId ?? res.locals.user?.id ?? req.ip}:reserva:${req.params.id}`,
 });
 async function registrarAuditoriaPresenca({ reserva, operacao, resultado, codigoTecnico }) {
     if (!supabase_1.supabaseAdmin || !reserva?.id_reserva || !reserva?.id_restaurante) return;
@@ -223,9 +223,17 @@ exports.reservationsRouter.get("/", async (req, res) => {
     if (pedidosError) {
         return res.json(reservas.map((reserva) => ({ ...reserva, pedidos: [] })));
     }
+    let eventosAgenda = [];
+    if (cliente && supabase_1.supabaseAdmin) {
+        const respostaAgenda = await supabase_1.supabaseAdmin.from("eventos_reserva_agenda")
+            .select("id_reserva,provedor,status,erro_codigo,sincronizado_em,atualizado_em")
+            .eq("id_cliente", cliente.id_cliente).in("id_reserva", idsReservas);
+        if (!respostaAgenda.error) eventosAgenda = respostaAgenda.data ?? [];
+    }
     return res.json(reservas.map((reserva) => ({
         ...reserva,
         pedidos: (pedidos ?? []).filter((pedido) => pedido.id_reserva === reserva.id_reserva),
+        agenda_google: eventosAgenda.find((evento) => evento.id_reserva === reserva.id_reserva && evento.provedor === "GOOGLE") ?? null,
     })));
 });
 exports.reservationsRouter.patch("/:id/ocultar", async (req, res) => {
@@ -743,7 +751,7 @@ exports.reservationsRouter.patch("/:id/presenca", (0, auth_1.requireRole)("clien
         return res.status(400).json({ error: error instanceof Error ? error.message : "Não foi possível atualizar a presença." });
     }
 });
-exports.reservationsRouter.patch("/:id/check-in", limitarCodigoPresenca, async (req, res) => {
+exports.reservationsRouter.patch("/:id/check-in", (0, auth_1.requireRole)("restaurante"), limitarCodigoPresenca, async (req, res) => {
     await sincronizarReservasNaoComparecidas().catch(() => null);
     const reservationId = Number(req.params.id);
     const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
@@ -783,11 +791,13 @@ exports.reservationsRouter.patch("/:id/check-in", limitarCodigoPresenca, async (
         return res.json(reserva);
     }
     if (reserva.status_reserva !== "CONFIRMADA") {
+        await registrarAuditoriaPresenca({ reserva, operacao: "CHECK_IN", resultado: "STATUS_INVALIDO", codigoTecnico: "CHECK_IN_STATUS_INVALID" });
         return res.status(409).json({ error: "Apenas reservas confirmadas podem receber check-in." });
     }
     const dataHoraReserva = obterDataHoraLocal(reserva.data_reserva, reserva.horario_inicio);
     const inicioJanelaCheckIn = new Date(dataHoraReserva.getTime() - 15 * 60 * 1000);
     if (obterDataLocalSaoPaulo() < inicioJanelaCheckIn) {
+        await registrarAuditoriaPresenca({ reserva, operacao: "CHECK_IN", resultado: "JANELA_INVALIDA", codigoTecnico: "CHECK_IN_WINDOW_INVALID" });
         return res.status(409).json({
             error: "O check-in só pode ser registrado a partir de 15 minutos antes do horário da reserva.",
         });
@@ -801,6 +811,10 @@ exports.reservationsRouter.patch("/:id/check-in", limitarCodigoPresenca, async (
         .select("*, restaurantes(nome, endereco), clientes(nome, telefone), mesas(numero_mesa, capacidade)")
         .single();
     if (error) {
+        if (error.code === "PGRST116") {
+            await registrarAuditoriaPresenca({ reserva, operacao: "CHECK_IN", resultado: "ERRO", codigoTecnico: "CHECK_IN_CONCURRENCY_CONFLICT" });
+            return res.status(409).json({ code: "CHECK_IN_CONCURRENCY_CONFLICT", error: "A reserva foi atualizada por outra operação." });
+        }
         return res.status(400).json({ error: error.message });
     }
     await registrarAuditoriaPresenca({ reserva: data, operacao: "CHECK_IN", resultado: "SUCESSO", codigoTecnico: "CHECK_IN_RECORDED" });
@@ -819,10 +833,10 @@ exports.reservationsRouter.patch("/:id/check-in", limitarCodigoPresenca, async (
             link_destino: "/restaurante/reservas",
             dados: { id_reserva: data.id_reserva },
         }),
-    ]);
+    ]).catch(() => null);
     return res.json(data);
 });
-exports.reservationsRouter.patch("/:id/concluir", limitarCodigoPresenca, async (req, res) => {
+exports.reservationsRouter.patch("/:id/concluir", (0, auth_1.requireRole)("restaurante"), limitarCodigoPresenca, async (req, res) => {
     const reservationId = Number(req.params.id);
     const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
     if (!Number.isFinite(reservationId)) {
@@ -861,6 +875,7 @@ exports.reservationsRouter.patch("/:id/concluir", limitarCodigoPresenca, async (
         return res.json(reserva);
     }
     if (reserva.status_reserva !== "CHECK_IN") {
+        await registrarAuditoriaPresenca({ reserva, operacao: "CHECK_OUT", resultado: "STATUS_INVALIDO", codigoTecnico: "CHECK_OUT_STATUS_INVALID" });
         return res.status(409).json({ error: "Apenas reservas com check-in realizado podem ser finalizadas." });
     }
     const { data: pedidosAbertos, error: pedidosError } = await clienteBanco
@@ -872,6 +887,7 @@ exports.reservationsRouter.patch("/:id/concluir", limitarCodigoPresenca, async (
         return res.status(400).json({ error: pedidosError.message });
     }
     if ((pedidosAbertos ?? []).length) {
+        await registrarAuditoriaPresenca({ reserva, operacao: "CHECK_OUT", resultado: "PEDIDOS_ABERTOS", codigoTecnico: "CHECK_OUT_OPEN_ORDERS" });
         return res.status(409).json({
             error: "Finalize ou cancele os pedidos vinculados antes de concluir a reserva.",
         });
@@ -885,6 +901,10 @@ exports.reservationsRouter.patch("/:id/concluir", limitarCodigoPresenca, async (
         .select("*, restaurantes(nome, endereco), clientes(nome, telefone), mesas(numero_mesa, capacidade)")
         .single();
     if (error) {
+        if (error.code === "PGRST116") {
+            await registrarAuditoriaPresenca({ reserva, operacao: "CHECK_OUT", resultado: "ERRO", codigoTecnico: "CHECK_OUT_CONCURRENCY_CONFLICT" });
+            return res.status(409).json({ code: "CHECK_OUT_CONCURRENCY_CONFLICT", error: "A reserva foi atualizada por outra operação." });
+        }
         return res.status(400).json({ error: error.message });
     }
     await registrarAuditoriaPresenca({ reserva: data, operacao: "CHECK_OUT", resultado: "SUCESSO", codigoTecnico: "CHECK_OUT_RECORDED" });
@@ -903,7 +923,7 @@ exports.reservationsRouter.patch("/:id/concluir", limitarCodigoPresenca, async (
             link_destino: "/restaurante/reservas",
             dados: { id_reserva: data.id_reserva },
         }),
-    ]);
+    ]).catch(() => null);
     return res.json(data);
 });
 exports.reservationsRouter.patch("/:id/cancelar", (0, auth_1.requireRole)("cliente"), async (req, res) => {

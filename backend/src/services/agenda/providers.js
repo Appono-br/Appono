@@ -163,9 +163,18 @@ async function salvarEventoGoogle({ accessToken, eventoId, evento }) {
             method: "PATCH", headers, body: JSON.stringify(evento),
         }, "CALENDAR_EVENT_UPDATE_FAILED");
     }
-    return requisicaoEventoGoogle("https://www.googleapis.com/calendar/v3/calendars/primary/events?sendUpdates=none", {
-        method: "POST", headers, body: JSON.stringify({ ...evento, id: eventoId }),
-    }, "CALENDAR_EVENT_CREATE_FAILED");
+    try {
+        return await requisicaoEventoGoogle("https://www.googleapis.com/calendar/v3/calendars/primary/events?sendUpdates=none", {
+            method: "POST", headers, body: JSON.stringify({ ...evento, id: eventoId }),
+        }, "CALENDAR_EVENT_CREATE_FAILED");
+    } catch (error) {
+        // Duas criações concorrentes podem observar 404 no lookup. O segundo POST
+        // recebe conflito e deve atualizar o evento determinístico já criado.
+        if (error?.status !== 409) throw error;
+        return requisicaoEventoGoogle(`${base}?sendUpdates=none`, {
+            method: "PATCH", headers, body: JSON.stringify(evento),
+        }, "CALENDAR_EVENT_UPDATE_FAILED");
+    }
 }
 
 async function excluirEventoGoogle({ accessToken, eventoId }) {

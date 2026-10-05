@@ -60,15 +60,18 @@ function idEventoReservaGoogle(idReserva) {
 
 function montarEventoReservaGoogle(reserva, frontendPublicUrl) {
     const restaurante = Array.isArray(reserva.restaurantes) ? reserva.restaurantes[0] : reserva.restaurantes;
-    const inicio = new Date(`${reserva.data_reserva}T${String(reserva.horario_inicio).slice(0, 8)}-03:00`);
-    const fim = new Date(`${reserva.data_reserva}T${String(reserva.horario_fim ?? reserva.horario_inicio).slice(0, 8)}-03:00`);
+    const inicioTexto = `${reserva.data_reserva}T${String(reserva.horario_inicio).slice(0, 8)}`;
+    const fimTexto = `${reserva.data_reserva}T${String(reserva.horario_fim ?? reserva.horario_inicio).slice(0, 8)}`;
+    const inicio = new Date(`${inicioTexto}-03:00`);
+    const fim = new Date(`${fimTexto}-03:00`);
+    const fimEvento = fim > inicio ? fimTexto : new Date(inicio.getTime() + 60 * 60000).toISOString().slice(0, 19);
     const origem = String(frontendPublicUrl ?? "").split(",")[0].trim().replace(/\/$/, "");
     return {
         summary: `Appono: Reserva em ${String(restaurante?.nome ?? "Restaurante").slice(0, 120)}`,
         description: `Reserva para ${reserva.quantidade_pessoas} pessoa(s).\nGerenciada pela Appono.`,
         location: String(restaurante?.endereco ?? "").slice(0, 500),
-        start: { dateTime: inicio.toISOString(), timeZone: "America/Sao_Paulo" },
-        end: { dateTime: fim > inicio ? fim.toISOString() : new Date(inicio.getTime() + 60 * 60000).toISOString(), timeZone: "America/Sao_Paulo" },
+        start: { dateTime: inicioTexto, timeZone: "America/Sao_Paulo" },
+        end: { dateTime: fimEvento, timeZone: "America/Sao_Paulo" },
         transparency: "opaque", visibility: "private", reminders: { useDefault: true },
         extendedProperties: { private: { appono_reserva_id: String(reserva.id_reserva) } },
         ...(origem ? { source: { title: "Appono", url: `${origem}/cliente/reservas` } } : {}),
@@ -349,6 +352,129 @@ agendaRotinaRouter.post("/google/planejamentos/:id/exportar", async (req, res) =
     }
 });
 
+async function carregarReservaCliente(db, idReserva, idCliente) {
+    const { data, error } = await db.from("reservas")
+        .select("id_reserva,id_cliente,id_restaurante,status_reserva,data_reserva,horario_inicio,horario_fim,quantidade_pessoas,restaurantes(nome,endereco)")
+        .eq("id_reserva", idReserva).eq("id_cliente", idCliente).maybeSingle();
+    if (error) throw error;
+    return data;
+}
+
+async function carregarConexaoGoogle(db, idCliente) {
+    const { data, error } = await db.from("conexoes_agenda_cliente").select("*")
+        .eq("id_cliente", idCliente).eq("provedor", "GOOGLE").maybeSingle();
+    if (error) throw error;
+    return data;
+}
+
+function validarIdReserva(valor) {
+    const id = Number(valor);
+    return Number.isSafeInteger(id) && id > 0 ? id : null;
+}
+
+async function sincronizarEventoReserva(req, res) {
+    const db = banco(res);
+    if (!db) return;
+    const idReserva = validarIdReserva(req.params.id);
+    if (!idReserva) return res.status(400).json({ code: "CALENDAR_RESERVATION_INPUT_INVALID", error: "Reserva inválida." });
+    let reserva;
+    let conexao;
+    try {
+        reserva = await carregarReservaCliente(db, idReserva, res.locals.profileId);
+        if (!reserva) return res.status(404).json({ code: "CALENDAR_RESERVATION_NOT_FOUND", error: "Reserva não encontrada." });
+        if (!["CONFIRMADA", "CHECK_IN"].includes(reserva.status_reserva)) {
+            return res.status(409).json({ code: "CALENDAR_RESERVATION_STATUS_INVALID", error: "Somente reservas confirmadas podem ser adicionadas ao Google Calendar." });
+        }
+        conexao = await carregarConexaoGoogle(db, res.locals.profileId);
+        if (!conexao || !["CONECTADO", "ERRO"].includes(conexao.status)) {
+            return res.status(404).json({ code: "CALENDAR_CONNECTION_NOT_FOUND", error: "Conecte o Google Agenda antes de sincronizar esta reserva." });
+        }
+        if (!podeEscreverGoogle(conexao.escopos)) {
+            return res.status(409).json({ code: "CALENDAR_WRITE_SCOPE_REQUIRED", error: "Reconecte o Google Agenda para autorizar a criação de eventos." });
+        }
+
+        const evento = montarEventoReservaGoogle(reserva, process.env.FRONTEND_PUBLIC_URL ?? process.env.FRONTEND_ORIGIN);
+        const eventoId = idEventoReservaGoogle(idReserva);
+        const hashConteudo = hashEvento(evento);
+        const { error: erroPendente } = await db.from("eventos_reserva_agenda").upsert({
+            id_cliente: res.locals.profileId,
+            id_reserva: idReserva,
+            id_conexao_agenda: conexao.id_conexao_agenda,
+            provedor: "GOOGLE",
+            calendario_externo_id: "primary",
+            evento_externo_id: eventoId,
+            status: "PENDENTE",
+            hash_conteudo: hashConteudo,
+            erro_codigo: null,
+        }, { onConflict: "id_reserva" });
+        if (erroPendente) throw erroPendente;
+
+        const accessToken = await tokenValido(db, conexao);
+        await salvarEventoGoogle({ accessToken, eventoId, evento });
+        const { data: vinculo, error: erroConcluir } = await db.from("eventos_reserva_agenda").update({
+            status: "SINCRONIZADO", hash_conteudo: hashConteudo, erro_codigo: null, sincronizado_em: new Date().toISOString(),
+        }).eq("id_reserva", idReserva).eq("id_cliente", res.locals.profileId)
+            .select("id_evento_reserva_agenda,id_reserva,provedor,calendario_externo_id,evento_externo_id,status,hash_conteudo,erro_codigo,sincronizado_em,atualizado_em").single();
+        if (erroConcluir) throw erroConcluir;
+        await db.from("conexoes_agenda_cliente").update({ status: "CONECTADO", erro_codigo: null, erro_em: null })
+            .eq("id_conexao_agenda", conexao.id_conexao_agenda).eq("id_cliente", res.locals.profileId);
+        return res.json({ agenda_google: vinculo ?? { id_reserva: idReserva, evento_externo_id: eventoId, status: "SINCRONIZADO", hash_conteudo: hashConteudo } });
+    } catch (error) {
+        if (conexao) {
+            await db.from("eventos_reserva_agenda").update({ status: "FALHOU", erro_codigo: String(error?.code ?? "CALENDAR_RESERVATION_SYNC_FAILED").slice(0, 80) })
+                .eq("id_reserva", idReserva).eq("id_cliente", res.locals.profileId);
+        }
+        return erroHttp(res, error, "A reserva foi preservada, mas não foi possível sincronizá-la com o Google Calendar.");
+    }
+}
+
+agendaRotinaRouter.post("/google/reservas/:id/exportar", sincronizarEventoReserva);
+agendaRotinaRouter.patch("/google/reservas/:id", sincronizarEventoReserva);
+
+agendaRotinaRouter.delete("/google/reservas/:id", async (req, res) => {
+    const db = banco(res);
+    if (!db) return;
+    const idReserva = validarIdReserva(req.params.id);
+    if (!idReserva) return res.status(400).json({ code: "CALENDAR_RESERVATION_INPUT_INVALID", error: "Reserva inválida." });
+    let conexao;
+    try {
+        const { data: vinculo, error: erroVinculo } = await db.from("eventos_reserva_agenda").select("*")
+            .eq("id_reserva", idReserva).eq("id_cliente", res.locals.profileId).maybeSingle();
+        if (erroVinculo) throw erroVinculo;
+        if (!vinculo || vinculo.status === "REMOVIDO") return res.json({ removido: false, status: "REMOVIDO" });
+        if (!["SINCRONIZADO", "FALHOU"].includes(vinculo.status)) {
+            return res.status(202).json({ removido: false, status: vinculo.status });
+        }
+        conexao = await carregarConexaoGoogle(db, res.locals.profileId);
+        if (!conexao || !["CONECTADO", "ERRO"].includes(conexao.status)) {
+            await db.from("eventos_reserva_agenda").update({ status: "FALHOU", erro_codigo: "CALENDAR_CONNECTION_NOT_FOUND" })
+                .eq("id_reserva", idReserva).eq("id_cliente", res.locals.profileId);
+            return res.status(503).json({ code: "CALENDAR_CONNECTION_NOT_FOUND", error: "Reconecte o Google Agenda para remover este evento." });
+        }
+        if (!podeEscreverGoogle(conexao.escopos)) return res.status(409).json({ code: "CALENDAR_WRITE_SCOPE_REQUIRED", error: "Reconecte o Google Agenda para remover este evento." });
+        const { data: reivindicado, error: erroReivindicacao } = await db.from("eventos_reserva_agenda")
+            .update({ status: "PENDENTE", erro_codigo: "CALENDAR_DELETE_IN_PROGRESS" })
+            .eq("id_reserva", idReserva).eq("id_cliente", res.locals.profileId)
+            .in("status", ["SINCRONIZADO", "FALHOU"])
+            .select("id_evento_reserva_agenda,id_reserva,provedor,calendario_externo_id,evento_externo_id,status,hash_conteudo,erro_codigo,sincronizado_em,atualizado_em")
+            .maybeSingle();
+        if (erroReivindicacao) throw erroReivindicacao;
+        if (!reivindicado) return res.status(202).json({ removido: false, status: "PENDENTE" });
+        const accessToken = await tokenValido(db, conexao);
+        await excluirEventoGoogle({ accessToken, eventoId: reivindicado.evento_externo_id });
+        const { data: atualizado, error } = await db.from("eventos_reserva_agenda").update({
+            status: "REMOVIDO", erro_codigo: null, sincronizado_em: new Date().toISOString(),
+        }).eq("id_reserva", idReserva).eq("id_cliente", res.locals.profileId)
+            .select("id_evento_reserva_agenda,id_reserva,provedor,calendario_externo_id,evento_externo_id,status,hash_conteudo,erro_codigo,sincronizado_em,atualizado_em").single();
+        if (error) throw error;
+        return res.json({ removido: true, agenda_google: atualizado });
+    } catch (error) {
+        await db.from("eventos_reserva_agenda").update({ status: "FALHOU", erro_codigo: String(error?.code ?? "CALENDAR_RESERVATION_DELETE_FAILED").slice(0, 80) })
+            .eq("id_reserva", idReserva).eq("id_cliente", res.locals.profileId);
+        return erroHttp(res, error, "A reserva foi preservada, mas não foi possível remover o evento do Google Calendar.");
+    }
+});
+
 agendaRotinaRouter.delete("/:provider", async (req, res) => {
     const db = banco(res);
     if (!db) return;
@@ -361,4 +487,4 @@ agendaRotinaRouter.delete("/:provider", async (req, res) => {
     return res.json({ desconectado: Boolean(data) });
 });
 
-module.exports = { agendaRotinaRouter };
+module.exports = { agendaRotinaRouter, tokenValido, montarEventoReservaGoogle, idEventoReservaGoogle };

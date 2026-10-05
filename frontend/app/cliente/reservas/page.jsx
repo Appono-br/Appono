@@ -209,6 +209,7 @@ export default function ReservationsPage() {
     const [reservaParaExcluir, setReservaParaExcluir] = useState(null);
     const [cancelandoReserva, setCancelandoReserva] = useState(false);
     const [processandoPresenca, setProcessandoPresenca] = useState(false);
+    const [agendaGoogleBusyId, setAgendaGoogleBusyId] = useState(null);
     const [abrindoChatReservaId, setAbrindoChatReservaId] = useState(null);
     const [mensagemPresenca, setMensagemPresenca] = useState("");
     const [period, setPeriod] = useState({
@@ -256,6 +257,7 @@ export default function ReservationsPage() {
                                 total: Number(canceledOrder.valor_total),
                             }
                             : undefined,
+                        agendaGoogle: reservation.agenda_google ?? null,
                     };
                 }));
             }
@@ -276,6 +278,15 @@ export default function ReservationsPage() {
         try {
             const atualizada = await apiRequest(`/reservas/${id}/cancelar`, { method: "PATCH" });
             setReservations((atuais) => atuais.map((reserva) => reserva.id === id ? { ...reserva, status: atualizada.status_reserva } : reserva));
+            try {
+                const agendaCancelada = await apiRequest(`/rotina/agenda/google/reservas/${id}`, { method: "DELETE" });
+                setReservations((atuais) => atuais.map((reserva) => reserva.id === id
+                    ? { ...reserva, agendaGoogle: agendaCancelada.agenda_google ?? { ...(reserva.agendaGoogle ?? {}), status: "REMOVIDO" } }
+                    : reserva));
+            }
+            catch {
+                setMensagemPresenca("A reserva foi cancelada, mas não foi possível remover o evento do Google Calendar. Tente novamente.");
+            }
             setReservaParaCancelar(null);
         }
         catch {
@@ -283,6 +294,43 @@ export default function ReservationsPage() {
         }
         finally {
             setCancelandoReserva(false);
+        }
+    }
+    async function sincronizarAgendaGoogle(reservation) {
+        setAgendaGoogleBusyId(reservation.id);
+        setMensagemPresenca("");
+        const sincronizado = reservation.agendaGoogle?.status === "SINCRONIZADO";
+        try {
+            const resposta = await apiRequest(`/rotina/agenda/google/reservas/${reservation.id}${sincronizado ? "" : "/exportar"}`, {
+                method: sincronizado ? "PATCH" : "POST",
+            });
+            setReservations((atuais) => atuais.map((atual) => atual.id === reservation.id
+                ? { ...atual, agendaGoogle: resposta.agenda_google ?? { status: "SINCRONIZADO" } }
+                : atual));
+            setMensagemPresenca(sincronizado ? "Reserva atualizada no Google Calendar." : "Reserva adicionada ao Google Calendar.");
+        }
+        catch (error) {
+            setMensagemPresenca(error instanceof Error ? error.message : "Não foi possível sincronizar com o Google Calendar.");
+        }
+        finally {
+            setAgendaGoogleBusyId(null);
+        }
+    }
+    async function removerAgendaGoogle(reservation) {
+        setAgendaGoogleBusyId(reservation.id);
+        setMensagemPresenca("");
+        try {
+            const resposta = await apiRequest(`/rotina/agenda/google/reservas/${reservation.id}`, { method: "DELETE" });
+            setReservations((atuais) => atuais.map((atual) => atual.id === reservation.id
+                ? { ...atual, agendaGoogle: resposta.agenda_google ?? { status: "REMOVIDO" } }
+                : atual));
+            setMensagemPresenca("Evento removido do Google Calendar.");
+        }
+        catch (error) {
+            setMensagemPresenca(error instanceof Error ? error.message : "Não foi possível remover o evento do Google Calendar.");
+        }
+        finally {
+            setAgendaGoogleBusyId(null);
         }
     }
     async function excluirReservaDaLista(id) {
@@ -411,20 +459,21 @@ export default function ReservationsPage() {
         </div>
 
         <div className="mt-12 grid gap-8 lg:grid-cols-[0.78fr_1.62fr]">
-          <aside className="h-fit rounded-[8px] bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada/60 sm:p-10">
-            <h2 className="text-2xl font-medium text-app-cafe-profundo">{ui("Calendário do Mês")}</h2>
-            <div className="mt-8 grid grid-cols-7 gap-1 text-center text-xs text-app-cinza">
+          <aside className="h-fit rounded-[22px] border border-[#e6ddd4] bg-white px-6 py-7 shadow-[0_2px_12px_rgba(60,45,35,0.04)] sm:px-10 sm:py-9">
+            <h2 className="text-[24px] font-normal tracking-[-0.02em] text-[#241b18]">{ui("Calendário do Mês")}</h2>
+            <p className="mt-1 text-sm font-medium capitalize text-[#5f5550]">{ui(monthNames[period.month])} {period.year}</p>
+            <div className="mt-7 grid grid-cols-7 gap-x-1 gap-y-3 text-center text-[12px] text-[#5f5550] sm:gap-y-4">
               {weekDays.map((day, index) => (<span key={`${day}-${index}`} className="font-medium">
                   {ui(day).slice(0, 3)}
                 </span>))}
               {calendarDays.map((day) => {
             const hasReservation = reservationDates.has(day.date);
-            return (<span key={day.date} className={`flex h-10 items-center justify-center rounded-[8px] text-sm ${hasReservation
-                    ? "bg-app-baunilha-dourada font-bold text-app-caramelo-torrado"
-                    : day.currentMonth
-                        ? "text-app-cafe-profundo"
-                        : "text-app-cinza/40"}`}>
-                    {day.day}
+            const isToday = day.date === new Date().toISOString().slice(0, 10);
+            return (<span key={day.date} className={`relative flex h-8 items-center justify-center text-[13px] ${day.currentMonth ? "text-[#241b18]" : "text-[#b9b1ac]"}`}>
+                    <span className={`flex h-8 w-8 items-center justify-center rounded-full ${isToday ? "bg-[#1a73e8] font-semibold text-white" : hasReservation ? "bg-[#f1e7dc] font-semibold text-[#a45d35]" : ""}`}>
+                      {day.day}
+                    </span>
+                    {hasReservation && !isToday ? <span className="absolute bottom-0.5 h-1 w-1 rounded-full bg-[#a45d35]" aria-label={ui("Há uma reserva neste dia")}/> : null}
                   </span>);
         })}
             </div>
@@ -537,6 +586,24 @@ export default function ReservationsPage() {
                               <strong className="text-app-cafe-profundo">
                                 {formatarMoeda(reservation.activeOrder.total, localeUI)}
                               </strong>
+                            </div>
+                          </div>) : null}
+                        {(["CONFIRMADA", "CHECK_IN"].includes(reservation.status) || reservation.agendaGoogle) ? (<div className="mt-4 rounded-[12px] border border-app-baunilha-dourada/70 bg-white px-4 py-3">
+                            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                              <div>
+                                <p className="text-xs font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">{ui("Google Calendar")}</p>
+                                <p className="mt-1 text-sm text-app-mocha">
+                                  {ui(reservation.agendaGoogle?.status === "SINCRONIZADO" ? "Evento sincronizado" : reservation.agendaGoogle?.status === "FALHOU" ? "Sincronização pendente" : reservation.agendaGoogle?.status === "REMOVIDO" ? "Evento removido" : "Adicione esta reserva ao seu calendário")}
+                                </p>
+                                {reservation.agendaGoogle?.status === "FALHOU" ? <p className="mt-1 text-xs font-semibold text-app-vermelho-erro">{ui("O Google está indisponível ou precisa ser reconectado.")}</p> : null}
+                              </div>
+                              <div className="flex flex-wrap gap-2">
+                                {reservation.status !== "CANCELADA" && reservation.agendaGoogle?.status !== "REMOVIDO" ? (<button type="button" disabled={agendaGoogleBusyId === reservation.id} onClick={() => sincronizarAgendaGoogle(reservation)} className="rounded-[8px] bg-app-cafe-profundo px-4 py-2 text-xs font-bold text-app-creme-leve transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-60">
+                                  {ui(agendaGoogleBusyId === reservation.id ? "Sincronizando..." : reservation.agendaGoogle?.status === "SINCRONIZADO" ? "Atualizar evento" : "Adicionar ao Google Calendar")}
+                                </button>) : null}
+                                {reservation.agendaGoogle?.status === "SINCRONIZADO" ? <button type="button" disabled={agendaGoogleBusyId === reservation.id} onClick={() => removerAgendaGoogle(reservation)} className="rounded-[8px] border border-app-baunilha-dourada px-4 py-2 text-xs font-bold text-app-mocha transition hover:bg-app-chantilly disabled:cursor-not-allowed disabled:opacity-60">{ui("Remover evento")}</button> : null}
+                                {reservation.agendaGoogle?.status === "FALHOU" ? <Link href="/cliente/rotina/configurar" className="rounded-[8px] border border-app-caramelo-torrado px-4 py-2 text-xs font-bold text-app-caramelo-torrado">{ui("Reconectar")}</Link> : null}
+                              </div>
                             </div>
                           </div>) : null}
                         {!reservation.activeOrder && reservation.canceledOrder ? (<div className="mt-5 rounded-[10px] border border-app-caramelo-torrado/25 bg-white px-4 py-3">

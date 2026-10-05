@@ -174,6 +174,18 @@ O Appono persiste somente os intervalos ocupados importados. Não importa títul
 
 Conexões Google criadas antes da exportação do planejamento possuem apenas o escopo de leitura de ocupação. Depois de publicar esta versão, o cliente deve clicar em **Reconectar** uma única vez e aceitar o novo escopo para que “Salvar e gerar minha semana” também crie os eventos no Google Agenda.
 
+### Eventos de reservas do cliente
+
+O calendário de reservas reutiliza a mesma conexão OAuth e os mesmos tokens cifrados. Os endpoints autenticados são:
+
+- `POST /api/rotina/agenda/google/reservas/:id/exportar` para criar ou reconciliar o evento;
+- `PATCH /api/rotina/agenda/google/reservas/:id` para atualizar o evento existente;
+- `DELETE /api/rotina/agenda/google/reservas/:id` para remover ou cancelar o evento externo.
+
+Somente reservas do cliente autenticado nos estados `CONFIRMADA` ou `CHECK_IN` podem ser exportadas. O evento usa o timezone `America/Sao_Paulo`, é privado, contém apenas dados operacionais mínimos e recebe um identificador determinístico para evitar duplicidade. Falhas do Google ficam registradas como estado de sincronização e não alteram nem invalidam a reserva Appono.
+
+O vínculo é persistido em `eventos_reserva_agenda`, criado por `20261005014037_reservation_google_calendar_events.sql` e reforçado por `20261005020500_harden_reservation_google_calendar_events.sql`. A migration deve ser aplicada primeiro em um projeto de homologação autorizado; não execute `db push` sem conferir o projeto e o `--dry-run`.
+
 ## 5. Outlook e Microsoft Graph
 
 Documentação oficial: [Registrar aplicação](https://learn.microsoft.com/graph/auth-register-app-v2), [Adicionar redirect URI](https://learn.microsoft.com/entra/identity-platform/how-to-add-redirect-uri), [getSchedule](https://learn.microsoft.com/graph/api/calendar-getschedule?view=graph-rest-1.0) e [Permissões do Graph](https://learn.microsoft.com/graph/permissions-reference#calendarsreadbasic).
