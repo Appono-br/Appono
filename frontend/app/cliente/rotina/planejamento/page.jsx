@@ -541,7 +541,7 @@ export default function PlanejamentoRotinaPage() {
                                             {!semSugestao && !convertida && refeicao.status === "APROVADA" && refeicao.id_produto ? (
                                                 <button type="button" disabled={Boolean(processando)} onClick={() => setConfirmacao({ tipo: "pedido", refeicao })} className="min-h-10 rounded-full bg-app-caramelo-torrado px-4 py-2 text-sm font-bold text-white transition hover:bg-app-cafe-profundo disabled:opacity-50">{ui("Reservar e pedir")}</button>
                                             ) : null}
-                                            {refeicao.id_reserva ? <Link href="/cliente/reservas" className="inline-flex h-10 items-center rounded-[8px] border border-app-baunilha-dourada px-4 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:bg-app-chantilly">{ui("Ver reserva")}</Link> : null}
+                                            {refeicao.id_reserva ? <Link href="/cliente/agenda?visao=reservas" className="inline-flex h-10 items-center rounded-[8px] border border-app-baunilha-dourada px-4 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:bg-app-chantilly">{ui("Ver reserva")}</Link> : null}
                                             {refeicao.id_pedido && refeicao.pedidos?.status_pedido !== "CANCELADO" ? <Link href={`/cliente/pedidos/${refeicao.id_pedido}`} className="inline-flex h-10 items-center rounded-[8px] border border-app-baunilha-dourada px-4 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:bg-app-chantilly">{ui("Ver pedido")}</Link> : null}
                                         </div>
                                         {experienciaConcluida ? (

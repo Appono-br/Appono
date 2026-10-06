@@ -5,7 +5,6 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import {
-  ShoppingBag,
   Settings,
   Heart,
   MessageSquare,
@@ -19,14 +18,23 @@ import { LinkNotificacoes } from "@/components/notificacoes/contador-notificacoe
 const itens = [
   ["Início", "/cliente/dashboard"],
   ["Appono Rotina", "/cliente/rotina"],
-  ["Reservas", "/cliente/reservas"],
+  ["Agenda", "/cliente/agenda"],
   ["Favoritos", "/cliente/favoritos"],
   ["Mensagens", "/cliente/mensagens"],
-  ["Ofertas", "/cliente/ofertas"],
 ];
 
 function estaAtivo(pathname, href) {
   if (href === "/cliente/dashboard") return pathname === href;
+  if (href === "/cliente/agenda") {
+    return [
+      "/cliente/agenda",
+      "/cliente/reservas",
+      "/cliente/pedidos",
+      "/cliente/detalhes-pedido",
+      "/cliente/pagamentos/pedido",
+      "/cliente/pagamentos/reserva",
+    ].some((rota) => pathname === rota || pathname?.startsWith(`${rota}/`));
+  }
   return pathname === href || pathname?.startsWith(`${href}/`);
 }
 
@@ -75,37 +83,6 @@ export function ClienteHeader() {
 
         {/* Ações do Header */}
         <div className="col-start-3 flex items-center justify-self-end gap-3 text-app-cafe-profundo">
-          {/* Carrinho */}
-          <Link
-            href="/cliente/detalhes-pedido"
-            aria-label={ui("Carrinho")}
-            aria-current={estaAtivo(pathname, "/cliente/detalhes-pedido") ? "page" : undefined}
-            className="relative flex h-10 w-10 items-center justify-center rounded-md outline-none transition hover:text-app-caramelo-torrado focus-visible:ring-2 focus-visible:ring-app-caramelo-torrado focus-visible:ring-offset-2"
-          >
-            <ShoppingBag className="h-6 w-6" aria-hidden="true" />
-          </Link>
-
-          {/* Configurações */}
-          <Link
-            href="/cliente/configuracoes"
-            aria-label={ui("Configurações")}
-            title={ui("Configurações")}
-            aria-current={estaAtivo(pathname, "/cliente/configuracoes") ? "page" : undefined}
-            onClick={() => setMenuAberto(false)}
-            className="relative flex h-10 w-10 items-center justify-center rounded-md outline-none transition hover:text-app-caramelo-torrado focus-visible:ring-2 focus-visible:ring-app-caramelo-torrado focus-visible:ring-offset-2"
-          >
-            <Settings className="h-6 w-6" aria-hidden="true" />
-          </Link>
-
-          {/* Notificações */}
-          <div className="flex h-10 w-10 items-center justify-center">
-            <LinkNotificacoes
-              href="/cliente/notificacoes"
-              iconeClassName="h-6 w-6"
-              ariaCurrent={estaAtivo(pathname, "/cliente/notificacoes") ? "page" : undefined}
-            />
-          </div>
-
           {/* Favoritos */}
           <Link
             href="/cliente/favoritos"
@@ -129,6 +106,27 @@ export function ClienteHeader() {
           >
             <MessageSquare className="h-6 w-6" aria-hidden="true" />
           </Link>
+
+          {/* Configurações */}
+          <Link
+            href="/cliente/configuracoes"
+            aria-label={ui("Configurações")}
+            title={ui("Configurações")}
+            aria-current={estaAtivo(pathname, "/cliente/configuracoes") ? "page" : undefined}
+            onClick={() => setMenuAberto(false)}
+            className="relative flex h-10 w-10 items-center justify-center rounded-md outline-none transition hover:text-app-caramelo-torrado focus-visible:ring-2 focus-visible:ring-app-caramelo-torrado focus-visible:ring-offset-2"
+          >
+            <Settings className="h-6 w-6" aria-hidden="true" />
+          </Link>
+
+          {/* Notificações */}
+          <div className="flex h-10 w-10 items-center justify-center">
+            <LinkNotificacoes
+              href="/cliente/notificacoes"
+              iconeClassName="h-6 w-6"
+              ariaCurrent={estaAtivo(pathname, "/cliente/notificacoes") ? "page" : undefined}
+            />
+          </div>
 
           {/* Botão Menu Mobile */}
           <button

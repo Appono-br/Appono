@@ -7,6 +7,7 @@ import { apiRequest } from "@/lib/api";
 import { filtrarOrdenarPorBusca, textoBusca } from "@/lib/busca-avancada";
 import { VitrinePratos } from "@/components/cliente/vitrine-pratos";
 import { VitrineOfertas } from "@/components/cliente/vitrine-ofertas";
+import { CategoriasRestaurantes } from "@/components/cliente/categorias-restaurantes";
 const filters = [
     "Todas Especialidades",
     "Slow Food",
@@ -156,7 +157,7 @@ function ProximaReservaCard({ proximaReserva, localeUI, ui }) {
                         <p className="mt-2 text-sm text-app-creme-suave">{ui("Escolha um restaurante para agendar sua próxima experiência.")}</p>
                     </>)}
                 </div>
-                <Link href="/cliente/reservas" className="inline-flex h-11 w-fit items-center justify-center rounded-[8px] bg-app-baunilha-dourada px-5 text-xs font-bold uppercase tracking-[0.14em] text-app-cafe-profundo transition hover:bg-app-dourado-mel hover:text-white">{ui("Ver reservas")}</Link>
+                <Link href="/cliente/agenda" className="inline-flex h-11 w-fit items-center justify-center rounded-[8px] bg-app-baunilha-dourada px-5 text-xs font-bold uppercase tracking-[0.14em] text-app-cafe-profundo transition hover:bg-app-dourado-mel hover:text-white">{ui("Ver agenda")}</Link>
             </div>
         </div>
     </section>;
@@ -510,6 +511,8 @@ export default function DashboardPage() {
 
       <VitrineOfertas />
 
+      <CategoriasRestaurantes />
+
       {highlightedRestaurants.length ? <section className="mx-auto max-w-7xl px-5 py-10">
         <div>
           <h2 className="text-3xl font-semibold text-app-cafe-profundo sm:text-4xl">{ui("Restaurantes mais curtidos")}</h2>
@@ -550,9 +553,9 @@ export default function DashboardPage() {
               <h2 className="text-4xl font-medium sm:text-5xl">{ui("Perto de Você")}</h2>
               <p className="mt-3 max-w-xl text-sm leading-6 text-app-creme-suave">{ui(obterMensagemOrigemLocalizacao(statusLocalizacao))}</p>
             </div>
-            <div className="flex w-full flex-wrap items-center gap-3 sm:w-auto sm:justify-end">
-              <Link href="/cliente/busca" className="inline-flex h-11 items-center justify-center rounded-[8px] border border-app-baunilha-dourada/60 px-4 text-xs font-bold uppercase tracking-[0.12em] text-app-creme-leve transition hover:bg-app-baunilha-dourada/20">{ui("Buscar")}</Link>
-              <Link href="/cliente/configuracoes" className="inline-flex h-11 items-center justify-center rounded-[8px] border border-app-baunilha-dourada/60 px-4 text-xs font-bold uppercase tracking-[0.12em] text-app-creme-leve transition hover:bg-app-baunilha-dourada/20">{ui("Por endereço")}</Link>
+            <div className="nearby-actions flex w-full flex-wrap items-center gap-3 sm:w-auto sm:justify-end">
+              <Link href="/cliente/busca" className="nearby-secondary-action inline-flex h-11 items-center justify-center rounded-[8px] border border-app-baunilha-dourada/60 px-4 text-xs font-bold uppercase tracking-[0.12em] text-app-creme-leve transition">{ui("Buscar")}</Link>
+              <Link href="/cliente/configuracoes" className="nearby-secondary-action inline-flex h-11 items-center justify-center rounded-[8px] border border-app-baunilha-dourada/60 px-4 text-xs font-bold uppercase tracking-[0.12em] text-app-creme-leve transition">{ui("Por endereço")}</Link>
               <div ref={controleRaioRef} className="relative w-full max-w-56 sm:w-56">
                 <button type="button" onClick={() => setMenuRaioAberto((aberto) => !aberto)} aria-haspopup="listbox" aria-expanded={menuRaioAberto} className="nearby-radius-trigger flex h-11 w-full items-center justify-between px-4 text-left text-sm font-semibold outline-none">
                   {ui(opcoesRaio.find((opcao) => opcao.value === raioKm)?.label ?? "Até 20 km")}
@@ -564,7 +567,7 @@ export default function DashboardPage() {
                   </button>)}
                 </div> : null}
               </div>
-              <button type="button" onClick={procurarRestaurantesProximos} disabled={statusLocalizacao === "loading" || carregandoRestaurantes} className="inline-flex h-11 items-center justify-center gap-2 rounded-[8px] bg-app-baunilha-dourada px-5 text-xs font-bold uppercase tracking-[0.14em] text-app-cafe-profundo transition hover:bg-app-dourado-mel hover:text-white disabled:cursor-wait disabled:opacity-70">
+              <button type="button" onClick={procurarRestaurantesProximos} disabled={statusLocalizacao === "loading" || carregandoRestaurantes} className="nearby-primary-action inline-flex h-11 items-center justify-center gap-2 rounded-[8px] bg-app-baunilha-dourada px-5 text-xs font-bold uppercase tracking-[0.14em] text-app-cafe-profundo transition disabled:cursor-wait disabled:opacity-70">
                 <Icon type="search" className="h-4 w-4"/>
                 {statusLocalizacao === "loading" || carregandoRestaurantes ? ui("Procurando...") : ui("Procurar")}
               </button>

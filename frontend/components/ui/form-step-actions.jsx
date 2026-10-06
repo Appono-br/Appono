@@ -12,6 +12,7 @@ export function FormStepActions({
   nextLabel = "Continuar",
   submitLabel = "Finalizar cadastro",
   backLabel = "Voltar",
+  showDivider = true,
   className = "",
   primaryClassName = "",
 }) {
@@ -19,7 +20,7 @@ export function FormStepActions({
 
   return (
     <div
-      className={`flex items-center justify-between gap-4 pt-6 border-t border-slate-100 ${className}`}
+      className={`flex items-center justify-between gap-4 pt-6 ${showDivider ? "border-t border-slate-100" : ""} ${className}`}
     >
       {currentStep > 0 ? (
         <button
