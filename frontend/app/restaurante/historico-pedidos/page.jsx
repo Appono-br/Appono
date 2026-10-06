@@ -8,6 +8,7 @@ import { apiRequest } from "@/lib/api";
 import { filtrarOrdenarPorBusca, textoBusca } from "@/lib/busca-avancada";
 import { textoStatusPedido, textoStatusRepasse, textoStatusReserva } from "@/lib/formatadores-status";
 import { TelaCarregandoSessao, useSessaoLocal } from "@/lib/use-sessao-local";
+import { RestaurantIcon as Icon } from "@/components/restaurante/restaurant-icon";
 
 
 const filtros = [
@@ -44,24 +45,6 @@ const ordenacoesHistoricoReserva = [
     { label: "Maior grupo", value: "PESSOAS" },
 ];
 
-function Icon({ type, className = "h-5 w-5" }) {
-    const paths = {
-        menu: "M4 7h16M4 12h16M4 17h16",
-        receipt: "M7 3h10a2 2 0 0 1 2 2v16l-3-2-2 2-2-2-2 2-2-2-3 2V5a2 2 0 0 1 2-2Z",
-        search: "m21 21-4.3-4.3M10.8 18a7.2 7.2 0 1 1 0-14.4 7.2 7.2 0 0 1 0 14.4Z",
-        calendar: "M7 3v4M17 3v4M4 9h16M6 5h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z",
-        money: "M4 7h16v10H4V7z M7 10h.01M17 14h.01M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z",
-        download: "M12 3v11m0 0 4-4m-4 4-4-4M5 17v2a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-2",
-        print: "M7 8V4h10v4M7 17H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2M7 14h10v7H7v-7Z",
-        chevron: "m8 10 4 4 4-4",
-    };
-
-    return (
-        <svg aria-hidden="true" viewBox="0 0 24 24" className={className}>
-            <path d={paths[type]} fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" />
-        </svg>
-    );
-}
 
 function formatarMoeda(valor, localeUI = "pt-BR") {
     return new Intl.NumberFormat(localeUI, {

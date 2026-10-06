@@ -216,11 +216,13 @@ export default function ReservationsPage() {
         month: today.getMonth(),
         year: today.getFullYear(),
     });
+    const [selectedDate, setSelectedDate] = useState(today.toISOString().slice(0, 10));
     const calendarDays = useMemo(() => getCalendarDays(period.month, period.year), [period.month, period.year]);
     const reservationDates = useMemo(() => new Set(reservations
         .filter((reservation) => ["CONFIRMADA", "CHECK_IN"].includes(reservation.status))
         .map((reservation) => reservation.date)), [reservations]);
     const reservasConfirmadas = useMemo(() => reservations.filter((reservation) => ["CONFIRMADA", "CHECK_IN"].includes(reservation.status)), [reservations]);
+    const reservasDoDia = useMemo(() => reservations.filter((reservation) => reservation.date === selectedDate).sort((a, b) => String(a.time).localeCompare(String(b.time))), [reservations, selectedDate]);
     useEffect(() => {
         async function loadReservations() {
             try {
@@ -272,6 +274,11 @@ export default function ReservationsPage() {
             const date = new Date(current.year, current.month + direction, 1);
             return { month: date.getMonth(), year: date.getFullYear() };
         });
+    }
+    function selecionarDia(date) {
+        setSelectedDate(date);
+        const instante = new Date(`${date}T12:00:00`);
+        setPeriod({ month: instante.getMonth(), year: instante.getFullYear() });
     }
     async function cancelarReserva(id) {
         setCancelandoReserva(true);
@@ -442,13 +449,13 @@ export default function ReservationsPage() {
             <p className="mt-3 text-sm leading-6 text-app-mocha sm:text-base">{ui("Gerencie suas próximas experiências gastronômicas.")}</p>
           </div>
 
-          <div className="flex w-fit items-center gap-5 rounded-[8px] bg-white px-5 py-4 text-app-cafe-profundo shadow-sm ring-1 ring-app-baunilha-dourada/60">
+          <div className="flex w-fit items-center gap-2 rounded-[14px] bg-white p-2 text-app-cafe-profundo shadow-sm ring-1 ring-app-baunilha-dourada/70">
             <button type="button" onClick={() => changeMonth(-1)} className="transition hover:text-app-caramelo-torrado" aria-label={ui("Período anterior")}>
               <Icon type="chevron-left"/>
             </button>
-            <div className="min-w-36 text-center">
+            <div className="min-w-40 px-3 text-center">
               <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-app-cinza">{ui("Período")}</p>
-              <p className="mt-1 text-xl">
+              <p className="mt-1 text-lg font-semibold">
                 {ui(monthNames[period.month])} {period.year}
               </p>
             </div>
@@ -459,7 +466,7 @@ export default function ReservationsPage() {
         </div>
 
         <div className="mt-12 grid gap-8 lg:grid-cols-[0.78fr_1.62fr]">
-          <aside className="h-fit rounded-[22px] border border-[#e6ddd4] bg-white px-6 py-7 shadow-[0_2px_12px_rgba(60,45,35,0.04)] sm:px-10 sm:py-9">
+          <aside className="h-fit rounded-[22px] border border-[#e6ddd4] bg-white px-5 py-6 shadow-[0_2px_12px_rgba(60,45,35,0.04)] sm:px-8 sm:py-8">
             <h2 className="text-[24px] font-normal tracking-[-0.02em] text-[#241b18]">{ui("Calendário do Mês")}</h2>
             <p className="mt-1 text-sm font-medium capitalize text-[#5f5550]">{ui(monthNames[period.month])} {period.year}</p>
             <div className="mt-7 grid grid-cols-7 gap-x-1 gap-y-3 text-center text-[12px] text-[#5f5550] sm:gap-y-4">
@@ -469,12 +476,13 @@ export default function ReservationsPage() {
               {calendarDays.map((day) => {
             const hasReservation = reservationDates.has(day.date);
             const isToday = day.date === new Date().toISOString().slice(0, 10);
-            return (<span key={day.date} className={`relative flex h-8 items-center justify-center text-[13px] ${day.currentMonth ? "text-[#241b18]" : "text-[#b9b1ac]"}`}>
-                    <span className={`flex h-8 w-8 items-center justify-center rounded-full ${isToday ? "bg-[#1a73e8] font-semibold text-white" : hasReservation ? "bg-[#f1e7dc] font-semibold text-[#a45d35]" : ""}`}>
+            const isSelected = day.date === selectedDate;
+            return (<button type="button" key={day.date} onClick={() => selecionarDia(day.date)} aria-pressed={isSelected} className={`relative flex h-10 items-center justify-center rounded-[10px] text-[13px] transition hover:bg-app-creme-suave ${day.currentMonth ? "text-[#241b18]" : "text-[#b9b1ac]"}`}>
+                    <span className={`flex h-8 w-8 items-center justify-center rounded-full ${isSelected ? "bg-app-cafe-profundo font-semibold text-app-creme-leve" : isToday ? "bg-[#1a73e8] font-semibold text-white" : hasReservation ? "bg-[#f1e7dc] font-semibold text-[#a45d35]" : ""}`}>
                       {day.day}
                     </span>
                     {hasReservation && !isToday ? <span className="absolute bottom-0.5 h-1 w-1 rounded-full bg-[#a45d35]" aria-label={ui("Há uma reserva neste dia")}/> : null}
-                  </span>);
+                  </button>);
         })}
             </div>
 

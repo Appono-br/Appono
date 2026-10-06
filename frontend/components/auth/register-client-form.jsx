@@ -3,108 +3,185 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { FormField } from "@/components/auth/form-field";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import {
+  User,
+  Calendar,
+  CreditCard,
+  Mail,
+  Phone,
+  Lock,
+  Eye,
+  EyeOff,
+  ArrowLeft,
+  AlertCircle,
+} from "lucide-react";
+
+import { FormInput } from "@/components/ui/form-input";
+import { FormStepper } from "@/components/ui/form-stepper";
+import { FormStepActions } from "@/components/ui/form-step-actions";
+import { PasswordRequirements } from "@/components/auth/password-requirements";
 import { apiRequest } from "@/lib/api";
 import { getDashboardPath, persistAuthResponse } from "@/lib/session";
 import { supabase } from "@/lib/supabase";
 import { somenteNumeros } from "@/lib/validacoes/comum";
-import {
-  aplicarMascaraCpf,
-  cpfEstaCompleto,
-} from "@/lib/validacoes/cpf";
+import { aplicarMascaraCpf } from "@/lib/validacoes/cpf";
 import { aplicarMascaraTelefone } from "@/lib/validacoes/telefone";
 import { senhaValida } from "@/lib/politica-senha";
-import { PasswordRequirements } from "@/components/auth/password-requirements";
+import { validarCpf, validarTelefone } from "@/lib/schemas/validacoes-base";
 
-const initialForm = {
-  name: "",
-  birthDate: "",
-  cpf: "",
-  email: "",
-  phone: "",
-  password: "",
-};
+const clientFormSchema = z
+  .object({
+    name: z
+      .string()
+      .min(1, "O nome completo é obrigatório.")
+      .min(3, "O nome deve ter pelo menos 3 caracteres."),
+    birthDate: z
+      .string()
+      .min(1, "Informe sua data de nascimento."),
+    cpf: z
+      .string()
+      .min(1, "O CPF é obrigatório.")
+      .refine(validarCpf, "Informe um CPF válido com 11 dígitos."),
+    email: z
+      .string()
+      .min(1, "O e-mail é obrigatório.")
+      .email("Informe um e-mail válido."),
+    phone: z
+      .string()
+      .min(1, "O telefone/celular é obrigatório.")
+      .refine(validarTelefone, "Informe um telefone válido com DDD."),
+    password: z
+      .string()
+      .optional()
+      .default(""),
+    confirmPassword: z
+      .string()
+      .optional()
+      .default(""),
+  })
+  .superRefine((data, ctx) => {
+    // Validação de senha condicional
+    if (data.password || data.confirmPassword) {
+      if (!senhaValida(data.password)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message:
+            "A senha deve ter pelo menos 6 caracteres, maiúscula, minúscula, número e caractere especial.",
+          path: ["password"],
+        });
+      }
+      if (data.password !== data.confirmPassword) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "As senhas não coincidem.",
+          path: ["confirmPassword"],
+        });
+      }
+    }
+  });
+
+const STEPS = [
+  { title: "Identificação Pessoal", fields: ["name", "birthDate", "cpf"] },
+  { title: "Contato e Acesso", fields: ["email", "phone", "password", "confirmPassword"] },
+];
 
 function redirecionarParaLogin(email) {
   const params = new URLSearchParams();
   const emailNormalizado = String(email ?? "").trim().toLowerCase();
-
   params.set("cadastro", "existente");
-  if (emailNormalizado) {
-    params.set("email", emailNormalizado);
-  }
-
+  if (emailNormalizado) params.set("email", emailNormalizado);
   window.location.href = `/login?${params.toString()}`;
 }
 
 export function RegisterClientForm({ googleFlow = false }) {
-  const [form, setForm] = useState(initialForm);
+  const [currentStep, setCurrentStep] = useState(0);
   const [message, setMessage] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [googleSession, setGoogleSession] = useState(null);
 
-  const isGoogleFlow = googleFlow;
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    trigger,
+    formState: { errors, isSubmitting },
+  } = useForm({
+    resolver: zodResolver(clientFormSchema),
+    mode: "onTouched",
+    defaultValues: {
+      name: "",
+      birthDate: "",
+      cpf: "",
+      email: "",
+      phone: "",
+      password: "",
+      confirmPassword: "",
+    },
+  });
+
+  const watchPassword = watch("password");
 
   useEffect(() => {
-    if (!isGoogleFlow) {
-      return;
-    }
+    if (!googleFlow) return;
 
     supabase.auth.getSession().then(({ data }) => {
       if (!data.session) {
-        setMessage(
-          "Entre com Google novamente para completar o cadastro."
-        );
+        setMessage("Entre com Google novamente para completar o cadastro.");
         return;
       }
-
       setGoogleSession(data.session);
-
-      setForm((current) => ({
-        ...current,
-        email: data.session.user.email ?? current.email,
-        name:
-          current.name ||
-          data.session.user.user_metadata?.full_name ||
-          "",
-      }));
+      if (data.session.user.email) {
+        setValue("email", data.session.user.email);
+      }
+      if (data.session.user.user_metadata?.full_name) {
+        setValue("name", data.session.user.user_metadata.full_name);
+      }
     });
-  }, [isGoogleFlow]);
+  }, [googleFlow, setValue]);
 
-  function atualizarCampo(field, value) {
-    setForm((current) => ({
-      ...current,
-      [field]: value,
-    }));
-
+  async function handleNextStep() {
     setMessage("");
+    const fieldsToValidate = STEPS[currentStep].fields.filter(
+      (f) => !(googleFlow && (f === "password" || f === "confirmPassword"))
+    );
+    const stepIsValid = await trigger(fieldsToValidate);
+    if (stepIsValid) {
+      setCurrentStep((prev) => Math.min(prev + 1, STEPS.length - 1));
+    }
   }
 
-  async function enviarFormulario(event) {
-    event.preventDefault();
+  function handleBackStep() {
+    setMessage("");
+    setCurrentStep((prev) => Math.max(prev - 1, 0));
+  }
 
-    if (!isGoogleFlow && !senhaValida(form.password)) {
-      setMessage("A senha precisa ter 6 caracteres, maiúscula, minúscula, número e caractere especial.");
+  async function onSubmit(data) {
+    if (!googleFlow && !senhaValida(data.password)) {
+      setMessage("A senha precisa cumprir todos os requisitos de segurança.");
       return;
     }
 
-    if (!cpfEstaCompleto(form.cpf)) {
-      setMessage("Informe um CPF completo e válido.");
-      return;
-    }
-
-    setIsSubmitting(true);
     setMessage("");
 
     try {
       const response = await apiRequest(
-        isGoogleFlow
-          ? "/auth/google/client"
-          : "/auth/register/client",
+        googleFlow ? "/auth/google/client" : "/auth/register/client",
         {
           method: "POST",
-          auth: isGoogleFlow,
-          body: JSON.stringify(form),
+          auth: googleFlow,
+          body: JSON.stringify({
+            name: data.name,
+            birthDate: data.birthDate,
+            cpf: data.cpf,
+            email: data.email,
+            phone: data.phone,
+            password: data.password,
+          }),
         }
       );
 
@@ -124,228 +201,223 @@ export function RegisterClientForm({ googleFlow = false }) {
       );
     } catch (error) {
       if (error?.code === "AUTH_USER_ALREADY_EXISTS") {
-        redirecionarParaLogin(form.email);
+        redirecionarParaLogin(data.email);
         return;
       }
-
       setMessage(
-        error instanceof Error
-          ? error.message
-          : "Não foi possível criar a conta."
+        error instanceof Error ? error.message : "Não foi possível criar a conta."
       );
-    } finally {
-      setIsSubmitting(false);
     }
   }
 
   return (
     <form
-      onSubmit={enviarFormulario}
+      onSubmit={handleSubmit(onSubmit)}
       className="mx-auto w-full max-w-xl"
+      noValidate
     >
-      <div className="rounded-2xl bg-white px-6 py-7 shadow-xl sm:px-9">
-        <div className="mb-4 flex justify-center">
+      <div className="rounded-3xl bg-white px-6 py-8 shadow-xl border border-slate-100 sm:px-10">
+        {/* Cabeçalho de Marca e Voltar */}
+        <div className="mb-6 flex items-center justify-between">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-all"
+          >
+            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+            <span>Início</span>
+          </Link>
+
           <Image
             src="/brand/appono-mark.svg"
             alt="Appono"
-            width={108}
-            height={108}
-            className="h-16 w-16"
+            width={48}
+            height={48}
+            className="h-10 w-10"
             priority
           />
+
+          <span className="rounded-full bg-red-50 text-red-600 px-3 py-1 text-[11px] font-bold tracking-wide uppercase">
+            Cliente
+          </span>
         </div>
 
-        <div className="mb-4 flex items-center justify-between gap-3">
-          <Link
-            href="/"
-            className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-bold text-app-caramelo-torrado transition hover:bg-app-creme-suave hover:text-app-cafe-profundo"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <line x1="19" y1="12" x2="5" y2="12" />
-              <polyline points="12 19 5 12 12 5" />
-            </svg>
-
-            Voltar
-          </Link>
-
-          <p className="rounded-full bg-app-creme-suave px-3 py-1 text-[10px] font-bold uppercase tracking-[0.24em] text-app-caramelo-torrado">
-            Cadastro de cliente
+        <div className="mb-6">
+          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+            Crie sua conta Appono
+          </h1>
+          <p className="mt-1 text-sm text-slate-500">
+            Cadastre-se para reservar mesas e antecipar seus pedidos de forma prática.
           </p>
         </div>
 
-        <h1 className="text-2xl font-bold text-app-cafe-profundo">
-          Crie sua conta Appono
-        </h1>
+        {/* Stepper inspirado no iFood */}
+        <FormStepper
+          steps={STEPS}
+          currentStep={currentStep}
+          onStepClick={(step) => setCurrentStep(step)}
+        />
 
-        <p className="mt-1 text-sm leading-5 text-app-mocha">
-          Use seus dados reais para reservar mesa e acessar sua conta depois.
-        </p>
+        {/* Etapa 1: Dados Pessoais */}
+        {currentStep === 0 && (
+          <div className="space-y-4 animate-fadeIn">
+            <FormInput
+              label="Nome completo"
+              placeholder="Ex: Maria Silva"
+              required
+              leftIcon={User}
+              error={errors.name}
+              {...register("name")}
+            />
 
-        <div className="mt-5 grid gap-3 sm:grid-cols-2">
-              <FormField
-            label="Nome completo"
-            value={form.name}
-            onChange={(event) =>
-              atualizarCampo("name", event.target.value)
-            }
-            placeholder="Ex: Maria Silva"
-            required
-            className="sm:col-span-2"
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <FormInput
+                label="Data de nascimento"
+                type="date"
+                required
+                leftIcon={Calendar}
+                error={errors.birthDate}
+                {...register("birthDate")}
               />
 
-          <FormField
-            label="Data de nascimento"
-            type="date"
-            value={form.birthDate}
-            onChange={(event) =>
-              atualizarCampo("birthDate", event.target.value)
-            }
-            required
-          />
+              <FormInput
+                label="CPF"
+                placeholder="000.000.000-00"
+                required
+                inputMode="numeric"
+                maxLength={14}
+                leftIcon={CreditCard}
+                error={errors.cpf}
+                {...register("cpf", {
+                  onChange: (e) => {
+                    setValue("cpf", aplicarMascaraCpf(e.target.value));
+                  },
+                })}
+              />
+            </div>
+          </div>
+        )}
 
-          <FormField
-            label="CPF"
-            value={form.cpf}
-            onChange={(event) =>
-              atualizarCampo(
-                "cpf",
-                aplicarMascaraCpf(event.target.value)
-              )
-            }
-            onBlur={async () => {
-              if (!cpfEstaCompleto(form.cpf)) {
-                return;
-              }
-              if (!isGoogleFlow) return;
-
-              try {
-                const resultado = await apiRequest(
-                  `/validacoes/cpf/${somenteNumeros(form.cpf)}?data_nascimento=${encodeURIComponent(form.birthDate)}`
-                );
-                if (!resultado.consultado) setMessage(resultado.message);
-              } catch (error) {
-                setMessage(
-                  error instanceof Error
-                    ? error.message
-                    : "CPF inválido."
-                );
-              }
-            }}
-            placeholder="000.000.000-00"
-            inputMode="numeric"
-            maxLength={14}
-            required
-          />
-
-          <FormField
-            label="E-mail"
-            type="email"
-            value={form.email}
-            onChange={(event) =>
-              atualizarCampo("email", event.target.value)
-            }
-            placeholder="maria@exemplo.com"
-            required
-            disabled={isGoogleFlow}
-            className="sm:col-span-2"
-          />
-
-          <FormField
-            label="Telefone"
-            value={form.phone}
-            onChange={(event) =>
-              atualizarCampo(
-                "phone",
-                aplicarMascaraTelefone(event.target.value)
-              )
-            }
-            placeholder="(11) 99999-9999"
-            inputMode="tel"
-            maxLength={15}
-            required
-            className="sm:col-span-2"
-          />
-
-          {!isGoogleFlow ? (<>
-            <FormField
-              label="Senha"
-              type="password"
-              value={form.password}
-              onChange={(event) =>
-                atualizarCampo("password", event.target.value)
-              }
-              placeholder="********"
+        {/* Etapa 2: Contato e Acesso */}
+        {currentStep === 1 && (
+          <div className="space-y-4 animate-fadeIn">
+            <FormInput
+              label="E-mail"
+              type="email"
+              placeholder="seu.email@exemplo.com"
               required
-              minLength={6}
-              className="sm:col-span-2"
+              disabled={googleFlow}
+              leftIcon={Mail}
+              error={errors.email}
+              {...register("email")}
             />
-            <PasswordRequirements value={form.password} />
-          </>) : null}
-        </div>
 
-        <div className="mt-5 flex flex-col-reverse gap-3 border-t border-app-baunilha-dourada pt-4 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm text-app-cinza">
-            Ja possui uma conta?{" "}
+            <FormInput
+              label="Telefone / Celular (WhatsApp)"
+              placeholder="(11) 99999-9999"
+              required
+              inputMode="tel"
+              maxLength={15}
+              leftIcon={Phone}
+              error={errors.phone}
+              {...register("phone", {
+                onChange: (e) => {
+                  setValue("phone", aplicarMascaraTelefone(e.target.value));
+                },
+              })}
+            />
+
+            {!googleFlow && (
+              <>
+                <FormInput
+                  label="Senha de acesso"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Crie uma senha segura"
+                  required
+                  leftIcon={Lock}
+                  error={errors.password}
+                  rightAction={
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="text-slate-400 hover:text-slate-600 p-1"
+                      aria-label={showPassword ? "Ocultar senha" : "Exibir senha"}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </button>
+                  }
+                  {...register("password")}
+                />
+
+                <PasswordRequirements value={watchPassword || ""} />
+
+                <FormInput
+                  label="Confirmar senha"
+                  type={showConfirmPassword ? "text" : "password"}
+                  placeholder="Digite a senha novamente"
+                  required
+                  leftIcon={Lock}
+                  error={errors.confirmPassword}
+                  rightAction={
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setShowConfirmPassword(!showConfirmPassword)
+                      }
+                      className="text-slate-400 hover:text-slate-600 p-1"
+                      aria-label={
+                        showConfirmPassword ? "Ocultar senha" : "Exibir senha"
+                      }
+                    >
+                      {showConfirmPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </button>
+                  }
+                  {...register("confirmPassword")}
+                />
+              </>
+            )}
+          </div>
+        )}
+
+        {/* Mensagens de Feedback */}
+        {message && (
+          <div className="mt-5 flex items-center gap-2 rounded-xl bg-amber-50 border border-amber-200/60 p-3 text-xs font-semibold text-amber-800 animate-fadeIn">
+            <AlertCircle className="h-4 w-4 shrink-0 text-amber-600" />
+            <span>{message}</span>
+          </div>
+        )}
+
+        {/* Ações da Etapa */}
+        <FormStepActions
+          currentStep={currentStep}
+          totalSteps={STEPS.length}
+          onBack={handleBackStep}
+          onNext={handleNextStep}
+          isSubmitting={isSubmitting}
+          nextLabel="Avançar para Acesso"
+          submitLabel="Concluir Cadastro"
+          className="mt-8"
+        />
+
+        {/* Rodapé de Login */}
+        <div className="mt-6 pt-4 text-center border-t border-slate-100">
+          <p className="text-xs text-slate-500">
+            Já tem uma conta no Appono?{" "}
             <Link
               href="/login"
-              className="font-bold text-app-caramelo-torrado transition hover:text-app-cafe-profundo"
+              className="font-bold text-red-600 hover:text-red-700 transition"
             >
-              Entrar
+              Fazer login
             </Link>
           </p>
-
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="flex h-10 w-full items-center justify-center gap-2 rounded-full bg-app-dourado-mel px-6 text-xs font-bold uppercase tracking-wide text-white shadow-md transition hover:-translate-y-0.5 hover:bg-app-caramelo-torrado hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-app-dourado-mel/25 disabled:cursor-not-allowed disabled:translate-y-0 disabled:opacity-70 disabled:shadow-none sm:w-auto"
-          >
-            {isSubmitting ? (
-              <>
-                <svg
-                  className="h-3.5 w-3.5 animate-spin"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  />
-
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                  />
-                </svg>
-
-                Criando...
-              </>
-            ) : (
-              "Criar conta"
-            )}
-          </button>
         </div>
-
-        {message ? (
-          <p className="mt-3 rounded-lg bg-app-creme-suave px-3 py-2 text-sm font-semibold text-app-caramelo-torrado">
-            {message}
-          </p>
-        ) : null}
       </div>
     </form>
   );

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { apiRequest } from "@/lib/api";
 import { filtrarOrdenarPorBusca, textoBusca } from "@/lib/busca-avancada";
+import { RestaurantIcon as Icon } from "@/components/restaurante/restaurant-icon";
 
 
 const filtrosPedido = [
@@ -23,31 +24,6 @@ const ordenacoesPedido = [
     { label: "Maior valor", value: "VALOR" },
 ];
 
-function Icon({ type, className = "h-5 w-5" }) {
-    const paths = {
-        bell: "M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0",
-        menu: "M4 7h16M4 12h16M4 17h16",
-        message: "M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v8z",
-        clock: "M12 7v5l3 2M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z",
-        receipt: "M7 3h10a2 2 0 0 1 2 2v16l-3-2-2 2-2-2-2 2-2-2-3 2V5a2 2 0 0 1 2-2Z",
-        search: "m21 21-4.35-4.35M11 18a7 7 0 1 1 0-14 7 7 0 0 1 0 14z",
-        user: "M20 21a8 8 0 0 0-16 0M12 13a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z",
-        trash: "M4 7h16M10 11v6M14 11v6M6 7l1 14h10l1-14M9 7V4h6v3",
-    };
-
-    return (
-        <svg aria-hidden="true" viewBox="0 0 24 24" className={className}>
-            <path
-                d={paths[type]}
-                fill="none"
-                stroke="currentColor"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="1.8"
-            />
-        </svg>
-    );
-}
 
 function formatarMoeda(valor, localeUI = "pt-BR") {
     return new Intl.NumberFormat(localeUI, {

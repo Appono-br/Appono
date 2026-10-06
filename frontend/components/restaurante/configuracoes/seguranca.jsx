@@ -3,6 +3,7 @@ import { useInterface } from "@/lib/use-interface";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import { CircleHelp, KeyRound, Lock, ShieldCheck, UserPlus } from "lucide-react";
 const initialForm = {
     currentPassword: "",
     newPassword: "",
@@ -27,18 +28,10 @@ function getStorage() {
     }
     return window.localStorage;
 }
-function Icon({ type, className = "h-5 w-5", }) {
-    const paths = {
-        "arrow-left": "M19 12H5M12 19l-7-7 7-7",
-        help: "M9.1 9a3 3 0 1 1 4.9 2.3c-1 .6-1.5 1.1-1.5 2.2M12 17h.01M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z",
-        key: "M21 2l-2 2M15.5 7.5l2 2M14 4l6 6-7 7H9v4H5v-4H1v-4h4l9-9z",
-        lock: "M6 10V8a6 6 0 0 1 12 0v2M5 10h14v11H5V10z",
-        shield: "M12 21s7-3.2 7-9.8V5l-7-3-7 3v6.2C5 17.8 12 21 12 21z",
-        "user-plus": "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z M19 8v6M22 11h-6",
-    };
-    return (<svg aria-hidden="true" viewBox="0 0 24 24" className={className}>
-      <path d={paths[type]} fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8"/>
-    </svg>);
+const securityIcons = { help: CircleHelp, key: KeyRound, lock: Lock, shield: ShieldCheck, "user-plus": UserPlus };
+function Icon({ type, className = "h-5 w-5" }) {
+    const IconComponent = securityIcons[type] ?? ShieldCheck;
+    return <IconComponent className={className} aria-hidden="true" />;
 }
 function Toggle({ checked, onChange, label, }) {
     const { ui } = useInterface();

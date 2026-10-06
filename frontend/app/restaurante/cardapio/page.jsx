@@ -7,26 +7,9 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { apiRequest } from "@/lib/api";
 import { TelaCarregandoSessao, useSessaoLocal } from "@/lib/use-sessao-local";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
+import { RestaurantIcon as Icon } from "@/components/restaurante/restaurant-icon";
 
 
-function Icon({ type, className = "h-5 w-5" }) {
-    const paths = {
-        category: "M5 5h6v6H5V5z M13 5h6v6h-6V5z M5 13h6v6H5v-6z M13 13h6v6h-6v-6z",
-        check: "m5 12 4 4L19 6",
-        menu: "M4 7h16M4 12h16M4 17h16",
-        pencil: "M16.5 4.5l3 3L8 19H5v-3L16.5 4.5z",
-        plus: "M12 5v14M5 12h14",
-        search: "m21 21-4.35-4.35M11 18a7 7 0 1 1 0-14 7 7 0 0 1 0 14z",
-        star: "m12 3 2.7 5.5 6.1.9-4.4 4.3 1 6-5.4-2.9-5.4 2.9 1-6-4.4-4.3 6.1-.9L12 3z",
-        trash: "M4 7h16M10 11v6M14 11v6M6 7l1 14h10l1-14M9 7V5h6v2",
-        utensils: "M7 3v8M4 3v8M10 3v8M4 11h6M7 11v10M17 3v18M14 3h3a3 3 0 0 1 3 3v5a3 3 0 0 1-3 3h-3",
-    };
-    return (
-        <svg aria-hidden="true" viewBox="0 0 24 24" className={className}>
-            <path d={paths[type]} fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" />
-        </svg>
-    );
-}
 
 function formatarMoeda(valor, localeUI = "pt-BR") {
     return new Intl.NumberFormat(localeUI, {

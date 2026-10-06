@@ -1,700 +1,907 @@
-  "use client";
+"use client";
 
-  import Image from "next/image";
-  import Link from "next/link";
-  import { useEffect, useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import {
+  Building2,
+  FileText,
+  Mail,
+  Phone,
+  CreditCard,
+  MapPin,
+  Home,
+  Hash,
+  Upload,
+  Lock,
+  Eye,
+  EyeOff,
+  Check,
+  Sparkles,
+  ArrowLeft,
+  AlertCircle,
+  UtensilsCrossed,
+  Layers,
+} from "lucide-react";
 
-  import { FormField } from "@/components/auth/form-field";
-  import { apiRequest } from "@/lib/api";
-  import { getDashboardPath, persistAuthResponse } from "@/lib/session";
-  import { supabase } from "@/lib/supabase";
-  import {
-    aplicarMascaraCep,
-    cepEstaCompleto,
-  } from "@/lib/validacoes/cep";
-  import {
-    aplicarMascaraCnpj,
-    cnpjEstaCompleto,
-  } from "@/lib/validacoes/cnpj";
-  import { somenteNumeros } from "@/lib/validacoes/comum";
-import { aplicarMascaraTelefone } from "@/lib/validacoes/telefone";
-import { senhaValida } from "@/lib/politica-senha";
+import { FormInput } from "@/components/ui/form-input";
+import { FormStepper } from "@/components/ui/form-stepper";
+import { FormStepActions } from "@/components/ui/form-step-actions";
 import { PasswordRequirements } from "@/components/auth/password-requirements";
 import { CATEGORIAS_CULINARIAS } from "@/lib/categorias-culinarias";
-  import {
-    enviarImagemRestaurante,
-    validarImagemRestaurante,
-  } from "@/lib/imagem-restaurante";
+import { apiRequest } from "@/lib/api";
+import { getDashboardPath, persistAuthResponse } from "@/lib/session";
+import { supabase } from "@/lib/supabase";
+import { somenteNumeros } from "@/lib/validacoes/comum";
+import { aplicarMascaraCep, cepEstaCompleto } from "@/lib/validacoes/cep";
+import { aplicarMascaraCnpj, cnpjEstaCompleto } from "@/lib/validacoes/cnpj";
+import { aplicarMascaraTelefone } from "@/lib/validacoes/telefone";
+import { senhaValida } from "@/lib/politica-senha";
+import { validarCnpj, validarCep, validarTelefone } from "@/lib/schemas/validacoes-base";
+import {
+  enviarImagemRestaurante,
+  validarImagemRestaurante,
+} from "@/lib/imagem-restaurante";
 
-  const initialForm = {
-    storeName: "",
-    legalName: "",
-    email: "",
-    phone: "",
-    cnpj: "",
-    cep: "",
-    address: "",
-    neighborhood: "",
-    city: "",
-    uf: "",
-    number: "",
-    complement: "",
-    tables: "",
-    password: "",
-    plano: "INICIAL",
-    categorias_culinarias: [],
-  };
+const restaurantFormSchema = z
+  .object({
+    storeName: z
+      .string()
+      .min(1, "O nome fantasia é obrigatório.")
+      .min(2, "O nome fantasia deve ter no mínimo 2 caracteres."),
+    legalName: z
+      .string()
+      .min(1, "A razão social é obrigatória.")
+      .min(2, "A razão social deve ter no mínimo 2 caracteres."),
+    cnpj: z
+      .string()
+      .min(1, "O CNPJ é obrigatório.")
+      .refine(validarCnpj, "Informe um CNPJ válido com 14 dígitos."),
+    email: z
+      .string()
+      .min(1, "O e-mail comercial é obrigatório.")
+      .email("Informe um e-mail válido."),
+    phone: z
+      .string()
+      .min(1, "O telefone comercial é obrigatório.")
+      .refine(validarTelefone, "Informe um telefone comercial válido com DDD."),
+    cep: z
+      .string()
+      .min(1, "O CEP é obrigatório.")
+      .refine(validarCep, "Informe um CEP válido com 8 dígitos."),
+    address: z.string().min(1, "O endereço/rua é obrigatório."),
+    number: z.string().min(1, "O número é obrigatório."),
+    neighborhood: z.string().min(1, "O bairro é obrigatório."),
+    city: z.string().min(1, "A cidade é obrigatória."),
+    uf: z.string().min(1, "O estado (UF) é obrigatório.").length(2, "UF deve ter 2 letras."),
+    complement: z.string().optional().default(""),
+    tables: z
+      .coerce
+      .number({ invalid_type_error: "Informe a quantidade de mesas." })
+      .int("A quantidade de mesas deve ser um número inteiro.")
+      .min(1, "O restaurante deve ter pelo menos 1 mesa."),
+    categorias_culinarias: z
+      .array(z.string())
+      .min(1, "Selecione pelo menos uma especialidade culinária."),
+    plano: z.enum(["INICIAL", "PROFISSIONAL"]).default("INICIAL"),
+    password: z.string().optional().default(""),
+    confirmPassword: z.string().optional().default(""),
+  })
+  .superRefine((data, ctx) => {
+    if (data.password || data.confirmPassword) {
+      if (!senhaValida(data.password)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message:
+            "A senha deve ter pelo menos 6 caracteres, maiúscula, minúscula, número e caractere especial.",
+          path: ["password"],
+        });
+      }
+      if (data.password !== data.confirmPassword) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "As senhas não coincidem.",
+          path: ["confirmPassword"],
+        });
+      }
+    }
+  });
+
+const STEPS = [
+  {
+    title: "Estabelecimento",
+    fields: ["storeName", "legalName", "cnpj", "email", "phone"],
+  },
+  {
+    title: "Localização",
+    fields: ["cep", "address", "number", "neighborhood", "city", "uf", "complement"],
+  },
+  {
+    title: "Operação & Cardápio",
+    fields: ["tables", "categorias_culinarias"],
+  },
+  {
+    title: "Plano & Acesso",
+    fields: ["plano", "password", "confirmPassword"],
+  },
+];
 
 function redirecionarParaLogin(email) {
   const params = new URLSearchParams();
   const emailNormalizado = String(email ?? "").trim().toLowerCase();
-
   params.set("cadastro", "existente");
-  if (emailNormalizado) {
-    params.set("email", emailNormalizado);
-  }
-
+  if (emailNormalizado) params.set("email", emailNormalizado);
   window.location.href = `/login?${params.toString()}`;
 }
 
 export function RegisterRestaurantForm({ googleFlow = false }) {
-  const [form, setForm] = useState(initialForm);
+  const [currentStep, setCurrentStep] = useState(0);
   const [message, setMessage] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [imagem, setImagem] = useState(null);
   const [imagemPreview, setImagemPreview] = useState("");
   const [googleSession, setGoogleSession] = useState(null);
-  const [etapa, setEtapa] = useState("dados");
   const [confirmarPlano, setConfirmarPlano] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-    const isGoogleFlow = googleFlow;
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    trigger,
+    control,
+    formState: { errors, isSubmitting },
+  } = useForm({
+    resolver: zodResolver(restaurantFormSchema),
+    mode: "onTouched",
+    defaultValues: {
+      storeName: "",
+      legalName: "",
+      cnpj: "",
+      email: "",
+      phone: "",
+      cep: "",
+      address: "",
+      number: "",
+      neighborhood: "",
+      city: "",
+      uf: "",
+      complement: "",
+      tables: "",
+      categorias_culinarias: [],
+      plano: "INICIAL",
+      password: "",
+      confirmPassword: "",
+    },
+  });
 
-    useEffect(() => {
-      if (!isGoogleFlow) {
+  const watchPlano = watch("plano");
+  const watchPassword = watch("password");
+  const watchCategorias = watch("categorias_culinarias") || [];
+
+  useEffect(() => {
+    if (!googleFlow) return;
+
+    supabase.auth.getSession().then(({ data }) => {
+      if (!data.session) {
+        setMessage("Entre com Google novamente para completar o cadastro.");
         return;
       }
+      setGoogleSession(data.session);
+      if (data.session.user.email) {
+        setValue("email", data.session.user.email);
+      }
+    });
+  }, [googleFlow, setValue]);
 
-      supabase.auth.getSession().then(({ data }) => {
-        if (!data.session) {
-          setMessage(
-            "Entre com Google novamente para completar o cadastro."
-          );
-          return;
-        }
+  async function handleValidarCnpjBlur(e) {
+    const raw = e.target.value;
+    if (!cnpjEstaCompleto(raw)) return;
 
-        setGoogleSession(data.session);
-
-        setForm((current) => ({
-          ...current,
-          email: data.session.user.email ?? current.email,
-        }));
+    try {
+      const company = await apiRequest(`/validacoes/cnpj/${somenteNumeros(raw)}`, {
+        auth: false,
       });
-    }, [isGoogleFlow]);
-
-    function atualizarCampo(field, value) {
-      setForm((current) => ({
-        ...current,
-        [field]: value,
-      }));
-
-      setMessage("");
+      if (company.razaoSocial) {
+        setValue("legalName", company.razaoSocial);
+      }
+    } catch {
+      // Ignora falha de busca remota não bloqueante
     }
+  }
 
-    function dadosRestauranteEstaoPreenchidos() {
-      return Boolean(
-        form.legalName &&
-          form.storeName &&
-          form.email &&
-          form.phone &&
-          form.cnpj &&
-          form.cep &&
-          form.address &&
-          form.neighborhood &&
-          form.city &&
-          form.uf &&
-          form.number &&
-          form.tables &&
-          (isGoogleFlow || senhaValida(form.password))
-      );
+  async function handleValidarCepBlur(e) {
+    const raw = e.target.value;
+    if (!cepEstaCompleto(raw)) return;
+
+    try {
+      const address = await apiRequest(`/validacoes/cep/${somenteNumeros(raw)}`, {
+        auth: false,
+      });
+      if (address.rua) setValue("address", address.rua);
+      if (address.bairro) setValue("neighborhood", address.bairro);
+      if (address.cidade) setValue("city", address.cidade);
+      if (address.estado) setValue("uf", address.estado);
+    } catch {
+      // Ignora falha de busca remota não bloqueante
     }
+  }
 
-    function avancarParaPlanos() {
-      if (!dadosRestauranteEstaoPreenchidos()) {
-        setMessage("Preencha os dados obrigatórios do restaurante para continuar.");
-        return;
-      }
-
-      setMessage("");
-      setEtapa("plano");
-    }
-
-    function selecionarImagem(arquivo) {
-      if (!arquivo) {
-        return;
-      }
-
-      const erro = validarImagemRestaurante(arquivo);
-
-      if (erro) {
-        setMessage(erro);
-        return;
-      }
-
-      if (imagemPreview) {
-        URL.revokeObjectURL(imagemPreview);
-      }
-
+  function selecionarImagem(arquivo) {
+    if (!arquivo) return;
+    try {
+      validarImagemRestaurante(arquivo);
       setImagem(arquivo);
       setImagemPreview(URL.createObjectURL(arquivo));
       setMessage("");
+    } catch (error) {
+      setImagem(null);
+      setImagemPreview("");
+      setMessage(error instanceof Error ? error.message : "Imagem inválida.");
+    }
+  }
+
+  async function handleNextStep() {
+    setMessage("");
+    const fieldsToValidate = STEPS[currentStep].fields.filter(
+      (f) => !(googleFlow && (f === "password" || f === "confirmPassword"))
+    );
+    const stepIsValid = await trigger(fieldsToValidate);
+    if (stepIsValid) {
+      setCurrentStep((prev) => Math.min(prev + 1, STEPS.length - 1));
+    }
+  }
+
+  function handleBackStep() {
+    setMessage("");
+    setCurrentStep((prev) => Math.max(prev - 1, 0));
+  }
+
+  async function onSubmit(data) {
+    if (!googleFlow && !senhaValida(data.password)) {
+      setMessage("A senha precisa cumprir todos os requisitos de segurança.");
+      return;
     }
 
-    async function validarCnpj() {
-      if (!cnpjEstaCompleto(form.cnpj)) {
-        return;
-      }
-
-      try {
-        const company = await apiRequest(
-          `/validacoes/cnpj/${somenteNumeros(form.cnpj)}`,
-          {
-            auth: false,
-          }
-        );
-
-        setForm((current) => ({
-          ...current,
-          legalName: company.razaoSocial || current.legalName,
-        }));
-
-        setMessage("");
-      } catch (error) {
-        setMessage(
-          error instanceof Error
-            ? error.message
-            : "CNPJ invalido."
-        );
-      }
+    if (data.plano === "PROFISSIONAL" && !confirmarPlano) {
+      setConfirmarPlano(true);
+      return;
     }
 
-    async function validarCep() {
-      if (!cepEstaCompleto(form.cep)) {
-        return;
+    await executarCriacao(data);
+  }
+
+  async function executarCriacao(data) {
+    setMessage("");
+
+    try {
+      const response = await apiRequest(
+        googleFlow ? "/auth/google/restaurant" : "/auth/register/restaurant",
+        {
+          method: "POST",
+          auth: googleFlow,
+          body: JSON.stringify({
+            storeName: data.storeName,
+            legalName: data.legalName,
+            email: data.email,
+            phone: data.phone,
+            cnpj: data.cnpj,
+            cep: data.cep,
+            address: data.address,
+            neighborhood: data.neighborhood,
+            city: data.city,
+            uf: data.uf,
+            number: data.number,
+            complement: data.complement,
+            tables: data.tables,
+            categorias_culinarias: data.categorias_culinarias,
+            plano: data.plano,
+            password: data.password,
+          }),
+        }
+      );
+
+      const session = response.session ?? googleSession;
+
+      if (!session && data.plano === "PROFISSIONAL") {
+        window.sessionStorage.setItem("appono_checkout_profissional_pendente", "1");
       }
 
-      try {
-        const address = await apiRequest(
-          `/validacoes/cep/${somenteNumeros(form.cep)}`,
-          {
-            auth: false,
+      await persistAuthResponse({
+        ...response,
+        session,
+      });
+
+      if (session) {
+        if (imagem) {
+          try {
+            await enviarImagemRestaurante(imagem, session);
+          } catch (err) {
+            console.warn("Falha no envio da imagem do restaurante.", err);
           }
-        );
-
-        setForm((current) => ({
-          ...current,
-          address: address.rua || current.address,
-          neighborhood: address.bairro || current.neighborhood,
-          city: address.cidade || current.city,
-          uf: address.estado || current.uf,
-        }));
-
-        setMessage("");
-      } catch (error) {
-        setMessage(
-          error instanceof Error
-            ? error.message
-            : "CEP invalido."
-        );
-      }
-    }
-
-    async function criarRestaurante() {
-      if (!dadosRestauranteEstaoPreenchidos()) {
-        setMessage(
-          "Preencha os dados do restaurante antes de finalizar."
-        );
-        return;
-      }
-
-      setIsSubmitting(true);
-      setMessage("");
-      try {
-        const response = await apiRequest(
-          isGoogleFlow
-            ? "/auth/google/restaurant"
-            : "/auth/register/restaurant",
-          {
-            method: "POST",
-            auth: isGoogleFlow,
-            body: JSON.stringify(form),
-          }
-        );
-
-        const session = response.session ?? googleSession;
-
-        if (!session && form.plano === "PROFISSIONAL") {
-          window.sessionStorage.setItem("appono_checkout_profissional_pendente", "1");
         }
 
-        await persistAuthResponse({
-          ...response,
-          session,
-        });
-
-        if (session) {
-          if (imagem) {
-            try {
-              await enviarImagemRestaurante(imagem, session);
-            } catch (error) {
-              console.warn(
-                "Nao foi possivel enviar a imagem do restaurante.",
-                error
-              );
-            }
-          }
-
-          if (form.plano === "PROFISSIONAL") {
-            try {
-              const contratacao = await apiRequest("/planos/checkout", {
-                method: "POST",
-                body: JSON.stringify({ plano: "PROFISSIONAL" }),
-              });
-              if (contratacao.checkout_url) {
-                window.location.assign(contratacao.checkout_url);
-                return;
-              }
-              throw new Error("Não foi possível abrir o checkout do Plano Profissional.");
-            } catch {
-              window.location.assign("/restaurante/plano?checkout=pendente");
+        if (data.plano === "PROFISSIONAL") {
+          try {
+            const contratacao = await apiRequest("/planos/checkout", {
+              method: "POST",
+              body: JSON.stringify({ plano: "PROFISSIONAL" }),
+            });
+            if (contratacao.checkout_url) {
+              window.location.assign(contratacao.checkout_url);
               return;
             }
+          } catch {
+            window.location.assign("/restaurante/plano?checkout=pendente");
+            return;
           }
-          window.location.href = getDashboardPath(response.tipo);
-          return;
         }
 
-        setMessage(
-          response.message ??
-            (form.plano === "PROFISSIONAL"
-              ? "Conta criada. Confirme seu e-mail; depois, você seguirá ao Mercado Pago para concluir a assinatura Profissional."
-              : "Conta criada. Confirme seu e-mail para entrar direto no painel.")
-        );
-      } catch (error) {
-        if (error?.code === "AUTH_USER_ALREADY_EXISTS") {
-          redirecionarParaLogin(form.email);
-          return;
-        }
-
-        setMessage(
-          error instanceof Error
-            ? error.message
-            : "Nao foi possivel criar a conta do restaurante."
-        );
-      } finally {
-        setIsSubmitting(false);
+        window.location.href = getDashboardPath(response.tipo);
+        return;
       }
+
+      setMessage(
+        response.message ??
+          (data.plano === "PROFISSIONAL"
+            ? "Conta criada. Confirme seu e-mail; depois você concluirá a assinatura no Mercado Pago."
+            : "Conta criada. Confirme seu e-mail para acessar o painel.")
+      );
+    } catch (error) {
+      if (error?.code === "AUTH_USER_ALREADY_EXISTS") {
+        redirecionarParaLogin(data.email);
+        return;
+      }
+      setMessage(
+        error instanceof Error ? error.message : "Não foi possível criar a conta."
+      );
     }
+  }
 
-    return (
-      <div className={`mx-auto w-full ${etapa === "plano" ? "max-w-3xl" : "max-w-xl"}`}>
-        <div className={`rounded-2xl bg-white shadow-sm ring-1 ring-app-baunilha-dourada/45 ${etapa === "plano" ? "px-5 py-6 sm:px-7" : "px-6 py-7 sm:px-9"}`}>
+  return (
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className="mx-auto w-full max-w-2xl"
+      noValidate
+    >
+      <div className="rounded-3xl bg-white px-6 py-8 shadow-xl border border-slate-100 sm:px-10">
+        {/* Cabeçalho de Navegação e Marca */}
+        <div className="mb-6 flex items-center justify-between">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-all"
+          >
+            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+            <span>Início</span>
+          </Link>
 
-          <div className="mb-5 flex justify-center">
-            <Image
-              src="/brand/appono-mark.svg"
-              alt="Appono"
-              width={108}
-              height={108}
-              className="h-16 w-16"
-              priority
-            />
-          </div>
+          <Image
+            src="/brand/appono-mark.svg"
+            alt="Appono"
+            width={48}
+            height={48}
+            className="h-10 w-10"
+            priority
+          />
 
-          <div className="mb-5 flex items-center justify-between gap-3">
-            <Link
-              href={etapa === "plano" ? "#" : "/"}
-              onClick={(event) => {
-                if (etapa === "plano") {
-                  event.preventDefault();
-                  setEtapa("dados");
-                }
-              }}
-              className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-bold text-app-caramelo-torrado transition hover:bg-app-chantilly hover:text-app-cafe-profundo"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <line x1="19" y1="12" x2="5" y2="12" />
-                <polyline points="12 19 5 12 12 5" />
-              </svg>
+          <span className="rounded-full bg-red-50 text-red-600 px-3 py-1 text-[11px] font-bold tracking-wide uppercase">
+            Parceiro
+          </span>
+        </div>
 
-              Voltar
-            </Link>
-
-            <p className="rounded-full bg-app-creme-suave px-3 py-1 text-[10px] font-bold uppercase tracking-[0.24em] text-app-caramelo-torrado">
-              Cadastro de parceiro
-            </p>
-          </div>
-
-          <div className="flex items-start justify-between gap-4">
-            <h1 className="text-2xl font-bold text-app-cafe-profundo">
-              {etapa === "dados" ? "Torne-se um parceiro APPONO" : "Escolha o plano ideal"}
-            </h1>
-            <span className="shrink-0 rounded-full bg-app-creme-suave px-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">
-              {etapa === "dados" ? "1 de 2" : "2 de 2"}
-            </span>
-          </div>
-
-          <p className="mt-1 text-sm leading-5 text-app-cinza">
-            {etapa === "dados"
-              ? "Informe os dados operacionais do estabelecimento. A conta Mercado Pago poderá ser conectada depois, nas configurações."
-              : "Comece sem mensalidade ou potencialize suas vendas com recursos profissionais."}
+        <div className="mb-6">
+          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+            Torne-se um parceiro Appono
+          </h1>
+          <p className="mt-1 text-sm text-slate-500">
+            Cadastre seu restaurante e potencialize suas reservas e pedidos de mesa.
           </p>
+        </div>
 
-          {etapa === "dados" ? <div className="mt-6 grid gap-3 sm:grid-cols-2">
+        {/* Stepper horizontal estilo iFood Partner */}
+        <FormStepper
+          steps={STEPS}
+          currentStep={currentStep}
+          onStepClick={(step) => setCurrentStep(step)}
+        />
 
-            <FormField
-              label="Nome da loja"
-              value={form.storeName}
-              onChange={(event) =>
-                atualizarCampo("storeName", event.target.value)
-              }
-              placeholder="Nome que aparecerá para os clientes"
+        {/* Etapa 1: Dados do Estabelecimento */}
+        {currentStep === 0 && (
+          <div className="space-y-4 animate-fadeIn">
+            <FormInput
+              label="Nome fantasia da loja"
+              placeholder="Ex: Terra Artisan Gastronomia"
               required
-              className="sm:col-span-2"
+              leftIcon={Building2}
+              error={errors.storeName}
+              {...register("storeName")}
             />
 
-            <FormField
+            <FormInput
               label="Razão social"
-              value={form.legalName}
-              onChange={(event) =>
-                atualizarCampo("legalName", event.target.value)
-              }
               placeholder="Ex: Terra Artisan Gastronomia LTDA"
               required
-              className="sm:col-span-2"
+              leftIcon={FileText}
+              error={errors.legalName}
+              {...register("legalName")}
             />
 
-            <fieldset className="grid gap-2 sm:col-span-2"><legend className="text-sm font-semibold text-app-cafe-profundo">Categorias culinárias</legend><div className="flex flex-wrap gap-2" role="group" aria-label="Categorias culinárias">{CATEGORIAS_CULINARIAS.map((categoria) => { const selecionada = form.categorias_culinarias.includes(categoria); return <button key={categoria} type="button" aria-pressed={selecionada} onClick={() => { if (selecionada) atualizarCampo("categorias_culinarias", form.categorias_culinarias.filter((item) => item !== categoria)); else if (form.categorias_culinarias.length < 8) atualizarCampo("categorias_culinarias", [...form.categorias_culinarias, categoria]); }} className={`rounded-full border px-3 py-2 text-sm transition ${selecionada ? "border-app-cafe-profundo bg-app-cafe-profundo text-white" : "border-app-baunilha-dourada bg-white text-app-mocha hover:bg-app-chantilly"}`}>{categoria}</button>; })}</div><span className="text-xs text-app-cinza">Selecione até 8 categorias.</span></fieldset>
-
-            <FormField
-              label="E-mail"
-              type="email"
-              value={form.email}
-              onChange={(event) =>
-                atualizarCampo("email", event.target.value)
-              }
-              placeholder="contato@restaurante.com"
-              required
-              disabled={isGoogleFlow}
-              className="sm:col-span-2"
-            />
-
-            <FormField
-              label="Telefone"
-              value={form.phone}
-              onChange={(event) =>
-                atualizarCampo(
-                  "phone",
-                  aplicarMascaraTelefone(event.target.value)
-                )
-              }
-              placeholder="(11) 99999-9999"
-              inputMode="tel"
-              maxLength={15}
-              required
-              className="sm:col-span-2"
-            />
-
-            <FormField
+            <FormInput
               label="CNPJ"
-              value={form.cnpj}
-              onChange={(event) =>
-                atualizarCampo(
-                  "cnpj",
-                  aplicarMascaraCnpj(event.target.value)
-                )
-              }
-              onBlur={validarCnpj}
               placeholder="00.000.000/0001-00"
+              required
               inputMode="numeric"
               maxLength={18}
-              required
-              className="sm:col-span-2"
+              leftIcon={CreditCard}
+              error={errors.cnpj}
+              {...register("cnpj", {
+                onChange: (e) => {
+                  setValue("cnpj", aplicarMascaraCnpj(e.target.value));
+                },
+                onBlur: handleValidarCnpjBlur,
+              })}
             />
 
-            <FormField
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <FormInput
+                label="E-mail comercial"
+                type="email"
+                placeholder="contato@restaurante.com"
+                required
+                disabled={googleFlow}
+                leftIcon={Mail}
+                error={errors.email}
+                {...register("email")}
+              />
+
+              <FormInput
+                label="Telefone comercial"
+                placeholder="(11) 99999-9999"
+                required
+                inputMode="tel"
+                maxLength={15}
+                leftIcon={Phone}
+                error={errors.phone}
+                {...register("phone", {
+                  onChange: (e) => {
+                    setValue("phone", aplicarMascaraTelefone(e.target.value));
+                  },
+                })}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Etapa 2: Localização e Endereço */}
+        {currentStep === 1 && (
+          <div className="space-y-4 animate-fadeIn">
+            <FormInput
               label="CEP"
-              value={form.cep}
-              onChange={(event) =>
-                atualizarCampo(
-                  "cep",
-                  aplicarMascaraCep(event.target.value)
-                )
-              }
-              onBlur={validarCep}
               placeholder="00000-000"
+              required
               inputMode="numeric"
               maxLength={9}
-              required
-              className="sm:col-span-2"
+              leftIcon={MapPin}
+              error={errors.cep}
+              helperText="Preencha o CEP para preenchimento automático do endereço."
+              {...register("cep", {
+                onChange: (e) => {
+                  setValue("cep", aplicarMascaraCep(e.target.value));
+                },
+                onBlur: handleValidarCepBlur,
+              })}
             />
 
-            <FormField
-              label="Endereço"
-              value={form.address}
-              onChange={(event) =>
-                atualizarCampo("address", event.target.value)
-              }
-              placeholder="Rua, Avenida, etc."
-              required
-              className="sm:col-span-2"
-            />
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <FormInput
+                label="Endereço / Logradouro"
+                placeholder="Rua, Avenida, etc."
+                required
+                leftIcon={Home}
+                error={errors.address}
+                containerClassName="sm:col-span-2"
+                {...register("address")}
+              />
 
-            <FormField
-              label="Bairro"
-              value={form.neighborhood}
-              onChange={(event) =>
-                atualizarCampo("neighborhood", event.target.value)
-              }
-              placeholder="Ex: Jardins"
-              required
-            />
+              <FormInput
+                label="Número"
+                placeholder="123"
+                required
+                leftIcon={Hash}
+                error={errors.number}
+                {...register("number")}
+              />
+            </div>
 
-            <FormField
-              label="Cidade"
-              value={form.city}
-              onChange={(event) =>
-                atualizarCampo("city", event.target.value)
-              }
-              placeholder="Ex: São Paulo"
-              required
-            />
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <FormInput
+                label="Bairro"
+                placeholder="Ex: Jardins"
+                required
+                error={errors.neighborhood}
+                {...register("neighborhood")}
+              />
 
-            <FormField
-              label="UF"
-              value={form.uf}
-              onChange={(event) =>
-                atualizarCampo("uf", event.target.value)
-              }
-              placeholder="Ex: SP"
-              required
-              maxLength={2}
-            />
+              <FormInput
+                label="Cidade"
+                placeholder="Ex: São Paulo"
+                required
+                error={errors.city}
+                {...register("city")}
+              />
 
-            <FormField
-              label="Número"
-              value={form.number}
-              onChange={(event) =>
-                atualizarCampo("number", event.target.value)
-              }
-              placeholder="Ex: 123"
-              required
-            />
+              <FormInput
+                label="UF"
+                placeholder="SP"
+                required
+                maxLength={2}
+                error={errors.uf}
+                {...register("uf")}
+              />
+            </div>
 
-            <FormField
-              label="Complemento"
-              value={form.complement}
-              onChange={(event) =>
-                atualizarCampo("complement", event.target.value)
-              }
-              placeholder="Sala, Bloco, etc."
-              className="sm:col-span-2"
+            <FormInput
+              label="Complemento (opcional)"
+              placeholder="Sala 1, Bloco B, etc."
+              error={errors.complement}
+              {...register("complement")}
             />
+          </div>
+        )}
 
-            <FormField
-              label="Número de mesas"
+        {/* Etapa 3: Operação e Categorias Culinárias */}
+        {currentStep === 2 && (
+          <div className="space-y-5 animate-fadeIn">
+            <FormInput
+              label="Capacidade de mesas para reserva"
               type="number"
               min="1"
-              value={form.tables}
-              onChange={(event) =>
-                atualizarCampo("tables", event.target.value)
-              }
-              placeholder="Ex: 12"
+              placeholder="Ex: 15"
               required
-              className="sm:col-span-2"
+              leftIcon={Layers}
+              error={errors.tables}
+              {...register("tables")}
             />
 
-            {!isGoogleFlow ? (<>
-              <FormField
-                label="Senha"
-                type="password"
-                value={form.password}
-                onChange={(event) =>
-                  atualizarCampo("password", event.target.value)
-                }
-                placeholder="Digite aqui"
-                required
-                minLength={6}
-                className="sm:col-span-2"
-              />
-              <PasswordRequirements value={form.password} />
-            </>) : null}
+            {/* Categorias Culinárias com Badges estilo iFood */}
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-semibold text-slate-700 flex items-center">
+                <span>Especialidades culinárias</span>
+                <span className="text-red-500 ml-1 font-bold">*</span>
+              </label>
+              <div className="flex flex-wrap gap-2 pt-1">
+                {CATEGORIAS_CULINARIAS.map((cat) => {
+                  const selecionada = watchCategorias.includes(cat);
+                  return (
+                    <button
+                      key={cat}
+                      type="button"
+                      onClick={() => {
+                        if (selecionada) {
+                          setValue(
+                            "categorias_culinarias",
+                            watchCategorias.filter((c) => c !== cat)
+                          );
+                        } else if (watchCategorias.length < 8) {
+                          setValue("categorias_culinarias", [
+                            ...watchCategorias,
+                            cat,
+                          ]);
+                        }
+                      }}
+                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+                        selecionada
+                          ? "bg-red-600 text-white shadow-sm"
+                          : "bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200/60"
+                      }`}
+                    >
+                      {selecionada && <Check className="h-3 w-3 stroke-[3]" />}
+                      <span>{cat}</span>
+                    </button>
+                  );
+                })}
+              </div>
+              {errors.categorias_culinarias ? (
+                <p className="flex items-center gap-1 text-xs font-medium text-red-600 mt-1">
+                  <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+                  <span>{errors.categorias_culinarias.message}</span>
+                </p>
+              ) : (
+                <p className="text-[11px] text-slate-400">
+                  Selecione até 8 categorias para ajudar clientes a encontrar seu restaurante.
+                </p>
+              )}
+            </div>
 
-            <label className="group grid gap-3 rounded-xl border-2 border-dashed border-app-baunilha-dourada/50 bg-white p-5 text-center transition hover:border-app-caramelo-torrado hover:bg-app-chantilly sm:col-span-2">
-
-              <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-app-caramelo-torrado">
-                Imagem do restaurante
+            {/* Upload da Imagem com Preview */}
+            <div className="flex flex-col gap-2">
+              <span className="text-xs font-semibold text-slate-700">
+                Foto de capa do restaurante (Opcional)
               </span>
-
-              <div className="flex flex-col items-center gap-3">
-
+              <label className="flex flex-col sm:flex-row items-center gap-4 p-4 rounded-2xl border-2 border-dashed border-slate-200 hover:border-red-400 bg-slate-50/50 hover:bg-red-50/20 transition-all cursor-pointer">
                 <div
-                  className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full bg-app-creme-suave bg-cover bg-center ring-2 ring-app-caramelo-torrado/20 transition group-hover:ring-app-dourado-mel"
+                  className="h-16 w-16 rounded-xl bg-slate-200 flex items-center justify-center overflow-hidden shrink-0 bg-cover bg-center border border-slate-300"
                   style={
                     imagemPreview
-                      ? {
-                          backgroundImage: `url("${imagemPreview}")`,
-                        }
+                      ? { backgroundImage: `url("${imagemPreview}")` }
                       : undefined
                   }
                 >
-                  {!imagemPreview ? (
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="28"
-                      height="28"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="text-app-caramelo-torrado/70"
-                    >
-                      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
-                      <circle cx="12" cy="13" r="4" />
-                    </svg>
-                  ) : null}
+                  {!imagemPreview && (
+                    <UtensilsCrossed className="h-6 w-6 text-slate-400" />
+                  )}
                 </div>
 
-                <span className="text-xs leading-5 text-app-cinza">
-                  Selecione JPG, PNG ou WebP de até 5 MB.
-                  <br />
-                  Esta imagem aparecerá para os clientes.
-                </span>
+                <div className="flex-1 text-center sm:text-left">
+                  <span className="inline-flex items-center gap-1.5 text-xs font-bold text-red-600">
+                    <Upload className="h-3.5 w-3.5" />
+                    <span>Escolher imagem</span>
+                  </span>
+                  <p className="text-[11px] text-slate-400 mt-0.5">
+                    JPG, PNG ou WebP de até 5MB.
+                  </p>
+                </div>
 
-                <span className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-app-caramelo-torrado px-4 py-2 text-xs font-bold text-white transition hover:bg-app-cafe-profundo">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                    <polyline points="17 8 12 3 7 8" />
-                    <line x1="12" y1="3" x2="12" y2="15" />
-                  </svg>
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={(e) => selecionarImagem(e.target.files?.[0])}
+                  className="hidden"
+                />
+              </label>
+            </div>
+          </div>
+        )}
 
-                  Escolher arquivo
-                </span>
-              </div>
-
-              <input
-                type="file"
-                accept="image/jpeg,image/png,image/webp"
-                onChange={(event) =>
-                  selecionarImagem(event.target.files?.[0])
-                }
-                className="hidden"
-              />
-            </label>
-          </div> : (
-            <section className="mt-9 grid gap-4 lg:grid-cols-2">
-              <label className={`relative flex min-h-[390px] cursor-pointer flex-col rounded-2xl border bg-white p-5 transition duration-200 sm:p-6 ${form.plano === "INICIAL" ? "border-app-baunilha-dourada -translate-y-0.5 shadow-md" : "border-app-baunilha-dourada hover:-translate-y-0.5 hover:border-app-caramelo-torrado hover:shadow-md"}`}>
-                <input className="sr-only" type="radio" name="plano" checked={form.plano === "INICIAL"} onChange={() => atualizarCampo("plano", "INICIAL")} />
-                <div className="flex items-start justify-between gap-3"><div><h2 className="text-2xl font-bold text-app-cafe-profundo">Inicial</h2><p className="mt-2 text-sm text-app-cinza">Para começar a vender na Appono.</p></div>{form.plano === "INICIAL" ? <span className="rounded-full bg-app-caramelo-torrado px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-white">Selecionado</span> : null}</div>
-                <div className="mt-7"><span className="text-4xl font-bold tracking-tight text-app-cafe-profundo">R$ 0</span><span className="ml-1 text-sm text-app-cinza">/mês</span><p className="mt-1 text-xs font-semibold text-app-caramelo-torrado">8% de comissão por prato vendido</p></div>
-                <p className="mt-7 text-xs font-bold uppercase tracking-[.14em] text-app-cafe-profundo">O essencial para operar</p>
-                <ul className="mt-4 grid gap-3 text-sm leading-5 text-app-mocha"><li>✓ Perfil e cardápio na Appono</li><li>✓ Reservas e pedidos antecipados</li><li>✓ Gestão operacional do restaurante</li><li>✓ Relatórios básicos de vendas</li></ul>
-                <span className={`mt-8 flex h-11 items-center justify-center rounded-lg text-sm font-bold transition ${form.plano === "INICIAL" ? "bg-app-caramelo-torrado text-white" : "bg-app-creme-suave text-app-cafe-profundo"}`}>{form.plano === "INICIAL" ? "Plano selecionado" : "Selecionar Inicial"}</span>
+        {/* Etapa 4: Plano & Acesso */}
+        {currentStep === 3 && (
+          <div className="space-y-6 animate-fadeIn">
+            {/* Cards de Seleção de Plano */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Plano Inicial */}
+              <label
+                className={`relative flex flex-col p-5 rounded-2xl border-2 transition-all cursor-pointer ${
+                  watchPlano === "INICIAL"
+                    ? "border-red-500 bg-red-50/20 shadow-md ring-4 ring-red-500/10"
+                    : "border-slate-200 bg-white hover:border-slate-300"
+                }`}
+              >
+                <input
+                  type="radio"
+                  value="INICIAL"
+                  className="sr-only"
+                  {...register("plano")}
+                />
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-extrabold text-base text-slate-900">
+                    Inicial
+                  </h3>
+                  {watchPlano === "INICIAL" && (
+                    <span className="h-5 w-5 rounded-full bg-red-600 text-white flex items-center justify-center">
+                      <Check className="h-3 w-3 stroke-[3]" />
+                    </span>
+                  )}
+                </div>
+                <div className="mb-3">
+                  <span className="text-3xl font-black text-slate-900">R$ 0</span>
+                  <span className="text-xs text-slate-500">/mês</span>
+                  <p className="text-xs font-semibold text-red-600 mt-0.5">
+                    8% de comissão por reserva
+                  </p>
+                </div>
+                <ul className="text-xs text-slate-600 space-y-1.5 mb-2">
+                  <li className="flex items-center gap-1.5">
+                    <Check className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+                    <span>Cardápio e reservas online</span>
+                  </li>
+                  <li className="flex items-center gap-1.5">
+                    <Check className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+                    <span>Fila operacional da cozinha</span>
+                  </li>
+                </ul>
               </label>
 
-              <label className={`relative flex min-h-[390px] cursor-pointer flex-col rounded-2xl border-2 bg-app-cafe-profundo p-5 text-white transition duration-200 sm:p-6 ${form.plano === "PROFISSIONAL" ? "border-app-dourado-mel bg-[#3a1e12]" : "border-app-caramelo-torrado hover:-translate-y-0.5 hover:border-app-dourado-mel hover:bg-[#32180f] hover:shadow-xl"}`}>
-                <span className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-app-dourado-mel px-4 py-1 text-[10px] font-bold uppercase tracking-wide text-white shadow-sm">Recomendado</span>
-                <input className="sr-only" type="radio" name="plano" checked={form.plano === "PROFISSIONAL"} onChange={() => atualizarCampo("plano", "PROFISSIONAL")} />
-                <div className="flex items-start justify-between gap-3"><div><h2 className="text-2xl font-bold">Profissional</h2><p className="mt-2 text-sm text-app-creme-suave/80">Para crescer com mais visibilidade e inteligência.</p></div>{form.plano === "PROFISSIONAL" ? <span className="rounded-full bg-white px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-app-cafe-profundo">Selecionado</span> : null}</div>
-                <div className="mt-7"><span className="text-4xl font-bold tracking-tight">R$ 200</span><span className="ml-1 text-sm text-app-creme-suave/80">/mês</span><p className="mt-1 text-xs font-semibold text-app-dourado-mel">+ apenas 3% de comissão por prato vendido</p></div>
-                <p className="mt-7 text-xs font-bold uppercase tracking-[.14em] text-app-dourado-mel">Tudo do Inicial, mais</p>
-                <ul className="mt-4 grid gap-3 text-sm leading-5 text-app-creme-suave"><li>✓ Destaque profissional para mais clientes</li><li>✓ Campanhas Inteligentes para horários ociosos</li><li>✓ Métricas de alcance, resgates e conversão</li><li>✓ Menor comissão em cada prato vendido</li></ul>
-                <span className={`mt-8 flex h-11 items-center justify-center rounded-lg text-sm font-bold transition ${form.plano === "PROFISSIONAL" ? "bg-white text-app-cafe-profundo shadow-sm" : "bg-app-dourado-mel text-white"}`}>{form.plano === "PROFISSIONAL" ? "Plano selecionado" : "Selecionar Profissional"}</span>
+              {/* Plano Profissional */}
+              <label
+                className={`relative flex flex-col p-5 rounded-2xl border-2 transition-all cursor-pointer ${
+                  watchPlano === "PROFISSIONAL"
+                    ? "border-red-500 bg-red-50/20 shadow-md ring-4 ring-red-500/10"
+                    : "border-slate-200 bg-white hover:border-slate-300"
+                }`}
+              >
+                <span className="absolute -top-2.5 right-4 rounded-full bg-red-600 text-white text-[10px] font-extrabold px-2.5 py-0.5 uppercase tracking-wider flex items-center gap-1 shadow-sm">
+                  <Sparkles className="h-3 w-3" />
+                  <span>Destaque</span>
+                </span>
+                <input
+                  type="radio"
+                  value="PROFISSIONAL"
+                  className="sr-only"
+                  {...register("plano")}
+                />
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-extrabold text-base text-slate-900">
+                    Profissional
+                  </h3>
+                  {watchPlano === "PROFISSIONAL" && (
+                    <span className="h-5 w-5 rounded-full bg-red-600 text-white flex items-center justify-center">
+                      <Check className="h-3 w-3 stroke-[3]" />
+                    </span>
+                  )}
+                </div>
+                <div className="mb-3">
+                  <span className="text-3xl font-black text-slate-900">
+                    R$ 200
+                  </span>
+                  <span className="text-xs text-slate-500">/mês</span>
+                  <p className="text-xs font-semibold text-red-600 mt-0.5">
+                    Apenas 3% de comissão
+                  </p>
+                </div>
+                <ul className="text-xs text-slate-600 space-y-1.5 mb-2">
+                  <li className="flex items-center gap-1.5">
+                    <Check className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+                    <span>Tudo do Inicial + Campanhas</span>
+                  </li>
+                  <li className="flex items-center gap-1.5">
+                    <Check className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+                    <span>Prioridade e relatórios avançados</span>
+                  </li>
+                </ul>
               </label>
-            </section>
-          )}
-
-          <div className="mt-16 flex flex-col gap-5 border-t border-app-creme-suave pt-6 sm:flex-row sm:items-end sm:justify-between">
-            <div className="space-y-2 text-sm text-app-cinza">
-              <p className="text-[10px] leading-4">Ao finalizar, você concorda com nossos Termos e Política de Privacidade.</p>
-              <span>
-                Já possui uma conta?{" "}
-                <Link href="/login" className="font-bold text-app-caramelo-torrado transition hover:text-app-dourado-mel">Entrar</Link>
-              </span>
-              {message ? <p className="text-xs font-semibold text-app-caramelo-torrado">{message}</p> : null}
             </div>
 
-            <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center">
-              <button
-              type="button"
-              onClick={etapa === "dados" ? avancarParaPlanos : () => form.plano === "PROFISSIONAL" ? setConfirmarPlano(true) : criarRestaurante()}
-              disabled={isSubmitting}
-              className="flex h-10 w-full items-center justify-center gap-2 rounded-full bg-app-dourado-mel px-6 text-xs font-bold uppercase tracking-wide text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-app-caramelo-torrado hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-app-dourado-mel/25 disabled:cursor-not-allowed disabled:translate-y-0 disabled:opacity-70 disabled:shadow-none sm:w-auto"
+            {/* Senha e Confirmação */}
+            {!googleFlow && (
+              <div className="space-y-4 pt-4 border-t border-slate-100">
+                <FormInput
+                  label="Senha da conta"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Crie uma senha segura"
+                  required
+                  leftIcon={Lock}
+                  error={errors.password}
+                  rightAction={
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="text-slate-400 hover:text-slate-600 p-1"
+                      aria-label={showPassword ? "Ocultar senha" : "Exibir senha"}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </button>
+                  }
+                  {...register("password")}
+                />
+
+                <PasswordRequirements value={watchPassword || ""} />
+
+                <FormInput
+                  label="Confirmar senha"
+                  type={showConfirmPassword ? "text" : "password"}
+                  placeholder="Confirme a senha"
+                  required
+                  leftIcon={Lock}
+                  error={errors.confirmPassword}
+                  rightAction={
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setShowConfirmPassword(!showConfirmPassword)
+                      }
+                      className="text-slate-400 hover:text-slate-600 p-1"
+                      aria-label={
+                        showConfirmPassword ? "Ocultar senha" : "Exibir senha"
+                      }
+                    >
+                      {showConfirmPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </button>
+                  }
+                  {...register("confirmPassword")}
+                />
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Mensagens de Feedback */}
+        {message && (
+          <div className="mt-5 flex items-center gap-2 rounded-xl bg-amber-50 border border-amber-200/60 p-3 text-xs font-semibold text-amber-800 animate-fadeIn">
+            <AlertCircle className="h-4 w-4 shrink-0 text-amber-600" />
+            <span>{message}</span>
+          </div>
+        )}
+
+        {/* Ações da Etapa */}
+        <FormStepActions
+          currentStep={currentStep}
+          totalSteps={STEPS.length}
+          onBack={handleBackStep}
+          onNext={handleNextStep}
+          isSubmitting={isSubmitting}
+          nextLabel="Avançar etapa"
+          submitLabel="Criar conta do restaurante"
+          className="mt-8"
+        />
+
+        {/* Rodapé de Login */}
+        <div className="mt-6 pt-4 text-center border-t border-slate-100">
+          <p className="text-xs text-slate-500">
+            Já possui cadastro de parceiro?{" "}
+            <Link
+              href="/login"
+              className="font-bold text-red-600 hover:text-red-700 transition"
             >
-              {isSubmitting ? (
-                <>
-                  <svg
-                    className="h-3.5 w-3.5 animate-spin"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    />
+              Fazer login
+            </Link>
+          </p>
+        </div>
+      </div>
 
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                    />
-                  </svg>
-
-                  Criando...
-                </>
-              ) : etapa === "dados" ? "Continuar" : "Criar conta"}
+      {/* Modal de Confirmação do Plano Profissional */}
+      {confirmarPlano && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4"
+          role="presentation"
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget && !isSubmitting) {
+              setConfirmarPlano(false);
+            }
+          }}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl border border-slate-100 animate-scaleIn"
+          >
+            <div className="flex items-center gap-3 mb-3">
+              <span className="h-10 w-10 rounded-xl bg-red-100 text-red-600 flex items-center justify-center shrink-0">
+                <Sparkles className="h-5 w-5" />
+              </span>
+              <h2 className="text-lg font-bold text-slate-900">
+                Confirmar Plano Profissional
+              </h2>
+            </div>
+            <p className="text-xs leading-5 text-slate-600 mb-6">
+              A assinatura custa R$ 200/mês com comissão reduzida de 3%. Após a criação,
+              você seguirá para o checkout seguro do Mercado Pago.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                type="button"
+                disabled={isSubmitting}
+                onClick={() => setConfirmarPlano(false)}
+                className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition"
+              >
+                Voltar
+              </button>
+              <button
+                type="button"
+                disabled={isSubmitting}
+                onClick={() => {
+                  setConfirmarPlano(false);
+                  handleSubmit(executarCriacao)();
+                }}
+                className="px-5 py-2 text-xs font-bold bg-red-600 hover:bg-red-700 text-white rounded-xl shadow-sm transition"
+              >
+                {isSubmitting ? "Criando..." : "Confirmar e criar"}
               </button>
             </div>
           </div>
         </div>
-        {confirmarPlano ? (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !isSubmitting) setConfirmarPlano(false); }}>
-            <section role="dialog" aria-modal="true" aria-labelledby="confirmar-plano-titulo" className="w-full max-w-md rounded-2xl bg-white p-6 text-app-cafe-profundo shadow-2xl">
-              <h2 id="confirmar-plano-titulo" className="text-xl font-bold">Confirmar Plano Profissional</h2>
-              <p className="mt-3 text-sm leading-6 text-app-mocha">A assinatura custa R$ 200 por mês, com 3% de comissão por prato vendido. Após criar sua conta, você será encaminhado ao checkout seguro do Mercado Pago para concluir a contratação.</p>
-              <div className="mt-6 flex justify-end gap-3">
-                <button type="button" disabled={isSubmitting} onClick={() => setConfirmarPlano(false)} className="rounded-lg border border-app-baunilha-dourada px-4 py-2 text-sm font-semibold">Voltar</button>
-                <button type="button" disabled={isSubmitting} onClick={() => { setConfirmarPlano(false); criarRestaurante(); }} className="rounded-lg bg-app-dourado-mel px-4 py-2 text-sm font-bold text-white disabled:opacity-60">{isSubmitting ? "Criando conta..." : "Confirmar e criar conta"}</button>
-              </div>
-            </section>
-          </div>
-        ) : null}
-      </div>
-    );
-  }
+      )}
+    </form>
+  );
+}

@@ -4,17 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { apiRequest } from "@/lib/api";
-function Icon({ type, className = "h-5 w-5", }) {
-    const paths = {
-        alert: "M12 9v5M12 18h.01M10.3 3.9 2.1 17a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z",
-        menu: "M4 7h16M4 12h16M4 17h16",
-        smile: "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01",
-        star: "m12 3 2.7 5.5 6.1.9-4.4 4.3 1 6.1L12 16.9 6.6 19.8l1-6.1-4.4-4.3 6.1-.9L12 3z",
-    };
-    return (<svg aria-hidden="true" viewBox="0 0 24 24" className={className}>
-      <path d={paths[type]} fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8"/>
-    </svg>);
-}
+import { RestaurantIcon as Icon } from "@/components/restaurante/restaurant-icon";
 export default function RestaurantPerformancePage() {
     const { ui, localeUI } = useInterface();
     const [session] = useState(() => {

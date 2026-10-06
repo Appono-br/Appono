@@ -3,6 +3,7 @@ import { useInterface } from "@/lib/use-interface";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { Bell, Check, CircleHelp, Mail, MessageSquare, Phone } from "lucide-react";
 import { apiRequest } from "@/lib/api";
 import { TelaCarregandoSessao, useSessaoLocal } from "@/lib/use-sessao-local";
 import { aplicarMascaraTelefone } from "@/lib/validacoes/telefone";
@@ -47,19 +48,10 @@ const initialForm = {
     quietEnd: "",
     rules: initialRules,
 };
-function Icon({ type, className = "h-5 w-5", }) {
-    const paths = {
-        "arrow-left": "M19 12H5M12 19l-7-7 7-7",
-        bell: "M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0",
-        check: "m5 12 4 4L19 6",
-        help: "M9.1 9a3 3 0 1 1 4.9 2.3c-1 .6-1.5 1.1-1.5 2.2M12 17h.01M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z",
-        mail: "M4 6h16v12H4V6z M4 8l8 6 8-6",
-        message: "M21 11.5a8.4 8.4 0 0 1-9 8.4 8.6 8.6 0 0 1-4-.9L3 20l1.1-4.6a8.2 8.2 0 1 1 16.9-3.9z",
-        phone: "M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.3 1.8.6 2.6a2 2 0 0 1-.5 2.1L8.9 9.7a16 16 0 0 0 5.4 5.4l1.3-1.3a2 2 0 0 1 2.1-.5c.8.3 1.7.5 2.6.6a2 2 0 0 1 1.7 2z",
-    };
-    return (<svg aria-hidden="true" viewBox="0 0 24 24" className={className}>
-      <path d={paths[type]} fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8"/>
-    </svg>);
+const notificationIcons = { bell: Bell, check: Check, help: CircleHelp, mail: Mail, message: MessageSquare, phone: Phone };
+function Icon({ type, className = "h-5 w-5" }) {
+    const IconComponent = notificationIcons[type] ?? Bell;
+    return <IconComponent className={className} aria-hidden="true" />;
 }
 function Toggle({ checked, onChange, label, }) {
     const { ui } = useInterface();

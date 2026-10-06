@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { apiRequest } from "@/lib/api";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
+import { RestaurantIcon as Icon } from "@/components/restaurante/restaurant-icon";
 
 
 const filtros = [
@@ -12,19 +13,6 @@ const filtros = [
   { id: "nao-lidas", label: "Não lidas" },
 ];
 
-function Icon({ type, className = "h-5 w-5" }) {
-  const paths = {
-    "chevron-right": "m9 18 6-6-6-6",
-    menu: "M4 7h16M4 12h16M4 17h16",
-    message: "M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v8z",
-    search: "m21 21-4.35-4.35M11 18a7 7 0 1 1 0-14 7 7 0 0 1 0 14z",
-  };
-  return (
-    <svg aria-hidden="true" viewBox="0 0 24 24" className={className}>
-      <path d={paths[type]} fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" />
-    </svg>
-  );
-}
 
 
 export default function RestaurantMessagesPage() {

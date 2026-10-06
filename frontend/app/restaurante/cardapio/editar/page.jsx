@@ -4,10 +4,14 @@ import { useInterface } from "@/lib/use-interface";
 import Image from "next/image";
 import Link from "next/link";
 import { Suspense, useEffect, useState } from "react";
+import { z } from "zod";
 import { useRouter, useSearchParams } from "next/navigation";
 import { apiRequest } from "@/lib/api";
 import { enviarImagemCardapio, validarImagemCardapio } from "@/lib/imagem-cardapio";
 import { TelaCarregandoSessao, useSessaoLocal } from "@/lib/use-sessao-local";
+import { RestaurantIcon as Icon } from "@/components/restaurante/restaurant-icon";
+import { FormStepper } from "@/components/ui/form-stepper";
+import { FormStepActions } from "@/components/ui/form-step-actions";
 
 const initialForm = {
     name: "",
@@ -31,19 +35,18 @@ const initialFoodSafety = {
 };
 
 const categories = ["Entradas", "Pratos principais", "Sobremesas", "Bebidas"];
+const etapasFormulario = [
+    { title: "Dados do item" },
+    { title: "Segurança alimentar" },
+    { title: "Imagem e publicação" },
+];
+const dadosItemSchema = z.object({
+    name: z.string().trim().min(2, "Informe o nome do item."),
+    category: z.string().trim().min(1, "Selecione a seção do item."),
+    price: z.string().refine((valor) => Number.isFinite(obterPrecoNumerico(valor)) && obterPrecoNumerico(valor) > 0, "Informe um preço válido maior que zero."),
+    preparationTime: z.string().refine((valor) => Number(valor) >= 1 && Number(valor) <= 240, "Informe um tempo entre 1 e 240 minutos."),
+});
 
-function Icon({ type, className = "h-5 w-5" }) {
-    const paths = {
-        "arrow-left": "M19 12H5M12 19l-7-7 7-7",
-        check: "m5 12 4 4L19 6",
-        "chevron-down": "m6 9 6 6 6-6",
-    };
-    return (
-        <svg aria-hidden="true" viewBox="0 0 24 24" className={className}>
-            <path d={paths[type]} fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" />
-        </svg>
-    );
-}
 
 function Field({ label, value, onChange, className = "", inputMode, placeholder = "", required = false, min, max }) {
     const { ui } = useInterface();
@@ -108,6 +111,7 @@ function RestaurantMenuItemEditorContent() {
     const [categoriasDisponiveis, setCategoriasDisponiveis] = useState(categories);
     const [segurancaAlimentar, setSegurancaAlimentar] = useState(initialFoodSafety);
     const [catalogoAlergenos, setCatalogoAlergenos] = useState([]);
+    const [etapaAtual, setEtapaAtual] = useState(0);
 
     useEffect(() => {
         if (!sessaoCarregada || sessao?.type !== "restaurant") {
@@ -206,6 +210,22 @@ function RestaurantMenuItemEditorContent() {
         setMessage("");
     }
 
+    async function avancarEtapa() {
+        if (etapaAtual === 0) {
+            const validacao = dadosItemSchema.safeParse(form);
+            if (!validacao.success) {
+                setMessage(validacao.error.issues[0]?.message ?? "Revise os dados do item.");
+                return;
+            }
+        }
+        if (etapaAtual === 1 && segurancaAlimentar.status === "REVISADA" && (!segurancaAlimentar.origem_informacao.trim() || !segurancaAlimentar.responsavel_revisao.trim())) {
+            setMessage("Informe a origem e a pessoa responsável pela revisão alimentar.");
+            return;
+        }
+        setMessage("");
+        setEtapaAtual((etapa) => Math.min(etapa + 1, etapasFormulario.length - 1));
+    }
+
     async function submitForm(event) {
         event.preventDefault();
         const erroValidacao = validarFormularioCardapio(form);
@@ -283,6 +303,8 @@ function RestaurantMenuItemEditorContent() {
                 </div>
 
                 <form onSubmit={submitForm} className="mx-auto mt-10 grid max-w-4xl gap-6 rounded-[12px] bg-app-creme-leve p-6 shadow-sm ring-1 ring-app-baunilha-dourada/60 sm:p-8">
+                    <FormStepper steps={etapasFormulario} currentStep={etapaAtual} onStepClick={setEtapaAtual} completedClassName="bg-app-dourado-mel text-app-creme-leve hover:bg-app-caramelo-torrado" progressClassName="bg-app-dourado-mel" />
+                    <div className={etapaAtual === 0 ? "grid gap-6" : "hidden"}>
                     <Field label={ui("Nome do prato")} value={form.name} onChange={(value) => updateField("name", value)} placeholder={ui("Ex: Risoto de cogumelos")} required />
 
                     <div className="grid gap-5 sm:grid-cols-3">
@@ -308,8 +330,9 @@ function RestaurantMenuItemEditorContent() {
                         <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-cinza">{ui("Descricao")}</span>
                         <textarea value={form.description} onChange={(event) => updateField("description", event.target.value)} className="min-h-36 resize-y rounded-[8px] border border-app-baunilha-dourada bg-app-creme-suave px-3 py-4 text-base leading-7 text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20" placeholder={ui("Descreva ingredientes, preparo e diferenciais do prato.")} />
                     </label>
+                    </div>
 
-                    <section className="grid gap-5 rounded-[10px] border border-app-baunilha-dourada bg-white p-5">
+                    <section className={`${etapaAtual === 1 ? "grid" : "hidden"} gap-5 rounded-[10px] border border-app-baunilha-dourada bg-white p-5`}>
                         <div>
                             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{ui("Segurança alimentar")}</p>
                             <h3 className="mt-2 text-xl font-semibold text-app-cafe-profundo">{ui("Ingredientes e alérgenos")}</h3>
@@ -338,6 +361,7 @@ function RestaurantMenuItemEditorContent() {
                         </div>
                     </section>
 
+                    <div className={etapaAtual === 2 ? "grid gap-5" : "hidden"}>
                     <label className="grid gap-3 rounded-[10px] border border-dashed border-app-caramelo-torrado/45 bg-app-creme-suave p-4">
                         <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-cinza">{ui("Imagem do item")}</span>
                         <span className="grid gap-4 sm:grid-cols-[160px_1fr] sm:items-center">
@@ -364,13 +388,9 @@ function RestaurantMenuItemEditorContent() {
                         <span className={`flex h-5 w-5 items-center justify-center rounded-[4px] border border-app-baunilha-dourada bg-white ${form.featured ? "text-app-caramelo-torrado" : "text-transparent"}`}>
                             <Icon type="check" className="h-3 w-3" />
                         </span>{ui("Marcar como destaque do cardápio")}</button>
-
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
-                        <Link href="/restaurante/cardapio" className="flex h-12 items-center justify-center rounded-[8px] border border-app-mocha px-8 text-xs font-bold uppercase tracking-wide text-app-mocha transition hover:bg-app-chantilly">{ui("Cancelar")}</Link>
-                        <button type="submit" disabled={isSubmitting} className="h-12 rounded-[8px] bg-app-dourado-mel px-8 text-sm font-bold uppercase tracking-wide text-white transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-60">
-                            {ui(isSubmitting ? (produtoId ? "Salvando..." : "Publicando...") : (produtoId ? "Salvar alterações" : "Publicar item"))}
-                        </button>
                     </div>
+
+                    <FormStepActions currentStep={etapaAtual} totalSteps={etapasFormulario.length} onBack={() => setEtapaAtual((etapa) => etapa - 1)} onNext={avancarEtapa} isSubmitting={isSubmitting} submitLabel={ui(produtoId ? "Salvar alterações" : "Publicar item")} primaryClassName="!bg-app-dourado-mel !text-app-creme-leve hover:!bg-app-caramelo-torrado focus:!ring-app-dourado-mel/30" />
 
                     {message ? <p className="text-sm font-semibold text-app-caramelo-torrado">{ui(message)}</p> : null}
                 </form>

@@ -9,6 +9,7 @@ import { useIdiomaLocal } from "@/lib/use-idioma-local";
 import { apiRequest } from "@/lib/api";
 import { textoStatusPedido, textoStatusRepasse } from "@/lib/formatadores-status";
 import { TelaCarregandoSessao, useSessaoLocal } from "@/lib/use-sessao-local";
+import { RestaurantIcon as Icon } from "@/components/restaurante/restaurant-icon";
 const financeCards = [
     {
         label: "Venda bruta",
@@ -33,14 +34,6 @@ const periodos = [
     { label: "30 dias", value: "30d" },
     { label: "Todos", value: "todos" },
 ];
-function Icon({ type, className = "h-5 w-5", }) {
-    const paths = {
-        menu: "M4 7h16M4 12h16M4 17h16",
-    };
-    return (<svg aria-hidden="true" viewBox="0 0 24 24" className={className}>
-      <path d={paths[type]} fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8"/>
-    </svg>);
-}
 function formatarMoeda(valor, idioma = "pt-BR") {
     return new Intl.NumberFormat(idioma, {
         style: "currency",
