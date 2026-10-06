@@ -7,6 +7,7 @@ import { useEffect, useMemo, useState } from "react";
 import { apiRequest } from "@/lib/api";
 import { filtrarOrdenarPorBusca, textoBusca } from "@/lib/busca-avancada";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
+import { RestaurantIcon as Icon } from "@/components/restaurante/restaurant-icon";
 
 const filtrosPedido = [
     { label: "Todos", value: "TODOS" },
@@ -25,29 +26,6 @@ const ordenacoesReserva = [
     { label: "Maior grupo", value: "PESSOAS" },
 ];
 
-function Icon({ type, className = "h-5 w-5" }) {
-    const paths = {
-        bell: "M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0",
-        filter: "M4 7h16M7 12h10M10 17h4",
-        menu: "M4 7h16M4 12h16M4 17h16",
-        message: "M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v8z",
-        plus: "M12 5v14M5 12h14",
-        search: "m21 21-4.35-4.35M11 18a7 7 0 1 1 0-14 7 7 0 0 1 0 14z",
-    };
-
-    return (
-        <svg aria-hidden="true" viewBox="0 0 24 24" className={className}>
-            <path
-                d={paths[type]}
-                fill="none"
-                stroke="currentColor"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="1.8"
-            />
-        </svg>
-    );
-}
 
 function EmptyPanel({ title, description, className = "" }) {
     const { ui } = useInterface();

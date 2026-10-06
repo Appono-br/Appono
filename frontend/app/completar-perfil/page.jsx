@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { Building2, User } from "lucide-react";
 
 export default function CompleteProfilePage() {
   return (
@@ -30,10 +31,7 @@ export default function CompleteProfilePage() {
             className="group rounded-2xl border border-app-baunilha-dourada bg-app-chantilly p-5 transition hover:-translate-y-1 hover:border-app-dourado-mel hover:bg-app-creme-suave hover:shadow-lg"
           >
             <span className="flex h-11 w-11 items-center justify-center rounded-full bg-app-baunilha-dourada text-app-cafe-profundo transition group-hover:bg-app-dourado-mel group-hover:text-white">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                <circle cx="12" cy="7" r="4" />
-              </svg>
+              <User className="h-5 w-5" aria-hidden="true" />
             </span>
             <strong className="mt-4 block text-lg text-app-cafe-profundo">
               Sou cliente
@@ -49,14 +47,7 @@ export default function CompleteProfilePage() {
             className="group rounded-2xl border border-app-baunilha-dourada bg-app-chantilly p-5 transition hover:-translate-y-1 hover:border-app-dourado-mel hover:bg-app-creme-suave hover:shadow-lg"
           >
             <span className="flex h-11 w-11 items-center justify-center rounded-full bg-app-baunilha-dourada text-app-cafe-profundo transition group-hover:bg-app-dourado-mel group-hover:text-white">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M3 21h18" />
-                <path d="M5 21V7l7-4 7 4v14" />
-                <path d="M9 9h1" />
-                <path d="M9 13h1" />
-                <path d="M14 9h1" />
-                <path d="M14 13h1" />
-              </svg>
+              <Building2 className="h-5 w-5" aria-hidden="true" />
             </span>
             <strong className="mt-4 block text-lg text-app-cafe-profundo">
               Sou restaurante

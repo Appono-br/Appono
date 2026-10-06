@@ -8,6 +8,7 @@ import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { Check } from "lucide-react";
 
 const diasSemana = [
     { id: "monday", label: "Segunda" },
@@ -68,14 +69,6 @@ function textoParaLista(texto) {
 
 function campoNumero(valor) {
     return valor === "" || valor === null || valor === undefined ? null : Number(valor);
-}
-
-function Icon({ type, className = "h-5 w-5" }) {
-    const paths = {
-        arrow: "M19 12H5m6-6-6 6 6 6",
-        pin: "M12 21s6-5.2 6-11a6 6 0 0 0-12 0c0 5.8 6 11 6 11z M12 12a2 2 0 1 0 0-4 2 2 0 0 0 0 4z",
-    };
-    return <svg aria-hidden="true" viewBox="0 0 24 24" className={`shrink-0 ${className}`}><path d={paths[type]} fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" /></svg>;
 }
 
 export default function ConfigurarRotinaPage() {
@@ -484,7 +477,7 @@ export default function ConfigurarRotinaPage() {
             <section className="mx-auto max-w-6xl">
                 <RoutineBreadcrumb>{ui("Voltar para Appono Rotina")}</RoutineBreadcrumb>
                 <div className="mt-4"><RoutineHero eyebrow={ui("Configuração da rotina")} title={ui("Defina como sua semana deve funcionar.")} description={ui("Organize sua base, janela de almoço, orçamento e preferências. Você poderá revisar tudo antes de gerar sugestões.")} /></div>
-                <ol className="mt-5 grid gap-2 sm:grid-cols-3" aria-label={ui("Etapas da configuração")}>{[["Quando você costuma comer?", 0], ["O que funciona para você?", 1], ["Personalize, se quiser", 2]].map(([titulo, indice]) => <li key={titulo} className={`flex min-h-11 items-center gap-3 rounded-xl border px-4 text-sm font-semibold ${etapa === indice ? "border-app-caramelo-torrado bg-app-chantilly" : indice < etapa ? "border-app-baunilha-dourada bg-white" : "border-app-baunilha-dourada/50 bg-white text-app-cinza"}`}><span className={`flex h-6 w-6 items-center justify-center rounded-full text-xs ${indice <= etapa ? "bg-app-cafe-profundo text-app-creme-leve" : "bg-app-chantilly"}`}>{indice < etapa ? "✓" : indice + 1}</span>{ui(titulo)}</li>)}</ol>
+                <ol className="mt-5 grid gap-2 sm:grid-cols-4" aria-label={ui("Etapas da configuração")}>{[["Horários e endereço", 0], ["Dietas e orçamento", 1], ["Integrações", 2], ["Preferências", 3]].map(([titulo, indice]) => <li key={titulo} className={`flex min-h-11 items-center gap-3 rounded-xl border px-4 text-sm font-semibold ${etapa === indice ? "border-app-caramelo-torrado bg-app-chantilly" : indice < etapa ? "border-app-baunilha-dourada bg-white" : "border-app-baunilha-dourada/50 bg-white text-app-cinza"}`}><span className={`flex h-6 w-6 items-center justify-center rounded-full text-xs ${indice <= etapa ? "bg-app-cafe-profundo text-app-creme-leve" : "bg-app-chantilly"}`}>{indice < etapa ? <Check className="h-4 w-4" aria-hidden="true" /> : indice + 1}</span>{ui(titulo)}</li>)}</ol>
 
                 {falhaCarga || mensagem ? <div className="mt-5"><RoutineNotice type={conflito || falhaCarga ? "error" : "success"}>{ui(falhaCarga ? erroCarga || "Não foi possível carregar sua rotina." : mensagem)}</RoutineNotice></div> : null}
                 {rascunho && !conflito && !carregando && !falhaCarga ? <div className="mt-4"><RoutineNotice type="info" action={<button type="button" className="min-h-10 rounded-full border border-current px-4 text-xs font-bold uppercase tracking-wider" onClick={() => {
@@ -597,7 +590,7 @@ export default function ConfigurarRotinaPage() {
                         )}
                     </section>
 
-                    <section className={`${etapa === 2 ? "grid" : "hidden"} gap-5 rounded-[24px] bg-white p-5 shadow-sm ring-1 ring-app-baunilha-dourada/55`}>
+                    <section className={`${etapa === 3 ? "grid" : "hidden"} gap-5 rounded-[24px] bg-white p-5 shadow-sm ring-1 ring-app-baunilha-dourada/55`}>
                         <div>
                             <label htmlFor="busca-catalogo-rotina" className="text-sm font-semibold">{ui("Buscar restaurante, tipo de cozinha ou prato")}</label>
                             <input id="busca-catalogo-rotina" type="search" role="combobox" aria-expanded={resultadosCatalogo.length > 0} aria-controls="resultados-catalogo-rotina" aria-autocomplete="list" value={buscaPreferidos} onChange={(event) => { const valor = event.target.value; setBuscaPreferidos(valor); if (valor.trim().length < 2) { setResultadosCatalogo([]); setErroBusca(""); } }} placeholder={ui("Digite ao menos 2 letras")} className="mt-2 h-11 min-w-0 w-full rounded-lg border border-app-baunilha-dourada bg-white px-3 focus:outline-none focus:ring-2 focus:ring-app-caramelo-torrado" />
@@ -622,7 +615,7 @@ export default function ConfigurarRotinaPage() {
                     </fieldset>
                     <div className="flex flex-wrap justify-between gap-3">
                         <div>{etapa > 0 ? <button type="button" onClick={() => setEtapa((atual) => atual - 1)} className="inline-flex min-h-12 items-center justify-center rounded-full border border-app-baunilha-dourada px-6 text-sm font-bold text-app-mocha transition hover:bg-app-chantilly">{ui("Voltar")}</button> : <button type="button" onClick={() => formSalvo && JSON.stringify(form) !== JSON.stringify(formSalvo) ? setConfirmarDescartar(true) : router.push("/cliente/rotina")} className="inline-flex min-h-12 items-center justify-center rounded-full border border-app-baunilha-dourada px-6 text-sm font-bold text-app-mocha transition hover:bg-app-chantilly">{ui("Cancelar")}</button>}</div>
-                        {etapa < 2 ? <button type="button" disabled={Boolean(erroJanela)} onClick={() => setEtapa((atual) => atual + 1)} className="min-h-12 rounded-full bg-app-cafe-profundo px-8 text-sm font-bold text-app-creme-leve transition hover:bg-app-caramelo-torrado disabled:opacity-50">{ui("Continuar")}</button> : <div className="flex flex-wrap gap-3"><button type="button" disabled={carregando || salvando || falhaCarga || Boolean(erroJanela)} onClick={(event) => salvar(event, false)} className="min-h-12 rounded-full border border-app-baunilha-dourada px-6 text-sm font-bold text-app-mocha transition hover:bg-app-chantilly disabled:opacity-50">{ui(salvando ? "Salvando..." : "Salvar para depois")}</button><button type="button" disabled={carregando || salvando || falhaCarga || Boolean(erroJanela)} onClick={(event) => salvar(event, true)} className="min-h-12 rounded-full bg-app-caramelo-torrado px-8 text-sm font-bold text-white transition hover:bg-app-cafe-profundo disabled:opacity-50">{ui(salvando ? "Salvando..." : "Salvar e gerar minha semana")}</button></div>}
+                        {etapa < 3 ? <button type="button" disabled={Boolean(erroJanela)} onClick={() => setEtapa((atual) => atual + 1)} className="min-h-12 rounded-full bg-app-cafe-profundo px-8 text-sm font-bold text-app-creme-leve transition hover:bg-app-caramelo-torrado disabled:opacity-50">{ui("Continuar")}</button> : <div className="flex flex-wrap gap-3"><button type="button" disabled={carregando || salvando || falhaCarga || Boolean(erroJanela)} onClick={(event) => salvar(event, false)} className="min-h-12 rounded-full border border-app-baunilha-dourada px-6 text-sm font-bold text-app-mocha transition hover:bg-app-chantilly disabled:opacity-50">{ui(salvando ? "Salvando..." : "Salvar para depois")}</button><button type="button" disabled={carregando || salvando || falhaCarga || Boolean(erroJanela)} onClick={(event) => salvar(event, true)} className="min-h-12 rounded-full bg-app-caramelo-torrado px-8 text-sm font-bold text-white transition hover:bg-app-cafe-profundo disabled:opacity-50">{ui(salvando ? "Salvando..." : "Salvar e gerar minha semana")}</button></div>}
                     </div>
                 </form>
             </section>

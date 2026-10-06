@@ -19,6 +19,7 @@ import MercadoPago from "./mercado-pago";
 import Operacao from "./operacao";
 import DadosBancarios from "./dados-bancarios";
 import { CATEGORIAS_CULINARIAS } from "@/lib/categorias-culinarias";
+import { RestaurantIcon } from "@/components/restaurante/restaurant-icon";
 
 const paineis = { endereco: Endereco, notificacoes: Notificacoes, seguranca: Seguranca, "mercado-pago": MercadoPago, operacao: Operacao, "dados-bancarios": DadosBancarios };
 const initialForm = {
@@ -71,9 +72,7 @@ function Icon({ type, className = "h-5 w-5", }) {
         shield: "M12 21s7-3.2 7-9.8V5l-7-3-7 3v6.2C5 17.8 12 21 12 21z",
         store: "M4 10h16l-1-5H5l-1 5z M6 10v10h12V10M9 20v-6h6v6",
     };
-    return (<svg aria-hidden="true" viewBox="0 0 24 24" className={className}>
-      <path d={paths[type]} fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8"/>
-    </svg>);
+    return <RestaurantIcon type={type} className={className} />;
 }
 function Field({ label, value, onChange, className = "", disabled = false, }) {
     const { ui } = useInterface();

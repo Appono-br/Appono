@@ -7,20 +7,8 @@ import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { apiRequest } from "@/lib/api";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
+import { RestaurantIcon as Icon } from "@/components/restaurante/restaurant-icon";
 
-function Icon({ type, className = "h-5 w-5" }) {
-  const paths = {
-    "arrow-left": "M19 12H5M12 19l-7-7 7-7",
-    file: "M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2v6h6",
-    message: "M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v8z",
-    send: "M22 2 11 13M22 2l-7 20-4-9-9-4 20-7z",
-  };
-  return (
-    <svg aria-hidden="true" viewBox="0 0 24 24" className={className}>
-      <path d={paths[type]} fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" />
-    </svg>
-  );
-}
 
 function formatarData(data, localeUI = "pt-BR") {
   if (!data) return "--";

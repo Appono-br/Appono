@@ -5,19 +5,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { apiRequest } from "@/lib/api";
 import { TelaCarregandoSessao, useSessaoLocal } from "@/lib/use-sessao-local";
-function Icon({ type, className = "h-5 w-5", }) {
-    const paths = {
-        "arrow-right": "M5 12h14M13 6l6 6-6 6",
-        menu: "M4 7h16M4 12h16M4 17h16",
-        money: "M4 7h16v10H4V7z M7 10h.01M17 14h.01M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z",
-        orders: "M7 3v8M4 3v8M10 3v8M4 11h6M7 11v10M17 3v18M14 3h3a3 3 0 0 1 3 3v5a3 3 0 0 1-3 3h-3",
-        seat: "M7 13V7a4 4 0 0 1 8 0v6M5 13h14v5H5v-5z M8 18v3M16 18v3",
-        user: "M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z M19 8v6M22 11h-6",
-    };
-    return (<svg aria-hidden="true" viewBox="0 0 24 24" className={className}>
-      <path d={paths[type]} fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8"/>
-    </svg>);
-}
+import { RestaurantIcon as Icon } from "@/components/restaurante/restaurant-icon";
 function MetricCard({ metric }) {
     const { ui } = useInterface();
     return (<article className={`rounded-[8px] p-5 shadow-sm ring-1 ring-app-baunilha-dourada/45 ${metric.highlighted ? "bg-app-creme-suave" : "bg-white"}`}>
