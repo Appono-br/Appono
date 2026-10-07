@@ -31,7 +31,7 @@ export default function PaymentSettingsPage() {
                     ))}
                 </div>
                 {dadosRemovidos ? <p role="status" className="mt-8 rounded-[10px] bg-green-50 p-4 text-sm font-semibold text-green-800 ring-1 ring-green-200">{ui("Dados de pagamento legados foram removidos deste navegador.")}</p> : null}
-                <div className="mt-8 rounded-[12px] bg-app-cafe-profundo p-6 text-app-creme-leve"><p className="text-sm leading-6">{ui("Para alterar ou remover cartões salvos, use diretamente a sua conta do Mercado Pago.")}</p><Link href="/cliente/detalhes-pedido" className="mt-5 inline-flex h-11 items-center rounded-[8px] bg-app-dourado-mel px-6 text-xs font-bold uppercase tracking-wide text-white">{ui("Ver meus pedidos")}</Link></div>
+                <div className="mt-8 rounded-[12px] bg-app-cafe-profundo p-6 text-app-creme-leve"><p className="text-sm leading-6">{ui("Para alterar ou remover cartões salvos, use diretamente a sua conta do Mercado Pago.")}</p><Link href="/cliente/agenda?visao=pedidos" className="mt-5 inline-flex h-11 items-center rounded-[8px] bg-app-dourado-mel px-6 text-xs font-bold uppercase tracking-wide text-white">{ui("Ver meus pedidos")}</Link></div>
             </section>
         </main>
     );

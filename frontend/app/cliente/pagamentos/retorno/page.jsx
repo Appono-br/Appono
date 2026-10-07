@@ -206,7 +206,7 @@ function PagamentoRetornoContent() {
                         {idPedidoDetalhe ? (
                             <Link href={`/cliente/pedidos/${idPedidoDetalhe}`} className="inline-flex h-11 items-center justify-center rounded-[8px] bg-app-dourado-mel px-6 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-app-caramelo-torrado">{ui("Ver detalhes do pedido")}</Link>
                         ) : (
-                            <Link href="/cliente/reservas" className="inline-flex h-11 items-center justify-center rounded-[8px] bg-app-dourado-mel px-6 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-app-caramelo-torrado">{ui("Ver minhas reservas")}</Link>
+                            <Link href="/cliente/agenda?visao=reservas" className="inline-flex h-11 items-center justify-center rounded-[8px] bg-app-dourado-mel px-6 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-app-caramelo-torrado">{ui("Ver agenda")}</Link>
                         )}
                         <button type="button" onClick={consultarStatus} disabled={consultando || (!reservaId && !pedidoId)} className="inline-flex h-11 items-center justify-center rounded-[8px] border border-app-baunilha-dourada px-6 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:bg-app-chantilly disabled:cursor-not-allowed disabled:opacity-55">
                             {ui(consultando ? "Atualizando..." : "Atualizar status")}

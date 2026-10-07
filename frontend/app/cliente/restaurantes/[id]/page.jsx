@@ -347,7 +347,7 @@ export default function PaginaRestaurante({ params }) {
             id_campanha: campanhaSelecionada?.id_campanha ?? null,
           }),
         });
-        window.location.assign(Number(reservaCriada.valor_minimo_total) > 0 ? `/cliente/pagamentos/reserva/${reservaCriada.id_reserva}` : "/cliente/reservas");
+        window.location.assign(Number(reservaCriada.valor_minimo_total) > 0 ? `/cliente/pagamentos/reserva/${reservaCriada.id_reserva}` : "/cliente/agenda?visao=reservas");
         return;
       }
 

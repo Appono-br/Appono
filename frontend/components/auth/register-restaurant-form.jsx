@@ -95,8 +95,7 @@ const restaurantFormSchema = z
       if (!senhaValida(data.password)) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message:
-            "A senha deve ter pelo menos 6 caracteres, maiúscula, minúscula, número e caractere especial.",
+          message: "Confira os requisitos da senha abaixo.",
           path: ["password"],
         });
       }
@@ -370,10 +369,10 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
     >
       <div className="rounded-3xl bg-white px-6 py-8 shadow-xl border border-slate-100 sm:px-10">
         {/* Cabeçalho de Navegação e Marca */}
-        <div className="mb-6 flex items-center justify-between">
+        <div className="mb-6 grid grid-cols-[1fr_auto_1fr] items-center">
           <Link
             href="/"
-            className="inline-flex items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-all"
+            className="inline-flex w-fit items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-all"
           >
             <ArrowLeft className="h-4 w-4" aria-hidden="true" />
             <span>Início</span>
@@ -388,9 +387,6 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
             priority
           />
 
-          <span className="rounded-full bg-red-50 text-red-600 px-3 py-1 text-[11px] font-bold tracking-wide uppercase">
-            Parceiro
-          </span>
         </div>
 
         <div className="mb-6">
@@ -407,6 +403,10 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
           steps={STEPS}
           currentStep={currentStep}
           onStepClick={(step) => setCurrentStep(step)}
+          showPercentage={false}
+          stepsClassName="mx-auto max-w-[420px]"
+          wrapLabels
+          integratedProgress
         />
 
         {/* Etapa 1: Dados do Estabelecimento */}
@@ -782,7 +782,7 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
                   {...register("password")}
                 />
 
-                <PasswordRequirements value={watchPassword || ""} />
+                <PasswordRequirements value={watchPassword || ""} variant="panel" />
 
                 <FormInput
                   label="Confirmar senha"
@@ -833,6 +833,7 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
           isSubmitting={isSubmitting}
           nextLabel="Avançar etapa"
           submitLabel="Criar conta do restaurante"
+          showDivider={false}
           className="mt-8"
         />
 

@@ -2,11 +2,12 @@
 import { useInterface } from "@/lib/use-interface";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { apiRequest } from "@/lib/api";
 import { filtrarOrdenarPorBusca, textoBusca } from "@/lib/busca-avancada";
 import { VitrinePratos } from "@/components/cliente/vitrine-pratos";
 import { VitrineOfertas } from "@/components/cliente/vitrine-ofertas";
+import { CategoriasRestaurantes } from "@/components/cliente/categorias-restaurantes";
 const filters = [
     "Todas Especialidades",
     "Slow Food",
@@ -19,6 +20,13 @@ const filtrosBusca = [
     { id: "favoritos", label: "Favoritos" },
     { id: "bem-avaliados", label: "4+ estrelas" },
 ];
+const opcoesRaio = [
+    { value: "2", label: "Até 2 km" },
+    { value: "5", label: "Até 5 km" },
+    { value: "10", label: "Até 10 km" },
+    { value: "20", label: "Até 20 km" },
+    { value: "todos", label: "Qualquer distância" },
+];
 function Icon({ type, className = "h-5 w-5", filled = false, }) {
     const paths = {
         bag: "M6 7h12l-1 14H7L6 7z M9 7a3 3 0 0 1 6 0",
@@ -29,25 +37,12 @@ function Icon({ type, className = "h-5 w-5", filled = false, }) {
         search: "m21 21-4.35-4.35M11 18a7 7 0 1 1 0-14 7 7 0 0 1 0 14z",
         sliders: "M4 7h7M15 7h5M13 5v4M4 12h4M12 12h8M10 10v4M4 17h9M17 17h3M15 15v4",
         close: "M6 6l12 12M18 6 6 18",
+        chevron: "m6 9 6 6 6-6",
         cutlery: "M4 3v6a2 2 0 0 0 4 0V3M6 3v18M18 3v18M18 3c-4 2-4 9 0 9",
     };
     return (<svg aria-hidden="true" viewBox="0 0 24 24" className={`shrink-0 overflow-visible ${className}`}>
       <path d={paths[type]} fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8"/>
     </svg>);
-}
-function EmptyState({ title, description, compact = false, }) {
-    const { ui } = useInterface();
-    return (<div className={`flex min-h-48 flex-col items-center justify-center rounded-[8px] border border-dashed border-app-caramelo-torrado/35 bg-white px-6 text-center shadow-sm ${compact ? "py-8" : "py-12"}`}>
-      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-app-baunilha-dourada text-app-cafe-profundo">
-        <Icon type="search" className="h-5 w-5"/>
-      </div>
-      <h3 className="mt-4 text-lg font-semibold text-app-cafe-profundo">
-        {ui(title)}
-      </h3>
-      <p className="mt-2 max-w-md text-sm leading-6 text-app-cinza">
-        {ui(description)}
-      </p>
-    </div>);
 }
 function LocationEmptyState({ title, description, }) {
     const { ui } = useInterface();
@@ -82,6 +77,7 @@ function formatarMoeda(valor, localeUI = "pt-BR") {
     }).format(Number(valor ?? 0));
 }
 function formatarDistancia(valor) {
+    if (valor === null || valor === undefined || valor === "") return "Distância indisponível";
     const distancia = Number(valor);
     if (!Number.isFinite(distancia)) {
         return "Distância indisponível";
@@ -90,18 +86,6 @@ function formatarDistancia(valor) {
         return `${Math.max(100, Math.round(distancia * 1000 / 100) * 100)} m`;
     }
     return `${distancia.toFixed(distancia < 10 ? 1 : 0).replace(".", ",")} km`;
-}
-function obterMensagemOrigemLocalizacao(status) {
-    if (status === "checking") {
-        return "Verificando permissão de localização para ordenar restaurantes próximos.";
-    }
-    if (status === "ready") {
-        return "Restaurantes ordenados pela sua localização atual.";
-    }
-    if (status === "loading") {
-        return "Buscando sua localização para carregar os restaurantes mais próximos.";
-    }
-    return "Ative a localização do navegador para encontrar restaurantes próximos.";
 }
 function obterCamposRestaurante(restaurant) {
     return [
@@ -162,7 +146,7 @@ function ProximaReservaCard({ proximaReserva, localeUI, ui }) {
                         <p className="mt-2 text-sm text-app-creme-suave">{ui("Escolha um restaurante para agendar sua próxima experiência.")}</p>
                     </>)}
                 </div>
-                <Link href="/cliente/reservas" className="inline-flex h-11 w-fit items-center justify-center rounded-[8px] bg-app-baunilha-dourada px-5 text-xs font-bold uppercase tracking-[0.14em] text-app-cafe-profundo transition hover:bg-app-dourado-mel hover:text-white">{ui("Ver reservas")}</Link>
+                <Link href="/cliente/agenda" className="inline-flex h-11 w-fit items-center justify-center rounded-[8px] bg-app-baunilha-dourada px-5 text-xs font-bold uppercase tracking-[0.14em] text-app-cafe-profundo transition hover:bg-app-dourado-mel hover:text-white">{ui("Ver agenda")}</Link>
             </div>
         </div>
     </section>;
@@ -183,14 +167,36 @@ export default function DashboardPage() {
     const [reservas, setReservas] = useState([]);
     const [message, setMessage] = useState("");
     const [updatingFavorite, setUpdatingFavorite] = useState("");
-    const [localizacaoCliente, setLocalizacaoCliente] = useState(null);
+    const [localizacaoBusca, setLocalizacaoBusca] = useState("");
     const [raioKm, setRaioKm] = useState("20");
-    const [statusLocalizacao, setStatusLocalizacao] = useState("checking");
-    const [carregandoRestaurantes, setCarregandoRestaurantes] = useState(true);
+    const [erroBuscaProxima, setErroBuscaProxima] = useState("");
+    const [carregandoRestaurantes, setCarregandoRestaurantes] = useState(false);
+    const [buscaProxima, setBuscaProxima] = useState(null);
+    const pesquisaProximaIniciada = Boolean(buscaProxima);
+    const [menuRaioAberto, setMenuRaioAberto] = useState(false);
+    const controleRaioRef = useRef(null);
+    const localizacaoBuscaRef = useRef(null);
     useEffect(() => {
         const timer = window.setTimeout(() => setDebouncedQuery(query.trim()), 250);
         return () => window.clearTimeout(timer);
     }, [query]);
+    useEffect(() => {
+        if (!menuRaioAberto) return;
+        function fecharMenu(event) {
+            if (!controleRaioRef.current?.contains(event.target)) {
+                setMenuRaioAberto(false);
+            }
+        }
+        function fecharComEscape(event) {
+            if (event.key === "Escape") setMenuRaioAberto(false);
+        }
+        document.addEventListener("mousedown", fecharMenu);
+        document.addEventListener("keydown", fecharComEscape);
+        return () => {
+            document.removeEventListener("mousedown", fecharMenu);
+            document.removeEventListener("keydown", fecharComEscape);
+        };
+    }, [menuRaioAberto]);
     useEffect(() => {
         let cancelado = false;
         async function loadBaseRestaurants() {
@@ -240,101 +246,30 @@ export default function DashboardPage() {
         return () => { cancelado = true; };
     }, [debouncedQuery]);
     useEffect(() => {
+        const controller = new AbortController();
         async function loadNearbyRestaurants() {
-            if (["checking", "loading"].includes(statusLocalizacao) && !localizacaoCliente) {
-                setCarregandoRestaurantes(false);
-                return;
-            }
-            if (!localizacaoCliente) {
-                setNearbyRestaurantItems([]);
-                setCarregandoRestaurantes(false);
-                return;
-            }
+            if (!buscaProxima) return;
             setCarregandoRestaurantes(true);
             try {
-                const endpoint = new URLSearchParams();
-                if (localizacaoCliente) {
-                    endpoint.set("latitude", String(localizacaoCliente.latitude));
-                    endpoint.set("longitude", String(localizacaoCliente.longitude));
+                const endpoint = new URLSearchParams({ localizacao: buscaProxima.localizacao, ordenacao: "distancia" });
+                if (buscaProxima.raioKm !== "todos") {
+                    endpoint.set("raio_km", buscaProxima.raioKm);
                 }
-                if (raioKm !== "todos") {
-                    endpoint.set("raio_km", raioKm);
-                }
-                const queryString = endpoint.toString();
-                const data = await apiRequest(`/restaurantes${queryString ? `?${queryString}` : ""}`);
-                setNearbyRestaurantItems(data.map(mapearRestaurante));
+                const data = await apiRequest(`/restaurantes?${endpoint.toString()}`, { signal: controller.signal, forceRefresh: true });
+                if (!controller.signal.aborted) setNearbyRestaurantItems(data.map(mapearRestaurante));
             }
             catch (error) {
-                setMessage(error instanceof Error
+                if (!controller.signal.aborted) setErroBuscaProxima(error instanceof Error
                     ? error.message
                     : "Não foi possível carregar restaurantes próximos.");
             }
             finally {
-                setCarregandoRestaurantes(false);
+                if (!controller.signal.aborted) setCarregandoRestaurantes(false);
             }
         }
         loadNearbyRestaurants();
-    }, [localizacaoCliente, raioKm, statusLocalizacao]);
-    useEffect(() => {
-        let cancelado = false;
-        function solicitarLocalizacao() {
-            if (!("geolocation" in navigator)) {
-                setStatusLocalizacao("unsupported");
-                return;
-            }
-            setStatusLocalizacao("loading");
-            navigator.geolocation.getCurrentPosition((posicao) => {
-                setLocalizacaoCliente({
-                    latitude: Number(posicao.coords.latitude.toFixed(7)),
-                    longitude: Number(posicao.coords.longitude.toFixed(7)),
-                });
-                setStatusLocalizacao("ready");
-            }, () => {
-                setStatusLocalizacao("denied");
-            }, {
-                enableHighAccuracy: true,
-                timeout: 8000,
-                maximumAge: 0,
-            });
-        }
-        async function solicitarLocalizacaoInicial() {
-            if (!("geolocation" in navigator)) {
-                if (!cancelado) setStatusLocalizacao("unsupported");
-                return;
-            }
-            if ("permissions" in navigator && navigator.permissions?.query) {
-                try {
-                    const permissao = await navigator.permissions.query({ name: "geolocation" });
-                    if (cancelado) return;
-                    permissao.onchange = () => {
-                        if (!cancelado && permissao.state === "granted") {
-                            solicitarLocalizacao();
-                        }
-                    };
-                    if (permissao.state === "granted") {
-                        solicitarLocalizacao();
-                        return;
-                    }
-                    if (permissao.state === "denied") {
-                        setStatusLocalizacao("denied");
-                        return;
-                    }
-                    setStatusLocalizacao("idle");
-                    return;
-                }
-                catch {
-                }
-            }
-            if (!cancelado) {
-                solicitarLocalizacao();
-            }
-        }
-        const timer = window.setTimeout(solicitarLocalizacaoInicial, 250);
-        return () => {
-            cancelado = true;
-            window.clearTimeout(timer);
-        };
-    }, []);
+        return () => controller.abort();
+    }, [buscaProxima]);
     useEffect(() => {
         async function loadReservations() {
             try {
@@ -379,18 +314,32 @@ export default function DashboardPage() {
         .sort((a, b) => Number(b.favoriteCount) - Number(a.favoriteCount))
         .slice(0, 3), [restaurants]);
     const nearbyRestaurants = useMemo(() => nearbyRestaurantItems
-        .filter((restaurant) => raioKm === "todos" || Number.isFinite(Number(restaurant.distanceKm)))
+        .filter((restaurant) => buscaProxima?.raioKm === "todos" || (restaurant.distanceKm != null && Number.isFinite(Number(restaurant.distanceKm))))
         .sort((a, b) => {
-            const distanciaA = Number(a.distanceKm);
-            const distanciaB = Number(b.distanceKm);
+            const distanciaA = a.distanceKm == null ? NaN : Number(a.distanceKm);
+            const distanciaB = b.distanceKm == null ? NaN : Number(b.distanceKm);
             if (!Number.isFinite(distanciaA)) return Number.isFinite(distanciaB) ? 1 : 0;
             if (!Number.isFinite(distanciaB)) return -1;
             return distanciaA - distanciaB;
         })
-        .slice(0, 6), [nearbyRestaurantItems, raioKm]);
+        .slice(0, 6), [buscaProxima, nearbyRestaurantItems]);
     function limparBusca() {
         setQuery("");
         setDebouncedQuery("");
+    }
+    function procurarRestaurantesProximos(event) {
+        event.preventDefault();
+        if (carregandoRestaurantes) return;
+        const localizacao = localizacaoBusca.trim();
+        if (!localizacao) {
+            setErroBuscaProxima("Digite um endereço, bairro, cidade ou CEP para buscar.");
+            localizacaoBuscaRef.current?.focus();
+            return;
+        }
+        setErroBuscaProxima("");
+        setNearbyRestaurantItems([]);
+        setCarregandoRestaurantes(true);
+        setBuscaProxima({ localizacao, raioKm });
     }
     async function alternarFavorito(id) {
         const atual = [...restaurants, ...searchRestaurants, ...nearbyRestaurantItems].find((restaurant) => restaurant.id === id);
@@ -498,6 +447,8 @@ export default function DashboardPage() {
 
       <VitrineOfertas />
 
+      <CategoriasRestaurantes />
+
       {highlightedRestaurants.length ? <section className="mx-auto max-w-7xl px-5 py-10">
         <div>
           <h2 className="text-3xl font-semibold text-app-cafe-profundo sm:text-4xl">{ui("Restaurantes mais curtidos")}</h2>
@@ -531,41 +482,50 @@ export default function DashboardPage() {
 
       </section>
 
-      <section className="mx-auto max-w-7xl px-5 py-8">
+      <section id="restaurantes-proximos" className="mx-auto max-w-7xl px-5 py-8">
         <div className="rounded-[26px] bg-app-cafe-profundo px-7 py-8 text-app-creme-leve shadow-sm sm:px-10 sm:py-10">
-          <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-            <div>
+          <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
+            <div className="xl:max-w-72">
               <h2 className="text-4xl font-medium sm:text-5xl">{ui("Perto de Você")}</h2>
-              <p className="mt-3 max-w-xl text-sm leading-6 text-app-creme-suave">{ui(obterMensagemOrigemLocalizacao(statusLocalizacao))}</p>
+              <p className="mt-3 max-w-xl text-sm leading-6 text-app-creme-suave">{ui("Digite uma localização e escolha a distância para encontrar restaurantes próximos.")}</p>
             </div>
-            <div className="flex w-full flex-wrap gap-2 sm:w-auto sm:justify-end">
-              <Link href="/cliente/busca" className="inline-flex h-11 items-center justify-center rounded-[8px] border border-app-baunilha-dourada/60 px-4 text-xs font-bold uppercase tracking-[0.12em] text-app-creme-leve transition hover:bg-app-baunilha-dourada/20">{ui("Buscar")}</Link>
-              <Link href="/cliente/configuracoes" className="inline-flex h-11 items-center justify-center rounded-[8px] border border-app-baunilha-dourada/60 px-4 text-xs font-bold uppercase tracking-[0.12em] text-app-creme-leve transition hover:bg-app-baunilha-dourada/20">{ui("Por endereço")}</Link>
-              <label className="nearby-radius-control flex h-11 min-w-44 flex-1 items-center rounded-[8px] border border-app-baunilha-dourada/60 px-4 text-app-creme-leve sm:w-56 sm:flex-none">
-                <span className="sr-only">{ui("Raio de busca")}</span>
-                <select value={raioKm} onChange={(event) => setRaioKm(event.target.value)} className="nearby-radius-select h-full min-w-0 flex-1 bg-transparent text-sm font-semibold outline-none">
-                  <option value="2">{ui("Até 2 km")}</option>
-                  <option value="5">{ui("Até 5 km")}</option>
-                  <option value="10">{ui("Até 10 km")}</option>
-                  <option value="20">{ui("Até 20 km")}</option>
-                  <option value="todos">{ui("Qualquer distância")}</option>
-                </select>
+            <form onSubmit={procurarRestaurantesProximos} aria-label={ui("Buscar restaurantes por localização")} className="nearby-actions grid w-full min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 lg:grid-cols-[auto_minmax(180px,1fr)_160px_auto] xl:flex-1">
+              <Link href="/cliente/busca" className="nearby-secondary-action inline-flex h-11 items-center justify-center rounded-[8px] border border-app-baunilha-dourada/60 px-4 text-xs font-bold uppercase tracking-[0.12em] text-app-creme-leve transition lg:order-first">{ui("Buscar")}</Link>
+              <label className="campo-busca-app order-first col-span-2 flex h-11 min-w-0 items-center gap-2 overflow-hidden rounded-xl border border-app-baunilha-dourada/60 bg-white px-3 text-app-mocha lg:order-none lg:col-span-1">
+                <Icon type="pin" className="h-4 w-4" />
+                <span className="sr-only">{ui("Localização para buscar restaurantes")}</span>
+                <input ref={localizacaoBuscaRef} id="localizacao-proxima" name="localizacao" value={localizacaoBusca} onChange={(event) => setLocalizacaoBusca(event.target.value)} placeholder={ui("Endereço, bairro, cidade ou CEP")} required maxLength={240} autoComplete="off" className="input-busca-app h-full min-w-0 w-full bg-transparent text-sm text-app-cafe-profundo outline-none placeholder:text-app-cinza" />
               </label>
-            </div>
+              <div ref={controleRaioRef} className="relative min-w-0 w-full">
+                <button type="button" onClick={() => setMenuRaioAberto((aberto) => !aberto)} aria-haspopup="listbox" aria-expanded={menuRaioAberto} className="nearby-radius-trigger flex h-11 w-full items-center justify-between px-4 text-left text-sm font-semibold outline-none">
+                  {ui(opcoesRaio.find((opcao) => opcao.value === raioKm)?.label ?? "Até 20 km")}
+                  <Icon type="chevron" className={`h-4 w-4 transition-transform ${menuRaioAberto ? "rotate-180" : ""}`}/>
+                </button>
+                {menuRaioAberto ? <div role="listbox" aria-label={ui("Raio de busca")} className="nearby-radius-menu absolute right-0 top-[calc(100%+0.35rem)] z-20 w-full overflow-hidden p-1">
+                  {opcoesRaio.map((opcao) => <button key={opcao.value} type="button" role="option" aria-selected={raioKm === opcao.value} onClick={() => { setRaioKm(opcao.value); setMenuRaioAberto(false); }} className={`nearby-radius-option flex w-full items-center px-3 py-2 text-left text-sm font-semibold transition ${raioKm === opcao.value ? "is-selected" : ""}`}>
+                    {ui(opcao.label)}
+                  </button>)}
+                </div> : null}
+              </div>
+              <button type="submit" disabled={carregandoRestaurantes} className="nearby-primary-action col-span-2 inline-flex h-11 items-center justify-center rounded-[8px] bg-app-baunilha-dourada px-5 text-xs font-bold uppercase tracking-[0.14em] text-app-cafe-profundo transition disabled:cursor-wait disabled:opacity-70 lg:col-span-1">
+                {carregandoRestaurantes ? ui("Procurando...") : ui("Procurar")}
+              </button>
+            </form>
           </div>
         </div>
 
-        {statusLocalizacao === "denied" ? (
-            <p className="mt-7 border-l-2 border-app-caramelo-torrado pl-4 text-sm font-semibold text-app-mocha">{ui("Não foi possível acessar sua localização. Libere a permissão no navegador para ver restaurantes por distância.")}</p>
-          ) : null}
-          {statusLocalizacao === "unsupported" ? (
-            <p className="mt-7 border-l-2 border-app-caramelo-torrado pl-4 text-sm font-semibold text-app-mocha">{ui("Este navegador não oferece suporte à localização automática.")}</p>
-          ) : null}
-
-        <div className="pt-8">
-            {carregandoRestaurantes && (statusLocalizacao === "loading" || localizacaoCliente) ? (
-              null
-            ) : localizacaoCliente && nearbyRestaurants.length ? (<div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+        <div className="mt-6 rounded-[26px] border border-app-baunilha-dourada bg-app-chantilly/45 p-5 shadow-sm sm:p-7">
+          <div className="flex flex-col gap-2 border-b border-app-baunilha-dourada/60 pb-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h3 className="text-2xl font-semibold text-app-cafe-profundo">{ui("Restaurantes perto de você")}</h3>
+              <p className="mt-1 break-words text-sm text-app-cinza">{pesquisaProximaIniciada ? ui("Busca próxima de {0}", [buscaProxima.localizacao]) : ui("Informe a localização desejada e clique em Procurar.")}</p>
+            </div>
+            {pesquisaProximaIniciada && !carregandoRestaurantes && !erroBuscaProxima ? <span className="w-fit shrink-0 rounded-full bg-white px-3 py-1 text-xs font-semibold text-app-caramelo-torrado ring-1 ring-app-baunilha-dourada/70">{ui("{0} encontrado(s)", [nearbyRestaurants.length])}</span> : null}
+          </div>
+          <div className="pt-5">
+            {erroBuscaProxima ? <p role="alert" className="rounded-xl border border-app-vermelho-erro/30 bg-white p-4 text-sm font-semibold text-app-vermelho-erro">{ui(erroBuscaProxima)}</p> : carregandoRestaurantes ? (
+              <div className="flex min-h-48 items-center justify-center gap-3 text-sm font-semibold text-app-mocha"><span className="h-5 w-5 animate-spin rounded-full border-2 border-app-baunilha-dourada border-t-app-caramelo-torrado"/>{ui("Procurando restaurantes próximos...")}</div>
+            ) : nearbyRestaurants.length ? (<div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
                 {nearbyRestaurants.map((restaurant) => (<article key={restaurant.id} className="group relative min-w-0 rounded-[8px] border border-app-baunilha-dourada bg-white p-2.5 shadow-sm transition hover:-translate-y-0.5 hover:border-app-caramelo-torrado/55 hover:shadow-md">
                     <Link href={`/cliente/restaurantes/${restaurant.id}`} className="flex min-w-0 gap-3" aria-label={`Ver ${restaurant.name}`}>
                       <div className="logo-restaurante-circular relative h-24 w-24 shrink-0 overflow-hidden rounded-full bg-white ring-2 ring-app-baunilha-dourada/70">
@@ -608,46 +568,10 @@ export default function DashboardPage() {
                       <Icon type="heart" filled={restaurant.isFavorite} className="h-full w-full"/>
                     </button>
                   </article>))}
-              </div>) : localizacaoCliente ? (<LocationEmptyState title={ui("Nenhum restaurante neste raio")} description={ui("Tente aumentar o raio de busca para encontrar mais opções.")}/>) : statusLocalizacao === "denied" ? (<LocationEmptyState title={ui("Permita sua localização")} description={ui("Ao autorizar o navegador, a Appono carrega automaticamente os restaurantes mais próximos e permite filtrar por raio.")}/>) : null}
+              </div>) : pesquisaProximaIniciada ? (<LocationEmptyState title={ui("Nenhum restaurante neste raio")} description={ui("Tente aumentar o raio de busca ou usar outra cidade, bairro ou CEP.")}/>) : (<LocationEmptyState title={ui("Escolha uma localização")} description={ui("Digite um endereço, bairro, cidade ou CEP e selecione a distância para buscar restaurantes.")}/>) }
           </div>
-      </section>
-
-      {false && <>
-      <section className="mx-auto max-w-7xl px-5 py-10">
-        <div>
-          <h2 className="text-3xl font-semibold text-app-cafe-profundo sm:text-4xl">{ui("Encontre algo diferente")}</h2>
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-app-cinza">{ui("Conheça restaurantes pelo cardápio, avaliações e faixa de preço, sem precisar usar a busca.")}</p>
-        </div>
-        {colecoesDescoberta.length ? <div className="mt-7 grid gap-7 lg:grid-cols-2">
-          {colecoesDescoberta.map((colecao) => <section key={colecao.titulo} className="rounded-[14px] border border-app-baunilha-dourada/60 bg-app-creme-leve p-5">
-            <h3 className="text-xl font-semibold text-app-cafe-profundo">{ui(colecao.titulo)}</h3>
-            <p className="mt-1 text-xs text-app-cinza">{ui(colecao.criterio)}</p>
-            <div className="mt-4 grid gap-3">{colecao.itens.map((restaurant) => <Link key={restaurant.id} href={`/cliente/restaurantes/${restaurant.id}`} className="flex items-center justify-between gap-4 rounded-[10px] bg-white p-4 transition hover:shadow-sm">
-              <div className="min-w-0"><p className="truncate font-semibold text-app-cafe-profundo">{restaurant.name}</p><p className="mt-1 truncate text-sm text-app-cinza">{restaurant.publishedCategories.slice(0, 2).join(" · ") || ui("Cardápio disponível")}</p></div>
-              <div className="shrink-0 text-right"><p className="text-sm font-semibold text-app-caramelo-torrado">{restaurant.rating == null ? ui("Novo") : `★ ${Number(restaurant.rating).toFixed(1)}`}</p>{Number.isFinite(Number(restaurant.minimumReservationValue)) ? <p className="mt-1 text-xs text-app-cinza">{formatarMoeda(restaurant.minimumReservationValue, localeUI)}</p> : null}</div>
-            </Link>)}</div>
-          </section>)}
-        </div> : (
-          <EmptyState compact title={ui("Ainda não há coleções disponíveis")} description={ui("As opções aparecerão aqui quando os restaurantes tiverem cardápio publicado e dados suficientes.")}/>
-        )}
-      </section>
-
-      <section className="mx-auto max-w-7xl px-5 py-12">
-        <div className="text-center">
-          <h2 className="text-4xl font-medium text-app-cafe-profundo sm:text-5xl">{ui("Especialidades em Destaque")}</h2>
-        </div>
-
-        <div className="mt-10">
-          {specialties.length ? (<div className="grid gap-8 lg:grid-cols-3">
-              {specialties.map((specialty) => (<article key={specialty.id} className="rounded-[8px] border border-app-baunilha-dourada bg-white p-6 shadow-sm">
-                  <h3 className="text-xl font-semibold">{specialty.name}</h3>
-                  {specialty.description ? (<p className="mt-2 text-sm leading-6 text-app-cinza">
-                      {ui(specialty.description)}
-                    </p>) : null}
-                </article>))}
-            </div>) : (<EmptyState title={ui("Especialidades ainda não disponíveis")} description={ui("As seções em destaque serão exibidas assim que houver restaurantes e cardápios cadastrados.")}/>)}
         </div>
       </section>
-      </>}
+
     </main>);
 }

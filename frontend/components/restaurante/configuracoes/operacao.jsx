@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
   Store,
-  Clock,
   Phone,
   Timer,
   Plus,
@@ -22,7 +21,6 @@ import { apiRequest } from "@/lib/api";
 import { atualizarNomeSessao } from "@/lib/session";
 import { TelaCarregandoSessao, useSessaoLocal } from "@/lib/use-sessao-local";
 import { aplicarMascaraTelefone } from "@/lib/validacoes/telefone";
-import { FormInput } from "@/components/ui/form-input";
 
 const initialDays = [
   { id: "monday",    label: "Segunda-feira", helper: "Dia útil",       enabled: false, shifts: [{ open: "", close: "" }] },
@@ -185,7 +183,7 @@ export default function RestaurantOperationSettingsPage() {
   const resumoCliente = obterResumoCliente(days);
 
   return (
-    <div className="min-w-0 text-app-cafe-profundo">
+    <div className="@container/operacao min-w-0 text-app-cafe-profundo">
       <section className="w-full min-w-0">
         <div className="border-b border-app-baunilha-dourada/60 pb-6">
           <h2 className="text-3xl font-medium leading-tight text-app-cafe-profundo">
@@ -193,9 +191,9 @@ export default function RestaurantOperationSettingsPage() {
           </h2>
         </div>
 
-        <form onSubmit={handleSubmit} className="mt-8 grid gap-6 lg:grid-cols-[400px_1fr]" noValidate>
+        <form onSubmit={handleSubmit} className="mt-8 grid min-w-0 gap-6 @min-[760px]/operacao:grid-cols-[minmax(240px,280px)_minmax(0,1fr)]" noValidate>
           {/* Painel lateral: informações gerais */}
-          <aside className="h-fit rounded-2xl border border-app-baunilha-dourada/60 bg-app-creme-leve p-6">
+          <aside className="h-fit min-w-0 rounded-2xl border border-app-baunilha-dourada/60 bg-app-creme-leve p-6">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-red-600">
@@ -219,7 +217,7 @@ export default function RestaurantOperationSettingsPage() {
                     setStoreName(e.target.value);
                     setErros((prev) => ({ ...prev, storeName: "" }));
                   }}
-                  className={`h-12 rounded-xl border px-4 text-sm text-app-cafe-profundo outline-none transition focus:ring-2 focus:ring-app-dourado-mel/20 ${
+                  className={`h-12 min-w-0 w-full rounded-xl border px-4 text-sm text-app-cafe-profundo outline-none transition focus:ring-2 focus:ring-app-dourado-mel/20 ${
                     erros.storeName
                       ? "border-red-400 bg-red-50 focus:border-red-400"
                       : "border-app-baunilha-dourada bg-app-creme-suave focus:border-app-caramelo-torrado"
@@ -331,9 +329,9 @@ export default function RestaurantOperationSettingsPage() {
           </aside>
 
           {/* Grade de agenda semanal */}
-          <section className="rounded-2xl border border-app-baunilha-dourada/60 bg-app-creme-leve p-5 sm:p-8">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-              <div>
+          <section className="@container/agenda min-w-0 rounded-2xl border border-app-baunilha-dourada/60 bg-app-creme-leve p-4 sm:p-6">
+            <div className="flex min-w-0 flex-col gap-4 @min-[560px]/agenda:flex-row @min-[560px]/agenda:items-start @min-[560px]/agenda:justify-between">
+              <div className="min-w-0 flex-1">
                 <h3 className="text-xl font-semibold text-app-cafe-profundo">
                   {ui("Agenda semanal")}
                 </h3>
@@ -341,58 +339,61 @@ export default function RestaurantOperationSettingsPage() {
                   {ui("Ative os dias e informe os turnos de funcionamento.")}
                 </p>
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex min-w-0 flex-wrap items-center gap-2 @min-[560px]/agenda:max-w-[260px] @min-[560px]/agenda:justify-end">
                 <button
                   type="button"
                   onClick={copiarParaDiasUteis}
-                  className="inline-flex items-center gap-1.5 rounded-xl bg-app-creme-suave hover:bg-app-areia-quente px-4 py-2 text-[10px] font-bold uppercase tracking-[0.14em] text-app-mocha transition"
+                  className="inline-flex min-h-10 max-w-full items-center gap-2 rounded-xl bg-app-creme-suave hover:bg-app-areia-quente px-3 py-2 text-[10px] font-bold uppercase tracking-[0.14em] text-app-mocha transition"
                 >
-                  <Copy className="h-3.5 w-3.5" aria-hidden="true" />
-                  {ui("Copiar para dias úteis")}
+                  <Copy className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                  <span>{ui("Copiar para dias úteis")}</span>
                 </button>
-                <span className="inline-flex items-center gap-2 rounded-xl bg-app-creme-suave px-4 py-2 text-xs font-bold uppercase text-app-mocha">
-                  <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                <span className="inline-flex min-h-10 shrink-0 items-center gap-2 rounded-xl bg-app-creme-suave px-3 py-2 text-xs font-bold uppercase text-app-mocha">
+                  <span className="h-2 w-2 shrink-0 rounded-full bg-emerald-500" />
                   {ui("Aberto")}
                 </span>
               </div>
             </div>
 
-            <div className="mt-7 grid gap-4">
+            <div className="mt-7 grid min-w-0 gap-4">
               {days.map((day) => (
                 <article
                   key={day.id}
-                  className="grid gap-5 rounded-xl border border-app-baunilha-dourada/45 bg-white p-5 sm:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] sm:items-center"
+                  className="@container/dia grid min-w-0 gap-4 rounded-xl border border-app-baunilha-dourada/45 bg-white p-4 @min-[560px]/agenda:grid-cols-[140px_minmax(0,1fr)] @min-[560px]/agenda:items-start"
                 >
-                  <div>
+                  <div className="min-w-0">
                     <h4 className="font-semibold text-app-cafe-profundo">{ui(day.label)}</h4>
                     <p className="mt-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-app-cinza">
                       {ui(day.helper)}
                     </p>
                   </div>
 
-                  <div className="grid gap-3">
+                  <div className="grid min-w-0 gap-3">
                     {day.shifts.map((shift, index) => (
-                      <div key={`${day.id}-${index}`} className="grid gap-3 sm:grid-cols-[1fr_auto_1fr]">
-                        <label className="relative">
-                          <Clock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-app-cinza" aria-hidden="true" />
+                      <div key={`${day.id}-${index}`} className="grid min-w-0 gap-2 @min-[240px]/dia:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] @min-[360px]/dia:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
+                        <label className="grid min-w-0 gap-1.5">
+                          <span className="text-xs font-medium text-app-cinza">{ui("Abertura")}</span>
                           <input
                             type="time"
                             value={shift.open}
                             onChange={(e) => updateShift(day.id, index, "open", e.target.value)}
-                            className="h-11 w-full rounded-xl border border-app-baunilha-dourada bg-app-creme-suave pl-10 pr-3 text-sm text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20"
+                            className="h-11 min-w-0 w-full max-w-full rounded-xl border border-app-baunilha-dourada bg-app-creme-suave px-2 text-sm text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20"
                           />
                         </label>
-                        <span className="hidden items-center text-sm text-app-cinza sm:flex">
+                        <span className="hidden h-11 items-center self-end text-sm text-app-cinza @min-[360px]/dia:flex">
                           {ui("às")}
                         </span>
-                        <input
-                          type="time"
-                          value={shift.close}
-                          onChange={(e) => updateShift(day.id, index, "close", e.target.value)}
-                          className="h-11 w-full rounded-xl border border-app-baunilha-dourada bg-app-creme-suave px-3 text-sm text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20"
-                        />
+                        <label className="grid min-w-0 gap-1.5">
+                          <span className="text-xs font-medium text-app-cinza">{ui("Fechamento")}</span>
+                          <input
+                            type="time"
+                            value={shift.close}
+                            onChange={(e) => updateShift(day.id, index, "close", e.target.value)}
+                            className="h-11 min-w-0 w-full max-w-full rounded-xl border border-app-baunilha-dourada bg-app-creme-suave px-2 text-sm text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20"
+                          />
+                        </label>
                         {(shift.open || shift.close) && !turnoValido(shift) ? (
-                          <p className="text-xs font-semibold text-red-600 sm:col-span-3">
+                          <p className="col-span-full text-xs font-semibold text-red-600">
                             {ui("Informe abertura e fechamento, com fechamento depois da abertura.")}
                           </p>
                         ) : null}
@@ -400,7 +401,7 @@ export default function RestaurantOperationSettingsPage() {
                     ))}
                   </div>
 
-                  <div className="flex items-center gap-3 sm:col-span-2 sm:justify-end">
+                  <div className="flex min-w-0 flex-wrap items-center justify-end gap-3 @min-[560px]/agenda:col-span-2">
                     <button
                       type="button"
                       onClick={() =>
@@ -433,7 +434,9 @@ export default function RestaurantOperationSettingsPage() {
                       onClick={() =>
                         updateDay(day.id, (d) => ({ ...d, enabled: !d.enabled }))
                       }
-                      className={`relative h-8 w-14 rounded-full transition ${
+                      role="switch"
+                      aria-checked={day.enabled}
+                      className={`relative h-8 w-14 shrink-0 rounded-full transition ${
                         day.enabled ? "bg-red-600" : "bg-app-cinza/35"
                       }`}
                       aria-label={ui("{0} {1}", [

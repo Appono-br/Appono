@@ -198,10 +198,10 @@ export function LoginForm() {
         <div className="mx-auto w-full max-w-md">
           <div className="rounded-3xl bg-white px-6 py-8 shadow-xl border border-slate-100 sm:px-10">
             {/* Cabeçalho */}
-            <div className="mb-6 flex items-center justify-between">
+            <div className="mb-6 grid grid-cols-[1fr_auto_1fr] items-center">
               <Link
                 href="/"
-                className="inline-flex items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-all"
+                className="inline-flex w-fit items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-all"
               >
                 <ArrowLeft className="h-4 w-4" />
                 <span>Início</span>
@@ -215,10 +215,6 @@ export function LoginForm() {
                 className="h-10 w-10"
                 priority
               />
-
-              <span className="rounded-full bg-red-50 text-red-600 px-3 py-1 text-[11px] font-bold tracking-wide uppercase">
-                Acesso
-              </span>
             </div>
 
             <div className="mb-6">
