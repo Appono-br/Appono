@@ -2,6 +2,8 @@ begin;
 
 -- Agrupa somente categorias escolhidas no perfil de restaurantes ativos.
 -- public.categorias contém seções do cardápio e não participa desta consulta.
+drop function if exists public.listar_categorias_restaurantes();
+
 create or replace function public.listar_categorias_restaurantes()
 returns table (categoria text, total_restaurantes bigint)
 language sql
