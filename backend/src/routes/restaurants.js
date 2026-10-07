@@ -379,12 +379,22 @@ exports.restaurantsRouter.get("/", async (req, res) => {
         }
         const termoBusca = normalizarBusca(req.query.q);
         const incluirPratos = req.query.incluir_pratos === "1";
+        if (req.query.localizacao !== undefined && (typeof req.query.localizacao !== "string" || req.query.localizacao.length > 240)) {
+            return res.status(400).json({ error: "Informe um endereço, bairro, cidade ou CEP válido." });
+        }
+        const localizacaoBusca = typeof req.query.localizacao === "string" ? req.query.localizacao.trim() : "";
         let latitudeCliente = numeroValido(req.query.latitude);
         let longitudeCliente = numeroValido(req.query.longitude);
         let origemDistancia = (0, geolocalizacao_1.coordenadaValida)(latitudeCliente, longitudeCliente) ? "navegador" : null;
         let localizacaoResolvida = null;
-        if (!origemDistancia && req.query.localizacao) {
-            localizacaoResolvida = await (0, geolocalizacao_1.geocodificarLocalizacao)(req.query.localizacao);
+        if (!origemDistancia && localizacaoBusca) {
+            localizacaoResolvida = await (0, geolocalizacao_1.geocodificarLocalizacao)(localizacaoBusca);
+            if (!localizacaoResolvida) {
+                return res.status(400).json({
+                    error: "Não foi possível localizar esse endereço. Informe rua, bairro e cidade ou um CEP válido.",
+                    code: "LOCALIZACAO_NAO_ENCONTRADA",
+                });
+            }
             if (localizacaoResolvida) {
                 latitudeCliente = localizacaoResolvida.latitude;
                 longitudeCliente = localizacaoResolvida.longitude;

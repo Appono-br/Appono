@@ -1,12 +1,12 @@
 "use client";
-import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { apiRequest } from "@/lib/api";
 import { getDashboardPath, persistAuthResponse } from "@/lib/session";
 import { supabase } from "@/lib/supabase";
 import { chaveRetornoRestaurante, obterRetornoRestaurante } from "@/lib/retorno-restaurante.mjs";
 export default function AuthCallbackPage() {
-    const [message, setMessage] = useState("Confirmando seu acesso...");
+    const [message, setMessage] = useState("");
     useEffect(() => {
         async function confirmEmailAndRedirect() {
             try {
@@ -44,17 +44,13 @@ export default function AuthCallbackPage() {
                     throw new Error("Confirme seu e-mail para continuar.");
                 }
                 await persistAuthResponse({ session });
-                setMessage("Buscando seu perfil...");
                 let profile;
                 try {
                     profile = await apiRequest("/me");
                 }
                 catch (error) {
                     if (error instanceof Error && error.message.includes("Perfil")) {
-                        setMessage("Conta Google autenticada. Complete seu perfil Appono para continuar.");
-                        window.setTimeout(() => {
-                            window.location.replace("/completar-perfil");
-                        }, 1200);
+                        window.location.replace("/completar-perfil");
                         return;
                     }
                     throw new Error(error instanceof Error
@@ -64,7 +60,6 @@ export default function AuthCallbackPage() {
                 await persistAuthResponse({ ...profile, session });
                 const checkoutProfissionalPendente = sessionStorage.getItem("appono_checkout_profissional_pendente") === "1";
                 if (checkoutProfissionalPendente && profile.tipo === "restaurante") {
-                    setMessage("Preparando o checkout do Plano Profissional...");
                     const contratacao = await apiRequest("/planos/checkout", {
                         method: "POST",
                         body: JSON.stringify({ plano: "PROFISSIONAL" }),
@@ -96,17 +91,11 @@ export default function AuthCallbackPage() {
         }
         confirmEmailAndRedirect();
     }, []);
-    return (<main className="flex min-h-screen items-center justify-center bg-app-chantilly px-4 text-app-cafe-profundo">
-      <section className="w-full max-w-md rounded-[16px] bg-app-creme-leve px-7 py-8 text-center shadow-[0_22px_70px_rgba(74,44,10,0.12)] ring-1 ring-app-baunilha-dourada">
-        <Image src="/brand/appono-mark.svg" alt="Appono" width={92} height={92} className="mx-auto h-14 w-14" priority/>
-        <p className="mt-4 text-[10px] font-bold uppercase tracking-[0.28em] text-app-caramelo-torrado">
-          APPONO
-        </p>
-        <h1 className="mt-3 text-2xl font-bold">Confirmando acesso</h1>
-        <p className="mt-2 text-sm leading-6 text-app-mocha">{message}</p>
-        <div className="mx-auto mt-6 h-1.5 w-36 overflow-hidden rounded-full bg-app-baunilha-dourada">
-          <div className="h-full w-1/2 animate-pulse rounded-full bg-app-dourado-mel"/>
-        </div>
-      </section>
-    </main>);
+    if (!message) return null;
+    return (
+      <main className="mx-auto max-w-lg px-5 py-8 text-app-cafe-profundo">
+        <p role="alert" className="text-sm leading-6">{message}</p>
+        <Link href="/login" className="mt-4 inline-block text-sm font-semibold text-app-caramelo-torrado">Voltar ao login</Link>
+      </main>
+    );
 }

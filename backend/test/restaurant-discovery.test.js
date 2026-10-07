@@ -24,6 +24,7 @@ async function requisicao(query = {}, opcoes = {}) {
     };
     const chamadas = [];
     const geocodificados = [];
+    const localizacoesBuscadas = [];
     const handlers = new Map();
     const banco = {
         rpc(nome) {
@@ -63,6 +64,7 @@ async function requisicao(query = {}, opcoes = {}) {
             if (nome === "../middleware/auth") return { requireRole: () => () => {}, requireAuth() {} };
             if (nome === "../services/geolocalizacao") return {
                 coordenadaValida,
+                async geocodificarLocalizacao(texto) { localizacoesBuscadas.push(texto); return opcoes.localizacaoResolvida ?? null; },
                 async geocodificarEnderecoRestaurante(item) { geocodificados.push(item.id_restaurante); return opcoes.coordenadasGeocodificadas ?? null; },
             };
             throw new Error(`Dependência inesperada: ${nome}`);
@@ -70,7 +72,7 @@ async function requisicao(query = {}, opcoes = {}) {
     });
     const res = { statusCode: 200, status(valor) { this.statusCode = valor; return this; }, json(data) { this.body = JSON.parse(JSON.stringify(data)); return this; } };
     await handlers.get(opcoes.rota ?? "/")({ query, headers: {} }, res);
-    return { ...res, chamadas, geocodificados };
+    return { ...res, chamadas, geocodificados, localizacoesBuscadas };
 }
 
 test("categorias retornam a agregação do banco, sem adicionar nomes ou preencher estado vazio", async () => {
@@ -124,6 +126,40 @@ test("raio compara distância sem arredondar e exclui coordenadas ausentes ou in
     assert.deepEqual(res.body.map((item) => item.id_restaurante), [1]);
     assert.deepEqual(res.geocodificados, [3, 4]);
     assert.ok(res.body[0].distancia_km <= 20);
+});
+
+test("busca por endereço usa a localização informada como origem e respeita o raio selecionado", async () => {
+    const restaurantes = [restaurante(1, ["Japonesa"], 1.5), restaurante(2, ["Italiana"], 4.5), restaurante(3, ["Italiana"], 10)];
+    const query = { localizacao: "  Praça de referência, São Paulo  ", raio_km: "5", ordenacao: "distancia" };
+    const opcoes = { restaurantes, localizacaoResolvida: { latitude: 0, longitude: 0, nome: "Praça de referência" } };
+    const res = await requisicao(query, opcoes);
+    assert.equal(res.statusCode, 200);
+    assert.deepEqual(res.localizacoesBuscadas, ["Praça de referência, São Paulo"]);
+    assert.deepEqual(res.body.map(item => item.id_restaurante), [1, 2]);
+    assert.ok(res.body.every(item => item.origem_distancia === "busca" && item.localizacao_resolvida === "Praça de referência" && item.distancia_km <= 5));
+    const raioMenor = await requisicao({ ...query, raio_km: "2" }, opcoes);
+    assert.deepEqual(raioMenor.body.map(item => item.id_restaurante), [1]);
+    const outroEndereco = await requisicao({ ...query, localizacao: "Outro endereço", raio_km: "2" }, {
+        restaurantes, localizacaoResolvida: { latitude: latitudeEmKm(10), longitude: 0, nome: "Outro endereço" },
+    });
+    assert.deepEqual(outroEndereco.body.map(item => item.id_restaurante), [3]);
+    const qualquerDistancia = await requisicao({ localizacao: query.localizacao, ordenacao: "distancia" }, opcoes);
+    assert.deepEqual(qualquerDistancia.body.map(item => item.id_restaurante), [1, 2, 3]);
+});
+
+test("endereço não encontrado retorna erro próprio e não solicita a localização do navegador", async () => {
+    for (const query of [{ localizacao: "Endereço inexistente", raio_km: "5" }, { localizacao: "Endereço inexistente", ordenacao: "distancia" }]) {
+        const res = await requisicao(query);
+        assert.equal(res.statusCode, 400);
+        assert.equal(res.body.code, "LOCALIZACAO_NAO_ENCONTRADA");
+        assert.match(res.body.error, /Informe rua, bairro e cidade/);
+        assert.deepEqual(res.chamadas, []);
+    }
+    for (const localizacao of [["Endereço"], "a".repeat(241)]) {
+        const res = await requisicao({ localizacao, raio_km: "5" });
+        assert.equal(res.statusCode, 400);
+        assert.deepEqual(res.localizacoesBuscadas, []);
+    }
 });
 
 test("reutiliza geocodificação do endereço para restaurante sem coordenadas", async () => {

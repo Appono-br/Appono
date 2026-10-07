@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { apiRequest } from "@/lib/api";
-import { filtrarOrdenarPorBusca, textoBusca } from "@/lib/busca-avancada";
+import { calcularPontuacaoBusca, textoBusca } from "@/lib/busca-avancada";
 import { VitrinePratos } from "@/components/cliente/vitrine-pratos";
 import { CartaoRestaurante } from "@/components/cliente/cartao-restaurante";
 import { mapearRestaurante } from "@/lib/restaurantes-descoberta";
@@ -38,6 +38,7 @@ function obterCamposRestaurante(restaurant) {
     restaurant.name,
     restaurant.neighborhood,
     restaurant.openingHours,
+    ...(restaurant.publishedDishes ?? []).map((prato) => prato.nome),
     ...(restaurant.matchedProducts ?? []).map((produto) => textoBusca(produto.nome, produto.descricao)),
     ...(restaurant.matchedCategories ?? []).map((categoria) => textoBusca(categoria.nome, categoria.descricao)),
     ...(restaurant.matchedMenus ?? []).map((cardapio) => textoBusca(cardapio.nome, cardapio.descricao)),
@@ -62,16 +63,18 @@ function BuscaClienteContent() {
     const { ui } = useInterface();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const termoInicial = searchParams.get("q") ?? "";
-  const categoriaSelecionada = searchParams.get("categoria")?.trim() ?? "";
+  const termoInicial = searchParams.get("q") ?? searchParams.get("categoria") ?? "";
   const [termo, setTermo] = useState(termoInicial);
   const [debouncedTermo, setDebouncedTermo] = useState(termoInicial);
   const [filtroBusca, setFiltroBusca] = useState("todos");
   const [ordenacaoBusca, setOrdenacaoBusca] = useState("relevancia");
   const [restaurantes, setRestaurantes] = useState([]);
   const [carregando, setCarregando] = useState(true);
+  const [ultimaBuscaConcluida, setUltimaBuscaConcluida] = useState(null);
   const [mensagem, setMensagem] = useState("");
   const [updatingFavorite, setUpdatingFavorite] = useState("");
+  const temBusca = Boolean(termo.trim());
+  const carregandoBusca = temBusca && (carregando || termo.trim() !== debouncedTermo || ultimaBuscaConcluida !== debouncedTermo);
 
   useEffect(() => {
     const timer = window.setTimeout(() => setDebouncedTermo(termo.trim()), 250);
@@ -80,7 +83,7 @@ function BuscaClienteContent() {
 
   useEffect(() => {
     let cancelado = false;
-    if (!debouncedTermo && !categoriaSelecionada) {
+    if (!debouncedTermo) {
       return undefined;
     }
 
@@ -99,21 +102,27 @@ function BuscaClienteContent() {
           setMensagem(error instanceof Error ? error.message : "Não foi possível carregar os restaurantes.");
         }
       } finally {
-        if (!cancelado) setCarregando(false);
+        if (!cancelado) {
+          setUltimaBuscaConcluida(debouncedTermo);
+          setCarregando(false);
+        }
       }
     }
     carregarRestaurantes();
     return () => { cancelado = true; };
-  }, [categoriaSelecionada, debouncedTermo]);
+  }, [debouncedTermo]);
 
   const resultados = useMemo(() => {
-    const porCategoria = categoriaSelecionada
-      ? restaurantes.map((restaurant) => ({
-        ...restaurant,
-        publishedDishes: restaurant.publishedDishes.filter((prato) => String(prato.categoria ?? "").trim().toLocaleLowerCase("pt-BR") === categoriaSelecionada.toLocaleLowerCase("pt-BR")),
-      })).filter((restaurant) => restaurant.publishedDishes.length > 0)
-      : restaurantes;
-    const base = debouncedTermo ? filtrarOrdenarPorBusca(porCategoria, debouncedTermo, obterCamposRestaurante) : porCategoria;
+    if (!temBusca) return [];
+    // A API já filtra por prato, restaurante e endereço; aqui só ordenamos a relevância.
+    const base = debouncedTermo ? restaurantes
+      .map((restaurant, indice) => ({
+        restaurant,
+        indice,
+        pontuacao: calcularPontuacaoBusca(debouncedTermo, obterCamposRestaurante(restaurant)),
+      }))
+      .sort((a, b) => b.pontuacao - a.pontuacao || a.indice - b.indice)
+      .map(({ restaurant }) => restaurant) : restaurantes;
     const filtrados = base.filter((restaurant) => {
       if (filtroBusca === "favoritos") return restaurant.isFavorite;
       if (filtroBusca === "bem-avaliados") return Number(restaurant.rating ?? 0) >= 4;
@@ -133,12 +142,13 @@ function BuscaClienteContent() {
       return [...filtrados].sort((a, b) => Number(b.favoriteCount ?? 0) - Number(a.favoriteCount ?? 0));
     }
     return filtrados;
-  }, [categoriaSelecionada, debouncedTermo, filtroBusca, ordenacaoBusca, restaurantes]);
+  }, [debouncedTermo, filtroBusca, ordenacaoBusca, restaurantes, temBusca]);
 
   const totalPratos = resultados.reduce((total, restaurante) => total + restaurante.publishedDishes.length, 0);
 
   function submeterBusca(event) {
     event.preventDefault();
+    setDebouncedTermo(termo.trim());
     const params = new URLSearchParams();
     if (termo.trim()) params.set("q", termo.trim());
     router.replace(`/cliente/busca${params.toString() ? `?${params.toString()}` : ""}`);
@@ -182,21 +192,22 @@ function BuscaClienteContent() {
         <div className="mx-auto max-w-7xl">
           <Link href="/cliente/dashboard" className="inline-flex items-center gap-2 text-sm font-bold text-app-baunilha-dourada transition hover:text-white">
             <Icon type="arrow" className="h-4 w-4" />{ui("Voltar ao início")}</Link>
-          <h1 className="mt-5 text-4xl font-semibold leading-tight sm:text-5xl">{categoriaSelecionada ? ui("Restaurantes de {0}", [categoriaSelecionada]) : ui("Busca avançada")}</h1>
-          <form onSubmit={submeterBusca} className="mt-5">
-            <label className="campo-busca-app flex h-11 items-center gap-3 rounded-full border border-app-baunilha-dourada bg-white px-4 text-app-mocha">
-              <Icon type="search" className="h-5 w-5" />
-              <span className="sr-only">{ui("Buscar pratos ou restaurantes")}</span>
-              <input value={termo} onChange={(event) => setTermo(event.target.value)} placeholder={ui("Busque por lasanha, bairro, restaurante...")} className="input-busca-app h-full min-w-0 flex-1 bg-transparent text-sm text-app-cafe-profundo outline-none placeholder:text-app-cinza" />
-              {termo ? <button type="button" onClick={limparBusca} aria-label={ui("Limpar busca")} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-app-mocha transition hover:bg-app-chantilly hover:text-app-cafe-profundo">
-                <Icon type="close" className="h-4 w-4" />
-              </button> : null}
-            </label>
-          </form>
+          <h1 className="mt-5 text-4xl font-semibold leading-tight sm:text-5xl">{ui("Busca avançada")}</h1>
         </div>
       </section>
 
       <section className="mx-auto grid max-w-7xl gap-6 px-5 py-8 lg:grid-cols-[280px_1fr]">
+        <form onSubmit={submeterBusca} className="lg:col-span-2">
+          <label className="campo-busca-app flex h-11 items-center gap-3 rounded-full border border-app-baunilha-dourada bg-white px-4 text-app-mocha">
+            <Icon type="search" className="h-5 w-5" />
+            <span className="sr-only">{ui("Buscar pratos ou restaurantes")}</span>
+            <input value={termo} onChange={(event) => setTermo(event.target.value)} placeholder={ui("Busque por lasanha, bairro, restaurante...")} className="input-busca-app h-full min-w-0 flex-1 bg-transparent text-sm text-app-cafe-profundo outline-none placeholder:text-app-cinza" />
+            {termo ? <button type="button" onClick={limparBusca} aria-label={ui("Limpar busca")} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-app-mocha transition hover:bg-app-chantilly hover:text-app-cafe-profundo">
+              <Icon type="close" className="h-4 w-4" />
+            </button> : null}
+          </label>
+        </form>
+
         <aside aria-label={ui("Filtros de busca")} className="h-fit rounded-[18px] border border-app-baunilha-dourada/65 bg-white p-4 shadow-sm lg:sticky lg:top-28">
           <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{ui("Filtros")}</p>
           <div className="mt-4 grid gap-2">
@@ -225,21 +236,21 @@ function BuscaClienteContent() {
             <div>
               <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">{ui("Resultados")}</p>
               <h2 className="mt-1 text-2xl font-semibold text-app-cafe-profundo">
-                {carregando ? ui("Buscando pratos e restaurantes") : ui("{0} prato(s) e {1} restaurante(s)", [totalPratos, resultados.length])}
+                {carregandoBusca ? ui("Buscando pratos e restaurantes") : ui("{0} prato(s) e {1} restaurante(s)", [totalPratos, resultados.length])}
               </h2>
             </div>
           </div>
 
-          {(debouncedTermo || categoriaSelecionada) && mensagem ? <p role="status" className="mb-4 rounded-[10px] border border-app-baunilha-dourada bg-white p-3 text-sm font-semibold text-app-caramelo-torrado">{ui(mensagem)}</p> : null}
+          {temBusca && !carregandoBusca && mensagem ? <p role="status" className="mb-4 rounded-[10px] border border-app-baunilha-dourada bg-white p-3 text-sm font-semibold text-app-caramelo-torrado">{ui(mensagem)}</p> : null}
 
-          {!debouncedTermo && !categoriaSelecionada ? (
+          {!temBusca ? (
             <EmptyState title={ui("Comece sua busca")} description={ui("Digite o nome de um prato, restaurante, categoria ou endereço para ver resultados.")} />
           ) : <>
-            <VitrinePratos key={`${categoriaSelecionada}-${debouncedTermo}-${filtroBusca}-${ordenacaoBusca}`} restaurantes={resultados} carregando={carregando} mostrarCategorias maxCategorias={8} />
+            <VitrinePratos key={`${debouncedTermo}-${filtroBusca}-${ordenacaoBusca}`} restaurantes={resultados} carregando={carregandoBusca} />
 
             <h2 className="mb-4 text-2xl font-semibold text-app-cafe-profundo">{ui("Restaurantes")}</h2>
 
-            {carregando ? (
+            {carregandoBusca ? (
             <div className="grid gap-3">
               {[0, 1, 2].map((item) => (
                 <div key={item} className="h-36 animate-pulse rounded-[16px] bg-app-chantilly ring-1 ring-app-baunilha-dourada/55" />

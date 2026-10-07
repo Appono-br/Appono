@@ -77,6 +77,7 @@ function formatarMoeda(valor, localeUI = "pt-BR") {
     }).format(Number(valor ?? 0));
 }
 function formatarDistancia(valor) {
+    if (valor === null || valor === undefined || valor === "") return "Distância indisponível";
     const distancia = Number(valor);
     if (!Number.isFinite(distancia)) {
         return "Distância indisponível";
@@ -85,18 +86,6 @@ function formatarDistancia(valor) {
         return `${Math.max(100, Math.round(distancia * 1000 / 100) * 100)} m`;
     }
     return `${distancia.toFixed(distancia < 10 ? 1 : 0).replace(".", ",")} km`;
-}
-function obterMensagemOrigemLocalizacao(status) {
-    if (status === "checking") {
-        return "Verificando permissão de localização para ordenar restaurantes próximos.";
-    }
-    if (status === "ready") {
-        return "Restaurantes ordenados pela sua localização atual.";
-    }
-    if (status === "loading") {
-        return "Buscando sua localização para carregar os restaurantes mais próximos.";
-    }
-    return "Ative a localização do navegador para encontrar restaurantes próximos.";
 }
 function obterCamposRestaurante(restaurant) {
     return [
@@ -178,14 +167,15 @@ export default function DashboardPage() {
     const [reservas, setReservas] = useState([]);
     const [message, setMessage] = useState("");
     const [updatingFavorite, setUpdatingFavorite] = useState("");
-    const [localizacaoCliente, setLocalizacaoCliente] = useState(null);
+    const [localizacaoBusca, setLocalizacaoBusca] = useState("");
     const [raioKm, setRaioKm] = useState("20");
-    const [statusLocalizacao, setStatusLocalizacao] = useState("idle");
+    const [erroBuscaProxima, setErroBuscaProxima] = useState("");
     const [carregandoRestaurantes, setCarregandoRestaurantes] = useState(false);
     const [buscaProxima, setBuscaProxima] = useState(null);
-    const [pesquisaProximaIniciada, setPesquisaProximaIniciada] = useState(false);
+    const pesquisaProximaIniciada = Boolean(buscaProxima);
     const [menuRaioAberto, setMenuRaioAberto] = useState(false);
     const controleRaioRef = useRef(null);
+    const localizacaoBuscaRef = useRef(null);
     useEffect(() => {
         const timer = window.setTimeout(() => setDebouncedQuery(query.trim()), 250);
         return () => window.clearTimeout(timer);
@@ -207,45 +197,6 @@ export default function DashboardPage() {
             document.removeEventListener("keydown", fecharComEscape);
         };
     }, [menuRaioAberto]);
-    useEffect(() => {
-        let cancelado = false;
-        async function identificarLocalizacaoLiberada() {
-            if (!("geolocation" in navigator)) {
-                setStatusLocalizacao("unsupported");
-                return;
-            }
-            if (!("permissions" in navigator) || !navigator.permissions?.query) return;
-            try {
-                const permissao = await navigator.permissions.query({ name: "geolocation" });
-                if (cancelado) return;
-                if (permissao.state === "denied") {
-                    setStatusLocalizacao("denied");
-                    return;
-                }
-                if (permissao.state !== "granted") return;
-                setStatusLocalizacao("loading");
-                navigator.geolocation.getCurrentPosition((posicao) => {
-                    if (cancelado) return;
-                    setLocalizacaoCliente({
-                        latitude: Number(posicao.coords.latitude.toFixed(7)),
-                        longitude: Number(posicao.coords.longitude.toFixed(7)),
-                    });
-                    setStatusLocalizacao("ready");
-                }, () => {
-                    if (!cancelado) setStatusLocalizacao("idle");
-                }, {
-                    enableHighAccuracy: true,
-                    timeout: 8000,
-                    maximumAge: 0,
-                });
-            }
-            catch {
-                if (!cancelado) setStatusLocalizacao("idle");
-            }
-        }
-        identificarLocalizacaoLiberada();
-        return () => { cancelado = true; };
-    }, []);
     useEffect(() => {
         let cancelado = false;
         async function loadBaseRestaurants() {
@@ -295,30 +246,29 @@ export default function DashboardPage() {
         return () => { cancelado = true; };
     }, [debouncedQuery]);
     useEffect(() => {
+        const controller = new AbortController();
         async function loadNearbyRestaurants() {
             if (!buscaProxima) return;
             setCarregandoRestaurantes(true);
             try {
-                const endpoint = new URLSearchParams();
-                endpoint.set("latitude", String(buscaProxima.latitude));
-                endpoint.set("longitude", String(buscaProxima.longitude));
+                const endpoint = new URLSearchParams({ localizacao: buscaProxima.localizacao, ordenacao: "distancia" });
                 if (buscaProxima.raioKm !== "todos") {
                     endpoint.set("raio_km", buscaProxima.raioKm);
                 }
-                const queryString = endpoint.toString();
-                const data = await apiRequest(`/restaurantes${queryString ? `?${queryString}` : ""}`);
-                setNearbyRestaurantItems(data.map(mapearRestaurante));
+                const data = await apiRequest(`/restaurantes?${endpoint.toString()}`, { signal: controller.signal, forceRefresh: true });
+                if (!controller.signal.aborted) setNearbyRestaurantItems(data.map(mapearRestaurante));
             }
             catch (error) {
-                setMessage(error instanceof Error
+                if (!controller.signal.aborted) setErroBuscaProxima(error instanceof Error
                     ? error.message
                     : "Não foi possível carregar restaurantes próximos.");
             }
             finally {
-                setCarregandoRestaurantes(false);
+                if (!controller.signal.aborted) setCarregandoRestaurantes(false);
             }
         }
         loadNearbyRestaurants();
+        return () => controller.abort();
     }, [buscaProxima]);
     useEffect(() => {
         async function loadReservations() {
@@ -364,10 +314,10 @@ export default function DashboardPage() {
         .sort((a, b) => Number(b.favoriteCount) - Number(a.favoriteCount))
         .slice(0, 3), [restaurants]);
     const nearbyRestaurants = useMemo(() => nearbyRestaurantItems
-        .filter((restaurant) => buscaProxima?.raioKm === "todos" || Number.isFinite(Number(restaurant.distanceKm)))
+        .filter((restaurant) => buscaProxima?.raioKm === "todos" || (restaurant.distanceKm != null && Number.isFinite(Number(restaurant.distanceKm))))
         .sort((a, b) => {
-            const distanciaA = Number(a.distanceKm);
-            const distanciaB = Number(b.distanceKm);
+            const distanciaA = a.distanceKm == null ? NaN : Number(a.distanceKm);
+            const distanciaB = b.distanceKm == null ? NaN : Number(b.distanceKm);
             if (!Number.isFinite(distanciaA)) return Number.isFinite(distanciaB) ? 1 : 0;
             if (!Number.isFinite(distanciaB)) return -1;
             return distanciaA - distanciaB;
@@ -377,33 +327,19 @@ export default function DashboardPage() {
         setQuery("");
         setDebouncedQuery("");
     }
-    function procurarRestaurantesProximos() {
-        setPesquisaProximaIniciada(true);
-        setNearbyRestaurantItems([]);
-        setLocalizacaoCliente(null);
-        setBuscaProxima(null);
-        setMessage("");
-        if (!("geolocation" in navigator)) {
-            setStatusLocalizacao("unsupported");
+    function procurarRestaurantesProximos(event) {
+        event.preventDefault();
+        if (carregandoRestaurantes) return;
+        const localizacao = localizacaoBusca.trim();
+        if (!localizacao) {
+            setErroBuscaProxima("Digite um endereço, bairro, cidade ou CEP para buscar.");
+            localizacaoBuscaRef.current?.focus();
             return;
         }
-        setStatusLocalizacao("loading");
-        navigator.geolocation.getCurrentPosition((posicao) => {
-            const localizacao = {
-                latitude: Number(posicao.coords.latitude.toFixed(7)),
-                longitude: Number(posicao.coords.longitude.toFixed(7)),
-            };
-            setLocalizacaoCliente(localizacao);
-            setStatusLocalizacao("ready");
-            setBuscaProxima({ ...localizacao, raioKm });
-        }, () => {
-            setStatusLocalizacao("denied");
-            setCarregandoRestaurantes(false);
-        }, {
-            enableHighAccuracy: true,
-            timeout: 8000,
-            maximumAge: 0,
-        });
+        setErroBuscaProxima("");
+        setNearbyRestaurantItems([]);
+        setCarregandoRestaurantes(true);
+        setBuscaProxima({ localizacao, raioKm });
     }
     async function alternarFavorito(id) {
         const atual = [...restaurants, ...searchRestaurants, ...nearbyRestaurantItems].find((restaurant) => restaurant.id === id);
@@ -546,17 +482,21 @@ export default function DashboardPage() {
 
       </section>
 
-      <section className="mx-auto max-w-7xl px-5 py-8">
+      <section id="restaurantes-proximos" className="mx-auto max-w-7xl px-5 py-8">
         <div className="rounded-[26px] bg-app-cafe-profundo px-7 py-8 text-app-creme-leve shadow-sm sm:px-10 sm:py-10">
-          <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-            <div>
+          <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
+            <div className="xl:max-w-72">
               <h2 className="text-4xl font-medium sm:text-5xl">{ui("Perto de Você")}</h2>
-              <p className="mt-3 max-w-xl text-sm leading-6 text-app-creme-suave">{ui(obterMensagemOrigemLocalizacao(statusLocalizacao))}</p>
+              <p className="mt-3 max-w-xl text-sm leading-6 text-app-creme-suave">{ui("Digite uma localização e escolha a distância para encontrar restaurantes próximos.")}</p>
             </div>
-            <div className="nearby-actions flex w-full flex-wrap items-center gap-3 sm:w-auto sm:justify-end">
-              <Link href="/cliente/busca" className="nearby-secondary-action inline-flex h-11 items-center justify-center rounded-[8px] border border-app-baunilha-dourada/60 px-4 text-xs font-bold uppercase tracking-[0.12em] text-app-creme-leve transition">{ui("Buscar")}</Link>
-              <Link href="/cliente/configuracoes" className="nearby-secondary-action inline-flex h-11 items-center justify-center rounded-[8px] border border-app-baunilha-dourada/60 px-4 text-xs font-bold uppercase tracking-[0.12em] text-app-creme-leve transition">{ui("Por endereço")}</Link>
-              <div ref={controleRaioRef} className="relative w-full max-w-56 sm:w-56">
+            <form onSubmit={procurarRestaurantesProximos} aria-label={ui("Buscar restaurantes por localização")} className="nearby-actions grid w-full min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 lg:grid-cols-[auto_minmax(180px,1fr)_160px_auto] xl:flex-1">
+              <Link href="/cliente/busca" className="nearby-secondary-action inline-flex h-11 items-center justify-center rounded-[8px] border border-app-baunilha-dourada/60 px-4 text-xs font-bold uppercase tracking-[0.12em] text-app-creme-leve transition lg:order-first">{ui("Buscar")}</Link>
+              <label className="campo-busca-app order-first col-span-2 flex h-11 min-w-0 items-center gap-2 overflow-hidden rounded-xl border border-app-baunilha-dourada/60 bg-white px-3 text-app-mocha lg:order-none lg:col-span-1">
+                <Icon type="pin" className="h-4 w-4" />
+                <span className="sr-only">{ui("Localização para buscar restaurantes")}</span>
+                <input ref={localizacaoBuscaRef} id="localizacao-proxima" name="localizacao" value={localizacaoBusca} onChange={(event) => setLocalizacaoBusca(event.target.value)} placeholder={ui("Endereço, bairro, cidade ou CEP")} required maxLength={240} autoComplete="off" className="input-busca-app h-full min-w-0 w-full bg-transparent text-sm text-app-cafe-profundo outline-none placeholder:text-app-cinza" />
+              </label>
+              <div ref={controleRaioRef} className="relative min-w-0 w-full">
                 <button type="button" onClick={() => setMenuRaioAberto((aberto) => !aberto)} aria-haspopup="listbox" aria-expanded={menuRaioAberto} className="nearby-radius-trigger flex h-11 w-full items-center justify-between px-4 text-left text-sm font-semibold outline-none">
                   {ui(opcoesRaio.find((opcao) => opcao.value === raioKm)?.label ?? "Até 20 km")}
                   <Icon type="chevron" className={`h-4 w-4 transition-transform ${menuRaioAberto ? "rotate-180" : ""}`}/>
@@ -567,11 +507,10 @@ export default function DashboardPage() {
                   </button>)}
                 </div> : null}
               </div>
-              <button type="button" onClick={procurarRestaurantesProximos} disabled={statusLocalizacao === "loading" || carregandoRestaurantes} className="nearby-primary-action inline-flex h-11 items-center justify-center gap-2 rounded-[8px] bg-app-baunilha-dourada px-5 text-xs font-bold uppercase tracking-[0.14em] text-app-cafe-profundo transition disabled:cursor-wait disabled:opacity-70">
-                <Icon type="search" className="h-4 w-4"/>
-                {statusLocalizacao === "loading" || carregandoRestaurantes ? ui("Procurando...") : ui("Procurar")}
+              <button type="submit" disabled={carregandoRestaurantes} className="nearby-primary-action col-span-2 inline-flex h-11 items-center justify-center rounded-[8px] bg-app-baunilha-dourada px-5 text-xs font-bold uppercase tracking-[0.14em] text-app-cafe-profundo transition disabled:cursor-wait disabled:opacity-70 lg:col-span-1">
+                {carregandoRestaurantes ? ui("Procurando...") : ui("Procurar")}
               </button>
-            </div>
+            </form>
           </div>
         </div>
 
@@ -579,14 +518,14 @@ export default function DashboardPage() {
           <div className="flex flex-col gap-2 border-b border-app-baunilha-dourada/60 pb-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h3 className="text-2xl font-semibold text-app-cafe-profundo">{ui("Restaurantes perto de você")}</h3>
-              {!pesquisaProximaIniciada ? <p className="mt-1 text-sm text-app-cinza">{statusLocalizacao === "ready" ? ui("Localização ativada. Selecione o raio e clique em Procurar.") : ui("Libere a localização para encontrar restaurantes próximos.")}</p> : null}
+              <p className="mt-1 break-words text-sm text-app-cinza">{pesquisaProximaIniciada ? ui("Busca próxima de {0}", [buscaProxima.localizacao]) : ui("Informe a localização desejada e clique em Procurar.")}</p>
             </div>
-            {statusLocalizacao === "ready" && !carregandoRestaurantes ? <span className="w-fit rounded-full bg-white px-3 py-1 text-xs font-semibold text-app-caramelo-torrado ring-1 ring-app-baunilha-dourada/70">{ui("{0} encontrado(s)", [nearbyRestaurants.length])}</span> : null}
+            {pesquisaProximaIniciada && !carregandoRestaurantes && !erroBuscaProxima ? <span className="w-fit shrink-0 rounded-full bg-white px-3 py-1 text-xs font-semibold text-app-caramelo-torrado ring-1 ring-app-baunilha-dourada/70">{ui("{0} encontrado(s)", [nearbyRestaurants.length])}</span> : null}
           </div>
           <div className="pt-5">
-            {carregandoRestaurantes || statusLocalizacao === "loading" ? (
+            {erroBuscaProxima ? <p role="alert" className="rounded-xl border border-app-vermelho-erro/30 bg-white p-4 text-sm font-semibold text-app-vermelho-erro">{ui(erroBuscaProxima)}</p> : carregandoRestaurantes ? (
               <div className="flex min-h-48 items-center justify-center gap-3 text-sm font-semibold text-app-mocha"><span className="h-5 w-5 animate-spin rounded-full border-2 border-app-baunilha-dourada border-t-app-caramelo-torrado"/>{ui("Procurando restaurantes próximos...")}</div>
-            ) : localizacaoCliente && nearbyRestaurants.length ? (<div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            ) : nearbyRestaurants.length ? (<div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
                 {nearbyRestaurants.map((restaurant) => (<article key={restaurant.id} className="group relative min-w-0 rounded-[8px] border border-app-baunilha-dourada bg-white p-2.5 shadow-sm transition hover:-translate-y-0.5 hover:border-app-caramelo-torrado/55 hover:shadow-md">
                     <Link href={`/cliente/restaurantes/${restaurant.id}`} className="flex min-w-0 gap-3" aria-label={`Ver ${restaurant.name}`}>
                       <div className="logo-restaurante-circular relative h-24 w-24 shrink-0 overflow-hidden rounded-full bg-white ring-2 ring-app-baunilha-dourada/70">
@@ -629,7 +568,7 @@ export default function DashboardPage() {
                       <Icon type="heart" filled={restaurant.isFavorite} className="h-full w-full"/>
                     </button>
                   </article>))}
-              </div>) : !pesquisaProximaIniciada && statusLocalizacao === "ready" ? (<LocationEmptyState title={ui("Localização ativada")} description={ui("Escolha um raio de busca e clique em Procurar para ver os restaurantes próximos.")}/>) : localizacaoCliente ? (<LocationEmptyState title={ui("Nenhum restaurante neste raio")} description={ui("Tente aumentar o raio de busca para encontrar mais opções.")}/>) : statusLocalizacao === "denied" ? (<LocationEmptyState title={ui("Permita sua localização")} description={ui("Para usar esta busca, libere a permissão de localização no navegador e clique em Procurar novamente.")}/>) : statusLocalizacao === "unsupported" ? (<LocationEmptyState title={ui("Localização não disponível")} description={ui("Use um navegador que permita compartilhar sua localização para procurar restaurantes próximos.")}/>) : (<LocationEmptyState title={ui("Libere sua localização")} description={ui("Para procurar restaurantes perto de você, permita o acesso à sua localização e clique em Procurar.")}/>) }
+              </div>) : pesquisaProximaIniciada ? (<LocationEmptyState title={ui("Nenhum restaurante neste raio")} description={ui("Tente aumentar o raio de busca ou usar outra cidade, bairro ou CEP.")}/>) : (<LocationEmptyState title={ui("Escolha uma localização")} description={ui("Digite um endereço, bairro, cidade ou CEP e selecione a distância para buscar restaurantes.")}/>) }
           </div>
         </div>
       </section>

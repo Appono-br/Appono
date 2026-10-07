@@ -230,10 +230,10 @@ export function PainelSuporte({ perfil, embutido = false }) {
     const reembolsoDetalhe = obterReembolso(detalhe);
 
     return (
-        <Container className={embutido ? "min-w-0 text-app-cafe-profundo" : "min-h-screen bg-white px-5 py-10 text-app-cafe-profundo"}>
+        <Container className={embutido ? "@container/suporte min-w-0 text-app-cafe-profundo" : "@container/suporte min-h-screen bg-white px-5 py-10 text-app-cafe-profundo"}>
             <section className="mx-auto max-w-7xl">
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
+                <div className="flex flex-col gap-4 @min-[640px]/suporte:flex-row @min-[640px]/suporte:items-center @min-[640px]/suporte:justify-between">
+                    <div className="min-w-0 flex-1">
                         {!embutido && <Link href={perfil === "cliente" ? "/cliente/configuracoes" : perfil === "restaurante" ? "/restaurante/dashboard" : "/admin/financeiro"} className="text-sm font-bold text-app-caramelo-torrado">
                             {ui(perfil === "cliente" ? "← Voltar às configurações" : "← Voltar")}
                         </Link>}
@@ -243,7 +243,7 @@ export function PainelSuporte({ perfil, embutido = false }) {
                             {ui("Registre, acompanhe e resolva ocorrências com protocolo, contexto e histórico preservado.")}
                         </p>
                     </div>
-                    <article className="support-acompanhamento-card rounded-[14px] bg-app-cafe-profundo p-5 text-app-creme-leve shadow-sm sm:min-w-60">
+                    <article className="support-acompanhamento-card shrink-0 rounded-[14px] bg-app-cafe-profundo p-5 text-app-creme-leve shadow-sm @min-[640px]/suporte:min-w-52">
                         <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-baunilha-dourada">{ui("Em acompanhamento")}</p>
                         <strong className="mt-3 block text-3xl">{totalAbertos}</strong>
                     </article>
@@ -297,21 +297,21 @@ export function PainelSuporte({ perfil, embutido = false }) {
                 ) : null}
 
                 <section className={`mt-8 grid gap-6 ${embutido ? "" : "lg:grid-cols-[420px_minmax(0,1fr)]"}`}>
-                    <aside className="rounded-[16px] bg-white p-4 shadow-sm ring-1 ring-app-baunilha-dourada/70">
+                    <aside className="@container/filtros min-w-0 rounded-[16px] bg-white p-4 shadow-sm ring-1 ring-app-baunilha-dourada/70">
                         <label className="campo-busca-app flex h-11 items-center rounded-[10px] border border-app-baunilha-dourada/70 bg-white px-4 transition">
                             <input value={busca} onChange={(event) => setBusca(event.target.value)} placeholder={ui("Buscar chamado, cliente, restaurante ou pedido...")} className="input-busca-app h-full min-w-0 flex-1 bg-transparent text-sm text-app-cafe-profundo placeholder:text-app-cinza/60" />
                         </label>
-                        <div className="mt-4 grid gap-3 border-t border-app-baunilha-dourada/50 pt-4 sm:grid-cols-2">
-                            <label className="grid gap-1 text-[10px] font-bold uppercase tracking-[0.14em] text-app-caramelo-torrado">
+                        <div className="mt-4 grid gap-3 border-t border-app-baunilha-dourada/50 pt-4 @min-[340px]/filtros:grid-cols-2">
+                            <label className="grid min-w-0 gap-1 text-[10px] font-bold uppercase tracking-[0.14em] text-app-caramelo-torrado">
                                 {ui("Motivo")}
-                                <select value={filtroMotivo} onChange={(event) => setFiltroMotivo(event.target.value)} className="h-10 rounded-[9px] border border-app-baunilha-dourada bg-white px-3 text-xs font-semibold normal-case tracking-normal text-app-cafe-profundo">
+                                <select value={filtroMotivo} onChange={(event) => setFiltroMotivo(event.target.value)} className="h-10 min-w-0 w-full rounded-[9px] border border-app-baunilha-dourada bg-white px-3 text-xs font-semibold normal-case tracking-normal text-app-cafe-profundo">
                                     <option value="TODOS">{ui("Todos")}</option>
                                     {motivos.map((item) => <option key={item.value} value={item.value}>{ui(item.label)}</option>)}
                                 </select>
                             </label>
-                            <label className="grid gap-1 text-[10px] font-bold uppercase tracking-[0.14em] text-app-caramelo-torrado">
+                            <label className="grid min-w-0 gap-1 text-[10px] font-bold uppercase tracking-[0.14em] text-app-caramelo-torrado">
                                 {ui("Prioridade")}
-                                <select value={filtroPrioridade} onChange={(event) => setFiltroPrioridade(event.target.value)} className="h-10 rounded-[9px] border border-app-baunilha-dourada bg-white px-3 text-xs font-semibold normal-case tracking-normal text-app-cafe-profundo">
+                                <select value={filtroPrioridade} onChange={(event) => setFiltroPrioridade(event.target.value)} className="h-10 min-w-0 w-full rounded-[9px] border border-app-baunilha-dourada bg-white px-3 text-xs font-semibold normal-case tracking-normal text-app-cafe-profundo">
                                     {prioridades.map((item) => <option key={item.value} value={item.value}>{ui(item.label)}</option>)}
                                 </select>
                             </label>
@@ -350,8 +350,8 @@ export function PainelSuporte({ perfil, embutido = false }) {
                             </div>
                         ) : (
                             <div>
-                                <div className="flex flex-col gap-4 border-b border-app-baunilha-dourada/60 pb-5 sm:flex-row sm:items-start sm:justify-between">
-                                    <div>
+                                <div className="flex flex-col gap-4 border-b border-app-baunilha-dourada/60 pb-5 @min-[640px]/suporte:flex-row @min-[640px]/suporte:items-start @min-[640px]/suporte:justify-between">
+                                    <div className="min-w-0">
                                         <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{ui("Chamado #")}{detalhe.id_chamado}</p>
                                         <h2 className="mt-2 text-3xl font-semibold">{obterTitulo(detalhe, perfil)}</h2>
                                         <p className="mt-2 text-sm text-app-cinza">{ui(textoMotivoSuporte(detalhe.motivo))} · {contextoChamado(detalhe)}</p>
@@ -359,8 +359,8 @@ export function PainelSuporte({ perfil, embutido = false }) {
                                     <span className={`w-fit rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-[0.1em] ring-1 ${classeStatus(detalhe.status)}`}>{ui(textoStatusSuporte(detalhe.status))}</span>
                                 </div>
 
-                                <div className="mt-5 grid gap-4 lg:grid-cols-3">
-                                    <article className="rounded-[12px] bg-white p-4 ring-1 ring-app-baunilha-dourada/60 lg:col-span-2">
+                                <div className="mt-5 grid gap-4 @min-[640px]/suporte:grid-cols-3">
+                                    <article className="min-w-0 rounded-[12px] bg-white p-4 ring-1 ring-app-baunilha-dourada/60 @min-[640px]/suporte:col-span-2">
                                         <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">{ui("Descrição")}</p>
                                         <p className="mt-2 text-sm leading-6 text-app-mocha">{detalhe.descricao}</p>
                                         {detalhe.resolucao ? <p className="mt-4 rounded-[10px] bg-app-chantilly p-3 text-sm font-semibold text-app-cafe-profundo">{detalhe.resolucao}</p> : null}

@@ -3,6 +3,7 @@ import { useInterface } from "@/lib/use-interface";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { CalendarDays, ClipboardList } from "lucide-react";
 import { apiRequest } from "@/lib/api";
 import { reservaAceitaPagamento } from "@/lib/elegibilidade-pagamento";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
@@ -192,19 +193,19 @@ function getCalendarDays(month, year) {
 }
 function EmptyReservationPanel() {
     const { ui } = useInterface();
-    return (<section className="flex min-h-[320px] flex-col items-center justify-center rounded-[8px] border border-dashed border-app-caramelo-torrado/35 bg-white px-6 py-12 text-center shadow-sm">
+    return (<section className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-app-caramelo-torrado/35 bg-white px-5 py-8 text-center">
       <div className="flex h-12 w-12 items-center justify-center rounded-full bg-app-baunilha-dourada text-app-cafe-profundo">
         <Icon type="plus" className="h-6 w-6"/>
       </div>
-      <h2 className="mt-6 text-2xl font-semibold text-app-cafe-profundo">{ui("Planeje sua próxima visita")}</h2>
-      <p className="mt-4 max-w-lg text-sm leading-6 text-app-cinza sm:text-base">{ui("Você ainda não possui reservas na sua agenda.")}</p>
-      <Link href="/cliente/dashboard" className="mt-8 rounded-[8px] bg-app-dourado-mel px-6 py-3 text-xs font-bold uppercase tracking-wide text-white transition hover:bg-app-caramelo-torrado">{ui("Reservar agora")}</Link>
+      <h2 className="mt-4 text-xl font-semibold text-app-cafe-profundo">{ui("Planeje sua próxima visita")}</h2>
+      <p className="mt-2 max-w-lg text-sm leading-6 text-app-cinza">{ui("Você ainda não possui reservas na sua agenda.")}</p>
+      <Link href="/cliente/dashboard" className="mt-5 rounded-[8px] bg-app-dourado-mel px-6 py-3 text-xs font-bold uppercase tracking-wide text-white transition hover:bg-app-caramelo-torrado">{ui("Reservar agora")}</Link>
     </section>);
 }
 export function AgendaCliente() {
     const { ui , localeUI } = useInterface();
     const searchParams = useSearchParams();
-    const visao = ["reservas", "pedidos"].includes(searchParams.get("visao")) ? searchParams.get("visao") : "todos";
+    const visao = searchParams.get("visao") === "pedidos" ? "pedidos" : "reservas";
     const today = new Date();
     const [reservations, setReservations] = useState([]);
     const [carregandoReservas, setCarregandoReservas] = useState(true);
@@ -433,31 +434,30 @@ export function AgendaCliente() {
             setAbrindoChatReservaId(null);
         }
     }
-    return (<main className="agenda-cliente flex min-h-screen flex-col bg-white text-app-cafe-profundo">
-      <section className="mx-auto w-full max-w-7xl flex-1 px-5 py-10 sm:py-14">
+    return (<main className="agenda-cliente bg-white text-app-cafe-profundo">
+      <section className="mx-auto w-full max-w-7xl px-5 py-6 sm:py-8">
         <header>
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{ui("Reservas e pedidos")}</p>
-            <h1 className="mt-2 text-4xl font-medium text-app-cafe-profundo sm:text-5xl">{ui("Minha agenda")}</h1>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-app-mocha sm:text-base">{ui("Gerencie suas reservas, acompanhe os pedidos e acesse pagamentos em um só lugar.")}</p>
+            <h1 className="mt-2 text-3xl font-semibold tracking-tight text-app-cafe-profundo sm:text-4xl">{ui("Minha agenda")}</h1>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-app-mocha">{ui("Gerencie suas reservas, acompanhe os pedidos e acesse pagamentos em um só lugar.")}</p>
         </header>
 
-        <nav aria-label={ui("Filtrar agenda")} className="mt-8 flex w-fit flex-wrap gap-2">
-          {[["todos", "Tudo"], ["reservas", "Reservas"], ["pedidos", "Pedidos"]].map(([valor, rotulo]) => <Link key={valor} href={valor === "todos" ? "/cliente/agenda" : `/cliente/agenda?visao=${valor}`} replace scroll={false} aria-current={visao === valor ? "page" : undefined} className="rounded-[8px] px-5 py-2.5 text-sm font-semibold text-app-mocha outline-none transition hover:bg-app-chantilly focus-visible:ring-2 focus-visible:ring-app-caramelo-torrado aria-[current=page]:bg-app-cafe-profundo aria-[current=page]:text-app-creme-leve">{ui(rotulo)}</Link>)}
-        </nav>
-
-        <div className={`mt-8 grid gap-8 ${visao !== "pedidos" ? "lg:grid-cols-[0.78fr_1.62fr]" : ""}`}>
-          {visao !== "pedidos" ? <aside className="agenda-calendar h-fit rounded-[22px] border border-[#e6ddd4] bg-white px-5 py-6 shadow-[0_2px_12px_rgba(60,45,35,0.04)] sm:px-8 sm:py-8">
-            <h2 className="text-[24px] font-normal tracking-[-0.02em] text-app-cafe-profundo">{ui("Calendário de reservas")}</h2>
-            <div className="mt-4 flex items-center justify-between gap-3 text-app-cafe-profundo">
+        <div className="mt-6 grid items-start gap-5 md:grid-cols-[280px_minmax(0,1fr)] lg:grid-cols-[300px_minmax(0,1fr)]">
+          <aside className="agenda-calendar min-w-0 rounded-2xl border border-app-baunilha-dourada/60 bg-white p-5 md:sticky md:top-24">
+            <h2 className="flex items-center gap-2 text-base font-semibold text-app-cafe-profundo">
+              <CalendarDays aria-hidden="true" className="h-5 w-5 text-app-caramelo-torrado" />
+              {ui("Calendário da agenda")}
+            </h2>
+            <div className="mt-3 flex items-center justify-between gap-2 text-app-cafe-profundo">
               <button type="button" onClick={() => changeMonth(-1)} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full outline-none transition hover:bg-app-chantilly hover:text-app-caramelo-torrado focus-visible:ring-2 focus-visible:ring-app-caramelo-torrado" aria-label={ui("Período anterior")}>
                 <Icon type="chevron-left"/>
               </button>
-              <p aria-live="polite" className="min-w-0 flex-1 text-center text-lg font-semibold">{ui(monthNames[period.month])} {period.year}</p>
+              <p aria-live="polite" className="min-w-0 flex-1 text-center text-sm font-semibold">{ui(monthNames[period.month])} {period.year}</p>
               <button type="button" onClick={() => changeMonth(1)} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full outline-none transition hover:bg-app-chantilly hover:text-app-caramelo-torrado focus-visible:ring-2 focus-visible:ring-app-caramelo-torrado" aria-label={ui("Próximo período")}>
                 <Icon type="chevron-right"/>
               </button>
             </div>
-            <div className="mt-7 grid grid-cols-7 gap-x-1 gap-y-3 text-center text-[12px] text-app-cinza sm:gap-y-4">
+            <div className="mt-3 grid grid-cols-7 gap-x-0.5 gap-y-1 text-center text-xs text-app-cinza">
               {weekDays.map((day, index) => (<span key={`${day}-${index}`} className="font-medium">
                   {ui(day).slice(0, 3)}
                 </span>))}
@@ -474,25 +474,33 @@ export function AgendaCliente() {
         })}
             </div>
 
-            <p className="mt-8 text-base leading-7 text-app-mocha">{ui("Você possui")}{ui(" ")}
+            <p className="mt-4 border-t border-app-baunilha-dourada/50 pt-4 text-xs leading-5 text-app-mocha">{ui("Você possui")}{ui(" ")}
               <span className="font-bold text-app-caramelo-torrado">
                 {reservasConfirmadas.length}
               </span>{ui(" ")}{ui("reservas confirmadas neste período.")}</p>
-          </aside> : null}
+          </aside>
 
-          <div className="grid min-w-0 content-start gap-10 self-start">
+          <div className="contents min-w-0 content-start gap-4 md:grid">
+            <nav aria-label={ui("Filtrar agenda")} className="order-first grid grid-cols-2 gap-1 rounded-2xl border border-app-baunilha-dourada/50 bg-white p-1 md:order-none">
+              {[["reservas", "Reservas", CalendarDays], ["pedidos", "Pedidos", ClipboardList]].map(([valor, rotulo, TabIcon]) => (
+                <Link key={valor} href={`/cliente/agenda?visao=${valor}`} replace scroll={false} aria-current={visao === valor ? "page" : undefined} className={`flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold outline-none transition focus-visible:ring-2 focus-visible:ring-app-caramelo-torrado ${visao === valor ? "bg-app-cafe-profundo text-app-creme-leve" : "text-app-mocha hover:bg-app-chantilly"}`}>
+                  <TabIcon aria-hidden="true" className="h-4 w-4 shrink-0" />
+                  {ui(rotulo)}
+                </Link>
+              ))}
+            </nav>
             {mensagemPresenca ? (
               <p role="status" className="rounded-[10px] bg-white px-4 py-3 text-sm font-semibold text-app-cafe-profundo ring-1 ring-app-baunilha-dourada">
                 {ui(mensagemPresenca)}
               </p>
             ) : null}
-            <section aria-labelledby="agenda-reservas-titulo" className={visao === "pedidos" ? "hidden" : "grid content-start gap-6"}>
-              <h2 id="agenda-reservas-titulo" className="text-2xl font-semibold">{ui("Reservas")}</h2>
+            <section aria-labelledby="agenda-reservas-titulo" className={visao === "pedidos" ? "hidden" : "grid min-w-0 content-start gap-4"}>
+              <h2 id="agenda-reservas-titulo" className="sr-only">{ui("Reservas")}</h2>
               {erroReservas ? <p role="alert" className="rounded-[12px] border border-app-vermelho-erro/30 bg-white p-4 text-sm font-semibold text-app-vermelho-erro">{ui(erroReservas)}</p> : null}
               {carregandoReservas ? <div aria-busy="true" className="grid gap-4">{[1, 2].map((item) => <div key={item} className="h-48 animate-pulse rounded-[18px] bg-app-chantilly ring-1 ring-app-baunilha-dourada/60" />)}</div> : !erroReservas && (reservations.length ? (<div className="grid auto-rows-max content-start gap-4">
-                {reservations.map((reservation) => (<article key={reservation.id} className="overflow-hidden rounded-[18px] bg-white shadow-sm ring-1 ring-app-baunilha-dourada/70 transition hover:-translate-y-0.5 hover:shadow-md">
-                    <div className="grid lg:grid-cols-[86px_minmax(0,1fr)]">
-                      <div className="flex items-center gap-4 border-b border-app-baunilha-dourada/60 bg-white px-5 py-4 lg:flex-col lg:justify-center lg:border-b-0 lg:border-r lg:px-4 lg:text-center">
+                {reservations.map((reservation) => (<article key={reservation.id} className="overflow-hidden rounded-2xl border border-app-baunilha-dourada/60 bg-white transition hover:border-app-caramelo-torrado/50">
+                    <div className="grid lg:grid-cols-[72px_minmax(0,1fr)]">
+                      <div className="flex items-center gap-3 border-b border-app-baunilha-dourada/50 bg-white px-4 py-3 lg:flex-col lg:justify-start lg:border-b-0 lg:border-r lg:py-5 lg:text-center">
                         <span className="text-3xl font-semibold leading-none text-app-cafe-profundo">
                           {formatarDataReserva(reservation.date, localeUI).dia}
                         </span>
@@ -506,13 +514,13 @@ export function AgendaCliente() {
                         </div>
                       </div>
 
-                      <div className="min-w-0 bg-white p-5 sm:p-6">
-                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                      <div className="min-w-0 bg-white p-4 lg:p-5">
+                        <div className="flex flex-wrap items-start justify-between gap-2">
                           <div className="min-w-0">
-                            <h3 className="truncate text-xl font-semibold text-app-cafe-profundo">
+                            <h3 className="break-words text-lg font-semibold text-app-cafe-profundo">
                               {reservation.restaurant}
                             </h3>
-                            <p className="mt-2 max-w-2xl text-sm leading-6 text-app-cinza">
+                            <p className="mt-1 max-w-2xl text-xs leading-5 text-app-cinza">
                               {ui(obterDescricaoFluxoReserva(reservation, localeUI))}
                             </p>
                           </div>
