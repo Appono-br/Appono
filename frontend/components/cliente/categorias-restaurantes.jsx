@@ -27,6 +27,24 @@ function FotoCategoria({ categoria }) {
   return <Image src={`https://images.unsplash.com/${fotos[categoria] ?? "photo-1515003197210-e0cd71810b5f"}?auto=format&fit=crop&w=200&q=80`} alt="" fill sizes="96px" className="object-cover transition duration-300 group-hover:scale-110" onError={() => setFalhou(true)} />;
 }
 
+function normalizarCategorias(categorias) {
+  const categoriasPorNome = new Map();
+
+  for (const item of Array.isArray(categorias) ? categorias : []) {
+    const categoria = String(item?.categoria ?? item?.nome ?? "").trim();
+    if (!categoria) continue;
+
+    const total = Number(item?.total_restaurantes);
+    const categoriaAtual = categoriasPorNome.get(categoria);
+    categoriasPorNome.set(categoria, {
+      categoria,
+      total_restaurantes: Number.isFinite(total) ? total : categoriaAtual?.total_restaurantes ?? 0,
+    });
+  }
+
+  return [...categoriasPorNome.values()];
+}
+
 export function CategoriasRestaurantes() {
   const { ui } = useInterface();
   const [resultado, setResultado] = useState({ carregando: true, categorias: [], erro: "" });
@@ -35,7 +53,7 @@ export function CategoriasRestaurantes() {
   useEffect(() => {
     let cancelado = false;
     apiRequest("/restaurantes/categorias", { auth: false, forceRefresh: true }).then((categorias) => {
-      if (!cancelado) setResultado({ carregando: false, categorias, erro: "" });
+      if (!cancelado) setResultado({ carregando: false, categorias: normalizarCategorias(categorias), erro: "" });
     }).catch((error) => {
       if (!cancelado) setResultado({ carregando: false, categorias: [], erro: error.message });
     });
