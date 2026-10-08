@@ -222,12 +222,12 @@ export function PainelNotificacoes({ modulo, voltarHref, dashboardHref }) {
     }
 
     return (
-        <main className="flex min-h-screen flex-col bg-app-chantilly text-app-cafe-profundo">
+        <main className="painel-notificacoes flex min-h-screen flex-col bg-app-chantilly text-app-cafe-profundo">
             <section className="mx-auto w-full max-w-6xl flex-1 px-5 py-10 sm:py-14">
                 <BotaoVoltar href={voltarHref} className="text-xs font-bold uppercase tracking-[0.12em] text-app-caramelo-torrado transition hover:text-app-cafe-profundo">{ui("Voltar")}</BotaoVoltar>
 
                 <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_320px] lg:items-start">
-                    <div className="rounded-[22px] bg-app-creme-leve p-6 shadow-sm ring-1 ring-app-baunilha-dourada/60 sm:rounded-[28px] sm:p-9">
+                    <div className="notificacoes-introducao rounded-[22px] bg-app-creme-leve p-6 shadow-sm ring-1 ring-app-baunilha-dourada/60 sm:rounded-[28px] sm:p-9">
                         <Image src="/brand/appono-mark.svg" alt={ui("Appono")} width={76} height={76} className="h-14 w-14" priority />
                         <p className="mt-8 text-[10px] font-bold uppercase tracking-[0.22em] text-app-caramelo-torrado">{ui("Central de notificações")}</p>
                         <h1 className="mt-3 text-3xl font-semibold leading-tight sm:text-5xl">{ui("Acompanhe o que muda na sua operação")}</h1>
@@ -235,7 +235,7 @@ export function PainelNotificacoes({ modulo, voltarHref, dashboardHref }) {
                         </p>
                     </div>
 
-                    <aside className="rounded-[24px] bg-app-cafe-profundo p-6 text-app-creme-leve shadow-sm">
+                    <aside className="notificacoes-resumo rounded-[24px] bg-app-cafe-profundo p-6 text-app-creme-leve shadow-sm">
                         <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-baunilha-dourada">{ui("Resumo")}</p>
                         <strong className="mt-4 block text-4xl">{naoLidas}</strong>
                         <p className="mt-2 text-sm text-app-creme-suave">{ui("notificação(ões) ainda não lida(s).")}</p>
@@ -252,7 +252,7 @@ export function PainelNotificacoes({ modulo, voltarHref, dashboardHref }) {
                     </p>
                 ) : null}
 
-                <section className="mt-8 rounded-[22px] bg-app-creme-leve p-4 shadow-sm ring-1 ring-app-baunilha-dourada/60 sm:rounded-[28px] sm:p-6">
+                <section className="notificacoes-historico mt-8 rounded-[22px] bg-app-creme-leve p-4 shadow-sm ring-1 ring-app-baunilha-dourada/60 sm:rounded-[28px] sm:p-6">
                     <div className="flex flex-col gap-3 border-b border-app-baunilha-dourada/55 pb-5 sm:flex-row sm:items-end sm:justify-between">
                         <div>
                             <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">{ui("Histórico")}</p>
@@ -266,9 +266,10 @@ export function PainelNotificacoes({ modulo, voltarHref, dashboardHref }) {
                                 key={filtro.chave}
                                 type="button"
                                 onClick={() => setFiltroAtual(filtro.chave)}
+                                aria-pressed={filtroAtual === filtro.chave}
                                 className={`rounded-full px-4 py-2 text-[11px] font-bold uppercase tracking-[0.12em] transition ${filtroAtual === filtro.chave
-                                    ? "bg-app-cafe-profundo text-app-creme-leve"
-                                    : "border border-app-baunilha-dourada bg-app-chantilly text-app-mocha hover:border-app-caramelo-torrado hover:text-app-cafe-profundo"}`}
+                                    ? "app-button-primary bg-app-cafe-profundo text-app-creme-leve"
+                                    : "app-button-secondary border border-app-baunilha-dourada bg-app-chantilly text-app-mocha hover:border-app-caramelo-torrado hover:text-app-cafe-profundo"}`}
                             >
                                 {ui(filtro.rotulo)}
                             </button>
@@ -280,15 +281,12 @@ export function PainelNotificacoes({ modulo, voltarHref, dashboardHref }) {
                     ) : notificacoes.length ? (
                         <div className="mt-5 grid gap-4">
                             {notificacoes.map((notificacao) => (
-                                <article key={notificacao.id_notificacao} className={`overflow-hidden rounded-[18px] border p-4 shadow-sm sm:p-5 ${obterTomNotificacao(notificacao.tipo_evento)} ${notificacao.lida ? "opacity-75" : ""}`}>
+                                <article key={notificacao.id_notificacao} className={`notificacao-card overflow-hidden rounded-[18px] border p-4 shadow-sm sm:p-5 ${obterTomNotificacao(notificacao.tipo_evento)} ${notificacao.lida ? "opacity-75" : ""}`}>
                                     <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                                         <div>
                                             <div className="flex flex-wrap items-center gap-2">
                                                 {notificacao.favoritada ? (
-                                                    <span className="rounded-full bg-app-dourado-mel px-3 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-app-cafe-profundo">{ui("Favorita")}</span>
-                                                ) : null}
-                                                {!notificacao.lida ? (
-                                                    <span className="rounded-full bg-app-caramelo-torrado px-3 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-white">{ui("Nova")}</span>
+                                                    <span className="notificacao-favorita rounded-full bg-app-dourado-mel px-3 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-app-cafe-profundo">{ui("Favorita")}</span>
                                                 ) : null}
                                                 <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-app-cinza">
                                                     {ui(textoTipoEvento(notificacao.tipo_evento))}

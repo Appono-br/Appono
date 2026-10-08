@@ -16,11 +16,23 @@ async function listar(query = {}, produtos = [prato], erroProdutos = null) {
     const banco = {
         from(tabela) {
             let dados = tabela === "restaurantes" ? [restaurante, { id_restaurante: 2, nome: "Fechado", ativo: false }] : produtos;
+            let erroConsulta = tabela === "produtos" ? erroProdutos : null;
             return {
-                select() { return this; },
+                select(campos) {
+                    // O mock também valida as colunas para reproduzir erros reais do banco.
+                    if (tabela === "produtos") {
+                        const camposPermitidos = new Set([
+                            "id_produto", "id_restaurante", "nome", "descricao", "preco",
+                            "imagem_url", "ordem_exibicao", "categorias", "ativo", "arquivado", "cardapios",
+                        ]);
+                        const desconhecido = campos.split(/[\s,()]+/).find((campo) => campo && !camposPermitidos.has(campo));
+                        if (desconhecido) erroConsulta = { code: "42703", message: `Coluna inexistente: ${desconhecido}` };
+                    }
+                    return this;
+                },
                 eq(campo, valor) { dados = dados.filter((item) => item[campo] === valor); return this; },
                 order() { return this; },
-                then(resolve, reject) { return Promise.resolve({ data: dados, error: tabela === "produtos" ? erroProdutos : null }).then(resolve, reject); },
+                then(resolve, reject) { return Promise.resolve({ data: dados, error: erroConsulta }).then(resolve, reject); },
             };
         },
     };

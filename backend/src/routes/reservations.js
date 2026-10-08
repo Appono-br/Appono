@@ -89,7 +89,7 @@ function normalizarItensPedido(itens = []) {
         observacoes: item.observacoes.join("; ") || null,
     }));
     if (itensNormalizados.some((item) => item.quantidade > LIMITE_UNIDADES_POR_ITEM)) {
-        throw new Error(`Cada item do pedido deve ter no maximo ${LIMITE_UNIDADES_POR_ITEM} unidades.`);
+        throw new Error(`Cada item do pedido deve ter no máximo ${LIMITE_UNIDADES_POR_ITEM} unidades.`);
     }
     return itensNormalizados;
 }
@@ -163,7 +163,7 @@ function obterMensagemErroConfirmacaoPresenca(reason) {
     const mensagens = {
         RESERVA_NAO_ENCONTRADA: "Reserva não encontrada.",
         STATUS_INVALIDO: "A confirmação de presença está disponível apenas para reservas confirmadas.",
-        JA_RESPONDIDA: "Esta reserva já teve ausencia confirmada e não pode ser alterada.",
+        JA_RESPONDIDA: "Esta reserva já teve ausência confirmada e não pode ser alterada.",
         HORARIO_INVALIDO: "Horário da reserva inválido para confirmação de presença.",
         PRAZO_ENCERRADO: "O prazo para confirmar presença encerrou 1 hora antes da reserva.",
     };
@@ -240,7 +240,7 @@ exports.reservationsRouter.patch("/:id/ocultar", async (req, res) => {
     const reservationId = Number(req.params.id);
     const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
     if (!Number.isFinite(reservationId)) {
-        return res.status(400).json({ error: "Reserva invalida." });
+        return res.status(400).json({ error: "Reserva inválida." });
     }
     await sincronizarReservasNaoComparecidas().catch(() => null);
     const { data, error } = await supabase.rpc("ocultar_reserva_do_historico", {
@@ -446,7 +446,7 @@ exports.reservationsRouter.get("/:id/cardapio", async (req, res) => {
     const reservationId = Number(req.params.id);
     const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
     if (!Number.isFinite(reservationId)) {
-        return res.status(400).json({ error: "Reserva invalida." });
+        return res.status(400).json({ error: "Reserva inválida." });
     }
     const { data: reserva, error: reservaError } = await supabase
         .from("reservas")
@@ -483,10 +483,10 @@ exports.reservationsRouter.patch("/:id/presenca", (0, auth_1.requireRole)("clien
     const reservationId = Number(req.params.id);
     const acao = String(req.body?.acao ?? "").trim().toUpperCase();
     if (!Number.isInteger(reservationId) || reservationId <= 0) {
-        return res.status(400).json({ error: "Reserva invalida." });
+        return res.status(400).json({ error: "Reserva inválida." });
     }
     if (!["CONFIRMAR", "NAO_COMPARECEREI"].includes(acao)) {
-        return res.status(400).json({ error: "Informe se você irá comparecer ou nao." });
+        return res.status(400).json({ error: "Informe se você irá comparecer ou não." });
     }
     if (!supabase_1.supabaseAdmin) {
         return res.status(409).json({ error: "SUPABASE_SECRET_KEY precisa estar configurada no backend." });
@@ -541,7 +541,7 @@ exports.reservationsRouter.patch("/:id/presenca", (0, auth_1.requireRole)("clien
                 }),
                 (0, notificacoes_1.notificarRestaurante)(data.id_restaurante, {
                     titulo: "Cliente confirmou presença",
-                    mensagem: `${cliente.nome ?? "Um cliente"} confirmou presenca na reserva.`,
+                    mensagem: `${cliente.nome ?? "Um cliente"} confirmou presença na reserva.`,
                     tipo_evento: "PRESENCA_CONFIRMADA",
                     link_destino: "/restaurante/reservas",
                     dados: { id_reserva: data.id_reserva },
@@ -646,7 +646,7 @@ exports.reservationsRouter.patch("/:id/presenca", (0, auth_1.requireRole)("clien
                     id_cliente: reserva.id_cliente,
                     id_restaurante: reserva.id_restaurante,
                     valor_solicitado: valorReembolso,
-                    motivo: "Cliente informou ausencia antes do prazo de confirmação de presença.",
+                    motivo: "Cliente informou ausência antes do prazo de confirmação de presença.",
                     resposta: "Reembolso parcial processado automaticamente: valor pago menos preço da reserva e comissão Appono.",
                     status_reembolso: "CONCLUIDO",
                     modo_execucao: paymentConfig.productionAllowed() ? "MERCADO_PAGO_PRODUCAO" : "MERCADO_PAGO_TESTE",
@@ -659,7 +659,7 @@ exports.reservationsRouter.patch("/:id/presenca", (0, auth_1.requireRole)("clien
                     id_pedido: pagamento.id_pedido,
                     id_reserva: reservationId,
                     tipo_evento: "REEMBOLSO_PARCIAL_AUSENCIA",
-                    descricao: `Cliente avisou ausencia. Reembolso parcial calculado por excedente: pago menos preço da reserva e comissao Appono de ${percentualComissaoAppono}%.`,
+                    descricao: `Cliente avisou ausência. Reembolso parcial calculado por excedente: pago menos preço da reserva e comissão Appono de ${percentualComissaoAppono}%.`,
                     valor: valorReembolso,
                     origem: "CLIENTE",
                 });
@@ -669,7 +669,7 @@ exports.reservationsRouter.patch("/:id/presenca", (0, auth_1.requireRole)("clien
                 id_pedido: pagamento.id_pedido,
                 id_reserva: reservationId,
                 tipo_evento: "RETENCAO_AUSENCIA",
-                descricao: `Cliente avisou ausencia. Restaurante manteve R$ ${valorRestauranteRetido.toFixed(2).replace(".", ",")} e Appono manteve R$ ${valorComissaoRetida.toFixed(2).replace(".", ",")}.`,
+                descricao: `Cliente avisou ausência. Restaurante manteve R$ ${valorRestauranteRetido.toFixed(2).replace(".", ",")} e Appono manteve R$ ${valorComissaoRetida.toFixed(2).replace(".", ",")}.`,
                 valor: arredondarMoeda(politica.retained ?? 0),
                 origem: "CLIENTE",
             });
@@ -717,8 +717,8 @@ exports.reservationsRouter.patch("/:id/presenca", (0, auth_1.requireRole)("clien
             (0, notificacoes_1.notificarCliente)(reservaCancelada.id_cliente, {
                 titulo: "Reserva cancelada",
                 mensagem: totalReembolsado > 0
-                    ? `Sua ausencia foi registrada e um reembolso parcial de R$ ${arredondarMoeda(totalReembolsado).toFixed(2).replace(".", ",")} foi processado.`
-                    : "Sua ausencia foi registrada e a reserva foi cancelada.",
+                    ? `Sua ausência foi registrada e um reembolso parcial de R$ ${arredondarMoeda(totalReembolsado).toFixed(2).replace(".", ",")} foi processado.`
+                    : "Sua ausência foi registrada e a reserva foi cancelada.",
                 tipo_evento: "PRESENCA_RECUSADA",
                 link_destino: "/cliente/reservas",
                 dados: { id_reserva: reservationId, valor_reembolso: arredondarMoeda(totalReembolsado) },
@@ -731,8 +731,8 @@ exports.reservationsRouter.patch("/:id/presenca", (0, auth_1.requireRole)("clien
                 dados: { id_reserva: reservationId },
             }),
             (0, notificacoes_1.notificarAdministradores)({
-                titulo: "Ausencia informada",
-                mensagem: `Reserva #${reservationId} cancelada pelo cliente com reembolso do excedente apos preço da reserva e comissao Appono.`,
+                titulo: "Ausência informada",
+                mensagem: `Reserva #${reservationId} cancelada pelo cliente com reembolso do excedente após preço da reserva e comissão Appono.`,
                 tipo_evento: "REEMBOLSO_PARCIAL_AUSENCIA",
                 link_destino: "/admin/financeiro",
                 dados: { id_reserva: reservationId, valor_reembolso: arredondarMoeda(totalReembolsado) },
@@ -756,7 +756,7 @@ exports.reservationsRouter.patch("/:id/check-in", (0, auth_1.requireRole)("resta
     const reservationId = Number(req.params.id);
     const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
     if (!Number.isFinite(reservationId)) {
-        return res.status(400).json({ error: "Reserva invalida." });
+        return res.status(400).json({ error: "Reserva inválida." });
     }
     const { data: restaurante, error: restauranteError } = await supabase
         .from("restaurantes")
@@ -821,7 +821,7 @@ exports.reservationsRouter.patch("/:id/check-in", (0, auth_1.requireRole)("resta
     await Promise.all([
         (0, notificacoes_1.notificarCliente)(data.id_cliente, {
             titulo: "Check-in realizado",
-            mensagem: "Seu check-in foi registrado pelo restaurante. Boa experiencia!",
+            mensagem: "Seu check-in foi registrado pelo restaurante. Boa experiência!",
             tipo_evento: "RESERVA_CHECK_IN",
             link_destino: "/cliente/reservas",
             dados: { id_reserva: data.id_reserva },
@@ -840,7 +840,7 @@ exports.reservationsRouter.patch("/:id/concluir", (0, auth_1.requireRole)("resta
     const reservationId = Number(req.params.id);
     const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
     if (!Number.isFinite(reservationId)) {
-        return res.status(400).json({ error: "Reserva invalida." });
+        return res.status(400).json({ error: "Reserva inválida." });
     }
     const { data: restaurante, error: restauranteError } = await supabase
         .from("restaurantes")
@@ -918,7 +918,7 @@ exports.reservationsRouter.patch("/:id/concluir", (0, auth_1.requireRole)("resta
         }),
         (0, notificacoes_1.notificarRestaurante)(data.id_restaurante, {
             titulo: "Reserva finalizada",
-            mensagem: `A reserva de ${data.clientes?.nome ?? "um cliente"} foi concluida.`,
+            mensagem: `A reserva de ${data.clientes?.nome ?? "um cliente"} foi concluída.`,
             tipo_evento: "RESERVA_CONCLUIDA",
             link_destino: "/restaurante/reservas",
             dados: { id_reserva: data.id_reserva },
@@ -931,7 +931,7 @@ exports.reservationsRouter.patch("/:id/cancelar", (0, auth_1.requireRole)("clien
     const reservationId = Number(req.params.id);
     const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
     if (!Number.isFinite(reservationId)) {
-        return res.status(400).json({ error: "Reserva invalida." });
+        return res.status(400).json({ error: "Reserva inválida." });
     }
     const { data, error } = await supabase.rpc("cancelar_reserva_propria", {
         reserva_id: reservationId,
@@ -965,7 +965,7 @@ exports.reservationsRouter.patch("/:id/cancelar", (0, auth_1.requireRole)("clien
 exports.reservationsRouter.patch("/:id/cancelar-restaurante", (0, auth_1.requireRole)("restaurante"), async (req, res) => {
     await sincronizarReservasNaoComparecidas().catch(() => null);
     const reservationId = Number(req.params.id);
-    if (!Number.isInteger(reservationId) || reservationId <= 0 || !supabase_1.supabaseAdmin) return res.status(400).json({ error: "Reserva invalida." });
+    if (!Number.isInteger(reservationId) || reservationId <= 0 || !supabase_1.supabaseAdmin) return res.status(400).json({ error: "Reserva inválida." });
     try {
         const { data: restaurante } = await supabase_1.supabaseAdmin.from("restaurantes").select("id_restaurante").eq("id_auth", res.locals.user.id).maybeSingle();
         if (!restaurante) return res.status(403).json({ error: "Perfil de restaurante não encontrado." });
@@ -999,6 +999,6 @@ exports.reservationsRouter.patch("/:id/cancelar-restaurante", (0, auth_1.require
         ]);
         return res.json({ ...atualizada, estornos: estornos.length });
     } catch (error) {
-        return res.status(502).json({ error: `A reserva nao foi cancelada: ${error instanceof Error ? error.message : "erro desconhecido"}` });
+        return res.status(502).json({ error: `A reserva não foi cancelada: ${error instanceof Error ? error.message : "erro desconhecido"}` });
     }
 });

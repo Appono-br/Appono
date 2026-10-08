@@ -176,7 +176,7 @@ export default function RestaurantDashboardPage() {
           </article>
 
           <article className="rounded-[8px] bg-app-creme-leve p-5 shadow-sm ring-1 ring-app-baunilha-dourada/60 sm:p-6">
-            <h2 className="text-2xl font-medium text-app-cafe-profundo">{ui("Eficiencia da Cozinha")}</h2>
+            <h2 className="text-2xl font-medium text-app-cafe-profundo">{ui("Eficiência da Cozinha")}</h2>
             <div className="mt-8 grid gap-6">
               {[
                 { label: "Pedidos ativos na cozinha", value: resumo.pedidosAtivosCozinha ?? 0 },

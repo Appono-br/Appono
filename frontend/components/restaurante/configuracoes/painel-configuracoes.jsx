@@ -195,7 +195,7 @@ export default function RestaurantSettings({ painelInicial = "conta" }) {
         <div className="grid gap-8 items-start lg:grid-cols-[minmax(250px,0.42fr)_minmax(0,1fr)]">
           <aside className="rounded-[8px] bg-app-creme-leve p-5 shadow-sm ring-1 ring-app-baunilha-dourada/60 sm:p-6">
             <section>
-              <h1 className="text-3xl font-medium italic leading-tight text-app-cafe-profundo">{ui("Configurações do Perfil")}</h1>
+              <h1 className="text-3xl font-medium leading-tight text-app-cafe-profundo">{ui("Configurações do Perfil")}</h1>
             </section>
 
             <nav aria-label={ui("Configurações do restaurante")} className="mt-7 grid gap-2">
@@ -217,7 +217,7 @@ export default function RestaurantSettings({ painelInicial = "conta" }) {
               <button type="button" onClick={() => setPainelAtivo("suporte")} aria-current={painelAtivo === "suporte" ? "page" : undefined} className={`flex w-full items-center gap-3 rounded-[8px] px-5 py-4 text-left text-sm font-semibold transition ${painelAtivo === "suporte" ? "bg-app-botao-aba-ativa text-app-botao-aba-ativa-texto" : "text-app-mocha hover:bg-app-creme-leve"}`}>
                 <Icon type="support" />{ui("Suporte")}
               </button>
-              <button type="button" onClick={() => setConfirmandoSaida(true)} disabled={saindo} aria-busy={saindo} className="mt-3 flex w-full items-center gap-3 rounded-[8px] px-5 py-4 text-left text-sm font-bold text-app-vermelho-erro transition hover:bg-app-creme-suave">
+              <button type="button" onClick={() => setConfirmandoSaida(true)} disabled={saindo} aria-busy={saindo} className="app-logout mt-3 flex w-full items-center gap-3 rounded-[8px] px-5 py-4 text-left text-sm font-bold text-app-vermelho-erro transition hover:bg-app-creme-suave">
                 <Icon type="log-out" />{ui("Sair da conta")}
               </button>
             </nav>
@@ -239,7 +239,7 @@ export default function RestaurantSettings({ painelInicial = "conta" }) {
             <section className="mt-8 flex flex-col gap-5 sm:flex-row sm:items-center">
               <label className="relative flex h-24 w-24 shrink-0 cursor-pointer items-center justify-center overflow-visible rounded-[8px] bg-app-cafe-profundo bg-contain bg-center bg-no-repeat bg-origin-content p-2 text-app-creme-leve" style={form.logoUrl ? { backgroundImage: `url("${form.logoUrl}")` } : undefined}>
                 {!form.logoUrl ? <Icon type="store" className="h-10 w-10"/> : null}
-                <span className="absolute -bottom-2 -right-2 flex h-9 w-9 items-center justify-center rounded-full bg-app-caramelo-torrado text-app-chantilly ring-4 ring-app-chantilly">
+                <span className="absolute -bottom-2 -right-2 flex h-9 w-9 items-center justify-center rounded-full bg-app-caramelo-torrado text-app-chantilly ring-1 ring-app-chantilly">
                   <Icon type="camera" className="h-4 w-4"/>
                 </span>
                 <input type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => selecionarImagem(event.target.files?.[0])} className="sr-only"/>
@@ -261,7 +261,7 @@ export default function RestaurantSettings({ painelInicial = "conta" }) {
             </section>
 
             <section className="mt-8 border-t border-app-baunilha-dourada/60 pt-8">
-              <h3 className="flex items-center gap-2 text-2xl font-medium italic text-app-cafe-profundo">
+              <h3 className="flex items-center gap-2 text-2xl font-medium text-app-cafe-profundo">
                 <Icon type="map-pin" className="h-5 w-5"/>{ui("Localização")}</h3>
 
               <div className="mt-6 grid gap-6 sm:grid-cols-[1fr_0.42fr]">
@@ -293,11 +293,11 @@ export default function RestaurantSettings({ painelInicial = "conta" }) {
 
       <ConfirmationDialog
         open={confirmandoSaida}
+        variant="logout"
         title="Sair da conta?"
         description="Tem certeza de que deseja sair da sua conta?"
         confirmLabel="Sair da conta"
         cancelLabel="Cancelar"
-        variant="default"
         loading={saindo}
         onConfirm={logout}
         onCancel={() => setConfirmandoSaida(false)}

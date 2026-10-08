@@ -417,7 +417,7 @@ export default function RestaurantOrdersPage() {
                                             <div className="flex items-center justify-between gap-4 border-b border-app-baunilha-dourada/55 bg-white px-5 py-4 lg:flex-col lg:items-start lg:justify-center lg:border-b-0 lg:border-r">
                                                 <div>
                                                     <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{ui("Pedido")}</p>
-                                                    <p className="mt-1 text-2xl font-semibold text-app-cafe-profundo">
+                                                    <p className="app-value mt-1 text-2xl font-semibold text-app-cafe-profundo">
                                                         #{pedido.id_pedido}
                                                     </p>
                                                 </div>
@@ -485,7 +485,7 @@ export default function RestaurantOrdersPage() {
                                             <aside className="flex flex-col justify-between border-t border-app-baunilha-dourada/55 bg-white px-5 py-4 text-app-cafe-profundo lg:border-l lg:border-t-0">
                                                 <div>
                                                     <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-app-caramelo-torrado">{ui("Entrega")}</p>
-                                                    <p className="mt-2 text-2xl font-semibold">
+                                                    <p className="app-value mt-2 text-2xl font-semibold">
                                                         {formatarHoraPrevista(pedido.horario_entrega_previsto, reserva.horario_inicio)}
                                                     </p>
                                                     <div className="mt-4 grid gap-2 text-sm text-app-mocha">

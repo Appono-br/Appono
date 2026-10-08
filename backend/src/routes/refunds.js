@@ -23,7 +23,7 @@ function refundErrorMessage(code) {
         PAGAMENTO_NAO_ENCONTRADO: "Pagamento não encontrado para este pedido.",
         PAGAMENTO_NAO_APROVADO: "Somente pagamentos aprovados podem receber solicitação de reembolso.",
         PAGAMENTO_JA_ESTORNADO: "Este pagamento já foi estornado.",
-        REEMBOLSO_EM_ANDAMENTO: "Ja existe uma solicitação de reembolso em andamento.",
+        REEMBOLSO_EM_ANDAMENTO: "Já existe uma solicitação de reembolso em andamento.",
         REEMBOLSO_JA_CONCLUIDO: "Este pagamento já possui reembolso concluído.",
     };
     return messages[code] ?? "Este pagamento não pode receber reembolso.";
@@ -92,11 +92,11 @@ refundsRouter.post("/", requireRole("cliente"), async (req, res) => {
             motivo: reason,
             modo_execucao: "MERCADO_PAGO_TESTE",
         }).select(SELECT_REFUND).single();
-        if (error) throw new Error(error.code === "23505" ? "Ja existe um reembolso ativo para este pagamento." : error.message);
+        if (error) throw new Error(error.code === "23505" ? "Já existe um reembolso ativo para este pagamento." : error.message);
         await supabaseAdmin.from("eventos_financeiros").insert({ id_pagamento: payment.id_pagamento, id_pedido: order.id_pedido, id_reserva: order.id_reserva, tipo_evento: "REEMBOLSO_SOLICITADO", descricao: reason, valor: amount });
         await Promise.all([
             notificarRestaurante(order.id_restaurante, { titulo: "Nova solicitação de reembolso", mensagem: `O cliente solicitou reembolso do pedido #${order.id_pedido}.`, tipo_evento: "REEMBOLSO_SOLICITADO", link_destino: "/restaurante/reembolsos", dados: { id_reembolso: data.id_reembolso, id_pedido: order.id_pedido } }),
-            notificarAdministradores({ titulo: "Reembolso solicitado", mensagem: `O pedido #${order.id_pedido} possui uma solicitacao para analise.`, tipo_evento: "REEMBOLSO_SOLICITADO", link_destino: "/admin/reembolsos", dados: { id_reembolso: data.id_reembolso, id_pedido: order.id_pedido } }),
+            notificarAdministradores({ titulo: "Reembolso solicitado", mensagem: `O pedido #${order.id_pedido} possui uma solicitação para análise.`, tipo_evento: "REEMBOLSO_SOLICITADO", link_destino: "/admin/reembolsos", dados: { id_reembolso: data.id_reembolso, id_pedido: order.id_pedido } }),
         ]);
         return res.status(201).json(data);
     } catch (error) {
@@ -134,7 +134,7 @@ refundsRouter.patch("/:id/analisar", requireRole("restaurante", "admin"), async 
     const id = Number(req.params.id);
     const decision = String(req.body?.decisao ?? "").toUpperCase();
     const response = normalizeRefundReason(req.body?.resposta);
-    if (!Number.isInteger(id) || id <= 0 || !["APROVAR", "RECUSAR"].includes(decision)) return res.status(400).json({ error: "Analise invalida." });
+    if (!Number.isInteger(id) || id <= 0 || !["APROVAR", "RECUSAR"].includes(decision)) return res.status(400).json({ error: "Análise inválida." });
     try {
         const refund = await loadRefund(id);
         if (!refund) return res.status(404).json({ error: "Reembolso não encontrado." });
@@ -167,7 +167,7 @@ refundsRouter.patch("/:id/analisar", requireRole("restaurante", "admin"), async 
             updated = result.data;
             await supabaseAdmin.from("eventos_financeiros").insert({ id_pagamento: refund.id_pagamento, id_pedido: refund.id_pedido, id_reserva: refund.id_reserva, tipo_evento: "REEMBOLSO_RECUSADO", descricao: response, valor: refund.valor_solicitado });
         }
-        await notificarCliente(refund.id_cliente, { titulo: decision === "APROVAR" ? "Reembolso de teste aprovado" : "Reembolso recusado", mensagem: decision === "APROVAR" ? `A solicitacao do pedido #${refund.id_pedido} foi concluida no ambiente de testes do Mercado Pago.` : response, tipo_evento: decision === "APROVAR" ? "REEMBOLSO_CONCLUIDO" : "REEMBOLSO_RECUSADO", link_destino: `/cliente/pedidos/${refund.id_pedido}`, dados: { id_reembolso: id, id_pedido: refund.id_pedido } });
+        await notificarCliente(refund.id_cliente, { titulo: decision === "APROVAR" ? "Reembolso de teste aprovado" : "Reembolso recusado", mensagem: decision === "APROVAR" ? `A solicitação do pedido #${refund.id_pedido} foi concluída no ambiente de testes do Mercado Pago.` : response, tipo_evento: decision === "APROVAR" ? "REEMBOLSO_CONCLUIDO" : "REEMBOLSO_RECUSADO", link_destino: `/cliente/pedidos/${refund.id_pedido}`, dados: { id_reembolso: id, id_pedido: refund.id_pedido } });
         return res.json(updated);
     } catch (error) {
         return res.status(400).json({ error: error instanceof Error ? error.message : "Não foi possível analisar o reembolso." });

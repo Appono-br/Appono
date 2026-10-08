@@ -36,7 +36,7 @@ function obterUrlRedirecionamentoEmail() {
 }
 function obterMensagemErroAutenticacao(message) {
     if (!message) {
-        return "Erro ao criar usuario.";
+        return "Erro ao criar usuário.";
     }
     const normalizedMessage = message.toLowerCase();
     if (erroAutenticacaoEhUsuarioExistente(message)) {
@@ -51,7 +51,7 @@ function obterMensagemErroAutenticacao(message) {
     if (normalizedMessage.includes("email rate limit exceeded") ||
         normalizedMessage.includes("rate limit") ||
         normalizedMessage.includes("limite de envio")) {
-        return "Limite temporario de envio de e-mails atingido. Aguarde alguns minutos ou tente novamente mais tarde.";
+        return "Limite temporário de envio de e-mails atingido. Aguarde alguns minutos ou tente novamente mais tarde.";
     }
     return message;
 }
@@ -204,7 +204,7 @@ async function obterPerfil(accessToken, userId) {
         return {
             tipo: "admin",
             perfil: {
-                nome: "Administracao Appono",
+                nome: "Administração Appono",
                 email: usuarioAtual.user.email,
             },
         };
@@ -341,7 +341,7 @@ async function criarPerfilRestauranteGoogle(res, body) {
     }
     if (validatedCnpj.situacao &&
         validatedCnpj.situacao.toUpperCase() !== "ATIVA") {
-        const erro = new Error(`O CNPJ informado esta com situacao ${validatedCnpj.situacao}.`);
+        const erro = new Error(`O CNPJ informado está com situação ${validatedCnpj.situacao}.`);
         erro.statusCode = 400;
         throw erro;
     }
@@ -680,7 +680,7 @@ exports.authRouter.post("/register/restaurant", async (req, res) => {
     if (validatedCnpj.situacao &&
         validatedCnpj.situacao.toUpperCase() !== "ATIVA") {
         return res.status(400).json({
-            error: `O CNPJ informado esta com situacao ${validatedCnpj.situacao}.`,
+            error: `O CNPJ informado está com situação ${validatedCnpj.situacao}.`,
         });
     }
     const validatedAddressBody = {

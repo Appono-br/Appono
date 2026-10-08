@@ -152,7 +152,7 @@ exports.adminRouter.get("/rotina-intelligence/resumo", async (req, res) => {
         .gte("criado_em", inicio.toISOString())
         .order("criado_em", { ascending: true })
         .limit(5000);
-    if (error) return res.status(503).json({ code: "ROUTINE_EXPERIMENT_UNAVAILABLE", error: "Nao foi possivel carregar as metricas do experimento." });
+    if (error) return res.status(503).json({ code: "ROUTINE_EXPERIMENT_UNAVAILABLE", error: "Não foi possível carregar as métricas do experimento." });
     const resumo = agregarMetricasExperimento(data ?? []);
     const configuracaoV2_1 = diagnosticoConfiguracaoV2_1();
     return res.json({

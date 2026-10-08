@@ -1,11 +1,11 @@
 html[data-tema="escuro"] button.botao-confirmacao-marrom {
-  background-color: #946746;
-  color: #ffffff;
-  border: 1px solid #c49a78;
+  background-color: var(--app-botao-primario);
+  color: var(--app-botao-primario-texto);
+  border: 1px solid var(--app-botao-primario-borda);
 }
 
 html[data-tema="escuro"] button.botao-confirmacao-marrom:hover:not(:disabled) {
-  background-color: #805637;
+  background-color: var(--app-botao-primario-hover);
 }
 
 html[data-tema="escuro"] button.botao-confirmacao-marrom:focus-visible {
@@ -27,8 +27,8 @@ html[data-tema="escuro"] {
   --ui-superficie-destaque: var(--ui-header);
   --ui-texto: #f5ebdd;
   --ui-texto-secundario: #c9b8a8;
-  --ui-borda: #705a48;
-  --ui-borda-controle: #b89980;
+  --ui-borda: var(--app-borda-cor);
+  --ui-borda-controle: var(--app-borda-cor);
   --ui-acento: #eadcc8;
   --ui-acento-fundo: #eadcc8;
   --ui-hover: #eadcc8;
@@ -55,8 +55,8 @@ html[data-tema="escuro"] {
   --app-dourado-mel: var(--ui-acento-fundo);
   --app-areia-quente: var(--ui-acento);
   --app-fundo-destaque: var(--ui-fundo);
-  --app-botao-aba-ativa: #eadcc8;
-  --app-botao-aba-ativa-texto: var(--ui-texto-inverso);
+  --app-botao-aba-ativa: var(--app-botao-primario);
+  --app-botao-aba-ativa-texto: var(--app-botao-primario-texto);
   --app-vermelho-erro: var(--ui-perigo);
   --app-vermelho-claro: var(--ui-perigo-fundo);
   --app-verde-sucesso: var(--ui-sucesso);
@@ -113,7 +113,7 @@ html[data-tema="escuro"] :is(.bg-app-baunilha-dourada, [class*="bg-app-baunilha-
 
 /* Mantém ações visíveis quando o painel e o token de fundo usam a mesma cor. */
 html[data-tema="escuro"] :is(button, a)[class*="bg-app-cafe-profundo"] {
-  background-color: #4c2f20;
+  background-color: var(--app-botao-primario);
   color: var(--ui-texto);
   border: 1px solid var(--ui-borda-controle);
   box-shadow: 0 3px 10px rgb(0 0 0 / 22%);
@@ -127,7 +127,7 @@ html[data-tema="escuro"] :is(button, a)[class*="bg-app-baunilha-dourada"] {
 }
 
 html[data-tema="escuro"] .support-acompanhamento-card {
-  border: 2px solid var(--ui-borda-controle);
+  border: var(--app-borda-espessura) solid var(--ui-borda-controle);
   box-shadow: 0 8px 20px rgb(0 0 0 / 32%);
 }
 html[data-tema="escuro"] :is(main.home-publica, main.auth-publica, main.bg-white),
@@ -182,18 +182,14 @@ html[data-tema="escuro"] :is(article, section, aside, form)[class*="ring-1"] {
 }
 
 html[data-tema="escuro"] .agenda-cliente {
-  --ui-borda: #584335;
-  --ui-borda-controle: #79604d;
+  --ui-borda: var(--app-borda-cor);
+  --ui-borda-controle: var(--app-borda-cor);
 }
 html[data-tema="escuro"] .agenda-calendar {
   border-color: var(--ui-borda);
 }
 html[data-tema="escuro"] .agenda-calendar .agenda-calendar-adjacent-day {
   color: #aa9786;
-}
-html[data-tema="escuro"] .agenda-calendar .agenda-calendar-reservation-day {
-  background-color: #4c2f20;
-  color: var(--ui-acento);
 }
 html[data-tema="escuro"] .agenda-calendar .agenda-calendar-reservation-marker {
   background-color: var(--ui-acento);
@@ -307,7 +303,7 @@ html[data-tema="escuro"] :is(button, a):is(.text-red-700, .text-red-800):hover {
   color: var(--ui-perigo);
 }
 html[data-tema="escuro"] :is(input, select, textarea)[aria-invalid="true"] {
-  border: 2px solid var(--ui-perigo);
+  border: var(--app-borda-espessura) solid var(--ui-perigo);
 }
 html[data-tema="escuro"] :is([role="listbox"], [role="menu"], [role="tooltip"]) {
   background: var(--ui-superficie-elevada);
@@ -353,3 +349,180 @@ html[data-tema="escuro"] thead { background-color: var(--ui-superficie-elevada);
 html[data-tema="escuro"] :is(th, td) { border-color: var(--ui-borda); }
 html[data-tema="escuro"] tbody tr:hover { background-color: var(--ui-superficie-elevada); }
 html[data-tema="escuro"] { scrollbar-color: var(--ui-borda-controle) var(--ui-fundo); }
+
+/* Padrão dos controles de cliente e restaurante, compartilhado pelos dois temas. */
+html[data-tema] .area-autenticada:is(.area-cliente, .area-restaurante) {
+  --painel-botao-fundo: var(--app-botao-primario);
+  --painel-botao-hover: var(--app-botao-primario-hover);
+  --painel-botao-borda: var(--app-botao-primario-borda);
+  --painel-botao-texto: var(--app-botao-primario-texto);
+}
+
+/* A central de notificações acompanha o fundo preto e os detalhes marrons do app. */
+html[data-tema="escuro"] .painel-notificacoes {
+  background-color: var(--ui-fundo) !important;
+}
+
+html[data-tema="escuro"] .painel-notificacoes :is(.notificacoes-introducao, .notificacoes-resumo, .notificacoes-historico, .notificacao-card) {
+  border: 1px solid var(--app-borda-cor) !important;
+  --tw-ring-color: var(--app-borda-cor);
+}
+
+html[data-tema="escuro"] .painel-notificacoes .notificacao-favorita {
+  background-color: var(--app-botao-primario) !important;
+  color: var(--app-botao-primario-texto) !important;
+}
+
+html[data-tema] .area-autenticada:is(.area-cliente, .area-restaurante) :is(
+  button,
+  a[class*="bg-app-"],
+  a[class*="border-app"],
+  [role="button"]
+):not(:is(.produto-cardapio-acoes *, .agenda-calendar-day, .app-button-secondary, .app-logout, .botao-acao-critica, [class*="vermelho-erro"], [class*="text-red-"], [class*="bg-red-"], [class*="text-rose-"], [class*="bg-rose-"])) {
+  background-color: var(--painel-botao-fundo) !important;
+  color: var(--painel-botao-texto) !important;
+  border: 1px solid var(--painel-botao-borda) !important;
+}
+
+html[data-tema] .area-autenticada:is(.area-cliente, .area-restaurante) :is(
+  button,
+  a[class*="bg-app-"],
+  a[class*="border-app"],
+  [role="button"]
+):not(:is(.produto-cardapio-acoes *, .agenda-calendar-day, .app-button-secondary, .app-logout, .botao-acao-critica, [class*="vermelho-erro"], [class*="text-red-"], [class*="bg-red-"], [class*="text-rose-"], [class*="bg-rose-"])):hover:not(:disabled):not([aria-disabled="true"]) {
+  background-color: var(--painel-botao-hover) !important;
+  color: var(--painel-botao-texto) !important;
+  border-color: var(--painel-botao-borda) !important;
+}
+
+html[data-tema] .area-autenticada:is(.area-cliente, .area-restaurante) :is(
+  button,
+  a[class*="bg-app-"],
+  a[class*="border-app"],
+  [role="button"]
+):not(:is(.produto-cardapio-acoes *, .agenda-calendar-day, .app-button-secondary, .app-logout, .botao-acao-critica, [class*="vermelho-erro"], [class*="text-red-"], [class*="bg-red-"], [class*="text-rose-"], [class*="bg-rose-"])) :is(span, strong, p, svg, div, small, h2, h3) {
+  color: inherit !important;
+}
+
+html[data-tema] .area-autenticada:is(.area-cliente, .area-restaurante) :is(button, [role="button"]):is(:disabled, [aria-disabled="true"]) {
+  opacity: 0.6;
+}
+
+html[data-tema] .area-autenticada:is(.area-cliente, .area-restaurante) :is(button, a, [role="button"]):focus-visible {
+  outline: 2px solid var(--painel-botao-borda) !important;
+  outline-offset: 3px;
+}
+
+/* As ações dos pratos usam contorno, inclusive nos estados de interação. */
+html[data-tema] .area-autenticada.area-restaurante .produto-cardapio-acoes {
+  --painel-botao-fundo: transparent;
+  --painel-botao-hover: transparent;
+  --painel-botao-texto: var(--app-mocha);
+  --painel-botao-borda: var(--app-baunilha-dourada);
+}
+
+html[data-tema] .area-autenticada.area-restaurante .produto-cardapio-acoes :is(button, a),
+html[data-tema] .area-autenticada.area-restaurante .produto-cardapio-acoes :is(button, a):is(:hover, :active, :disabled) {
+  background: transparent !important;
+}
+
+html[data-tema] .area-autenticada.area-restaurante .produto-cardapio-acoes .produto-acao-destaque {
+  --painel-botao-texto: #eab308;
+  --painel-botao-borda: #eab308;
+  color: #eab308 !important;
+  border: 1px solid #eab308 !important;
+}
+
+html[data-tema] .area-autenticada.area-restaurante .produto-cardapio-acoes .produto-acao-destaque:is(:hover, :active, :disabled, :focus-visible),
+html[data-tema] .area-autenticada.area-restaurante .produto-cardapio-acoes .produto-acao-destaque svg {
+  color: #eab308 !important;
+  border-color: #eab308 !important;
+}
+
+/* As datas ficam sem o fundo dos botões gerais; só os estados recebem destaque. */
+html[data-tema] .agenda-calendar button.agenda-calendar-day {
+  background-color: transparent !important;
+  border: 0 !important;
+  color: var(--app-cafe-profundo) !important;
+  font-weight: var(--app-font-regular, 400) !important;
+  box-shadow: none;
+}
+
+/* A aba atual usa marrom escuro; a outra permanece discreta em ambos os temas. */
+html[data-tema] .agenda-view-tabs {
+  --agenda-tab-fundo: var(--app-botao-secundario);
+  --agenda-tab-hover: var(--app-botao-secundario-hover);
+  --agenda-tab-texto: var(--app-botao-secundario-texto);
+}
+
+html[data-tema] .agenda-view-tabs .agenda-view-tab {
+  background-color: var(--agenda-tab-fundo) !important;
+  color: var(--agenda-tab-texto) !important;
+  border: 0;
+}
+
+html[data-tema] .agenda-view-tabs .agenda-view-tab:hover {
+  background-color: var(--agenda-tab-hover) !important;
+}
+
+html[data-tema] .agenda-view-tabs .agenda-view-tab[aria-current="page"] {
+  background-color: var(--app-botao-primario) !important;
+  color: var(--app-botao-primario-texto) !important;
+}
+
+html[data-tema] .agenda-view-tabs .agenda-view-tab svg {
+  color: inherit !important;
+}
+
+html[data-tema] .agenda-calendar button.agenda-calendar-adjacent-day {
+  color: var(--ui-texto-secundario, #b9b1ac) !important;
+}
+
+html[data-tema="escuro"] .agenda-calendar .agenda-calendar-today {
+  background-color: #946746;
+  color: #f5ebdd;
+}
+
+html[data-tema="escuro"] .agenda-calendar .agenda-calendar-selected {
+  background-color: var(--app-botao-primario);
+  color: var(--app-botao-primario-texto);
+}
+
+/* Bordas e divisores discretos em todos os blocos do modo escuro. */
+html[data-tema="escuro"] :is(div, section, article, aside, main, header, footer, nav, form, fieldset, ul, ol, li, p, span, hr, table, thead, tbody, tr, th, td) {
+  border-color: var(--ui-borda) !important;
+  --tw-ring-color: var(--ui-borda);
+}
+
+html[data-tema="escuro"] .auth-publica :is(.botao-criar-conta, .botao-google) {
+  background-color: var(--app-botao-primario) !important;
+  color: var(--app-botao-primario-texto) !important;
+  box-shadow: 0 3px 10px rgb(0 0 0 / 22%);
+}
+
+html[data-tema="escuro"] .auth-publica :is(.botao-criar-conta, .botao-google):hover:not(:disabled) {
+  background-color: var(--app-botao-primario-hover) !important;
+  color: var(--app-botao-primario-texto) !important;
+}
+
+/* Uma cor uniforme para as ações do header em cada tema, inclusive no menu móvel. */
+html[data-tema] .home-publica > header {
+  --home-header-botao-fundo: var(--app-botao-primario);
+  --home-header-botao-hover: var(--app-botao-primario-hover);
+  --home-header-botao-texto: var(--app-botao-primario-texto);
+}
+
+html[data-tema] .home-publica > header :is(button:not(.home-search-submit), a[href="/login"]) {
+  background-color: var(--home-header-botao-fundo) !important;
+  color: var(--home-header-botao-texto) !important;
+  border: 0 !important;
+}
+
+html[data-tema] .home-publica > header :is(button:not(.home-search-submit), a[href="/login"]):hover:not(:disabled) {
+  background-color: var(--home-header-botao-hover) !important;
+  color: var(--home-header-botao-texto) !important;
+}
+
+html[data-tema] .home-publica > header :is(button:not(.home-search-submit), a[href="/login"]) :is(svg, span) {
+  color: inherit !important;
+}

@@ -23,7 +23,7 @@ export default function PaymentSettingsPage() {
             <section className="mx-auto w-full max-w-4xl flex-1 px-5 py-12 sm:py-16">
                 <Link href="/cliente/configuracoes" className="inline-flex min-h-10 items-center gap-2 rounded-full px-1 text-sm font-bold text-app-caramelo-torrado transition hover:text-app-cafe-profundo">← {ui("Voltar para configurações")}</Link>
                 <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{ui("Pagamentos seguros")}</p>
-                <h2 className="mt-3 text-4xl font-medium sm:text-5xl">{ui("Seus dados ficam com o Mercado Pago")}</h2>
+                <h1 className="mt-3 text-4xl font-medium sm:text-5xl">{ui("Seus dados ficam com o Mercado Pago")}</h1>
                 <p className="mt-5 max-w-3xl text-base leading-7 text-app-mocha">{ui("A Appono não coleta, armazena nem processa número de cartão, validade ou CVV. Ao pagar, você será direcionado ao checkout seguro do Mercado Pago.")}</p>
                 <div className="mt-10 grid gap-5 sm:grid-cols-3">
                     {[["Coleta externa", "Os dados são informados somente no ambiente do Mercado Pago."], ["Sem cartão salvo", "Nenhum dado completo de cartão permanece no navegador ou nos servidores da Appono."], ["Escolha no checkout", "Cartão, Pix e outras opções disponíveis são apresentados pelo Mercado Pago."]].map(([titulo, texto]) => (

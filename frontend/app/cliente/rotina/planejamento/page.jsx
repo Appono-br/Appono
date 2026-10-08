@@ -218,7 +218,7 @@ export default function PlanejamentoRotinaPage() {
     async function aprovarTudo() {
         if (!planejamento?.id_planejamento_rotina) return;
         if (semanaAnterior) {
-            setMensagem("Semanas anteriores estao disponiveis somente para consulta.");
+            setMensagem("Semanas anteriores estão disponíveis somente para consulta.");
             return;
         }
         setProcessando("aprovar-tudo");
@@ -248,13 +248,13 @@ export default function PlanejamentoRotinaPage() {
             setPlanejamento(resposta.planejamento);
             setRefeicoes(resposta.refeicoes ?? []);
             setConfirmacaoRecusaTodas(false);
-            setMensagem("Todas as sugestoes disponiveis foram recusadas.");
+            setMensagem("Todas as sugestões disponíveis foram recusadas.");
         } catch (error) {
             if (ehConflitoRotina(error)) {
                 await recuperarConflito();
                 return;
             }
-            setMensagem(error instanceof Error ? error.message : "Nao foi possivel recusar as sugestoes.");
+            setMensagem(error instanceof Error ? error.message : "Não foi possível recusar as sugestões.");
         } finally {
             setProcessando("");
         }
@@ -498,7 +498,7 @@ export default function PlanejamentoRotinaPage() {
                         const destaque = proximaRefeicao?.id_refeicao_planejada === refeicao.id_refeicao_planejada;
                         return (
                             <article key={refeicao.id_refeicao_planejada} className={`relative p-5 sm:p-6 ${destaque ? "bg-app-chantilly/45" : "bg-white"}`}>
-                                {semanaAnterior ? <span className="absolute bottom-5 right-5 rounded-full bg-app-chantilly px-3 py-1 text-[9px] font-bold uppercase tracking-wider text-app-mocha sm:bottom-6 sm:right-6">{ui("Historico")}</span> : null}
+                                {semanaAnterior ? <span className="absolute bottom-5 right-5 rounded-full bg-app-chantilly px-3 py-1 text-[9px] font-bold uppercase tracking-wider text-app-mocha sm:bottom-6 sm:right-6">{ui("Histórico")}</span> : null}
                                 {destaque ? <span className="absolute right-5 top-5 rounded-full bg-app-caramelo-torrado px-3 py-1 text-[9px] font-bold uppercase tracking-wider text-white sm:right-6">{ui("Próxima")}</span> : null}
                                 <div className="grid gap-5 lg:grid-cols-[170px_minmax(0,1fr)]">
                                     <div className="flex items-start gap-3 lg:block lg:border-r lg:border-app-baunilha-dourada/45 lg:pr-5">
@@ -557,7 +557,7 @@ export default function PlanejamentoRotinaPage() {
                                                         {feedback ? <button type="button" disabled={Boolean(processando)} onClick={() => setConfirmarExcluirFeedback(refeicao)} className="min-h-10 rounded-full border border-red-300 px-4 text-xs font-bold uppercase tracking-[0.1em] text-red-700 transition hover:bg-red-50 disabled:opacity-50">{ui("Remover")}</button> : null}
                                                     </div>
                                                 </div>
-                                                {feedback?.motivo ? <p className="mt-3 border-l-2 border-app-baunilha-dourada pl-3 text-sm text-app-mocha">{feedback.motivo}</p> : null}
+                                                {feedback?.motivo ? <p className="mt-3 border-l border-app-baunilha-dourada pl-3 text-sm text-app-mocha">{feedback.motivo}</p> : null}
                                             </section>
                                         ) : null}
                                         {feedbackEmEdicao?.id === refeicao.id_refeicao_planejada ? (

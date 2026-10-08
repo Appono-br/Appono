@@ -1103,5 +1103,10 @@
   "não foi possível consultar avaliações e favoritos. tente novamente.": "Could not load ratings and favorites. Please try again.",
   "remover {0} dos favoritos": "Remove {0} from favorites",
   "favoritar {0}": "Add {0} to favorites",
-  "{0} avaliação(ões)": "{0} review(s)"
+  "{0} avaliação(ões)": "{0} review(s)",
+  "avaliações": "Reviews",
+  "observações": "Notes",
+  "observações da reserva": "Reservation notes",
+  "observações do pedido": "Order notes",
+  "observações:": "Notes:"
 }

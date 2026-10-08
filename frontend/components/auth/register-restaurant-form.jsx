@@ -628,7 +628,7 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
               <span className="text-xs font-semibold text-app-cafe-profundo">
                 Foto de capa do restaurante (Opcional)
               </span>
-              <label className="flex flex-col sm:flex-row items-center gap-4 p-4 rounded-2xl border-2 border-dashed border-app-baunilha-dourada/50 hover:border-app-caramelo-torrado bg-app-chantilly/50 hover:bg-app-caramelo-torrado/5 transition-all cursor-pointer">
+              <label className="flex flex-col sm:flex-row items-center gap-4 p-4 rounded-2xl border border-dashed border-app-baunilha-dourada/50 hover:border-app-caramelo-torrado bg-app-chantilly/50 hover:bg-app-caramelo-torrado/5 transition-all cursor-pointer">
                 <div
                   className="h-16 w-16 rounded-xl bg-app-chantilly flex items-center justify-center overflow-hidden shrink-0 bg-cover bg-center border border-app-caramelo-torrado"
                   style={
@@ -670,9 +670,9 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Plano Inicial */}
               <label
-                className={`relative flex flex-col p-5 rounded-2xl border-2 transition-all cursor-pointer ${
+                className={`relative flex flex-col p-5 rounded-2xl border transition-all cursor-pointer ${
                   watchPlano === "INICIAL"
-                    ? "border-app-caramelo-torrado bg-app-caramelo-torrado/5 shadow-md ring-4 ring-app-dourado-mel/10"
+                    ? "border-app-caramelo-torrado bg-app-caramelo-torrado/5 shadow-md"
                     : "border-app-baunilha-dourada/50 bg-white hover:border-app-caramelo-torrado"
                 }`}
               >
@@ -713,9 +713,9 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
 
               {/* Plano Profissional */}
               <label
-                className={`relative flex flex-col p-5 rounded-2xl border-2 transition-all cursor-pointer ${
+                className={`relative flex flex-col p-5 rounded-2xl border transition-all cursor-pointer ${
                   watchPlano === "PROFISSIONAL"
-                    ? "border-app-caramelo-torrado bg-app-caramelo-torrado/5 shadow-md ring-4 ring-app-dourado-mel/10"
+                    ? "border-app-caramelo-torrado bg-app-caramelo-torrado/5 shadow-md"
                     : "border-app-baunilha-dourada/50 bg-white hover:border-app-caramelo-torrado"
                 }`}
               >

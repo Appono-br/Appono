@@ -1,0 +1,169 @@
+/* Hierarquia compartilhada por todas as rotas, componentes e temas.
+   As regras importantes mantêm o padrão mesmo com os estilos locais legados. */
+:root {
+  --app-font-family: Arial, Helvetica, sans-serif;
+  --app-font-regular: 400;
+  --app-font-medium: 500;
+  --app-font-semibold: 600;
+  --app-text-title: 2rem;
+  --app-text-subtitle: 1.5rem;
+  --app-text-card-title: 1.125rem;
+  --app-text-body: 1rem;
+  --app-text-small: 0.875rem;
+  --app-text-caption: 0.75rem;
+  --app-leading-title: 1.25;
+  --app-leading-subtitle: 1.35;
+  --app-leading-body: 1.6;
+  --app-leading-small: 1.5;
+}
+
+@media (min-width: 640px) {
+  :root { --app-text-title: 2.25rem; }
+}
+
+body {
+  font-family: var(--app-font-family);
+  font-size: var(--app-text-body);
+  font-weight: var(--app-font-regular);
+  font-style: normal;
+  line-height: var(--app-leading-body);
+}
+
+/* Texto auxiliar e legendas usam apenas dois tamanhos, inclusive nos badges. */
+body :where(.text-sm, [class~="text-[14px]"], [class~="text-[15px]"]) {
+  font-size: var(--app-text-small) !important;
+  line-height: var(--app-leading-small) !important;
+}
+
+body :where(.text-xs, small, [class~="text-[9px]"], [class~="text-[10px]"], [class~="text-[11px]"], [class~="text-[12px]"], [class~="text-[13px]"]) {
+  font-size: var(--app-text-caption) !important;
+  line-height: var(--app-leading-small) !important;
+}
+
+body :where(.font-medium) { font-weight: var(--app-font-medium); }
+body :where(.font-semibold, .font-bold, .font-extrabold, .font-black, strong, b) {
+  font-weight: var(--app-font-semibold);
+}
+
+body :where(.italic) { font-style: normal !important; }
+
+body p {
+  font-family: var(--app-font-family) !important;
+  font-size: var(--app-text-body) !important;
+  font-weight: var(--app-font-regular) !important;
+  font-style: normal !important;
+  line-height: var(--app-leading-body) !important;
+  letter-spacing: normal !important;
+}
+
+body p:where(.text-sm, .discover-guide-step p, .discover-questions details > p, .public-restaurants-empty p, .public-preview-notice, .dish-empty) {
+  font-size: var(--app-text-small) !important;
+  line-height: var(--app-leading-small) !important;
+}
+
+body p:where(.text-xs, .public-restaurant-address, .public-preview-menu li p, .public-preview-reserve p, [class~="text-[9px]"], [class~="text-[10px]"], [class~="text-[11px]"], [class~="text-[12px]"], [class~="text-[13px]"]) {
+  font-size: var(--app-text-caption) !important;
+  line-height: var(--app-leading-small) !important;
+}
+
+/* Marcadores de seção têm o mesmo tamanho, peso e espaçamento. */
+body :is(p, span, dt):where(.uppercase, .discover-eyebrow, .home-carousel-eyebrow),
+body .public-preview-info dt {
+  font-size: var(--app-text-caption) !important;
+  font-weight: var(--app-font-semibold) !important;
+  line-height: var(--app-leading-small) !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase;
+}
+
+body :is(label, legend) {
+  font-family: var(--app-font-family) !important;
+  font-size: var(--app-text-small) !important;
+  font-weight: var(--app-font-medium) !important;
+  font-style: normal !important;
+  line-height: var(--app-leading-small) !important;
+  letter-spacing: normal !important;
+  text-transform: none !important;
+}
+
+body :is(input, textarea, select) {
+  font-family: var(--app-font-family) !important;
+  font-size: var(--app-text-body) !important;
+  font-weight: var(--app-font-regular) !important;
+  font-style: normal !important;
+  line-height: var(--app-leading-small) !important;
+  letter-spacing: normal !important;
+  text-transform: none !important;
+}
+
+body button,
+body :where([role="button"], .discover-cta, .discover-text-link, .public-restaurant-card-link, .dish-row-link, .dish-show-more, .dish-load-more),
+body a:where([class*="rounded"], [class*="bg-app-"], [class*="border-app-"]),
+body nav a,
+body .restaurant-sidebar-notifications {
+  font-family: var(--app-font-family) !important;
+  font-size: var(--app-text-small) !important;
+  font-weight: var(--app-font-semibold) !important;
+  font-style: normal !important;
+  line-height: var(--app-leading-small) !important;
+  letter-spacing: normal !important;
+  text-transform: none !important;
+}
+
+/* Valores e preços seguem um papel próprio, sem transformar parágrafos em títulos. */
+body .app-value {
+  font-size: var(--app-text-card-title) !important;
+  font-weight: var(--app-font-semibold) !important;
+  line-height: var(--app-leading-subtitle) !important;
+  font-variant-numeric: tabular-nums;
+}
+
+body .dish-price {
+  font-size: var(--app-text-body) !important;
+  font-weight: var(--app-font-semibold) !important;
+}
+
+body .dish-category-name {
+  font-size: var(--app-text-small) !important;
+  font-weight: var(--app-font-semibold) !important;
+  line-height: var(--app-leading-small) !important;
+}
+
+body :is(.dish-category-count, .public-restaurant-rating, .public-restaurant-tags span, .public-restaurant-count, .public-search-result, .public-restaurants-pagination, .public-preview-head, .discover-guide-number) {
+  font-size: var(--app-text-caption) !important;
+  line-height: var(--app-leading-small) !important;
+}
+
+/* O nível semântico determina a apresentação, independentemente da página. */
+body :is(h1, h2, h3, h4, h5, h6) {
+  font-family: var(--app-font-family) !important;
+  font-weight: var(--app-font-semibold) !important;
+  font-style: normal !important;
+  line-height: var(--app-leading-subtitle) !important;
+  letter-spacing: -0.015em !important;
+  text-transform: none !important;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+body h1,
+body .app-page-title {
+  font-size: var(--app-text-title) !important;
+  line-height: var(--app-leading-title) !important;
+  letter-spacing: -0.025em !important;
+}
+
+body h2 { font-size: var(--app-text-subtitle) !important; }
+body h3 { font-size: var(--app-text-card-title) !important; }
+body h4 { font-size: var(--app-text-body) !important; }
+body :is(h5, h6) { font-size: var(--app-text-small) !important; }
+
+body :is(h1, h2, h3, h4, h5, h6) :where(span, strong, b, em, i) {
+  font-family: inherit !important;
+  font-size: inherit !important;
+  font-weight: inherit !important;
+  font-style: inherit !important;
+  line-height: inherit !important;
+  letter-spacing: inherit !important;
+  text-transform: inherit !important;
+}

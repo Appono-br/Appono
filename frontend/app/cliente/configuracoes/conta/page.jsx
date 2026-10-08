@@ -86,7 +86,7 @@ export default function AccountSettingsPage() {
         </Link>
         <div>
           <p className="text-[10px] font-bold uppercase text-app-caramelo-torrado">{ui("Conta")}</p>
-          <h2 className="mt-2 text-4xl font-medium text-app-cafe-profundo sm:text-5xl">{ui("Detalhes Pessoais")}</h2>
+          <h1 className="mt-2 text-4xl font-medium text-app-cafe-profundo sm:text-5xl">{ui("Detalhes Pessoais")}</h1>
           <p className="mt-4 max-w-2xl text-sm leading-6 text-app-mocha sm:text-base">{ui("Atualize suas informações de contato. Data de nascimento e documento permanecem bloqueados por segurança.")}</p>
         </div>
 

@@ -147,7 +147,7 @@ export function RestauranteSidebar() {
           type="button"
           onClick={() => setConfirmandoSaida(true)}
           disabled={saindo}
-          className="restaurant-sidebar-logout"
+          className="restaurant-sidebar-logout app-logout"
           aria-label={ui("Sair da conta")}
           aria-busy={saindo}
         >
@@ -188,6 +188,7 @@ export function RestauranteSidebar() {
         </dialog>
       ) : null}
       <ConfirmationDialog
+        variant="logout"
         open={confirmandoSaida}
         title={ui("Sair da conta")}
         description={ui(

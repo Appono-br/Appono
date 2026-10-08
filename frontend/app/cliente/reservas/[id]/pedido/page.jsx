@@ -318,7 +318,7 @@ export default function PaginaPedidoAntecipado({ params }) {
                             </div>
                             {pedidoAtivo.observacoes ? (
                                 <p className="mt-5 rounded-[8px] bg-white p-4 text-sm leading-6 text-app-mocha">
-                                    <strong>{ui("Observacoes:")}</strong> {pedidoAtivo.observacoes}
+                                    <strong>{ui("Observações:")}</strong> {pedidoAtivo.observacoes}
                                 </p>
                             ) : null}
                         </aside>
@@ -378,7 +378,7 @@ export default function PaginaPedidoAntecipado({ params }) {
                                                     </div>
                                                     {quantidade > 0 ? (
                                                         <label className="grid gap-2 sm:col-span-3">
-                                                            <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-app-cinza">{ui("Observacao deste item")}</span>
+                                                            <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-app-cinza">{ui("Observação deste item")}</span>
                                                             <input
                                                                 value={observacoesItens[produto.id_produto] ?? ""}
                                                                 onChange={(evento) => alterarObservacaoItem(produto.id_produto, evento.target.value)}
@@ -430,7 +430,7 @@ export default function PaginaPedidoAntecipado({ params }) {
                                 )}
                             </div>
 
-                            <label className="mt-5 grid gap-2 text-xs font-bold uppercase text-app-cinza">{ui("Observacoes")}<textarea value={observacoes} onChange={(evento) => setObservacoes(evento.target.value)} placeholder={ui("Ex: retirar cebola, ponto da carne, alergias...")} className="min-h-24 rounded-[8px] border border-app-baunilha-dourada bg-white p-3 text-sm font-normal normal-case text-app-cafe-profundo outline-none focus:border-app-caramelo-torrado" />
+                            <label className="mt-5 grid gap-2 text-xs font-bold uppercase text-app-cinza">{ui("Observações")}<textarea value={observacoes} onChange={(evento) => setObservacoes(evento.target.value)} placeholder={ui("Ex: retirar cebola, ponto da carne, alergias...")} className="min-h-24 rounded-[8px] border border-app-baunilha-dourada bg-white p-3 text-sm font-normal normal-case text-app-cafe-profundo outline-none focus:border-app-caramelo-torrado" />
                             </label>
 
                             <div className="mt-5 grid gap-3 border-t border-app-baunilha-dourada pt-5">

@@ -86,7 +86,7 @@ export function PainelAnaliseReembolsos({ perfil }) {
                 <header className="mt-6 rounded-[16px] bg-app-cafe-profundo p-7 text-app-creme-leve">
                     <p className="text-xs font-bold uppercase tracking-[0.18em] text-app-baunilha-dourada">{ui("Controle financeiro")}</p>
                     <h1 className="mt-2 text-3xl font-semibold">{ui("Solicitações de reembolso")}</h1>
-                    <p className="mt-3 max-w-3xl text-sm text-app-creme-suave">{ui("Analise os pedidos solicitados pelos clientes. Ao aprovar, a Appono marca o pagamento como estornado e remove o valor dos repasses e metricas financeiras.")}</p>
+                    <p className="mt-3 max-w-3xl text-sm text-app-creme-suave">{ui("Analise os pedidos solicitados pelos clientes. Ao aprovar, a Appono marca o pagamento como estornado e remove o valor dos repasses e métricas financeiras.")}</p>
                 </header>
 
                 {carregando ? <div className="mt-6 h-48 animate-pulse rounded-[14px] bg-app-creme-leve" /> : null}

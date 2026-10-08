@@ -469,8 +469,8 @@ export function AgendaCliente() {
             const hasReservation = reservationDates.has(day.date);
             const isToday = day.date === new Date().toISOString().slice(0, 10);
             const isSelected = day.date === selectedDate;
-            return (<button type="button" key={day.date} onClick={() => selecionarDia(day.date)} aria-pressed={isSelected} className={`relative flex h-10 items-center justify-center rounded-[10px] text-[13px] transition hover:bg-app-creme-suave ${day.currentMonth ? "text-app-cafe-profundo" : "agenda-calendar-adjacent-day text-[#b9b1ac]"}`}>
-                    <span className={`flex h-8 w-8 items-center justify-center rounded-full ${isSelected ? "bg-app-cafe-profundo font-semibold text-app-creme-leve" : isToday ? "agenda-calendar-today bg-[#1a73e8] font-semibold text-white" : hasReservation ? "agenda-calendar-reservation-day bg-[#f1e7dc] font-semibold text-[#a45d35]" : ""}`}>
+            return (<button type="button" key={day.date} onClick={() => selecionarDia(day.date)} aria-pressed={isSelected} aria-current={isToday ? "date" : undefined} className={`agenda-calendar-day relative flex h-10 items-center justify-center rounded-[10px] text-[13px] transition ${day.currentMonth ? "text-app-cafe-profundo" : "agenda-calendar-adjacent-day text-[#b9b1ac]"}`}>
+                    <span className={`flex h-8 w-8 items-center justify-center rounded-[8px] ${isSelected ? "agenda-calendar-selected bg-[#946746] font-semibold text-app-creme-leve" : isToday ? "agenda-calendar-today bg-[#4c2f20] font-semibold text-white" : ""}`}>
                       {day.day}
                     </span>
                     {hasReservation && !isToday ? <span className="agenda-calendar-reservation-marker absolute bottom-0.5 h-1 w-1 rounded-full bg-[#a45d35]" aria-label={ui("Há uma reserva neste dia")}/> : null}
@@ -485,9 +485,9 @@ export function AgendaCliente() {
           </aside>
 
           <div className="contents min-w-0 content-start gap-4 md:grid">
-            <nav aria-label={ui("Filtrar agenda")} className="order-first grid grid-cols-2 gap-1 rounded-2xl border border-app-baunilha-dourada/50 bg-white p-1 md:order-none">
+            <nav aria-label={ui("Filtrar agenda")} className="agenda-view-tabs order-first grid grid-cols-2 gap-1 rounded-2xl border border-app-baunilha-dourada/50 bg-white p-1 md:order-none">
               {[["reservas", "Reservas", CalendarDays], ["pedidos", "Pedidos", ClipboardList]].map(([valor, rotulo, TabIcon]) => (
-                <Link key={valor} href={`/cliente/agenda?visao=${valor}`} replace scroll={false} aria-current={visao === valor ? "page" : undefined} className={`flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold outline-none transition focus-visible:ring-2 focus-visible:ring-app-caramelo-torrado ${visao === valor ? "bg-app-cafe-profundo text-app-creme-leve" : "text-app-mocha hover:bg-app-chantilly"}`}>
+                <Link key={valor} href={`/cliente/agenda?visao=${valor}`} replace scroll={false} aria-current={visao === valor ? "page" : undefined} className="agenda-view-tab flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold outline-none transition focus-visible:ring-2 focus-visible:ring-app-caramelo-torrado">
                   <TabIcon aria-hidden="true" className="h-4 w-4 shrink-0" />
                   {ui(rotulo)}
                 </Link>

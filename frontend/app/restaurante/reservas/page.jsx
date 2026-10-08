@@ -457,13 +457,13 @@ export default function RestaurantReservationsPage() {
                                         <div className="flex items-center gap-4 border-b border-app-baunilha-dourada/55 bg-white px-5 py-4 lg:flex-col lg:items-start lg:justify-center lg:border-b-0 lg:border-r">
                                             <div>
                                                 <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{ui("Data")}</p>
-                                                <p className="mt-1 text-lg font-semibold text-app-cafe-profundo">
+                                                <p className="app-value mt-1 text-lg font-semibold text-app-cafe-profundo">
                                                     {reserva.data_reserva}
                                                 </p>
                                             </div>
                                             <div>
                                                 <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{ui("Horário")}</p>
-                                                <p className="mt-1 text-lg font-semibold text-app-cafe-profundo">
+                                                <p className="app-value mt-1 text-lg font-semibold text-app-cafe-profundo">
                                                     {reserva.horario_inicio}
                                                 </p>
                                             </div>

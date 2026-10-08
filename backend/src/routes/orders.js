@@ -313,7 +313,7 @@ exports.ordersRouter.post("/:id/avaliacao", (0, auth_1.requireRole)("cliente"), 
     const nota = Number(req.body?.nota);
     const comentario = String(req.body?.comentario ?? "").trim() || null;
     if (!Number.isInteger(orderId) || orderId <= 0 || !Number.isInteger(nota) || nota < 1 || nota > 5) return res.status(400).json({ error: "Informe uma nota de 1 a 5." });
-    if (comentario && comentario.length > 1000) return res.status(400).json({ error: "O comentario deve ter no maximo 1000 caracteres." });
+    if (comentario && comentario.length > 1000) return res.status(400).json({ error: "O comentário deve ter no máximo 1000 caracteres." });
     const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
     const { data: pedido, error: pedidoError } = await supabase.from("pedidos")
         .select("id_pedido, id_cliente, id_restaurante, id_reserva, status_pedido")
@@ -382,7 +382,7 @@ exports.ordersRouter.post("/", (0, auth_1.requireRole)("cliente"), async (req, r
     }));
     if (itensNormalizados.some((item) => item.quantidade > LIMITE_UNIDADES_POR_ITEM)) {
         return res.status(400).json({
-            error: `Cada item do pedido deve ter no maximo ${LIMITE_UNIDADES_POR_ITEM} unidades.`,
+            error: `Cada item do pedido deve ter no máximo ${LIMITE_UNIDADES_POR_ITEM} unidades.`,
         });
     }
     const { data: reserva, error: reservaError } = await supabase
@@ -642,12 +642,12 @@ exports.ordersRouter.patch("/:id/status", (0, auth_1.requireRole)("restaurante")
         return res.status(404).json({ error: "Pedido não encontrado." });
     }
     if (!canTransitionOrder(pedidoAtual.status_pedido, status_pedido)) {
-        return res.status(409).json({ error: `Transicao de ${pedidoAtual.status_pedido} para ${status_pedido} nao permitida.` });
+        return res.status(409).json({ error: `Transição de ${pedidoAtual.status_pedido} para ${status_pedido} não permitida.` });
     }
     if (status_pedido === "EM_PREPARO") {
         if (!pedidoPodeIniciarPreparo(pedidoAtual)) {
             return res.status(409).json({
-                error: "Este pedido ainda não ésta elegivel para entrar em preparo. Verifique a confirmação de presença e a data da reserva.",
+                error: "Este pedido ainda não ésta elegível para entrar em preparo. Verifique a confirmação de presença e a data da reserva.",
             });
         }
     }

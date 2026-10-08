@@ -10,7 +10,7 @@ export function validarImagemCardapio(arquivo) {
         return "Selecione uma imagem JPG, PNG ou WebP.";
     }
     if (arquivo.size > TAMANHO_MAXIMO_IMAGEM) {
-        return "A imagem deve possuir no maximo 5 MB.";
+        return "A imagem deve possuir no máximo 5 MB.";
     }
     return null;
 }

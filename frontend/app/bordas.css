@@ -1,0 +1,61 @@
+/* A camada prioriza o padrão sobre regras antigas com !important. */
+@layer app-borders {
+  html[data-tema] :is(
+    .area-cliente :is(section, article, aside, form).ring-1,
+    .area-restaurante :is(section, article, aside, form).ring-1,
+    .painel-notificacoes :is(.notificacoes-introducao, .notificacoes-resumo, .notificacoes-historico).ring-1
+  ) {
+    border: var(--app-borda-espessura) solid var(--app-borda-cor) !important;
+  }
+
+  /* Um contorno por bloco: não somar o ring à borda existente. */
+  :is(
+    .border.ring-1,
+    .area-cliente :is(section, article, aside, form).ring-1,
+    .area-restaurante :is(section, article, aside, form).ring-1,
+    .painel-notificacoes :is(.notificacoes-introducao, .notificacoes-resumo, .notificacoes-historico).ring-1
+  ):not(:focus-visible) {
+    --tw-ring-shadow: 0 0 #0000 !important;
+    --tw-ring-offset-shadow: 0 0 #0000 !important;
+  }
+
+  /* Mantém os fundos e a ausência de borda onde ela é intencional. */
+  html[data-tema="escuro"] :where(*):not(:is(
+    :focus, :focus-visible, .animate-spin, .border-transparent,
+    [aria-invalid="true"], [class*="border-red-"], [class*="border-rose-"],
+    [class*="border-app-vermelho"], .botao-acao-critica, .app-logout,
+    .produto-acao-destaque, label:has(input[type="radio"]:checked)
+  )) {
+    border-color: var(--app-borda-cor) !important;
+    --tw-ring-color: var(--app-borda-cor) !important;
+  }
+
+  html[data-tema="escuro"] :is(
+    [class*="border-red-"], [class*="border-rose-"],
+    [class*="border-app-vermelho"], .botao-acao-critica, .app-logout
+  ) {
+    border-color: color-mix(in srgb, var(--ui-perigo) 40%, transparent) !important;
+  }
+
+  html[data-tema="escuro"] :is(input, textarea, select):focus:not([aria-invalid="true"]) {
+    border-color: var(--ui-acento) !important;
+  }
+
+  /* Botões e links de ação sem bordas, em ambos os temas e estados. */
+  html[data-tema] :is(
+    button, [role="button"], input[type="button"], input[type="submit"], input[type="reset"],
+    a.app-button-primary, a.app-button-secondary, a.app-icon-button,
+    a[class*="bg-app-"], a[class*="border-app"], a.agenda-view-tab
+  ):not(.public-restaurant-card) {
+    border: 0 !important;
+  }
+
+  html[data-tema] :is(
+    button, [role="button"], input[type="button"], input[type="submit"], input[type="reset"],
+    a.app-button-primary, a.app-button-secondary, a.app-icon-button,
+    a[class*="bg-app-"], a[class*="border-app"], a.agenda-view-tab
+  ):not(.public-restaurant-card):not(:focus-visible) {
+    --tw-ring-shadow: 0 0 #0000 !important;
+    --tw-ring-offset-shadow: 0 0 #0000 !important;
+  }
+}

@@ -405,7 +405,7 @@ export default function PaginaRestaurante({ params }) {
           <div className="grid lg:grid-cols-[0.72fr_1fr]">
             <div className="relative flex min-h-56 items-center justify-center bg-white p-5 sm:min-h-72 lg:min-h-[360px]">
               {restaurante.logo_url ? (
-                <div className="logo-restaurante-circular relative h-48 w-48 overflow-hidden rounded-full bg-white ring-2 ring-app-baunilha-dourada/70 sm:h-64 sm:w-64 lg:h-72 lg:w-72">
+                <div className="logo-restaurante-circular relative h-48 w-48 overflow-hidden rounded-full bg-white ring-1 ring-app-baunilha-dourada/70 sm:h-64 sm:w-64 lg:h-72 lg:w-72">
                   <Image src={restaurante.logo_url} alt={restaurante.nome} fill priority sizes="(max-width: 639px) 192px, (max-width: 1023px) 256px, 288px" className="object-cover" />
                 </div>
               ) : (
@@ -452,7 +452,7 @@ export default function PaginaRestaurante({ params }) {
                 <p className="mt-3 max-w-xl break-words text-sm leading-6 text-app-mocha">{resumirEndereco(restaurante.endereco)}</p>
                 <div className="mt-4 flex flex-wrap gap-2">
                   <span className={`rounded-full px-3 py-1 text-xs font-bold ${operacaoConfigurada ? "bg-app-cafe-profundo text-app-creme-leve" : "bg-white text-app-caramelo-torrado"}`}>
-                    {ui(operacaoConfigurada ? "Reservas disponíveis" : "Operação em configuracao")}
+                    {ui(operacaoConfigurada ? "Reservas disponíveis" : "Operação em configuração")}
                   </span>
                   {totalAvaliacoes > 0 ? (
                     <span className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-xs font-bold text-app-mocha">
@@ -482,7 +482,7 @@ export default function PaginaRestaurante({ params }) {
             {false && <section className="rounded-[18px] bg-white p-5 shadow-sm ring-1 ring-app-baunilha-dourada sm:p-6">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{ui("Avaliacoes")}</p>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{ui("Avaliações")}</p>
                   <h2 className="mt-1 text-2xl font-bold">{ui("Experiencias de clientes")}</h2>
                 </div>
                 <div className="flex w-fit items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-bold text-app-cafe-profundo ring-1 ring-app-baunilha-dourada/60">
@@ -587,7 +587,7 @@ export default function PaginaRestaurante({ params }) {
                           </div>
                           {quantidade > 0 ? (
                             <label className="grid gap-2 md:col-span-2 xl:col-span-3">
-                              <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-app-cinza">{ui("Observacao deste item")}</span>
+                              <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-app-cinza">{ui("Observação deste item")}</span>
                               <input value={observacoesItens[produto.id_produto] ?? ""} onChange={(evento) => alterarObservacaoItem(produto.id_produto, evento.target.value)} placeholder={ui("Ex: sem cebola, molho separado, ponto da carne...")} className="h-10 rounded-[8px] border border-app-baunilha-dourada bg-white px-3 text-sm text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado" />
                               <span className="text-[11px] text-app-cinza">{ui("Limite de ")}{LIMITE_UNIDADES_POR_ITEM}{ui(" unidades por item.")}</span>
                             </label>
@@ -636,7 +636,7 @@ export default function PaginaRestaurante({ params }) {
                 </label>
                 <label className="grid gap-1 text-xs font-bold uppercase text-app-cinza sm:col-span-2">{ui("Pessoas")}<input type="number" min={1} max={30} value={pessoas} onChange={(evento) => setPessoas(Math.max(1, Number(evento.target.value) || 1))} className="h-11 rounded-[10px] border border-app-baunilha-dourada bg-white px-3 text-sm font-normal normal-case text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20" />
                 </label>
-                <label className="grid gap-1 text-xs font-bold uppercase text-app-cinza sm:col-span-2">{ui("Observacoes da reserva")}<textarea value={observacoesReserva} onChange={(evento) => setObservacoesReserva(evento.target.value)} placeholder={ui("Ex: mesa próxima da janela, cadeira infantil...")} className="min-h-20 rounded-[10px] border border-app-baunilha-dourada bg-white p-3 text-sm font-normal normal-case text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20" />
+                <label className="grid gap-1 text-xs font-bold uppercase text-app-cinza sm:col-span-2">{ui("Observações da reserva")}<textarea value={observacoesReserva} onChange={(evento) => setObservacoesReserva(evento.target.value)} placeholder={ui("Ex: mesa próxima da janela, cadeira infantil...")} className="min-h-20 rounded-[10px] border border-app-baunilha-dourada bg-white p-3 text-sm font-normal normal-case text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20" />
                 </label>
               </div>
 
@@ -655,7 +655,7 @@ export default function PaginaRestaurante({ params }) {
               </div>
 
               {temPedidoAntecipado ? (
-                <label className="mt-5 grid gap-2 text-xs font-bold uppercase text-app-cinza">{ui("Observacoes do pedido")}<textarea value={observacoesPedido} onChange={(evento) => setObservacoesPedido(evento.target.value)} placeholder={ui("Ex: alergias, ponto da carne, retirar cebola...")} className="min-h-20 rounded-[10px] border border-app-baunilha-dourada bg-white p-3 text-sm font-normal normal-case text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20" />
+                <label className="mt-5 grid gap-2 text-xs font-bold uppercase text-app-cinza">{ui("Observações do pedido")}<textarea value={observacoesPedido} onChange={(evento) => setObservacoesPedido(evento.target.value)} placeholder={ui("Ex: alergias, ponto da carne, retirar cebola...")} className="min-h-20 rounded-[10px] border border-app-baunilha-dourada bg-white p-3 text-sm font-normal normal-case text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20" />
                 </label>
               ) : null}
 

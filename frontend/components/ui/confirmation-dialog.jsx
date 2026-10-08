@@ -68,9 +68,11 @@ export function ConfirmationDialog({
 
     if (!open) return null;
 
-    const confirmClass = variant === "danger"
+    const confirmClass = variant === "logout"
+        ? "botao-acao-critica app-logout-confirm"
+        : variant === "danger"
         ? "botao-acao-critica"
-        : "botao-confirmacao-marrom bg-app-cafe-profundo text-app-creme-leve hover:bg-app-caramelo-torrado";
+        : "app-button-primary botao-confirmacao-marrom bg-app-cafe-profundo text-app-creme-leve hover:bg-app-caramelo-torrado";
 
     return (
         <div ref={dialogRef} tabIndex={-1} className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 px-5 backdrop-blur-[3px]" role="dialog" aria-modal="true" aria-labelledby={titleId} aria-describedby={description ? descriptionId : undefined}>
@@ -92,7 +94,7 @@ export function ConfirmationDialog({
                     </div>
                 ) : null}
                 <div className="mt-6 grid gap-3 sm:grid-cols-2">
-                    <button ref={cancelRef} type="button" onClick={onCancel} disabled={loading} className="h-11 rounded-[8px] border border-app-baunilha-dourada px-4 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:bg-app-chantilly disabled:cursor-not-allowed disabled:text-app-cinza">
+                    <button ref={cancelRef} type="button" onClick={onCancel} disabled={loading} className="app-button-secondary h-11 rounded-[8px] border border-app-baunilha-dourada px-4 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:bg-app-chantilly disabled:cursor-not-allowed disabled:text-app-cinza">
                         {ui(cancelLabel)}
                     </button>
                     <button type="button" onClick={onConfirm} disabled={loading} className={`h-11 rounded-[8px] px-4 text-xs font-bold uppercase tracking-[0.12em] transition disabled:cursor-not-allowed disabled:bg-app-cinza/50 ${confirmClass}`}>
