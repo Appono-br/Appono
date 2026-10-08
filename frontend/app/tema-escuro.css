@@ -495,14 +495,7 @@ html[data-tema="escuro"] :is(div, section, article, aside, main, header, footer,
 }
 
 html[data-tema="escuro"] .auth-publica :is(.botao-criar-conta, .botao-google) {
-  background-color: var(--app-botao-primario) !important;
-  color: var(--app-botao-primario-texto) !important;
   box-shadow: 0 3px 10px rgb(0 0 0 / 22%);
-}
-
-html[data-tema="escuro"] .auth-publica :is(.botao-criar-conta, .botao-google):hover:not(:disabled) {
-  background-color: var(--app-botao-primario-hover) !important;
-  color: var(--app-botao-primario-texto) !important;
 }
 
 /* Uma cor uniforme para as ações do header em cada tema, inclusive no menu móvel. */
@@ -512,13 +505,13 @@ html[data-tema] .home-publica > header {
   --home-header-botao-texto: var(--app-botao-primario-texto);
 }
 
-html[data-tema] .home-publica > header :is(button:not(.home-search-submit), a[href="/login"]) {
+html[data-tema] .home-publica > header :is(button:not(.home-search-submit), a[href="/login"]):not(:is(.home-header-soft-action, .home-header-login-action)) {
   background-color: var(--home-header-botao-fundo) !important;
   color: var(--home-header-botao-texto) !important;
   border: 0 !important;
 }
 
-html[data-tema] .home-publica > header :is(button:not(.home-search-submit), a[href="/login"]):hover:not(:disabled) {
+html[data-tema] .home-publica > header :is(button:not(.home-search-submit), a[href="/login"]):not(:is(.home-header-soft-action, .home-header-login-action)):hover:not(:disabled) {
   background-color: var(--home-header-botao-hover) !important;
   color: var(--home-header-botao-texto) !important;
 }

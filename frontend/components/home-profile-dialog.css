@@ -1,34 +1,55 @@
-.home-profile-option {
-  border: 1px solid #b89980;
-  background-color: #f5efe7;
+.home-publica,
+.auth-publica {
+  --home-soft-fundo: #e8dbcb;
+  --home-soft-hover: #ded0bd;
+  --home-soft-texto: #4c2f20;
+  --home-login-fundo: #9b4f36;
+  --home-login-hover: #85422d;
+}
+
+html[data-tema="escuro"] :is(.home-publica, .auth-publica) {
+  --home-soft-fundo: #41342b;
+  --home-soft-hover: #514035;
+  --home-soft-texto: #f5ebdd;
+}
+
+html[data-tema] :is(.home-profile-option, .home-header-soft-action) {
+  color: var(--home-soft-texto) !important;
+}
+
+html[data-tema] .home-profile-option {
+  background-color: var(--home-soft-fundo) !important;
   box-shadow: 0 3px 8px rgb(36 23 19 / 12%);
 }
 
-.home-profile-option:hover,
-.home-profile-option:focus-visible {
-  border-color: #824427;
-  background-color: #eadcc8;
+html[data-tema] .home-header-soft-action {
+  background-color: transparent !important;
+  box-shadow: none;
+}
+
+html[data-tema] .home-profile-option:is(:hover, :focus-visible) {
+  background-color: var(--home-soft-hover) !important;
   box-shadow: 0 5px 14px rgb(36 23 19 / 18%);
 }
 
-.home-profile-option:focus-visible {
-  outline: 2px solid #824427;
+html[data-tema] :is(.home-profile-option, .home-header-soft-action, .home-header-login-action):focus-visible {
+  outline: 2px solid var(--ui-acento, #824427);
   outline-offset: 3px;
 }
 
 html[data-tema="escuro"] .home-profile-option {
-  border-color: #b89980;
-  background-color: #35261e;
   box-shadow: 0 3px 10px rgb(0 0 0 / 25%);
 }
 
-html[data-tema="escuro"] .home-profile-option:hover,
-html[data-tema="escuro"] .home-profile-option:focus-visible {
-  border-color: #eadcc8;
-  background-color: #483526;
+html[data-tema="escuro"] .home-profile-option:is(:hover, :focus-visible) {
   box-shadow: 0 5px 16px rgb(0 0 0 / 35%);
 }
 
-html[data-tema="escuro"] .home-profile-option:focus-visible {
-  outline-color: #eadcc8;
+html[data-tema] .home-header-login-action {
+  background-color: var(--home-login-fundo) !important;
+  color: var(--app-botao-primario-texto) !important;
+}
+
+html[data-tema] .home-header-login-action:hover {
+  background-color: var(--home-login-hover) !important;
 }

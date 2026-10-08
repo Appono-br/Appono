@@ -46,7 +46,16 @@
     button, [role="button"], input[type="button"], input[type="submit"], input[type="reset"],
     a.app-button-primary, a.app-button-secondary, a.app-icon-button,
     a[class*="bg-app-"], a[class*="border-app"], a.agenda-view-tab
-  ):not(.public-restaurant-card) {
+  ):not(:is(.public-restaurant-card, .home-header-soft-action)) {
+    border: 0 !important;
+  }
+
+  /* Idioma e criação de conta na home usam apenas o contorno solicitado. */
+  html[data-tema] .home-header-soft-action {
+    border: var(--app-borda-espessura) solid var(--app-borda-cor) !important;
+  }
+
+  html[data-tema] .home-profile-option {
     border: 0 !important;
   }
 

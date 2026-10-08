@@ -1,8 +1,9 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
-import { Languages, Moon, SunMedium } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Languages, SunMedium } from "lucide-react";
+import { MoonIcon } from "@/components/icons/moon-icon";
 import { HomeCarousel } from "@/components/home-carousel";
 import { HomeSections } from "@/components/home-sections";
 import { useIdiomaLocal } from "@/lib/use-idioma-local";
@@ -31,7 +32,18 @@ export default function HomePage() {
   const [profileDialog, setProfileDialog] = useState(null);
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const headerRef = useRef(null);
   const idiomaDeDestino = idioma === "en" ? "Português" : "English";
+
+  useEffect(() => {
+    const header = headerRef.current;
+    if (!header) return;
+    const updateHeight = () => header.parentElement.style.setProperty("--home-header-height", `${header.getBoundingClientRect().height}px`);
+    updateHeight();
+    const observer = new ResizeObserver(updateHeight);
+    observer.observe(header);
+    return () => observer.disconnect();
+  }, []);
 
   function closeMenu() {
     setMenuOpen(false);
@@ -51,9 +63,9 @@ export default function HomePage() {
 
   return (
     <main className={`home-publica min-h-screen bg-white text-app-texto-escuro ${tema === "escuro" ? "tema-escuro" : ""}`}>
-      <header className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-white/95 backdrop-blur">
-  <div className="mx-auto flex min-h-20 max-w-7xl items-center justify-between gap-2 px-3 py-2 sm:px-6 lg:grid lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
-    <div className="home-header-brand-search flex min-w-0 items-center gap-6">
+      <header ref={headerRef} className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-white/95 backdrop-blur">
+  <div className="home-header-row mx-auto flex min-h-20 max-w-7xl items-center justify-between gap-2 px-3 py-2 sm:px-6 lg:grid lg:grid-cols-[minmax(0,1fr)_auto_auto]">
+    <div className="home-header-brand-search flex min-w-0 items-center gap-3">
       <Link href="/" className="flex shrink-0 items-center" onClick={closeMenu}>
         <Image
           src="/brand/appono-mark.svg"
@@ -79,7 +91,7 @@ export default function HomePage() {
         <button
           type="button"
           onClick={alternarIdioma}
-          className="home-header-action flex h-10 min-w-[96px] shrink-0 items-center justify-center whitespace-nowrap rounded-full border-0 bg-app-caramelo-torrado px-3 text-xs font-bold text-white transition hover:bg-app-cafe-profundo"
+          className="home-header-action home-header-soft-action flex h-10 min-w-[96px] shrink-0 items-center justify-center whitespace-nowrap rounded-full px-3 text-xs font-bold transition"
           aria-label={idioma === "en" ? "Switch to Portuguese" : "Mudar para inglês"}
           title={idioma === "en" ? "Switch to Portuguese" : "Mudar para inglês"}
           data-appono-sem-traducao
@@ -93,7 +105,7 @@ export default function HomePage() {
         <button
           type="button"
           onClick={() => setProfileDialog("cadastro")}
-          className="home-header-action whitespace-nowrap rounded-full border-0 bg-app-caramelo-torrado px-6 py-2.5 text-sm font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-app-cafe-profundo hover:shadow-sm"
+          className="home-header-action home-header-soft-action whitespace-nowrap rounded-full px-6 py-2.5 text-sm font-semibold transition-all duration-300 hover:-translate-y-0.5 hover:shadow-sm"
         >
           Criar conta
         </button>
@@ -102,7 +114,7 @@ export default function HomePage() {
           onClick={() => {
             window.location.href = "/login";
           }}
-          className="home-header-action whitespace-nowrap rounded-full border-0 bg-app-caramelo-torrado px-6 py-2.5 text-sm font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-app-cafe-profundo hover:shadow-sm"
+          className="home-header-action home-header-login-action whitespace-nowrap rounded-full px-6 py-2.5 text-sm font-semibold transition-all duration-300 hover:-translate-y-0.5 hover:shadow-sm"
         >
           Entrar
         </button>
@@ -136,11 +148,11 @@ export default function HomePage() {
             closeMenu();
             setProfileDialog("cadastro");
           }}
-          className="home-header-action mt-2 rounded-full bg-app-caramelo-torrado px-5 py-3 text-left font-semibold text-white"
+          className="home-header-action home-header-soft-action mt-2 rounded-full px-5 py-3 text-left font-semibold"
         >
           Criar conta
         </button>
-        <Link href="/login" onClick={closeMenu} className="home-header-action mt-2 rounded-full border-0 bg-app-caramelo-torrado px-5 py-3 text-left font-semibold text-white">
+        <Link href="/login" onClick={closeMenu} className="home-header-action home-header-login-action mt-2 rounded-full px-5 py-3 text-left font-semibold">
           Entrar
         </Link>
       </nav>
@@ -159,7 +171,7 @@ export default function HomePage() {
           {tema === "escuro" ? (
             <SunMedium aria-hidden="true" className="h-6 w-6" strokeWidth={1.8} />
           ) : (
-            <Moon aria-hidden="true" className="h-6 w-6" fill="currentColor" strokeWidth={1.5} />
+            <MoonIcon aria-hidden="true" className="h-6 w-6" />
           )}
         </button>
 

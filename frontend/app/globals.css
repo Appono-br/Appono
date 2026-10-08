@@ -43,7 +43,7 @@ html[data-tema] :is(
   .auth-publica :is(button, a)[class*="bg-app-cafe-profundo"],
   :is(button, a, [role="button"]):is(.app-button-primary, .bg-app-primaria, .bg-app-caramelo-torrado, .bg-app-dourado-mel, .bg-app-cafe-profundo, .bg-app-baunilha-dourada, .bg-app-botao-aba-ativa):not(:is(.produto-cardapio-acoes *, .agenda-calendar-day, .app-logout, .botao-acao-critica, [class*="vermelho-erro"], [class*="text-red-"], [class*="text-rose-"])),
   button.botao-confirmacao-marrom
-):not(.app-button-secondary) {
+):not(:is(.app-button-secondary, .home-profile-option, .home-header-soft-action, .home-header-login-action)) {
   background-color: var(--app-botao-marrom) !important;
   border-color: var(--app-botao-primario-borda) !important;
   color: var(--app-botao-primario-texto) !important;
@@ -62,7 +62,7 @@ html[data-tema] :is(
   .auth-publica :is(button, a)[class*="bg-app-cafe-profundo"],
   :is(button, a, [role="button"]):is(.app-button-primary, .bg-app-primaria, .bg-app-caramelo-torrado, .bg-app-dourado-mel, .bg-app-cafe-profundo, .bg-app-baunilha-dourada, .bg-app-botao-aba-ativa):not(:is(.produto-cardapio-acoes *, .agenda-calendar-day, .app-logout, .botao-acao-critica, [class*="vermelho-erro"], [class*="text-red-"], [class*="text-rose-"])),
   button.botao-confirmacao-marrom
-):not(.app-button-secondary):hover:not(:disabled) {
+):not(:is(.app-button-secondary, .home-profile-option, .home-header-soft-action, .home-header-login-action)):hover:not(:disabled) {
   background-color: var(--app-botao-marrom-hover) !important;
   border-color: var(--app-botao-primario-borda) !important;
   color: var(--app-botao-primario-texto) !important;
@@ -108,10 +108,41 @@ html[data-tema="escuro"] .resultado-busca-restaurante:focus-visible {
 }
 
 .home-carousel {
-  height: min(560px, calc(100svh - var(--home-header-height, 80px)));
+  height: calc(100svh - var(--home-header-height, 80px));
+  min-height: 420px;
   background: #241713;
   touch-action: pan-y;
-  scroll-margin-top: 80px;
+  scroll-margin-top: var(--home-header-height, 80px);
+}
+.home-carousel .home-carousel-slide > img {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+  object-position: center;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .home-publica .home-header-row {
+    animation: home-header-enter 600ms ease-out both;
+  }
+  .home-carousel .home-carousel-slide:first-child > img {
+    animation: home-hero-image-enter 1400ms ease-out both;
+  }
+  .home-carousel .home-carousel-slide:first-child .home-carousel-content > div {
+    animation: home-hero-copy-enter 850ms 100ms ease-out both;
+  }
+}
+@keyframes home-header-enter {
+  from { opacity: 0.75; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes home-hero-image-enter {
+  from { transform: scale(1.025); }
+  to { transform: scale(1); }
+}
+@keyframes home-hero-copy-enter {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 .home-carousel-shade {
   background: linear-gradient(90deg, rgb(15 11 9 / 88%), rgb(15 11 9 / 55%) 55%, rgb(15 11 9 / 22%)),
