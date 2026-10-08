@@ -56,7 +56,7 @@ async function resolverComissaoDoRestaurante(idRestaurante) {
   if (assinaturaProfissionalAtiva(assinatura)) {
     return { codigo_plano: "PROFISSIONAL", percentual_comissao: Number(assinatura.percentual_comissao ?? 3) };
   }
-  return { codigo_plano: "INICIAL", percentual_comissao: Number(assinatura?.percentual_comissao ?? 8) };
+  return { codigo_plano: "INICIAL", percentual_comissao: PLANOS.INICIAL.percentual_comissao };
 }
 
 module.exports = { PLANOS, planoValido, garantirAssinaturaInicial, obterAssinaturaRestaurante, assinaturaProfissionalAtiva, exigirPlanoProfissional, resolverComissaoDoRestaurante };

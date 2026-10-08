@@ -81,6 +81,33 @@ plansRouter.get("/assinatura", async (req, res) => {
       assinatura = await obterAssinaturaRestaurante(restaurante.id_restaurante);
     }
     let sincronizacaoPendente = false;
+    if (assinatura?.codigo_plano === "PROFISSIONAL" && assinatura.status !== "ATIVA") {
+      const { data: cobrancaAprovada, error: cobrancaAprovadaError } = await supabaseAdmin
+        .from("cobrancas_assinatura_restaurante")
+        .select("valor,pago_em,criado_em")
+        .eq("id_assinatura", assinatura.id_assinatura)
+        .eq("status", "APROVADA")
+        .eq("valor", assinatura.mensalidade)
+        .order("pago_em", { ascending: false, nullsFirst: false })
+        .limit(1)
+        .maybeSingle();
+      if (cobrancaAprovadaError) throw new Error(cobrancaAprovadaError.message);
+      if (cobrancaAprovada) {
+        const inicio = cobrancaAprovada.pago_em ?? cobrancaAprovada.criado_em ?? new Date().toISOString();
+        const fim = new Date(inicio);
+        fim.setUTCMonth(fim.getUTCMonth() + 1);
+        const { data: assinaturaLocal, error: assinaturaLocalError } = await supabaseAdmin
+          .from("assinaturas_restaurante")
+          .update({ status: "ATIVA", periodo_inicio_em: inicio, periodo_fim_em: fim.toISOString() })
+          .eq("id_assinatura", assinatura.id_assinatura)
+          .select("*")
+          .single();
+        if (assinaturaLocalError) throw new Error(assinaturaLocalError.message);
+        const { error: restauranteAtivoError } = await supabaseAdmin.from("restaurantes").update({ ativo: true }).eq("id_restaurante", restaurante.id_restaurante);
+        if (restauranteAtivoError) throw new Error(restauranteAtivoError.message);
+        assinatura = assinaturaLocal;
+      }
+    }
     if (assinatura?.codigo_plano === "PROFISSIONAL" && obterAccessTokenMercadoPago()) {
       try {
         const { data: tentativasCheckout, error: tentativasError } = await supabaseAdmin.from("cobrancas_assinatura_restaurante")
@@ -104,7 +131,7 @@ plansRouter.get("/assinatura", async (req, res) => {
           .filter((item) => {
             const planoId = String(item.preapproval_plan_id ?? "");
             const collectorEsperado = assinaturaPorPlano.get(planoId) || String(contaMercadoPago?.id ?? "");
-            return planoIds.has(planoId) && String(item.collector_id ?? "") === collectorEsperado && (assinatura.mercadopago_preapproval_id ? String(item.id) === String(assinatura.mercadopago_preapproval_id) : ["authorized", "active"].includes(String(item.status ?? "").toLowerCase()));
+            return planoIds.has(planoId) && (!item.collector_id || String(item.collector_id) === collectorEsperado) && (assinatura.mercadopago_preapproval_id ? String(item.id) === String(assinatura.mercadopago_preapproval_id) : !["cancelled", "canceled"].includes(String(item.status ?? "").toLowerCase()));
           })
           .sort((a, b) => new Date(b.last_modified ?? b.date_created ?? 0) - new Date(a.last_modified ?? a.date_created ?? 0))[0];
         if (aprovada) assinatura = await aplicarEstadoAssinaturaMercadoPago(assinatura, aprovada);

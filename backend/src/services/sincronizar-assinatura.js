@@ -6,7 +6,7 @@ const { buscarFaturasAssinaturaMercadoPago, consultarPagamentoMercadoPago, consu
 // Reconsultar o provedor torna notificacoes repetidas ou fora de ordem seguras.
 async function aplicarEstadoAssinaturaMercadoPago(assinatura, mp) {
   const conta = await consultarContaMercadoPago();
-  if (String(mp.collector_id) !== String(conta.id)) throw new Error("Vendedor da assinatura divergente.");
+  if (mp.collector_id != null && String(mp.collector_id) !== String(conta.id)) throw new Error("Vendedor da assinatura divergente.");
   if (assinatura.mercadopago_preapproval_id && String(assinatura.mercadopago_preapproval_id) !== String(mp.id)) {
     throw new Error("Evento pertence a outra assinatura do restaurante.");
   }
@@ -20,10 +20,12 @@ async function aplicarEstadoAssinaturaMercadoPago(assinatura, mp) {
   }
   const pagamentos = [];
   for (const fatura of faturas) {
-    if (String(fatura.preapproval_id) !== String(mp.id) || !fatura.payment?.id) continue;
-    const p = await consultarPagamentoMercadoPago(fatura.payment.id);
+    const paymentId = fatura.payment?.id ?? fatura.payment_id ?? (typeof fatura.payment === "string" ? fatura.payment : null);
+    if (fatura.preapproval_id && String(fatura.preapproval_id) !== String(mp.id)) continue;
+    if (!paymentId) continue;
+    const p = await consultarPagamentoMercadoPago(paymentId);
     if (!p) throw new Error("Nao foi possivel consultar o pagamento da assinatura.");
-    if (String(p.collector_id) !== String(conta.id) || p.currency_id !== "BRL" || Number(p.transaction_amount) !== Number(assinatura.mensalidade)) {
+    if ((p.collector_id != null && String(p.collector_id) !== String(conta.id)) || p.currency_id !== "BRL" || Number(p.transaction_amount) !== Number(assinatura.mensalidade)) {
       throw new Error("Pagamento da assinatura com vendedor, moeda ou valor divergente.");
     }
     pagamentos.push(p);
