@@ -734,7 +734,7 @@ exports.paymentsRouter.post(["/pedido/:id/preferência", "/reserva/:id/preferên
         if (urlPermiteRetornoAutomatico(backendPublicUrl)) {
             body.notification_url = `${backendPublicUrl}/api/pagamentos/webhook/mercado-pago`;
         }
-        const clientePreferência = (0, mercado_pago_1.criarPreferênciaMercadoPago)(token);
+        const clientePreferência = (0, mercado_pago_1.criarPreferenciaMercadoPago)(token);
         if (!clientePreferência) {
             return res.status(409).json({
                 error: "Não foi possível inicializar o SDK do Mercado Pago.",
@@ -826,10 +826,10 @@ exports.paymentsRouter.get("/pedido/:id/status", async (req, res) => {
         }
         if (!pagamentoMercadoPago?.status) {
             if (pagamentoExistente?.mercado_pago_preference_id) {
-                pagamentoMercadoPago = await (0, mercado_pago_1.consultarPagamentoPorPreferênciaMercadoPago)(pagamentoExistente.mercado_pago_preference_id, tokenPedido ?? undefined);
+                pagamentoMercadoPago = await (0, mercado_pago_1.consultarPagamentoPorPreferenciaMercadoPago)(pagamentoExistente.mercado_pago_preference_id, tokenPedido ?? undefined);
             }
             if (!pagamentoMercadoPago?.status && pagamentoExistente?.mercado_pago_preference_id && tokenPedido) {
-                pagamentoMercadoPago = await (0, mercado_pago_1.consultarPagamentoPorPreferênciaMercadoPago)(pagamentoExistente.mercado_pago_preference_id);
+                pagamentoMercadoPago = await (0, mercado_pago_1.consultarPagamentoPorPreferenciaMercadoPago)(pagamentoExistente.mercado_pago_preference_id);
             }
         }
         if (!pagamentoMercadoPago?.status &&

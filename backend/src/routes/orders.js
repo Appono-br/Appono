@@ -144,10 +144,10 @@ async function conciliarPedidosPendentes(pedidos) {
                 .eq("referencia_externa", referencia)
                 .maybeSingle();
             if (pagamentoLocal?.mercado_pago_preference_id) {
-                pagamentoMercadoPago = await (0, mercado_pago_1.consultarPagamentoPorPreferênciaMercadoPago)(pagamentoLocal.mercado_pago_preference_id, tokenPagamento ?? undefined);
+                pagamentoMercadoPago = await (0, mercado_pago_1.consultarPagamentoPorPreferenciaMercadoPago)(pagamentoLocal.mercado_pago_preference_id, tokenPagamento ?? undefined);
             }
             if (!pagamentoMercadoPago?.status && pagamentoLocal?.mercado_pago_preference_id && tokenPagamento) {
-                pagamentoMercadoPago = await (0, mercado_pago_1.consultarPagamentoPorPreferênciaMercadoPago)(pagamentoLocal.mercado_pago_preference_id);
+                pagamentoMercadoPago = await (0, mercado_pago_1.consultarPagamentoPorPreferenciaMercadoPago)(pagamentoLocal.mercado_pago_preference_id);
             }
         }
         if (!pagamentoMercadoPago?.status) {

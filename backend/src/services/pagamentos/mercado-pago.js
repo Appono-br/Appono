@@ -32,7 +32,7 @@ function criarClienteMercadoPago(accessToken = obterAccessTokenMercadoPago()) {
     return new MercadoPagoConfig({ accessToken });
 }
 
-function criarPreferÃªnciaMercadoPago(accessToken) {
+function criarPreferenciaMercadoPago(accessToken) {
     const cliente = criarClienteMercadoPago(accessToken);
     return cliente ? new Preference(cliente) : null;
 }
@@ -132,7 +132,7 @@ async function consultarPagamentoPorOrdemMercadoPago(merchantOrderId, accessToke
     return pagamentoDaOrdemMercadoPago(ordem);
 }
 
-async function consultarPagamentoPorPreferÃªnciaMercadoPago(preferenceId, accessToken = obterAccessTokenMercadoPago()) {
+async function consultarPagamentoPorPreferenciaMercadoPago(preferenceId, accessToken = obterAccessTokenMercadoPago()) {
     const token = accessToken?.trim?.() ?? "";
     if (!token || !preferenceId) {
         return null;
@@ -260,11 +260,11 @@ module.exports = {
     buscarFaturasAssinaturaMercadoPago,
     consultarPagamentoMercadoPago,
     consultarPagamentoPorOrdemMercadoPago,
-    consultarPagamentoPorPreferÃªnciaMercadoPago,
+    consultarPagamentoPorPreferenciaMercadoPago,
     consultarPagamentoPorReferenciaMercadoPago,
     criarClienteMercadoPago,
     criarPagamentoMercadoPago,
-    criarPreferÃªnciaMercadoPago,
+    criarPreferenciaMercadoPago,
     estornarPagamentoMercadoPago,
     mapearStatusMercadoPago,
     obterAccessTokenMercadoPago,
