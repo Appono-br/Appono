@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 
 import { FormInput } from "@/components/ui/form-input";
+import { mensagemValidacao, useToast } from "@/components/ui/toast-provider";
 import { apiRequest } from "@/lib/api";
 import {
   clearAuthResponse,
@@ -66,6 +67,7 @@ function obterUrlCallbackAutenticacao() {
 }
 
 export function LoginForm() {
+  const toast = useToast();
   const [showPassword, setShowPassword] = useState(false);
   const [remember, setRemember] = useState(false);
   const [registerDialog, setRegisterDialog] = useState(false);
@@ -132,12 +134,17 @@ export function LoginForm() {
       );
       window.location.assign(destino ?? getDashboardPath(auth.tipo));
     } catch (error) {
+      toast.erro(error instanceof Error ? error.message : "Não foi possível entrar. Tente novamente.");
       setMessage(
         error instanceof Error
           ? error.message
           : "Não foi possível entrar. Tente novamente."
       );
     }
+  }
+
+  function onInvalid(erros) {
+    toast.aviso(mensagemValidacao(erros, "Informe seu e-mail e sua senha para entrar."));
   }
 
   async function onSubmitRecovery(data) {
@@ -154,7 +161,9 @@ export function LoginForm() {
         text: "Enviamos um link para redefinir sua senha. Confira sua caixa de entrada e spam.",
         success: true,
       });
+      toast.sucesso("Enviamos um link para redefinir sua senha. Confira sua caixa de entrada e spam.");
     } catch {
+      toast.erro("Não foi possível enviar o link agora. Verifique sua conexão e tente novamente.");
       setRecoveryMessage({
         text: "Não foi possível enviar o link agora. Verifique sua conexão e tente novamente.",
         success: false,
@@ -184,6 +193,7 @@ export function LoginForm() {
       if (error) throw error;
     } catch (error) {
       setIsGoogleSubmitting(false);
+      toast.erro(error instanceof Error ? error.message : "Não foi possível iniciar o login com Google.");
       setMessage(
         error instanceof Error
           ? error.message
@@ -231,7 +241,7 @@ export function LoginForm() {
             </div>
 
             {/* Formulário de Login */}
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
+            <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-4" noValidate>
               <FormInput
                 label="Endereço de e-mail"
                 type="email"
@@ -294,14 +304,11 @@ export function LoginForm() {
                 </button>
               </div>
 
-              {(message ||
-                (typeof window !== "undefined" &&
-                  new URLSearchParams(window.location.search).get("cadastro") ===
-                    "existente")) && (
+              {typeof window !== "undefined" && new URLSearchParams(window.location.search).get("cadastro") === "existente" && (
                 <div className="flex items-center gap-2 rounded-xl bg-amber-50 border border-amber-200/60 p-3 text-xs font-semibold text-amber-800">
                   <AlertCircle className="h-4 w-4 shrink-0 text-amber-600" />
                   <span>
-                    {message ||
+                    {
                       "Esta conta já existe. Entre com seu e-mail e senha para continuar."}
                   </span>
                 </div>
@@ -483,7 +490,7 @@ export function LoginForm() {
               Informe o e-mail cadastrado. A Appono enviará um link seguro para você criar uma nova senha.
             </p>
 
-            <form onSubmit={handleSubmitRecovery(onSubmitRecovery)} className="space-y-4" noValidate>
+            <form onSubmit={handleSubmitRecovery(onSubmitRecovery, onInvalid)} className="space-y-4" noValidate>
               <FormInput
                 label="E-mail da conta"
                 type="email"
@@ -493,23 +500,6 @@ export function LoginForm() {
                 error={recoveryErrors.recoveryEmail}
                 {...registerRecovery("recoveryEmail")}
               />
-
-              {recoveryMessage.text && (
-                <div
-                  className={`flex items-start gap-2 rounded-xl p-3 text-xs font-medium ${
-                    recoveryMessage.success
-                      ? "bg-emerald-50 border border-emerald-200/60 text-emerald-800"
-                      : "bg-amber-50 border border-amber-200/60 text-amber-800"
-                  }`}
-                >
-                  {recoveryMessage.success ? (
-                    <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600 mt-0.5" />
-                  ) : (
-                    <AlertCircle className="h-4 w-4 shrink-0 text-amber-600 mt-0.5" />
-                  )}
-                  <span>{recoveryMessage.text}</span>
-                </div>
-              )}
 
               <div className="grid gap-3 sm:grid-cols-2">
                 <button

@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState } from "react";
 import { apiRequest } from "@/lib/api";
 import { textoStatusReembolso } from "@/lib/formatadores-status";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
+import { useToast } from "@/components/ui/toast-provider";
 
 const moeda = (valor) => new Intl.NumberFormat("pt-BR", {
     style: "currency",
@@ -14,6 +15,7 @@ const moeda = (valor) => new Intl.NumberFormat("pt-BR", {
 
 export function PainelAnaliseReembolsos({ perfil }) {
     const { ui } = useInterface();
+    const toast = useToast();
     const [items, setItems] = useState([]);
     const [erro, setErro] = useState("");
     const [carregando, setCarregando] = useState(true);
@@ -28,11 +30,12 @@ export function PainelAnaliseReembolsos({ perfil }) {
             const response = await apiRequest(endpoint);
             setItems(response.items ?? []);
         } catch (error) {
+            toast.erro(error instanceof Error ? error.message : "Não foi possível carregar os reembolsos.");
             setErro(error instanceof Error ? error.message : "Não foi possível carregar os reembolsos.");
         } finally {
             setCarregando(false);
         }
-    }, [endpoint]);
+    }, [endpoint, toast]);
 
     useEffect(() => {
         const controller = new AbortController();
@@ -40,13 +43,14 @@ export function PainelAnaliseReembolsos({ perfil }) {
             .then((response) => setItems(response.items ?? []))
             .catch((error) => {
                 if (error?.name !== "AbortError") {
+                    toast.erro(error instanceof Error ? error.message : "Não foi possível carregar os reembolsos.");
                     setErro(error instanceof Error ? error.message : "Não foi possível carregar os reembolsos.");
                 }
             })
             .finally(() => setCarregando(false));
 
         return () => controller.abort();
-    }, [endpoint]);
+    }, [endpoint, toast]);
 
     async function analisar(item, decisao) {
         let resposta = "";
@@ -65,7 +69,9 @@ export function PainelAnaliseReembolsos({ perfil }) {
             });
             setReembolsoParaAprovar(null);
             await carregar();
+            toast.sucesso(decisao === "APROVAR" ? "Reembolso aprovado." : "Reembolso recusado.");
         } catch (error) {
+            toast.erro(error instanceof Error ? error.message : "Não foi possível analisar o reembolso.");
             setErro(error instanceof Error ? error.message : "Não foi possível analisar o reembolso.");
         } finally {
             setProcessando(null);
@@ -82,12 +88,6 @@ export function PainelAnaliseReembolsos({ perfil }) {
                     <h1 className="mt-2 text-3xl font-semibold">{ui("Solicitações de reembolso")}</h1>
                     <p className="mt-3 max-w-3xl text-sm text-app-creme-suave">{ui("Analise os pedidos solicitados pelos clientes. Ao aprovar, a Appono marca o pagamento como estornado e remove o valor dos repasses e metricas financeiras.")}</p>
                 </header>
-
-                {erro ? (
-                    <p role="alert" className="mt-5 rounded-[10px] bg-red-50 p-4 text-sm font-semibold text-red-800 ring-1 ring-red-200">
-                        {ui(erro)}
-                    </p>
-                ) : null}
 
                 {carregando ? <div className="mt-6 h-48 animate-pulse rounded-[14px] bg-app-creme-leve" /> : null}
 

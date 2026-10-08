@@ -9,6 +9,7 @@ import { useEffect, useMemo, useState } from "react";
 import { BotaoVoltar } from "@/components/botao-voltar";
 import { apiRequest } from "@/lib/api";
 import { useTextoTraduzido } from "@/lib/use-traducao";
+import { useToast } from "@/components/ui/toast-provider";
 
 const LIMITE_UNIDADES_POR_ITEM = 10;
 
@@ -131,6 +132,7 @@ function SecaoAvaliacoes({ totalAvaliacoes, avaliacaoMedia, avaliacoesRecentes, 
 }
 
 export default function PaginaRestaurante({ params }) {
+  const toast = useToast();
     const { ui, localeUI, horarioUI } = useInterface();
   const searchParams = useSearchParams();
   const campanhaDaVitrine = Number(searchParams.get("campanha"));
@@ -170,8 +172,8 @@ export default function PaginaRestaurante({ params }) {
         setCampanhas(dadosCampanhas?.campanhas ?? []);
         setMensagem("");
       })
-      .catch((erro) => setMensagem(erro instanceof Error ? erro.message : "Não foi possível carregar o restaurante."));
-  }, [restauranteId]);
+      .catch((erro) => { const mensagemErro = erro instanceof Error ? erro.message : "Não foi possível carregar o restaurante."; setMensagem(mensagemErro); toast.erro(mensagemErro); });
+  }, [restauranteId, toast]);
 
   const precoReserva = Number(restaurante?.valor_minimo_reserva_por_pessoa ?? 0);
   const valorMinimoTotal = precoReserva;
@@ -211,6 +213,8 @@ export default function PaginaRestaurante({ params }) {
   const produtoComDesconto = (produto) => campanhaSelecionada?.tipo_beneficio === "DESCONTO_PERCENTUAL" && (!idsProdutosElegiveis.size || idsProdutosElegiveis.has(Number(produto.id_produto)));
   const precoExibidoProduto = (produto) => produtoComDesconto(produto) ? Number(produto.preco ?? 0) * (1 - Number(campanhaSelecionada.valor_beneficio ?? 0) / 100) : Number(produto.preco ?? 0);
   const temPedidoAntecipado = totalItens > 0;
+  const valorReservaCobrado = temPedidoAntecipado ? 0 : valorMinimoTotal;
+  const totalAPagar = Math.max(0, totalPedido - descontoCampanha) + valorReservaCobrado;
   const chaveDisponibilidade = `${restauranteId}:${data}:${pessoas}`;
   const carregandoHorarios = disponibilidade.chave !== chaveDisponibilidade;
   const horariosComStatus = carregandoHorarios ? [] : disponibilidade.horarios ?? [];
@@ -260,6 +264,7 @@ export default function PaginaRestaurante({ params }) {
   function alterarQuantidade(produtoId, diferenca) {
     if (diferenca > 0 && !restaurante?.pedidos_antecipados_habilitados) {
       setMensagem("Este restaurante ainda não hábilitou pedidos antecipados pelo Mercado Pago. A reserva simples continua disponível.");
+      toast.aviso("Este restaurante ainda não habilitou pedidos antecipados. A reserva simples continua disponível.");
       return;
     }
     setMensagem("");
@@ -291,6 +296,7 @@ export default function PaginaRestaurante({ params }) {
       setRestaurante((atual) => ({ ...atual, ...resposta }));
     } catch (erro) {
       setMensagem(erro instanceof Error ? erro.message : "Não foi possível atualizar o favorito.");
+      toast.erro(erro instanceof Error ? erro.message : "Não foi possível atualizar o favorito.");
     } finally {
       setFavoritando(false);
     }
@@ -311,6 +317,7 @@ export default function PaginaRestaurante({ params }) {
       window.location.assign(`/cliente/mensagens/${conversa.id_conversa}`);
     } catch (erro) {
       setMensagem(erro instanceof Error ? erro.message : "Não foi possível iniciar o chat.");
+      toast.erro(erro instanceof Error ? erro.message : "Não foi possível iniciar o chat.");
     } finally {
       setAbrindoChat(false);
     }
@@ -322,10 +329,12 @@ export default function PaginaRestaurante({ params }) {
     if (carregandoHorarios) return;
     if (!operacaoConfigurada) {
       setMensagem("Este restaurante ainda não configurou horários de funcionamento para receber reservas.");
+      toast.aviso("Este restaurante ainda não configurou horários para receber reservas.");
       return;
     }
     if (!horarioSelecionado) {
       setMensagem("Escolha um horário disponível dentro do funcionamento do restaurante.");
+      toast.aviso("Escolha um horário disponível para continuar.");
       return;
     }
 
@@ -373,6 +382,7 @@ export default function PaginaRestaurante({ params }) {
       window.location.assign(`/cliente/pagamentos/pedido/${fluxoCriado.pedido.id_pedido}`);
     } catch (erro) {
       setMensagem(erro instanceof Error ? erro.message : "Não foi possível concluir a reserva.");
+      toast.erro(erro instanceof Error ? erro.message : "Não foi possível concluir a reserva.");
     } finally {
       setEnviando(false);
     }
@@ -652,15 +662,15 @@ export default function PaginaRestaurante({ params }) {
               <div className="mt-5 grid gap-3 rounded-[14px] bg-white p-4 text-sm ring-1 ring-app-baunilha-dourada/60">
                 <p className="rounded-[10px] bg-white px-3 py-2 text-xs leading-5 text-app-mocha">{ui("Valor fixo por reserva, independentemente do número de pessoas.")}</p>
                 <div className="flex justify-between gap-4">
-                  <span className="text-app-mocha">{ui("Preço da reserva")}</span>
-                  <strong>{formatarMoeda(valorMinimoTotal, localeUI)}</strong>
+                  <span className="text-app-mocha">{ui(temPedidoAntecipado ? "Reserva (isenta)" : "Preço da reserva")}</span>
+                  <strong>{formatarMoeda(valorReservaCobrado, localeUI)}</strong>
                 </div>
                 {temPedidoAntecipado ? <div className="flex justify-between gap-4"><span className="text-app-mocha">{ui("Valor do pedido")}</span><strong>{formatarMoeda(totalPedido, localeUI)}</strong></div> : null}
                 {campanhaSelecionada && temPedidoAntecipado ? <div className="flex justify-between gap-4 text-app-caramelo-torrado"><span>Desconto da oferta</span><strong>- {formatarMoeda(descontoCampanha, localeUI)}</strong></div> : null}
                 {tempoPreparoPedido ? <div className="flex justify-between gap-4"><span className="text-app-mocha">{ui("Preparo estimado do pedido")}</span><strong>{ui("aprox. {0} min", [tempoPreparoPedido])}</strong></div> : null}
                 <div className="flex items-center justify-between border-t border-app-baunilha-dourada pt-4">
                   <span className="font-bold">{ui("Total a pagar")}</span>
-                  <strong className="text-2xl text-app-cafe-profundo">{formatarMoeda(Math.max(0, totalPedido - descontoCampanha) + valorMinimoTotal, localeUI)}</strong>
+                  <strong className="text-2xl text-app-cafe-profundo">{formatarMoeda(totalAPagar, localeUI)}</strong>
                 </div>
               </div>
 
@@ -676,7 +686,7 @@ export default function PaginaRestaurante({ params }) {
               ) : null}
 
               <button type="submit" disabled={enviando || !operacaoConfigurada || !horariosDisponiveis.length} className="mt-5 h-12 w-full rounded-[8px] bg-app-dourado-mel text-xs font-bold uppercase tracking-wide text-white transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-50">
-                {ui(enviando ? "Confirmando..." : temPedidoAntecipado ? "Pagar pedido e reserva" : valorMinimoTotal > 0 ? "Pagar reserva" : "Confirmar reserva sem pedido")}
+                {ui(enviando ? "Confirmando..." : temPedidoAntecipado ? "Pagar pedido antecipado" : valorMinimoTotal > 0 ? "Pagar reserva" : "Confirmar reserva sem pedido")}
               </button>
               {mensagem ? <p className="mt-3 text-sm font-semibold text-app-caramelo-torrado">{ui(mensagem)}</p> : null}
             </form>

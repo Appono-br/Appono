@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { apiRequest } from "@/lib/api";
 import { BotaoVoltar } from "@/components/botao-voltar";
+import { useToast } from "@/components/ui/toast-provider";
 
 function formatarMoeda(valor, localeUI = "pt-BR") {
     return new Intl.NumberFormat(localeUI, {
@@ -41,6 +42,7 @@ function Icon({ type, className = "h-5 w-5" }) {
 
 export default function PagamentoCheckout({ params, tipo = "pedido" }) {
     const { ui , localeUI } = useInterface();
+    const toast = useToast();
     const [pedidoId, setPedidoId] = useState(null);
     const [preferência, setPreferência] = useState(null);
     const [mensagem, setMensagem] = useState("Preparando checkout seguro...");
@@ -61,9 +63,10 @@ export default function PagamentoCheckout({ params, tipo = "pedido" }) {
                 setMensagem("");
             })
             .catch((error) => {
+                toast.erro(error instanceof Error ? error.message : "Não foi possível preparar o pagamento.");
                 setMensagem(error instanceof Error ? error.message : "Não foi possível preparar o pagamento.");
             });
-    }, [pedidoId, tipo]);
+    }, [pedidoId, tipo, toast]);
 
     const pedido = preferência?.pedido ?? (preferência?.reserva ? {
         restaurantes: preferência.reserva.restaurantes, reservas: preferência.reserva,
@@ -160,11 +163,6 @@ export default function PagamentoCheckout({ params, tipo = "pedido" }) {
                             </div>
                         </div>
 
-                        {mensagem && preferenceId ? (
-                            <p className="mt-4 rounded-[8px] bg-white/10 p-3 text-sm text-app-creme-suave">
-                                {ui(mensagem)}
-                            </p>
-                        ) : null}
                     </aside>
                 </section>
             </div>

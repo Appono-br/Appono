@@ -11,10 +11,10 @@ test("reservation price is fixed for one or many guests", () => {
     }
 });
 
-test("items below the reservation price remain payable and the fee is added", () => {
+test("any advance-order items exempt the reservation price", () => {
     assert.deepEqual(reservationCheckoutTotals({ orderTotal: 5, reservation: {
         status_reserva: "PENDENTE", valor_minimo_total: 25,
-    } }), { valor_itens: 5, preco_reserva: 25, valor_total_checkout: 30 });
+    } }), { valor_itens: 5, preco_reserva: 0, valor_total_checkout: 5 });
 });
 
 test("a confirmed reservation is not charged again with a later order", () => {

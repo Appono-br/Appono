@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 
 import { FormInput } from "@/components/ui/form-input";
+import { mensagemValidacao, useToast } from "@/components/ui/toast-provider";
 import { FormStepper } from "@/components/ui/form-stepper";
 import { FormStepActions } from "@/components/ui/form-step-actions";
 import { PasswordRequirements } from "@/components/auth/password-requirements";
@@ -138,6 +139,7 @@ function redirecionarParaLogin(email) {
 }
 
 export function RegisterRestaurantForm({ googleFlow = false }) {
+  const toast = useToast();
   const [currentStep, setCurrentStep] = useState(0);
   const [message, setMessage] = useState("");
   const [imagem, setImagem] = useState(null);
@@ -239,6 +241,7 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
       setImagemPreview(URL.createObjectURL(arquivo));
       setMessage("");
     } catch (error) {
+      toast.erro(error instanceof Error ? error.message : "Não foi possível enviar a imagem do restaurante.");
       setImagem(null);
       setImagemPreview("");
       setMessage(error instanceof Error ? error.message : "Imagem inválida.");
@@ -253,6 +256,8 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
     const stepIsValid = await trigger(fieldsToValidate);
     if (stepIsValid) {
       setCurrentStep((prev) => Math.min(prev + 1, STEPS.length - 1));
+    } else {
+      toast.aviso("Revise os campos destacados antes de avançar.");
     }
   }
 
@@ -352,6 +357,7 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
             : "Conta criada. Confirme seu e-mail para acessar o painel.")
       );
     } catch (error) {
+      toast.erro(error instanceof Error ? error.message : "Não foi possível concluir o cadastro do restaurante.");
       if (error?.code === "AUTH_USER_ALREADY_EXISTS") {
         redirecionarParaLogin(data.email);
         return;
@@ -364,7 +370,7 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
 
   return (
     <form
-      onSubmit={handleSubmit(onSubmit)}
+      onSubmit={handleSubmit(onSubmit, (erros) => toast.aviso(mensagemValidacao(erros)))}
       className="mx-auto w-full max-w-2xl"
       noValidate
     >

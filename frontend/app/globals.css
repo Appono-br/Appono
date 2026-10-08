@@ -1,5 +1,28 @@
 @import "tailwindcss";
 
+@keyframes appono-toast-entrando {
+  from { opacity: 0; transform: translate3d(28px, -8px, 0) scale(0.96); }
+  to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+}
+
+@keyframes appono-toast-saindo {
+  from { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+  to { opacity: 0; transform: translate3d(24px, -6px, 0) scale(0.96); }
+}
+
+.toast-entrando {
+  animation: appono-toast-entrando 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.toast-saindo {
+  animation: appono-toast-saindo 220ms cubic-bezier(0.4, 0, 1, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast-entrando,
+  .toast-saindo { animation-duration: 1ms; }
+}
+
 .resultado-busca-restaurante:hover,
 .resultado-busca-restaurante:focus-visible {
   background-color: var(--app-chantilly-hover);

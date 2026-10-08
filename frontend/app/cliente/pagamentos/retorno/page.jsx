@@ -7,6 +7,7 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { apiRequest } from "@/lib/api";
 import { BotaoVoltar } from "@/components/botao-voltar";
+import { useToast } from "@/components/ui/toast-provider";
 import { textoStatusPagamento, textoStatusPedido, textoStatusReserva } from "@/lib/formatadores-status";
 
 function Icon({ type, className = "h-5 w-5" }) {
@@ -31,6 +32,7 @@ function formatarMoeda(valor, localeUI = "pt-BR") {
 
 function PagamentoRetornoContent() {
     const { ui , localeUI } = useInterface();
+    const toast = useToast();
     const searchParams = useSearchParams();
     const referenciaExterna = searchParams.get("external_reference") ?? "";
     const referenciaPedido = referenciaExterna.match(/^pedido:(\d+)$/)?.[1] ?? null;
@@ -63,6 +65,7 @@ function PagamentoRetornoContent() {
             setMensagem("");
         }
         catch (erro) {
+            toast.erro(erro instanceof Error ? erro.message : "Não foi possível consultar o pagamento.");
             setMensagem(erro instanceof Error ? erro.message : "Não foi possível consultar o pagamento.");
         }
         finally {
@@ -86,12 +89,17 @@ function PagamentoRetornoContent() {
                 setDados(resposta);
                 setMensagem("");
                 const pagamentoFinalizado = ["APROVADO", "RECUSADO", "ESTORNADO", "NAO_APLICAVEL"].includes(resposta.status_pagamento);
+                if (pagamentoFinalizado) {
+                    if (resposta.status_pagamento === "APROVADO") toast.sucesso("Pagamento aprovado com sucesso.");
+                    else if (["RECUSADO", "ESTORNADO"].includes(resposta.status_pagamento)) toast.erro("O pagamento não foi aprovado.");
+                }
                 if (!pagamentoFinalizado && tentativa < 5) {
                     temporizador = window.setTimeout(() => consultarAutomaticamente(tentativa + 1), 3000);
                 }
             }
             catch (erro) {
                 if (!ignorarResposta) {
+                    toast.erro(erro instanceof Error ? erro.message : "Não foi possível consultar o pagamento.");
                     setMensagem(erro instanceof Error ? erro.message : "Não foi possível consultar o pagamento.");
                 }
             }
@@ -108,7 +116,7 @@ function PagamentoRetornoContent() {
                 window.clearTimeout(temporizador);
             }
         };
-    }, [endpointStatus]);
+    }, [endpointStatus, toast]);
     const tipoPagamento = pedidoId ? "pedido" : "reserva";
     const mensagemVisivel = pedidoId || reservaId ? mensagem : "Pedido ou reserva não informado no retorno do pagamento.";
     const idPedidoDetalhe = pedidoId ?? dados?.pedido?.id_pedido ?? null;
