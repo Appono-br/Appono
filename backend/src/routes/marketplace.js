@@ -8,6 +8,7 @@ const express_1 = require("express");
 const supabase_1 = require("../lib/supabase");
 const auth_1 = require("../middleware/auth");
 const { cifrarTokenMercadoPago, possuiChaveCredenciaisMercadoPago } = require("../services/pagamentos/credenciais-restaurante");
+const { resolverComissaoDoRestaurante } = require("../services/planos-restaurante");
 
 exports.marketplaceRouter = (0, express_1.Router)();
 
@@ -155,11 +156,6 @@ function obterInicioPeriodo(periodo) {
     return null;
 }
 
-function obterPercentualComissaoAppono() {
-    const percentual = Number(process.env.MERCADO_PAGO_MARKETPLACE_FEE_PERCENTUAL ?? process.env.MERCADO_PAGO_MARKETPLACE_FEE ?? 13);
-    return Number.isFinite(percentual) && percentual >= 0 ? percentual : 13;
-}
-
 exports.marketplaceRouter.get("/financeiro/resumo", auth_1.requireAuth, (0, auth_1.requireRole)("restaurante"), async (req, res) => {
     if (!supabase_1.supabaseAdmin) {
         return res.status(409).json({ error: "SUPABASE_SECRET_KEY precisa estar configurada no backend." });
@@ -169,6 +165,7 @@ exports.marketplaceRouter.get("/financeiro/resumo", auth_1.requireAuth, (0, auth
         if (!restaurante) {
             return res.status(403).json({ error: "Apenas restaurantes podem consultar o financeiro." });
         }
+        const politicaComissao = await resolverComissaoDoRestaurante(restaurante.id_restaurante);
         const { data: pedidos, error: pedidosError } = await supabase_1.supabaseAdmin
             .from("pedidos")
             .select("id_pedido, status_pedido, data_pedido, valor_total, clientes(nome), reservas(data_reserva, horario_inicio)")
@@ -194,7 +191,8 @@ exports.marketplaceRouter.get("/financeiro/resumo", auth_1.requireAuth, (0, auth
                     quantidade_liberados: 0,
                 },
                 politica_financeira: {
-                    percentual_comissao_app: obterPercentualComissaoAppono(),
+                    codigo_plano_comissao: politicaComissao.codigo_plano,
+                    percentual_comissao_app: politicaComissao.percentual_comissao,
                     gatilho_repasse: "ENTREGA_DO_PEDIDO",
                 },
                 repasses: [],
@@ -263,7 +261,8 @@ exports.marketplaceRouter.get("/financeiro/resumo", auth_1.requireAuth, (0, auth
             restaurante,
             resumo,
             politica_financeira: {
-                percentual_comissao_app: obterPercentualComissaoAppono(),
+                codigo_plano_comissao: politicaComissao.codigo_plano,
+                percentual_comissao_app: politicaComissao.percentual_comissao,
                 gatilho_repasse: "ENTREGA_DO_PEDIDO",
             },
             repasses,

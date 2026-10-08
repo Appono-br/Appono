@@ -155,7 +155,8 @@ export default function RestaurantFinancialReportPage() {
     const [filtroStatus, setFiltroStatus] = useState("todos");
     const [filtroTipo, setFiltroTipo] = useState("todos");
     const [politicaFinanceira, setPoliticaFinanceira] = useState({
-        percentual_comissao_app: 13,
+        codigo_plano_comissao: "INICIAL",
+        percentual_comissao_app: 8,
         gatilho_repasse: "ENTREGA_DO_PEDIDO",
     });
     const isRestaurant = session?.type === "restaurant";
@@ -332,7 +333,11 @@ export default function RestaurantFinancialReportPage() {
               <div className="flex items-center justify-between gap-5 text-sm">
                 <span className="text-app-mocha">{ui("Comissão da plataforma")}</span>
                 <strong className="text-app-cafe-profundo">
-                  {Number(politicaFinanceira.percentual_comissao_app ?? 13).toLocaleString(localeUI)}{ui("% por pedido pago")}</strong>
+                  {Number(politicaFinanceira.percentual_comissao_app ?? 8).toLocaleString(localeUI)}{ui("% por pedido pago")}</strong>
+              </div>
+              <div className="flex items-center justify-between gap-5 text-sm">
+                <span className="text-app-mocha">{ui("Plano considerado")}</span>
+                <strong className="text-app-cafe-profundo">{ui(politicaFinanceira.codigo_plano_comissao === "PROFISSIONAL" ? "Profissional" : "Inicial")}</strong>
               </div>
               <div className="flex items-center justify-between gap-5 text-sm">
                 <span className="text-app-mocha">{ui("Liberação")}</span>
