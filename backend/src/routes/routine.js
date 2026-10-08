@@ -766,7 +766,7 @@ rotinaRouter.get("/consentimento-personalizacao", async (_req, res) => {
 
 rotinaRouter.put("/consentimento-personalizacao", async (req, res) => {
     if (typeof req.body?.habilitado !== "boolean") {
-        return res.status(400).json({ code: "ROUTINE_CONSENT_INVALID", error: "Informe se deseja ativar a personalizacao." });
+        return res.status(400).json({ code: "ROUTINE_CONSENT_INVALID", error: "Informe se deseja ativar a personalização." });
     }
     try {
         const supabaseUsuario = createUserSupabaseClient(res.locals.accessToken);
@@ -922,11 +922,11 @@ rotinaRouter.post("/planejamento/:id/recusar-sugestoes", async (req, res) => {
     if (!banco) return;
     const idPlanejamento = Number(req.params.id);
     if (!Number.isInteger(idPlanejamento) || idPlanejamento <= 0) {
-        return res.status(400).json({ error: "Planejamento invalido." });
+        return res.status(400).json({ error: "Planejamento inválido." });
     }
     try {
         const semana = await buscarPlanejamentoComRefeicoes(banco, res.locals.profileId, { id_planejamento_rotina: idPlanejamento });
-        if (!semana.planejamento) return res.status(404).json({ error: "Planejamento nao encontrado." });
+        if (!semana.planejamento) return res.status(404).json({ error: "Planejamento não encontrado." });
         const pendentes = semana.refeicoes.filter((item) => item.id_restaurante && ["SUGERIDA", "ALTERADA", "APROVADA"].includes(item.status));
         let versaoPlanejamento = versaoEsperada(req.body, "versao_planejamento");
         let resultado = { planejamento: semana.planejamento, refeicoes: semana.refeicoes };
@@ -939,7 +939,7 @@ rotinaRouter.post("/planejamento/:id/recusar-sugestoes", async (req, res) => {
         const atualizado = await buscarPlanejamentoComRefeicoes(banco, res.locals.profileId, { id_planejamento_rotina: idPlanejamento });
         return res.json(atualizado.planejamento ? atualizado : resultado);
     } catch (error) {
-        return res.status(error.status ?? 400).json({ error: error instanceof Error ? error.message : "Nao foi possivel recusar as sugestoes." });
+        return res.status(error.status ?? 400).json({ error: error instanceof Error ? error.message : "Não foi possível recusar as sugestões." });
     }
 });
 

@@ -22,14 +22,14 @@ function agoraLocalSaoPaulo() {
 async function inserirEventoFinanceiro(evento) {
     const { error } = await supabaseAdmin.from("eventos_financeiros").insert(evento);
     if (error) {
-        console.warn("Falha ao registrar evento financeiro de expiracao:", error.message);
+        console.warn("Falha ao registrar evento financeiro de expiração:", error.message);
     }
 }
 
 async function inserirReembolsoAusencia(reembolso) {
     const { error } = await supabaseAdmin.from("solicitacoes_reembolso").insert(reembolso);
     if (error && error.code !== "23505") {
-        console.warn("Falha ao registrar reembolso por ausencia:", error.message);
+        console.warn("Falha ao registrar reembolso por ausência:", error.message);
     }
 }
 
@@ -42,7 +42,7 @@ async function cancelarReservaSemConfirmacao(reserva, agoraIso, statusPermitidos
 
     const pedidosEmAndamento = (pedidos ?? []).filter((pedido) => ["EM_PREPARO", "PRONTO", "ENTREGUE"].includes(pedido.status_pedido));
     if (pedidosEmAndamento.length) {
-        console.warn(`Reserva ${reserva.id_reserva} passou do prazo de presenca, mas ja possui pedido em andamento.`);
+        console.warn(`Reserva ${reserva.id_reserva} passou do prazo de presença, mas já possui pedido em andamento.`);
         return false;
     }
 
@@ -145,7 +145,7 @@ async function cancelarReservaSemConfirmacao(reserva, agoraIso, statusPermitidos
                 id_pedido: pagamento.id_pedido,
                 id_reserva: reserva.id_reserva,
                 tipo_evento: "REEMBOLSO_PARCIAL_PRESENCA_EXPIRADA",
-                descricao: `Prazo de presenca expirado. Reembolso parcial calculado por excedente: pago menos preço da reserva e comissao Appono de ${percentualComissaoAppono}%.`,
+                descricao: `Prazo de presença expirado. Reembolso parcial calculado por excedente: pago menos preço da reserva e comissão Appono de ${percentualComissaoAppono}%.`,
                 valor: valorReembolso,
                 origem: "SISTEMA",
             });
@@ -155,7 +155,7 @@ async function cancelarReservaSemConfirmacao(reserva, agoraIso, statusPermitidos
             id_pedido: pagamento.id_pedido,
             id_reserva: reserva.id_reserva,
             tipo_evento: "RETENCAO_PRESENCA_EXPIRADA",
-            descricao: `Prazo de presenca expirado. Restaurante manteve R$ ${valorRestauranteRetido.toFixed(2).replace(".", ",")} e Appono manteve R$ ${valorComissaoRetida.toFixed(2).replace(".", ",")}.`,
+            descricao: `Prazo de presença expirado. Restaurante manteve R$ ${valorRestauranteRetido.toFixed(2).replace(".", ",")} e Appono manteve R$ ${valorComissaoRetida.toFixed(2).replace(".", ",")}.`,
             valor: arredondarMoeda(politica.retained ?? 0),
             origem: "SISTEMA",
         });
@@ -194,7 +194,7 @@ async function cancelarReservaSemConfirmacao(reserva, agoraIso, statusPermitidos
         notificarCliente(reserva.id_cliente, {
             titulo: "Reserva cancelada",
             mensagem: totalReembolsado > 0
-                ? `O prazo de confirmacao expirou e um reembolso parcial de R$ ${arredondarMoeda(totalReembolsado).toFixed(2).replace(".", ",")} foi processado.`
+                ? `O prazo de confirmação expirou e um reembolso parcial de R$ ${arredondarMoeda(totalReembolsado).toFixed(2).replace(".", ",")} foi processado.`
                 : "O prazo de confirmação expirou e sua reserva foi cancelada.",
             tipo_evento: "PRESENCA_EXPIRADA",
             link_destino: "/cliente/reservas",
@@ -202,14 +202,14 @@ async function cancelarReservaSemConfirmacao(reserva, agoraIso, statusPermitidos
         }),
         notificarRestaurante(reserva.id_restaurante, {
             titulo: "Reserva cancelada automaticamente",
-            mensagem: "O cliente nao confirmou presença dentro do prazo. A reserva e pedidos vinculados foram cancelados.",
+            mensagem: "O cliente não confirmou presença dentro do prazo. A reserva e pedidos vinculados foram cancelados.",
             tipo_evento: "PRESENCA_EXPIRADA",
             link_destino: "/restaurante/reservas",
             dados: { id_reserva: reserva.id_reserva },
         }),
         notificarAdministradores({
             titulo: "Presença expirada",
-            mensagem: `Reserva #${reserva.id_reserva} cancelada automaticamente por falta de confirmacao de presenca.`,
+            mensagem: `Reserva #${reserva.id_reserva} cancelada automaticamente por falta de confirmação de presença.`,
             tipo_evento: "PRESENCA_EXPIRADA",
             link_destino: "/admin/financeiro",
             dados: { id_reserva: reserva.id_reserva, valor_reembolso: arredondarMoeda(totalReembolsado) },
@@ -247,7 +247,7 @@ async function sincronizarReservasNaoComparecidas() {
         .select("id_reserva, id_cliente, id_restaurante, status_reserva, status_confirmacao_presenca, data_reserva, horario_inicio, horario_fim, prazo_confirmacao_presenca, valor_minimo_total")
         .eq("status_reserva", "CONFIRMADA")
         .eq("status_confirmacao_presenca", "PENDENTE");
-    if (reservasError) throw new Error(`Falha ao consultar reservas com presenca pendente: ${reservasError.message}`);
+    if (reservasError) throw new Error(`Falha ao consultar reservas com presença pendente: ${reservasError.message}`);
 
     let total = 0;
     for (const reserva of reservasPendentes ?? []) {
@@ -255,7 +255,7 @@ async function sincronizarReservasNaoComparecidas() {
         try {
             if (await cancelarReservaSemConfirmacao(reserva, agoraIso)) total += 1;
         } catch (error) {
-            console.warn(`Falha ao cancelar reserva ${reserva.id_reserva} por presenca expirada:`, error instanceof Error ? error.message : error);
+            console.warn(`Falha ao cancelar reserva ${reserva.id_reserva} por presença expirada:`, error instanceof Error ? error.message : error);
         }
     }
     total += await cancelarReservasPendentesVencidas(agoraLocal, agoraIso);

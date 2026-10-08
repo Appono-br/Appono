@@ -76,7 +76,7 @@ export function FormStepper({
                     isCompleted
                       ? `${completedClassName} cursor-pointer shadow-sm`
                       : isCurrent
-                      ? "bg-app-creme-suave border-2 border-app-caramelo-torrado text-app-caramelo-torrado shadow-md ring-4 ring-app-dourado-mel/10"
+                      ? "bg-app-creme-suave border border-app-caramelo-torrado text-app-caramelo-torrado shadow-md"
                       : "bg-app-chantilly text-app-cinza border border-app-baunilha-dourada/50 cursor-not-allowed"
                   }`}
                   aria-current={isCurrent ? "step" : undefined}

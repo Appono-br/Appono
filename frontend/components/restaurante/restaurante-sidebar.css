@@ -1,8 +1,23 @@
-.restaurant-shell {
+body:has(.restaurant-shell) {
   --restaurant-sidebar-width: 288px;
 }
 
-.restaurant-page-content { min-width: 0; margin-left: var(--restaurant-sidebar-width); }
+.restaurant-shell {
+  display: grid;
+  grid-template-columns: var(--restaurant-sidebar-width) minmax(0, 1fr);
+  align-items: start;
+  flex: 1 0 auto;
+  width: 100%;
+  min-height: 0;
+}
+
+body:has(.restaurant-shell) .app-footer {
+  flex-shrink: 0;
+  width: 100%;
+  margin-left: 0;
+}
+
+.restaurant-page-content { grid-column: 2; grid-row: 1; min-width: 0; }
 
 .restaurant-sidebar,
 .restaurant-sidebar-dialog {
@@ -12,8 +27,10 @@
 }
 
 .restaurant-sidebar {
-  position: fixed;
-  inset: 0 auto 0 0;
+  grid-column: 1;
+  grid-row: 1;
+  position: sticky;
+  top: 0;
   width: var(--restaurant-sidebar-width);
   height: 100dvh;
   overflow: hidden;
@@ -57,7 +74,8 @@
 .restaurant-sidebar-nav a span { min-width: 0; overflow-wrap: anywhere; }
 .restaurant-sidebar-nav a:hover { background: var(--ui-hover, #f5efe7); font-weight: 700; color: var(--ui-texto-inverso, #241711); }
 .restaurant-sidebar .restaurant-sidebar-nav a:hover { transform: none; }
-.restaurant-sidebar-nav a[aria-current="page"] { background: #eadcc8; color: #241713; font-weight: 700; }
+.restaurant-sidebar-nav a[aria-current="page"] { background: var(--app-botao-primario); color: var(--app-botao-primario-texto); font-weight: 700; }
+.restaurant-sidebar-nav a[aria-current="page"]:hover { background: var(--app-botao-primario-hover); color: var(--app-botao-primario-texto); }
 .restaurant-sidebar-notifications { margin-top: auto; padding: 12px; border-radius: 10px; display: flex; align-items: center; gap: 12px; font-size: 13px; transition: background-color .2s, transform .2s; }
 .restaurant-sidebar-notifications:hover { background: var(--ui-hover, #f5efe7); transform: translateX(3px); font-weight: 700; color: var(--ui-texto-inverso, #241711); }
 .restaurant-sidebar-notifications:hover a { color: inherit; }
@@ -76,7 +94,7 @@
   text-align: left;
   cursor: pointer;
 }
-.restaurant-sidebar-logout:hover:not(:disabled) { background: var(--ui-hover, #f5efe7); color: var(--ui-texto-inverso, #241713); }
+.restaurant-sidebar-logout:hover:not(:disabled) { text-decoration: underline; }
 .restaurant-sidebar-logout:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
 .restaurant-sidebar-logout:disabled { cursor: wait; opacity: .6; }
 .restaurant-menu-trigger { display: none; }
@@ -86,8 +104,10 @@
 .restaurant-sidebar-brand button { position: absolute; right: 0; top: 12px; padding: 8px; border-radius: 8px; }
 
 @media (max-width: 1023px) {
+  .restaurant-shell { grid-template-columns: minmax(0, 1fr); }
+  body:has(.restaurant-shell) .app-footer { width: 100%; margin-left: 0; }
   .restaurant-sidebar { display: none; }
-  .restaurant-page-content { margin-left: 0; padding-bottom: 72px; }
+  .restaurant-page-content { grid-column: 1; margin-left: 0; padding-bottom: 72px; }
   .restaurant-menu-trigger { display: flex; position: fixed; bottom: 20px; left: 16px; z-index: 40; align-items: center; gap: 8px; padding: 12px 18px; border: 1px solid var(--ui-borda, #e5d5c4); border-radius: 12px; background: var(--ui-header, #fff); color: var(--ui-texto, #241713); box-shadow: 0 4px 18px rgb(0 0 0 / 18%); font-size: 14px; font-weight: 700; }
 }
 

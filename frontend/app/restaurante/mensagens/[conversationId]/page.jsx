@@ -117,7 +117,7 @@ export default function RestaurantConversationPage() {
               <div className="flex items-center gap-3">
                 <span className="flex h-12 w-12 items-center justify-center rounded-[14px] bg-app-mocha text-sm font-bold">{conversa?.iniciais ?? ui("CL")}</span>
                 <div>
-                  <h2 className="text-xl font-semibold">{conversa?.titulo ?? ui("Carregando conversa")}</h2>
+                  <h1 className="text-xl font-semibold">{conversa?.titulo ?? ui("Carregando conversa")}</h1>
                   <p className="mt-1 text-xs font-bold uppercase tracking-[0.16em] text-app-baunilha-dourada">{ui("Atendimento seguro")}</p>
                 </div>
               </div>

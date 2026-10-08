@@ -21,7 +21,7 @@ export default function AdminRotinaIntelligencePage() {
                 setDados(resposta);
                 setErro("");
             })
-            .catch((error) => setErro(error instanceof Error ? error.message : "Nao foi possivel carregar o experimento."))
+            .catch((error) => setErro(error instanceof Error ? error.message : "Não foi possível carregar o experimento."))
             .finally(() => setCarregando(false));
     }, [dias]);
 
@@ -42,7 +42,7 @@ export default function AdminRotinaIntelligencePage() {
                     </div>
                     <div className="flex gap-3">
                         <Link href="/admin/financeiro" className="rounded-[8px] border border-app-baunilha-dourada/70 px-4 py-2 text-sm font-bold">Financeiro</Link>
-                        <select value={dias} onChange={alterarPeriodo} className="rounded-[8px] bg-app-creme-leve px-4 py-2 text-sm font-bold text-app-cafe-profundo" aria-label="Periodo de avaliacao">
+                        <select value={dias} onChange={alterarPeriodo} className="rounded-[8px] bg-app-creme-leve px-4 py-2 text-sm font-bold text-app-cafe-profundo" aria-label="Período de avaliação">
                             <option value={7}>7 dias</option>
                             <option value={30}>30 dias</option>
                             <option value={90}>90 dias</option>
@@ -50,10 +50,10 @@ export default function AdminRotinaIntelligencePage() {
                     </div>
                 </div>
 
-                {carregando ? <p className="mt-8 rounded-[14px] bg-app-creme-leve p-6">Carregando metricas agregadas...</p> : null}
+                {carregando ? <p className="mt-8 rounded-[14px] bg-app-creme-leve p-6">Carregando métricas agregadas...</p> : null}
                 {erro ? <p role="alert" className="mt-8 rounded-[14px] border border-app-vermelho-erro p-6 text-app-vermelho-erro">{erro}</p> : null}
                 {!carregando && !erro && !dados?.comparacoes ? (
-                    <p className="mt-8 rounded-[14px] bg-app-creme-leve p-6 text-app-mocha">Ainda nao ha comparacoes sombra neste periodo. Isso e diferente de um modelo sem confianca.</p>
+                    <p className="mt-8 rounded-[14px] bg-app-creme-leve p-6 text-app-mocha">Ainda não há comparações sombra neste período. Isso é diferente de um modelo sem confiança.</p>
                 ) : null}
 
                 {dados?.configuracao ? (
@@ -64,14 +64,14 @@ export default function AdminRotinaIntelligencePage() {
                                 <h2 id="estado-intelligence" className="mt-2 text-xl font-semibold">{dados.configuracao.modelo_disponivel}</h2>
                             </div>
                             <strong className={`w-fit rounded-full px-3 py-1 text-xs ${dados.configuracao.kill_switch ? "bg-app-vermelho-erro text-white" : "bg-app-cafe-profundo text-app-creme-leve"}`}>
-                                {dados.configuracao.kill_switch ? "Kill switch ativo" : "Fallback disponivel"}
+                                {dados.configuracao.kill_switch ? "Kill switch ativo" : "Fallback disponível"}
                             </strong>
                         </div>
                         <div className="mt-5 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
-                            <p className="rounded-[10px] bg-white p-4">Rollout publico<strong className="mt-1 block text-xl">{dados.configuracao.rollout_percentual}%</strong></p>
+                            <p className="rounded-[10px] bg-white p-4">Rollout público<strong className="mt-1 block text-xl">{dados.configuracao.rollout_percentual}%</strong></p>
                             <p className="rounded-[10px] bg-white p-4">Contas internas<strong className="mt-1 block text-xl">{dados.configuracao.contas_internas_configuradas}</strong></p>
-                            <p className="rounded-[10px] bg-white p-4">Confianca minima<strong className="mt-1 block text-xl">{Number(dados.configuracao.confianca_minima).toFixed(2)}</strong></p>
-                            <p className="rounded-[10px] bg-white p-4">Padrao publico<strong className="mt-1 block text-xl">{dados.configuracao.modo_padrao}</strong></p>
+                            <p className="rounded-[10px] bg-white p-4">Confiança mínima<strong className="mt-1 block text-xl">{Number(dados.configuracao.confianca_minima).toFixed(2)}</strong></p>
+                            <p className="rounded-[10px] bg-white p-4">Padrão público<strong className="mt-1 block text-xl">{dados.configuracao.modo_padrao}</strong></p>
                         </div>
                     </section>
                 ) : null}
@@ -79,9 +79,9 @@ export default function AdminRotinaIntelligencePage() {
                 {dados?.comparacoes ? (
                     <>
                         <div className="mt-8 grid gap-4 sm:grid-cols-3">
-                            <article className="rounded-[14px] bg-app-creme-leve p-5 ring-1 ring-app-baunilha-dourada"><span className="text-xs uppercase text-app-cinza">Comparacoes</span><strong className="mt-3 block text-3xl">{dados.comparacoes}</strong></article>
+                            <article className="rounded-[14px] bg-app-creme-leve p-5 ring-1 ring-app-baunilha-dourada"><span className="text-xs uppercase text-app-cinza">Comparações</span><strong className="mt-3 block text-3xl">{dados.comparacoes}</strong></article>
                             <article className="rounded-[14px] bg-app-creme-leve p-5 ring-1 ring-app-baunilha-dourada"><span className="text-xs uppercase text-app-cinza">Modelo oficial</span><strong className="mt-3 block text-xl">{dados.modelo_oficial}</strong></article>
-                            <article className="rounded-[14px] bg-app-creme-leve p-5 ring-1 ring-app-baunilha-dourada"><span className="text-xs uppercase text-app-cinza">Decisao atual</span><strong className="mt-3 block text-lg">{dados.decisao_atual}</strong></article>
+                            <article className="rounded-[14px] bg-app-creme-leve p-5 ring-1 ring-app-baunilha-dourada"><span className="text-xs uppercase text-app-cinza">Decisão atual</span><strong className="mt-3 block text-lg">{dados.decisao_atual}</strong></article>
                         </div>
                         <section className="mt-8 grid gap-5 lg:grid-cols-2">
                             {dados.modelos.map((modelo) => (
@@ -90,12 +90,12 @@ export default function AdminRotinaIntelligencePage() {
                                     <div className="mt-5 grid grid-cols-2 gap-3 text-sm">
                                         <p>Concordancia <strong className="block text-2xl"><Percentual parte={modelo.concordancias} total={modelo.comparacoes} /></strong></p>
                                         <p>Divergencias <strong className="block text-2xl">{modelo.divergencias}</strong></p>
-                                        <p>Confianca media <strong className="block text-xl">{modelo.confianca_media.toFixed(3)}</strong></p>
+                                        <p>Confiança média <strong className="block text-xl">{modelo.confianca_media.toFixed(3)}</strong></p>
                                         <p>Falhas <strong className="block text-xl">{modelo.falhas}</strong></p>
                                     </div>
-                                    <p className="mt-5 text-xs leading-5 text-app-cinza">Aprovacoes {modelo.resultados.aprovacoes} | recusas {modelo.resultados.recusas} | alternativas {modelo.resultados.alternativas} | conversoes {modelo.resultados.conversoes}</p>
-                                    <p className="mt-2 text-xs leading-5 text-app-cinza">Com historico {modelo.com_historico} | sem historico {modelo.sem_historico} | diversidade {modelo.diversidade.restaurantes} restaurantes e {modelo.diversidade.produtos} produtos</p>
-                                    <p className="mt-2 text-xs leading-5 text-app-cinza">Confianca: zero {modelo.distribuicao_confianca.zero}, baixa {modelo.distribuicao_confianca.baixa}, moderada {modelo.distribuicao_confianca.moderada}, alta {modelo.distribuicao_confianca.alta}</p>
+                                    <p className="mt-5 text-xs leading-5 text-app-cinza">Aprovações {modelo.resultados.aprovacoes} | recusas {modelo.resultados.recusas} | alternativas {modelo.resultados.alternativas} | conversoes {modelo.resultados.conversoes}</p>
+                                    <p className="mt-2 text-xs leading-5 text-app-cinza">Com histórico {modelo.com_historico} | sem histórico {modelo.sem_historico} | diversidade {modelo.diversidade.restaurantes} restaurantes e {modelo.diversidade.produtos} produtos</p>
+                                    <p className="mt-2 text-xs leading-5 text-app-cinza">Confiança: zero {modelo.distribuicao_confianca.zero}, baixa {modelo.distribuicao_confianca.baixa}, moderada {modelo.distribuicao_confianca.moderada}, alta {modelo.distribuicao_confianca.alta}</p>
                                 </article>
                             ))}
                         </section>

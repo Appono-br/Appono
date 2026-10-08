@@ -63,7 +63,7 @@ exports.meRouter.get("/", auth_1.requireAuth, async (_req, res) => {
             return res.json({
                 tipo: "admin",
                 perfil: {
-                    nome: "Administracao Appono",
+                    nome: "Administração Appono",
                     email: res.locals.user.email,
                 },
             });
@@ -128,7 +128,7 @@ exports.meRouter.patch("/", auth_1.requireAuth, async (req, res) => {
         }
         : dadosComuns).filter(([, valor]) => valor !== undefined));
     if (!Object.keys(atualizacao).length) {
-        return res.status(400).json({ error: "Nenhum campo editavel foi informado." });
+        return res.status(400).json({ error: "Nenhum campo editável foi informado." });
     }
     const tabela = perfilAtual.tipo === "cliente" ? "clientes" : "restaurantes";
     if (perfilAtual.tipo === "restaurante" &&
@@ -160,7 +160,7 @@ exports.meRouter.patch("/", auth_1.requireAuth, async (req, res) => {
     const perfilAtualizado = await obterPerfil(supabase, res.locals.user.id);
     return res.json({
         ...prepararPerfilParaResposta(perfilAtualizado),
-        message: "Alteracoes salvas com sucesso.",
+        message: "Alterações salvas com sucesso.",
     });
 });
 exports.meRouter.patch("/dados-bancarios", auth_1.requireAuth, async (req, res) => {
@@ -177,7 +177,7 @@ exports.meRouter.patch("/dados-bancarios", auth_1.requireAuth, async (req, res) 
         body.pixKey,
     ].some((valor) => Boolean(textoOpcional(valor)));
     if (!informouAlgumDado) {
-        return res.status(400).json({ error: "Informe ao menos um dado bancario para atualizar." });
+        return res.status(400).json({ error: "Informe ao menos um dado bancário para atualizar." });
     }
     const erroValidacao = (0, dados_bancarios_1.validarDadosBancarios)(body);
     if (erroValidacao) {

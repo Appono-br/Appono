@@ -15,7 +15,7 @@ async function aplicarEstadoAssinaturaMercadoPago(assinatura, mp) {
   for (const fatura of faturas) {
     if (String(fatura.preapproval_id) !== String(mp.id) || !fatura.payment?.id) continue;
     const p = await consultarPagamentoMercadoPago(fatura.payment.id);
-    if (!p) throw new Error("Nao foi possivel consultar o pagamento da assinatura.");
+    if (!p) throw new Error("Não foi possível consultar o pagamento da assinatura.");
     if (String(p.collector_id) !== String(conta.id) || p.currency_id !== "BRL" || Number(p.transaction_amount) !== Number(assinatura.mensalidade)) {
       throw new Error("Pagamento da assinatura com vendedor, moeda ou valor divergente.");
     }

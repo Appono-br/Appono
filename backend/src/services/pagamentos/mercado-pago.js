@@ -153,14 +153,14 @@ async function consultarPagamentoPorPreferÃªnciaMercadoPago(preferenceId, acce
 }
 async function requisitarAssinaturaMercadoPago(path, { method = "GET", token = obterAccessTokenMercadoPago(), body } = {}) {
     const accessToken = String(token ?? "").trim();
-    if (!accessToken) throw new Error("Credenciais do Mercado Pago nÃ£o estÃ£o configuradas.");
+    if (!accessToken) throw new Error("Credenciais do Mercado Pago não estão configuradas.");
     const resposta = await fetch(`${MERCADO_PAGO_API}${path}`, {
         method,
         headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json", ...(body ? { "X-Idempotency-Key": `appono-${crypto.randomUUID()}` } : {}) },
         body: body ? JSON.stringify(body) : undefined,
     });
     const dados = await resposta.json().catch(() => null);
-    if (!resposta.ok) throw new Error(dados?.message ?? "Mercado Pago nÃ£o conseguiu processar a assinatura.");
+    if (!resposta.ok) throw new Error(dados?.message ?? "Mercado Pago não conseguiu processar a assinatura.");
     return dados;
 }
 
@@ -248,7 +248,7 @@ async function estornarPagamentoMercadoPago(paymentId, accessToken = obterAccess
     if (!resposta.ok) {
         const message = String(responseBody?.message ?? "");
         if (resposta.status === 401 && /live credentials/i.test(message)) {
-            throw new Error("A credencial Mercado Pago atual consulta o pagamento, mas nÃ£o possui permissÃ£o para estornar pagamentos reais. Gere uma credencial de produÃ§Ã£o com escopo de pagamentos ou estorne esta venda pelo painel do Mercado Pago.");
+            throw new Error("A credencial Mercado Pago atual consulta o pagamento, mas não possui permissão para estornar pagamentos reais. Gere uma credencial de produção com escopo de pagamentos ou estorne esta venda pelo painel do Mercado Pago.");
         }
         throw new Error(message || "Mercado Pago recusou o estorno.");
     }

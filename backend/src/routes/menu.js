@@ -253,7 +253,7 @@ exports.menuRouter.put("/categorias/:id", async (req, res) => {
     const descricao = textoObrigatorio(req.body?.description);
     const ordemExibicao = normalizarInteiro(req.body?.displayOrder);
     if (!categoriaId) {
-        return res.status(400).json({ error: "Seção invalida." });
+        return res.status(400).json({ error: "Seção inválida." });
     }
     if (!nome) {
         return res.status(400).json({ error: "Informe o nome da seção." });
@@ -295,7 +295,7 @@ exports.menuRouter.delete("/categorias/:id", async (req, res) => {
     const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
     const categoriaId = normalizarProdutoId(req.params.id);
     if (!categoriaId) {
-        return res.status(400).json({ error: "Seção invalida." });
+        return res.status(400).json({ error: "Seção inválida." });
     }
     try {
         const restaurante = await obterRestauranteLogado(supabase, res.locals.user.id);

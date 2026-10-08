@@ -8,6 +8,8 @@ import { filtrarOrdenarPorBusca, textoBusca } from "@/lib/busca-avancada";
 import { VitrinePratos } from "@/components/cliente/vitrine-pratos";
 import { VitrineOfertas } from "@/components/cliente/vitrine-ofertas";
 import { CategoriasRestaurantes } from "@/components/cliente/categorias-restaurantes";
+const MAX_RESTAURANTES_CURTIDOS = 6;
+const MAX_PRATOS_VITRINE = 12;
 const filters = [
     "Todas Especialidades",
     "Slow Food",
@@ -310,9 +312,8 @@ export default function DashboardPage() {
         return filtrados.slice(0, 5);
     }, [filtroBusca, ordenacaoBusca, query, searchRestaurants]);
     const highlightedRestaurants = useMemo(() => [...restaurants]
-        .filter((restaurant) => Number(restaurant.favoriteCount) > 0)
         .sort((a, b) => Number(b.favoriteCount) - Number(a.favoriteCount))
-        .slice(0, 3), [restaurants]);
+        .slice(0, MAX_RESTAURANTES_CURTIDOS), [restaurants]);
     const nearbyRestaurants = useMemo(() => nearbyRestaurantItems
         .filter((restaurant) => buscaProxima?.raioKm === "todos" || (restaurant.distanceKm != null && Number.isFinite(Number(restaurant.distanceKm))))
         .sort((a, b) => {
@@ -456,7 +457,7 @@ export default function DashboardPage() {
         <div className="mt-6 grid gap-3 lg:grid-cols-3">
           {highlightedRestaurants.map((restaurant, index) => <article key={restaurant.id} className="group relative min-w-0 rounded-[8px] border border-app-baunilha-dourada bg-white p-2.5 shadow-sm transition hover:-translate-y-0.5 hover:border-app-caramelo-torrado/55 hover:shadow-md">
             <Link href={`/cliente/restaurantes/${restaurant.id}`} className="flex min-w-0 gap-3" aria-label={`Ver ${restaurant.name}`}>
-              <div className="restaurant-most-liked-logo logo-restaurante-circular relative h-24 w-24 shrink-0 overflow-hidden rounded-full bg-white ring-2 ring-app-baunilha-dourada/70">
+              <div className="restaurant-most-liked-logo logo-restaurante-circular relative h-24 w-24 shrink-0 overflow-hidden rounded-full bg-white ring-1 ring-app-baunilha-dourada/70">
                 {restaurant.imageUrl ? <Image src={restaurant.imageUrl} alt={restaurant.name} fill sizes="96px" className="object-cover transition duration-300 group-hover:scale-105"/> : <div className="flex h-full items-center justify-center bg-app-creme-leve text-app-caramelo-torrado"><Icon type="cutlery" className="h-7 w-7" /></div>}
               </div>
               <div className="min-w-0 flex-1 py-0.5 pr-7">
@@ -464,7 +465,6 @@ export default function DashboardPage() {
                 <h3 className="mt-2 truncate text-[15px] font-semibold leading-5 text-app-cafe-profundo antialiased">{restaurant.name}</h3>
                 <p className="mt-0.5 truncate text-xs font-medium leading-4 text-app-mocha antialiased">{restaurant.rating != null ? <>{ui(restaurant.rating.toFixed(1))}<span className="mx-1.5 text-app-cinza">|</span></> : null}{restaurant.favoriteCount}{ui(" favorito(s)")}</p>
                 <p className="mt-1 truncate text-xs leading-4 text-app-mocha antialiased">{restaurant.neighborhood ?? ui("Endereço em atualização")}</p>
-                <span className="mt-2 inline-flex rounded-[5px] bg-white px-2 py-0.5 text-xs font-semibold leading-4 text-app-caramelo-torrado antialiased">{ui("Reserva e pedido antecipado")}</span>
               </div>
             </Link>
             <button type="button" disabled={updatingFavorite === restaurant.id} onClick={() => alternarFavorito(restaurant.id)} className={`app-icon-button absolute right-2 top-2 z-10 flex h-8 w-8 items-center justify-center rounded-full p-1.5 transition disabled:opacity-50 ${restaurant.isFavorite ? "bg-white text-app-vermelho-erro" : "text-app-mocha hover:bg-app-chantilly hover:text-app-vermelho-erro"}`} aria-label={`${restaurant.isFavorite ? "Remover" : "Adicionar"} ${restaurant.name} dos favoritos`} aria-pressed={restaurant.isFavorite}>
@@ -478,7 +478,7 @@ export default function DashboardPage() {
         {message ? (<p role="status" className="mb-4 rounded-[8px] bg-white p-3 text-sm font-semibold text-app-caramelo-torrado">
             {ui(message)}
           </p>) : null}
-        <VitrinePratos restaurantes={restaurants} carregando={carregandoPratos} limiteInicial={12} mensagemVazia="Nenhum prato disponível no momento." horizontal limitePorLinha={7} maxRestaurantes={3} />
+        <VitrinePratos restaurantes={restaurants} carregando={carregandoPratos} limiteInicial={MAX_PRATOS_VITRINE} mensagemVazia="Nenhum prato disponível no momento." horizontal />
 
       </section>
 
@@ -527,7 +527,7 @@ export default function DashboardPage() {
             ) : nearbyRestaurants.length ? (<div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
                 {nearbyRestaurants.map((restaurant) => (<article key={restaurant.id} className="group relative min-w-0 rounded-[8px] border border-app-baunilha-dourada bg-white p-2.5 shadow-sm transition hover:-translate-y-0.5 hover:border-app-caramelo-torrado/55 hover:shadow-md">
                     <Link href={`/cliente/restaurantes/${restaurant.id}`} className="flex min-w-0 gap-3" aria-label={`Ver ${restaurant.name}`}>
-                      <div className="logo-restaurante-circular relative h-24 w-24 shrink-0 overflow-hidden rounded-full bg-white ring-2 ring-app-baunilha-dourada/70">
+                      <div className="logo-restaurante-circular relative h-24 w-24 shrink-0 overflow-hidden rounded-full bg-white ring-1 ring-app-baunilha-dourada/70">
                         {restaurant.imageUrl ? (<Image src={restaurant.imageUrl} alt={restaurant.name} fill sizes="96px" className="object-cover transition duration-300 group-hover:scale-105"/>) : (<div className="flex h-full items-center justify-center bg-app-creme-leve text-app-caramelo-torrado"><Icon type="cutlery" className="h-7 w-7" /></div>)}
                       </div>
 

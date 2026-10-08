@@ -25,7 +25,7 @@ supportRouter.use(requireAuth);
 
 function exigirBancoAdmin() {
     if (!supabaseAdmin) {
-        const erro = new Error("Suporte temporariamente indisponivel.");
+        const erro = new Error("Suporte temporariamente indisponível.");
         erro.status = 503;
         throw erro;
     }
@@ -38,7 +38,7 @@ function obterAdmins() {
         .filter(Boolean));
 }
 
-function normalizarId(valor, mensagem = "Identificador invalido.") {
+function normalizarId(valor, mensagem = "Identificador inválido.") {
     const id = Number(valor);
     if (!Number.isInteger(id) || id <= 0) {
         const erro = new Error(mensagem);
@@ -53,29 +53,29 @@ function mensagemErroValidacao(code) {
         DESCRICAO_CURTA: "Descreva o ocorrido em pelo menos 10 caracteres.",
         PEDIDO_OBRIGATORIO: "Este motivo exige um pedido vinculado.",
         RESERVA_OBRIGATORIA: "Este motivo exige uma reserva vinculada.",
-        PEDIDO_AGUARDANDO_PAGAMENTO: "Este pedido ainda aguarda pagamento e nao pode receber esse tipo de reclamacao.",
-        RESERVA_INATIVA: "Esta reserva nao permite reclamacao de pedido nao pronto.",
-        AUSENCIA_INFORMADA: "Voce informou ausencia para esta reserva, entao esse tipo de reclamacao precisa de analise direta da Appono.",
-        PRAZO_ENCERRADO: "O prazo para abrir chamado sobre esta experiencia foi encerrado.",
+        PEDIDO_AGUARDANDO_PAGAMENTO: "Este pedido ainda aguarda pagamento e não pode receber esse tipo de reclamação.",
+        RESERVA_INATIVA: "Esta reserva não permite reclamação de pedido não pronto.",
+        AUSENCIA_INFORMADA: "Você informou ausência para esta reserva, então esse tipo de reclamação precisa de análise direta da Appono.",
+        PRAZO_ENCERRADO: "O prazo para abrir chamado sobre esta experiência foi encerrado.",
     };
-    return mensagens[code] ?? "Nao foi possivel abrir este chamado.";
+    return mensagens[code] ?? "Não foi possível abrir este chamado.";
 }
 
 function mensagemErroReembolso(code) {
     const mensagens = {
-        PAGAMENTO_NAO_ENCONTRADO: "Nao encontramos um pagamento aprovado para criar o reembolso automaticamente.",
-        PAGAMENTO_NAO_APROVADO: "O pagamento ainda nao esta aprovado, entao o reembolso nao foi criado automaticamente.",
-        PAGAMENTO_JA_ESTORNADO: "Este pagamento ja foi estornado.",
-        REEMBOLSO_EM_ANDAMENTO: "Ja existe uma solicitacao de reembolso em andamento para este pagamento.",
-        REEMBOLSO_JA_CONCLUIDO: "Este pagamento ja possui reembolso concluido.",
+        PAGAMENTO_NAO_ENCONTRADO: "Não encontramos um pagamento aprovado para criar o reembolso automaticamente.",
+        PAGAMENTO_NAO_APROVADO: "O pagamento ainda não está aprovado, então o reembolso não foi criado automaticamente.",
+        PAGAMENTO_JA_ESTORNADO: "Este pagamento já foi estornado.",
+        REEMBOLSO_EM_ANDAMENTO: "Já existe uma solicitação de reembolso em andamento para este pagamento.",
+        REEMBOLSO_JA_CONCLUIDO: "Este pagamento já possui reembolso concluído.",
     };
-    return mensagens[code] ?? "Nao foi possivel criar o reembolso automaticamente.";
+    return mensagens[code] ?? "Não foi possível criar o reembolso automaticamente.";
 }
 
 async function obterPerfil(user) {
     exigirBancoAdmin();
     if (obterAdmins().has(String(user?.email ?? "").toLowerCase())) {
-        return { tipo: "admin", id: null, dados: { email: user.email, nome: "Administracao" } };
+        return { tipo: "admin", id: null, dados: { email: user.email, nome: "Administração" } };
     }
     const [{ data: cliente, error: clienteError }, { data: restaurante, error: restauranteError }] = await Promise.all([
         supabaseAdmin.from("clientes").select("id_cliente, nome, telefone, email").eq("id_auth", user.id).maybeSingle(),
@@ -86,7 +86,7 @@ async function obterPerfil(user) {
     }
     if (cliente) return { tipo: "cliente", id: cliente.id_cliente, dados: cliente };
     if (restaurante) return { tipo: "restaurante", id: restaurante.id_restaurante, dados: restaurante };
-    const erro = new Error("Perfil nao encontrado para acessar o suporte.");
+    const erro = new Error("Perfil não encontrado para acessar o suporte.");
     erro.status = 403;
     throw erro;
 }
@@ -100,13 +100,13 @@ function chamadoPertenceAoPerfil(chamado, perfil) {
 
 function textoMotivo(motivo) {
     const mapa = {
-        PEDIDO_NAO_PRONTO: "Pedido nao estava pronto",
+        PEDIDO_NAO_PRONTO: "Pedido não estava pronto",
         PEDIDO_INCORRETO: "Pedido incorreto",
-        RESERVA_NAO_RECONHECIDA: "Reserva nao reconhecida",
-        MESA_INDISPONIVEL: "Mesa indisponivel",
-        RESTAURANTE_INDISPONIVEL: "Restaurante indisponivel",
+        RESERVA_NAO_RECONHECIDA: "Reserva não reconhecida",
+        MESA_INDISPONIVEL: "Mesa indisponível",
+        RESTAURANTE_INDISPONIVEL: "Restaurante indisponível",
         PAGAMENTO: "Problema com pagamento",
-        REEMBOLSO: "Solicitacao de reembolso",
+        REEMBOLSO: "Solicitação de reembolso",
         ATENDIMENTO: "Atendimento",
         OUTRO: "Outro problema",
     };
@@ -140,7 +140,7 @@ async function buscarChamadoPorId(idChamado, perfil, select = SELECT_CHAMADO_DET
         .maybeSingle();
     if (error) throw new Error(error.message);
     if (!data || !chamadoPertenceAoPerfil(data, perfil)) {
-        const erro = new Error("Chamado nao encontrado.");
+        const erro = new Error("Chamado não encontrado.");
         erro.status = 404;
         throw erro;
     }
@@ -169,7 +169,7 @@ async function obterContextoAbertura(body, perfil) {
             .maybeSingle();
         if (error) throw new Error(error.message);
         if (!data) {
-            const erro = new Error("Pedido nao encontrado para este cliente.");
+            const erro = new Error("Pedido não encontrado para este cliente.");
             erro.status = 404;
             throw erro;
         }
@@ -187,7 +187,7 @@ async function obterContextoAbertura(body, perfil) {
             .maybeSingle();
         if (error) throw new Error(error.message);
         if (!data) {
-            const erro = new Error("Reserva nao encontrada para este cliente.");
+            const erro = new Error("Reserva não encontrada para este cliente.");
             erro.status = 404;
             throw erro;
         }
@@ -204,7 +204,7 @@ async function obterContextoAbertura(body, perfil) {
             .maybeSingle();
         if (error) throw new Error(error.message);
         if (!data) {
-            const erro = new Error("Restaurante nao encontrado.");
+            const erro = new Error("Restaurante não encontrado.");
             erro.status = 404;
             throw erro;
         }
@@ -304,7 +304,7 @@ async function notificarAbertura(chamado) {
 async function criarReembolsoVinculado({ chamado, contexto, descricao }) {
     if (!chamado.solicita_reembolso || !contexto.id_pedido) return null;
     if (paymentConfig.isRealMarketplace() || paymentConfig.productionAllowed()) {
-        return { error: "O chamado foi aberto, mas o reembolso automatico esta disponivel apenas no marketplace simulado." };
+        return { error: "O chamado foi aberto, mas o reembolso automático está disponível apenas no marketplace simulado." };
     }
     const { data: pagamento, error: pagamentoError } = await supabaseAdmin
         .from("pagamentos")
@@ -333,7 +333,7 @@ async function criarReembolsoVinculado({ chamado, contexto, descricao }) {
         return { error: mensagemErroReembolso(elegibilidade.code) };
     }
     if (pagamento.tipo_fluxo_pagamento !== "SIMULADO_APPONO") {
-        return { error: "Este pagamento nao pertence ao marketplace simulado e exige analise manual do reembolso." };
+        return { error: "Este pagamento não pertence ao marketplace simulado e exige análise manual do reembolso." };
     }
 
     const valor = Number(pagamento.valor_pago ?? pagamento.valor ?? contexto.pedido?.valor_total ?? 0);
@@ -353,7 +353,7 @@ async function criarReembolsoVinculado({ chamado, contexto, descricao }) {
         .select("*")
         .single();
     if (error) {
-        return { error: error.code === "23505" ? "Ja existe um reembolso ativo para este pagamento." : error.message };
+        return { error: error.code === "23505" ? "Já existe um reembolso ativo para este pagamento." : error.message };
     }
 
     await Promise.all([
@@ -370,7 +370,7 @@ async function criarReembolsoVinculado({ chamado, contexto, descricao }) {
             valor,
         }),
         notificarRestaurante(contexto.id_restaurante, {
-            titulo: "Nova solicitacao de reembolso",
+            titulo: "Nova solicitação de reembolso",
             mensagem: `O cliente solicitou reembolso pelo chamado #${chamado.id_chamado}.`,
             tipo_evento: "REEMBOLSO_SOLICITADO",
             link_destino: "/restaurante/reembolsos",
@@ -379,7 +379,7 @@ async function criarReembolsoVinculado({ chamado, contexto, descricao }) {
         }),
         notificarAdministradores({
             titulo: "Reembolso solicitado pelo suporte",
-            mensagem: `Chamado #${chamado.id_chamado} gerou uma solicitacao de reembolso.`,
+            mensagem: `Chamado #${chamado.id_chamado} gerou uma solicitação de reembolso.`,
             tipo_evento: "REEMBOLSO_SOLICITADO",
             link_destino: "/admin/reembolsos",
             dados: { id_reembolso: reembolso.id_reembolso, id_pedido: contexto.id_pedido, id_chamado: chamado.id_chamado },
@@ -426,13 +426,13 @@ supportRouter.get("/", async (req, res) => {
         if (req.query.status) consulta = consulta.eq("status", String(req.query.status).toUpperCase());
         if (req.query.motivo) consulta = consulta.eq("motivo", normalizarMotivoSuporte(req.query.motivo));
         if (req.query.prioridade) consulta = consulta.eq("prioridade", String(req.query.prioridade).trim().toUpperCase());
-        if (perfil.tipo === "admin" && req.query.id_cliente) consulta = consulta.eq("id_cliente", normalizarId(req.query.id_cliente, "Cliente invalido."));
-        if (perfil.tipo === "admin" && req.query.id_restaurante) consulta = consulta.eq("id_restaurante", normalizarId(req.query.id_restaurante, "Restaurante invalido."));
+        if (perfil.tipo === "admin" && req.query.id_cliente) consulta = consulta.eq("id_cliente", normalizarId(req.query.id_cliente, "Cliente inválido."));
+        if (perfil.tipo === "admin" && req.query.id_restaurante) consulta = consulta.eq("id_restaurante", normalizarId(req.query.id_restaurante, "Restaurante inválido."));
         const { data, error } = await consulta;
         if (error) throw new Error(error.message);
         return res.json({ items: (data ?? []).map(montarResumo), perfil: perfil.tipo });
     } catch (error) {
-        return res.status(error.status ?? 400).json({ error: error.message ?? "Nao foi possivel carregar o suporte." });
+        return res.status(error.status ?? 400).json({ error: error.message ?? "Não foi possível carregar o suporte." });
     }
 });
 
@@ -453,7 +453,7 @@ supportRouter.post("/", async (req, res) => {
         }
         const duplicado = await buscarChamadoAtivoDuplicado(contexto, motivo);
         if (duplicado) {
-            return res.status(409).json({ error: "Ja existe um chamado ativo para este contexto e motivo.", id_chamado: duplicado.id_chamado });
+            return res.status(409).json({ error: "Já existe um chamado ativo para este contexto e motivo.", id_chamado: duplicado.id_chamado });
         }
         const payload = {
             id_cliente: contexto.id_cliente,
@@ -472,11 +472,11 @@ supportRouter.post("/", async (req, res) => {
             .insert(payload)
             .select(SELECT_CHAMADO_DETALHE)
             .single();
-        if (error) throw new Error(error.code === "23505" ? "Ja existe um chamado ativo para este contexto e motivo." : error.message);
+        if (error) throw new Error(error.code === "23505" ? "Já existe um chamado ativo para este contexto e motivo." : error.message);
         await inserirMensagemSistema(data.id_chamado, `Chamado aberto: ${textoMotivo(motivo)}.`, { motivo });
         const resultadoReembolso = await criarReembolsoVinculado({ chamado: data, contexto, descricao: validacao.descricao });
         if (resultadoReembolso?.reembolso) {
-            await inserirMensagemSistema(data.id_chamado, `Solicitacao de reembolso #${resultadoReembolso.reembolso.id_reembolso} vinculada ao chamado.`, {
+            await inserirMensagemSistema(data.id_chamado, `Solicitação de reembolso #${resultadoReembolso.reembolso.id_reembolso} vinculada ao chamado.`, {
                 id_reembolso: resultadoReembolso.reembolso.id_reembolso,
             });
         }
@@ -487,7 +487,7 @@ supportRouter.post("/", async (req, res) => {
         const chamado = await buscarChamadoPorId(data.id_chamado, perfil);
         return res.status(201).json(montarDetalhe(chamado));
     } catch (error) {
-        return res.status(error.status ?? 400).json({ error: error.message ?? "Nao foi possivel abrir o chamado." });
+        return res.status(error.status ?? 400).json({ error: error.message ?? "Não foi possível abrir o chamado." });
     }
 });
 
@@ -495,11 +495,11 @@ supportRouter.get("/:id", async (req, res) => {
     try {
         const perfil = await obterPerfil(res.locals.user);
         perfil.userId = res.locals.user.id;
-        const idChamado = normalizarId(req.params.id, "Chamado invalido.");
+        const idChamado = normalizarId(req.params.id, "Chamado inválido.");
         const chamado = await buscarChamadoPorId(idChamado, perfil);
         return res.json({ chamado: montarDetalhe(chamado), perfil: perfil.tipo });
     } catch (error) {
-        return res.status(error.status ?? 400).json({ error: error.message ?? "Nao foi possivel carregar o chamado." });
+        return res.status(error.status ?? 400).json({ error: error.message ?? "Não foi possível carregar o chamado." });
     }
 });
 
@@ -507,10 +507,10 @@ supportRouter.post("/:id/mensagens", async (req, res) => {
     try {
         const perfil = await obterPerfil(res.locals.user);
         perfil.userId = res.locals.user.id;
-        const idChamado = normalizarId(req.params.id, "Chamado invalido.");
+        const idChamado = normalizarId(req.params.id, "Chamado inválido.");
         const chamado = await buscarChamadoPorId(idChamado, perfil, "*");
         if (STATUS_TERMINAIS_SUPORTE.has(chamado.status)) {
-            return res.status(409).json({ error: "Este chamado ja foi encerrado." });
+            return res.status(409).json({ error: "Este chamado já foi encerrado." });
         }
         const mensagem = await inserirMensagemParticipante({
             chamado,
@@ -525,7 +525,7 @@ supportRouter.post("/:id/mensagens", async (req, res) => {
         await notificarResposta(chamado, perfil);
         return res.status(201).json(mensagem);
     } catch (error) {
-        return res.status(error.status ?? 400).json({ error: error.message ?? "Nao foi possivel enviar a mensagem." });
+        return res.status(error.status ?? 400).json({ error: error.message ?? "Não foi possível enviar a mensagem." });
     }
 });
 
@@ -533,7 +533,7 @@ supportRouter.patch("/:id", async (req, res) => {
     try {
         const perfil = await obterPerfil(res.locals.user);
         perfil.userId = res.locals.user.id;
-        const idChamado = normalizarId(req.params.id, "Chamado invalido.");
+        const idChamado = normalizarId(req.params.id, "Chamado inválido.");
         const chamado = await buscarChamadoPorId(idChamado, perfil, "*");
         const acao = String(req.body?.acao ?? "").trim().toUpperCase();
         const agora = new Date().toISOString();
@@ -548,14 +548,14 @@ supportRouter.patch("/:id", async (req, res) => {
             }
             else if (acao === "CONFIRMAR_RESOLUCAO") {
                 update = { ...update, status: "RESOLVIDO", resolvido_em: agora };
-                mensagemSistema = "Cliente confirmou que a solucao resolveu o chamado.";
+                mensagemSistema = "Cliente confirmou que a solução resolveu o chamado.";
             }
             else if (acao === "ANALISE_ADMIN") {
                 update = { ...update, status: "EM_ANALISE_ADMIN" };
-                mensagemSistema = "Cliente solicitou analise da Appono.";
+                mensagemSistema = "Cliente solicitou análise da Appono.";
             }
             else {
-                return res.status(403).json({ error: "Acao nao permitida para cliente." });
+                return res.status(403).json({ error: "Ação não permitida para cliente." });
             }
         }
         else if (perfil.tipo === "restaurante") {
@@ -571,23 +571,23 @@ supportRouter.patch("/:id", async (req, res) => {
             }
             else if (acao === "CONTESTAR") {
                 update = { ...update, status: "EM_ANALISE_ADMIN", id_auth_responsavel: res.locals.user.id };
-                mensagemSistema = "Restaurante contestou o chamado e pediu analise da Appono.";
+                mensagemSistema = "Restaurante contestou o chamado e pediu análise da Appono.";
             }
             else if (acao === "RESOLVER") {
-                update = { ...update, status: "AGUARDANDO_CLIENTE", resolucao: mensagemUsuario || "Solucao informada pelo restaurante.", id_auth_responsavel: res.locals.user.id };
-                mensagemSistema = "Restaurante informou uma solucao e aguarda validacao do cliente.";
+                update = { ...update, status: "AGUARDANDO_CLIENTE", resolucao: mensagemUsuario || "Solução informada pelo restaurante.", id_auth_responsavel: res.locals.user.id };
+                mensagemSistema = "Restaurante informou uma solução e aguarda validação do cliente.";
             }
             else if (acao === "ANALISE_ADMIN") {
                 update = { ...update, status: "EM_ANALISE_ADMIN", id_auth_responsavel: res.locals.user.id };
-                mensagemSistema = "Restaurante solicitou analise da Appono.";
+                mensagemSistema = "Restaurante solicitou análise da Appono.";
             }
             else {
-                return res.status(403).json({ error: "Acao nao permitida para restaurante." });
+                return res.status(403).json({ error: "Ação não permitida para restaurante." });
             }
         }
         else if (perfil.tipo === "admin") {
             if (acao !== "DECIDIR") {
-                return res.status(403).json({ error: "Acao administrativa invalida." });
+                return res.status(403).json({ error: "Ação administrativa inválida." });
             }
             const procedencia = String(req.body?.procedencia ?? "").toUpperCase() === "PROCEDENTE" ? "PROCEDENTE" : "IMPROCEDENTE";
             const impacto = calcularImpactoReputacao({
@@ -634,7 +634,7 @@ supportRouter.patch("/:id", async (req, res) => {
         }
         return res.json(montarDetalhe(await buscarChamadoPorId(data.id_chamado, perfil)));
     } catch (error) {
-        return res.status(error.status ?? 400).json({ error: error.message ?? "Nao foi possivel atualizar o chamado." });
+        return res.status(error.status ?? 400).json({ error: error.message ?? "Não foi possível atualizar o chamado." });
     }
 });
 

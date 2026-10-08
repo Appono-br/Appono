@@ -104,7 +104,7 @@ export default function RecuperarSenhaPage() {
 
         <div className="mt-5 text-center">
           <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-app-caramelo-torrado">
-            Recuperacao de senha
+            Recuperação de senha
           </p>
           <h1 className="mt-2 text-3xl font-bold text-app-cafe-profundo">
             Crie uma nova senha

@@ -73,7 +73,7 @@ export function HomeCarousel() {
             <div role="group" aria-roledescription="slide" aria-label={`${index + 1} / ${slides.length}`} className="home-carousel-content relative mx-auto flex h-full max-w-7xl items-center px-6 pb-24 pt-8 sm:px-12 lg:px-16">
               <div className="max-w-3xl">
                 <p className="home-carousel-eyebrow text-xs font-bold uppercase tracking-[0.24em]">{label}</p>
-                {index === 0 ? <h1 className="mt-5 text-4xl font-semibold leading-tight sm:text-5xl lg:text-6xl">{title}</h1> : <h2 className="mt-5 text-4xl font-semibold leading-tight sm:text-5xl lg:text-6xl">{title}</h2>}
+                {index === 0 ? <h1 className="mt-5">{title}</h1> : <h2 className="app-page-title mt-5">{title}</h2>}
                 <p className="mt-6 max-w-xl text-base leading-7 sm:text-lg sm:leading-8">{description}</p>
               </div>
             </div>

@@ -2,6 +2,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import { Languages, Moon, SunMedium } from "lucide-react";
 import { HomeCarousel } from "@/components/home-carousel";
 import { HomeSections } from "@/components/home-sections";
 import { useIdiomaLocal } from "@/lib/use-idioma-local";
@@ -19,7 +20,7 @@ const headerLinkClass = "rounded-md px-4 py-2.5 font-bold text-app-cafe-profundo
 function RestaurantSearch({ value, onChange, onSubmit, mobile = false, english }) {
   return <form role="search" onSubmit={onSubmit} className={`home-restaurant-search ${mobile ? "home-search-mobile" : "home-search-desktop"}`} data-appono-sem-traducao>
     <input type="text" inputMode="search" enterKeyHint="search" name="q" spellCheck={false} value={value} onChange={(event) => onChange(event.target.value)} aria-label={english ? "Search restaurants" : "Buscar restaurantes"} placeholder={english ? "Search restaurants" : "Buscar restaurantes"} />
-    <button type="submit" aria-label={english ? "Search" : "Buscar"}><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"><circle cx="10.5" cy="10.5" r="6.5" /><path d="m16 16 4 4" /></svg></button>
+    <button type="submit" className="home-search-submit" aria-label={english ? "Search" : "Buscar"}><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"><circle cx="10.5" cy="10.5" r="6.5" /><path d="m16 16 4 4" /></svg></button>
   </form>;
 }
 
@@ -78,36 +79,21 @@ export default function HomePage() {
         <button
           type="button"
           onClick={alternarIdioma}
-          className="flex h-10 min-w-[96px] shrink-0 items-center justify-center whitespace-nowrap rounded-full border border-app-baunilha-dourada px-3 text-xs font-bold text-app-cafe-profundo transition hover:bg-app-chantilly"
+          className="home-header-action flex h-10 min-w-[96px] shrink-0 items-center justify-center whitespace-nowrap rounded-full border-0 bg-app-caramelo-torrado px-3 text-xs font-bold text-white transition hover:bg-app-cafe-profundo"
           aria-label={idioma === "en" ? "Switch to Portuguese" : "Mudar para inglês"}
           title={idioma === "en" ? "Switch to Portuguese" : "Mudar para inglês"}
           data-appono-sem-traducao
         >
-          <svg aria-hidden="true" viewBox="0 0 24 24" className="mr-1 h-4 w-4">
-            <path d="M5 5h8M9 3v2M7 17l4-10M5 17h8M15 19l2.5-6 2.5 6M16 17h3" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" />
-          </svg>
+          <Languages aria-hidden="true" className="mr-1.5 h-4 w-4 shrink-0" strokeWidth={1.8} />
           {idiomaDeDestino}
         </button>
-        <button
-          type="button"
-          onClick={() => atualizarTema(tema === "escuro" ? "claro" : "escuro")}
-          data-appono-sem-traducao
-          className="app-icon-button flex h-10 w-10 shrink-0 items-center justify-center whitespace-nowrap rounded-full border border-app-baunilha-dourada text-app-cafe-profundo transition hover:bg-app-chantilly"
-          aria-label={tema === "escuro" ? (idioma === "en" ? "Enable light mode" : "Ativar modo claro") : (idioma === "en" ? "Enable dark mode" : "Ativar modo escuro")}
-          title={tema === "escuro" ? (idioma === "en" ? "Enable light mode" : "Ativar modo claro") : (idioma === "en" ? "Enable dark mode" : "Ativar modo escuro")}
-        >
-          {tema === "escuro" ? (
-            <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5"><path d="M12 4V2m0 20v-2m7.1-15.1-1.4-1.4m1.4 16.8-1.4-1.4M20 12h2M2 12h2m.9-7.1-1.4-1.4m1.4 16.8-1.4-1.4M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" /></svg>
-          ) : (
-            <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5"><path d="M21 12.8A8 8 0 1 1 11.2 3a6 6 0 0 0 9.8 9.8Z" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" /></svg>
-          )}
-        </button>
+
       </div>
       <div className="hidden items-center gap-3 sm:flex">
         <button
           type="button"
           onClick={() => setProfileDialog("cadastro")}
-          className="whitespace-nowrap rounded-full border border-app-baunilha-dourada px-6 py-2.5 text-sm font-semibold text-app-cafe-profundo transition-all duration-300 hover:-translate-y-0.5 hover:bg-app-chantilly hover:shadow-sm"
+          className="home-header-action whitespace-nowrap rounded-full border-0 bg-app-caramelo-torrado px-6 py-2.5 text-sm font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-app-cafe-profundo hover:shadow-sm"
         >
           Criar conta
         </button>
@@ -116,7 +102,7 @@ export default function HomePage() {
           onClick={() => {
             window.location.href = "/login";
           }}
-          className="whitespace-nowrap rounded-full bg-app-caramelo-torrado px-6 py-2.5 text-sm font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-app-cafe-profundo hover:shadow-md"
+          className="home-header-action whitespace-nowrap rounded-full border-0 bg-app-caramelo-torrado px-6 py-2.5 text-sm font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-app-cafe-profundo hover:shadow-sm"
         >
           Entrar
         </button>
@@ -150,17 +136,32 @@ export default function HomePage() {
             closeMenu();
             setProfileDialog("cadastro");
           }}
-          className="mt-2 rounded-full bg-app-caramelo-torrado px-5 py-3 text-left font-semibold text-white"
+          className="home-header-action mt-2 rounded-full bg-app-caramelo-torrado px-5 py-3 text-left font-semibold text-white"
         >
           Criar conta
         </button>
-        <Link href="/login" onClick={closeMenu} className="mt-2 rounded-full border border-app-baunilha-dourada px-5 py-3 text-left font-semibold text-app-cafe-profundo">
+        <Link href="/login" onClick={closeMenu} className="home-header-action mt-2 rounded-full border-0 bg-app-caramelo-torrado px-5 py-3 text-left font-semibold text-white">
           Entrar
         </Link>
       </nav>
     </div>
   ) : null}
 </header>
+
+        <button
+          type="button"
+          onClick={() => atualizarTema(tema === "escuro" ? "claro" : "escuro")}
+          data-appono-sem-traducao
+          className="home-theme-toggle app-icon-button flex h-12 w-12 items-center justify-center rounded-full border border-app-baunilha-dourada bg-white text-app-cafe-profundo shadow-lg transition hover:bg-app-chantilly focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-app-caramelo-torrado"
+          aria-label={tema === "escuro" ? (idioma === "en" ? "Enable light mode" : "Ativar modo claro") : (idioma === "en" ? "Enable dark mode" : "Ativar modo escuro")}
+          title={tema === "escuro" ? (idioma === "en" ? "Enable light mode" : "Ativar modo claro") : (idioma === "en" ? "Enable dark mode" : "Ativar modo escuro")}
+        >
+          {tema === "escuro" ? (
+            <SunMedium aria-hidden="true" className="h-6 w-6" strokeWidth={1.8} />
+          ) : (
+            <Moon aria-hidden="true" className="h-6 w-6" fill="currentColor" strokeWidth={1.5} />
+          )}
+        </button>
 
       <HomeCarousel />
 

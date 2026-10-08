@@ -22,7 +22,7 @@ function frontendOrigin() {
   }
   const host = url?.hostname.toLowerCase() ?? "";
   if (!url || url.protocol !== "https:" || !host.includes(".") || host === "localhost" || host.endsWith(".localhost") || host.includes("seu-frontend")) {
-    const erro = new Error("Configure FRONTEND_PUBLIC_URL com a URL HTTPS pÃºblica do frontend para habilitar o checkout mensal do Mercado Pago.");
+    const erro = new Error("Configure FRONTEND_PUBLIC_URL com a URL HTTPS pública do frontend para habilitar o checkout mensal do Mercado Pago.");
     erro.statusCode = 503;
     throw erro;
   }
@@ -48,10 +48,10 @@ function normalizarCampanha(body = {}) {
   const valor_beneficio = body.valor_beneficio === "" || body.valor_beneficio == null ? null : arredondar(body.valor_beneficio);
   const tipos = new Set(["DESCONTO_PERCENTUAL","DESCONTO_FIXO","ITEM_CORTESIA","BEBIDA","ENTRADA","SOBREMESA","COMBO"]);
   if (titulo.length < 3 || titulo.length > 120 || !tipos.has(tipo_beneficio) || Number.isNaN(inicio_em.getTime()) || Number.isNaN(fim_em.getTime()) || fim_em <= inicio_em || !Number.isInteger(limite_usos) || limite_usos < 1) {
-    const erro = new Error("Dados da campanha invÃ¡lidos."); erro.statusCode = 400; throw erro;
+    const erro = new Error("Dados da campanha inválidos."); erro.statusCode = 400; throw erro;
   }
   if (["DESCONTO_PERCENTUAL","DESCONTO_FIXO"].includes(tipo_beneficio) && (!Number.isFinite(valor_beneficio) || valor_beneficio <= 0 || (tipo_beneficio === "DESCONTO_PERCENTUAL" && valor_beneficio > 100))) {
-    const erro = new Error("Informe um benefÃ­cio vÃ¡lido para a campanha."); erro.statusCode = 400; throw erro;
+    const erro = new Error("Informe um benefício válido para a campanha."); erro.statusCode = 400; throw erro;
   }
   return { titulo, descricao, imagem_url: String(body.imagem_url ?? "").trim() || null, tipo_beneficio, valor_beneficio, regras: String(body.regras ?? "").trim() || null, inicio_em: inicio_em.toISOString(), fim_em: fim_em.toISOString(), limite_usos, minimo_pessoas: body.minimo_pessoas ? Number(body.minimo_pessoas) : null, minimo_itens: body.minimo_itens ? Number(body.minimo_itens) : null, status: ["RASCUNHO","AGENDADA","ATIVA","PAUSADA"].includes(String(body.status ?? "").toUpperCase()) ? String(body.status).toUpperCase() : "RASCUNHO" };
 }
@@ -61,7 +61,7 @@ plansRouter.get("/catalogo", (_req, res) => res.json({ planos: PUBLIC_PLANOS }))
 plansRouter.get("/campanhas-publicas", async (req,res) => { try { res.json({campanhas:await require("./campaigns").publicas(req.query.restaurante_id)}); } catch(e) {res.status(400).json({error:e.message});} });
 
 plansRouter.use((req, res, next) => {
-  // Webhooks nÃ£o possuem sessÃ£o de usuÃ¡rio: a assinatura do provedor Ã© validada na rota.
+  // Webhooks não possuem sessão de usuário: a assinatura do provedor é validada na rota.
   if (req.path === "/webhook/mercado-pago") return next();
   return requireAuth(req, res, () => requireRole("restaurante")(req, res, next));
 });
@@ -119,18 +119,18 @@ plansRouter.post("/checkout", async (req, res) => {
   try {
     const restaurante = await obterRestaurante(res);
     const plano = planoValido(req.body?.plano);
-    if (!plano) return res.status(400).json({ error: "Plano invÃ¡lido." });
-    if (plano.codigo === "INICIAL") return res.status(400).json({ error: "O Plano Inicial nÃ£o precisa de pagamento." });
+    if (!plano) return res.status(400).json({ error: "Plano inválido." });
+    if (plano.codigo === "INICIAL") return res.status(400).json({ error: "O Plano Inicial não precisa de pagamento." });
     let assinatura = await obterAssinaturaRestaurante(restaurante.id_restaurante);
     if (!assinatura) {
       await garantirAssinaturaInicial(restaurante.id_restaurante, plano.codigo);
       assinatura = await obterAssinaturaRestaurante(restaurante.id_restaurante);
     }
-    if (!assinatura) return res.status(409).json({ error: "Assinatura ainda nÃ£o foi criada. Atualize o cadastro e tente novamente." });
-    if (assinatura.codigo_plano === "PROFISSIONAL" && assinatura.status === "ATIVA") return res.status(409).json({ error: "O Plano Profissional ja esta ativo." });
+    if (!assinatura) return res.status(409).json({ error: "Assinatura ainda não foi criada. Atualize o cadastro e tente novamente." });
+    if (assinatura.codigo_plano === "PROFISSIONAL" && assinatura.status === "ATIVA") return res.status(409).json({ error: "O Plano Profissional já está ativo." });
     const modoProducao = String(process.env.MERCADO_PAGO_PERMITIR_PRODUCAO ?? "false").trim().toLowerCase() === "true";
     if (!modoProducao && !credenciaisTesteMercadoPagoValidas()) {
-      return res.status(409).json({ code: "MP_TEST_SELLER_CREDENTIALS_REQUIRED", error: "Configure o Access Token da aplicacao do vendedor de teste para iniciar uma assinatura de teste." });
+      return res.status(409).json({ code: "MP_TEST_SELLER_CREDENTIALS_REQUIRED", error: "Configure o Access Token da aplicação do vendedor de teste para iniciar uma assinatura de teste." });
     }
     const token = obterAccessTokenMercadoPago();
     if (!token) return res.status(409).json({ code: "SUBSCRIPTION_PAYMENT_UNAVAILABLE", error: "Configure as credenciais do Mercado Pago para contratar o Plano Profissional." });
@@ -153,10 +153,10 @@ plansRouter.post("/checkout", async (req, res) => {
     let notificationUrl;
     try {
       const parsedBackendUrl = new URL(backendUrl);
-      if (parsedBackendUrl.protocol !== "https:") throw new Error("HTTPS obrigatorio");
+      if (parsedBackendUrl.protocol !== "https:") throw new Error("HTTPS obrigatório");
       notificationUrl = `${parsedBackendUrl.origin}/api/planos/webhook/mercado-pago`;
     } catch {
-      const erro = new Error("Configure BACKEND_PUBLIC_URL com a URL HTTPS publica da API para receber a confirmacao da assinatura.");
+      const erro = new Error("Configure BACKEND_PUBLIC_URL com a URL HTTPS publica da API para receber a confirmação da assinatura.");
       erro.statusCode = 503;
       throw erro;
     }
@@ -164,31 +164,31 @@ plansRouter.post("/checkout", async (req, res) => {
     if (!planoMPId || !checkoutDaContaAtual || assinatura.codigo_plano !== plano.codigo || assinatura.status !== "PENDENTE_PAGAMENTO") {
       const planoMP = await criarPlanoAssinaturaMercadoPago({ token, reason: `Appono Plano Profissional - restaurante ${restaurante.id_restaurante}`, amount: plano.mensalidade, backUrl });
       planoMPId = String(planoMP?.id ?? "");
-      if (!planoMPId || String(planoMP?.collector_id ?? "") !== String(contaMercadoPago?.id ?? "")) throw new Error("Nao foi possivel confirmar o vendedor associado ao plano no Mercado Pago.");
+      if (!planoMPId || String(planoMP?.collector_id ?? "") !== String(contaMercadoPago?.id ?? "")) throw new Error("Não foi possível confirmar o vendedor associado ao plano no Mercado Pago.");
     }
     const referencia = `assinatura:${assinatura.id_assinatura}:${crypto.randomUUID()}`;
     const assinaturaMP = await criarAssinaturaMercadoPago({ token, referencia, email: payerEmail, planoId: planoMPId, reason: `Appono Plano Profissional - restaurante ${restaurante.id_restaurante}`, amount: plano.mensalidade, backUrl, notificationUrl });
     const preapprovalId = String(assinaturaMP?.id ?? "");
     const checkoutUrl = assinaturaMP?.init_point;
     if (!preapprovalId || String(assinaturaMP?.preapproval_plan_id ?? "") !== planoMPId || !checkoutUrl) {
-      throw new Error("O Mercado Pago nao retornou a assinatura hospedada esperada.");
+      throw new Error("O Mercado Pago não retornou a assinatura hospedada esperada.");
     }
     const { error: assinaturaError } = await supabaseAdmin.from("assinaturas_restaurante").update({ codigo_plano: plano.codigo, status: "PENDENTE_PAGAMENTO", mensalidade: plano.mensalidade, percentual_comissao: plano.percentual_comissao, mercadopago_preapproval_id: preapprovalId, mercadopago_preapproval_plan_id: planoMPId, checkout_url: checkoutUrl }).eq("id_assinatura", assinatura.id_assinatura);
     if (assinaturaError) throw new Error(assinaturaError.message);
-    await supabaseAdmin.from("historico_assinaturas_restaurante").insert({ id_assinatura: assinatura.id_assinatura, codigo_plano_anterior: assinatura.codigo_plano, codigo_plano_novo: plano.codigo, status_anterior: assinatura.status, status_novo: "PENDENTE_PAGAMENTO", motivo: "ContrataÃ§Ã£o do Plano Profissional iniciada" });
+    await supabaseAdmin.from("historico_assinaturas_restaurante").insert({ id_assinatura: assinatura.id_assinatura, codigo_plano_anterior: assinatura.codigo_plano, codigo_plano_novo: plano.codigo, status_anterior: assinatura.status, status_novo: "PENDENTE_PAGAMENTO", motivo: "Contratação do Plano Profissional iniciada" });
     const { error: cobrancaError } = await supabaseAdmin.from("cobrancas_assinatura_restaurante").insert({ id_assinatura: assinatura.id_assinatura, referencia_externa: referencia, valor: plano.mensalidade, status: "PENDENTE", dados_provedor: { preapproval_id: preapprovalId, preapproval_plan_id: planoMPId, collector_id: String(contaMercadoPago.id) } });
     if (cobrancaError) throw new Error(cobrancaError.message);
     return res.status(201).json({ checkout_url: checkoutUrl });
-  } catch (error) { return res.status(error.statusCode ?? 400).json({ code: error.code, error: error.message ?? "NÃ£o foi possÃ­vel iniciar a contrataÃ§Ã£o." }); }
+  } catch (error) { return res.status(error.statusCode ?? 400).json({ code: error.code, error: error.message ?? "Não foi possível iniciar a contratação." }); }
 });
 
 plansRouter.post("/cancelar-renovacao", async (req, res) => {
   try {
     const restaurante = await obterRestaurante(res); const assinatura = await obterAssinaturaRestaurante(restaurante.id_restaurante);
-    if (!assinatura || assinatura.codigo_plano !== "PROFISSIONAL") return res.status(409).json({ error: "NÃ£o hÃ¡ assinatura Profissional ativa para cancelar." });
+    if (!assinatura || assinatura.codigo_plano !== "PROFISSIONAL") return res.status(409).json({ error: "Não há assinatura Profissional ativa para cancelar." });
     if (assinatura.mercadopago_preapproval_id && obterAccessTokenMercadoPago()) await atualizarAssinaturaMercadoPago(assinatura.mercadopago_preapproval_id, { status: "cancelled" });
     const { error } = await supabaseAdmin.from("assinaturas_restaurante").update({ cancelar_no_fim_do_periodo: true }).eq("id_assinatura", assinatura.id_assinatura);
-    if (error) throw new Error(error.message); return res.json({ message: "A renovaÃ§Ã£o foi cancelada. Os benefÃ­cios seguem atÃ© o fim do perÃ­odo pago." });
+    if (error) throw new Error(error.message); return res.json({ message: "A renovação foi cancelada. Os benefícios seguem até o fim do período pago." });
   } catch (error) { return res.status(error.statusCode ?? 400).json({ error: error.message }); }
 });
 
@@ -198,15 +198,15 @@ plansRouter.post("/webhook/mercado-pago", async (req, res) => {
   if (topic && !["subscription_preapproval", "preapproval", "subscription_authorized_payment", "payment"].includes(topic)) return res.json({ status: "ignored" });
   const eventoId = String(req.query?.["data.id"] ?? req.body?.data?.id ?? req.query?.id ?? "");
   let preapprovalId = eventoId;
-  if (!preapprovalId) return res.status(400).json({ error: "Evento de assinatura invalido." });
-  if (!validarAssinaturaWebhookMercadoPago(req, eventoId) && assinaturaObrigatoria()) return res.status(401).json({ error: "Assinatura do webhook invalida." });
+  if (!preapprovalId) return res.status(400).json({ error: "Evento de assinatura inválido." });
+  if (!validarAssinaturaWebhookMercadoPago(req, eventoId) && assinaturaObrigatoria()) return res.status(401).json({ error: "Assinatura do webhook inválida." });
   try {
     if (topic === "subscription_authorized_payment") {
       const fatura = await consultarFaturaAssinaturaMercadoPago(eventoId);
       preapprovalId = fatura?.preapproval_id;
     } else if (topic === "payment") {
       const pagamento = await consultarPagamentoMercadoPago(eventoId);
-      if (!pagamento) throw new Error("Pagamento indisponivel");
+      if (!pagamento) throw new Error("Pagamento indisponível");
       preapprovalId = pagamento.metadata?.preapproval_id;
       if (!preapprovalId) {
         const { data, error } = await supabaseAdmin.from("cobrancas_assinatura_restaurante").select("dados_provedor").eq("mercadopago_payment_id", eventoId).maybeSingle();
@@ -245,7 +245,7 @@ plansRouter.post("/webhook/mercado-pago", async (req, res) => {
     if (!assinatura) return res.status(202).json({ status: "ignored" });
     await aplicarEstadoAssinaturaMercadoPago(assinatura, { ...assinaturaMP, id: preapprovalId });
     return res.json({ status: "ok" });
-  } catch (error) { console.error("Falha no webhook de assinatura:", error.message); return res.status(500).json({ error: "Nao foi possivel processar a assinatura." }); }
+  } catch (error) { console.error("Falha no webhook de assinatura:", error.message); return res.status(500).json({ error: "Não foi possível processar a assinatura." }); }
 });
 
 module.exports = { plansRouter };

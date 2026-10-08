@@ -1,6 +1,8 @@
 "use client";
 
+import { Languages } from "lucide-react";
 import { useIdiomaLocal } from "@/lib/use-idioma-local";
+import { useTemaLocal } from "@/lib/use-tema-local";
 import { useTraducao } from "@/lib/use-traducao";
 import { SeletorTema } from "./seletor-tema";
 
@@ -15,6 +17,7 @@ function IconeIdioma() {
 export function BotaoIdioma({ embutido = false }) {
   const { idioma, alternarIdioma } = useIdiomaLocal();
   const { t } = useTraducao();
+  const { tema } = useTemaLocal();
   const emIngles = idioma === "en";
 
   return (
@@ -22,7 +25,7 @@ export function BotaoIdioma({ embutido = false }) {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
           <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-app-chantilly text-app-caramelo-torrado">
-            <IconeIdioma />
+            <Languages aria-hidden="true" className="h-5 w-5" strokeWidth={1.8} />
           </span>
           <div>
             <h2 className="text-sm font-bold text-app-cafe-profundo">{t("settings.language")}</h2>
@@ -31,7 +34,7 @@ export function BotaoIdioma({ embutido = false }) {
             </p>
           </div>
         </div>
-        <button type="button" onClick={alternarIdioma} className="h-10 rounded-lg border border-app-baunilha-dourada px-4 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:border-app-caramelo-torrado hover:text-app-caramelo-torrado">
+        <button type="button" onClick={alternarIdioma} style={tema === "claro" ? { border: "none", boxShadow: "none" } : undefined} className={`h-10 rounded-lg px-4 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:text-app-caramelo-torrado ${tema === "escuro" ? "border border-app-baunilha-dourada hover:border-app-caramelo-torrado" : "border-0"}`}>
           {emIngles ? t("settings.switchToPortuguese") : t("settings.switchToEnglish")}
         </button>
       </div>

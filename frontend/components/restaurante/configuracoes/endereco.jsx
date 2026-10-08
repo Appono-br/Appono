@@ -131,7 +131,7 @@ export default function RestaurantAddressSettingsPage({ onVoltar }) {
             <MapPin className="h-6 w-6" aria-hidden="true" />
           </span>
           <div>
-            <h2 className="text-3xl font-medium italic leading-tight text-app-cafe-profundo">
+            <h2 className="text-3xl font-medium leading-tight text-app-cafe-profundo">
               {ui("Endereço da Loja")}
             </h2>
           </div>

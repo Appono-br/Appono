@@ -381,7 +381,7 @@ async function aplicarPagamentoMercadoPago(pagamentoMercadoPago, fallbackReferen
             .eq("id_pedido", referenciaInfo.id)
             .maybeSingle();
         if (pedidoError || !pedido) {
-            throw new Error(pedidoError?.message ?? "Pedido não encontrado para conciliacao.");
+            throw new Error(pedidoError?.message ?? "Pedido não encontrado para conciliação.");
         }
         const resumoFinanceiro = pagamentoExistente
             ? {
@@ -491,7 +491,7 @@ async function aplicarPagamentoMercadoPago(pagamentoMercadoPago, fallbackReferen
         .eq("id_reserva", referenciaInfo.id)
         .maybeSingle();
     if (reservaError || !reserva) {
-        throw new Error(reservaError?.message ?? "Reserva não encontrada para conciliacao.");
+        throw new Error(reservaError?.message ?? "Reserva não encontrada para conciliação.");
     }
     const pagamentoExistente = await obterPagamentoExistentePorReferencia(referencia);
     const decisao = lateApprovalDecision({ gatewayStatus: statusMapeado.pagamento,
@@ -640,7 +640,7 @@ exports.paymentsRouter.post(["/pedido/:id/preferência", "/reserva/:id/preferên
         if (marketplaceRealAtivo() && !conexaoRestaurante) {
             return res.status(409).json({
                 error: conexaoMercadoPagoRestaurante?.live_mode && !mercadoPagoProducaoPermitida()
-                    ? "A conta Mercado Pago do restaurante foi conectada em modo producao. Para testar sem transacao real, reconecte uma conta teste ou altere MERCADO_PAGO_MODO_REPASSE para SIMULADO."
+                    ? "A conta Mercado Pago do restaurante foi conectada em modo produção. Para testar sem transação real, reconecte uma conta teste ou altere MERCADO_PAGO_MODO_REPASSE para SIMULADO."
                     : "O restaurante ainda não conectou uma conta Mercado Pago para receber este pagamento.",
             });
         }
@@ -885,7 +885,7 @@ exports.paymentsRouter.get("/pedido/:id/status", async (req, res) => {
 exports.paymentsRouter.get("/reserva/:id/status", async (req, res) => {
     const reservaId = Number(req.params.id);
     if (!Number.isInteger(reservaId) || reservaId <= 0) {
-        return res.status(400).json({ error: "Reserva invalida." });
+        return res.status(400).json({ error: "Reserva inválida." });
     }
     const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
     try {

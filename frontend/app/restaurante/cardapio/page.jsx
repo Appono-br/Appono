@@ -236,7 +236,7 @@ export default function RestaurantMenuManagementPage() {
         <main className="flex min-h-screen flex-col bg-white text-app-cafe-profundo">
 
 
-            <section className="gestao-cardapio mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6">
+            <section className="gestao-cardapio mx-auto w-full max-w-7xl flex-1 px-4 pb-8 pt-10 sm:px-6 sm:pt-14">
                 <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
                     <div>
                         <h1 className="text-3xl font-semibold leading-tight text-app-cafe-profundo sm:text-4xl">{ui("Gestão de Cardápio")}</h1>
@@ -351,8 +351,8 @@ export default function RestaurantMenuManagementPage() {
                                 </div>
 
                                 {itens.map((produto) => (
-                            <article key={produto.id_produto} className={`produto-cardapio grid min-w-0 gap-4 rounded-xl p-4 ring-1 sm:grid-cols-[112px_minmax(0,1fr)] xl:grid-cols-[112px_minmax(0,1fr)_minmax(240px,340px)] sm:items-start ${produto.destaque ? "bg-app-baunilha-dourada/35 ring-app-caramelo-torrado/35" : "bg-app-creme-leve ring-app-baunilha-dourada/55"}`}>
-                                <div className="relative h-28 overflow-hidden rounded-[10px] bg-app-baunilha-dourada/45">
+                            <article key={produto.id_produto} className={`produto-cardapio grid min-w-0 gap-4 rounded-xl p-4 ring-1 sm:grid-cols-[112px_minmax(0,1fr)_auto] sm:items-start ${produto.destaque ? "bg-app-baunilha-dourada/35 ring-app-caramelo-torrado/35" : "bg-app-creme-leve ring-app-baunilha-dourada/55"}`}>
+                                <div className="relative h-28 overflow-hidden rounded-[10px] bg-app-baunilha-dourada/45 sm:row-span-2">
                                     {produto.imagem_url ? (
                                         <Image src={produto.imagem_url} alt={produto.nome} fill className="object-cover" />
                                     ) : (
@@ -373,28 +373,28 @@ export default function RestaurantMenuManagementPage() {
                                     {produto.descricao ? <p className="mt-2 text-sm leading-6 text-app-mocha">{produto.descricao}</p> : null}
                                     <p className="mt-2 text-sm font-semibold text-app-caramelo-torrado">{produto.tempo_preparo_minutos ? ui("Tempo médio: {0} min", [produto.tempo_preparo_minutos]) : ui("Tempo médio não informado")}</p>
                                 </div>
-                                <div className="min-w-0 text-left sm:col-start-2 xl:col-start-auto xl:text-right">
+                                <div className="min-w-0 text-left sm:text-right">
                                     <strong className="text-lg text-app-cafe-profundo">{formatarMoeda(produto.preco, localeUI)}</strong>
-                                    <div className="mt-3 flex flex-wrap items-center gap-2 sm:justify-end">
-                                        <span className={`px-1 py-1 text-xs font-bold uppercase ${produto.disponivel ? "text-green-800" : "text-red-800"}`}>
+                                </div>
+                                    <div className="produto-cardapio-acoes flex min-w-0 flex-wrap items-center gap-2 sm:col-span-2 sm:col-start-2">
+                                        <span className={`mr-auto py-1 text-xs font-bold uppercase ${produto.disponivel ? "text-green-800" : "text-red-800"}`}>
                                             {ui(produto.disponivel ? "Disponível" : "Indisponível")}
                                         </span>
                                         <button type="button" onClick={() => alterarDisponibilidade(produto)} disabled={produtoAtualizandoId === produto.id_produto} className={`inline-flex h-9 items-center justify-center gap-2 rounded-[8px] border bg-transparent px-3 text-xs font-bold uppercase transition disabled:cursor-not-allowed disabled:opacity-60 ${produto.disponivel ? "border-red-300 text-red-800 hover:border-app-vermelho-erro hover:text-app-vermelho-erro" : "border-green-200 text-green-800 hover:border-app-verde-sucesso hover:text-app-verde-sucesso"}`}>
-                                            <Icon type="check" className="h-4 w-4" />
+                                            <Icon type={produto.disponivel ? "pause" : "check"} className="h-4 w-4" />
                                             {ui(produto.disponivel ? "Pausar" : "Ativar")}
                                         </button>
-                                        <button type="button" onClick={() => alterarDestaque(produto)} disabled={produtoAtualizandoId === produto.id_produto} className="inline-flex h-9 items-center justify-center gap-2 rounded-[8px] border border-app-baunilha-dourada px-3 text-xs font-bold uppercase text-app-mocha transition hover:bg-app-creme-suave disabled:cursor-not-allowed disabled:opacity-60">
+                                        <button type="button" onClick={() => alterarDestaque(produto)} disabled={produtoAtualizandoId === produto.id_produto} className="produto-acao-destaque inline-flex h-9 items-center justify-center gap-2 rounded-[8px] border border-yellow-500 bg-transparent px-3 text-xs font-bold uppercase text-yellow-600 transition hover:border-yellow-600 hover:text-yellow-700 disabled:cursor-not-allowed disabled:opacity-60">
                                             <Icon type="star" className="h-4 w-4" />
                                             {ui(produto.destaque ? "Remover destaque" : "Destacar")}
                                         </button>
-                                        <Link href={`/restaurante/cardapio/editar?produto=${produto.id_produto}`} className="inline-flex h-9 items-center justify-center gap-2 rounded-[8px] border border-app-baunilha-dourada px-3 text-xs font-bold uppercase text-app-mocha transition hover:bg-app-creme-suave">
+                                        <Link href={`/restaurante/cardapio/editar?produto=${produto.id_produto}`} className="inline-flex h-9 items-center justify-center gap-2 rounded-[8px] border border-app-baunilha-dourada bg-transparent px-3 text-xs font-bold uppercase text-app-mocha transition hover:border-app-caramelo-torrado">
                                             <Icon type="pencil" className="h-4 w-4" />{ui("Editar")}</Link>
                                         <button type="button" onClick={() => setProdutoParaExcluir(produto)} disabled={produtoExcluindoId === produto.id_produto} className="inline-flex h-9 items-center justify-center gap-2 rounded-[8px] border border-red-300 bg-transparent px-3 text-xs font-bold uppercase text-red-800 transition hover:border-app-vermelho-erro hover:text-app-vermelho-erro disabled:cursor-not-allowed disabled:opacity-60">
                                             <Icon type="trash" className="h-4 w-4" />
                                             {ui(produtoExcluindoId === produto.id_produto ? "Excluindo" : "Excluir")}
                                         </button>
                                     </div>
-                                </div>
                             </article>
                                 ))}
                             </div>

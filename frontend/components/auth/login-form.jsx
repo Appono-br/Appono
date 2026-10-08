@@ -321,7 +321,7 @@ export function LoginForm() {
               <button
                 type="button"
                 onClick={() => setRegisterDialog(true)}
-                className="flex h-12 w-full items-center justify-center rounded-xl border-2 border-app-baunilha-dourada/50 text-sm font-semibold text-app-cafe-profundo hover:border-app-caramelo-torrado hover:bg-app-chantilly transition-all"
+                className="botao-criar-conta flex h-12 w-full items-center justify-center rounded-xl border border-app-baunilha-dourada/50 text-sm font-semibold text-app-cafe-profundo hover:border-app-caramelo-torrado hover:bg-app-chantilly transition-all"
               >
                 Criar nova conta
               </button>

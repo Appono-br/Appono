@@ -296,9 +296,9 @@ function RestaurantMenuItemEditorContent() {
             <section className="mx-auto w-full max-w-6xl flex-1 px-5 py-10 sm:py-14">
                 <div className="mx-auto max-w-4xl">
                     <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-app-caramelo-torrado">{ui("Cardápio")}</p>
-                    <h2 className="mt-2 text-4xl font-medium leading-tight text-app-cafe-profundo sm:text-5xl">
+                    <h1 className="mt-2 text-4xl font-medium leading-tight text-app-cafe-profundo sm:text-5xl">
                         {ui(produtoId ? "Editar Item" : "Criar Novo Item")}
-                    </h2>
+                    </h1>
                     <p className="mt-4 max-w-3xl text-sm leading-6 text-app-cinza sm:text-base">{ui("Publique pratos que o cliente conseguirá visualizar na página do restaurante e selecionar no pedido antecipado.")}</p>
                 </div>
 
@@ -327,7 +327,7 @@ function RestaurantMenuItemEditorContent() {
                     </div>
 
                     <label className="grid gap-2">
-                        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-cinza">{ui("Descricao")}</span>
+                        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-cinza">{ui("Descrição")}</span>
                         <textarea value={form.description} onChange={(event) => updateField("description", event.target.value)} className="min-h-36 resize-y rounded-[8px] border border-app-baunilha-dourada bg-app-creme-suave px-3 py-4 text-base leading-7 text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20" placeholder={ui("Descreva ingredientes, preparo e diferenciais do prato.")} />
                     </label>
                     </div>

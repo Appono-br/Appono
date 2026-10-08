@@ -1,4 +1,72 @@
+@layer app-borders;
 @import "tailwindcss";
+
+.home-publica .home-theme-toggle {
+  position: fixed;
+  right: calc(20px + env(safe-area-inset-right, 0px));
+  bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  z-index: 40;
+}
+
+/* Paleta dos controles: os botões principais mantêm a mesma cor nos dois temas. */
+:root {
+  --app-botao-primario: #4c2f20;
+  --app-botao-primario-hover: #3a2318;
+  --app-botao-primario-texto: #f5ebdd;
+  --app-borda-espessura: 1px;
+  --app-borda-cor: rgb(148 117 83 / 35%);
+  --app-botao-primario-borda: var(--app-borda-cor);
+  --app-botao-secundario: #f0e7df;
+  --app-botao-secundario-hover: #e5d7ca;
+  --app-botao-secundario-texto: #5b4536;
+  --app-botao-marrom: var(--app-botao-primario);
+  --app-botao-marrom-hover: var(--app-botao-primario-hover);
+}
+
+html[data-tema="escuro"] {
+  --app-borda-cor: rgb(184 153 128 / 28%);
+  --app-botao-secundario: #352b25;
+  --app-botao-secundario-hover: #41342b;
+  --app-botao-secundario-texto: #c9b8a8;
+}
+
+html[data-tema] :is(
+  .home-publica button:not(.home-carousel-dot):not(.home-profile-option):not(.home-search-submit):not(.public-restaurant-card),
+  .home-publica a[href="/login"],
+  .home-publica a[class*="bg-app-caramelo-torrado"],
+  .home-publica a[class*="bg-app-cafe-profundo"],
+  .auth-publica :is(button, a)[class*="bg-app-caramelo-torrado"],
+  .area-autenticada :is(button, a)[class*="bg-app-caramelo-torrado"],
+  .area-autenticada :is(button, a)[class*="bg-app-dourado-mel"],
+  .area-autenticada :is(button, a)[class*="bg-app-cafe-profundo"],
+  .auth-publica :is(button, a)[class*="bg-app-dourado-mel"],
+  .auth-publica :is(button, a)[class*="bg-app-cafe-profundo"],
+  :is(button, a, [role="button"]):is(.app-button-primary, .bg-app-primaria, .bg-app-caramelo-torrado, .bg-app-dourado-mel, .bg-app-cafe-profundo, .bg-app-baunilha-dourada, .bg-app-botao-aba-ativa):not(:is(.produto-cardapio-acoes *, .agenda-calendar-day, .app-logout, .botao-acao-critica, [class*="vermelho-erro"], [class*="text-red-"], [class*="text-rose-"])),
+  button.botao-confirmacao-marrom
+):not(.app-button-secondary) {
+  background-color: var(--app-botao-marrom) !important;
+  border-color: var(--app-botao-primario-borda) !important;
+  color: var(--app-botao-primario-texto) !important;
+}
+
+html[data-tema] :is(
+  .home-publica button:not(.home-carousel-dot):not(.home-profile-option):not(.home-search-submit):not(.public-restaurant-card),
+  .home-publica a[href="/login"],
+  .home-publica a[class*="bg-app-caramelo-torrado"],
+  .home-publica a[class*="bg-app-cafe-profundo"],
+  .auth-publica :is(button, a)[class*="bg-app-caramelo-torrado"],
+  .area-autenticada :is(button, a)[class*="bg-app-caramelo-torrado"],
+  .area-autenticada :is(button, a)[class*="bg-app-dourado-mel"],
+  .area-autenticada :is(button, a)[class*="bg-app-cafe-profundo"],
+  .auth-publica :is(button, a)[class*="bg-app-dourado-mel"],
+  .auth-publica :is(button, a)[class*="bg-app-cafe-profundo"],
+  :is(button, a, [role="button"]):is(.app-button-primary, .bg-app-primaria, .bg-app-caramelo-torrado, .bg-app-dourado-mel, .bg-app-cafe-profundo, .bg-app-baunilha-dourada, .bg-app-botao-aba-ativa):not(:is(.produto-cardapio-acoes *, .agenda-calendar-day, .app-logout, .botao-acao-critica, [class*="vermelho-erro"], [class*="text-red-"], [class*="text-rose-"])),
+  button.botao-confirmacao-marrom
+):not(.app-button-secondary):hover:not(:disabled) {
+  background-color: var(--app-botao-marrom-hover) !important;
+  border-color: var(--app-botao-primario-borda) !important;
+  color: var(--app-botao-primario-texto) !important;
+}
 
 .restaurant-logo-image,
 :is(.logo-restaurante-circular, .dish-restaurant-logo, .public-restaurant-image) > img {
@@ -197,8 +265,8 @@ html[data-tema="escuro"] .resultado-busca-restaurante:focus-visible {
   --paleta-texto-escuro: #121212;
   --paleta-cinza: #787979;
   --paleta-vermelho-erro: #AA6020;
-  --app-botao-aba-ativa: #241713;
-  --app-botao-aba-ativa-texto: #f7ead6;
+  --app-botao-aba-ativa: var(--app-botao-primario);
+  --app-botao-aba-ativa-texto: var(--app-botao-primario-texto);
 }
 @theme inline {
   --color-background: var(--background);
@@ -234,6 +302,12 @@ html[data-tema="escuro"] .resultado-busca-restaurante:focus-visible {
   --color-app-fundo-destaque: var(--app-fundo-destaque);
   --color-app-botao-aba-ativa-texto: var(--app-botao-aba-ativa-texto);
   --color-app-botao-aba-ativa: var(--app-botao-aba-ativa);
+  --color-app-primaria: var(--app-botao-primario);
+  --color-app-primaria-hover: var(--app-botao-primario-hover);
+  --color-app-sobre-primaria: var(--app-botao-primario-texto);
+  --color-app-secundaria: var(--app-botao-secundario);
+  --color-app-secundaria-hover: var(--app-botao-secundario-hover);
+  --color-app-sobre-secundaria: var(--app-botao-secundario-texto);
 }
 
 body {
@@ -939,18 +1013,18 @@ html {
 
 :where(html:not([data-tema=escuro])) .area-restaurante :is(button, a)[class*="bg-app-dourado-mel"],
 :where(html:not([data-tema=escuro])) .area-restaurante :is(button, a)[class*="bg-app-caramelo-torrado"] {
-  background-color: var(--app-caramelo-torrado) !important;
-  color: white !important;
+  background-color: var(--app-botao-primario) !important;
+  color: var(--app-botao-primario-texto) !important;
 }
 
 :where(html:not([data-tema=escuro])) .area-restaurante :is(button, a)[class*="bg-app-dourado-mel"]:hover,
 :where(html:not([data-tema=escuro])) .area-restaurante :is(button, a)[class*="bg-app-caramelo-torrado"]:hover {
-  background-color: var(--app-cafe-profundo) !important;
+  background-color: var(--app-botao-primario-hover) !important;
 }
 
 :where(html:not([data-tema=escuro])) .area-restaurante :is(button, a)[class*="bg-app-cafe-profundo"] {
-  background-color: var(--app-cafe-profundo) !important;
-  color: var(--app-creme-leve) !important;
+  background-color: var(--app-botao-primario) !important;
+  color: var(--app-botao-primario-texto) !important;
 }
 
 :where(html:not([data-tema=escuro])) .area-restaurante :is(button, a)[class*="border-app"] {
@@ -1107,18 +1181,18 @@ html {
 
 :where(html:not([data-tema=escuro])) .area-cliente :is(button, a)[class*="bg-app-dourado-mel"],
 :where(html:not([data-tema=escuro])) .area-cliente :is(button, a)[class*="bg-app-caramelo-torrado"] {
-  background-color: var(--app-caramelo-torrado) !important;
-  color: white !important;
+  background-color: var(--app-botao-primario) !important;
+  color: var(--app-botao-primario-texto) !important;
 }
 
 :where(html:not([data-tema=escuro])) .area-cliente :is(button, a)[class*="bg-app-dourado-mel"]:hover,
 :where(html:not([data-tema=escuro])) .area-cliente :is(button, a)[class*="bg-app-caramelo-torrado"]:hover {
-  background-color: var(--app-cafe-profundo) !important;
+  background-color: var(--app-botao-primario-hover) !important;
 }
 
 :where(html:not([data-tema=escuro])) .area-cliente :is(button, a)[class*="bg-app-cafe-profundo"] {
-  background-color: var(--app-cafe-profundo) !important;
-  color: var(--app-creme-leve) !important;
+  background-color: var(--app-botao-primario) !important;
+  color: var(--app-botao-primario-texto) !important;
 }
 
 :where(html:not([data-tema=escuro])) .area-cliente :is(button, a)[class*="border-app"] {
@@ -1314,5 +1388,59 @@ html[data-tema="escuro"] select[size="1"] {
 #reserva [data-campanha-id] {
   width: 100%;
   border-radius: 0.75rem !important;
+}
+
+/* A saída da conta mantém a cor de perigo em todos os temas. */
+html body button.app-logout {
+  background: transparent !important;
+  border-color: transparent !important;
+  color: var(--ui-perigo, #b91c1c) !important;
+  box-shadow: none !important;
+}
+
+html body button.app-logout:hover:not(:disabled) {
+  text-decoration: underline;
+}
+
+html body button.app-logout :is(span, svg) {
+  color: inherit !important;
+}
+
+html body button.app-logout-confirm {
+  background: #dc2626 !important;
+  color: #ffffff !important;
+}
+
+html body button.app-logout-confirm:hover:not(:disabled) {
+  background: #b91c1c !important;
+}
+
+/* Papéis explícitos para novos controles, sem depender dos nomes antigos da paleta. */
+html[data-tema] .app-button-secondary {
+  background-color: var(--app-botao-secundario) !important;
+  color: var(--app-botao-secundario-texto) !important;
+  border: var(--app-borda-espessura) solid var(--app-borda-cor);
+}
+
+html[data-tema] .app-button-secondary:hover:not(:disabled) {
+  background-color: var(--app-botao-secundario-hover) !important;
+}
+
+html[data-tema] :is(.app-button-primary, .app-button-secondary, .botao-confirmacao-marrom, button.bg-app-primaria, a.bg-app-primaria, button.bg-app-cafe-profundo, a.bg-app-cafe-profundo, button.bg-app-caramelo-torrado, a.bg-app-caramelo-torrado, button.bg-app-dourado-mel, a.bg-app-dourado-mel, button.bg-app-botao-aba-ativa, a.bg-app-botao-aba-ativa) :is(span, strong, p, svg, small) {
+  color: inherit !important;
+}
+
+html[data-tema] :is(.app-button-primary, .app-button-secondary):is(:disabled, [aria-disabled="true"]) {
+  opacity: 0.6;
+}
+
+html[data-tema] :is(.app-button-primary, .app-button-secondary):focus-visible {
+  outline: 2px solid var(--ui-acento, #b89980) !important;
+  outline-offset: 3px;
+}
+
+html[data-tema] .agenda-calendar .agenda-calendar-selected {
+  background-color: var(--app-botao-primario) !important;
+  color: var(--app-botao-primario-texto) !important;
 }
 

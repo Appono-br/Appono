@@ -118,7 +118,7 @@ function SettingsContent({ painelInicial }) {
       <section className="mx-auto w-full max-w-7xl flex-1 px-5 py-10 sm:py-14">
         <div className="grid items-start gap-8 lg:grid-cols-[0.42fr_1fr]">
           <aside className="rounded-[8px] bg-app-creme-leve p-5 shadow-sm ring-1 ring-app-baunilha-dourada/60 sm:p-6">
-            <h1 className="text-3xl font-medium italic leading-tight text-app-cafe-profundo">{t("settings.title")}</h1>
+            <h1 className="text-3xl font-medium leading-tight text-app-cafe-profundo">{t("settings.title")}</h1>
 
             <nav aria-label={ui("Seções de configurações")} className="mt-7 grid gap-2">
               <button type="button" onClick={() => setPainelAtivo("conta")} aria-current={painelAtivo === "conta" ? "page" : undefined} className={`flex min-h-12 w-full items-center gap-3 rounded-[8px] px-3 text-left text-sm font-bold outline-none transition focus-visible:ring-2 focus-visible:ring-app-caramelo-torrado ${painelAtivo === "conta" ? "bg-app-cafe-profundo text-app-creme-leve" : "text-app-cafe-profundo hover:bg-white"}`}>
@@ -133,7 +133,7 @@ function SettingsContent({ painelInicial }) {
                 <Icon type="support" />
                 {ui("Suporte")}
               </button>
-              <button type="button" onClick={() => setConfirmandoSaida(true)} className="mt-3 flex min-h-12 w-full items-center gap-3 rounded-[8px] px-3 text-left text-sm font-bold text-app-vermelho-erro outline-none transition hover:bg-app-vermelho-claro focus-visible:ring-2 focus-visible:ring-app-vermelho-erro">
+              <button type="button" onClick={() => setConfirmandoSaida(true)} className="app-logout mt-3 flex min-h-12 w-full items-center gap-3 rounded-[8px] px-3 text-left text-sm font-bold text-app-vermelho-erro outline-none transition hover:bg-app-vermelho-claro focus-visible:ring-2 focus-visible:ring-app-vermelho-erro">
                 <Icon type="log-out" />
                 {t("settings.logout")}
               </button>
@@ -188,11 +188,11 @@ function SettingsContent({ painelInicial }) {
 
       <ConfirmationDialog
         open={confirmandoSaida}
+        variant="logout"
         title="Sair da conta?"
         description="Tem certeza de que deseja sair da sua conta?"
         confirmLabel={t("settings.logout")}
         cancelLabel="Cancelar"
-        variant="default"
         loading={saindo}
         onConfirm={logout}
         onCancel={() => setConfirmandoSaida(false)}

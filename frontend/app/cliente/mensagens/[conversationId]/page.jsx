@@ -123,7 +123,7 @@ export default function ConversationPage() {
             </Link>
             <AvatarRestaurante conversa={conversa} />
             <div>
-              <h2 className="text-base font-semibold">{conversa?.titulo ?? ui("Carregando conversa")}</h2>
+              <h1 className="text-base font-semibold">{conversa?.titulo ?? ui("Carregando conversa")}</h1>
               <p className="mt-1 text-xs font-semibold uppercase tracking-[0.16em] text-app-cinza">
                 {conversa?.pedido ? ui("Pedido #{0}", [conversa.pedido.id_pedido]) : conversa?.reserva ? ui("Reserva #{0}", [conversa.reserva.id_reserva]) : ui("Atendimento Appono")}
               </p>

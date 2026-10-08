@@ -28,7 +28,7 @@ const abas = [
     { label: "Pedidos", value: "pedidos" },
     { label: "Eventos", value: "eventos" },
     { label: "Restaurantes", value: "restaurantes" },
-    { label: "Pendencias", value: "pendencias" },
+    { label: "Pendências", value: "pendencias" },
 ];
 
 const filtrosStatus = [
@@ -130,7 +130,7 @@ function GraficoFinanceiro({ serie }) {
         <section className="mt-8 rounded-[14px] bg-app-creme-leve p-6 shadow-sm ring-1 ring-app-baunilha-dourada/60">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                 <div>
-                    <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">Evolucao financeira</p>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">Evolução financeira</p>
                     <h2 className="mt-2 text-2xl font-semibold">Movimento por período</h2>
                 </div>
                 <p className="text-sm text-app-cinza">Somente pedidos pagos e não cancelados.</p>
@@ -307,7 +307,7 @@ export default function AdminFinanceiroPage() {
             <main className="flex min-h-screen items-center justify-center bg-app-chantilly px-5 text-app-cafe-profundo">
                 <section className="w-full max-w-md rounded-[14px] bg-app-creme-leve p-8 text-center shadow-sm ring-1 ring-app-baunilha-dourada">
                     <Image src="/brand/appono-mark.svg" alt="Appono" width={88} height={88} className="mx-auto h-20 w-20" priority />
-                    <h1 className="mt-6 text-3xl font-semibold">Carregando administracao</h1>
+                    <h1 className="mt-6 text-3xl font-semibold">Carregando administração</h1>
                     <p className="mt-3 text-sm leading-6 text-app-cinza">Estamos conferindo suas permissoes.</p>
                 </section>
             </main>
@@ -345,9 +345,9 @@ export default function AdminFinanceiroPage() {
                             {admin?.nome ?? "Administracao"}
                         </span>
                         <Link href="/admin/notificacoes" className="rounded-full border border-app-baunilha-dourada bg-app-chantilly px-4 py-2 text-center text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:bg-app-baunilha-dourada">
-                            Notificacoes
+                            Notificações
                         </Link>
-                        <button type="button" onClick={sairParaHome} className="rounded-full border border-app-baunilha-dourada bg-app-chantilly px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:bg-app-baunilha-dourada">
+                        <button type="button" onClick={sairParaHome} className="app-logout rounded-full border border-app-baunilha-dourada bg-app-chantilly px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:bg-app-baunilha-dourada">
                             Sair para home
                         </button>
                     </div>
@@ -368,7 +368,7 @@ export default function AdminFinanceiroPage() {
                             Retenção, comissão e repasses da Appono
                         </h1>
                         <p className="mt-4 max-w-3xl text-sm leading-6 text-app-mocha">
-                            Painel da plataforma para acompanhar pagamentos, taxa de {Number(dados.politica_financeira?.percentual_comissao_app ?? 13).toLocaleString("pt-BR")}%, valores retidos ate entrega e liberacao de repasses.
+                            Painel da plataforma para acompanhar pagamentos, taxa de {Number(dados.politica_financeira?.percentual_comissao_app ?? 13).toLocaleString("pt-BR")}%, valores retidos até entrega e liberação de repasses.
                         </p>
                     </div>
 
@@ -376,7 +376,7 @@ export default function AdminFinanceiroPage() {
                         <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-baunilha-dourada">Acompanhamento financeiro</p>
                         <strong className="mt-4 block text-3xl">{dados.pendencias?.abertos ?? dados.suporte?.abertos ?? 0}</strong>
                         <p className="mt-2 text-sm leading-6 text-app-creme-suave">
-                            pendencias operacionais por retencao, cancelamento ou restaurante sem conexao.
+                            pendências operacionais por retenção, cancelamento ou restaurante sem conexão.
                         </p>
                     </article>
                 </div>
@@ -395,9 +395,9 @@ export default function AdminFinanceiroPage() {
 
                 <section className="mt-8 flex flex-col gap-4 rounded-[14px] bg-app-creme-leve p-5 shadow-sm ring-1 ring-app-baunilha-dourada/60 lg:flex-row lg:items-center lg:justify-between">
                     <div>
-                        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">Periodo analisado</p>
+                        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">Período analisado</p>
                         <p className="mt-2 text-sm leading-6 text-app-mocha">
-                            Use o recorte para explicar a evolucao do caixa sem misturar testes antigos com dados recentes.
+                            Use o recorte para explicar a evolução do caixa sem misturar testes antigos com dados recentes.
                         </p>
                     </div>
                     <div className="flex flex-wrap gap-2">
@@ -484,7 +484,7 @@ export default function AdminFinanceiroPage() {
 
                 {abaAtiva === "eventos" ? (
                     <section className="mt-8 rounded-[14px] bg-app-creme-leve p-6 shadow-sm ring-1 ring-app-baunilha-dourada/60">
-                        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">Historico financeiro</p>
+                        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">Histórico financeiro</p>
                         <h2 className="mt-2 text-2xl font-semibold">Eventos recentes</h2>
                         <div className="mt-5 grid gap-3 md:grid-cols-2">
                             {eventosRecentes.length ? eventosRecentes.map((evento) => (
@@ -577,15 +577,15 @@ export default function AdminFinanceiroPage() {
                 {abaAtiva === "pendencias" ? (
                     <section className="mt-8 rounded-[14px] bg-app-creme-leve p-6 shadow-sm ring-1 ring-app-baunilha-dourada/60">
                         <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">Acompanhamento financeiro</p>
-                        <h2 className="mt-2 text-2xl font-semibold">Pendencias operacionais</h2>
+                        <h2 className="mt-2 text-2xl font-semibold">Pendências operacionais</h2>
                         <p className="mt-3 text-sm leading-6 text-app-mocha">
-                            Casos com valor retido, cancelamento ou parceiro sem conexao Mercado Pago aparecem aqui para acompanhamento interno da Appono.
+                            Casos com valor retido, cancelamento ou parceiro sem conexão Mercado Pago aparecem aqui para acompanhamento interno da Appono.
                         </p>
                         <div className="mt-5 grid gap-3">
                             {((dados.pendencias?.itens ?? dados.suporte?.itens)?.length ? (dados.pendencias?.itens ?? dados.suporte?.itens) : restaurantesComAtencao).slice(0, 6).map((item, index) => (
                                 <div key={item.id_pagamento ?? item.id_restaurante ?? index} className="rounded-[12px] bg-app-chantilly p-4 text-sm ring-1 ring-app-baunilha-dourada/55">
                                     <strong className="block text-app-cafe-profundo">
-                                        {item.restaurante ?? item.nome ?? "Ocorrencia operacional"}
+                                        {item.restaurante ?? item.nome ?? "Ocorrência operacional"}
                                     </strong>
                                     <p className="mt-1 text-xs leading-5 text-app-cinza">
                                         {item.id_pedido ? `Pedido #${item.id_pedido} | ${textoStatusRepasse(item.status_repasse)}` : textoConexaoMercadoPago(item.conexao_mercado_pago)}
@@ -597,7 +597,7 @@ export default function AdminFinanceiroPage() {
                             ))}
                             {!(dados.pendencias?.itens ?? dados.suporte?.itens)?.length && !restaurantesComAtencao.length ? (
                                 <p className="rounded-[12px] bg-app-chantilly p-4 text-sm text-app-cinza ring-1 ring-app-baunilha-dourada/55">
-                                    Nenhuma ocorrencia operacional no momento.
+                                    Nenhuma ocorrência operacional no momento.
                                 </p>
                             ) : null}
                         </div>

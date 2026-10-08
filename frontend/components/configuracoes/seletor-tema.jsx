@@ -1,18 +1,13 @@
 "use client";
 
+import { Moon, SunMedium } from "lucide-react";
 import { useInterface } from "@/lib/use-interface";
 import { useTemaLocal } from "@/lib/use-tema-local";
 
 function IconeTema({ tema }) {
-    const caminho = tema === "claro"
-        ? "M12 4V2M12 22v-2M4.9 4.9 3.5 3.5M20.5 20.5l-1.4-1.4M4 12H2M22 12h-2M4.9 19.1l-1.4 1.4M20.5 3.5l-1.4 1.4M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10z"
-        : "M21 12.8A8 8 0 1 1 11.2 3a6 6 0 0 0 9.8 9.8z";
+    const Icone = tema === "claro" ? SunMedium : Moon;
 
-    return (
-        <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5">
-            <path d={caminho} fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" />
-        </svg>
-    );
+    return <Icone aria-hidden="true" className="h-5 w-5" fill={tema === "escuro" ? "currentColor" : "none"} strokeWidth={1.8} />;
 }
 
 export function SeletorTema() {
