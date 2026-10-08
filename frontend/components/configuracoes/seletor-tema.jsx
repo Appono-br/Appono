@@ -1,13 +1,14 @@
 "use client";
 
-import { Moon, SunMedium } from "lucide-react";
+import { SunMedium } from "lucide-react";
+import { MoonIcon } from "@/components/icons/moon-icon";
 import { useInterface } from "@/lib/use-interface";
 import { useTemaLocal } from "@/lib/use-tema-local";
 
 function IconeTema({ tema }) {
-    const Icone = tema === "claro" ? SunMedium : Moon;
+    const Icone = tema === "claro" ? SunMedium : MoonIcon;
 
-    return <Icone aria-hidden="true" className="h-5 w-5" fill={tema === "escuro" ? "currentColor" : "none"} strokeWidth={1.8} />;
+    return <Icone aria-hidden="true" className="h-5 w-5" fill="none" strokeWidth={1.8} />;
 }
 
 export function SeletorTema() {

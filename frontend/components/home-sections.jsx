@@ -37,21 +37,21 @@ export function HomeSections({ searchQuery, onClearSearch }) {
   }, []);
 
   return <div ref={root} className="home-discover" data-appono-sem-traducao>
-    <HomeRestaurants key={searchQuery} query={searchQuery} onClearSearch={onClearSearch} />
-
     <section id="sobre" className="discover-section">
       <div className="discover-container">
         <div className="discover-about" data-reveal>
           <div className="discover-about-photo"><Image src={photo("photo-1528605248644-14dd04022da1")} alt={copy("Pessoas reunidas à mesa", "People gathered around a table")} fill sizes="(max-width: 800px) 100vw, 50vw" /></div>
-          <div className="discover-about-copy"><h2>{copy("Tecnologia que aproxima.\nMomentos que ficam.", "Technology that connects.\nMoments that last.")}</h2><p className="discover-body">{copy("A Appono nasceu para aproximar quem quer aproveitar uma boa refeição de quem prepara cada detalhe. Unimos planejamento e operação para tornar o encontro à mesa mais simples.", "Appono was created to bring people who enjoy a good meal closer to those who prepare every detail. We connect planning and operations to make dining together simpler.")}</p><Link href="/cadastro/restaurante" className="discover-text-link">{copy("Tenho um restaurante", "I own a restaurant")} <span aria-hidden="true">↗</span></Link></div>
+          <div className="discover-about-copy"><h2 className="discover-section-title">{copy("Tecnologia que aproxima.\nMomentos que ficam.", "Technology that connects.\nMoments that last.")}</h2><p className="discover-body">{copy("A Appono nasceu para aproximar quem quer aproveitar uma boa refeição de quem prepara cada detalhe. Unimos planejamento e operação para tornar o encontro à mesa mais simples.", "Appono was created to bring people who enjoy a good meal closer to those who prepare every detail. We connect planning and operations to make dining together simpler.")}</p><Link href="/cadastro/restaurante" className="discover-text-link">{copy("Tenho um restaurante", "I own a restaurant")} <span aria-hidden="true">↗</span></Link></div>
         </div>
       </div>
     </section>
 
+    <HomeRestaurants key={searchQuery} query={searchQuery} onClearSearch={onClearSearch} />
+
     <section id="como-usar" className="discover-section discover-guide" aria-labelledby="discover-guide-title">
       <div className="discover-container">
         <div className="discover-guide-heading" data-reveal>
-          <h2 id="discover-guide-title">{copy("Sua próxima mesa\nem quatro passos.", "Your next table\nin four steps.")}</h2>
+          <h2 id="discover-guide-title" className="discover-section-title">{copy("Sua próxima mesa\nem quatro passos.", "Your next table\nin four steps.")}</h2>
         </div>
         <ol className="discover-guide-steps">
           {[
@@ -69,7 +69,7 @@ export function HomeSections({ searchQuery, onClearSearch }) {
     </section>
 
     <section className="discover-section discover-faq">
-      <div className="discover-container discover-faq-grid"><div data-reveal><h2>{copy("Ficou com\nalguma dúvida?", "Any\nquestions?")}</h2><p className="discover-body">{copy("Conheça um pouco mais sobre a sua próxima experiência com a Appono.", "Learn more about your next experience with Appono.")}</p></div>
+      <div className="discover-container discover-faq-grid"><div data-reveal><h2 className="discover-section-title">{copy("Ficou com\nalguma dúvida?", "Any\nquestions?")}</h2><p className="discover-body">{copy("Conheça um pouco mais sobre a sua próxima experiência com a Appono.", "Learn more about your next experience with Appono.")}</p></div>
         <div className="discover-questions" data-reveal>{questions.map(([ptQuestion, enQuestion, ptAnswer, enAnswer]) => <details key={ptQuestion}><summary><span>{copy(ptQuestion, enQuestion)}</span><span className="discover-question-plus" aria-hidden="true">+</span></summary><p>{copy(ptAnswer, enAnswer)}</p></details>)}</div>
       </div>
     </section>

@@ -328,7 +328,7 @@ export function LoginForm() {
               <button
                 type="button"
                 onClick={() => setRegisterDialog(true)}
-                className="botao-criar-conta flex h-12 w-full items-center justify-center rounded-xl border border-app-baunilha-dourada/50 text-sm font-semibold text-app-cafe-profundo hover:border-app-caramelo-torrado hover:bg-app-chantilly transition-all"
+                className="botao-criar-conta app-button-secondary flex h-12 w-full items-center justify-center rounded-xl text-sm font-semibold shadow-sm transition-colors"
               >
                 Criar nova conta
               </button>
@@ -348,7 +348,7 @@ export function LoginForm() {
               type="button"
               onClick={entrarComGoogle}
               disabled={isGoogleSubmitting}
-              className="botao-google flex h-12 w-full items-center justify-center gap-2.5 rounded-xl border border-app-baunilha-dourada/50 bg-white text-sm font-semibold text-app-cafe-profundo hover:border-app-caramelo-torrado hover:bg-app-chantilly focus:outline-none focus:ring-2 focus:ring-app-dourado-mel/20 transition-all disabled:opacity-60"
+              className="botao-google app-button-secondary flex h-12 w-full items-center justify-center gap-2.5 rounded-xl text-sm font-semibold shadow-sm transition-colors disabled:opacity-60"
             >
               {/* Logo Google SVG original (colorido, não substituído por Lucide) */}
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 48 48">
