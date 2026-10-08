@@ -20,7 +20,7 @@ import {
   Menu,
 } from "lucide-react";
 
-import { LinkNotificacoes } from "@/components/notificacoes/contador-notificacoes";
+import { BotaoNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { useInterface } from "@/lib/use-interface";
 import { encerrarSessao } from "@/lib/session";
@@ -126,8 +126,9 @@ export function RestauranteSidebar() {
           className="restaurant-sidebar-notifications"
           onClick={() => setAberto(false)}
         >
-          <LinkNotificacoes
+          <BotaoNotificacoes
             href="/restaurante/notificacoes"
+            onNavigate={() => setAberto(false)}
             iconeClassName="h-6 w-6"
             ariaCurrent={
               pathname === "/restaurante/notificacoes" ? "page" : undefined

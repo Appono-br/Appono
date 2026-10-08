@@ -67,7 +67,9 @@ html[data-tema="escuro"] .home-discover {
 .discover-questions details > p { padding: 0 32px 24px; color: var(--discover-muted); font-size: 14px; line-height: 1.85; animation: discover-answer 300ms ease-out; }
 .home-discover :is(button, a, summary):focus-visible { outline: 2px solid var(--discover-accent); outline-offset: 4px; }
 .home-discover [data-reveal][data-visible="true"] { animation: discover-reveal 650ms ease; animation-delay: var(--reveal-delay, 0ms); }
+.home-discover .discover-guide [data-reveal][data-visible="true"] { animation: discover-guide-reveal 320ms ease-out both; }
 @keyframes discover-reveal { from { opacity: 0.65; translate: 0 18px; } to { opacity: 1; translate: 0 0; } }
+@keyframes discover-guide-reveal { from { opacity: 0.8; } to { opacity: 1; } }
 @keyframes discover-answer { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
 @media (max-width: 900px) {
   .discover-about, .discover-faq-grid { gap: 32px; }

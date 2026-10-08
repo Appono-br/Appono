@@ -946,7 +946,7 @@ exports.reservationsRouter.patch("/:id/cancelar", (0, auth_1.requireRole)("clien
     await Promise.all([
         (0, notificacoes_1.notificarCliente)(data.id_cliente, {
             titulo: "Reserva cancelada",
-            mensagem: "Sua reserva foi desmarcada. Caso queira, você pode realizar uma nova reserva pelo módulo cliente.",
+            mensagem: "Sua reserva foi desmarcada. Caso queira, você pode realizar uma nova reserva pela área do cliente.",
             tipo_evento: "RESERVA_CANCELADA",
             link_destino: "/cliente/reservas",
             dados: { id_reserva: data.id_reserva },

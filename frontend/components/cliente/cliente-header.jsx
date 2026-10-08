@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 
 import { useInterface } from "@/lib/use-interface";
-import { LinkNotificacoes } from "@/components/notificacoes/contador-notificacoes";
+import { BotaoNotificacoes } from "@/components/notificacoes/contador-notificacoes";
 
 const itens = [
   ["Início", "/cliente/dashboard"],
@@ -121,7 +121,7 @@ export function ClienteHeader() {
 
           {/* Notificações */}
           <div className="flex h-10 w-10 items-center justify-center">
-            <LinkNotificacoes
+            <BotaoNotificacoes
               href="/cliente/notificacoes"
               iconeClassName="h-6 w-6"
               ariaCurrent={estaAtivo(pathname, "/cliente/notificacoes") ? "page" : undefined}

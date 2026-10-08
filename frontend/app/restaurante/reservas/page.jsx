@@ -598,7 +598,7 @@ export default function RestaurantReservationsPage() {
                         <EmptyPanel
                             title={ui("Nenhum agendamento neste filtro")}
                             description={ui("Altere o filtro para visualizar outros agendamentos.")}
-                            className="min-h-[310px] bg-white"
+                            className="min-h-[310px] items-center bg-white text-center"
                         />
                     )}
                 </section>

@@ -30,7 +30,7 @@ html[data-tema] .home-publica > header { background-color: var(--home-header-fun
 .home-discover .public-restaurants-section { scroll-margin-top: calc(var(--home-header-height) + 20px); }
 .home-discover #sobre.discover-section { padding-bottom: 32px; }
 .home-discover .discover-section.public-restaurants-section { padding: 24px 0 32px; }
-.public-restaurants-heading .discover-heading { margin-bottom: 20px; }
+.public-restaurants-heading .discover-heading { margin-bottom: 60px; }
 .home-discover .public-restaurants-section + .discover-guide { padding-top: 32px; }
 @keyframes public-loading { 50% { opacity: 0.5; } }
 @media (min-width: 1024px) {

@@ -18,7 +18,7 @@ function PedidoSkeleton() {
     return <div className="h-36 animate-pulse rounded-2xl bg-app-chantilly" />;
 }
 
-export function PedidosAgenda({ atualizacao = 0 }) {
+export function PedidosAgenda({ dataSelecionada = null, atualizacao = 0 }) {
     const { ui, localeUI } = useInterface();
     const [pagina, setPagina] = useState(1);
     const [resultado, setResultado] = useState({ items: [], pagination: null });
@@ -26,12 +26,14 @@ export function PedidosAgenda({ atualizacao = 0 }) {
     const [erro, setErro] = useState("");
     const [pedidoExcluindo, setPedidoExcluindo] = useState(null);
     const [pedidoParaExcluir, setPedidoParaExcluir] = useState(null);
-    const chaveCarregamento = `${pagina}:${atualizacao}`;
+    const chaveCarregamento = `${dataSelecionada ?? "todos"}:${pagina}:${atualizacao}`;
     const carregando = carregamentoConcluido !== chaveCarregamento;
 
     useEffect(() => {
         const controller = new AbortController();
-        apiRequest(`/pedidos?page=${pagina}&limit=12`, { signal: controller.signal, forceRefresh: true })
+        const params = new URLSearchParams({ page: String(pagina), limit: "12" });
+        if (dataSelecionada) params.set("data", dataSelecionada);
+        apiRequest(`/pedidos?${params}`, { signal: controller.signal, forceRefresh: true })
             .then((data) => {
                 if (!controller.signal.aborted) {
                     setResultado(data);
@@ -48,7 +50,7 @@ export function PedidosAgenda({ atualizacao = 0 }) {
                 if (!controller.signal.aborted) setCarregamentoConcluido(chaveCarregamento);
             });
         return () => controller.abort();
-    }, [pagina, atualizacao, chaveCarregamento]);
+    }, [pagina, atualizacao, dataSelecionada, chaveCarregamento]);
 
     function mudarPagina(proximaPagina) {
         setErro("");
@@ -87,8 +89,8 @@ export function PedidosAgenda({ atualizacao = 0 }) {
                 {!carregando && !erro && !pedidos.length ? (
                     <div className="mt-4 rounded-2xl border border-dashed border-app-baunilha-dourada bg-white px-5 py-8 text-center">
                         <ClipboardList aria-hidden="true" className="mx-auto h-8 w-8 text-app-caramelo-torrado" />
-                        <h3 className="mt-4 text-xl font-semibold">{ui("Nenhum pedido encontrado")}</h3>
-                        <p className="mt-2 text-sm leading-6 text-app-cinza">{ui("Se você possui uma reserva confirmada, pode adicionar um pedido antecipado.")}</p>
+                        <h3 className="mt-4 text-xl font-semibold">{ui(dataSelecionada ? "Nenhum pedido neste dia" : "Nenhum pedido encontrado")}</h3>
+                        <p className="mt-2 text-sm leading-6 text-app-cinza">{ui(dataSelecionada ? "Você não possui pedidos para o dia selecionado." : "Se você possui uma reserva confirmada, pode adicionar um pedido antecipado.")}</p>
                     </div>
                 ) : null}
 

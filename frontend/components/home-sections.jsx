@@ -49,8 +49,8 @@ export function HomeSections({ searchQuery, onClearSearch }) {
     <HomeRestaurants key={searchQuery} query={searchQuery} onClearSearch={onClearSearch} />
 
     <section id="como-usar" className="discover-section discover-guide" aria-labelledby="discover-guide-title">
-      <div className="discover-container">
-        <div className="discover-guide-heading" data-reveal>
+      <div className="discover-container" data-reveal>
+        <div className="discover-guide-heading">
           <h2 id="discover-guide-title" className="discover-section-title">{copy("Sua próxima mesa\nem quatro passos.", "Your next table\nin four steps.")}</h2>
         </div>
         <ol className="discover-guide-steps">
@@ -59,7 +59,7 @@ export function HomeSections({ searchQuery, onClearSearch }) {
             [copy("Encontre um restaurante", "Find a restaurant"), copy("Use a busca para escolher um restaurante. Confira as informações e explore o cardápio.", "Use the search to choose a restaurant. Check its information and explore the menu.")],
             [copy("Reserve sua mesa", "Reserve your table"), copy("Escolha a data, um horário disponível e o número de pessoas. Depois, envie sua reserva.", "Choose a date, an available time and your party size. Then submit your reservation.")],
             [copy("Acompanhe e aproveite", "Keep track and enjoy"), copy("Veja o status em Reservas. Se quiser, antecipe seu pedido quando a opção estiver disponível.", "Check the status in Reservations. If you wish, order ahead when the option is available.")],
-          ].map(([title, text], index) => <li className="discover-guide-step" key={index} data-reveal style={{ "--reveal-delay": `${index * 90}ms` }}>
+          ].map(([title, text], index) => <li className="discover-guide-step" key={index}>
             <span className="discover-guide-number" aria-hidden="true">0{index + 1}</span>
             <h3>{title}</h3><p>{text}</p>
           </li>)}
