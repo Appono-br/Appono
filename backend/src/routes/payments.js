@@ -591,7 +591,7 @@ exports.paymentsRouter.use(auth_1.requireAuth);
 exports.paymentsRouter.use((0, auth_1.requireRole)("cliente"));
 exports.paymentsRouter.use(limitarOperacoesPagamento);
 
-exports.paymentsRouter.post(["/pedido/:id/preferência", "/reserva/:id/preferência"], async (req, res) => {
+exports.paymentsRouter.post(["/pedido/:id/preferencia", "/reserva/:id/preferencia", "/pedido/:id/preferência", "/reserva/:id/preferência"], async (req, res) => {
     const somenteReserva = req.path.startsWith("/reserva/");
     const pedidoId = Number(req.params.id);
     if (!Number.isInteger(pedidoId) || pedidoId <= 0) {

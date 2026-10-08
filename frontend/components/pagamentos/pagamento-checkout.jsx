@@ -55,7 +55,7 @@ export default function PagamentoCheckout({ params, tipo = "pedido" }) {
         if (!pedidoId) {
             return;
         }
-        apiRequest(`/pagamentos/${tipo}/${pedidoId}/preferência`, {
+        apiRequest(`/pagamentos/${tipo}/${pedidoId}/preferencia`, {
             method: "POST",
         })
             .then((resposta) => {
