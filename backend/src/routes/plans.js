@@ -4,8 +4,7 @@ const crypto = require("node:crypto");
 const { Router } = require("express");
 const { supabaseAdmin, createUserSupabaseClient } = require("../lib/supabase");
 const { requireAuth, requireRole } = require("../middleware/auth");
-const { obterAccessTokenMercadoPago, credenciaisTesteMercadoPagoValidas, consultarContaMercadoPago, criarPlanoAssinaturaMercadoPago, criarAssinaturaMercadoPago, buscarAssinaturasPlanoMercadoPago, consultarAssinaturaMercadoPago, atualizarAssinaturaMercadoPago } = require("../services/pagamentos/mercado-pago");
-const { backendPublicUrl } = require("../services/pagamentos/config");
+const { obterAccessTokenMercadoPago, credenciaisTesteMercadoPagoValidas, consultarContaMercadoPago, criarPlanoAssinaturaMercadoPago, consultarPlanoAssinaturaMercadoPago, buscarAssinaturasPlanoMercadoPago, consultarAssinaturaMercadoPago, atualizarAssinaturaMercadoPago } = require("../services/pagamentos/mercado-pago");
 const { assinaturaObrigatoria, validarAssinaturaWebhookMercadoPago } = require("../services/pagamentos/webhook-security");
 const { PLANOS, planoValido, garantirAssinaturaInicial, obterAssinaturaRestaurante, exigirPlanoProfissional } = require("../services/planos-restaurante");
 
@@ -30,6 +29,12 @@ function frontendOrigin() {
 }
 function arredondar(valor) { return Math.round(Number(valor ?? 0) * 100) / 100; }
 const { aplicarEstadoAssinaturaMercadoPago } = require("../services/sincronizar-assinatura");
+
+function mensagemMercadoPago(error) {
+  const mensagem = String(error?.message ?? "");
+  if (/card_token_id|card token/i.test(mensagem)) return "Não foi possível iniciar a assinatura porque o Mercado Pago não recebeu os dados do cartão. Abra o checkout novamente e informe um cartão válido.";
+  return mensagem || "Não foi possível iniciar a contratação do plano.";
+}
 const { consultarFaturaAssinaturaMercadoPago, consultarPagamentoMercadoPago } = require("../services/pagamentos/mercado-pago");
 async function obterRestaurante(res) {
   const supabase = createUserSupabaseClient(res.locals.accessToken);
@@ -112,7 +117,7 @@ plansRouter.get("/assinatura", async (req, res) => {
     if (error) throw new Error(error.message);
     res.set("Cache-Control", "no-store");
     return res.json({ planos: PUBLIC_PLANOS, assinatura, cobrancas: cobrancas ?? [], sincronizacao_pendente: sincronizacaoPendente });
-  } catch (error) { return res.status(error.statusCode ?? 400).json({ code: error.code, error: error.message }); }
+  } catch (error) { return res.status(error.statusCode ?? 400).json({ code: error.code, error: mensagemMercadoPago(error) }); }
 });
 
 plansRouter.post("/checkout", async (req, res) => {
@@ -145,38 +150,27 @@ plansRouter.post("/checkout", async (req, res) => {
       String(cobranca.dados_provedor?.preapproval_plan_id ?? "") === String(assinatura.mercadopago_preapproval_plan_id ?? "") &&
       String(cobranca.dados_provedor?.collector_id ?? "") === String(contaMercadoPago?.id ?? "")
     );
-    if (assinatura.codigo_plano === plano.codigo && assinatura.status === "PENDENTE_PAGAMENTO" && assinatura.checkout_url && assinatura.mercadopago_preapproval_id && assinatura.mercadopago_preapproval_plan_id && checkoutDaContaAtual) {
+    if (assinatura.codigo_plano === plano.codigo && assinatura.status === "PENDENTE_PAGAMENTO" && assinatura.checkout_url && assinatura.mercadopago_preapproval_plan_id && checkoutDaContaAtual) {
       return res.json({ checkout_url: assinatura.checkout_url, reutilizado: true });
     }
     const backUrl = `${frontendOrigin()}/restaurante/configuracoes/planos?assinatura=retorno`;
-    const backendUrl = backendPublicUrl();
-    let notificationUrl;
-    try {
-      const parsedBackendUrl = new URL(backendUrl);
-      if (parsedBackendUrl.protocol !== "https:") throw new Error("HTTPS obrigatorio");
-      notificationUrl = `${parsedBackendUrl.origin}/api/planos/webhook/mercado-pago`;
-    } catch {
-      const erro = new Error("Configure BACKEND_PUBLIC_URL com a URL HTTPS publica da API para receber a confirmacao da assinatura.");
-      erro.statusCode = 503;
-      throw erro;
-    }
     let planoMPId = assinatura.mercadopago_preapproval_plan_id;
+    let checkoutUrl = assinatura.checkout_url;
     if (!planoMPId || !checkoutDaContaAtual || assinatura.codigo_plano !== plano.codigo || assinatura.status !== "PENDENTE_PAGAMENTO") {
       const planoMP = await criarPlanoAssinaturaMercadoPago({ token, reason: `Appono Plano Profissional - restaurante ${restaurante.id_restaurante}`, amount: plano.mensalidade, backUrl });
       planoMPId = String(planoMP?.id ?? "");
       if (!planoMPId || String(planoMP?.collector_id ?? "") !== String(contaMercadoPago?.id ?? "")) throw new Error("Nao foi possivel confirmar o vendedor associado ao plano no Mercado Pago.");
+      checkoutUrl = String(planoMP?.init_point ?? "");
+    } else if (!checkoutUrl) {
+      const planoMP = await consultarPlanoAssinaturaMercadoPago(planoMPId, token);
+      checkoutUrl = String(planoMP?.init_point ?? "");
     }
+    if (!planoMPId || !checkoutUrl) throw new Error("O Mercado Pago nao retornou o checkout hospedado do plano.");
     const referencia = `assinatura:${assinatura.id_assinatura}:${crypto.randomUUID()}`;
-    const assinaturaMP = await criarAssinaturaMercadoPago({ token, referencia, email: payerEmail, planoId: planoMPId, reason: `Appono Plano Profissional - restaurante ${restaurante.id_restaurante}`, amount: plano.mensalidade, backUrl, notificationUrl });
-    const preapprovalId = String(assinaturaMP?.id ?? "");
-    const checkoutUrl = assinaturaMP?.init_point;
-    if (!preapprovalId || String(assinaturaMP?.preapproval_plan_id ?? "") !== planoMPId || !checkoutUrl) {
-      throw new Error("O Mercado Pago nao retornou a assinatura hospedada esperada.");
-    }
-    const { error: assinaturaError } = await supabaseAdmin.from("assinaturas_restaurante").update({ codigo_plano: plano.codigo, status: "PENDENTE_PAGAMENTO", mensalidade: plano.mensalidade, percentual_comissao: plano.percentual_comissao, mercadopago_preapproval_id: preapprovalId, mercadopago_preapproval_plan_id: planoMPId, checkout_url: checkoutUrl }).eq("id_assinatura", assinatura.id_assinatura);
+    const { error: assinaturaError } = await supabaseAdmin.from("assinaturas_restaurante").update({ codigo_plano: plano.codigo, status: "PENDENTE_PAGAMENTO", mensalidade: plano.mensalidade, percentual_comissao: plano.percentual_comissao, mercadopago_preapproval_plan_id: planoMPId, checkout_url: checkoutUrl }).eq("id_assinatura", assinatura.id_assinatura);
     if (assinaturaError) throw new Error(assinaturaError.message);
     await supabaseAdmin.from("historico_assinaturas_restaurante").insert({ id_assinatura: assinatura.id_assinatura, codigo_plano_anterior: assinatura.codigo_plano, codigo_plano_novo: plano.codigo, status_anterior: assinatura.status, status_novo: "PENDENTE_PAGAMENTO", motivo: "ContrataÃ§Ã£o do Plano Profissional iniciada" });
-    const { error: cobrancaError } = await supabaseAdmin.from("cobrancas_assinatura_restaurante").insert({ id_assinatura: assinatura.id_assinatura, referencia_externa: referencia, valor: plano.mensalidade, status: "PENDENTE", dados_provedor: { preapproval_id: preapprovalId, preapproval_plan_id: planoMPId, collector_id: String(contaMercadoPago.id) } });
+    const { error: cobrancaError } = await supabaseAdmin.from("cobrancas_assinatura_restaurante").insert({ id_assinatura: assinatura.id_assinatura, referencia_externa: referencia, valor: plano.mensalidade, status: "PENDENTE", dados_provedor: { preapproval_plan_id: planoMPId, collector_id: String(contaMercadoPago.id) } });
     if (cobrancaError) throw new Error(cobrancaError.message);
     return res.status(201).json({ checkout_url: checkoutUrl });
   } catch (error) { return res.status(error.statusCode ?? 400).json({ code: error.code, error: error.message ?? "NÃ£o foi possÃ­vel iniciar a contrataÃ§Ã£o." }); }

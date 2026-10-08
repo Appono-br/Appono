@@ -28,6 +28,15 @@ const cacheGet = new Map();
 const requisicoesEmAndamento = new Map();
 let renovacaoEmAndamento = null;
 
+function normalizarMensagemErro(mensagem, fallback = "Não conseguimos concluir agora.") {
+    const original = String(mensagem ?? "").trim();
+    const normalizada = original.toLowerCase();
+    if (normalizada.includes("card_token_id") || normalizada.includes("card token")) return "Não foi possível iniciar a assinatura porque o Mercado Pago não recebeu os dados do cartão. Abra o checkout novamente e informe um cartão válido.";
+    if (normalizada.includes("invalid access token") || normalizada.includes("unauthorized")) return "Sua sessão expirou. Entre novamente para continuar.";
+    if (normalizada.includes("timeout") || normalizada.includes("timed out")) return "O serviço demorou para responder. Tente novamente em instantes.";
+    return original || fallback;
+}
+
 function obterMetodo(options) {
     return String(options.method ?? "GET").toUpperCase();
 }
@@ -117,7 +126,7 @@ export async function apiRequest(path, options = {}) {
             }
         }
         if (!response.ok) {
-            const error = new Error(body?.error ?? "Não conseguimos concluir agora.");
+            const error = new Error(normalizarMensagemErro(body?.error));
             error.status = response.status;
             error.code = body?.code;
             error.details = body;

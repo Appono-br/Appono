@@ -18,6 +18,10 @@ export default function RestaurantPerformancePage() {
     const [estadoAvaliacoes, setEstadoAvaliacoes] = useState("carregando");
     const [erroAvaliacoes, setErroAvaliacoes] = useState("");
     const [periodo, setPeriodo] = useState("semanal");
+    const [periodoGrafico, setPeriodoGrafico] = useState("mensal");
+    const anoAtual = new Date().getFullYear();
+    const [anoGrafico, setAnoGrafico] = useState(anoAtual);
+    const [paginaAvaliacoes, setPaginaAvaliacoes] = useState(1);
     const [desempenho, setDesempenho] = useState(null);
     const [estadoDesempenho, setEstadoDesempenho] = useState("carregando");
     const isRestaurant = session?.type === "restaurant";
@@ -26,7 +30,7 @@ export default function RestaurantPerformancePage() {
         const controller = new AbortController();
         let expirou = false;
         const timeout = window.setTimeout(() => { expirou = true; controller.abort(); }, 10000);
-        apiRequest("/restaurantes/me/avaliacoes?page_size=50", { signal: controller.signal }).then((resposta) => {
+        apiRequest(`/restaurantes/me/avaliacoes?page=${paginaAvaliacoes}&page_size=5`, { signal: controller.signal }).then((resposta) => {
             setDados(resposta ?? { items: [], total: 0, metricas: {} });
             setEstadoAvaliacoes((resposta?.total ?? 0) > 0 ? "com_dados" : "vazio");
         }).catch((error) => {
@@ -36,7 +40,7 @@ export default function RestaurantPerformancePage() {
             }
         }).finally(() => window.clearTimeout(timeout));
         return () => { window.clearTimeout(timeout); controller.abort(); };
-    }, [isRestaurant]);
+    }, [isRestaurant, paginaAvaliacoes]);
     useEffect(() => {
         if (!isRestaurant) return;
         const controller = new AbortController();
@@ -50,13 +54,14 @@ export default function RestaurantPerformancePage() {
         }).finally(() => window.clearTimeout(timeout));
         return () => { window.clearTimeout(timeout); controller.abort(); };
     }, [isRestaurant, periodo]);
-    const volumes = useMemo(() => {
-        const meses = Array.from({ length: 6 }, (_, index) => { const data = new Date(); data.setMonth(data.getMonth() - (5 - index)); return { chave: `${data.getFullYear()}-${data.getMonth()}`, label: data.toLocaleDateString(localeUI, { month: "short" }), total: 0 }; });
-        for (const item of dados.items ?? []) { const data = new Date(item.created_at); const ponto = meses.find((mes) => mes.chave === `${data.getFullYear()}-${data.getMonth()}`); if (ponto) ponto.total += 1; }
-        return meses;
-    }, [dados.items, localeUI]);
+    const totalAvaliacoes = Number(dados.total > 0 ? dados.total : dados.metricas?.total_avaliacoes > 0 ? dados.metricas.total_avaliacoes : desempenho?.avaliacoes?.quantidade ?? 0);
+    const avaliacaoMedia = Number(dados.metricas?.avaliacao_media ?? desempenho?.avaliacoes?.media ?? 0);
+    const possuiAvaliacoes = totalAvaliacoes > 0 || Number(desempenho?.avaliacoes?.quantidade ?? 0) > 0;
+    const volumes = [];
+    const maiorVolume = 1;
+    const anosGrafico = [];
     const comentarios = useMemo(() => (dados.items ?? []).filter((item) => item.comentario), [dados.items]);
-    const alterarPeriodo = (valor) => { setEstadoDesempenho("carregando"); setPeriodo(Number(valor)); };
+    const alterarPeriodo = (valor) => { setEstadoDesempenho("carregando"); setPeriodo(valor); };
     if (!isRestaurant) {
         return (<main className="flex min-h-screen items-center justify-center bg-white px-5 text-app-cafe-profundo">
         <section className="w-full max-w-lg rounded-[8px] bg-app-creme-leve p-8 text-center shadow-sm ring-1 ring-app-baunilha-dourada">
@@ -85,44 +90,46 @@ export default function RestaurantPerformancePage() {
           <div className="mt-6 border-t border-app-baunilha-dourada/60 pt-5"><p className="text-sm text-app-cinza">{ui("Para criar uma campanha, escolha uma sugestão da Appono quando houver dados agregados suficientes ou crie sua própria oferta.")}</p><Link href="/restaurante/campanhas#sugestoes-appono" className="mt-3 inline-flex rounded-lg bg-app-cafe-profundo px-4 py-2 text-sm font-semibold text-white">{ui("Ver sugestões para campanhas")}</Link></div>
         </section>
 
-        {estadoAvaliacoes === "com_dados" ? <><section className="mt-10 grid gap-8 lg:grid-cols-[0.42fr_1fr]">
+        {possuiAvaliacoes ? <><div className="mt-10 grid gap-8 lg:grid-cols-[0.42fr_1fr]">
           <article className="rounded-[8px] bg-white p-7 shadow-sm ring-1 ring-app-baunilha-dourada/45 sm:p-8">
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-app-mocha">{ui("Média geral")}</p>
             <div className="mt-8 flex items-end gap-3">
               <strong className="text-6xl font-medium leading-none text-app-cafe-profundo">
-                {ui(dados.metricas?.avaliacao_media?.toFixed(1) ?? "--")}
+                {possuiAvaliacoes ? avaliacaoMedia.toFixed(1) : "--"}
               </strong>
               <span className="pb-2 text-2xl text-app-mocha">/ 5.0</span>
             </div>
-            <div className="mt-6 flex gap-1 text-app-caramelo-torrado">
-              {Array.from({ length: 5 }).map((_, index) => (<Icon key={index} type="star" className="h-6 w-6"/>))}
+            <div className="mt-6 flex gap-1 text-app-caramelo-torrado" aria-label={ui("Nota média: {0} de 5", [avaliacaoMedia.toFixed(1)])}>
+              {Array.from({ length: 5 }).map((_, index) => (<Icon key={index} type="star" className={`h-6 w-6 ${index < Math.round(avaliacaoMedia) ? "fill-current" : ""}`}/>))}
             </div>
             <div className="mt-10 rounded-[8px] bg-app-creme-leve p-5">
               <p className="text-sm text-app-cinza">
-                {dados.total ? ui("{0} avaliação(ões) recebida(s).", [dados.total]) : ui("Nenhuma avaliação recebida até o momento.")}
+                {totalAvaliacoes ? ui("{0} avaliação(ões) recebida(s).", [totalAvaliacoes]) : ui("Nenhuma avaliação recebida até o momento.")}
               </p>
             </div>
           </article>
 
-          <article className="rounded-[8px] bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada/45 sm:p-8">
+          {false && <article className="rounded-[8px] bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada/45 sm:p-8">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <p className="text-xs font-bold uppercase tracking-[0.18em] text-app-mocha">{ui("Volume de avaliações")}</p>
-              <div className="flex gap-4 text-sm font-semibold text-app-cinza">
-                <button type="button" className="text-app-caramelo-torrado">{ui("Mensal")}</button>
-                <button type="button">{ui("Semanal")}</button>
+              <div className="flex flex-wrap items-center gap-4 text-sm font-semibold text-app-cinza">
+                <button type="button" onClick={() => { setPeriodoGrafico("mensal"); alterarPeriodo("mensal"); }} className={periodoGrafico === "mensal" ? "text-app-caramelo-torrado" : ""}>{ui("Mensal")}</button>
+                <button type="button" onClick={() => { setPeriodoGrafico("semanal"); alterarPeriodo("semanal"); }} className={periodoGrafico === "semanal" ? "text-app-caramelo-torrado" : ""}>{ui("Semanal")}</button>
+                {periodoGrafico === "mensal" ? <label className="inline-flex items-center gap-2"><span className="sr-only">{ui("Ano")}</span><select value={anoGrafico} onChange={(event) => setAnoGrafico(Number(event.target.value))} className="rounded border border-app-baunilha-dourada bg-white px-2 py-1 text-sm font-semibold text-app-cafe-profundo">{anosGrafico.map((ano) => <option key={ano} value={ano}>{ano}</option>)}</select></label> : null}
               </div>
             </div>
 
-            <div className="mt-10 flex min-h-[280px] items-end gap-3 rounded-[8px] border border-dashed border-app-caramelo-torrado/25 bg-app-creme-leve px-5 py-6 sm:gap-5">
-              {volumes.map((ponto) => (<div key={ponto.chave} className="flex h-full flex-1 flex-col items-center justify-end gap-2"><div title={ui("{0} avaliações", [ponto.total])} className="w-full rounded-t-[8px] bg-app-caramelo-torrado" style={{ height: `${Math.max(ponto.total * 18, 4)}%` }}/><span className="text-[10px] font-bold text-app-cinza">{ui(ponto.label)}</span></div>))}
+            <div className="mt-10 flex min-h-[280px] items-end gap-3 overflow-x-auto rounded-[8px] border border-dashed border-app-caramelo-torrado/25 bg-app-creme-leve px-5 py-6 sm:gap-5">
+              <div className="flex h-full min-w-full items-end gap-3 sm:gap-5">
+                {volumes.map((ponto) => (<div key={ponto.chave} className="flex h-full min-w-[48px] flex-1 flex-col items-center justify-end gap-2"><div title={ui("{0} avaliações", [ponto.total])} className="w-full rounded-t-[8px] bg-app-caramelo-torrado" style={{ height: `${Math.max((ponto.total / maiorVolume) * 100, ponto.total ? 8 : 2)}%` }}/><span className="text-[10px] font-bold text-app-cinza">{ponto.label}</span></div>))}
+              </div>
             </div>
-          </article>
-        </section>
-
-        {comentarios.length ? <section className="mt-8 rounded-[8px] bg-app-creme-suave p-6 shadow-sm ring-1 ring-app-baunilha-dourada/60 sm:p-8">
+          </article>}
+        <section className="rounded-[8px] bg-app-creme-suave p-6 shadow-sm ring-1 ring-app-baunilha-dourada/60 sm:p-8">
           <h2 className="text-2xl font-medium text-app-cafe-profundo">{ui("O que dizem os frequentadores")}</h2>
-          <div className="mt-8 grid gap-4 lg:grid-cols-2">{comentarios.map((item) => <article key={item.id_avaliacao} className="rounded-[10px] bg-white p-5 ring-1 ring-app-baunilha-dourada/60"><p className="font-bold text-app-caramelo-torrado">{item.nota}/5</p><p className="mt-2 text-sm leading-6 text-app-mocha">{item.comentario}</p><p className="mt-3 text-xs text-app-cinza">{item.clientes?.nome ?? ui("Cliente Appono")}</p></article>)}</div>
-        </section> : null}</> : null}
+          {comentarios.length ? <div className="mt-8 grid gap-4 lg:grid-cols-2">{comentarios.map((item) => <article key={item.id_avaliacao} className="rounded-[10px] bg-white p-5 ring-1 ring-app-baunilha-dourada/60"><p className="font-bold text-app-caramelo-torrado">{item.nota}/5</p><p className="mt-2 text-sm leading-6 text-app-mocha">{item.comentario}</p><p className="mt-3 text-xs text-app-cinza">{item.clientes?.nome ?? ui("Cliente Appono")}</p></article>)}</div> : <p className="mt-5 text-sm text-app-cinza">{ui("Nenhum comentário foi escrito nesta página.")}</p>}
+          {totalAvaliacoes > 5 ? <div className="mt-6 flex items-center justify-between gap-4"><button type="button" disabled={paginaAvaliacoes <= 1} onClick={() => setPaginaAvaliacoes((pagina) => Math.max(1, pagina - 1))} className="rounded-lg border border-app-baunilha-dourada px-4 py-2 text-sm font-semibold disabled:opacity-40">{ui("Anterior")}</button><span className="text-sm text-app-cinza">{ui("Página {0} de {1}", [paginaAvaliacoes, Math.ceil(totalAvaliacoes / 5)])}</span><button type="button" disabled={paginaAvaliacoes >= Math.ceil(totalAvaliacoes / 5)} onClick={() => setPaginaAvaliacoes((pagina) => pagina + 1)} className="rounded-lg border border-app-baunilha-dourada px-4 py-2 text-sm font-semibold disabled:opacity-40">{ui("Próxima")}</button></div> : null}
+        </section></div></> : null}
         {estadoAvaliacoes === "vazio" ? <p className="mt-8 text-sm text-app-cinza">{ui("Ainda não há avaliações recebidas.")}</p> : null}
         {estadoAvaliacoes === "erro" ? <p role="alert" className="mt-8 text-sm text-app-cinza">{ui(erroAvaliacoes)}</p> : null}
 

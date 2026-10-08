@@ -213,7 +213,9 @@ exports.restaurantDashboardRouter.get("/desempenho", async (req, res) => {
     const [reservasR, pedidosR, avaliacoesR] = await Promise.all([
         banco.from("reservas").select("id_reserva, status_reserva, status_confirmacao_presenca, data_reserva").eq("id_restaurante", restaurante.id_restaurante).gte("data_reserva", dataInicio),
         banco.from("pedidos").select("id_pedido, status_pedido, valor_total, data_pedido").eq("id_restaurante", restaurante.id_restaurante).gte("data_pedido", `${dataInicio}T00:00:00-03:00`),
-        banco.from("avaliacoes_restaurante").select("nota, created_at").eq("id_restaurante", restaurante.id_restaurante).gte("created_at", `${dataInicio}T00:00:00-03:00`),
+        // A média e a quantidade exibidas no cartão de avaliações são históricas;
+        // o filtro de período continua sendo aplicado apenas a reservas e pedidos.
+        banco.from("avaliacoes_restaurante").select("nota, created_at").eq("id_restaurante", restaurante.id_restaurante),
     ]);
     const falha = [reservasR, pedidosR, avaliacoesR].find((item) => item.error);
     if (falha) return res.status(400).json({ code: "PERFORMANCE_QUERY_FAILED", error: "Não foi possível calcular o desempenho agora." });
@@ -226,9 +228,10 @@ exports.restaurantDashboardRouter.get("/desempenho", async (req, res) => {
     const bruto = pedidosValidos.reduce((total, item) => total + Number(item.valor_total ?? 0), 0);
     const serie = new Map();
     const chave = (data) => { const dia = String(data).slice(0, 10); if (periodo !== "mensal") return dia; return `${dia.slice(0, 7)}-01`; };
-    for (let i = 0; i < dias; i++) { const d = new Date(`${dataInicio}T12:00:00-03:00`); d.setDate(d.getDate() + i); const k = chave(d.toISOString()); serie.set(k, { data: k, reservas: 0, pedidos: 0, faturamento: 0 }); }
-    for (const reserva of reservas) { const k = chave(reserva.data_reserva); const atual = serie.get(k) ?? { data: k, reservas: 0, pedidos: 0, faturamento: 0 }; atual.reservas += 1; serie.set(k, atual); }
-    for (const pedido of pedidos) { const k = chave(pedido.data_pedido); const atual = serie.get(k) ?? { data: k, reservas: 0, pedidos: 0, faturamento: 0 }; atual.pedidos += 1; atual.faturamento += Number(pedido.valor_total ?? 0); serie.set(k, atual); }
+    for (let i = 0; i < dias; i++) { const d = new Date(`${dataInicio}T12:00:00-03:00`); d.setDate(d.getDate() + i); const k = chave(d.toISOString()); serie.set(k, { data: k, reservas: 0, pedidos: 0, avaliacoes: 0, faturamento: 0 }); }
+    for (const reserva of reservas) { const k = chave(reserva.data_reserva); const atual = serie.get(k) ?? { data: k, reservas: 0, pedidos: 0, avaliacoes: 0, faturamento: 0 }; atual.reservas += 1; serie.set(k, atual); }
+    for (const pedido of pedidos) { const k = chave(pedido.data_pedido); const atual = serie.get(k) ?? { data: k, reservas: 0, pedidos: 0, avaliacoes: 0, faturamento: 0 }; atual.pedidos += 1; atual.faturamento += Number(pedido.valor_total ?? 0); serie.set(k, atual); }
+    for (const avaliacao of avaliacoes) { const k = chave(avaliacao.created_at); const atual = serie.get(k) ?? { data: k, reservas: 0, pedidos: 0, avaliacoes: 0, faturamento: 0 }; atual.avaliacoes += 1; serie.set(k, atual); }
     return res.json({ periodo: { dias, modo: periodo ?? "diario", inicio: dataInicio, fuso: "America/Sao_Paulo" }, possui_amostra: reservas.length + pedidos.length + avaliacoes.length > 0,
         reservas: { criadas: reservas.length, confirmadas: contar(reservas, "status_reserva", ["CONFIRMADA", "CONFIRMADO"]), concluidas: reservasConcluidas, canceladas: reservasCanceladas, nao_comparecimentos: naoComparecimentos, taxa_conclusao: reservas.length ? Number((reservasConcluidas / reservas.length * 100).toFixed(1)) : null, taxa_cancelamento: reservas.length ? Number((reservasCanceladas / reservas.length * 100).toFixed(1)) : null },
         pedidos: { criados: pedidos.length, confirmados: contar(pedidos, "status_pedido", ["PAGO", "CONFIRMADO"]), em_preparo: contar(pedidos, "status_pedido", ["EM_PREPARO", "PRONTO"]), entregues: contar(pedidos, "status_pedido", ["ENTREGUE"]), cancelados: contar(pedidos, "status_pedido", ["CANCELADO"]), faturamento_bruto: Number(bruto.toFixed(2)), ticket_medio: pedidosValidos.length ? Number((bruto / pedidosValidos.length).toFixed(2)) : null },

@@ -461,6 +461,8 @@ export default function RestaurantOrderHistoryPage() {
     const [ordenacaoReserva, setOrdenacaoReserva] = useState("RECENTES");
     const [busca, setBusca] = useState("");
     const [pedidosAbertos, setPedidosAbertos] = useState([]);
+    const [pedidoParaExcluir, setPedidoParaExcluir] = useState(null);
+    const [excluindoPedido, setExcluindoPedido] = useState(false);
     const [mensagem, setMensagem] = useState("Carregando histórico operacional...");
 
     useEffect(() => {
@@ -550,6 +552,21 @@ export default function RestaurantOrderHistoryPage() {
         janela.document.open();
         janela.document.write(montarHtmlComanda(pedido, localeUI));
         janela.document.close();
+    }
+
+    async function excluirPedidoHistorico() {
+        if (!pedidoParaExcluir) return;
+        setExcluindoPedido(true);
+        try {
+            await apiRequest(`/pedidos/${pedidoParaExcluir.id_pedido}/historico`, { method: "DELETE" });
+            setPedidos((atuais) => atuais.filter((pedido) => pedido.id_pedido !== pedidoParaExcluir.id_pedido));
+            setMensagem("Pedido removido do histórico. Os registros financeiros permanecem preservados.");
+            setPedidoParaExcluir(null);
+        } catch (erro) {
+            setMensagem(erro instanceof Error ? erro.message : "Não foi possível remover o pedido do histórico.");
+        } finally {
+            setExcluindoPedido(false);
+        }
     }
 
     if (!sessaoCarregada) {
@@ -687,6 +704,8 @@ export default function RestaurantOrderHistoryPage() {
                                                     <div className="flex flex-wrap gap-2 lg:justify-end">
                                                         <button type="button" onClick={() => imprimirPedido(pedido)} className="inline-flex h-9 items-center justify-center gap-2 rounded-[10px] bg-app-cafe-profundo px-3 text-[11px] font-bold uppercase tracking-[0.12em] text-app-creme-leve transition hover:bg-app-caramelo-torrado">
                                                             <Icon type="print" className="h-4 w-4" />{ui("Comanda")}</button>
+                                                        <button type="button" onClick={() => setPedidoParaExcluir(pedido)} className="inline-flex h-9 items-center justify-center gap-2 rounded-[10px] border border-app-vermelho-erro/40 bg-white px-3 text-[11px] font-bold uppercase tracking-[0.12em] text-app-vermelho-erro transition hover:bg-app-vermelho-erro/10">
+                                                            <Icon type="trash" className="h-4 w-4" />{ui("Apagar")}</button>
                                                         <button type="button" onClick={() => alternarPedidoAberto(pedido.id_pedido)} className="inline-flex h-9 items-center justify-center gap-2 rounded-[10px] border border-app-baunilha-dourada bg-white px-3 text-[11px] font-bold uppercase tracking-[0.12em] text-app-cafe-profundo transition hover:border-app-caramelo-torrado hover:bg-app-baunilha-dourada">
                                                             {pedidosAbertos.includes(pedido.id_pedido) ? ui("Ocultar itens") : ui("Ver {0} itens", [totalItens])}
                                                             <Icon type="chevron" className={`h-4 w-4 transition ${pedidosAbertos.includes(pedido.id_pedido) ? "rotate-180" : ""}`} />
@@ -765,6 +784,13 @@ export default function RestaurantOrderHistoryPage() {
                     )}
                 </section>
             </section>
+            {pedidoParaExcluir ? <div className="fixed inset-0 z-50 flex items-center justify-center bg-app-cafe-profundo/45 p-5" role="dialog" aria-modal="true" aria-labelledby="titulo-exclusao-pedido">
+                <section className="w-full max-w-md rounded-[16px] bg-white p-6 shadow-xl ring-1 ring-app-baunilha-dourada">
+                    <h2 id="titulo-exclusao-pedido" className="text-xl font-semibold text-app-cafe-profundo">{ui("Excluir este pedido do histórico?")}</h2>
+                    <p className="mt-3 text-sm leading-6 text-app-cinza">{ui("O pedido e seus itens deixarão de aparecer no histórico. Dados financeiros, pagamentos e registros de auditoria serão preservados.")}</p>
+                    <div className="mt-6 flex justify-end gap-3"><button type="button" disabled={excluindoPedido} onClick={() => setPedidoParaExcluir(null)} className="rounded-lg border border-app-baunilha-dourada px-4 py-2 text-sm font-semibold">{ui("Cancelar")}</button><button type="button" disabled={excluindoPedido} onClick={excluirPedidoHistorico} className="rounded-lg bg-app-vermelho-erro px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">{ui(excluindoPedido ? "Excluindo..." : "Excluir pedido")}</button></div>
+                </section>
+            </div> : null}
         </main>
     );
 }

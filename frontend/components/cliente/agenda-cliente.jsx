@@ -100,11 +100,15 @@ function podeExcluirReservaDaLista(reservation) {
         ["CANCELADA", "RECUSADA", "CONCLUIDA", "NAO_COMPARECEU"].includes(reservation.status);
 }
 function obterPrazoConfirmacaoPresenca(reservation) {
+    if (reservation.attendanceDeadline) {
+        const prazoPersistido = new Date(reservation.attendanceDeadline);
+        if (!Number.isNaN(prazoPersistido.getTime())) return prazoPersistido;
+    }
     return new Date(new Date(`${reservation.date}T${reservation.time}`).getTime() - 60 * 60 * 1000);
 }
 function podeResponderPresenca(reservation) {
-    return reservation.status === "CONFIRMADA" &&
-        reservation.attendanceStatus !== "RECUSADA" &&
+    return String(reservation.status ?? "").toUpperCase() === "CONFIRMADA" &&
+        ["PENDENTE", ""].includes(String(reservation.attendanceStatus ?? "").toUpperCase()) &&
         new Date() <= obterPrazoConfirmacaoPresenca(reservation);
 }
 function formatarPrazoPresenca(reservation, localeUI = "pt-BR") {

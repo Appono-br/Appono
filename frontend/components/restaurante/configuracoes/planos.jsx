@@ -3,12 +3,14 @@
 import { useCallback, useEffect, useState } from "react";
 import { apiRequest } from "@/lib/api";
 import { useInterface } from "@/lib/use-interface";
+import { useToast } from "@/components/ui/toast-provider";
 
 const moeda = (valor, locale) =>
   new Intl.NumberFormat(locale, { style: "currency", currency: "BRL" }).format(Number(valor ?? 0));
 
 export default function Planos() {
   const { ui, localeUI } = useInterface();
+  const toast = useToast();
   const [dados, setDados] = useState(null);
   const [mensagem, setMensagem] = useState("Carregando planos...");
   const [carregando, setCarregando] = useState(false);
@@ -23,9 +25,10 @@ export default function Planos() {
       return resposta;
     } catch (error) {
       setMensagem(error.message);
+      toast.erro(error.message);
       return null;
     }
-  }, []);
+  }, [toast]);
 
   useEffect(() => {
     let encerrado = false;
@@ -66,6 +69,7 @@ export default function Planos() {
       window.location.assign(resposta.checkout_url);
     } catch (error) {
       setMensagem(error.message);
+      toast.erro(error.message);
       setCarregando(false);
     }
   }
@@ -79,6 +83,7 @@ export default function Planos() {
       setMensagem(resposta.message);
     } catch (error) {
       setMensagem(error.message);
+      toast.erro(error.message);
     } finally {
       setCarregando(false);
     }

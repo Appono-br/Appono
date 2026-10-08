@@ -496,11 +496,19 @@ exports.restaurantsRouter.get("/me/avaliacoes", auth_1.requireAuth, (0, auth_1.r
     const from = (page - 1) * pageSize;
     const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
     const { data, error, count } = await supabase.from("avaliacoes_restaurante")
-        .select("id_avaliacao, nota, comentario, created_at, clientes(nome)", { count: "exact" })
+        .select("id_avaliacao, nota, comentario, created_at", { count: "exact" })
         .eq("id_restaurante", res.locals.profileId).order("created_at", { ascending: false }).range(from, from + pageSize - 1);
     if (error) return res.status(400).json({ error: error.message });
-    const metricas = await obterMetricas([res.locals.profileId]);
-    return res.json({ items: data ?? [], page, page_size: pageSize, total: count ?? 0, metricas: metricas.get(res.locals.profileId) });
+    const { data: notas, error: notasError } = await supabase.from("avaliacoes_restaurante")
+        .select("nota")
+        .eq("id_restaurante", res.locals.profileId);
+    if (notasError) return res.status(400).json({ error: notasError.message });
+    const notasValidas = (notas ?? []).map((item) => Number(item.nota)).filter((nota) => Number.isFinite(nota));
+    const metricas = {
+        avaliacao_media: notasValidas.length ? Number((notasValidas.reduce((soma, nota) => soma + nota, 0) / notasValidas.length).toFixed(1)) : null,
+        total_avaliacoes: notasValidas.length,
+    };
+    return res.json({ items: data ?? [], page, page_size: pageSize, total: count ?? notasValidas.length, metricas });
 });
 exports.restaurantsRouter.get("/:id/disponibilidade", async (req, res) => {
     const restaurantId = Number(req.params.id);

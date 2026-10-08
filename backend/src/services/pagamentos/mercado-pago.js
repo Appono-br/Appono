@@ -160,7 +160,11 @@ async function requisitarAssinaturaMercadoPago(path, { method = "GET", token = o
         body: body ? JSON.stringify(body) : undefined,
     });
     const dados = await resposta.json().catch(() => null);
-    if (!resposta.ok) throw new Error(dados?.message ?? "Mercado Pago nÃ£o conseguiu processar a assinatura.");
+    if (!resposta.ok) {
+        const mensagem = String(dados?.message ?? "");
+        if (/card_token_id|card token/i.test(mensagem)) throw new Error("Não foi possível iniciar a assinatura porque o Mercado Pago não recebeu os dados do cartão. Abra o checkout novamente e informe um cartão válido.");
+        throw new Error(mensagem || "Mercado Pago não conseguiu processar a assinatura.");
+    }
     return dados;
 }
 
@@ -191,6 +195,11 @@ async function criarPlanoAssinaturaMercadoPago({ token, reason, amount, backUrl 
             back_url: backUrl,
         },
     });
+}
+
+async function consultarPlanoAssinaturaMercadoPago(id, token = obterAccessTokenMercadoPago()) {
+    if (!id) return null;
+    return requisitarAssinaturaMercadoPago(`/preapproval_plan/${encodeURIComponent(id)}`, { token });
 }
 
 async function buscarAssinaturasPlanoMercadoPago(planId, token = obterAccessTokenMercadoPago()) {
@@ -272,6 +281,7 @@ module.exports = {
     consultarContaMercadoPago,
     criarAssinaturaMercadoPago,
     criarPlanoAssinaturaMercadoPago,
+    consultarPlanoAssinaturaMercadoPago,
     buscarAssinaturasPlanoMercadoPago,
     consultarAssinaturaMercadoPago,
     atualizarAssinaturaMercadoPago,
