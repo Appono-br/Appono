@@ -215,12 +215,12 @@ export function RegisterClientForm({ googleFlow = false }) {
       className="mx-auto w-full max-w-xl"
       noValidate
     >
-      <div className="rounded-3xl bg-white px-6 py-8 shadow-xl border border-slate-100 sm:px-10">
+      <div className="rounded-3xl bg-app-creme-suave px-6 py-8 shadow-xl sm:px-10">
         {/* Cabeçalho de Marca e Voltar */}
         <div className="mb-6 grid grid-cols-[1fr_auto_1fr] items-center">
           <Link
             href="/"
-            className="inline-flex w-fit items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-all"
+            className="inline-flex w-fit items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-app-cinza hover:text-app-cafe-profundo hover:bg-app-chantilly-hover transition-all"
           >
             <ArrowLeft className="h-4 w-4" aria-hidden="true" />
             <span>Início</span>
@@ -237,10 +237,10 @@ export function RegisterClientForm({ googleFlow = false }) {
         </div>
 
         <div className="mb-6">
-          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+          <h1 className="text-2xl font-extrabold text-app-cafe-profundo tracking-tight">
             Crie sua conta Appono
           </h1>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-app-cinza">
             Cadastre-se para reservar mesas e antecipar seus pedidos de forma prática.
           </p>
         </div>
@@ -338,7 +338,7 @@ export function RegisterClientForm({ googleFlow = false }) {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="text-slate-400 hover:text-slate-600 p-1"
+                      className="text-app-cinza hover:text-app-caramelo-torrado p-1"
                       aria-label={showPassword ? "Ocultar senha" : "Exibir senha"}
                     >
                       {showPassword ? (
@@ -366,7 +366,7 @@ export function RegisterClientForm({ googleFlow = false }) {
                       onClick={() =>
                         setShowConfirmPassword(!showConfirmPassword)
                       }
-                      className="text-slate-400 hover:text-slate-600 p-1"
+                      className="text-app-cinza hover:text-app-caramelo-torrado p-1"
                       aria-label={
                         showConfirmPassword ? "Ocultar senha" : "Exibir senha"
                       }
@@ -407,12 +407,12 @@ export function RegisterClientForm({ googleFlow = false }) {
         />
 
         {/* Rodapé de Login */}
-        <div className="mt-6 pt-4 text-center border-t border-slate-100">
-          <p className="text-xs text-slate-500">
+        <div className="mt-6 pt-4 text-center border-t border-app-baunilha-dourada/25">
+          <p className="text-xs text-app-cinza">
             Já tem uma conta no Appono?{" "}
             <Link
               href="/login"
-              className="font-bold text-red-600 hover:text-red-700 transition"
+              className="font-bold text-app-caramelo-torrado hover:text-app-mocha transition"
             >
               Fazer login
             </Link>

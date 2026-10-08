@@ -21,7 +21,7 @@ Se a home mostrar “Não foi possível carregar as categorias”, confira a res
 
 ## Comportamento
 
-- A home autenticada em `/cliente/dashboard` inclui uma fileira horizontal de categorias e fotos ilustrativas do Unsplash. O mapeamento de fotos é apenas visual: os nomes e itens vêm de `GET /api/restaurantes/categorias`, que executa a agregação no banco. Fotos que falham recebem um ícone de fallback.
+- A home autenticada em `/cliente/dashboard` inclui uma fileira horizontal de categorias com fotos relacionadas a cada culinária (feijoada para Brasileira, massa para Italiana, sushi para Japonesa e assim por diante). Todas as opções do cadastro têm imagem definida em `frontend/components/cliente/categorias-restaurantes.jsx`. As fotos são arquivos locais WebP de 240 × 240 pixels em `frontend/public/images/categorias`, com fontes e licenças em `CREDITOS.md`. O mapeamento de fotos é apenas visual: os nomes e itens vêm de `GET /api/restaurantes/categorias`, que executa a agregação no banco. Categorias desconhecidas ou fotos que falham recebem um ícone de fallback.
 - Cada categoria abre `/cliente/restaurantes?categoria=<nome codificado>`. Restaurantes sem pratos publicados também podem aparecer, desde que tenham a categoria escolhida no perfil.
 - A página reutiliza o card extraído da busca, mantendo a apresentação existente e as ações de favorito/detalhes. A busca continua usando o mesmo componente.
 - Na listagem por categoria, o usuário escolhe qualquer distância ou raios de 2, 5, 10 e 20 km. A Geolocation API é chamada somente ao ativar um raio, com tratamento de negativa, indisponibilidade e timeout. Não há uma localização presumida quando a permissão é negada.

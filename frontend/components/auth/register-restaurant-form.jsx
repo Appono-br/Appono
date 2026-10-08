@@ -335,7 +335,7 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
               return;
             }
           } catch {
-            window.location.assign("/restaurante/plano?checkout=pendente");
+            window.location.assign("/restaurante/configuracoes/planos?checkout=pendente");
             return;
           }
         }
@@ -367,12 +367,12 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
       className="mx-auto w-full max-w-2xl"
       noValidate
     >
-      <div className="rounded-3xl bg-white px-6 py-8 shadow-xl border border-slate-100 sm:px-10">
+      <div className="rounded-3xl bg-app-creme-suave px-6 py-8 shadow-xl sm:px-10">
         {/* Cabeçalho de Navegação e Marca */}
         <div className="mb-6 grid grid-cols-[1fr_auto_1fr] items-center">
           <Link
             href="/"
-            className="inline-flex w-fit items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-all"
+            className="inline-flex w-fit items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-app-cinza hover:text-app-cafe-profundo hover:bg-app-chantilly-hover transition-all"
           >
             <ArrowLeft className="h-4 w-4" aria-hidden="true" />
             <span>Início</span>
@@ -390,10 +390,10 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
         </div>
 
         <div className="mb-6">
-          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+          <h1 className="text-2xl font-extrabold text-app-cafe-profundo tracking-tight">
             Torne-se um parceiro Appono
           </h1>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-app-cinza">
             Cadastre seu restaurante e potencialize suas reservas e pedidos de mesa.
           </p>
         </div>
@@ -569,9 +569,9 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
 
             {/* Categorias Culinárias com Badges estilo iFood */}
             <div className="flex flex-col gap-2">
-              <label className="text-xs font-semibold text-slate-700 flex items-center">
+              <label className="text-xs font-semibold text-app-cafe-profundo flex items-center">
                 <span>Especialidades culinárias</span>
-                <span className="text-red-500 ml-1 font-bold">*</span>
+                <span className="text-app-caramelo-torrado ml-1 font-bold">*</span>
               </label>
               <div className="flex flex-wrap gap-2 pt-1">
                 {CATEGORIAS_CULINARIAS.map((cat) => {
@@ -595,8 +595,8 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
                       }}
                       className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
                         selecionada
-                          ? "bg-red-600 text-white shadow-sm"
-                          : "bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200/60"
+                          ? "bg-app-dourado-mel text-white shadow-sm"
+                          : "bg-app-chantilly text-app-cafe-profundo hover:bg-app-chantilly-hover border border-app-baunilha-dourada/30"
                       }`}
                     >
                       {selecionada && <Check className="h-3 w-3 stroke-[3]" />}
@@ -606,12 +606,12 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
                 })}
               </div>
               {errors.categorias_culinarias ? (
-                <p className="flex items-center gap-1 text-xs font-medium text-red-600 mt-1">
+                <p className="flex items-center gap-1 text-xs font-medium text-app-vermelho-erro mt-1">
                   <AlertCircle className="h-3.5 w-3.5 shrink-0" />
                   <span>{errors.categorias_culinarias.message}</span>
                 </p>
               ) : (
-                <p className="text-[11px] text-slate-400">
+                <p className="text-[11px] text-app-cinza">
                   Selecione até 8 categorias para ajudar clientes a encontrar seu restaurante.
                 </p>
               )}
@@ -619,12 +619,12 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
 
             {/* Upload da Imagem com Preview */}
             <div className="flex flex-col gap-2">
-              <span className="text-xs font-semibold text-slate-700">
+              <span className="text-xs font-semibold text-app-cafe-profundo">
                 Foto de capa do restaurante (Opcional)
               </span>
-              <label className="flex flex-col sm:flex-row items-center gap-4 p-4 rounded-2xl border-2 border-dashed border-slate-200 hover:border-red-400 bg-slate-50/50 hover:bg-red-50/20 transition-all cursor-pointer">
+              <label className="flex flex-col sm:flex-row items-center gap-4 p-4 rounded-2xl border-2 border-dashed border-app-baunilha-dourada/50 hover:border-app-caramelo-torrado bg-app-chantilly/50 hover:bg-app-caramelo-torrado/5 transition-all cursor-pointer">
                 <div
-                  className="h-16 w-16 rounded-xl bg-slate-200 flex items-center justify-center overflow-hidden shrink-0 bg-cover bg-center border border-slate-300"
+                  className="h-16 w-16 rounded-xl bg-app-chantilly flex items-center justify-center overflow-hidden shrink-0 bg-cover bg-center border border-app-caramelo-torrado"
                   style={
                     imagemPreview
                       ? { backgroundImage: `url("${imagemPreview}")` }
@@ -632,16 +632,16 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
                   }
                 >
                   {!imagemPreview && (
-                    <UtensilsCrossed className="h-6 w-6 text-slate-400" />
+                    <UtensilsCrossed className="h-6 w-6 text-app-cinza" />
                   )}
                 </div>
 
                 <div className="flex-1 text-center sm:text-left">
-                  <span className="inline-flex items-center gap-1.5 text-xs font-bold text-red-600">
+                  <span className="inline-flex items-center gap-1.5 text-xs font-bold text-app-caramelo-torrado">
                     <Upload className="h-3.5 w-3.5" />
                     <span>Escolher imagem</span>
                   </span>
-                  <p className="text-[11px] text-slate-400 mt-0.5">
+                  <p className="text-[11px] text-app-cinza mt-0.5">
                     JPG, PNG ou WebP de até 5MB.
                   </p>
                 </div>
@@ -666,8 +666,8 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
               <label
                 className={`relative flex flex-col p-5 rounded-2xl border-2 transition-all cursor-pointer ${
                   watchPlano === "INICIAL"
-                    ? "border-red-500 bg-red-50/20 shadow-md ring-4 ring-red-500/10"
-                    : "border-slate-200 bg-white hover:border-slate-300"
+                    ? "border-app-caramelo-torrado bg-app-caramelo-torrado/5 shadow-md ring-4 ring-app-dourado-mel/10"
+                    : "border-app-baunilha-dourada/50 bg-white hover:border-app-caramelo-torrado"
                 }`}
               >
                 <input
@@ -677,23 +677,23 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
                   {...register("plano")}
                 />
                 <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-extrabold text-base text-slate-900">
+                  <h3 className="font-extrabold text-base text-app-cafe-profundo">
                     Inicial
                   </h3>
                   {watchPlano === "INICIAL" && (
-                    <span className="h-5 w-5 rounded-full bg-red-600 text-white flex items-center justify-center">
+                    <span className="h-5 w-5 rounded-full bg-app-dourado-mel text-white flex items-center justify-center">
                       <Check className="h-3 w-3 stroke-[3]" />
                     </span>
                   )}
                 </div>
                 <div className="mb-3">
-                  <span className="text-3xl font-black text-slate-900">R$ 0</span>
-                  <span className="text-xs text-slate-500">/mês</span>
-                  <p className="text-xs font-semibold text-red-600 mt-0.5">
+                  <span className="text-3xl font-black text-app-cafe-profundo">R$ 0</span>
+                  <span className="text-xs text-app-cinza">/mês</span>
+                  <p className="text-xs font-semibold text-app-caramelo-torrado mt-0.5">
                     8% de comissão por reserva
                   </p>
                 </div>
-                <ul className="text-xs text-slate-600 space-y-1.5 mb-2">
+                <ul className="text-xs text-app-cinza space-y-1.5 mb-2">
                   <li className="flex items-center gap-1.5">
                     <Check className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
                     <span>Cardápio e reservas online</span>
@@ -709,11 +709,11 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
               <label
                 className={`relative flex flex-col p-5 rounded-2xl border-2 transition-all cursor-pointer ${
                   watchPlano === "PROFISSIONAL"
-                    ? "border-red-500 bg-red-50/20 shadow-md ring-4 ring-red-500/10"
-                    : "border-slate-200 bg-white hover:border-slate-300"
+                    ? "border-app-caramelo-torrado bg-app-caramelo-torrado/5 shadow-md ring-4 ring-app-dourado-mel/10"
+                    : "border-app-baunilha-dourada/50 bg-white hover:border-app-caramelo-torrado"
                 }`}
               >
-                <span className="absolute -top-2.5 right-4 rounded-full bg-red-600 text-white text-[10px] font-extrabold px-2.5 py-0.5 uppercase tracking-wider flex items-center gap-1 shadow-sm">
+                <span className="absolute -top-2.5 right-4 rounded-full bg-app-dourado-mel text-white text-[10px] font-extrabold px-2.5 py-0.5 uppercase tracking-wider flex items-center gap-1 shadow-sm">
                   <Sparkles className="h-3 w-3" />
                   <span>Destaque</span>
                 </span>
@@ -724,25 +724,25 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
                   {...register("plano")}
                 />
                 <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-extrabold text-base text-slate-900">
+                  <h3 className="font-extrabold text-base text-app-cafe-profundo">
                     Profissional
                   </h3>
                   {watchPlano === "PROFISSIONAL" && (
-                    <span className="h-5 w-5 rounded-full bg-red-600 text-white flex items-center justify-center">
+                    <span className="h-5 w-5 rounded-full bg-app-dourado-mel text-white flex items-center justify-center">
                       <Check className="h-3 w-3 stroke-[3]" />
                     </span>
                   )}
                 </div>
                 <div className="mb-3">
-                  <span className="text-3xl font-black text-slate-900">
+                  <span className="text-3xl font-black text-app-cafe-profundo">
                     R$ 200
                   </span>
-                  <span className="text-xs text-slate-500">/mês</span>
-                  <p className="text-xs font-semibold text-red-600 mt-0.5">
+                  <span className="text-xs text-app-cinza">/mês</span>
+                  <p className="text-xs font-semibold text-app-caramelo-torrado mt-0.5">
                     Apenas 3% de comissão
                   </p>
                 </div>
-                <ul className="text-xs text-slate-600 space-y-1.5 mb-2">
+                <ul className="text-xs text-app-cinza space-y-1.5 mb-2">
                   <li className="flex items-center gap-1.5">
                     <Check className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
                     <span>Tudo do Inicial + Campanhas</span>
@@ -757,7 +757,7 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
 
             {/* Senha e Confirmação */}
             {!googleFlow && (
-              <div className="space-y-4 pt-4 border-t border-slate-100">
+              <div className="space-y-4 pt-4 border-t border-app-baunilha-dourada/25">
                 <FormInput
                   label="Senha da conta"
                   type={showPassword ? "text" : "password"}
@@ -769,7 +769,7 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="text-slate-400 hover:text-slate-600 p-1"
+                      className="text-app-cinza hover:text-app-caramelo-torrado p-1"
                       aria-label={showPassword ? "Ocultar senha" : "Exibir senha"}
                     >
                       {showPassword ? (
@@ -797,7 +797,7 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
                       onClick={() =>
                         setShowConfirmPassword(!showConfirmPassword)
                       }
-                      className="text-slate-400 hover:text-slate-600 p-1"
+                      className="text-app-cinza hover:text-app-caramelo-torrado p-1"
                       aria-label={
                         showConfirmPassword ? "Ocultar senha" : "Exibir senha"
                       }
@@ -838,12 +838,12 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
         />
 
         {/* Rodapé de Login */}
-        <div className="mt-6 pt-4 text-center border-t border-slate-100">
-          <p className="text-xs text-slate-500">
+        <div className="mt-6 pt-4 text-center border-t border-app-baunilha-dourada/25">
+          <p className="text-xs text-app-cinza">
             Já possui cadastro de parceiro?{" "}
             <Link
               href="/login"
-              className="font-bold text-red-600 hover:text-red-700 transition"
+              className="font-bold text-app-caramelo-torrado hover:text-app-mocha transition"
             >
               Fazer login
             </Link>
@@ -865,17 +865,17 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
           <div
             role="dialog"
             aria-modal="true"
-            className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl border border-slate-100 animate-scaleIn"
+            className="w-full max-w-md rounded-2xl bg-app-creme-suave p-6 shadow-2xl animate-scaleIn"
           >
             <div className="flex items-center gap-3 mb-3">
-              <span className="h-10 w-10 rounded-xl bg-red-100 text-red-600 flex items-center justify-center shrink-0">
+              <span className="h-10 w-10 rounded-xl bg-app-caramelo-torrado/10 text-app-caramelo-torrado flex items-center justify-center shrink-0">
                 <Sparkles className="h-5 w-5" />
               </span>
-              <h2 className="text-lg font-bold text-slate-900">
+              <h2 className="text-lg font-bold text-app-cafe-profundo">
                 Confirmar Plano Profissional
               </h2>
             </div>
-            <p className="text-xs leading-5 text-slate-600 mb-6">
+            <p className="text-xs leading-5 text-app-cinza mb-6">
               A assinatura custa R$ 200/mês com comissão reduzida de 3%. Após a criação,
               você seguirá para o checkout seguro do Mercado Pago.
             </p>
@@ -884,7 +884,7 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
                 type="button"
                 disabled={isSubmitting}
                 onClick={() => setConfirmarPlano(false)}
-                className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition"
+                className="px-4 py-2 text-xs font-semibold text-app-cinza hover:bg-app-chantilly-hover rounded-xl transition"
               >
                 Voltar
               </button>
@@ -895,7 +895,7 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
                   setConfirmarPlano(false);
                   handleSubmit(executarCriacao)();
                 }}
-                className="px-5 py-2 text-xs font-bold bg-red-600 hover:bg-red-700 text-white rounded-xl shadow-sm transition"
+                className="px-5 py-2 text-xs font-bold bg-app-dourado-mel hover:bg-app-caramelo-torrado text-white rounded-xl shadow-sm transition"
               >
                 {isSubmitting ? "Criando..." : "Confirmar e criar"}
               </button>

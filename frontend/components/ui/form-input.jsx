@@ -26,11 +26,11 @@ export const FormInput = forwardRef(function FormInput(
       {label && (
         <label
           htmlFor={inputId}
-          className="flex items-center text-xs font-semibold text-slate-700 select-none"
+          className="flex items-center text-xs font-semibold text-app-cafe-profundo select-none"
         >
           <span>{label}</span>
           {required && (
-            <span className="text-red-500 ml-1 font-bold" aria-hidden="true">
+            <span className="text-app-caramelo-torrado ml-1 font-bold" aria-hidden="true">
               *
             </span>
           )}
@@ -39,7 +39,7 @@ export const FormInput = forwardRef(function FormInput(
 
       <div className="relative flex items-center">
         {LeftIcon && (
-          <div className="pointer-events-none absolute left-3.5 flex items-center text-slate-400">
+          <div className="pointer-events-none absolute left-3.5 flex items-center text-app-cinza">
             <LeftIcon className="h-5 w-5" aria-hidden="true" />
           </div>
         )}
@@ -50,12 +50,12 @@ export const FormInput = forwardRef(function FormInput(
           aria-invalid={Boolean(error)}
           aria-describedby={error ? errorId : undefined}
           required={required}
-          className={`h-11 sm:h-12 w-full rounded-xl border bg-white px-3.5 text-sm text-slate-900 transition-all placeholder:text-slate-400 focus:outline-none focus:ring-2 disabled:bg-slate-50 disabled:text-slate-400 ${
+          className={`h-11 sm:h-12 w-full rounded-xl border bg-app-creme-suave px-3.5 text-sm text-app-cafe-profundo transition-all placeholder:text-app-cinza/65 focus:outline-none focus:ring-2 disabled:bg-app-chantilly disabled:text-app-cinza ${
             LeftIcon ? "pl-11" : ""
           } ${rightAction ? "pr-11" : ""} ${
             error
-              ? "border-red-500 bg-red-50/20 text-red-900 focus:border-red-500 focus:ring-red-500/15"
-              : "border-slate-200 hover:border-slate-300 focus:border-red-500 focus:ring-red-500/15"
+              ? "border-app-vermelho-erro text-app-vermelho-erro focus:border-app-vermelho-erro focus:ring-app-vermelho-erro/15"
+              : "border-app-baunilha-dourada/50 hover:border-app-caramelo-torrado focus:border-app-dourado-mel focus:ring-app-dourado-mel/20"
           } ${className}`}
           {...props}
         />
@@ -71,13 +71,13 @@ export const FormInput = forwardRef(function FormInput(
         <p
           id={errorId}
           role="alert"
-          className="flex items-center gap-1.5 text-xs font-medium text-red-600 animate-fadeIn"
+          className="flex items-center gap-1.5 text-xs font-medium text-app-vermelho-erro animate-fadeIn"
         >
           <AlertCircle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
           <span>{error.message || error}</span>
         </p>
       ) : helperText ? (
-        <p className="text-xs text-slate-500">{helperText}</p>
+        <p className="text-xs text-app-cinza">{helperText}</p>
       ) : null}
     </div>
   );

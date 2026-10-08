@@ -13,16 +13,16 @@ import { aplicarMascaraCnpj } from "@/lib/validacoes/cnpj";
 import { aplicarMascaraTelefone } from "@/lib/validacoes/telefone";
 import { enviarImagemRestaurante, validarImagemRestaurante, } from "@/lib/imagem-restaurante";
 import Endereco from "./endereco";
-import Notificacoes from "./notificacoes";
 import Seguranca from "./seguranca";
 import MercadoPago from "./mercado-pago";
 import Operacao from "./operacao";
 import DadosBancarios from "./dados-bancarios";
+import Planos from "./planos";
 import { CATEGORIAS_CULINARIAS } from "@/lib/categorias-culinarias";
 import { RestaurantIcon } from "@/components/restaurante/restaurant-icon";
 import { PainelSuporte } from "@/components/suporte/painel-suporte";
 
-const paineis = { endereco: Endereco, notificacoes: Notificacoes, seguranca: Seguranca, "mercado-pago": MercadoPago, operacao: Operacao, "dados-bancarios": DadosBancarios };
+const paineis = { endereco: Endereco, seguranca: Seguranca, "mercado-pago": MercadoPago, operacao: Operacao, "dados-bancarios": DadosBancarios, planos: Planos };
 const initialForm = {
     storeName: "",
     document: "",
@@ -38,11 +38,7 @@ const initialForm = {
 const settingsItems = [
     { label: "Informações da loja", icon: "store", href: "/restaurante/configuracoes" },
     { label: "Endereço da loja", icon: "map-pin", href: "/restaurante/configuracoes/endereco" },
-    {
-        label: "Preferências de notificação",
-        icon: "bell",
-        href: "/restaurante/configuracoes/notificacoes",
-    },
+    { label: "Planos", icon: "star", href: "/restaurante/configuracoes/planos" },
     {
         label: "Segurança e acesso",
         icon: "shield",
@@ -241,7 +237,7 @@ export default function RestaurantSettings({ painelInicial = "conta" }) {
             </div>
 
             <section className="mt-8 flex flex-col gap-5 sm:flex-row sm:items-center">
-              <label className="relative flex h-24 w-24 shrink-0 cursor-pointer items-center justify-center overflow-visible rounded-[8px] bg-app-cafe-profundo bg-cover bg-center text-app-creme-leve" style={form.logoUrl ? { backgroundImage: `url("${form.logoUrl}")` } : undefined}>
+              <label className="relative flex h-24 w-24 shrink-0 cursor-pointer items-center justify-center overflow-visible rounded-[8px] bg-app-cafe-profundo bg-contain bg-center bg-no-repeat bg-origin-content p-2 text-app-creme-leve" style={form.logoUrl ? { backgroundImage: `url("${form.logoUrl}")` } : undefined}>
                 {!form.logoUrl ? <Icon type="store" className="h-10 w-10"/> : null}
                 <span className="absolute -bottom-2 -right-2 flex h-9 w-9 items-center justify-center rounded-full bg-app-caramelo-torrado text-app-chantilly ring-4 ring-app-chantilly">
                   <Icon type="camera" className="h-4 w-4"/>

@@ -1,5 +1,5 @@
-import RestaurantSettings from "@/components/restaurante/configuracoes/painel-configuracoes";
+import { redirect } from "next/navigation";
 
 export default function SettingsPage() {
-    return <RestaurantSettings painelInicial="notificacoes" />;
+    redirect("/restaurante/configuracoes");
 }
