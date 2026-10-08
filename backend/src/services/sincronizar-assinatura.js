@@ -10,7 +10,14 @@ async function aplicarEstadoAssinaturaMercadoPago(assinatura, mp) {
   if (assinatura.mercadopago_preapproval_id && String(assinatura.mercadopago_preapproval_id) !== String(mp.id)) {
     throw new Error("Evento pertence a outra assinatura do restaurante.");
   }
-  const faturas = await buscarFaturasAssinaturaMercadoPago(mp.id);
+  let faturas = [];
+  try {
+    faturas = await buscarFaturasAssinaturaMercadoPago(mp.id);
+  } catch (error) {
+    const statusMercadoPago = String(mp.status ?? "").toLowerCase();
+    if (!['authorized', 'active'].includes(statusMercadoPago)) throw error;
+    console.warn("Faturas da assinatura ainda não disponíveis; usando o status autorizado do Mercado Pago:", error.message);
+  }
   const pagamentos = [];
   for (const fatura of faturas) {
     if (String(fatura.preapproval_id) !== String(mp.id) || !fatura.payment?.id) continue;
@@ -52,6 +59,14 @@ async function aplicarEstadoAssinaturaMercadoPago(assinatura, mp) {
     // A proxima cobranca do provedor delimita o ciclo, se posterior ao pagamento.
     // Nunca prolongar um periodo pago porque uma cobranca futura foi reagendada.
     if (mp.next_payment_date && new Date(mp.next_payment_date) > new Date(inicio) && new Date(mp.next_payment_date) < new Date(fim)) fim = mp.next_payment_date;
+  } else if (["authorized", "active"].includes(String(mp.status ?? "").toLowerCase())) {
+    // O Mercado Pago pode autorizar a assinatura antes de publicar a fatura
+    // em /authorized_payments. O status autorizado já representa a aprovação
+    // do checkout; a fatura será conciliada quando o webhook chegar.
+    inicio = mp.date_created ?? mp.last_modified ?? new Date().toISOString();
+    const data = new Date(inicio);
+    data.setUTCMonth(data.getUTCMonth() + 1);
+    fim = data.toISOString();
   }
   const pagoVigente = fim && new Date(fim) > new Date();
   const cancelada = ["cancelled", "canceled"].includes(mp.status);
