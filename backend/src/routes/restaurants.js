@@ -66,22 +66,25 @@ function erroColunaGeolocalizacaoAusente(error) {
     const mensagem = String(error?.message ?? "").toLowerCase();
     return mensagem.includes("latitude") || mensagem.includes("longitude") || mensagem.includes("geocodificado");
 }
-async function consultarRestaurantesPublicos() {
+async function consultarRestaurantesPublicos(categoria = "") {
     const cliente = obterClienteLeituraPublica();
     const consulta = cliente
         .from("restaurantes")
         .select("id_restaurante, nome, razao_social, telefone, email, cep, endereco, horario_funcionamento, logo_url, categorias_culinarias, valor_minimo_reserva_por_pessoa, configuracao_operacao, latitude, longitude")
         .eq("ativo", true)
         .order("nome");
+    if (categoria) consulta.contains("categorias_culinarias", [categoria]);
     const resposta = await consulta;
     if (!resposta.error || !erroColunaGeolocalizacaoAusente(resposta.error)) {
         return resposta;
     }
-    return cliente
+    const consultaSemGeolocalizacao = cliente
         .from("restaurantes")
         .select("id_restaurante, nome, razao_social, telefone, email, cep, endereco, horario_funcionamento, logo_url, categorias_culinarias, valor_minimo_reserva_por_pessoa, configuracao_operacao")
         .eq("ativo", true)
         .order("nome");
+    if (categoria) consultaSemGeolocalizacao.contains("categorias_culinarias", [categoria]);
+    return consultaSemGeolocalizacao;
 }
 async function consultarRestaurantePublicoPorId(restaurantId) {
     const cliente = obterClienteLeituraPublica();
@@ -113,13 +116,30 @@ async function obterClientePorUsuario(userId) {
     if (error) throw new Error(error.message);
     return data;
 }
-async function obterMetricas(idsRestaurantes, idCliente = null) {
+async function consultarTodasMetricas(criarConsulta) {
+    const dados = [];
+    const tamanhoPagina = 500;
+    for (let inicio = 0; ; inicio += tamanhoPagina) {
+        const resposta = await criarConsulta().range(inicio, inicio + tamanhoPagina - 1);
+        if (resposta.error) throw new Error("Não foi possível consultar avaliações e favoritos. Tente novamente.");
+        dados.push(...(resposta.data ?? []));
+        if ((resposta.data ?? []).length < tamanhoPagina) return { data: dados };
+    }
+}
+async function obterMetricas(idsRestaurantes, idCliente = null, completas = false) {
     const ids = [...new Set(idsRestaurantes.filter(Boolean))];
     const resultado = new Map(ids.map((id) => [id, { avaliacao_media: null, total_avaliacoes: 0, total_favoritos: 0, favorito_cliente: false, total_chamados_procedentes: 0, score_operacional: 100 }]));
-    if (!ids.length || !supabase_1.supabaseAdmin) return resultado;
+    if (!ids.length) return resultado;
+    if (!supabase_1.supabaseAdmin) {
+        if (completas) throw new Error("Não foi possível consultar avaliações e favoritos. Tente novamente.");
+        return resultado;
+    }
+    const consultar = (criarConsulta, chave) => completas
+        ? consultarTodasMetricas(() => criarConsulta().order(chave))
+        : criarConsulta();
     const [avaliacoes, favoritos, meusFavoritos, suporte] = await Promise.all([
-        supabase_1.supabaseAdmin.from("avaliacoes_restaurante").select("id_restaurante, nota").in("id_restaurante", ids),
-        supabase_1.supabaseAdmin.from("restaurantes_favoritos").select("id_restaurante").in("id_restaurante", ids),
+        consultar(() => supabase_1.supabaseAdmin.from("avaliacoes_restaurante").select("id_restaurante, nota").in("id_restaurante", ids), "id_avaliacao"),
+        consultar(() => supabase_1.supabaseAdmin.from("restaurantes_favoritos").select("id_restaurante").in("id_restaurante", ids), "id_favorito"),
         idCliente ? supabase_1.supabaseAdmin.from("restaurantes_favoritos").select("id_restaurante").eq("id_cliente", idCliente).in("id_restaurante", ids) : Promise.resolve({ data: [] }),
         supabase_1.supabaseAdmin.from("chamados_suporte").select("id_restaurante, impacto_reputacao").in("id_restaurante", ids).eq("procedencia", "PROCEDENTE").then((resposta) => resposta).catch(() => ({ data: [] })),
     ]);
@@ -129,7 +149,9 @@ async function obterMetricas(idsRestaurantes, idCliente = null) {
         metrica.total_avaliacoes += 1;
     }
     for (const metrica of resultado.values()) {
-        if (metrica.total_avaliacoes) metrica.avaliacao_media = Number((metrica.soma_notas / metrica.total_avaliacoes).toFixed(1));
+        if (metrica.total_avaliacoes) metrica.avaliacao_media = completas
+            ? metrica.soma_notas / metrica.total_avaliacoes
+            : Number((metrica.soma_notas / metrica.total_avaliacoes).toFixed(1));
         delete metrica.soma_notas;
     }
     for (const favorito of favoritos.data ?? []) resultado.get(favorito.id_restaurante).total_favoritos += 1;
@@ -347,14 +369,32 @@ function montarHorariosOperacionais({ restaurante, dataReserva, pessoas, reserva
 }
 exports.restaurantsRouter.get("/", async (req, res) => {
     try {
+        if (req.query.categoria !== undefined && typeof req.query.categoria !== "string") {
+            return res.status(400).json({ error: "Categoria inválida." });
+        }
+        const categoria = typeof req.query.categoria === "string" ? req.query.categoria.trim() : "";
+        const ordenacao = typeof req.query.ordenacao === "string" ? req.query.ordenacao : "";
+        if (ordenacao && !["nome", "distancia", "avaliacao", "curtidos"].includes(ordenacao)) {
+            return res.status(400).json({ error: "Ordenação inválida." });
+        }
         const termoBusca = normalizarBusca(req.query.q);
         const incluirPratos = req.query.incluir_pratos === "1";
+        if (req.query.localizacao !== undefined && (typeof req.query.localizacao !== "string" || req.query.localizacao.length > 240)) {
+            return res.status(400).json({ error: "Informe um endereço, bairro, cidade ou CEP válido." });
+        }
+        const localizacaoBusca = typeof req.query.localizacao === "string" ? req.query.localizacao.trim() : "";
         let latitudeCliente = numeroValido(req.query.latitude);
         let longitudeCliente = numeroValido(req.query.longitude);
         let origemDistancia = (0, geolocalizacao_1.coordenadaValida)(latitudeCliente, longitudeCliente) ? "navegador" : null;
         let localizacaoResolvida = null;
-        if (!origemDistancia && req.query.localizacao) {
-            localizacaoResolvida = await (0, geolocalizacao_1.geocodificarLocalizacao)(req.query.localizacao);
+        if (!origemDistancia && localizacaoBusca) {
+            localizacaoResolvida = await (0, geolocalizacao_1.geocodificarLocalizacao)(localizacaoBusca);
+            if (!localizacaoResolvida) {
+                return res.status(400).json({
+                    error: "Não foi possível localizar esse endereço. Informe rua, bairro e cidade ou um CEP válido.",
+                    code: "LOCALIZACAO_NAO_ENCONTRADA",
+                });
+            }
             if (localizacaoResolvida) {
                 latitudeCliente = localizacaoResolvida.latitude;
                 longitudeCliente = localizacaoResolvida.longitude;
@@ -363,10 +403,16 @@ exports.restaurantsRouter.get("/", async (req, res) => {
         }
         const podeCalcularDistancia = Boolean(origemDistancia);
         const raioKm = numeroValido(req.query.raio_km);
+        if (req.query.raio_km !== undefined && (!Number.isFinite(raioKm) || raioKm <= 0 || raioKm > 20)) {
+            return res.status(400).json({ error: "Escolha um raio maior que zero e de até 20 km." });
+        }
+        if ((raioKm !== null || ordenacao === "distancia") && !podeCalcularDistancia) {
+            return res.status(400).json({ error: "Permita o acesso à sua localização para filtrar por distância." });
+        }
         const usuario = await obterUsuarioOpcional(req);
         const cliente = await obterClientePorUsuario(usuario?.id);
         const [restaurantesResposta, dadosCardapioBusca] = await Promise.all([
-            consultarRestaurantesPublicos(),
+            consultarRestaurantesPublicos(categoria),
             obterDadosCardapioBusca(termoBusca, incluirPratos),
         ]);
         const { correspondencias: correspondenciasBusca, resumo: resumoCardapio } = dadosCardapioBusca;
@@ -378,12 +424,12 @@ exports.restaurantsRouter.get("/", async (req, res) => {
         const restaurantesComGeolocalizacao = podeCalcularDistancia
             ? await preencherCoordenadasAusentes(restaurantesFiltrados)
             : restaurantesFiltrados;
-        const metricas = await obterMetricas(restaurantesComGeolocalizacao.map((item) => item.id_restaurante), cliente?.id_cliente);
+        const metricas = await obterMetricas(restaurantesComGeolocalizacao.map((item) => item.id_restaurante), cliente?.id_cliente, Boolean(categoria || ordenacao));
         const resposta = restaurantesComGeolocalizacao.map((item) => {
             const latitudeRestaurante = numeroValido(item.latitude);
             const longitudeRestaurante = numeroValido(item.longitude);
             const distanciaKm = podeCalcularDistancia && (0, geolocalizacao_1.coordenadaValida)(latitudeRestaurante, longitudeRestaurante)
-                ? Number(calcularDistanciaKm(latitudeCliente, longitudeCliente, latitudeRestaurante, longitudeRestaurante).toFixed(1))
+                ? calcularDistanciaKm(latitudeCliente, longitudeCliente, latitudeRestaurante, longitudeRestaurante)
                 : null;
             const resumo = resumoCardapio.get(item.id_restaurante) ?? {};
             const { configuracao_operacao, ...restaurantePublico } = item;
@@ -411,6 +457,9 @@ exports.restaurantsRouter.get("/", async (req, res) => {
             if (!podeCalcularDistancia || !Number.isFinite(raioKm) || raioKm <= 0) return true;
             return item.distancia_km !== null && item.distancia_km <= raioKm;
         }).sort((a, b) => {
+            if (ordenacao === "avaliacao") return Number(b.avaliacao_media ?? 0) - Number(a.avaliacao_media ?? 0) || b.total_avaliacoes - a.total_avaliacoes || String(a.nome).localeCompare(String(b.nome), "pt-BR");
+            if (ordenacao === "curtidos") return b.total_favoritos - a.total_favoritos || String(a.nome).localeCompare(String(b.nome), "pt-BR");
+            if (ordenacao === "nome") return String(a.nome).localeCompare(String(b.nome), "pt-BR");
             if (!podeCalcularDistancia) return 0;
             if (a.distancia_km === null && b.distancia_km === null) return 0;
             if (a.distancia_km === null) return 1;
@@ -422,6 +471,22 @@ exports.restaurantsRouter.get("/", async (req, res) => {
     catch (error) {
         return res.status(400).json({
             error: error instanceof Error ? error.message : "Não foi possível listar restaurantes.",
+        });
+    }
+});
+exports.restaurantsRouter.get("/categorias", async (_req, res) => {
+    try {
+        const { data, error } = await obterClienteLeituraPublica().rpc("listar_categorias_restaurantes");
+        if (error) return res.status(503).json({
+            error: "Não foi possível carregar as categorias. Tente novamente.",
+            code: error.code === "PGRST202" ? "CATEGORIAS_MIGRATION_PENDENTE" : "CATEGORIAS_CONSULTA_FALHOU",
+        });
+        return res.json(data ?? []);
+    }
+    catch {
+        return res.status(503).json({
+            error: "Não foi possível carregar as categorias. Tente novamente.",
+            code: "CATEGORIAS_CONSULTA_FALHOU",
         });
     }
 });

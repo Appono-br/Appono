@@ -114,7 +114,7 @@ export default function DetalhePedidoPorId({ params }) {
         setErro("");
         try {
             await apiRequest(`/pedidos/${id}/ocultar`, { method: "PATCH" });
-            router.replace("/cliente/detalhes-pedido");
+            router.replace("/cliente/agenda?visao=pedidos");
         } catch (error) {
             setErro(error instanceof Error ? error.message : "Não foi possível remover o pedido da lista.");
         } finally {
@@ -150,7 +150,7 @@ export default function DetalhePedidoPorId({ params }) {
                     <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{ui("Pedido")}</p>
                     <h1 className="mt-3 text-2xl font-semibold">{ui("Pedido indisponível")}</h1>
                     <p className="mt-3 text-sm leading-6 text-app-cinza">{ui(erro)}</p>
-                    <Link className="mt-6 inline-flex h-11 items-center justify-center rounded-[8px] bg-app-cafe-profundo px-6 text-xs font-bold uppercase tracking-[0.12em] text-app-creme-leve" href="/cliente/detalhes-pedido">{ui("Voltar aos pedidos")}</Link>
+                    <Link className="mt-6 inline-flex h-11 items-center justify-center rounded-[8px] bg-app-cafe-profundo px-6 text-xs font-bold uppercase tracking-[0.12em] text-app-creme-leve" href="/cliente/agenda?visao=pedidos">{ui("Voltar para agenda")}</Link>
                 </section>
             </main>
         );
@@ -162,7 +162,7 @@ export default function DetalhePedidoPorId({ params }) {
     return (
         <main className="min-h-screen bg-white px-5 py-10 text-app-cafe-profundo">
             <section className="mx-auto max-w-6xl">
-                <Link href="/cliente/detalhes-pedido" className="text-sm font-bold text-app-caramelo-torrado">{ui("← Todos os pedidos")}</Link>
+                <Link href="/cliente/agenda?visao=pedidos" className="text-sm font-bold text-app-caramelo-torrado">{ui("← Voltar para agenda")}</Link>
 
                 {erro ? <p role="alert" className="mt-5 rounded-[10px] bg-red-50 p-4 text-sm font-semibold text-red-800 ring-1 ring-red-200">{ui(erro)}</p> : null}
 

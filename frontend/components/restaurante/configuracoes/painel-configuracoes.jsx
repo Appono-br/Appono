@@ -20,6 +20,7 @@ import Operacao from "./operacao";
 import DadosBancarios from "./dados-bancarios";
 import { CATEGORIAS_CULINARIAS } from "@/lib/categorias-culinarias";
 import { RestaurantIcon } from "@/components/restaurante/restaurant-icon";
+import { PainelSuporte } from "@/components/suporte/painel-suporte";
 
 const paineis = { endereco: Endereco, notificacoes: Notificacoes, seguranca: Seguranca, "mercado-pago": MercadoPago, operacao: Operacao, "dados-bancarios": DadosBancarios };
 const initialForm = {
@@ -217,6 +218,9 @@ export default function RestaurantSettings({ painelInicial = "conta" }) {
               <button type="button" onClick={() => setPainelAtivo("aparencia")} aria-current={painelAtivo === "aparencia" ? "page" : undefined} className={`flex w-full items-center gap-3 rounded-[8px] px-5 py-4 text-left text-sm font-semibold transition ${painelAtivo === "aparencia" ? "bg-app-botao-aba-ativa text-app-botao-aba-ativa-texto" : "text-app-mocha hover:bg-app-creme-leve"}`}>
                 <Icon type="appearance" />{ui("Aparência")}
               </button>
+              <button type="button" onClick={() => setPainelAtivo("suporte")} aria-current={painelAtivo === "suporte" ? "page" : undefined} className={`flex w-full items-center gap-3 rounded-[8px] px-5 py-4 text-left text-sm font-semibold transition ${painelAtivo === "suporte" ? "bg-app-botao-aba-ativa text-app-botao-aba-ativa-texto" : "text-app-mocha hover:bg-app-creme-leve"}`}>
+                <Icon type="support" />{ui("Suporte")}
+              </button>
               <button type="button" onClick={() => setConfirmandoSaida(true)} disabled={saindo} aria-busy={saindo} className="mt-3 flex w-full items-center gap-3 rounded-[8px] px-5 py-4 text-left text-sm font-bold text-app-vermelho-erro transition hover:bg-app-creme-suave">
                 <Icon type="log-out" />{ui("Sair da conta")}
               </button>
@@ -226,6 +230,8 @@ export default function RestaurantSettings({ painelInicial = "conta" }) {
           <section className="min-w-0 rounded-[8px] bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada/45 sm:p-8">
           {PainelAtivo ? <PainelAtivo onVoltar={() => setPainelAtivo("conta")} /> : painelAtivo === "aparencia" ? (
             <div><h2 className="text-3xl font-medium text-app-cafe-profundo">{ui("Aparência")}</h2><BotaoIdioma embutido /></div>
+          ) : painelAtivo === "suporte" ? (
+            <PainelSuporte perfil="restaurante" embutido />
           ) : (
           <form onSubmit={submitForm}>
             <div className="flex flex-col gap-6 border-b border-app-baunilha-dourada/60 pb-7 sm:flex-row sm:items-start sm:justify-between">

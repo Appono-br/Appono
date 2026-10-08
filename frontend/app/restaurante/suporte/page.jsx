@@ -1,5 +1,5 @@
-import { PainelSuporte } from "@/components/suporte/painel-suporte";
+import { redirect } from "next/navigation";
 
 export default function SuporteRestaurantePage() {
-    return <PainelSuporte perfil="restaurante" />;
+    redirect("/restaurante/configuracoes/suporte");
 }

@@ -15,7 +15,6 @@ import {
   ChefHat,
   History,
   MessageSquare,
-  Headphones,
   Settings,
   LogOut,
   X,
@@ -39,7 +38,6 @@ const itens = [
   ["Cozinha", "pedidos", ChefHat],
   ["Histórico", "historico-pedidos", History],
   ["Mensagens", "mensagens", MessageSquare],
-  ["Suporte", "suporte", Headphones],
   ["Configurações", "configuracoes", Settings],
 ];
 

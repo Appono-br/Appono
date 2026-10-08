@@ -1,0 +1,714 @@
+"use client";
+import { useInterface } from "@/lib/use-interface";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+import { CalendarDays, ClipboardList } from "lucide-react";
+import { apiRequest } from "@/lib/api";
+import { reservaAceitaPagamento } from "@/lib/elegibilidade-pagamento";
+import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
+import { PedidosAgenda } from "@/components/cliente/pedidos-agenda";
+const weekDays = ["Domingo", "Segunda-feira", "Terca-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sabado"];
+const monthNames = [
+    "Janeiro",
+    "Fevereiro",
+    "Março",
+    "Abril",
+    "Maio",
+    "Junho",
+    "Julho",
+    "Agosto",
+    "Setembro",
+    "Outubro",
+    "Novembro",
+    "Dezembro",
+];
+function Icon({ type, className = "h-5 w-5", }) {
+    const paths = {
+        bag: "M6 7h12l-1 14H7L6 7z M9 7a3 3 0 0 1 6 0",
+        bell: "M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0",
+        "chevron-left": "m15 18-6-6 6-6",
+        "chevron-right": "m9 18 6-6-6-6",
+        clock: "M12 7v5l3 2M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z",
+        people: "M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2M9.5 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z M22 21v-2a4 4 0 0 0-3-3.9",
+        menu: "M4 7h16M4 12h16M4 17h16",
+        message: "M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4v8z",
+        plus: "M12 5v14M5 12h14",
+        wallet: "M4 7h16v12H4V7z M4 7l12-3v3M15 12h5",
+    };
+    return (<svg aria-hidden="true" viewBox="0 0 24 24" className={className}>
+      <path d={paths[type]} fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8"/>
+    </svg>);
+}
+function formatarDataReserva(data, localeUI = "pt-BR") {
+    const dataLocal = new Date(`${data}T12:00:00`);
+    return {
+        dia: String(dataLocal.getDate()).padStart(2, "0"),
+        mes: dataLocal.toLocaleDateString(localeUI, { month: "short" }).replace(".", ""),
+        semana: dataLocal.toLocaleDateString(localeUI, { weekday: "short" }).replace(".", ""),
+    };
+}
+function formatarHorario(horario) {
+    return horario.slice(0, 5);
+}
+function obterStatusReserva(status) {
+    if (status === "PENDENTE") {
+        return { texto: "Pendente", classe: "bg-app-cafe-profundo text-app-creme-leve" };
+    }
+    if (status === "CONFIRMADA") {
+        return { texto: "Confirmada", classe: "bg-app-baunilha-dourada text-app-cafe-profundo" };
+    }
+    if (status === "CHECK_IN") {
+        return { texto: "Check-in realizado", classe: "bg-app-cafe-profundo text-app-creme-leve" };
+    }
+    if (status === "CONCLUIDA") {
+        return { texto: "Atendimento finalizado", classe: "bg-white text-app-mocha" };
+    }
+    if (status === "CANCELADA") {
+        return { texto: "Cancelada", classe: "bg-app-vermelho-erro/10 text-app-vermelho-erro" };
+    }
+    if (status === "NAO_COMPARECEU") {
+        return { texto: "Não compareceu", classe: "bg-app-vermelho-erro/10 text-app-vermelho-erro" };
+    }
+    return { texto: status.toLowerCase(), classe: "bg-white text-app-mocha" };
+}
+function obterStatusPedido(status) {
+    const statusMap = {
+        PENDENTE: "Aguardando pagamento",
+        CONFIRMADO: "Pedido confirmado",
+        EM_PREPARO: "Em preparo",
+        PRONTO: "Pronto para retirada",
+        ENTREGUE: "Entregue",
+        CANCELADO: "Pedido cancelado",
+    };
+    return statusMap[status] ?? status;
+}
+function formatarMoeda(valor, localeUI = "pt-BR") {
+    return new Intl.NumberFormat(localeUI, {
+        style: "currency",
+        currency: "BRL",
+    }).format(Number(valor ?? 0));
+}
+function calcularSubtotalItem(item) {
+    return Number(item.subtotal ?? 0) || Number(item.preco_unitario ?? 0) * Number(item.quantidade ?? 0);
+}
+function reservaJaIniciou(reservation) {
+    return new Date(`${reservation.date}T${reservation.time}`) <= new Date();
+}
+function podeExcluirReservaDaLista(reservation) {
+    return reservaJaIniciou(reservation) ||
+        ["CANCELADA", "RECUSADA", "CONCLUIDA", "NAO_COMPARECEU"].includes(reservation.status);
+}
+function obterPrazoConfirmacaoPresenca(reservation) {
+    return new Date(new Date(`${reservation.date}T${reservation.time}`).getTime() - 60 * 60 * 1000);
+}
+function podeResponderPresenca(reservation) {
+    return reservation.status === "CONFIRMADA" &&
+        reservation.attendanceStatus !== "RECUSADA" &&
+        new Date() <= obterPrazoConfirmacaoPresenca(reservation);
+}
+function formatarPrazoPresenca(reservation, localeUI = "pt-BR") {
+    const prazo = reservation.attendanceDeadline
+        ? new Date(reservation.attendanceDeadline)
+        : obterPrazoConfirmacaoPresenca(reservation);
+    return prazo.toLocaleTimeString(localeUI, {
+        hour: "2-digit",
+        minute: "2-digit",
+    });
+}
+function obterTextoConfirmacaoPresenca(status) {
+    const statusMap = {
+        PENDENTE: "Aguardando confirmação",
+        CONFIRMADA: "Presença confirmada",
+        RECUSADA: "Ausência avisada",
+        EXPIRADA: "Prazo encerrado",
+    };
+    return statusMap[status] ?? "Aguardando confirmação";
+}
+function obterDescricaoFluxoReserva(reservation, localeUI = "pt-BR") {
+    if (reservation.attendanceStatus === "CONFIRMADA" && reservation.status === "CONFIRMADA") {
+        return "Presença confirmada. O restaurante pode organizar sua experiência com mais segurança.";
+    }
+    if (reservation.attendanceStatus === "RECUSADA") {
+        return "Você informou que não irá comparecer. A reserva e pedidos vinculados foram cancelados.";
+    }
+    if (reservation.status === "CHECK_IN") {
+        return "Check-in registrado pelo restaurante. Sua experiência está em atendimento.";
+    }
+    if (reservation.status === "CONCLUIDA") {
+        return "Atendimento finalizado. Esta reserva permanece disponível no histórico.";
+    }
+    if (reservation.status === "NAO_COMPARECEU") {
+        return "O horário da reserva terminou sem check-in. A reserva e pedidos pendentes foram encerrados.";
+    }
+    if (reservaJaIniciou(reservation)) {
+        return "Esta reserva já passou do horário de início. O pedido antecipado não pode mais ser adicionado.";
+    }
+    if (reservation.activeOrder?.status === "PENDENTE") {
+        return "Reserva confirmada. O pedido antecipado ainda aguarda pagamento para ser enviado a cozinha.";
+    }
+    if (reservation.activeOrder) {
+        return "Reserva com pedido antecipado vinculado. Acompanhe o status do preparo pelos detalhes do pedido.";
+    }
+    if (reservation.status === "CONFIRMADA") {
+        return podeResponderPresenca(reservation)
+            ? `Confirme sua presença até ${formatarPrazoPresenca(reservation, localeUI)} para manter o restaurante alinhado.`
+            : "Reserva confirmada. O prazo de confirmação de presença encerra 1 hora antes do horário.";
+    }
+    return "Acompanhe aqui o status da sua reserva.";
+}
+function getCalendarDays(month, year) {
+    const firstDay = new Date(year, month, 1);
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const previousMonthDays = new Date(year, month, 0).getDate();
+    const leadingDays = firstDay.getDay();
+    const days = [];
+    for (let index = leadingDays - 1; index >= 0; index -= 1) {
+        const day = previousMonthDays - index;
+        const date = new Date(year, month - 1, day);
+        days.push({
+            day,
+            currentMonth: false,
+            date: date.toISOString().slice(0, 10),
+        });
+    }
+    for (let day = 1; day <= daysInMonth; day += 1) {
+        const date = new Date(year, month, day);
+        days.push({
+            day,
+            currentMonth: true,
+            date: date.toISOString().slice(0, 10),
+        });
+    }
+    while (days.length % 7 !== 0) {
+        const day = days.length - leadingDays - daysInMonth + 1;
+        const date = new Date(year, month + 1, day);
+        days.push({
+            day,
+            currentMonth: false,
+            date: date.toISOString().slice(0, 10),
+        });
+    }
+    return days;
+}
+function EmptyReservationPanel() {
+    const { ui } = useInterface();
+    return (<section className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-app-caramelo-torrado/35 bg-white px-5 py-8 text-center">
+      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-app-baunilha-dourada text-app-cafe-profundo">
+        <Icon type="plus" className="h-6 w-6"/>
+      </div>
+      <h2 className="mt-4 text-xl font-semibold text-app-cafe-profundo">{ui("Planeje sua próxima visita")}</h2>
+      <p className="mt-2 max-w-lg text-sm leading-6 text-app-cinza">{ui("Você ainda não possui reservas na sua agenda.")}</p>
+      <Link href="/cliente/dashboard" className="mt-5 rounded-[8px] bg-app-dourado-mel px-6 py-3 text-xs font-bold uppercase tracking-wide text-white transition hover:bg-app-caramelo-torrado">{ui("Reservar agora")}</Link>
+    </section>);
+}
+export function AgendaCliente() {
+    const { ui , localeUI } = useInterface();
+    const searchParams = useSearchParams();
+    const visao = searchParams.get("visao") === "pedidos" ? "pedidos" : "reservas";
+    const today = new Date();
+    const [reservations, setReservations] = useState([]);
+    const [carregandoReservas, setCarregandoReservas] = useState(true);
+    const [erroReservas, setErroReservas] = useState("");
+    const [atualizacaoPedidos, setAtualizacaoPedidos] = useState(0);
+    const [reservaParaCancelar, setReservaParaCancelar] = useState(null);
+    const [reservaParaConfirmarPresenca, setReservaParaConfirmarPresenca] = useState(null);
+    const [reservaParaExcluir, setReservaParaExcluir] = useState(null);
+    const [cancelandoReserva, setCancelandoReserva] = useState(false);
+    const [processandoPresenca, setProcessandoPresenca] = useState(false);
+    const [agendaGoogleBusyId, setAgendaGoogleBusyId] = useState(null);
+    const [abrindoChatReservaId, setAbrindoChatReservaId] = useState(null);
+    const [mensagemPresenca, setMensagemPresenca] = useState("");
+    const [period, setPeriod] = useState({
+        month: today.getMonth(),
+        year: today.getFullYear(),
+    });
+    const [selectedDate, setSelectedDate] = useState(today.toISOString().slice(0, 10));
+    const calendarDays = useMemo(() => getCalendarDays(period.month, period.year), [period.month, period.year]);
+    const reservationDates = useMemo(() => new Set(reservations
+        .filter((reservation) => ["CONFIRMADA", "CHECK_IN"].includes(reservation.status))
+        .map((reservation) => reservation.date)), [reservations]);
+    const reservasConfirmadas = useMemo(() => reservations.filter((reservation) =>
+        ["CONFIRMADA", "CHECK_IN"].includes(reservation.status) &&
+        reservation.date.startsWith(`${period.year}-${String(period.month + 1).padStart(2, "0")}`)), [reservations, period.month, period.year]);
+    useEffect(() => {
+        const controller = new AbortController();
+        async function loadReservations() {
+            try {
+                const data = await apiRequest("/reservas", { signal: controller.signal, forceRefresh: true });
+                if (controller.signal.aborted) return;
+                setReservations(data.map((reservation) => {
+                    const activeOrder = reservation.pedidos?.find((order) => ["PENDENTE", "CONFIRMADO", "EM_PREPARO", "PRONTO"].includes(order.status_pedido));
+                    const canceledOrder = reservation.pedidos?.find((order) => order.status_pedido === "CANCELADO");
+                    return {
+                        id: String(reservation.id_reserva),
+                        restaurantId: reservation.id_restaurante,
+                        date: reservation.data_reserva,
+                        time: reservation.horario_inicio,
+                        status: reservation.status_reserva,
+                        attendanceStatus: reservation.status_confirmacao_presenca ?? "PENDENTE",
+                        attendanceConfirmedAt: reservation.confirmacao_presenca_em,
+                        attendanceDeadline: reservation.prazo_confirmacao_presenca,
+                        attendanceRefundValue: Number(reservation.valor_reembolso_ausencia ?? 0),
+                        attendanceRetainedValue: Number(reservation.valor_retido_ausencia ?? 0),
+                        attendanceCommissionPercent: Number(reservation.percentual_comissao_ausencia ?? 13),
+                        restaurant: reservation.restaurantes?.nome ?? "Restaurante",
+                        people: reservation.quantidade_pessoas,
+                        minimumTotal: reservation.valor_minimo_total,
+                        activeOrder: activeOrder
+                            ? {
+                                id: activeOrder.id_pedido,
+                                status: activeOrder.status_pedido,
+                                total: Number(activeOrder.valor_total),
+                                itens: activeOrder.itens_pedido ?? [],
+                            }
+                            : undefined,
+                        canceledOrder: canceledOrder
+                            ? {
+                                id: canceledOrder.id_pedido,
+                                total: Number(canceledOrder.valor_total),
+                            }
+                            : undefined,
+                        agendaGoogle: reservation.agenda_google ?? null,
+                    };
+                }));
+            }
+            catch (error) {
+                if (!controller.signal.aborted) {
+                    setErroReservas(error instanceof Error ? error.message : "Não foi possível carregar as reservas.");
+                }
+            }
+            finally {
+                if (!controller.signal.aborted) setCarregandoReservas(false);
+            }
+        }
+        loadReservations();
+        return () => controller.abort();
+    }, []);
+    function changeMonth(direction) {
+        setPeriod((current) => {
+            const date = new Date(current.year, current.month + direction, 1);
+            return { month: date.getMonth(), year: date.getFullYear() };
+        });
+    }
+    function selecionarDia(date) {
+        setSelectedDate(date);
+        const instante = new Date(`${date}T12:00:00`);
+        setPeriod({ month: instante.getMonth(), year: instante.getFullYear() });
+    }
+    async function cancelarReserva(id) {
+        setCancelandoReserva(true);
+        try {
+            const atualizada = await apiRequest(`/reservas/${id}/cancelar`, { method: "PATCH" });
+            aplicarReservaAtualizada(atualizada);
+            try {
+                const agendaCancelada = await apiRequest(`/rotina/agenda/google/reservas/${id}`, { method: "DELETE" });
+                setReservations((atuais) => atuais.map((reserva) => reserva.id === id
+                    ? { ...reserva, agendaGoogle: agendaCancelada.agenda_google ?? { ...(reserva.agendaGoogle ?? {}), status: "REMOVIDO" } }
+                    : reserva));
+            }
+            catch {
+                setMensagemPresenca("A reserva foi cancelada, mas não foi possível remover o evento do Google Calendar. Tente novamente.");
+            }
+            setReservaParaCancelar(null);
+        }
+        catch {
+            return;
+        }
+        finally {
+            setCancelandoReserva(false);
+        }
+    }
+    async function sincronizarAgendaGoogle(reservation) {
+        setAgendaGoogleBusyId(reservation.id);
+        setMensagemPresenca("");
+        const sincronizado = reservation.agendaGoogle?.status === "SINCRONIZADO";
+        try {
+            const resposta = await apiRequest(`/rotina/agenda/google/reservas/${reservation.id}${sincronizado ? "" : "/exportar"}`, {
+                method: sincronizado ? "PATCH" : "POST",
+            });
+            setReservations((atuais) => atuais.map((atual) => atual.id === reservation.id
+                ? { ...atual, agendaGoogle: resposta.agenda_google ?? { status: "SINCRONIZADO" } }
+                : atual));
+            setMensagemPresenca(sincronizado ? "Reserva atualizada no Google Calendar." : "Reserva adicionada ao Google Calendar.");
+        }
+        catch (error) {
+            setMensagemPresenca(error instanceof Error ? error.message : "Não foi possível sincronizar com o Google Calendar.");
+        }
+        finally {
+            setAgendaGoogleBusyId(null);
+        }
+    }
+    async function removerAgendaGoogle(reservation) {
+        setAgendaGoogleBusyId(reservation.id);
+        setMensagemPresenca("");
+        try {
+            const resposta = await apiRequest(`/rotina/agenda/google/reservas/${reservation.id}`, { method: "DELETE" });
+            setReservations((atuais) => atuais.map((atual) => atual.id === reservation.id
+                ? { ...atual, agendaGoogle: resposta.agenda_google ?? { status: "REMOVIDO" } }
+                : atual));
+            setMensagemPresenca("Evento removido do Google Calendar.");
+        }
+        catch (error) {
+            setMensagemPresenca(error instanceof Error ? error.message : "Não foi possível remover o evento do Google Calendar.");
+        }
+        finally {
+            setAgendaGoogleBusyId(null);
+        }
+    }
+    async function excluirReservaDaLista(id) {
+        try {
+            await apiRequest(`/reservas/${id}/ocultar`, { method: "PATCH" });
+            setReservations((atuais) => atuais.filter((reserva) => reserva.id !== id));
+        }
+        catch {
+            return;
+        }
+    }
+    function aplicarReservaAtualizada(reservaAtualizada) {
+        setAtualizacaoPedidos((atual) => atual + 1);
+        setReservations((atuais) => atuais.map((reserva) => reserva.id === String(reservaAtualizada.id_reserva)
+            ? {
+                ...reserva,
+                status: reservaAtualizada.status_reserva,
+                attendanceStatus: reservaAtualizada.status_confirmacao_presenca ?? reserva.attendanceStatus,
+                attendanceConfirmedAt: reservaAtualizada.confirmacao_presenca_em,
+                attendanceDeadline: reservaAtualizada.prazo_confirmacao_presenca,
+                attendanceRefundValue: Number(reservaAtualizada.valor_reembolso_ausencia ?? 0),
+                attendanceRetainedValue: Number(reservaAtualizada.valor_retido_ausencia ?? reserva.attendanceRetainedValue ?? 0),
+                attendanceCommissionPercent: Number(reservaAtualizada.percentual_comissao_ausencia ?? reserva.attendanceCommissionPercent ?? 13),
+                activeOrder: reservaAtualizada.status_reserva === "CANCELADA" ? undefined : reserva.activeOrder,
+                canceledOrder: reservaAtualizada.status_reserva === "CANCELADA" && reserva.activeOrder
+                    ? { id: reserva.activeOrder.id, total: reserva.activeOrder.total }
+                    : reserva.canceledOrder,
+            }
+            : reserva));
+    }
+    async function confirmarPresenca(id) {
+        setProcessandoPresenca(true);
+        setMensagemPresenca("");
+        try {
+            const resposta = await apiRequest(`/reservas/${id}/presenca`, {
+                method: "PATCH",
+                body: JSON.stringify({ acao: "CONFIRMAR" }),
+            });
+            aplicarReservaAtualizada(resposta.reserva);
+            setReservaParaConfirmarPresenca(null);
+            setMensagemPresenca("Presença confirmada com sucesso.");
+        }
+        catch (error) {
+            setMensagemPresenca(error instanceof Error ? error.message : "Não foi possível confirmar presença.");
+        }
+        finally {
+            setProcessandoPresenca(false);
+        }
+    }
+    async function confirmarExclusaoReserva() {
+        if (!reservaParaExcluir) return;
+        setCancelandoReserva(true);
+        try {
+            await excluirReservaDaLista(reservaParaExcluir.id);
+            setReservaParaExcluir(null);
+        } finally {
+            setCancelandoReserva(false);
+        }
+    }
+    async function abrirChatReserva(reservation) {
+        setAbrindoChatReservaId(reservation.id);
+        setMensagemPresenca("");
+        try {
+            const conversa = await apiRequest("/mensagens/conversas", {
+                method: "POST",
+                body: JSON.stringify({
+                    id_reserva: Number(reservation.id),
+                    id_pedido: reservation.activeOrder?.id ? Number(reservation.activeOrder.id) : undefined,
+                    assunto: reservation.activeOrder?.id ? `Pedido #${reservation.activeOrder.id}` : `Reserva #${reservation.id}`,
+                }),
+            });
+            window.location.assign(`/cliente/mensagens/${conversa.id_conversa}`);
+        }
+        catch (error) {
+            setMensagemPresenca(error instanceof Error ? error.message : "Não foi possível iniciar o chat.");
+        }
+        finally {
+            setAbrindoChatReservaId(null);
+        }
+    }
+    return (<main className="agenda-cliente bg-white text-app-cafe-profundo">
+      <section className="mx-auto w-full max-w-7xl px-5 py-6 sm:py-8">
+        <header>
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{ui("Reservas e pedidos")}</p>
+            <h1 className="mt-2 text-3xl font-semibold tracking-tight text-app-cafe-profundo sm:text-4xl">{ui("Minha agenda")}</h1>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-app-mocha">{ui("Gerencie suas reservas, acompanhe os pedidos e acesse pagamentos em um só lugar.")}</p>
+        </header>
+
+        <div className="mt-6 grid items-start gap-5 md:grid-cols-[280px_minmax(0,1fr)] lg:grid-cols-[300px_minmax(0,1fr)]">
+          <aside className="agenda-calendar min-w-0 rounded-2xl border border-app-baunilha-dourada/60 bg-white p-5 md:sticky md:top-24">
+            <h2 className="flex items-center gap-2 text-base font-semibold text-app-cafe-profundo">
+              <CalendarDays aria-hidden="true" className="h-5 w-5 text-app-caramelo-torrado" />
+              {ui("Calendário da agenda")}
+            </h2>
+            <div className="mt-3 flex items-center justify-between gap-2 text-app-cafe-profundo">
+              <button type="button" onClick={() => changeMonth(-1)} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full outline-none transition hover:bg-app-chantilly hover:text-app-caramelo-torrado focus-visible:ring-2 focus-visible:ring-app-caramelo-torrado" aria-label={ui("Período anterior")}>
+                <Icon type="chevron-left"/>
+              </button>
+              <p aria-live="polite" className="min-w-0 flex-1 text-center text-sm font-semibold">{ui(monthNames[period.month])} {period.year}</p>
+              <button type="button" onClick={() => changeMonth(1)} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full outline-none transition hover:bg-app-chantilly hover:text-app-caramelo-torrado focus-visible:ring-2 focus-visible:ring-app-caramelo-torrado" aria-label={ui("Próximo período")}>
+                <Icon type="chevron-right"/>
+              </button>
+            </div>
+            <div className="mt-3 grid grid-cols-7 gap-x-0.5 gap-y-1 text-center text-xs text-app-cinza">
+              {weekDays.map((day, index) => (<span key={`${day}-${index}`} className="font-medium">
+                  {ui(day).slice(0, 3)}
+                </span>))}
+              {calendarDays.map((day) => {
+            const hasReservation = reservationDates.has(day.date);
+            const isToday = day.date === new Date().toISOString().slice(0, 10);
+            const isSelected = day.date === selectedDate;
+            return (<button type="button" key={day.date} onClick={() => selecionarDia(day.date)} aria-pressed={isSelected} className={`relative flex h-10 items-center justify-center rounded-[10px] text-[13px] transition hover:bg-app-creme-suave ${day.currentMonth ? "text-app-cafe-profundo" : "agenda-calendar-adjacent-day text-[#b9b1ac]"}`}>
+                    <span className={`flex h-8 w-8 items-center justify-center rounded-full ${isSelected ? "bg-app-cafe-profundo font-semibold text-app-creme-leve" : isToday ? "agenda-calendar-today bg-[#1a73e8] font-semibold text-white" : hasReservation ? "agenda-calendar-reservation-day bg-[#f1e7dc] font-semibold text-[#a45d35]" : ""}`}>
+                      {day.day}
+                    </span>
+                    {hasReservation && !isToday ? <span className="agenda-calendar-reservation-marker absolute bottom-0.5 h-1 w-1 rounded-full bg-[#a45d35]" aria-label={ui("Há uma reserva neste dia")}/> : null}
+                  </button>);
+        })}
+            </div>
+
+            <p className="mt-4 border-t border-app-baunilha-dourada/50 pt-4 text-xs leading-5 text-app-mocha">{ui("Você possui")}{ui(" ")}
+              <span className="font-bold text-app-caramelo-torrado">
+                {reservasConfirmadas.length}
+              </span>{ui(" ")}{ui("reservas confirmadas neste período.")}</p>
+          </aside>
+
+          <div className="contents min-w-0 content-start gap-4 md:grid">
+            <nav aria-label={ui("Filtrar agenda")} className="order-first grid grid-cols-2 gap-1 rounded-2xl border border-app-baunilha-dourada/50 bg-white p-1 md:order-none">
+              {[["reservas", "Reservas", CalendarDays], ["pedidos", "Pedidos", ClipboardList]].map(([valor, rotulo, TabIcon]) => (
+                <Link key={valor} href={`/cliente/agenda?visao=${valor}`} replace scroll={false} aria-current={visao === valor ? "page" : undefined} className={`flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold outline-none transition focus-visible:ring-2 focus-visible:ring-app-caramelo-torrado ${visao === valor ? "bg-app-cafe-profundo text-app-creme-leve" : "text-app-mocha hover:bg-app-chantilly"}`}>
+                  <TabIcon aria-hidden="true" className="h-4 w-4 shrink-0" />
+                  {ui(rotulo)}
+                </Link>
+              ))}
+            </nav>
+            {mensagemPresenca ? (
+              <p role="status" className="rounded-[10px] bg-white px-4 py-3 text-sm font-semibold text-app-cafe-profundo ring-1 ring-app-baunilha-dourada">
+                {ui(mensagemPresenca)}
+              </p>
+            ) : null}
+            <section aria-labelledby="agenda-reservas-titulo" className={visao === "pedidos" ? "hidden" : "grid min-w-0 content-start gap-4"}>
+              <h2 id="agenda-reservas-titulo" className="sr-only">{ui("Reservas")}</h2>
+              {erroReservas ? <p role="alert" className="rounded-[12px] border border-app-vermelho-erro/30 bg-white p-4 text-sm font-semibold text-app-vermelho-erro">{ui(erroReservas)}</p> : null}
+              {carregandoReservas ? <div aria-busy="true" className="grid gap-4">{[1, 2].map((item) => <div key={item} className="h-48 animate-pulse rounded-[18px] bg-app-chantilly ring-1 ring-app-baunilha-dourada/60" />)}</div> : !erroReservas && (reservations.length ? (<div className="grid auto-rows-max content-start gap-4">
+                {reservations.map((reservation) => (<article key={reservation.id} className="overflow-hidden rounded-2xl border border-app-baunilha-dourada/60 bg-white transition hover:border-app-caramelo-torrado/50">
+                    <div className="grid lg:grid-cols-[72px_minmax(0,1fr)]">
+                      <div className="flex items-center gap-3 border-b border-app-baunilha-dourada/50 bg-white px-4 py-3 lg:flex-col lg:justify-start lg:border-b-0 lg:border-r lg:py-5 lg:text-center">
+                        <span className="text-3xl font-semibold leading-none text-app-cafe-profundo">
+                          {formatarDataReserva(reservation.date, localeUI).dia}
+                        </span>
+                        <div>
+                          <p className="text-xs font-bold uppercase text-app-caramelo-torrado">
+                            {formatarDataReserva(reservation.date, localeUI).mes}
+                          </p>
+                          <p className="mt-0.5 text-xs capitalize text-app-cinza">
+                            {formatarDataReserva(reservation.date, localeUI).semana}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="min-w-0 bg-white p-4 lg:p-5">
+                        <div className="flex flex-wrap items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <h3 className="break-words text-lg font-semibold text-app-cafe-profundo">
+                              {reservation.restaurant}
+                            </h3>
+                            <p className="mt-1 max-w-2xl text-xs leading-5 text-app-cinza">
+                              {ui(obterDescricaoFluxoReserva(reservation, localeUI))}
+                            </p>
+                          </div>
+                          <span className={`w-fit shrink-0 rounded-full px-3 py-1 text-xs font-bold ${obterStatusReserva(reservation.status).classe}`}>
+                            {ui(obterStatusReserva(reservation.status).texto)}
+                          </span>
+                        </div>
+                        <div className="mt-4 flex flex-wrap gap-x-5 gap-y-3 text-sm text-app-mocha">
+                          <span className="flex items-center gap-2">
+                            <Icon type="clock" className="h-4 w-4 text-app-caramelo-torrado"/>
+                            {formatarHorario(reservation.time)}
+                          </span>
+                          <span className="flex items-center gap-2">
+                            <Icon type="people" className="h-4 w-4 text-app-caramelo-torrado"/>
+                            {reservation.people} {ui(reservation.people === 1 ? "pessoa" : "pessoas")}
+                          </span>
+                          <span className="flex items-center gap-2">
+                            <Icon type="wallet" className="h-4 w-4 text-app-caramelo-torrado"/>{ui("Preço da reserva")}{ui(" ")}
+                            {formatarMoeda(reservation.minimumTotal, localeUI)}
+                          </span>
+                        </div>
+                        {["CONFIRMADA", "CANCELADA"].includes(reservation.status) ? (<div className="mt-5 rounded-[12px] border border-app-baunilha-dourada/60 bg-white px-4 py-3 text-sm">
+                            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                              <div>
+                                <p className="text-xs font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">{ui("Confirmação de presença")}</p>
+                                <p className="mt-1 text-app-mocha">
+                                  {ui(reservation.attendanceStatus === "RECUSADA"
+                                      ? "Você avisou que não irá comparecer. Restaurante e Appono foram notificados."
+                                      : `Prazo: até ${formatarPrazoPresenca(reservation, localeUI)}`)}
+                                </p>
+                              </div>
+                              <span className="w-fit rounded-full bg-app-cafe-profundo px-3 py-1 text-[10px] font-bold uppercase tracking-[0.08em] text-app-creme-leve">
+                                {ui(obterTextoConfirmacaoPresenca(reservation.attendanceStatus))}
+                              </span>
+                            </div>
+                            {reservation.attendanceStatus === "RECUSADA" ? (
+                              <div className="mt-4 grid gap-3 border-t border-app-baunilha-dourada/60 pt-4 text-xs sm:grid-cols-2">
+                                <p className="rounded-[8px] bg-white px-3 py-2 ring-1 ring-app-baunilha-dourada/60">
+                                  <span className="block font-bold uppercase tracking-[0.12em] text-app-cinza">{ui("Retido")}</span>
+                                  <strong className="mt-1 block text-base text-app-cafe-profundo">{formatarMoeda(reservation.attendanceRetainedValue, localeUI)}</strong>
+                                </p>
+                                <p className="rounded-[8px] bg-white px-3 py-2 ring-1 ring-app-baunilha-dourada/60">
+                                  <span className="block font-bold uppercase tracking-[0.12em] text-app-cinza">{ui("Reembolso")}</span>
+                                  <strong className="mt-1 block text-base text-app-cafe-profundo">{formatarMoeda(reservation.attendanceRefundValue, localeUI)}</strong>
+                                </p>
+                              </div>
+                            ) : null}
+                          </div>) : null}
+                        {reservation.activeOrder ? (<div className="mt-4 rounded-[12px] border border-app-caramelo-torrado/25 bg-white px-4 py-3">
+                            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                              <p className="text-xs font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">{ui("Pedido antecipado")}</p>
+                              <span className="w-fit rounded-full bg-app-cafe-profundo px-3 py-1 text-[11px] font-bold text-app-creme-leve">
+                                {ui(obterStatusPedido(reservation.activeOrder.status))}
+                              </span>
+                            </div>
+                            <div className="mt-3 grid gap-2 text-sm text-app-mocha">
+                              {reservation.activeOrder.itens.slice(0, 3).map((item, indice) => (<p key={`${item.produtos?.nome ?? "item"}-${indice}`} className="flex items-center justify-between gap-3">
+                                  <span className="truncate">
+                                    {item.quantidade}{ui("x ")}{item.produtos?.nome ?? ui("Item do cardápio")}
+                                  </span>
+                                  <strong className="shrink-0 text-app-cafe-profundo">
+                                    {formatarMoeda(calcularSubtotalItem(item), localeUI)}
+                                  </strong>
+                                </p>))}
+                              {reservation.activeOrder.itens.length > 3 ? (<p className="text-xs font-semibold text-app-caramelo-torrado">
+                                  + {reservation.activeOrder.itens.length - 3}{ui(" itens no pedido")}</p>) : null}
+                            </div>
+                            <div className="mt-3 flex items-center justify-between border-t border-app-baunilha-dourada/60 pt-3 text-sm">
+                              <span className="font-semibold text-app-mocha">{ui("Total do pedido")}</span>
+                              <strong className="text-app-cafe-profundo">
+                                {formatarMoeda(reservation.activeOrder.total, localeUI)}
+                              </strong>
+                            </div>
+                          </div>) : null}
+                        {(["CONFIRMADA", "CHECK_IN"].includes(reservation.status) || reservation.agendaGoogle) ? (<div className="mt-4 rounded-[12px] border border-app-baunilha-dourada/70 bg-white px-4 py-3">
+                            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                              <div>
+                                <p className="text-xs font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">{ui("Google Calendar")}</p>
+                                <p className="mt-1 text-sm text-app-mocha">
+                                  {ui(reservation.agendaGoogle?.status === "SINCRONIZADO" ? "Evento sincronizado" : reservation.agendaGoogle?.status === "FALHOU" ? "Sincronização pendente" : reservation.agendaGoogle?.status === "REMOVIDO" ? "Evento removido" : "Adicione esta reserva ao seu calendário")}
+                                </p>
+                                {reservation.agendaGoogle?.status === "FALHOU" ? <p className="mt-1 text-xs font-semibold text-app-vermelho-erro">{ui("O Google está indisponível ou precisa ser reconectado.")}</p> : null}
+                              </div>
+                              <div className="flex flex-wrap gap-2">
+                                {reservation.status !== "CANCELADA" && reservation.agendaGoogle?.status !== "REMOVIDO" ? (<button type="button" disabled={agendaGoogleBusyId === reservation.id} onClick={() => sincronizarAgendaGoogle(reservation)} className="rounded-[8px] bg-app-cafe-profundo px-4 py-2 text-xs font-bold text-app-creme-leve transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-60">
+                                  {ui(agendaGoogleBusyId === reservation.id ? "Sincronizando..." : reservation.agendaGoogle?.status === "SINCRONIZADO" ? "Atualizar evento" : "Adicionar ao Google Calendar")}
+                                </button>) : null}
+                                {reservation.agendaGoogle?.status === "SINCRONIZADO" ? <button type="button" disabled={agendaGoogleBusyId === reservation.id} onClick={() => removerAgendaGoogle(reservation)} className="rounded-[8px] border border-app-baunilha-dourada px-4 py-2 text-xs font-bold text-app-mocha transition hover:bg-app-chantilly disabled:cursor-not-allowed disabled:opacity-60">{ui("Remover evento")}</button> : null}
+                                {reservation.agendaGoogle?.status === "FALHOU" ? <Link href="/cliente/rotina/configurar" className="rounded-[8px] border border-app-caramelo-torrado px-4 py-2 text-xs font-bold text-app-caramelo-torrado">{ui("Reconectar")}</Link> : null}
+                              </div>
+                            </div>
+                          </div>) : null}
+                        {!reservation.activeOrder && reservation.canceledOrder ? (<div className="mt-5 rounded-[10px] border border-app-caramelo-torrado/25 bg-white px-4 py-3">
+                            <p className="text-xs font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">{ui("Pedido cancelado")}</p>
+                            <p className="mt-2 text-sm leading-6 text-app-mocha">{ui("O pedido antecipado foi cancelado, mas sua reserva continua ")}{ui(obterStatusReserva(reservation.status).texto.toLowerCase())}.
+                            </p>
+                            <p className="mt-2 text-xs font-semibold text-app-cinza">{ui("Pedido #")}{reservation.canceledOrder.id} - {formatarMoeda(reservation.canceledOrder.total, localeUI)}
+                            </p>
+                          </div>) : null}
+                        <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-app-baunilha-dourada/60 pt-4">
+                          {reservation.status === "PENDENTE" ? <Link href={reservation.activeOrder ? `/cliente/pagamentos/pedido/${reservation.activeOrder.id}` : `/cliente/pagamentos/reserva/${reservation.id}`} className="rounded-[8px] bg-app-dourado-mel px-4 py-2 text-xs font-bold text-white">{ui(reservation.activeOrder ? "Pagar pedido e reserva" : "Pagar reserva")}</Link> : null}
+                        <button type="button" disabled={abrindoChatReservaId === reservation.id} onClick={() => abrirChatReserva(reservation)} className="inline-flex items-center gap-2 rounded-[8px] border border-app-caramelo-torrado px-4 py-2 text-xs font-bold text-app-caramelo-torrado transition hover:bg-app-chantilly disabled:cursor-not-allowed disabled:opacity-60">
+                            <Icon type="message" className="h-4 w-4"/>
+                            {ui(abrindoChatReservaId === reservation.id ? "Abrindo..." : "Falar com restaurante")}
+                          </button>
+                          <Link href={`/cliente/configuracoes?painel=suporte&${reservation.activeOrder?.id ? `pedido=${reservation.activeOrder.id}&motivo=PEDIDO_NAO_PRONTO` : `reserva=${reservation.id}&motivo=MESA_INDISPONIVEL`}`} className="rounded-[8px] border border-app-baunilha-dourada px-4 py-2 text-xs font-bold text-app-mocha transition hover:bg-app-chantilly">
+                            {ui("Abrir suporte")}
+                          </Link>
+                          {podeResponderPresenca(reservation) && reservation.attendanceStatus !== "CONFIRMADA" ? (<button type="button" disabled={processandoPresenca} onClick={() => setReservaParaConfirmarPresenca(reservation)} className="rounded-[8px] bg-app-cafe-profundo px-4 py-2 text-xs font-bold text-app-creme-leve transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-60">{ui("Confirmar presença")}</button>) : null}
+                        {["PENDENTE", "CONFIRMADA"].includes(reservation.status) && !reservaJaIniciou(reservation) ? (<button type="button" onClick={() => setReservaParaCancelar(reservation)} className="rounded-[8px] border border-app-vermelho-erro px-4 py-2 text-xs font-bold text-app-vermelho-erro transition hover:bg-app-chantilly hover:text-app-cafe-profundo">{ui("Desmarcar reserva")}</button>) : null}
+                        {reservation.activeOrder?.status === "PENDENTE" && reservaAceitaPagamento(reservation) ? (<Link href={`/cliente/pagamentos/pedido/${reservation.activeOrder.id}`} className="rounded-[8px] bg-app-dourado-mel px-4 py-2 text-xs font-bold text-white transition hover:bg-app-caramelo-torrado">{ui("Pagar pedido")}</Link>) : null}
+                        {reservation.status === "CONFIRMADA" && reservation.activeOrder && reservation.activeOrder.status !== "PENDENTE" ? (<Link href={`/cliente/pedidos/${reservation.activeOrder.id}`} className="rounded-[8px] bg-app-dourado-mel px-4 py-2 text-xs font-bold text-white transition hover:bg-app-caramelo-torrado">{ui("Acompanhar pedido")}</Link>) : null}
+                        {reservation.status === "CONFIRMADA" && !reservation.activeOrder && !reservaJaIniciou(reservation) ? (<Link href={`/cliente/reservas/${reservation.id}/pedido`} className="rounded-[8px] bg-app-dourado-mel px-4 py-2 text-xs font-bold text-white transition hover:bg-app-caramelo-torrado">{ui("Adicionar pedido antecipado")}</Link>) : null}
+                        {podeExcluirReservaDaLista(reservation) ? (<button type="button" onClick={() => setReservaParaExcluir(reservation)} className="text-xs font-bold text-app-cinza transition hover:text-app-vermelho-erro">{ui("Excluir da lista")}</button>) : null}
+                        </div>
+                      </div>
+                    </div>
+                  </article>))}
+              </div>) : (<EmptyReservationPanel />))}
+            </section>
+            <div className={visao === "reservas" ? "hidden" : ""}>
+              <PedidosAgenda atualizacao={atualizacaoPedidos} />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <ConfirmationDialog
+        open={Boolean(reservaParaConfirmarPresenca)}
+        eyebrow={ui("Confirmação de presença")}
+        title={ui("Confirmar sua presença?")}
+        description={ui("O restaurante será avisado que você pretende comparecer e poderá organizar a reserva e o pedido vinculado.")}
+        confirmLabel={ui("Confirmar presença")}
+        cancelLabel={ui("Voltar")}
+        variant="default"
+        loading={processandoPresenca}
+        onCancel={() => setReservaParaConfirmarPresenca(null)}
+        onConfirm={() => confirmarPresenca(reservaParaConfirmarPresenca.id)}
+        details={reservaParaConfirmarPresenca ? (
+          <div>
+            <p className="font-semibold">{reservaParaConfirmarPresenca.restaurant}</p>
+            <p className="mt-1 text-xs text-app-cinza">
+              {formatarDataReserva(reservaParaConfirmarPresenca.date, localeUI).dia} {formatarDataReserva(reservaParaConfirmarPresenca.date, localeUI).mes} - {formatarHorario(reservaParaConfirmarPresenca.time)} - {reservaParaConfirmarPresenca.people} {ui(reservaParaConfirmarPresenca.people === 1 ? "pessoa" : "pessoas")}
+            </p>
+          </div>
+        ) : null}
+      />
+
+      <ConfirmationDialog
+        open={Boolean(reservaParaExcluir)}
+        eyebrow={ui("Excluir da lista")}
+        title={ui("Remover esta reserva do histórico?")}
+        description={ui("A reserva será ocultada apenas da sua lista. Os registros operacionais e financeiros continuam preservados para auditoria.")}
+        confirmLabel={ui("Excluir")}
+        cancelLabel={ui("Manter")}
+        loading={cancelandoReserva}
+        onCancel={() => setReservaParaExcluir(null)}
+        onConfirm={confirmarExclusaoReserva}
+        details={reservaParaExcluir ? (
+          <div>
+            <p className="font-semibold">{reservaParaExcluir.restaurant}</p>
+            <p className="mt-1 text-xs text-app-cinza">
+              {formatarDataReserva(reservaParaExcluir.date, localeUI).dia} {formatarDataReserva(reservaParaExcluir.date, localeUI).mes} - {formatarHorario(reservaParaExcluir.time)}
+            </p>
+          </div>
+        ) : null}
+      />
+
+      {reservaParaCancelar ? (<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 px-5 backdrop-blur-[2px]">
+          <section className="w-full max-w-md rounded-[18px] bg-white p-6 text-app-cafe-profundo shadow-2xl ring-1 ring-black/10">
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{ui("Cancelamento de reserva")}</p>
+            <h2 className="mt-3 text-2xl font-semibold">{ui("Deseja desmarcar esta reserva?")}</h2>
+            <p className="mt-3 text-sm leading-6 text-app-mocha">{ui("Ao confirmar, a mesa e o horário reservados serão cancelados. O restaurante passará a ver esta reserva como cancelada.")}</p>
+            {reservaParaCancelar.activeOrder ? (<p className="mt-3 rounded-[10px] bg-white p-3 text-sm font-semibold leading-6 text-app-cafe-profundo ring-1 ring-app-baunilha-dourada/60">{ui("Esta reserva possui pedido antecipado ativo. Se o preparo ainda não tiver iniciado, o pedido também será cancelado pelo sistema.")}</p>) : null}
+            <div className="mt-6 rounded-[10px] bg-white p-4 ring-1 ring-app-baunilha-dourada/60">
+              <p className="text-sm font-semibold">{reservaParaCancelar.restaurant}</p>
+              <p className="mt-1 text-xs text-app-cinza">
+                {formatarDataReserva(reservaParaCancelar.date, localeUI).dia} {formatarDataReserva(reservaParaCancelar.date, localeUI).mes} - {formatarHorario(reservaParaCancelar.time)} - {reservaParaCancelar.people} {ui(reservaParaCancelar.people === 1 ? "pessoa" : "pessoas")}
+              </p>
+            </div>
+            <div className="mt-6 grid gap-3 sm:grid-cols-2">
+              <button type="button" onClick={() => setReservaParaCancelar(null)} disabled={cancelandoReserva} className="h-11 rounded-[8px] border border-app-baunilha-dourada px-4 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:bg-app-chantilly disabled:cursor-not-allowed disabled:text-app-cinza">{ui("Manter reserva")}</button>
+              <button type="button" onClick={() => cancelarReserva(reservaParaCancelar.id)} disabled={cancelandoReserva} className="botao-acao-critica h-11 rounded-[8px] px-4 text-xs font-bold uppercase tracking-[0.12em] transition disabled:cursor-not-allowed disabled:bg-app-cinza/50">
+                {ui(cancelandoReserva ? "Cancelando..." : "Confirmar cancelamento")}
+              </button>
+            </div>
+          </section>
+        </div>) : null}
+
+    </main>);
+}

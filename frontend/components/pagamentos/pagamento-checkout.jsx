@@ -76,7 +76,7 @@ export default function PagamentoCheckout({ params, tipo = "pedido" }) {
     const valorItens = preferência?.valor_itens ?? pedido?.valor_total ?? 0;
     const preferenceId = preferência?.preference_id;
     const checkoutUrl = preferência?.checkout_url;
-    const hrefDetalhesPedido = pedidoId ? `/cliente/pedidos/${pedidoId}` : "/cliente/detalhes-pedido";
+    const hrefDetalhesPedido = pedidoId ? `/cliente/pedidos/${pedidoId}` : "/cliente/agenda?visao=pedidos";
 
     return (
         <main className="flex min-h-screen flex-col bg-white px-4 py-8 text-app-cafe-profundo sm:px-5">

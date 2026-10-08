@@ -8,7 +8,7 @@ const nextConfig = {
             },
             {
                 source: "/reservas",
-                destination: "/cliente/reservas",
+                destination: "/cliente/agenda?visao=reservas",
                 permanent: true,
             },
             {
@@ -33,7 +33,7 @@ const nextConfig = {
             },
             {
                 source: "/detalhes-pedido",
-                destination: "/cliente/detalhes-pedido",
+                destination: "/cliente/agenda?visao=pedidos",
                 permanent: true,
             },
             {
