@@ -148,7 +148,7 @@ plansRouter.post("/checkout", async (req, res) => {
     if (assinatura.codigo_plano === plano.codigo && assinatura.status === "PENDENTE_PAGAMENTO" && assinatura.checkout_url && assinatura.mercadopago_preapproval_id && assinatura.mercadopago_preapproval_plan_id && checkoutDaContaAtual) {
       return res.json({ checkout_url: assinatura.checkout_url, reutilizado: true });
     }
-    const backUrl = `${frontendOrigin()}/restaurante/plano?assinatura=retorno`;
+    const backUrl = `${frontendOrigin()}/restaurante/configuracoes/planos?assinatura=retorno`;
     const backendUrl = backendPublicUrl();
     let notificationUrl;
     try {
@@ -249,4 +249,3 @@ plansRouter.post("/webhook/mercado-pago", async (req, res) => {
 });
 
 module.exports = { plansRouter };
-

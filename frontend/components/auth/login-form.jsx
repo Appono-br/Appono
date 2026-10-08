@@ -203,15 +203,15 @@ export function LoginForm() {
   }
 
   return (
-    <div className="flex flex-1 bg-white text-slate-900">
-      <section className="flex w-full flex-col justify-center bg-white px-4 py-5 sm:px-8 sm:py-8">
+    <div className="flex flex-1 text-app-cafe-profundo">
+      <section className="flex w-full flex-col justify-center px-4 py-5 sm:px-8 sm:py-8">
         <div className="mx-auto w-full max-w-md">
-          <div className="rounded-3xl bg-white px-6 py-8 shadow-xl border border-slate-100 sm:px-10">
+          <div className="rounded-3xl bg-app-creme-suave px-6 py-8 shadow-xl sm:px-10">
             {/* Cabeçalho */}
             <div className="mb-6 grid grid-cols-[1fr_auto_1fr] items-center">
               <Link
                 href="/"
-                className="inline-flex w-fit items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-all"
+                className="inline-flex w-fit items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-app-cinza hover:text-app-cafe-profundo hover:bg-app-chantilly-hover transition-all"
               >
                 <ArrowLeft className="h-4 w-4" />
                 <span>Início</span>
@@ -228,10 +228,10 @@ export function LoginForm() {
             </div>
 
             <div className="mb-6">
-              <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+              <h1 className="text-2xl font-extrabold text-app-cafe-profundo tracking-tight">
                 Bem-vindo de volta
               </h1>
-              <p className="mt-1 text-sm text-slate-500">
+              <p className="mt-1 text-sm text-app-cinza">
                 Entre para continuar sua jornada gastronômica ou torne-se membro.
               </p>
             </div>
@@ -261,7 +261,7 @@ export function LoginForm() {
                   <button
                     type="button"
                     onClick={() => setShowPassword((v) => !v)}
-                    className="text-slate-400 hover:text-slate-600 p-1"
+                    className="text-app-cinza hover:text-app-caramelo-torrado p-1"
                     aria-label={showPassword ? "Ocultar senha" : "Ver senha"}
                   >
                     {showPassword ? (
@@ -280,9 +280,9 @@ export function LoginForm() {
                     type="checkbox"
                     checked={remember}
                     onChange={(e) => setRemember(e.target.checked)}
-                    className="h-4 w-4 rounded border-slate-300 accent-red-600"
+                    className="h-4 w-4 rounded border-app-caramelo-torrado accent-app-caramelo-torrado"
                   />
-                  <span className="text-slate-600 text-xs font-medium">
+                  <span className="text-app-cinza text-xs font-medium">
                     Lembrar-me
                   </span>
                 </label>
@@ -294,7 +294,7 @@ export function LoginForm() {
                     setRecoveryMessage({ text: "", success: false });
                     setRecoveryDialog(true);
                   }}
-                  className="text-xs font-semibold text-red-600 hover:text-red-700 transition"
+                  className="text-xs font-semibold text-app-caramelo-torrado hover:text-app-mocha transition"
                 >
                   Esqueceu a senha?
                 </button>
@@ -313,7 +313,7 @@ export function LoginForm() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-sm shadow-md hover:shadow-lg transition-all focus:outline-none focus:ring-2 focus:ring-red-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-app-dourado-mel hover:bg-app-caramelo-torrado text-white font-bold text-sm shadow-md hover:shadow-lg transition-all focus:outline-none focus:ring-2 focus:ring-app-dourado-mel/20 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? (
                   <>
@@ -328,7 +328,7 @@ export function LoginForm() {
               <button
                 type="button"
                 onClick={() => setRegisterDialog(true)}
-                className="flex h-12 w-full items-center justify-center rounded-xl border-2 border-slate-200 text-sm font-semibold text-slate-700 hover:border-slate-300 hover:bg-slate-50 transition-all"
+                className="flex h-12 w-full items-center justify-center rounded-xl border-2 border-app-baunilha-dourada/50 text-sm font-semibold text-app-cafe-profundo hover:border-app-caramelo-torrado hover:bg-app-chantilly transition-all"
               >
                 Criar nova conta
               </button>
@@ -336,11 +336,11 @@ export function LoginForm() {
 
             {/* Separador Google */}
             <div className="my-5 flex items-center gap-3">
-              <div className="h-px flex-1 bg-slate-100" />
-              <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-400">
+              <div className="h-px flex-1 bg-app-chantilly-hover" />
+              <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-app-cinza">
                 ou continue com
               </span>
-              <div className="h-px flex-1 bg-slate-100" />
+              <div className="h-px flex-1 bg-app-chantilly-hover" />
             </div>
 
             {/* Botão Google */}
@@ -348,7 +348,7 @@ export function LoginForm() {
               type="button"
               onClick={entrarComGoogle}
               disabled={isGoogleSubmitting}
-              className="botao-google flex h-12 w-full items-center justify-center gap-2.5 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-slate-700 hover:border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500/15 transition-all disabled:opacity-60"
+              className="botao-google flex h-12 w-full items-center justify-center gap-2.5 rounded-xl border border-app-baunilha-dourada/50 bg-white text-sm font-semibold text-app-cafe-profundo hover:border-app-caramelo-torrado hover:bg-app-chantilly focus:outline-none focus:ring-2 focus:ring-app-dourado-mel/20 transition-all disabled:opacity-60"
             >
               {/* Logo Google SVG original (colorido, não substituído por Lucide) */}
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 48 48">
@@ -360,13 +360,13 @@ export function LoginForm() {
               {isGoogleSubmitting ? "Redirecionando..." : "Continuar com Google"}
             </button>
 
-            <p className="mt-4 text-center text-[10px] leading-5 tracking-wide text-slate-400">
+            <p className="mt-4 text-center text-[10px] leading-5 tracking-wide text-app-cinza">
               Ao continuar, você concorda com nossos{" "}
-              <Link href="#" className="text-red-600 underline underline-offset-2 hover:text-red-700">
+              <Link href="#" className="text-app-caramelo-torrado underline underline-offset-2 hover:text-app-mocha">
                 termos
               </Link>{" "}
               &{" "}
-              <Link href="#" className="text-red-600 underline underline-offset-2 hover:text-red-700">
+              <Link href="#" className="text-app-caramelo-torrado underline underline-offset-2 hover:text-app-mocha">
                 privacidade
               </Link>
             </p>
@@ -388,17 +388,17 @@ export function LoginForm() {
           <section className="w-full max-w-md rounded-3xl bg-white p-7 shadow-2xl">
             <div className="flex items-start justify-between gap-4 mb-6">
               <div>
-                <p className="text-xs font-bold uppercase tracking-widest text-red-600">
+                <p className="text-xs font-bold uppercase tracking-widest text-app-caramelo-torrado">
                   Criar conta
                 </p>
-                <h2 className="mt-1.5 text-xl font-extrabold text-slate-900">
+                <h2 className="mt-1.5 text-xl font-extrabold text-app-cafe-profundo">
                   Escolha seu perfil
                 </h2>
               </div>
               <button
                 type="button"
                 onClick={() => setRegisterDialog(false)}
-                className="h-9 w-9 shrink-0 flex items-center justify-center rounded-full border border-slate-200 text-slate-500 hover:bg-slate-100 transition"
+                className="h-9 w-9 shrink-0 flex items-center justify-center rounded-full border border-app-baunilha-dourada/50 text-app-cinza hover:bg-app-chantilly-hover transition"
                 aria-label="Fechar"
               >
                 <X className="h-4 w-4" />
@@ -408,38 +408,38 @@ export function LoginForm() {
             <div className="grid gap-3">
               <Link
                 href="/cadastro/cliente"
-                className="home-profile-option group relative flex min-w-0 items-center gap-4 rounded-2xl p-4 text-left transition-all duration-200 hover:-translate-y-0.5 border border-slate-100 hover:border-red-200 hover:bg-red-50/30"
+                className="home-profile-option group relative flex min-w-0 items-center gap-4 rounded-2xl p-4 text-left transition-all duration-200 hover:-translate-y-0.5 border border-app-baunilha-dourada/25 hover:border-app-baunilha-dourada hover:bg-app-caramelo-torrado/5"
               >
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition group-hover:bg-red-600 group-hover:text-white">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-app-chantilly text-app-cinza transition group-hover:bg-app-dourado-mel group-hover:text-white">
                   <User className="h-5 w-5" />
                 </div>
                 <div className="min-w-0">
-                  <strong className="block text-slate-900 font-bold">
+                  <strong className="block text-app-cafe-profundo font-bold">
                     Sou cliente
                   </strong>
-                  <span className="mt-0.5 block text-xs leading-5 text-slate-500">
+                  <span className="mt-0.5 block text-xs leading-5 text-app-cinza">
                     Quero reservar mesa e antecipar meu pedido.
                   </span>
                 </div>
-                <ChevronRight className="ml-auto h-4 w-4 shrink-0 text-slate-400 transition-transform group-hover:translate-x-1 group-hover:text-red-500" />
+                <ChevronRight className="ml-auto h-4 w-4 shrink-0 text-app-cinza transition-transform group-hover:translate-x-1 group-hover:text-app-caramelo-torrado" />
               </Link>
 
               <Link
                 href="/cadastro/restaurante"
-                className="home-profile-option group relative flex min-w-0 items-center gap-4 rounded-2xl p-4 text-left transition-all duration-200 hover:-translate-y-0.5 border border-slate-100 hover:border-red-200 hover:bg-red-50/30"
+                className="home-profile-option group relative flex min-w-0 items-center gap-4 rounded-2xl p-4 text-left transition-all duration-200 hover:-translate-y-0.5 border border-app-baunilha-dourada/25 hover:border-app-baunilha-dourada hover:bg-app-caramelo-torrado/5"
               >
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition group-hover:bg-red-600 group-hover:text-white">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-app-chantilly text-app-cinza transition group-hover:bg-app-dourado-mel group-hover:text-white">
                   <UtensilsCrossed className="h-5 w-5" />
                 </div>
                 <div className="min-w-0">
-                  <strong className="block text-slate-900 font-bold">
+                  <strong className="block text-app-cafe-profundo font-bold">
                     Sou restaurante
                   </strong>
-                  <span className="mt-0.5 block text-xs leading-5 text-slate-500">
+                  <span className="mt-0.5 block text-xs leading-5 text-app-cinza">
                     Quero organizar reservas, cardápio e pedidos antecipados.
                   </span>
                 </div>
-                <ChevronRight className="ml-auto h-4 w-4 shrink-0 text-slate-400 transition-transform group-hover:translate-x-1 group-hover:text-red-500" />
+                <ChevronRight className="ml-auto h-4 w-4 shrink-0 text-app-cinza transition-transform group-hover:translate-x-1 group-hover:text-app-caramelo-torrado" />
               </Link>
             </div>
           </section>
@@ -460,14 +460,14 @@ export function LoginForm() {
           <section className="w-full max-w-md rounded-3xl bg-white p-7 shadow-2xl">
             <div className="flex items-start justify-between gap-4 mb-4">
               <div className="flex items-center gap-3">
-                <span className="h-10 w-10 rounded-xl bg-red-100 text-red-600 flex items-center justify-center shrink-0">
+                <span className="h-10 w-10 rounded-xl bg-app-caramelo-torrado/10 text-app-caramelo-torrado flex items-center justify-center shrink-0">
                   <KeyRound className="h-5 w-5" />
                 </span>
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-widest text-red-600">
+                  <p className="text-xs font-bold uppercase tracking-widest text-app-caramelo-torrado">
                     Acesso
                   </p>
-                  <h2 className="text-lg font-extrabold text-slate-900">
+                  <h2 className="text-lg font-extrabold text-app-cafe-profundo">
                     Recuperar senha
                   </h2>
                 </div>
@@ -475,14 +475,14 @@ export function LoginForm() {
               <button
                 type="button"
                 onClick={() => setRecoveryDialog(false)}
-                className="h-9 w-9 shrink-0 flex items-center justify-center rounded-full border border-slate-200 text-slate-500 hover:bg-slate-100 transition"
+                className="h-9 w-9 shrink-0 flex items-center justify-center rounded-full border border-app-baunilha-dourada/50 text-app-cinza hover:bg-app-chantilly-hover transition"
                 aria-label="Fechar"
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
 
-            <p className="text-xs leading-5 text-slate-500 mb-5">
+            <p className="text-xs leading-5 text-app-cinza mb-5">
               Informe o e-mail cadastrado. A Appono enviará um link seguro para você criar uma nova senha.
             </p>
 
@@ -501,14 +501,14 @@ export function LoginForm() {
                 <button
                   type="button"
                   onClick={() => setRecoveryDialog(false)}
-                  className="h-11 rounded-xl border border-slate-200 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition"
+                  className="h-11 rounded-xl border border-app-baunilha-dourada/50 text-sm font-semibold text-app-cafe-profundo hover:bg-app-chantilly transition"
                 >
                   Voltar
                 </button>
                 <button
                   type="submit"
                   disabled={isSendingRecovery}
-                  className="h-11 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-bold shadow-sm transition disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2"
+                  className="h-11 rounded-xl bg-app-dourado-mel hover:bg-app-caramelo-torrado text-white text-sm font-bold shadow-sm transition disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2"
                 >
                   {isSendingRecovery ? (
                     <>

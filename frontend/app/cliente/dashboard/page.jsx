@@ -417,7 +417,7 @@ export default function DashboardPage() {
             </div>
 
             <div className="mt-6">
-              <VitrinePratos key={`${debouncedQuery}-${filtroBusca}-${ordenacaoBusca}`} restaurantes={searchResults} carregando={carregandoBusca || query.trim() !== debouncedQuery} limiteInicial={8} horizontal />
+              <VitrinePratos key={`${debouncedQuery}-${filtroBusca}-${ordenacaoBusca}`} restaurantes={searchResults} carregando={carregandoBusca || query.trim() !== debouncedQuery} limiteInicial={12} horizontal />
             </div>
             {searchResults.length ? (<div className="mt-3 grid gap-2">
               <h2 className="mb-2 text-xl font-semibold text-app-cafe-profundo">{ui("Restaurantes")}</h2>
@@ -478,7 +478,7 @@ export default function DashboardPage() {
         {message ? (<p role="status" className="mb-4 rounded-[8px] bg-white p-3 text-sm font-semibold text-app-caramelo-torrado">
             {ui(message)}
           </p>) : null}
-        <VitrinePratos restaurantes={restaurants} carregando={carregandoPratos} limiteInicial={8} mensagemVazia="Nenhum prato disponível no momento." horizontal limitePorLinha={7} maxRestaurantes={3} />
+        <VitrinePratos restaurantes={restaurants} carregando={carregandoPratos} limiteInicial={12} mensagemVazia="Nenhum prato disponível no momento." horizontal limitePorLinha={7} maxRestaurantes={3} />
 
       </section>
 
@@ -489,8 +489,7 @@ export default function DashboardPage() {
               <h2 className="text-4xl font-medium sm:text-5xl">{ui("Perto de Você")}</h2>
               <p className="mt-3 max-w-xl text-sm leading-6 text-app-creme-suave">{ui("Digite uma localização e escolha a distância para encontrar restaurantes próximos.")}</p>
             </div>
-            <form onSubmit={procurarRestaurantesProximos} aria-label={ui("Buscar restaurantes por localização")} className="nearby-actions grid w-full min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 lg:grid-cols-[auto_minmax(180px,1fr)_160px_auto] xl:flex-1">
-              <Link href="/cliente/busca" className="nearby-secondary-action inline-flex h-11 items-center justify-center rounded-[8px] border border-app-baunilha-dourada/60 px-4 text-xs font-bold uppercase tracking-[0.12em] text-app-creme-leve transition lg:order-first">{ui("Buscar")}</Link>
+            <form onSubmit={procurarRestaurantesProximos} aria-label={ui("Buscar restaurantes por localização")} className="nearby-actions grid w-full min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 lg:grid-cols-[minmax(180px,1fr)_160px_auto] xl:flex-1">
               <label className="campo-busca-app order-first col-span-2 flex h-11 min-w-0 items-center gap-2 overflow-hidden rounded-xl border border-app-baunilha-dourada/60 bg-white px-3 text-app-mocha lg:order-none lg:col-span-1">
                 <Icon type="pin" className="h-4 w-4" />
                 <span className="sr-only">{ui("Localização para buscar restaurantes")}</span>
@@ -507,7 +506,7 @@ export default function DashboardPage() {
                   </button>)}
                 </div> : null}
               </div>
-              <button type="submit" disabled={carregandoRestaurantes} className="nearby-primary-action col-span-2 inline-flex h-11 items-center justify-center rounded-[8px] bg-app-baunilha-dourada px-5 text-xs font-bold uppercase tracking-[0.14em] text-app-cafe-profundo transition disabled:cursor-wait disabled:opacity-70 lg:col-span-1">
+              <button type="submit" disabled={carregandoRestaurantes} className="nearby-primary-action inline-flex h-11 items-center justify-center rounded-[8px] bg-app-baunilha-dourada px-5 text-xs font-bold uppercase tracking-[0.14em] text-app-cafe-profundo transition disabled:cursor-wait disabled:opacity-70">
                 {carregandoRestaurantes ? ui("Procurando...") : ui("Procurar")}
               </button>
             </form>

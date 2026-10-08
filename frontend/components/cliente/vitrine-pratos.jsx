@@ -79,7 +79,7 @@ export function VitrinePratos({ restaurantes, carregando, limiteInicial = 12, me
   }
   const moeda = new Intl.NumberFormat(localeUI, { style: "currency", currency: "BRL" });
 
-  const pratosExibidos = horizontal ? pratos : pratos.slice(0, limite);
+  const pratosExibidos = pratos.slice(0, horizontal ? limiteInicial : limite);
   const gruposPorCategoria = new Map();
   for (const item of pratos) {
     const categoria = item.prato.categoria?.trim() || ui("Destaques");

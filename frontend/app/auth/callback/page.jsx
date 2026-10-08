@@ -79,7 +79,7 @@ export default function AuthCallbackPage() {
                 if (sessionStorage.getItem("appono_checkout_profissional_pendente") === "1") {
                     setMessage("Não foi possível abrir o checkout do Plano Profissional. Você poderá tentar novamente no módulo de restaurante.");
                     sessionStorage.removeItem("appono_checkout_profissional_pendente");
-                    window.setTimeout(() => window.location.replace("/restaurante/plano?checkout=pendente"), 1800);
+                    window.setTimeout(() => window.location.replace("/restaurante/configuracoes/planos?checkout=pendente"), 1800);
                     return;
                 }
                 const permitidas = ["Não foi possível confirmar o acesso. Tente novamente.", "Confirme seu e-mail para continuar."];

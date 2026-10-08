@@ -8,23 +8,31 @@ import { useInterface } from "@/lib/use-interface";
 
 // Apenas imagens de apresentação. Os itens e nomes vêm exclusivamente do banco.
 const fotos = {
-  Japonesa: "photo-1579871494447-9811cf80d66c",
-  Chinesa: "photo-1569058242253-92a9c755a0ec",
-  Italiana: "photo-1473093295043-cdd812d0e601",
-  Hamburgueria: "photo-1568901346375-23c9450c58cd",
-  Pizzaria: "photo-1565299624946-b28f40a0ae38",
-  Vegetariana: "photo-1512621776951-a57141f2eefd",
-  Vegana: "photo-1512621776951-a57141f2eefd",
-  Saudável: "photo-1547592180-85f173990554",
-  Cafeteria: "photo-1442512595331-e89e73853f31",
-  Padaria: "photo-1509440159596-0249088772ff",
-  Doceria: "photo-1488477181946-6428a0291777",
+  Brasileira: "/images/categorias/brasileira-feijoada.webp",
+  Italiana: "/images/categorias/italiana.webp",
+  Japonesa: "/images/categorias/japonesa.webp",
+  Chinesa: "/images/categorias/chinesa-dim-sum.webp",
+  "Árabe": "/images/categorias/arabe-homus.webp",
+  Mexicana: "/images/categorias/mexicana-tacos.webp",
+  Hamburgueria: "/images/categorias/hamburgueria.webp",
+  Pizzaria: "/images/categorias/pizzaria.webp",
+  Vegetariana: "/images/categorias/vegetariana.webp",
+  Vegana: "/images/categorias/vegetariana.webp",
+  Cafeteria: "/images/categorias/cafeteria.webp",
+  Padaria: "/images/categorias/padaria.webp",
+  Doceria: "/images/categorias/doceria.webp",
+  Saudável: "/images/categorias/saudavel.webp",
+  "Frutos do mar": "/images/categorias/frutos-do-mar.webp",
+  Churrascaria: "/images/categorias/churrascaria.webp",
+  "Contemporânea": "/images/categorias/contemporanea-salmao.webp",
+  Outra: "/images/categorias/outra.webp",
 };
 
 function FotoCategoria({ categoria }) {
   const [falhou, setFalhou] = useState(false);
-  if (falhou) return <svg aria-hidden="true" viewBox="0 0 24 24" className="h-9 w-9 text-app-caramelo-torrado" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M4 3v6a2 2 0 0 0 4 0V3M6 3v18M18 3v18M18 3c-4 2-4 9 0 9" /></svg>;
-  return <Image src={`https://images.unsplash.com/${fotos[categoria] ?? "photo-1515003197210-e0cd71810b5f"}?auto=format&fit=crop&w=200&q=80`} alt="" fill sizes="96px" className="object-cover transition duration-300 group-hover:scale-110" onError={() => setFalhou(true)} />;
+  const foto = fotos[categoria];
+  if (!foto || falhou) return <svg aria-hidden="true" viewBox="0 0 24 24" className="h-9 w-9 text-app-caramelo-torrado" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M4 3v6a2 2 0 0 0 4 0V3M6 3v18M18 3v18M18 3c-4 2-4 9 0 9" /></svg>;
+  return <Image src={foto} alt="" fill sizes="96px" className="object-cover transition duration-300 group-hover:scale-110" onError={() => setFalhou(true)} />;
 }
 
 function normalizarCategorias(categorias) {

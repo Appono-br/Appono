@@ -500,7 +500,7 @@ export function AgendaCliente() {
               {carregandoReservas ? <div aria-busy="true" className="grid gap-4">{[1, 2].map((item) => <div key={item} className="h-48 animate-pulse rounded-[18px] bg-app-chantilly ring-1 ring-app-baunilha-dourada/60" />)}</div> : !erroReservas && (reservations.length ? (<div className="grid auto-rows-max content-start gap-4">
                 {reservations.map((reservation) => (<article key={reservation.id} className="overflow-hidden rounded-2xl border border-app-baunilha-dourada/60 bg-white transition hover:border-app-caramelo-torrado/50">
                     <div className="grid lg:grid-cols-[72px_minmax(0,1fr)]">
-                      <div className="flex items-center gap-3 border-b border-app-baunilha-dourada/50 bg-white px-4 py-3 lg:flex-col lg:justify-start lg:border-b-0 lg:border-r lg:py-5 lg:text-center">
+                      <div className="flex items-center gap-3 border-b border-app-baunilha-dourada/50 bg-white px-4 py-3 lg:flex-col lg:justify-center lg:border-b-0 lg:border-r lg:py-5 lg:text-center">
                         <span className="text-3xl font-semibold leading-none text-app-cafe-profundo">
                           {formatarDataReserva(reservation.date, localeUI).dia}
                         </span>
