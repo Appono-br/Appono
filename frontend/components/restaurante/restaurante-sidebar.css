@@ -76,9 +76,10 @@ body:has(.restaurant-shell) .app-footer {
 .restaurant-sidebar .restaurant-sidebar-nav a:hover { transform: none; }
 .restaurant-sidebar-nav a[aria-current="page"] { background: var(--app-botao-primario); color: var(--app-botao-primario-texto); font-weight: 700; }
 .restaurant-sidebar-nav a[aria-current="page"]:hover { background: var(--app-botao-primario-hover); color: var(--app-botao-primario-texto); }
-.restaurant-sidebar-notifications { margin-top: auto; padding: 12px; border-radius: 10px; display: flex; align-items: center; gap: 12px; font-size: 13px; transition: background-color .2s, transform .2s; }
+.restaurant-sidebar-notifications { margin-top: auto; padding: 10px 12px; border-radius: 10px; display: flex; align-items: center; gap: 12px; font-size: 13px; transition: background-color .2s, transform .2s; }
+.restaurant-sidebar-notifications .notificacoes-trigger { width: 24px; height: 24px; }
 .restaurant-sidebar-notifications:hover { background: var(--ui-hover, #f5efe7); transform: translateX(3px); font-weight: 700; color: var(--ui-texto-inverso, #241711); }
-.restaurant-sidebar-notifications:hover a { color: inherit; }
+.restaurant-sidebar-notifications:hover :is(a, button) { color: inherit; }
 .restaurant-sidebar-notifications a[aria-current="page"] { font-weight: 700; }
 .restaurant-sidebar-logout {
   display: flex;

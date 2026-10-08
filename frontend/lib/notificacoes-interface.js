@@ -13,7 +13,10 @@ const modelos = [
 ];
 
 export function mensagemNotificacaoUI(notificacao, idioma) {
-  const texto = String(notificacao.mensagem ?? "");
+  const mensagem = String(notificacao.mensagem ?? "");
+  const texto = notificacao.tipo_evento === "RESERVA_CANCELADA"
+    ? mensagem.replace("pelo módulo cliente.", "pela área do cliente.")
+    : mensagem;
   if (idioma !== "en" || ["REEMBOLSO_RECUSADO", "INFORMATIVO"].includes(notificacao.tipo_evento)) return texto;
   if (notificacao.tipo_evento === "STATUS_PEDIDO") {
     const status = texto.match(/^Seu pedido agora está como: (pendente|confirmado|em preparo|pronto|entregue|cancelado)\.$/);

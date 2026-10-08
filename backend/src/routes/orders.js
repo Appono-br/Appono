@@ -225,12 +225,26 @@ async function conciliarPedidosPendentes(pedidos) {
 }
 
 exports.ordersRouter.get("/", async (req, res) => {
+    const dataSelecionada = req.query.data;
+    if (dataSelecionada !== undefined && (
+        typeof dataSelecionada !== "string" ||
+        !/^\d{4}-\d{2}-\d{2}$/.test(dataSelecionada) ||
+        Number.isNaN(Date.parse(`${dataSelecionada}T12:00:00Z`)) ||
+        new Date(`${dataSelecionada}T12:00:00Z`).toISOString().slice(0, 10) !== dataSelecionada
+    )) {
+        return res.status(400).json({ error: "Data inválida. Use o formato AAAA-MM-DD." });
+    }
     const supabase = (0, supabase_1.createUserSupabaseClient)(res.locals.accessToken);
     const { page, limit, from, to } = parsePagination(req.query);
-    const { data, error, count } = await supabase
+    const relacaoReserva = dataSelecionada ? "reservas!inner" : "reservas";
+    let consulta = supabase
         .from("pedidos")
-        .select("id_pedido, id_restaurante, id_reserva, status_pedido, valor_total, data_pedido, ocultado_cliente, restaurantes(nome), reservas(data_reserva, horario_inicio, status_reserva)", { count: "exact" })
-        .eq("ocultado_cliente", false)
+        .select(`id_pedido, id_restaurante, id_reserva, status_pedido, valor_total, data_pedido, ocultado_cliente, restaurantes(nome), ${relacaoReserva}(data_reserva, horario_inicio, status_reserva)`, { count: "exact" })
+        .eq("ocultado_cliente", false);
+    if (dataSelecionada) {
+        consulta = consulta.eq("reservas.data_reserva", dataSelecionada);
+    }
+    const { data, error, count } = await consulta
         .order("data_pedido", { ascending: false })
         .range(from, to);
     if (error) {

@@ -19,7 +19,7 @@ function hasPartnerLogo(restaurant) {
 function RestaurantImage({ url, name }) {
   const [failed, setFailed] = useState(false);
   return <div className="public-partner-logo">
-    {url && !failed ? <Image src={url} alt={name} width={176} height={152} sizes="176px" onError={() => setFailed(true)} /> : <span className="public-restaurant-placeholder" role="img" aria-label={name}><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3"><path d="M3 10h18l-2-6H5l-2 6Zm2 0v10h14V10M9 20v-6h6v6M3 10c0 3 4.5 3 4.5 0 0 3 4.5 3 4.5 0 0 3 4.5 3 4.5 0 0 3 4.5 3 4.5 0" /></svg></span>}
+    {url && !failed ? <Image src={url} alt={name} width={176} height={152} sizes="176px" className="restaurant-logo-image" onError={() => setFailed(true)} /> : <span className="public-restaurant-placeholder" role="img" aria-label={name}><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3"><path d="M3 10h18l-2-6H5l-2 6Zm2 0v10h14V10M9 20v-6h6v6M3 10c0 3 4.5 3 4.5 0 0 3 4.5 3 4.5 0 0 3 4.5 3 4.5 0 0 3 4.5 3 4.5 0" /></svg></span>}
   </div>;
 }
 
@@ -46,7 +46,7 @@ export function HomeRestaurants({ query, onClearSearch }) {
   return <section id="restaurantes" className="discover-section public-restaurants-section" aria-labelledby="public-partners-title">
     <div className="discover-container">
       <div className="public-restaurants-heading">
-        <div className="discover-heading"><h2 id="public-partners-title">{copy("Parceiros Appono", "Appono partners")}</h2></div>
+        <div className="discover-heading"><h2 id="public-partners-title" className="discover-section-title">{copy("Parceiros Appono", "Appono partners")}</h2></div>
         {query && <button type="button" className="app-button-secondary public-clear-search" onClick={onClearSearch}>{copy("Limpar busca", "Clear search")} <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="m6 6 12 12M18 6 6 18" /></svg></button>}
       </div>
       {query && <p className="public-search-result" role="status">{copy("Resultados para", "Results for")} “{query}”</p>}

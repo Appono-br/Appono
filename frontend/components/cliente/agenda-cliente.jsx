@@ -48,6 +48,9 @@ function formatarDataReserva(data, localeUI = "pt-BR") {
         semana: dataLocal.toLocaleDateString(localeUI, { weekday: "short" }).replace(".", ""),
     };
 }
+function formatarDataCalendario(data) {
+    return `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, "0")}-${String(data.getDate()).padStart(2, "0")}`;
+}
 function formatarHorario(horario) {
     return horario.slice(0, 5);
 }
@@ -173,7 +176,7 @@ function getCalendarDays(month, year) {
         days.push({
             day,
             currentMonth: false,
-            date: date.toISOString().slice(0, 10),
+            date: formatarDataCalendario(date),
         });
     }
     for (let day = 1; day <= daysInMonth; day += 1) {
@@ -181,7 +184,7 @@ function getCalendarDays(month, year) {
         days.push({
             day,
             currentMonth: true,
-            date: date.toISOString().slice(0, 10),
+            date: formatarDataCalendario(date),
         });
     }
     while (days.length % 7 !== 0) {
@@ -190,19 +193,19 @@ function getCalendarDays(month, year) {
         days.push({
             day,
             currentMonth: false,
-            date: date.toISOString().slice(0, 10),
+            date: formatarDataCalendario(date),
         });
     }
     return days;
 }
-function EmptyReservationPanel() {
+function EmptyReservationPanel({ dataSelecionada }) {
     const { ui } = useInterface();
     return (<section className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-app-caramelo-torrado/35 bg-white px-5 py-8 text-center">
       <div className="flex h-12 w-12 items-center justify-center rounded-full bg-app-baunilha-dourada text-app-cafe-profundo">
         <Icon type="plus" className="h-6 w-6"/>
       </div>
-      <h2 className="mt-4 text-xl font-semibold text-app-cafe-profundo">{ui("Planeje sua próxima visita")}</h2>
-      <p className="mt-2 max-w-lg text-sm leading-6 text-app-cinza">{ui("Você ainda não possui reservas na sua agenda.")}</p>
+      <h2 className="mt-4 text-xl font-semibold text-app-cafe-profundo">{ui(dataSelecionada ? "Nenhuma reserva neste dia" : "Planeje sua próxima visita")}</h2>
+      <p className="mt-2 max-w-lg text-sm leading-6 text-app-cinza">{ui(dataSelecionada ? "Você não possui reservas para o dia selecionado." : "Você ainda não possui reservas na sua agenda.")}</p>
       <Link href="/cliente/dashboard" className="mt-5 rounded-[8px] bg-app-dourado-mel px-6 py-3 text-xs font-bold uppercase tracking-wide text-white transition hover:bg-app-caramelo-torrado">{ui("Reservar agora")}</Link>
     </section>);
 }
@@ -227,14 +230,11 @@ export function AgendaCliente() {
         month: today.getMonth(),
         year: today.getFullYear(),
     });
-    const [selectedDate, setSelectedDate] = useState(today.toISOString().slice(0, 10));
+    const [selectedDate, setSelectedDate] = useState(() => formatarDataCalendario(new Date()));
     const calendarDays = useMemo(() => getCalendarDays(period.month, period.year), [period.month, period.year]);
-    const reservationDates = useMemo(() => new Set(reservations
-        .filter((reservation) => ["CONFIRMADA", "CHECK_IN"].includes(reservation.status))
-        .map((reservation) => reservation.date)), [reservations]);
-    const reservasConfirmadas = useMemo(() => reservations.filter((reservation) =>
-        ["CONFIRMADA", "CHECK_IN"].includes(reservation.status) &&
-        reservation.date.startsWith(`${period.year}-${String(period.month + 1).padStart(2, "0")}`)), [reservations, period.month, period.year]);
+    const reservasVisiveis = useMemo(() => selectedDate ? reservations.filter((reservation) => reservation.date === selectedDate) : reservations, [reservations, selectedDate]);
+    const reservasConfirmadas = useMemo(() => reservasVisiveis.filter((reservation) =>
+        ["CONFIRMADA", "CHECK_IN"].includes(reservation.status)), [reservasVisiveis]);
     useEffect(() => {
         const controller = new AbortController();
         async function loadReservations() {
@@ -290,10 +290,14 @@ export function AgendaCliente() {
         return () => controller.abort();
     }, []);
     function changeMonth(direction) {
-        setPeriod((current) => {
-            const date = new Date(current.year, current.month + direction, 1);
-            return { month: date.getMonth(), year: date.getFullYear() };
-        });
+        const date = new Date(period.year, period.month + direction, 1);
+        if (!selectedDate) {
+            setPeriod({ month: date.getMonth(), year: date.getFullYear() });
+            return;
+        }
+        const ultimoDia = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+        date.setDate(Math.min(Number(selectedDate.slice(-2)), ultimoDia));
+        selecionarDia(formatarDataCalendario(date));
     }
     function selecionarDia(date) {
         setSelectedDate(date);
@@ -452,6 +456,9 @@ export function AgendaCliente() {
               <CalendarDays aria-hidden="true" className="h-5 w-5 text-app-caramelo-torrado" />
               {ui("Calendário da agenda")}
             </h2>
+            <button type="button" onClick={() => setSelectedDate(null)} aria-pressed={!selectedDate} className={`agenda-calendar-all mt-3 w-full rounded-xl px-4 py-2.5 text-sm font-semibold outline-none transition focus-visible:ring-2 focus-visible:ring-app-caramelo-torrado ${selectedDate ? "app-button-secondary" : "app-button-primary"}`}>
+              {ui("Todos")}
+            </button>
             <div className="mt-3 flex items-center justify-between gap-2 text-app-cafe-profundo">
               <button type="button" onClick={() => changeMonth(-1)} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full outline-none transition hover:bg-app-chantilly hover:text-app-caramelo-torrado focus-visible:ring-2 focus-visible:ring-app-caramelo-torrado" aria-label={ui("Período anterior")}>
                 <Icon type="chevron-left"/>
@@ -466,14 +473,12 @@ export function AgendaCliente() {
                   {ui(day).slice(0, 3)}
                 </span>))}
               {calendarDays.map((day) => {
-            const hasReservation = reservationDates.has(day.date);
-            const isToday = day.date === new Date().toISOString().slice(0, 10);
+            const isToday = day.date === formatarDataCalendario(today);
             const isSelected = day.date === selectedDate;
             return (<button type="button" key={day.date} onClick={() => selecionarDia(day.date)} aria-pressed={isSelected} aria-current={isToday ? "date" : undefined} className={`agenda-calendar-day relative flex h-10 items-center justify-center rounded-[10px] text-[13px] transition ${day.currentMonth ? "text-app-cafe-profundo" : "agenda-calendar-adjacent-day text-[#b9b1ac]"}`}>
                     <span className={`flex h-8 w-8 items-center justify-center rounded-[8px] ${isSelected ? "agenda-calendar-selected bg-[#946746] font-semibold text-app-creme-leve" : isToday ? "agenda-calendar-today bg-[#4c2f20] font-semibold text-white" : ""}`}>
                       {day.day}
                     </span>
-                    {hasReservation && !isToday ? <span className="agenda-calendar-reservation-marker absolute bottom-0.5 h-1 w-1 rounded-full bg-[#a45d35]" aria-label={ui("Há uma reserva neste dia")}/> : null}
                   </button>);
         })}
             </div>
@@ -481,7 +486,7 @@ export function AgendaCliente() {
             <p className="mt-4 border-t border-app-baunilha-dourada/50 pt-4 text-xs leading-5 text-app-mocha">{ui("Você possui")}{ui(" ")}
               <span className="font-bold text-app-caramelo-torrado">
                 {reservasConfirmadas.length}
-              </span>{ui(" ")}{ui("reservas confirmadas neste período.")}</p>
+              </span>{ui(" ")}{ui(selectedDate ? "reservas confirmadas neste dia." : "reservas confirmadas na sua agenda.")}</p>
           </aside>
 
           <div className="contents min-w-0 content-start gap-4 md:grid">
@@ -501,8 +506,8 @@ export function AgendaCliente() {
             <section aria-labelledby="agenda-reservas-titulo" className={visao === "pedidos" ? "hidden" : "grid min-w-0 content-start gap-4"}>
               <h2 id="agenda-reservas-titulo" className="sr-only">{ui("Reservas")}</h2>
               {erroReservas ? <p role="alert" className="rounded-[12px] border border-app-vermelho-erro/30 bg-white p-4 text-sm font-semibold text-app-vermelho-erro">{ui(erroReservas)}</p> : null}
-              {carregandoReservas ? <div aria-busy="true" className="grid gap-4">{[1, 2].map((item) => <div key={item} className="h-48 animate-pulse rounded-[18px] bg-app-chantilly ring-1 ring-app-baunilha-dourada/60" />)}</div> : !erroReservas && (reservations.length ? (<div className="grid auto-rows-max content-start gap-4">
-                {reservations.map((reservation) => (<article key={reservation.id} className="overflow-hidden rounded-2xl border border-app-baunilha-dourada/60 bg-white transition hover:border-app-caramelo-torrado/50">
+              {carregandoReservas ? <div aria-busy="true" className="grid gap-4">{[1, 2].map((item) => <div key={item} className="h-48 animate-pulse rounded-[18px] bg-app-chantilly ring-1 ring-app-baunilha-dourada/60" />)}</div> : !erroReservas && (reservasVisiveis.length ? (<div className="grid auto-rows-max content-start gap-4">
+                {reservasVisiveis.map((reservation) => (<article key={reservation.id} className="overflow-hidden rounded-2xl border border-app-baunilha-dourada/60 bg-white transition hover:border-app-caramelo-torrado/50">
                     <div className="grid lg:grid-cols-[72px_minmax(0,1fr)]">
                       <div className="flex items-center gap-3 border-b border-app-baunilha-dourada/50 bg-white px-4 py-3 lg:flex-col lg:justify-center lg:border-b-0 lg:border-r lg:py-5 lg:text-center">
                         <span className="text-3xl font-semibold leading-none text-app-cafe-profundo">
@@ -643,10 +648,10 @@ export function AgendaCliente() {
                       </div>
                     </div>
                   </article>))}
-              </div>) : (<EmptyReservationPanel />))}
+              </div>) : (<EmptyReservationPanel dataSelecionada={selectedDate} />))}
             </section>
             <div className={visao === "reservas" ? "hidden" : ""}>
-              <PedidosAgenda atualizacao={atualizacaoPedidos} />
+              <PedidosAgenda key={selectedDate ?? "todos"} dataSelecionada={selectedDate} atualizacao={atualizacaoPedidos} />
             </div>
           </div>
         </div>

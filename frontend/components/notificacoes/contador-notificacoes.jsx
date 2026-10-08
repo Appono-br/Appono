@@ -1,9 +1,9 @@
 "use client";
 
 import { useInterface } from "@/lib/use-interface";
-import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { apiRequest } from "@/lib/api";
+import { PopupNotificacoes } from "./popup-notificacoes";
 
 export const EVENTO_NOTIFICACOES_ATUALIZADAS = "appono:notificacoes-atualizadas";
 
@@ -28,9 +28,11 @@ function IconeSino({ className = "h-5 w-5" }) {
     );
 }
 
-export function LinkNotificacoes({ href, iconeClassName, ariaCurrent }) {
+export function BotaoNotificacoes({ href, iconeClassName, ariaCurrent, onNavigate }) {
     const { ui } = useInterface();
     const [naoLidas, setNaoLidas] = useState(0);
+    const [aberto, setAberto] = useState(false);
+    const popupId = useId();
 
     useEffect(() => {
         let ativo = true;
@@ -65,21 +67,24 @@ export function LinkNotificacoes({ href, iconeClassName, ariaCurrent }) {
     }, []);
 
     return (
-        <Link href={href} aria-current={ariaCurrent} className={`relative transition hover:text-app-caramelo-torrado focus:outline-none focus-visible:ring-2 focus-visible:ring-app-dourado-mel aria-[current=page]:after:absolute aria-[current=page]:after:bottom-0 aria-[current=page]:after:left-1/2 aria-[current=page]:after:h-0.5 aria-[current=page]:after:w-5 aria-[current=page]:after:-translate-x-1/2 aria-[current=page]:after:rounded-full aria-[current=page]:after:bg-[var(--app-caramelo-torrado)] ${ariaCurrent ? "flex h-11 w-11 items-center justify-center" : ""}`} aria-label={ui(naoLidas ? `${naoLidas} notificações não lidas` : "Notificações")}>
-            <IconeSino className={iconeClassName} />
-            {naoLidas > 0 ? (
-                <span className="absolute -right-2 -top-2 flex h-4 min-w-4 animate-pulse items-center justify-center rounded-full bg-app-vermelho-erro px-1 text-[10px] font-bold leading-none text-white">
-                    {ui(naoLidas > 9 ? "9+" : naoLidas)}
-                </span>
-            ) : null}
-        </Link>
+        <>
+            <button type="button" onClick={(event) => { event.stopPropagation(); setAberto(true); }} aria-haspopup="dialog" aria-expanded={aberto} aria-controls={aberto ? popupId : undefined} aria-current={ariaCurrent} className="notificacoes-trigger relative flex h-10 w-10 shrink-0 items-center justify-center rounded-md transition hover:text-app-caramelo-torrado focus:outline-none focus-visible:ring-2 focus-visible:ring-app-dourado-mel aria-[current=page]:after:absolute aria-[current=page]:after:bottom-0 aria-[current=page]:after:left-1/2 aria-[current=page]:after:h-0.5 aria-[current=page]:after:w-5 aria-[current=page]:after:-translate-x-1/2 aria-[current=page]:after:rounded-full aria-[current=page]:after:bg-[var(--app-caramelo-torrado)]" aria-label={naoLidas ? ui("{0} notificações não lidas", [naoLidas]) : ui("Notificações")}>
+                <IconeSino className={iconeClassName} />
+                {naoLidas > 0 ? (
+                    <span className="absolute -right-2 -top-2 flex h-4 min-w-4 animate-pulse items-center justify-center rounded-full bg-app-vermelho-erro px-1 text-[10px] font-bold leading-none text-white">
+                        {ui(naoLidas > 9 ? "9+" : naoLidas)}
+                    </span>
+                ) : null}
+            </button>
+            {aberto ? <PopupNotificacoes id={popupId} href={href} onClose={() => setAberto(false)} onNavigate={onNavigate} /> : null}
+        </>
     );
 }
 
 export function ItemHeaderNotificacoes({ href }) {
     return (
-        <div className="flex h-9 w-9 items-center justify-center justify-self-end rounded-[8px] border border-app-baunilha-dourada bg-app-chantilly text-app-cafe-profundo">
-            <LinkNotificacoes href={href} />
+        <div className="flex h-9 w-9 items-center justify-center justify-self-end text-app-cafe-profundo">
+            <BotaoNotificacoes href={href} />
         </div>
     );
 }
