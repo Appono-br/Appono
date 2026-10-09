@@ -1470,8 +1470,37 @@ html[data-tema] :is(.app-button-primary, .app-button-secondary):focus-visible {
   outline-offset: 3px;
 }
 
-html[data-tema] .agenda-calendar .agenda-calendar-selected {
+html[data-tema] .agenda-calendar .agenda-calendar-today {
   background-color: var(--app-botao-primario) !important;
   color: var(--app-botao-primario-texto) !important;
+}
+
+html[data-tema] .agenda-calendar .agenda-calendar-selected {
+  background-color: var(--app-botao-secundario) !important;
+  color: var(--app-botao-secundario-texto) !important;
+}
+
+html[data-tema] .agenda-cliente .agenda-reservation-confirmed {
+  color: #ffffff !important;
+}
+
+html[data-tema] .agenda-cliente button.agenda-reservation-cancel {
+  background-color: color-mix(in srgb, var(--app-vermelho-erro) 14%, transparent) !important;
+}
+
+html[data-tema] .agenda-cliente button.agenda-reservation-cancel:hover:not(:disabled) {
+  background-color: color-mix(in srgb, var(--app-vermelho-erro) 20%, transparent) !important;
+}
+
+html[data-tema] .agenda-cliente button.agenda-reservation-chat,
+html[data-tema] .agenda-cliente button.agenda-reservation-chat:hover {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  color: var(--app-cafe-profundo) !important;
+}
+
+html[data-tema] .agenda-cliente button.agenda-reservation-chat:hover:not(:disabled) {
+  color: var(--app-caramelo-torrado) !important;
 }
 

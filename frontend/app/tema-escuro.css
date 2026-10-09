@@ -191,9 +191,6 @@ html[data-tema="escuro"] .agenda-calendar {
 html[data-tema="escuro"] .agenda-calendar .agenda-calendar-adjacent-day {
   color: #aa9786;
 }
-html[data-tema="escuro"] .agenda-calendar .agenda-calendar-today {
-  color: #ffffff;
-}
 
 html[data-tema="escuro"] :is(input, textarea, select, .campo-busca-app) {
   min-width: 0;
@@ -375,7 +372,7 @@ html[data-tema] .area-autenticada:is(.area-cliente, .area-restaurante) :is(
   a[class*="bg-app-"],
   a[class*="border-app"],
   [role="button"]
-):not(:is(.produto-cardapio-acoes *, .agenda-calendar-day, .app-button-secondary, .app-logout, .notificacoes-trigger, .botao-acao-critica, [class*="vermelho-erro"], [class*="text-red-"], [class*="bg-red-"], [class*="text-rose-"], [class*="bg-rose-"])) {
+):not(:is(.produto-cardapio-acoes *, .agenda-calendar-day, .app-button-secondary, .app-logout, .notificacoes-trigger, .agenda-reservation-chat, .botao-acao-critica, [class*="vermelho-erro"], [class*="text-red-"], [class*="bg-red-"], [class*="text-rose-"], [class*="bg-rose-"])) {
   background-color: var(--painel-botao-fundo) !important;
   color: var(--painel-botao-texto) !important;
   border: 1px solid var(--painel-botao-borda) !important;
@@ -386,7 +383,7 @@ html[data-tema] .area-autenticada:is(.area-cliente, .area-restaurante) :is(
   a[class*="bg-app-"],
   a[class*="border-app"],
   [role="button"]
-):not(:is(.produto-cardapio-acoes *, .agenda-calendar-day, .app-button-secondary, .app-logout, .notificacoes-trigger, .botao-acao-critica, [class*="vermelho-erro"], [class*="text-red-"], [class*="bg-red-"], [class*="text-rose-"], [class*="bg-rose-"])):hover:not(:disabled):not([aria-disabled="true"]) {
+):not(:is(.produto-cardapio-acoes *, .agenda-calendar-day, .app-button-secondary, .app-logout, .notificacoes-trigger, .agenda-reservation-chat, .botao-acao-critica, [class*="vermelho-erro"], [class*="text-red-"], [class*="bg-red-"], [class*="text-rose-"], [class*="bg-rose-"])):hover:not(:disabled):not([aria-disabled="true"]) {
   background-color: var(--painel-botao-hover) !important;
   color: var(--painel-botao-texto) !important;
   border-color: var(--painel-botao-borda) !important;
@@ -397,7 +394,7 @@ html[data-tema] .area-autenticada:is(.area-cliente, .area-restaurante) :is(
   a[class*="bg-app-"],
   a[class*="border-app"],
   [role="button"]
-):not(:is(.produto-cardapio-acoes *, .agenda-calendar-day, .app-button-secondary, .app-logout, .notificacoes-trigger, .botao-acao-critica, [class*="vermelho-erro"], [class*="text-red-"], [class*="bg-red-"], [class*="text-rose-"], [class*="bg-rose-"])) :is(span, strong, p, svg, div, small, h2, h3) {
+):not(:is(.produto-cardapio-acoes *, .agenda-calendar-day, .app-button-secondary, .app-logout, .notificacoes-trigger, .agenda-reservation-chat, .botao-acao-critica, [class*="vermelho-erro"], [class*="text-red-"], [class*="bg-red-"], [class*="text-rose-"], [class*="bg-rose-"])) :is(span, strong, p, svg, div, small, h2, h3) {
   color: inherit !important;
 }
 
@@ -473,16 +470,6 @@ html[data-tema] .agenda-view-tabs .agenda-view-tab svg {
 
 html[data-tema] .agenda-calendar button.agenda-calendar-adjacent-day {
   color: var(--ui-texto-secundario, #b9b1ac) !important;
-}
-
-html[data-tema="escuro"] .agenda-calendar .agenda-calendar-today {
-  background-color: #946746;
-  color: #f5ebdd;
-}
-
-html[data-tema="escuro"] .agenda-calendar .agenda-calendar-selected {
-  background-color: var(--app-botao-primario);
-  color: var(--app-botao-primario-texto);
 }
 
 /* Bordas e divisores discretos em todos os blocos do modo escuro. */

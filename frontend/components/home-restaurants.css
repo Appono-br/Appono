@@ -1,4 +1,4 @@
-.home-publica { --home-header-height: 132px; --home-header-fundo: var(--app-chantilly); }
+.home-publica { --home-header-height: 148px; --home-header-fundo: var(--app-chantilly); }
 html[data-tema="escuro"] .home-publica { --home-header-fundo: var(--ui-header); }
 html[data-tema] .home-publica > header { background-color: var(--home-header-fundo) !important; }
 .home-restaurant-search { display: flex; align-items: center; height: 40px; overflow: hidden; border: 1px solid var(--app-baunilha-dourada); border-radius: 10px; background: transparent; color: var(--app-cafe-profundo); }
@@ -34,7 +34,7 @@ html[data-tema] .home-publica > header { background-color: var(--home-header-fun
 .home-discover .public-restaurants-section + .discover-guide { padding-top: 32px; }
 @keyframes public-loading { 50% { opacity: 0.5; } }
 @media (min-width: 1024px) {
-  .home-publica { --home-header-height: 80px; }
+  .home-publica { --home-header-height: 96px; }
   .home-search-desktop { display: flex; }
   .home-search-mobile-row { display: none; }
 }
