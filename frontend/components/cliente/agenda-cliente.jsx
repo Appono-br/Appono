@@ -3,7 +3,7 @@ import { useInterface } from "@/lib/use-interface";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { CalendarDays, ClipboardList } from "lucide-react";
+import { CalendarDays, ClipboardList, Headset, LoaderCircle } from "lucide-react";
 import { apiRequest } from "@/lib/api";
 import { reservaAceitaPagamento } from "@/lib/elegibilidade-pagamento";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
@@ -59,7 +59,7 @@ function obterStatusReserva(status) {
         return { texto: "Pendente", classe: "bg-app-cafe-profundo text-app-creme-leve" };
     }
     if (status === "CONFIRMADA") {
-        return { texto: "Confirmada", classe: "bg-app-baunilha-dourada text-app-cafe-profundo" };
+        return { texto: "Confirmada", classe: "agenda-reservation-confirmed bg-app-baunilha-dourada text-white" };
     }
     if (status === "CHECK_IN") {
         return { texto: "Check-in realizado", classe: "bg-app-cafe-profundo text-app-creme-leve" };
@@ -476,7 +476,7 @@ export function AgendaCliente() {
             const isToday = day.date === formatarDataCalendario(today);
             const isSelected = day.date === selectedDate;
             return (<button type="button" key={day.date} onClick={() => selecionarDia(day.date)} aria-pressed={isSelected} aria-current={isToday ? "date" : undefined} className={`agenda-calendar-day relative flex h-10 items-center justify-center rounded-[10px] text-[13px] transition ${day.currentMonth ? "text-app-cafe-profundo" : "agenda-calendar-adjacent-day text-[#b9b1ac]"}`}>
-                    <span className={`flex h-8 w-8 items-center justify-center rounded-[8px] ${isSelected ? "agenda-calendar-selected bg-[#946746] font-semibold text-app-creme-leve" : isToday ? "agenda-calendar-today bg-[#4c2f20] font-semibold text-white" : ""}`}>
+                    <span className={`flex h-8 w-8 items-center justify-center rounded-[8px] ${isToday ? "agenda-calendar-today font-semibold" : isSelected ? "agenda-calendar-selected font-semibold" : ""}`}>
                       {day.day}
                     </span>
                   </button>);
@@ -629,21 +629,21 @@ export function AgendaCliente() {
                             <p className="mt-2 text-xs font-semibold text-app-cinza">{ui("Pedido #")}{reservation.canceledOrder.id} - {formatarMoeda(reservation.canceledOrder.total, localeUI)}
                             </p>
                           </div>) : null}
-                        <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-app-baunilha-dourada/60 pt-4">
-                          {reservation.status === "PENDENTE" ? <Link href={reservation.activeOrder ? `/cliente/pagamentos/pedido/${reservation.activeOrder.id}` : `/cliente/pagamentos/reserva/${reservation.id}`} className="rounded-[8px] bg-app-dourado-mel px-4 py-2 text-xs font-bold text-white">{ui(reservation.activeOrder ? "Pagar pedido e reserva" : "Pagar reserva")}</Link> : null}
-                        <button type="button" disabled={abrindoChatReservaId === reservation.id} onClick={() => abrirChatReserva(reservation)} className="inline-flex items-center gap-2 rounded-[8px] border border-app-caramelo-torrado px-4 py-2 text-xs font-bold text-app-caramelo-torrado transition hover:bg-app-chantilly disabled:cursor-not-allowed disabled:opacity-60">
-                            <Icon type="message" className="h-4 w-4"/>
-                            {ui(abrindoChatReservaId === reservation.id ? "Abrindo..." : "Falar com restaurante")}
-                          </button>
-                          <Link href={`/cliente/configuracoes?painel=suporte&${reservation.activeOrder?.id ? `pedido=${reservation.activeOrder.id}&motivo=PEDIDO_NAO_PRONTO` : `reserva=${reservation.id}&motivo=MESA_INDISPONIVEL`}`} className="rounded-[8px] border border-app-baunilha-dourada px-4 py-2 text-xs font-bold text-app-mocha transition hover:bg-app-chantilly">
-                            {ui("Abrir suporte")}
+                        <div className="agenda-reservation-actions mt-5 flex min-w-0 flex-nowrap items-center gap-2 overflow-x-auto whitespace-nowrap border-t border-app-baunilha-dourada/60 px-1 pb-2 pt-4 [&>a]:shrink-0 [&>button]:shrink-0">
+                          {reservation.status === "PENDENTE" ? <Link href={reservation.activeOrder ? `/cliente/pagamentos/pedido/${reservation.activeOrder.id}` : `/cliente/pagamentos/reserva/${reservation.id}`} className="app-button-primary inline-flex items-center justify-center rounded-[8px] px-4 py-2 text-xs font-bold">{ui(reservation.activeOrder ? "Pagar pedido e reserva" : "Pagar reserva")}</Link> : null}
+                          {podeResponderPresenca(reservation) && reservation.attendanceStatus !== "CONFIRMADA" ? (<button type="button" disabled={processandoPresenca} onClick={() => setReservaParaConfirmarPresenca(reservation)} className="app-button-primary inline-flex items-center justify-center rounded-[8px] px-4 py-2 text-xs font-bold transition disabled:cursor-not-allowed disabled:opacity-60">{ui("Confirmar presença")}</button>) : null}
+                          {reservation.activeOrder?.status === "PENDENTE" && reservaAceitaPagamento(reservation) ? (<Link href={`/cliente/pagamentos/pedido/${reservation.activeOrder.id}`} className="app-button-primary inline-flex items-center justify-center rounded-[8px] px-4 py-2 text-xs font-bold transition">{ui("Pagar pedido")}</Link>) : null}
+                          {reservation.status === "CONFIRMADA" && reservation.activeOrder && reservation.activeOrder.status !== "PENDENTE" ? (<Link href={`/cliente/pedidos/${reservation.activeOrder.id}`} className="app-button-primary inline-flex items-center justify-center rounded-[8px] px-4 py-2 text-xs font-bold transition">{ui("Acompanhar pedido")}</Link>) : null}
+                          {reservation.status === "CONFIRMADA" && !reservation.activeOrder && !reservaJaIniciou(reservation) ? (<Link href={`/cliente/reservas/${reservation.id}/pedido`} className="app-button-primary inline-flex items-center justify-center rounded-[8px] px-4 py-2 text-xs font-bold transition">{ui("Adicionar pedido antecipado")}</Link>) : null}
+                          <Link href={`/cliente/configuracoes?painel=suporte&${reservation.activeOrder?.id ? `pedido=${reservation.activeOrder.id}&motivo=PEDIDO_NAO_PRONTO` : `reserva=${reservation.id}&motivo=MESA_INDISPONIVEL`}`} className="app-button-primary inline-flex items-center justify-center gap-2 rounded-[8px] px-4 py-2 text-xs font-bold transition">
+                            <Headset aria-hidden="true" className="h-4 w-4" />
+                            {ui("Suporte")}
                           </Link>
-                          {podeResponderPresenca(reservation) && reservation.attendanceStatus !== "CONFIRMADA" ? (<button type="button" disabled={processandoPresenca} onClick={() => setReservaParaConfirmarPresenca(reservation)} className="rounded-[8px] bg-app-cafe-profundo px-4 py-2 text-xs font-bold text-app-creme-leve transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-60">{ui("Confirmar presença")}</button>) : null}
-                        {["PENDENTE", "CONFIRMADA"].includes(reservation.status) && !reservaJaIniciou(reservation) ? (<button type="button" onClick={() => setReservaParaCancelar(reservation)} className="rounded-[8px] border border-app-vermelho-erro px-4 py-2 text-xs font-bold text-app-vermelho-erro transition hover:bg-app-chantilly hover:text-app-cafe-profundo">{ui("Desmarcar reserva")}</button>) : null}
-                        {reservation.activeOrder?.status === "PENDENTE" && reservaAceitaPagamento(reservation) ? (<Link href={`/cliente/pagamentos/pedido/${reservation.activeOrder.id}`} className="rounded-[8px] bg-app-dourado-mel px-4 py-2 text-xs font-bold text-white transition hover:bg-app-caramelo-torrado">{ui("Pagar pedido")}</Link>) : null}
-                        {reservation.status === "CONFIRMADA" && reservation.activeOrder && reservation.activeOrder.status !== "PENDENTE" ? (<Link href={`/cliente/pedidos/${reservation.activeOrder.id}`} className="rounded-[8px] bg-app-dourado-mel px-4 py-2 text-xs font-bold text-white transition hover:bg-app-caramelo-torrado">{ui("Acompanhar pedido")}</Link>) : null}
-                        {reservation.status === "CONFIRMADA" && !reservation.activeOrder && !reservaJaIniciou(reservation) ? (<Link href={`/cliente/reservas/${reservation.id}/pedido`} className="rounded-[8px] bg-app-dourado-mel px-4 py-2 text-xs font-bold text-white transition hover:bg-app-caramelo-torrado">{ui("Adicionar pedido antecipado")}</Link>) : null}
-                        {podeExcluirReservaDaLista(reservation) ? (<button type="button" onClick={() => setReservaParaExcluir(reservation)} className="text-xs font-bold text-app-cinza transition hover:text-app-vermelho-erro">{ui("Excluir da lista")}</button>) : null}
+                          <button type="button" disabled={abrindoChatReservaId === reservation.id} aria-busy={abrindoChatReservaId === reservation.id} aria-label={ui(abrindoChatReservaId === reservation.id ? "Abrindo..." : "Falar com restaurante")} title={ui("Falar com restaurante")} onClick={() => abrirChatReserva(reservation)} className="agenda-reservation-chat inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition disabled:cursor-not-allowed disabled:opacity-60">
+                            {abrindoChatReservaId === reservation.id ? <LoaderCircle aria-hidden="true" className="h-6 w-6 animate-spin motion-reduce:animate-none" /> : <Icon type="message" className="h-6 w-6"/>}
+                          </button>
+                          {["PENDENTE", "CONFIRMADA"].includes(reservation.status) && !reservaJaIniciou(reservation) ? (<button type="button" onClick={() => setReservaParaCancelar(reservation)} className="agenda-reservation-cancel ml-auto inline-flex items-center justify-center rounded-[8px] px-4 py-2 text-xs font-bold text-app-vermelho-erro transition">{ui("Desmarcar reserva")}</button>) : null}
+                          {podeExcluirReservaDaLista(reservation) ? (<button type="button" onClick={() => setReservaParaExcluir(reservation)} className="ml-auto inline-flex items-center justify-center rounded-[8px] px-4 py-2 text-xs font-bold text-app-cinza transition hover:text-app-vermelho-erro">{ui("Excluir da lista")}</button>) : null}
                         </div>
                       </div>
                     </div>

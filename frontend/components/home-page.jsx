@@ -64,7 +64,7 @@ export default function HomePage() {
   return (
     <main className={`home-publica min-h-screen bg-white text-app-texto-escuro ${tema === "escuro" ? "tema-escuro" : ""}`}>
       <header ref={headerRef} className="sticky top-0 z-30 border-b border-app-baunilha-dourada/50 bg-white/95 backdrop-blur">
-  <div className="home-header-row mx-auto flex min-h-20 max-w-7xl items-center justify-between gap-2 px-3 py-2 sm:px-6 lg:grid lg:grid-cols-[minmax(0,1fr)_auto_auto]">
+  <div className="home-header-row mx-auto flex min-h-24 max-w-7xl items-center justify-between gap-2 px-3 py-2 sm:px-6 lg:grid lg:grid-cols-[minmax(0,1fr)_auto_auto]">
     <div className="home-header-brand-search flex min-w-0 items-center gap-3">
       <Link href="/" className="flex shrink-0 items-center" onClick={closeMenu}>
         <Image

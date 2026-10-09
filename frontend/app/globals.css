@@ -1339,3 +1339,86 @@ html[data-tema="escuro"] select[size="1"] {
   border-radius: 0.75rem !important;
 }
 
+/* A saída da conta mantém a cor de perigo em todos os temas. */
+html body button.app-logout {
+  background: transparent !important;
+  border-color: transparent !important;
+  color: var(--ui-perigo, #b91c1c) !important;
+  box-shadow: none !important;
+}
+
+html body button.app-logout:hover:not(:disabled) {
+  text-decoration: underline;
+}
+
+html body button.app-logout :is(span, svg) {
+  color: inherit !important;
+}
+
+html body button.app-logout-confirm {
+  background: #dc2626 !important;
+  color: #ffffff !important;
+}
+
+html body button.app-logout-confirm:hover:not(:disabled) {
+  background: #b91c1c !important;
+}
+
+/* Papéis explícitos para novos controles, sem depender dos nomes antigos da paleta. */
+html[data-tema] .app-button-secondary {
+  background-color: var(--app-botao-secundario) !important;
+  color: var(--app-botao-secundario-texto) !important;
+  border: var(--app-borda-espessura) solid var(--app-borda-cor);
+}
+
+html[data-tema] .app-button-secondary:hover:not(:disabled) {
+  background-color: var(--app-botao-secundario-hover) !important;
+}
+
+html[data-tema] :is(.app-button-primary, .app-button-secondary, .botao-confirmacao-marrom, button.bg-app-primaria, a.bg-app-primaria, button.bg-app-cafe-profundo, a.bg-app-cafe-profundo, button.bg-app-caramelo-torrado, a.bg-app-caramelo-torrado, button.bg-app-dourado-mel, a.bg-app-dourado-mel, button.bg-app-botao-aba-ativa, a.bg-app-botao-aba-ativa) :is(span, strong, p, svg, small) {
+  color: inherit !important;
+}
+
+html[data-tema] :is(.app-button-primary, .app-button-secondary):is(:disabled, [aria-disabled="true"]) {
+  opacity: 0.6;
+}
+
+html[data-tema] :is(.app-button-primary, .app-button-secondary):focus-visible {
+  outline: 2px solid var(--ui-acento, #b89980) !important;
+  outline-offset: 3px;
+}
+
+html[data-tema] .agenda-calendar .agenda-calendar-today {
+  background-color: var(--app-botao-primario) !important;
+  color: var(--app-botao-primario-texto) !important;
+}
+
+html[data-tema] .agenda-calendar .agenda-calendar-selected {
+  background-color: var(--app-botao-secundario) !important;
+  color: var(--app-botao-secundario-texto) !important;
+}
+
+html[data-tema] .agenda-cliente .agenda-reservation-confirmed {
+  color: #ffffff !important;
+}
+
+html[data-tema] .agenda-cliente button.agenda-reservation-cancel {
+  background-color: color-mix(in srgb, var(--app-vermelho-erro) 14%, transparent) !important;
+}
+
+html[data-tema] .agenda-cliente button.agenda-reservation-cancel:hover:not(:disabled) {
+  background-color: color-mix(in srgb, var(--app-vermelho-erro) 20%, transparent) !important;
+}
+
+html[data-tema] .agenda-cliente button.agenda-reservation-chat,
+html[data-tema] .agenda-cliente button.agenda-reservation-chat:hover {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  color: var(--app-cafe-profundo) !important;
+}
+
+html[data-tema] .agenda-cliente button.agenda-reservation-chat:hover:not(:disabled) {
+  color: var(--app-caramelo-torrado) !important;
+}
+
