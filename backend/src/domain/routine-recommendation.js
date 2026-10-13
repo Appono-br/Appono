@@ -215,7 +215,7 @@ function horarioCompativel(candidato, perfil, data, agora = new Date(), horarioE
     const config = candidato.restaurante.configuracao_operacao ?? {};
     const dia = DIAS_SEMANA[new Date(`${data}T12:00:00Z`).getUTCDay()];
     const operacao = config.days?.find((item) => item.id === dia && item.enabled === true);
-    if (!operacao || candidato.restaurante.ativo === false || candidato.restaurante.aceita_reserva === false) return null;
+    if (!operacao || candidato.restaurante.ativo === false) return null;
     const deslocamento = Math.ceil((candidato.distancia_km ?? 0) * 1.3 / 5 * 60);
     const tempoTotal = 30 + deslocamento * 2;
     if (tempoTotal > Number(perfil.tempo_maximo_minutos ?? 60)) return null;
