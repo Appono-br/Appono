@@ -58,6 +58,7 @@ async function listar(query = {}, erroBanco = null) {
         get(rota, ...handlers) { if (rota === "/") handler = handlers.at(-1); },
         post() {},
         patch() {},
+        delete() {},
     };
     vm.runInNewContext(codigo, {
         exports: {},

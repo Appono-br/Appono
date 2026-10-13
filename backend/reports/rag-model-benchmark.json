@@ -1,0 +1,26 @@
+{
+  "criadoEm": "2026-10-12T21:54:33.436Z",
+  "modelId": "Xenova/paraphrase-multilingual-MiniLM-L12-v2",
+  "revision": "2c4055b12046f11709e9df2c122e59ffbdc2f900",
+  "dimensions": 384,
+  "carregamentoMs": 13506.06,
+  "amostras": [
+    {
+      "caracteres": 41,
+      "dimensao": 384,
+      "latenciaMs": 8.98
+    },
+    {
+      "caracteres": 61,
+      "dimensao": 384,
+      "latenciaMs": 6.7
+    },
+    {
+      "caracteres": 59,
+      "dimensao": 384,
+      "latenciaMs": 5.98
+    }
+  ],
+  "mediaInferenciaMs": 7.22,
+  "node": "v24.14.0"
+}

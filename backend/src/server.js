@@ -26,6 +26,7 @@ const { agendaRotinaRouter } = require("./routes/routine-calendar");
 const { rotinaInsightsRouter } = require("./routes/routine-insights");
 const { rotinaGroupsRouter } = require("./routes/routine-groups");
 const { plansRouter } = require("./routes/plans");
+const { ragRouter } = require("./routes/rag");
 const { requestContext } = require("./middleware/observability");
 const { criarRateLimiter } = require("./middleware/rate-limit");
 const crypto = require("node:crypto");
@@ -164,6 +165,7 @@ const limitarOperacoesAdministrativas = criarRateLimiter({ janelaMs: 60_000, lim
 const limitarMarketplace = criarRateLimiter({ janelaMs: 60_000, limite: 30 });
 const limitarSuporte = criarRateLimiter({ janelaMs: 60_000, limite: 30 });
 const limitarCron = criarRateLimiter({ janelaMs: 60_000, limite: 10 });
+const limitarRag = criarRateLimiter({ janelaMs: 60_000, limite: 30 });
 
 app.post("/api/cron/emails", limitarCron, async (req, res) => {
   const esperado = String(process.env.APPONO_CRON_SECRET ?? "");
@@ -199,6 +201,7 @@ app.use("/api/rotina/grupos", rotinaGroupsRouter);
 app.use("/api/rotina", rotinaRouter);
 app.use("/api/planos", plansRouter);
 app.use("/api/campanhas", require("./routes/campaigns").campaignsRouter);
+app.use("/api/rag", limitarRag, ragRouter);
 
 app.use((error, _req, res, _next) => {
   const mensagem = String(error?.message ?? "");

@@ -7,6 +7,7 @@ const { compararRankingSombra, ordenarPorPontuacao } = require("./routine-shadow
 const { decidirCandidatoInteligencia } = require("./routine-intelligence-policy");
 const { criarDiagnosticoOperacional } = require("./routine-intelligence-operational");
 const { criarDiagnosticoV2_1, decidirCandidatoV2_1Titular, selecionarCandidatoV2_1 } = require("./routine-intelligence-v2-1-titular");
+const { produtoCombinaSemantico, scoreSemantico } = require("./routine-rag-support");
 
 const DIAS_SEMANA = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
 const DIAS_UTEIS_PADRAO = ["monday", "tuesday", "wednesday", "thursday", "friday"];
@@ -312,7 +313,7 @@ function obterProdutosRestaurante(restaurante) {
     });
 }
 
-function criarCandidatos({ perfil, restaurantes, preferencias = [], restricoes = [], alergias = [], favoritosRestaurantes = new Set(), pratosFavoritos = new Set(), feedbacks = [], diagnostico = {}, referencia = new Date(), sequenciaV2 = {} }) {
+function criarCandidatos({ perfil, restaurantes, preferencias = [], restricoes = [], alergias = [], favoritosRestaurantes = new Set(), pratosFavoritos = new Set(), feedbacks = [], diagnostico = {}, referencia = new Date(), sequenciaV2 = {}, suporteSemantico = null }) {
     const orcamento = numeroValido(perfil.orcamento_diario);
     const raio = numeroValido(perfil.raio_km);
     const temCoordenada = numeroValido(perfil.latitude) !== null && numeroValido(perfil.longitude) !== null;
@@ -347,7 +348,10 @@ function criarCandidatos({ perfil, restaurantes, preferencias = [], restricoes =
             }
             const perto = distancia !== null && distancia < 2;
             const bemAvaliado = Number(restaurante.avaliacao_media ?? 0) > 4;
-            const combinaPreferencia = produto ? produtoCombinaPreferencia(produto, restaurante, preferencias) : false;
+            const combinaPreferenciaTexto = produto ? produtoCombinaPreferencia(produto, restaurante, preferencias) : false;
+            const combinaPreferenciaRAG = produto ? produtoCombinaSemantico(produto.id_produto, suporteSemantico) : false;
+            const combinaPreferencia = combinaPreferenciaTexto || combinaPreferenciaRAG;
+            const bonusSemantico = produto ? scoreSemantico(produto.id_produto, suporteSemantico) : 0;
             const scoreOperacional = Math.max(0, Math.min(100, Number(restaurante.score_operacional ?? 100)));
             const score = pontuarCandidato({
                 favoritoRestaurante, dentroOrcamento, perto, bemAvaliado,
@@ -370,16 +374,18 @@ function criarCandidatos({ perfil, restaurantes, preferencias = [], restricoes =
                 referencia,
                 sequencia: sequenciaV2,
             }));
+            const ajusteSemantico = bonusSemantico > 0 ? Number((bonusSemantico * 5).toFixed(2)) : 0;
             candidatos.push({
                 restaurante,
                 produto,
                 distancia_km: distancia,
                 preco_estimado: preco,
-                pontuacao: Number((score.pontuacao + ajusteFeedback).toFixed(2)),
-                pontuacaoDesafiante: Number((score.pontuacao + ajusteFeedback + inteligencia.ajuste).toFixed(2)),
-                pontuacaoDesafianteV2: Number((score.pontuacao + ajusteFeedback + inteligenciaV2.ajuste).toFixed(2)),
-                pesos: { ...score.componentes, feedback_controlado: ajusteFeedback },
+                pontuacao: Number((score.pontuacao + ajusteFeedback + ajusteSemantico).toFixed(2)),
+                pontuacaoDesafiante: Number((score.pontuacao + ajusteFeedback + ajusteSemantico + inteligencia.ajuste).toFixed(2)),
+                pontuacaoDesafianteV2: Number((score.pontuacao + ajusteFeedback + ajusteSemantico + inteligenciaV2.ajuste).toFixed(2)),
+                pesos: { ...score.componentes, feedback_controlado: ajusteFeedback, afinidade_semantica: ajusteSemantico },
                 combinaPreferenciaExplicita: combinaPreferencia,
+                combinaPreferenciaRAG,
                 inteligencia,
                 inteligenciaV2,
             });
@@ -402,7 +408,8 @@ function motivoRecomendacao(candidato) {
     if (candidato.pesos.distancia_menor_2km) partes.push("perto da sua base");
     if (candidato.pesos.dentro_orcamento) partes.push("dentro do orçamento");
     if (candidato.pesos.avaliacao_maior_4) partes.push("bem avaliado");
-    if (candidato.pesos.preferencia_produto) partes.push("combina com suas preferências");
+    if (candidato.combinaPreferenciaRAG && !candidato.pesos.preferencia_produto) partes.push("afinidade semântica com suas preferências");
+    else if (candidato.pesos.preferencia_produto) partes.push("combina com suas preferências");
     if (candidato.pesos.feedback_controlado > 0) partes.push("considera seus retornos anteriores");
     if (!partes.length) partes.push("melhor opção disponível para sua rotina");
     return partes.join(", ");
@@ -453,6 +460,7 @@ function gerarPlanejamentoRotina({
     janelasAlimentacao = [],
     politicaInteligencia = null,
     requestId = null,
+    suporteSemantico = null,
 }) {
     const modoLegado = !Array.isArray(janelasAlimentacao) || janelasAlimentacao.length === 0;
     const janelas = normalizarJanelasAlimentacao(perfil, janelasAlimentacao);
@@ -508,6 +516,7 @@ function gerarPlanejamentoRotina({
             favoritosRestaurantes: new Set(favoritosRestaurantes.map(Number)), pratosFavoritos: new Set(pratosFavoritos.map(Number)), feedbacks, diagnostico,
             referencia: agora,
             sequenciaV2,
+            suporteSemantico,
         });
         const janelasLivres = janelasLivresDia(perfilDaJanela, item.data, janelasOcupadas);
         const opcoesDoDia = candidatos
@@ -726,6 +735,7 @@ function gerarPlanejamentoRotina({
             experimentos_sombra: [MODELO_INTELIGENCIA_ROTINA.versao, MODELO_INTELIGENCIA_ROTINA_V2.versao],
             agenda_aplicada: janelasOcupadas.length > 0,
             total_janelas: janelas.length,
+            rag_semantico: suporteSemantico ? { ativo: true, total_produtos: suporteSemantico.totalProdutos, total_preferencias: suporteSemantico.totalPreferencias, matches: suporteSemantico.mapaSemantico.size } : { ativo: false },
         },
     };
 }

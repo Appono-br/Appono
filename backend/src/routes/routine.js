@@ -12,8 +12,23 @@ const { resolverPoliticaInteligenciaRotina } = require("../domain/routine-intell
 const { resolverPoliticaV2_1Titular } = require("../domain/routine-intelligence-v2-1-titular");
 const { candidataCongeladaDisponivel } = require("../domain/routine-intelligence-operational");
 const { enderecoAtivo, normalizarEnderecos } = require("../domain/routine-addresses");
+const { loadRagConfig } = require("../rag/config");
+const { prepararSuporteSemantico } = require("../domain/routine-rag-support");
+
+const { createModelRegistry } = require("../rag/model-registry");
+const { createEmbeddingService } = require("../rag/embedding-service");
 
 const rotinaRouter = Router();
+let _embeddingServiceCache = null;
+
+function obterEmbeddingService() {
+    if (_embeddingServiceCache) return _embeddingServiceCache;
+    const config = loadRagConfig();
+    if (!config.enabled || !config.intelligenceSupportEnabled || !config.modelId || !config.modelRevision) return null;
+    const registry = createModelRegistry([{ id: config.modelId, revision: config.modelRevision, dimensions: 384 }]);
+    _embeddingServiceCache = createEmbeddingService({ model: registry.require(config.modelId), cacheDir: config.modelCacheDir, maxBatch: config.maxEmbeddingBatch });
+    return _embeddingServiceCache;
+}
 
 rotinaRouter.use(requireAuth, requireRole("cliente"));
 
@@ -870,6 +885,15 @@ rotinaRouter.post("/planejamento/gerar", async (req, res) => {
         const politicaOperacional = candidataDisponivel
             ? { ...politicaInteligencia, ...politicaV2_1 }
             : { ...politicaInteligencia, ...politicaV2_1, usarV2: false };
+        let suporteSemantico = null;
+        try {
+            const embService = obterEmbeddingService();
+            if (embService) {
+                suporteSemantico = await prepararSuporteSemantico({ preferencias, restaurantes, embeddingService: embService });
+            }
+        } catch (erroRAG) {
+            console.warn("ROUTINE_RAG_SUPPORT_FAILED", { code: erroRAG?.code ?? erroRAG?.name ?? "UNKNOWN" });
+        }
         const planejamentoGerado = gerarPlanejamentoRotina({
             perfil: dadosPerfil.perfil,
             janelasAlimentacao: dadosPerfil.janelas,
@@ -886,6 +910,7 @@ rotinaRouter.post("/planejamento/gerar", async (req, res) => {
             feedbacks: feedbacksParaRanking,
             politicaInteligencia: politicaOperacional,
             requestId: `routine:${res.locals.profileId}:${semanaInicio}`,
+            suporteSemantico,
         });
         await mutarRotina(banco, res, { ...req.body, versao_planejamento: versaoAlvo }, "GERAR", null, planejamentoGerado);
         const respostaPersistida = await buscarPlanejamentoComRefeicoes(banco, res.locals.profileId, { semana_inicio: semanaInicio });
@@ -963,6 +988,13 @@ async function opcoesDaRefeicao(banco, idCliente, refeicao, horario = null, vers
     const janelasLivres = janelasLivresDia(perfil, refeicao.data_refeicao, ocupadas ?? []);
     const restaurantes = await carregarRestaurantesParaRotina(banco, idCliente);
     const feedbacks = await carregarFeedbacksPersonalizacao(banco, idCliente, restaurantes);
+    let suporteSemAlt = null;
+    try {
+        const embService = obterEmbeddingService();
+        if (embService && perfil.preferencias?.length) {
+            suporteSemAlt = await prepararSuporteSemantico({ preferencias: perfil.preferencias, restaurantes, embeddingService: embService });
+        }
+    } catch (_) { /* fallback sem suporte semântico */ }
     const janelaAtual = perfil.janelas_alimentacao?.find((item) => Number(item.id_janela_alimentacao) === Number(refeicao.id_janela_alimentacao));
     const opcoes = criarCandidatos({
         perfil: { ...perfil, tipo_janela: janelaAtual?.tipo ?? null }, restaurantes,
@@ -970,6 +1002,7 @@ async function opcoesDaRefeicao(banco, idCliente, refeicao, horario = null, vers
         favoritosRestaurantes: new Set(perfil.restaurantes_favoritos_rotina.map(Number)),
         pratosFavoritos: new Set(perfil.pratos_favoritos_rotina.map(Number)),
         feedbacks,
+        suporteSemantico: suporteSemAlt,
     }).filter((item) => item.preco_estimado <= saldo).flatMap((item) => {
         const janela = janelasLivres.map((livre) => horarioCompativel(item, { ...perfil, ...livre }, refeicao.data_refeicao, new Date(), horario)).find(Boolean);
         return janela ? [{

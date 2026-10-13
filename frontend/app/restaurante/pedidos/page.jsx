@@ -35,11 +35,24 @@ function formatarMoeda(valor, localeUI = "pt-BR") {
 function calcularSubtotalItem(item) {
     return Number(item.subtotal ?? 0) || Number(item.preco_unitario ?? 0) * Number(item.quantidade ?? 0);
 }
+function escaparHtml(valor) {
+    return String(valor ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
 function imprimirComandaCozinha(pedido) {
     const janela = window.open("", "_blank", "width=420,height=680");
     if (!janela) return false;
-    const itens = (pedido.itens_pedido ?? []).map((item) => `<div class="item"><strong>${item.quantidade}x ${item.produtos?.nome ?? "Item"}</strong>${item.observacoes ? `<small>Obs.: ${item.observacoes}</small>` : ""}</div>`).join("");
-    janela.document.write(`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Comanda #${pedido.id_pedido}</title><style>@page{size:80mm auto;margin:4mm}*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;color:#000;font-size:12px}.comanda{width:72mm;margin:auto}.centro{text-align:center}.titulo{font-size:18px;font-weight:800;margin:0 0 4px}.linha{border-top:1px dashed #000;margin:8px 0}.meta{line-height:1.5}.item{padding:7px 0;border-bottom:1px dotted #666}.item strong{display:block;font-size:14px}.item small{display:block;margin-top:3px}.obs{margin-top:8px;font-weight:700;white-space:pre-wrap}@media print{.comanda{width:100%}}</style></head><body><main class="comanda"><div class="centro"><p class="titulo">COMANDA DE COZINHA</p><strong>Pedido #${pedido.id_pedido}</strong></div><div class="linha"></div><div class="meta"><div>Cliente: ${pedido.clientes?.nome ?? "Não informado"}</div><div>Mesa: ${pedido.reservas?.mesas?.numero_mesa ?? "-"}</div><div>Data: ${new Date(pedido.data_pedido ?? Date.now()).toLocaleString("pt-BR")}</div></div><div class="linha"></div>${itens || "<div>Sem itens detalhados</div>"}${pedido.observacoes ? `<div class="obs">Observação: ${pedido.observacoes}</div>` : ""}<div class="linha"></div><div class="centro">Appono</div></main><script>window.onload=()=>{window.print();window.onafterprint=()=>window.close()}</script></body></html>`);
+    const itens = (pedido.itens_pedido ?? []).map((item) => `<div class="item"><strong>${escaparHtml(item.quantidade)}x ${escaparHtml(item.produtos?.nome ?? "Item")}</strong>${item.observacoes ? `<small>Obs.: ${escaparHtml(item.observacoes)}</small>` : ""}</div>`).join("");
+    const idPedido = escaparHtml(pedido.id_pedido);
+    const nomeCliente = escaparHtml(pedido.clientes?.nome ?? "Não informado");
+    const numeroMesa = escaparHtml(pedido.reservas?.mesas?.numero_mesa ?? "-");
+    const dataPedido = escaparHtml(new Date(pedido.data_pedido ?? Date.now()).toLocaleString("pt-BR"));
+    const observacao = pedido.observacoes ? `<div class="obs">Observação: ${escaparHtml(pedido.observacoes)}</div>` : "";
+    janela.document.write(`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Comanda #${idPedido}</title><style>@page{size:80mm auto;margin:4mm}*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;color:#000;font-size:12px}.comanda{width:72mm;margin:auto}.centro{text-align:center}.titulo{font-size:18px;font-weight:800;margin:0 0 4px}.linha{border-top:1px dashed #000;margin:8px 0}.meta{line-height:1.5}.item{padding:7px 0;border-bottom:1px dotted #666}.item strong{display:block;font-size:14px}.item small{display:block;margin-top:3px}.obs{margin-top:8px;font-weight:700;white-space:pre-wrap}@media print{.comanda{width:100%}}</style></head><body><main class="comanda"><div class="centro"><p class="titulo">COMANDA DE COZINHA</p><strong>Pedido #${idPedido}</strong></div><div class="linha"></div><div class="meta"><div>Cliente: ${nomeCliente}</div><div>Mesa: ${numeroMesa}</div><div>Data: ${dataPedido}</div></div><div class="linha"></div>${itens || "<div>Sem itens detalhados</div>"}${observacao}<div class="linha"></div><div class="centro">Appono</div></main><script>window.onload=()=>{window.print();window.onafterprint=()=>window.close()}</script></body></html>`);
     janela.document.close();
     return true;
 }

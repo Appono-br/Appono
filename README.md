@@ -20,6 +20,7 @@ O projeto está em desenvolvimento, com módulos implementados e integrações q
 - [Funcionalidades e estado atual](#funcionalidades-e-estado-atual)
 - [Appono Rotina](#appono-rotina)
 - [Appono Intelligence](#appono-intelligence)
+- [Appono Intelligence — Base de Conhecimento (RAG)](#appono-intelligence--base-de-conhecimento-rag)
 - [Interface](#interface)
 - [Tecnologias e arquitetura](#tecnologias-e-arquitetura)
 - [Estrutura do repositório](#estrutura-do-repositório)
@@ -27,6 +28,7 @@ O projeto está em desenvolvimento, com módulos implementados e integrações q
 - [Variáveis de ambiente](#variáveis-de-ambiente)
 - [Supabase e migrations](#supabase-e-migrations)
 - [Execução local](#execução-local)
+- [Deploy em produção (Oracle Cloud)](#deploy-em-produção-oracle-cloud)
 - [Comandos e verificações](#comandos-e-verificações)
 - [Solução de problemas](#solução-de-problemas)
 - [Documentação complementar](#documentação-complementar)
@@ -43,6 +45,7 @@ O projeto está em desenvolvimento, com módulos implementados e integrações q
 | Pagamentos | Checkout Pro, conexão OAuth de restaurantes, webhook, financeiro e solicitação de reembolso | Credenciais Mercado Pago, URLs de integração e modo financeiro; simulação e estorno no gateway têm comportamentos distintos |
 | Atendimento | Chat entre participantes, notificações internas, chamados e análise administrativa | Migrations de chat e suporte, autenticação e validação de propriedade |
 | Appono Rotina | Perfil, endereço geocodificado, até oito janelas alimentares, planejamento, Google Agenda, recomendações explicáveis, segurança alimentar, feedback privado e conversão em reserva ou pedido | Escritas transacionais, controle de concorrência, RLS e feature flags; a exportação para o Google exige reconexão das contas antigas |
+| Appono Intelligence — RAG | Matching semântico de preferências nas recomendações de restaurantes; base de conhecimento com busca híbrida (vetorial + lexical); geração de resposta com LLM local; isolamento por tenant | Ollama com `gemma3:4b` para geração; embeddings locais com Transformers.js; pgvector no Supabase; desativado por padrão via feature flags |
 
 Estão pendentes de validação para um piloto financeiro: concorrência real, matriz RLS entre usuários, webhooks e estornos no sandbox, conciliação periódica independente das telas, alertas externos e restauração de backup. Os documentos de operação e piloto descrevem requisitos; não representam automações já entregues. Veja os [limites e pendências](docs/fluxos-operacionais.md#prontidão).
 
@@ -72,6 +75,64 @@ No fluxo de reserva, iniciar o checkout cria uma reserva pendente e bloqueia a m
 
 As regras de disponibilidade consideram horário de funcionamento, conflito de reservas e status operacional da reserva. Integrações de agenda, notificações, grupos e insights dependem das respectivas feature flags e configurações externas.
 
+## Appono Intelligence — Base de Conhecimento (RAG)
+
+O Appono Intelligence combina recomendação determinística de restaurantes com uma **camada de compreensão semântica** baseada em RAG (Retrieval-Augmented Generation). A infraestrutura de embeddings e busca vetorial é usada em dois pontos:
+
+1. **Matching semântico de preferências** — durante a geração do planejamento semanal, o sistema vetoriza as preferências do cliente e compara semanticamente com cada produto dos restaurantes candidatos. Isso permite que uma preferência como "comida japonesa" combine com "sushi", "sashimi" e "tempura" mesmo sem correspondência textual exata, superando o matching por tokens do motor determinístico.
+
+2. **Base de conhecimento operacional** — documentos de políticas, FAQ e operações da plataforma ficam acessíveis por busca semântica híbrida (vetorial + lexical), com geração de resposta via LLM local.
+
+### Integração com a recomendação
+
+```mermaid
+flowchart TD
+    P[Preferências do cliente] --> E[Transformers.js<br/>Embedding local]
+    R[Produtos dos restaurantes] --> E
+    E --> S[Similaridade de cosseno<br/>por par preferência × produto]
+    S -->|score ≥ 0.40| B[Bonus de afinidade semântica<br/>até +5 pontos]
+    B --> C[Score final do candidato<br/>deterministico-v3 + feedback + semântico]
+    C --> D[Seleção da recomendação]
+```
+
+Quando `APPONO_RAG_INTELLIGENCE_SUPPORT_ENABLED=true`, o fluxo de geração de planejamento (`POST /rotina/planejamento/gerar`) pré-computa embeddings das preferências e dos produtos antes de montar os candidatos. Produtos com similaridade semântica acima do threshold recebem o flag `combinaPreferenciaRAG` e um bônus proporcional ao score de similaridade. O motivo da recomendação indica "afinidade semântica com suas preferências" quando o match veio do RAG e não do matching textual.
+
+A integração é resiliente: se o RAG falhar ou estiver desativado, o fluxo determinístico continua sem interrupção.
+
+### Componentes
+
+| Componente | Tecnologia | Função |
+| --- | --- | --- |
+| Embeddings | Transformers.js com `paraphrase-multilingual-MiniLM-L12-v2` (384 dimensões) | Vetorização local multilíngue de preferências e produtos |
+| Armazenamento | pgvector no Supabase/PostgreSQL | Persistência de vetores com RLS por tenant |
+| Busca | RPC híbrida (cosine similarity + full-text search) | Recuperação por relevância semântica e lexical combinadas |
+| Geração | Ollama com `gemma3:4b` (3,4 GB, ~66 tokens/s) | Resposta em linguagem natural, local e gratuita |
+| Segurança | RLS, filtro de escopo antes da relevância, sanitização | Zero vazamento cross-tenant confirmado em avaliação |
+
+### Base de conhecimento — modos de operação
+
+- **SOMENTE_FONTES** — retorna os trechos relevantes com citações, sem gerar texto.
+- **RESPOSTA** — gera uma resposta fundamentada nos documentos recuperados, usando o LLM local.
+
+### Avaliação de qualidade
+
+A avaliação automatizada usa um dataset de 95 perguntas em 7 categorias (respondíveis, sem evidência, transacionais, adversariais, cross-tenant, ambíguas).
+
+| Métrica | Resultado | Critério |
+| --- | --- | --- |
+| Vazamentos cross-tenant | 0 | = 0 |
+| Abstinência correta | 100% | ≥ 95% |
+| Groundedness | 100% | ≥ 95% |
+| Citações válidas | 100% | ≥ 98% |
+
+### Segurança
+
+- **Isolamento por tenant**: o filtro de escopo é aplicado em SQL antes da ordenação por relevância.
+- **Kill switch**: `APPONO_RAG_ENABLED=false` desativa todo o RAG sem afetar o restante da plataforma.
+- **Testes adversariais**: 13 cenários cobrindo prompt injection, sanitização HTML, cross-tenant, limites de batch/dimensão, idempotência e kill switch.
+- **Rollout desligado por padrão**: todas as feature flags iniciam como `false`.
+- **Fallback resiliente**: falha no RAG não interrompe o fluxo de recomendação — o motor determinístico continua operando.
+
 ## Interface
 
 <p align="center">
@@ -86,7 +147,8 @@ Captura de desenvolvimento já presente no repositório. Outras referências vis
 | --- | --- | --- |
 | Interface | Next.js 16, React 19, Tailwind CSS 4 | Páginas, componentes e interação dos três perfis |
 | API | Node.js, Express 5, JavaScript | Autorização, regras de negócio e integrações |
-| Dados | Supabase/PostgreSQL, Auth e Storage | Identidade, persistência, funções SQL, RLS e imagens |
+| Dados | Supabase/PostgreSQL, Auth, Storage e pgvector | Identidade, persistência, funções SQL, RLS, imagens e busca vetorial |
+| Inteligência | Transformers.js, Ollama (`gemma3:4b`) | Embeddings locais multilíngues e geração de linguagem natural |
 | Pagamentos | SDK Mercado Pago | Checkout Pro, consulta de pagamentos, OAuth e estornos |
 | Desenvolvimento | npm workspaces, concurrently, nodemon, ESLint, `node:test` | Execução do monorepo e verificações locais |
 
@@ -99,10 +161,12 @@ flowchart LR
     F -->|Sessão e OAuth| A[Supabase Auth]
     F -->|Imagem com RLS| S[Supabase Storage e Data API]
     B -->|Validação de identidade| A
-    B -->|Consultas e funções SQL| D[Supabase / PostgreSQL]
+    B -->|Consultas, funções SQL e pgvector| D[Supabase / PostgreSQL]
     B -->|Checkout, consulta e estorno| M[Mercado Pago]
     M -->|Webhook| B
     B --> E[ViaCEP, ReceitaWS e Nominatim]
+    B -->|Embeddings locais| T[Transformers.js]
+    B -->|Geração local| O[Ollama / gemma3:4b]
 ```
 
 As regras puras ficam em `backend/src/domain`; rotas coordenam HTTP, autorização e serviços. O frontend usa a API Express nos fluxos de negócio e o cliente Supabase para sessão e upload de imagens. A chave administrativa permanece no backend; operações privilegiadas dependem das verificações de perfil e propriedade da API.
@@ -114,6 +178,8 @@ As regras puras ficam em `backend/src/domain`; rotas coordenam HTTP, autorizaç�
 ```text
 Appono/
 ├── .gitignore                 # Exclusões de arquivos locais e gerados
+├── .dockerignore              # Exclusões para build Docker
+├── docker-compose.yml         # Orquestração backend + Ollama para produção
 ├── package.json               # Workspaces e comandos conjuntos
 ├── package-lock.json          # Versões resolvidas das dependências
 ├── README.md                  # Apresentação e início de uso
@@ -129,6 +195,7 @@ Appono/
 │   │   ├── domain/            # Regras de reservas, pedidos e pagamentos
 │   │   ├── lib/supabase.js    # Clientes Supabase e configuração
 │   │   ├── middleware/        # Autenticação, autorização e logs
+│   │   ├── rag/               # Módulos do RAG: embedding, busca, geração, ingestão
 │   │   ├── routes/            # Endpoints por módulo de negócio
 │   │   └── services/
 │   │       ├── pagamentos/    # Mercado Pago, configuração e reembolsos
@@ -136,6 +203,9 @@ Appono/
 │   │       ├── validacoes/    # Validações e consultas cadastrais
 │   │       ├── geolocalizacao.js # Consulta e normalização de coordenadas
 │   │       └── notificacoes.js   # Criação de notificações internas
+│   ├── evaluation/            # Dataset de avaliação de qualidade do RAG
+│   ├── reports/               # Relatórios de benchmark e avaliação
+│   ├── scripts/               # Seed, avaliação, benchmark e token admin
 │   └── test/                  # Suíte node:test, agrupada por regra
 │       └── start.test.js      # Regressão da inicialização e certificados
 ├── frontend/
@@ -271,6 +341,26 @@ For the hosted monthly plan, enable `subscription_preapproval` notifications in 
 
 | `APPONO_ROTINA_SHADOW_ENABLED` | Padrao `false` | Persiste comparacoes privadas do controle com `appono-intelligence-v1` e `appono-intelligence-v2`; nao altera a sugestao mostrada |
 
+#### RAG — Base de Conhecimento
+
+| Variável | Padrão | Uso |
+| --- | --- | --- |
+| `APPONO_RAG_ENABLED` | `false` | Kill switch principal; desativa todo o módulo RAG |
+| `APPONO_RAG_INTELLIGENCE_SUPPORT_ENABLED` | `false` | Habilita o suporte semântico do RAG nas recomendações do Appono Intelligence |
+| `APPONO_RAG_INGESTION_ENABLED` | `false` | Habilita os endpoints de ingestão de documentos |
+| `APPONO_RAG_VECTOR_SEARCH_ENABLED` | `false` | Habilita busca vetorial pura |
+| `APPONO_RAG_HYBRID_SEARCH_ENABLED` | `false` | Habilita busca híbrida (vetorial + lexical) |
+| `APPONO_RAG_LLM_ENABLED` | `false` | Habilita o modo RESPOSTA com geração via LLM |
+| `APPONO_RAG_LLM_PROVIDER` | `ollama` | Provedor do LLM local |
+| `APPONO_RAG_LLM_BASE_URL` | `http://127.0.0.1:11434` | URL do Ollama |
+| `APPONO_RAG_LLM_MODEL` | — | Modelo do LLM (ex: `gemma3:4b`) |
+| `APPONO_RAG_LLM_TIMEOUT_MS` | `30000` | Timeout da chamada ao LLM |
+| `APPONO_RAG_LLM_TEMPERATURE` | `0` | Temperatura da geração (0 = determinístico) |
+| `APPONO_RAG_ALLOWED_ROLES` | `admin` | Papéis autorizados a usar o RAG, separados por vírgula |
+| `APPONO_RAG_MIN_SCORE` | `0.45` | Score mínimo para que um trecho seja considerado relevante |
+| `APPONO_RAG_TOP_K` | `10` | Número máximo de trechos retornados |
+| `APPONO_RAG_MAX_CONTEXT_TOKENS` | `4000` | Limite de tokens no contexto montado para o LLM |
+
 ### Endurecimento Mercado Pago
 
 Antes de habilitar `MERCADO_PAGO_PERMITIR_PRODUCAO=true`, configure `MERCADO_PAGO_WEBHOOK_SECRET`, `MERCADO_PAGO_WEBHOOK_SIGNATURE_REQUIRED=true` e uma chave exclusiva em `APPONO_MERCADO_PAGO_TOKEN_ENCRYPTION_KEY`. A API recusa webhook sem assinatura quando a assinatura é obrigatória e grava novos tokens OAuth somente cifrados com AES-256-GCM.
@@ -339,6 +429,109 @@ O comando inicia backend e frontend em conjunto. Para encerrá-los, use `Ctrl+C`
 
 Para executar separadamente, use `npm run dev --workspace backend` e `npm run dev --workspace frontend` em terminais distintos.
 
+## Deploy em produção (Oracle Cloud)
+
+O backend e o Ollama rodam em uma VM da Oracle Cloud (free tier: ARM 4 cores, 24 GB RAM). O frontend permanece na Vercel.
+
+```
+┌─────────────────────────────────────────────┐
+│            Oracle Cloud VM (ARM)            │
+│                                             │
+│  ┌──────────────┐    ┌──────────────────┐   │
+│  │   Backend     │───▶│  Ollama          │   │
+│  │   Express     │    │  gemma3:4b       │   │
+│  │   :3001       │    │  :11434          │   │
+│  └──────┬───────┘    └──────────────────┘   │
+│         │                                   │
+│         ├── Transformers.js (embeddings)     │
+│         └── pgvector (Supabase Cloud)       │
+└─────────┼───────────────────────────────────┘
+          │
+┌─────────┼──────┐    ┌──────────────────────┐
+│  Vercel  │     │    │   Supabase Cloud     │
+│  Next.js ◀─────┘    │   PostgreSQL + Auth  │
+│  :443          │    └──────────────────────┘
+└────────────────┘
+```
+
+### Passo a passo
+
+**1. Criar a VM no Oracle Cloud**
+
+No console da Oracle: Compute > Instances > Create Instance.
+- Image: Ubuntu 22.04 (ou 24.04)
+- Shape: VM.Standard.A1.Flex — 4 OCPUs, 24 GB RAM (free tier)
+- Adicione sua chave SSH pública
+
+**2. Abrir porta 3001 nas Security Lists**
+
+Networking > Virtual Cloud Networks > Subnet > Security Lists > Add Ingress Rule:
+- Source CIDR: `0.0.0.0/0`
+- Protocol: TCP
+- Destination Port: `3001`
+
+**3. Configurar a VM**
+
+```bash
+ssh ubuntu@SEU-IP-PUBLICO
+
+# Script automatizado
+curl -fsSL https://raw.githubusercontent.com/Appono-br/Appono/main/scripts/setup-oracle-vm.sh | bash
+```
+
+Ou manualmente:
+```bash
+# Instalar Docker
+curl -fsSL https://get.docker.com | sudo sh
+sudo usermod -aG docker $USER
+logout  # reconectar
+
+# Clonar e configurar
+git clone https://github.com/Appono-br/Appono.git ~/appono
+cd ~/appono
+cp backend/.env.production.example backend/.env.production
+nano backend/.env.production  # preencher credenciais
+```
+
+**4. Subir os serviços**
+
+```bash
+cd ~/appono
+docker compose up -d --build
+```
+
+**5. Baixar o modelo e ingerir documentos**
+
+```bash
+docker compose exec ollama ollama pull gemma3:4b
+docker compose exec backend node backend/scripts/seed-rag-documents.js
+```
+
+**6. Verificar**
+
+```bash
+curl http://localhost:3001/api/health
+curl http://localhost:3001/api/rag/health
+```
+
+**7. Atualizar o frontend na Vercel**
+
+Na Vercel, altere a variável de ambiente:
+```
+NEXT_PUBLIC_API_URL=http://SEU-IP-PUBLICO:3001/api
+```
+
+### Comandos de operação
+
+| Comando | Efeito |
+| --- | --- |
+| `docker compose up -d --build` | Inicia/reconstrói os serviços |
+| `docker compose logs -f backend` | Logs do backend em tempo real |
+| `docker compose logs -f ollama` | Logs do Ollama |
+| `docker compose down` | Para todos os serviços |
+| `docker compose restart backend` | Reinicia apenas o backend |
+| `docker compose exec ollama ollama list` | Lista modelos baixados |
+
 ## Comandos e verificações
 
 Todos os comandos abaixo partem da raiz do repositório.
@@ -352,8 +545,13 @@ Todos os comandos abaixo partem da raiz do repositório.
 | `npm run build --workspace backend` | Executa apenas `node --check src/server.js`; não compila nem valida toda a API |
 | `npm start --workspace backend` | Inicia a API com o tratamento de certificados TLS |
 | `npm start --workspace frontend` | Serve um build existente do Next.js |
+| `node backend/scripts/seed-rag-documents.js` | Ingere os 10 documentos base de políticas no Supabase |
+| `node backend/scripts/run-full-evaluation.js` | Gera token admin, testa consulta e geração, executa avaliação completa (95 perguntas) |
+| `node backend/scripts/get-admin-token.js` | Gera um token JWT de administrador via magic link |
+| `node backend/scripts/benchmark-rag-model.js` | Benchmark de latência do modelo de embedding |
+| `node backend/scripts/load-test-rag.js` | Teste de carga com cenários de concorrência |
 
-Os testes existentes cobrem regras de pedidos, reservas, fila operacional, pagamentos, reembolsos, autorização, paginação, suporte, sanitização de logs e inicialização TLS. Não há script de testes de interface no frontend. Testes de concorrência, RLS e integrações completas precisam de ambiente isolado; a suíte de regras não comprova esses cenários.
+Os testes existentes cobrem regras de pedidos, reservas, fila operacional, pagamentos, reembolsos, autorização, paginação, suporte, sanitização de logs, inicialização TLS e 28 testes do RAG (15 unitários/integração + 13 adversariais). Não há script de testes de interface no frontend. Testes de concorrência, RLS e integrações completas precisam de ambiente isolado; a suíte de regras não comprova esses cenários.
 
 ## Solução de problemas
 
@@ -368,6 +566,10 @@ Os testes existentes cobrem regras de pedidos, reservas, fila operacional, pagam
 | Relação, coluna ou função SQL ausente | Confira o schema base e o histórico de migrations do projeto correto. Consulte o guia de preparação antes de aplicar alterações. |
 | Google ou recuperação retorna para endereço errado | Confira as URLs permitidas no Supabase e as variáveis de callback. No Google, verifique também se o provedor foi habilitado. |
 | Checkout indisponível ou webhook não chega | Verifique a credencial de testes, as URLs públicas e o evento de pagamento no provedor. Use o guia financeiro para distinguir simulação de integração real. |
+| RAG retorna `feature_disabled` | Confirme que `APPONO_RAG_ENABLED=true` e as flags de busca/LLM estão habilitadas no `.env`. Reinicie o backend. |
+| Primeira consulta RAG muito lenta | O modelo de embedding é carregado sob demanda (~7s no primeiro uso). Chamadas subsequentes ficam abaixo de 10ms. |
+| Ollama timeout na geração | O primeiro carregamento do modelo leva ~31s. Aumente `APPONO_RAG_LLM_TIMEOUT_MS` ou faça um warm-up com `ollama run gemma3:4b`. |
+| `ollama: command not found` | Instale o Ollama e execute `ollama pull gemma3:4b` antes de habilitar o modo RESPOSTA. |
 
 O [inicializador do backend](backend/scripts/start.js) preserva certificados extras já configurados e remove seu arquivo temporário no encerramento normal. O ajuste não exige desativar a verificação HTTPS nem alterar as chaves do Supabase.
 
@@ -386,6 +588,9 @@ O [inicializador do backend](backend/scripts/start.js) preserva certificados ext
 | [Privacidade e incidentes](docs/lgpd-e-incidentes.md) | Base operacional que ainda exige revisão jurídica |
 | [Fluxo Mercado Pago](docs/fluxo-pagamento-mercado-pago.md) | Roteiro anterior de apresentação e testes; confrontar exemplos de URLs e regras com os guias atuais |
 | [Melhorias técnicas](docs/melhorias-tecnicas.md) | Backlog histórico, com itens que já possuem implementação no código |
+| [Estado do RAG](docs/rag-final-state.md) | Módulos, testes, validação Supabase, benchmark de embedding e LLM, resultados da avaliação |
+| [Operações do RAG](docs/rag-operations.md) | Runbook operacional: pre-download de modelos, reindexação, swap de modelo, rollback, kill switch |
+| [Especificação do RAG](spec.md) | Especificação executável com 24 seções, limites inegociáveis e critérios de aceitação |
 
 ## Contribuição e licença
 

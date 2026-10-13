@@ -1,0 +1,15 @@
+node_modules
+.git
+.gitignore
+*.md
+docs/figma-screenshots
+frontend/.next
+frontend/node_modules
+backend/node_modules
+backend/reports
+backend/.env
+.env
+.env.local
+*.log
+.claude
+skills-lock.json

@@ -1,0 +1,13 @@
+{
+  "timestamp": "2026-10-13T16:44:07.710Z",
+  "total": 95,
+  "errors": 1,
+  "crossTenantLeaks": 0,
+  "correctAbstinenceRate": "1.0000",
+  "groundedness": "1.0000",
+  "forbiddenViolations": 1,
+  "validCitations": "1.0000",
+  "retrievalP50ms": 1,
+  "retrievalP95ms": 1871,
+  "retrievalP99ms": 5745
+}
