@@ -94,16 +94,9 @@ function selecionarCandidatoV2_1({ candidatos = [], perfil = {}, preferencias = 
             const idProduto = item.produto?.id_produto ?? `sem-produto-${idRestaurante}`;
             return !paresUsados.has(`${String(idRestaurante)}:${String(idProduto)}`);
         });
-        if (!candidatosIneditos.length) {
-            return {
-                candidato: null,
-                falhou: false,
-                semDiversidade: true,
-                motivo: "V2_1_SEM_DIVERSIDADE",
-                modelo: VERSION,
-            };
+        if (candidatosIneditos.length) {
+            candidatosDiversos = candidatosIneditos;
         }
-        candidatosDiversos = candidatosIneditos;
         const ocorrenciasRestaurante = new Map();
         const ocorrenciasProduto = new Map();
         for (const item of historicoSemana) {
