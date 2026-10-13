@@ -475,7 +475,6 @@ function gerarPlanejamentoRotina({
         : semanaPlanejamento(agora, diasSemana, maiorHorarioFim);
     const hoje = dataSaoPaulo(agora);
     const itensPlanejamento = janelas.flatMap((janela) => datasDaSemana(semana.inicio, janela.dias_semana).map((item) => ({ ...item, janela })))
-        .filter((item) => modoLegado ? item.data >= hoje : item.data > hoje || (item.data === hoje && new Date(`${item.data}T${item.janela.horario_fim}-03:00`).getTime() - new Date(agora).getTime() > 30 * 60000))
         .sort((a, b) => a.data.localeCompare(b.data) || a.janela.ordem - b.janela.ordem);
     const refeicoes = [];
     const avaliacoesSombra = [];
