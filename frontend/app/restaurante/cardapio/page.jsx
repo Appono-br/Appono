@@ -1,6 +1,7 @@
 "use client";
 
 import { useInterface } from "@/lib/use-interface";
+import { traduzirConteudoGlossario } from "@/lib/glossario-conteudo";
 import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -48,6 +49,7 @@ const categoriaInicial = {
 
 export default function RestaurantMenuManagementPage() {
     const { ui , localeUI } = useInterface();
+    const conteudoUI = (texto) => traduzirConteudoGlossario(texto, localeUI === "en-US" ? "en" : "pt-BR");
     const { sessao, sessaoCarregada } = useSessaoLocal();
     const [cardapios, setCardapios] = useState([]);
     const [mensagem, setMensagem] = useState("Carregando cardápio...");
@@ -299,8 +301,8 @@ export default function RestaurantMenuManagementPage() {
                             {categorias.length ? categorias.map((categoria) => (
                                 <article key={categoria.id_categoria} className="grid gap-3 rounded-[8px] border border-app-baunilha-dourada/45 bg-app-creme-suave p-3 sm:grid-cols-[1fr_auto] sm:items-center">
                                     <div>
-                                        <h3 className="text-sm font-bold text-app-cafe-profundo">{categoria.nome}</h3>
-                                        <p className="text-xs text-app-mocha">{ui("Ordem ")}{categoria.ordem_exibicao ?? 0}{categoria.descricao ? ` - ${categoria.descricao}` : ""}
+                                        <h3 data-appono-sem-traducao className="text-sm font-bold text-app-cafe-profundo">{conteudoUI(categoria.nome)}</h3>
+                                        <p data-appono-sem-traducao className="text-xs text-app-mocha">{ui("Ordem ")}{categoria.ordem_exibicao ?? 0}{categoria.descricao ? ` - ${categoria.descricao}` : ""}
                                         </p>
                                     </div>
                                     <div className="flex gap-2">
@@ -343,7 +345,7 @@ export default function RestaurantMenuManagementPage() {
                                 <div className="flex flex-wrap items-center justify-between gap-3">
                                     <div>
                                         <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{ui("Seção")}</p>
-                                        <h2 className="text-2xl font-bold text-app-cafe-profundo">{categoria}</h2>
+                                        <h2 data-appono-sem-traducao className="text-2xl font-bold text-app-cafe-profundo">{conteudoUI(categoria)}</h2>
                                     </div>
                                     <span className="rounded-full bg-app-creme-leve px-4 py-2 text-xs font-bold uppercase text-app-mocha ring-1 ring-app-baunilha-dourada/55">
                                         {itens.length} {ui(itens.length === 1 ? "item" : "itens")}
@@ -354,23 +356,23 @@ export default function RestaurantMenuManagementPage() {
                             <article key={produto.id_produto} className={`produto-cardapio grid min-w-0 gap-4 rounded-xl p-4 ring-1 sm:grid-cols-[112px_minmax(0,1fr)_auto] sm:items-start ${produto.destaque ? "bg-app-baunilha-dourada/35 ring-app-caramelo-torrado/35" : "bg-app-creme-leve ring-app-baunilha-dourada/55"}`}>
                                 <div className="relative h-28 overflow-hidden rounded-[10px] bg-app-baunilha-dourada/45 sm:row-span-2">
                                     {produto.imagem_url ? (
-                                        <Image src={produto.imagem_url} alt={produto.nome} fill className="object-cover" />
+                                        <Image data-appono-sem-traducao src={produto.imagem_url} alt={produto.nome} fill className="object-cover" />
                                     ) : (
                                         <span className="flex h-full items-center justify-center text-app-caramelo-torrado">
                                             <Icon type="utensils" />
                                         </span>
                                     )}
                                 </div>
-                                <div>
+                                <div data-appono-sem-traducao>
                                     <div className="flex flex-wrap items-center gap-2">
-                                        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">{produto.cardapio}</p>
+                                        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">{conteudoUI(produto.cardapio)}</p>
                                         {produto.destaque ? (
                                             <span className="inline-flex items-center gap-1 rounded-full border border-app-dourado-mel/40 bg-transparent px-2.5 py-1 text-[10px] font-bold uppercase text-app-amarelo-alerta">
                                                 <Icon type="star" className="h-3 w-3" />{ui("Destaque")}</span>
                                         ) : null}
                                     </div>
-                                    <h3 className="mt-1 text-xl font-bold text-app-cafe-profundo">{produto.nome}</h3>
-                                    {produto.descricao ? <p className="mt-2 text-sm leading-6 text-app-mocha">{produto.descricao}</p> : null}
+                                    <h3 data-appono-sem-traducao className="mt-1 text-xl font-bold text-app-cafe-profundo">{produto.nome}</h3>
+                                    {produto.descricao ? <p data-appono-sem-traducao className="mt-2 text-sm leading-6 text-app-mocha">{produto.descricao}</p> : null}
                                     <p className="mt-2 text-sm font-semibold text-app-caramelo-torrado">{produto.tempo_preparo_minutos ? ui("Tempo médio: {0} min", [produto.tempo_preparo_minutos]) : ui("Tempo médio não informado")}</p>
                                 </div>
                                 <div className="min-w-0 text-left sm:text-right">
@@ -425,7 +427,7 @@ export default function RestaurantMenuManagementPage() {
                     <section className="w-full max-w-md rounded-[18px] bg-white p-6 text-app-cafe-profundo shadow-2xl ring-1 ring-black/10">
                         <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{ui("Confirmar exclusão")}</p>
                         <h2 className="mt-3 text-2xl font-bold">{ui("Remover item do cardápio?")}</h2>
-                        <p className="mt-3 text-sm leading-6 text-app-mocha">{ui("O item ")}<strong>{produtoParaExcluir.nome}</strong>{ui(" será excluído se ainda não tiver pedidos. Se já existir histórico, ele será arquivado e deixará de aparecer para o cliente.")}</p>
+                        <p className="mt-3 text-sm leading-6 text-app-mocha">{ui("O item ")}<strong data-appono-sem-traducao>{produtoParaExcluir.nome}</strong>{ui(" será excluído se ainda não tiver pedidos. Se já existir histórico, ele será arquivado e deixará de aparecer para o cliente.")}</p>
                         <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
                             <button type="button" onClick={() => setProdutoParaExcluir(null)} className="h-11 rounded-[8px] border border-app-baunilha-dourada px-5 text-xs font-bold uppercase text-app-mocha transition hover:bg-app-creme-suave">{ui("Cancelar")}</button>
                             <button type="button" onClick={excluirProduto} disabled={produtoExcluindoId === produtoParaExcluir.id_produto} className="botao-acao-critica h-11 rounded-[8px] px-5 text-xs font-bold uppercase transition disabled:cursor-not-allowed disabled:opacity-60">
@@ -445,7 +447,7 @@ export default function RestaurantMenuManagementPage() {
                 loading={categoriaAtualizandoId === categoriaParaArquivar?.id_categoria}
                 onCancel={() => setCategoriaParaArquivar(null)}
                 onConfirm={() => arquivarCategoria(categoriaParaArquivar)}
-                details={categoriaParaArquivar ? <p className="font-semibold">{categoriaParaArquivar.nome}</p> : null}
+                details={categoriaParaArquivar ? <p data-appono-sem-traducao className="font-semibold">{categoriaParaArquivar.nome}</p> : null}
             />
         </main>
     );

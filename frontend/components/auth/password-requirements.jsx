@@ -1,8 +1,11 @@
+"use client";
+
 import { Check } from "lucide-react";
 import { REQUISITOS_SENHA } from "@/lib/politica-senha";
 import { useInterface } from "@/lib/use-interface";
 
 export function PasswordRequirements({ value, variant = "simple" }) {
+  const { ui } = useInterface();
   const senha = String(value ?? "");
   const { ui } = useInterface();
 
@@ -39,7 +42,7 @@ export function PasswordRequirements({ value, variant = "simple" }) {
               <span>
                 {ui(label)}
                 <span className="sr-only">
-                  {concluido ? ": concluído" : ": pendente"}
+                  {ui(concluido ? ": concluído" : ": pendente")}
                 </span>
               </span>
             </li>

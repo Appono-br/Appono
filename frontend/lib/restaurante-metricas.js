@@ -1,5 +1,5 @@
-export function formatarMoedaResumo(valor) {
-  return new Intl.NumberFormat("pt-BR", {
+export function formatarMoedaResumo(valor, localeUI = "pt-BR") {
+  return new Intl.NumberFormat(localeUI, {
     style: "currency",
     currency: "BRL",
     maximumFractionDigits: 0,
@@ -99,7 +99,7 @@ export function calcularItensVendidos(pedidos = []) {
     .reduce((soma, item) => soma + Number(item.quantidade ?? 0), 0);
 }
 
-export function montarSerieReservas(reservas = [], dias = 7) {
+export function montarSerieReservas(reservas = [], dias = 7, localeUI = "pt-BR") {
   const hoje = new Date(`${obterDataLocalISO()}T12:00:00`);
   return Array.from({ length: dias }, (_, index) => {
     const data = new Date(hoje);
@@ -107,7 +107,7 @@ export function montarSerieReservas(reservas = [], dias = 7) {
     const dataISO = obterDataLocalISO(data);
     return {
       data: dataISO,
-      label: data.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }),
+      label: data.toLocaleDateString(localeUI, { day: "2-digit", month: "2-digit" }),
       valor: reservas.filter((reserva) => reserva.data_reserva === dataISO).length,
     };
   });

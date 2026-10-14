@@ -1,5 +1,7 @@
 "use client";
 
+import { useInterface } from "@/lib/use-interface";
+
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -105,12 +107,17 @@ export default function RecuperarSenhaPage() {
         </div>
 
         <div className="mt-5 text-center">
+<<<<<<< HEAD
           <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-app-caramelo-torrado">
             Recuperação de senha
           </p>
           <h1 className="mt-2 text-3xl font-bold text-app-cafe-profundo">
             {ui("Crie uma nova senha")}
           </h1>
+=======
+          <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-app-caramelo-torrado">{ui("Recuperação de senha")}</p>
+          <h1 className="mt-2 text-3xl font-bold text-app-cafe-profundo">{ui("Crie uma nova senha")}</h1>
+>>>>>>> Yuji
           <p className="mt-3 text-sm leading-6 text-app-mocha">
             {ui(mensagem)}
           </p>
@@ -119,9 +126,13 @@ export default function RecuperarSenhaPage() {
         {linkValido && !senhaAlterada ? (
           <form onSubmit={alterarSenha} className="mt-6 space-y-4">
             <label className="flex flex-col gap-1.5">
+<<<<<<< HEAD
               <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-app-mocha">
                 {ui("Nova senha")}
               </span>
+=======
+              <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-app-mocha">{ui("Nova senha")}</span>
+>>>>>>> Yuji
               <div className="flex h-11 items-center rounded-xl bg-app-creme-suave ring-1 ring-app-baunilha-dourada transition hover:ring-app-caramelo-torrado focus-within:ring-2 focus-within:ring-app-dourado-mel">
                 <input
                   type={mostrarSenha ? "text" : "password"}
@@ -130,7 +141,7 @@ export default function RecuperarSenhaPage() {
                     setNovaSenha(event.target.value);
                     setMensagem("");
                   }}
-                  placeholder="Digite a nova senha"
+                  placeholder={ui("Digite a nova senha")}
                   minLength={6}
                   required
                   className="h-full min-w-0 flex-1 rounded-xl bg-transparent px-3 text-sm outline-none placeholder:text-app-cinza/50"
@@ -146,9 +157,13 @@ export default function RecuperarSenhaPage() {
             </label>
 
             <label className="flex flex-col gap-1.5">
+<<<<<<< HEAD
               <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-app-mocha">
                 {ui("Confirmar senha")}
               </span>
+=======
+              <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-app-mocha">{ui("Confirmar senha")}</span>
+>>>>>>> Yuji
               <input
                 type={mostrarSenha ? "text" : "password"}
                 value={confirmacaoSenha}
@@ -156,7 +171,7 @@ export default function RecuperarSenhaPage() {
                   setConfirmacaoSenha(event.target.value);
                   setMensagem("");
                 }}
-                placeholder="Repita a nova senha"
+                placeholder={ui("Repita a nova senha")}
                 minLength={6}
                 required
                 className="h-11 rounded-xl bg-app-creme-suave px-3 text-sm outline-none ring-1 ring-app-baunilha-dourada transition placeholder:text-app-cinza/50 hover:ring-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel"
@@ -176,9 +191,13 @@ export default function RecuperarSenhaPage() {
         <Link
           href="/login"
           className="mt-5 flex h-11 w-full items-center justify-center rounded-full border border-app-baunilha-dourada text-sm font-semibold text-app-cafe-profundo transition hover:bg-app-creme-suave"
+<<<<<<< HEAD
         >
           {ui("Voltar para login")}
         </Link>
+=======
+        >{ui("Voltar para login")}</Link>
+>>>>>>> Yuji
       </section>
     </main>
   );

@@ -1,11 +1,17 @@
 "use client";
 
+import { useInterface } from "@/lib/use-interface";
+
 import { RoutineEmpty } from "@/components/cliente/rotina/routine-ui";
 import { useEffect } from "react";
 import { useInterface } from "@/lib/use-interface";
 
 export default function RotinaError({ error, reset, unstable_retry }) {
+<<<<<<< HEAD
     const { ui } = useInterface();
+=======
+  const { ui } = useInterface();
+>>>>>>> Yuji
     useEffect(() => {
         console.error("Falha inesperada no Appono Rotina", error?.digest ?? "sem identificador");
     }, [error]);

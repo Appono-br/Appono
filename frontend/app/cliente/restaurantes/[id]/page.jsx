@@ -127,7 +127,7 @@ function SecaoAvaliacoes({ totalAvaliacoes, avaliacaoMedia, avaliacoesRecentes, 
         {totalAvaliacoes ? ui("{0} de 5", [avaliacaoMedia.toFixed(1)]) : ui("Sem avaliações")}
       </div>
     </div>
-    {avaliacoesRecentes.length ? <div className="mt-5 grid gap-3 md:grid-cols-2">{avaliacoesRecentes.map((avaliacao) => <article key={avaliacao.id_avaliacao} className="rounded-[12px] bg-white p-4 ring-1 ring-app-baunilha-dourada/60"><div className="flex items-center justify-between gap-3"><strong className="truncate text-sm text-app-cafe-profundo">{avaliacao.clientes?.nome ?? ui("Cliente Appono")}</strong><span className="inline-flex items-center gap-2 rounded-full bg-white px-2.5 py-1 text-xs font-bold text-app-caramelo-torrado"><EstrelasNota nota={avaliacao.nota} />{avaliacao.nota}/5</span></div><p className="mt-3 text-sm leading-6 text-app-mocha">{avaliacao.comentario}</p><p className="mt-3 text-xs text-app-cinza">{formatarDataAvaliacao(avaliacao.created_at, localeUI)}</p></article>)}</div> : <p className="mt-4 text-sm leading-6 text-app-cinza">{ui("Ainda não há comentários de clientes.")}</p>}
+    {avaliacoesRecentes.length ? <div className="mt-5 grid gap-3 md:grid-cols-2">{avaliacoesRecentes.map((avaliacao) => <article key={avaliacao.id_avaliacao} className="rounded-[12px] bg-white p-4 ring-1 ring-app-baunilha-dourada/60"><div className="flex items-center justify-between gap-3"><strong data-appono-sem-traducao className="truncate text-sm text-app-cafe-profundo">{avaliacao.clientes?.nome ?? ui("Cliente Appono")}</strong><span className="inline-flex items-center gap-2 rounded-full bg-white px-2.5 py-1 text-xs font-bold text-app-caramelo-torrado"><EstrelasNota nota={avaliacao.nota} />{avaliacao.nota}/5</span></div><p data-appono-sem-traducao className="mt-3 text-sm leading-6 text-app-mocha">{avaliacao.comentario}</p><p className="mt-3 text-xs text-app-cinza">{formatarDataAvaliacao(avaliacao.created_at, localeUI)}</p></article>)}</div> : <p className="mt-4 text-sm leading-6 text-app-cinza">{ui("Ainda não há comentários de clientes.")}</p>}
   </section>;
 }
 
@@ -406,7 +406,7 @@ export default function PaginaRestaurante({ params }) {
             <div className="relative flex min-h-56 items-center justify-center bg-white p-5 sm:min-h-72 lg:min-h-[360px]">
               {restaurante.logo_url ? (
                 <div className="logo-restaurante-circular relative h-48 w-48 overflow-hidden rounded-full bg-white ring-1 ring-app-baunilha-dourada/70 sm:h-64 sm:w-64 lg:h-72 lg:w-72">
-                  <Image src={restaurante.logo_url} alt={restaurante.nome} fill priority sizes="(max-width: 639px) 192px, (max-width: 1023px) 256px, 288px" className="object-cover" />
+                  <Image data-appono-sem-traducao src={restaurante.logo_url} alt={restaurante.nome} fill priority sizes="(max-width: 639px) 192px, (max-width: 1023px) 256px, 288px" className="object-cover" />
                 </div>
               ) : (
                 <div className="flex h-full min-h-40 items-center justify-center text-app-caramelo-torrado">
@@ -420,7 +420,7 @@ export default function PaginaRestaurante({ params }) {
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-app-caramelo-torrado">{ui("Restaurante")}</p>
-                    <h1 className="mt-2 break-words text-3xl font-semibold leading-tight text-app-cafe-profundo sm:text-4xl">{restaurante.nome}</h1>
+                    <h1 data-appono-sem-traducao className="mt-2 break-words text-3xl font-semibold leading-tight text-app-cafe-profundo sm:text-4xl">{restaurante.nome}</h1>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     <button
@@ -449,7 +449,7 @@ export default function PaginaRestaurante({ params }) {
                     </button>
                   </div>
                 </div>
-                <p className="mt-3 max-w-xl break-words text-sm leading-6 text-app-mocha">{resumirEndereco(restaurante.endereco)}</p>
+                <p data-appono-sem-traducao className="mt-3 max-w-xl break-words text-sm leading-6 text-app-mocha">{resumirEndereco(restaurante.endereco)}</p>
                 <div className="mt-4 flex flex-wrap gap-2">
                   <span className={`rounded-full px-3 py-1 text-xs font-bold ${operacaoConfigurada ? "bg-app-cafe-profundo text-app-creme-leve" : "bg-white text-app-caramelo-torrado"}`}>
                     {ui(operacaoConfigurada ? "Reservas disponíveis" : "Operação em configuração")}
@@ -495,13 +495,13 @@ export default function PaginaRestaurante({ params }) {
                   {avaliacoesRecentes.map((avaliacao) => (
                     <article key={avaliacao.id_avaliacao} className="rounded-[12px] bg-white p-4 ring-1 ring-app-baunilha-dourada/60">
                       <div className="flex items-center justify-between gap-3">
-                        <strong className="truncate text-sm text-app-cafe-profundo">{avaliacao.clientes?.nome ?? ui("Cliente Appono")}</strong>
+                        <strong data-appono-sem-traducao className="truncate text-sm text-app-cafe-profundo">{avaliacao.clientes?.nome ?? ui("Cliente Appono")}</strong>
                         <span className="inline-flex items-center gap-2 rounded-full bg-white px-2.5 py-1 text-xs font-bold text-app-caramelo-torrado">
                           <EstrelasNota nota={avaliacao.nota} />
                           {avaliacao.nota}/5
                         </span>
                       </div>
-                      <p className="mt-3 text-sm leading-6 text-app-mocha">{avaliacao.comentario}</p>
+                      <p data-appono-sem-traducao className="mt-3 text-sm leading-6 text-app-mocha">{avaliacao.comentario}</p>
                       <p className="mt-3 text-xs text-app-cinza">{formatarDataAvaliacao(avaliacao.created_at, localeUI)}</p>
                     </article>
                   ))}
@@ -522,11 +522,11 @@ export default function PaginaRestaurante({ params }) {
                   {produtosDestaque.map((produto) => (
                     <article key={`destaque-${produto.id_produto}`} className="overflow-hidden rounded-[14px] bg-white text-app-cafe-profundo ring-1 ring-app-baunilha-dourada/45">
                       <div className="relative h-24 bg-app-baunilha-dourada/45">
-                        {produto.imagem_url ? <Image src={produto.imagem_url} alt={produto.nome} fill className="object-cover" /> : <span className="flex h-full items-center justify-center text-xs font-bold uppercase text-app-caramelo-torrado">{ui("Appono")}</span>}
+                        {produto.imagem_url ? <Image data-appono-sem-traducao src={produto.imagem_url} alt={produto.nome} fill className="object-cover" /> : <span className="flex h-full items-center justify-center text-xs font-bold uppercase text-app-caramelo-torrado">{ui("Appono")}</span>}
                       </div>
                       <div className="p-3">
                         <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">{produto.categoria}</p>
-                        <h3 className="mt-1 line-clamp-2 break-words text-sm font-bold">{produto.nome}</h3>
+                        <h3 data-appono-sem-traducao className="mt-1 line-clamp-2 break-words text-sm font-bold">{produto.nome}</h3>
                         <strong className="mt-2 block text-sm text-app-caramelo-torrado">{produtoComDesconto(produto) ? <><span className="mr-2 text-app-cinza line-through">{formatarMoeda(produto.preco, localeUI)}</span>{formatarMoeda(precoExibidoProduto(produto), localeUI)}</> : formatarMoeda(produto.preco, localeUI)}</strong>
                       </div>
                     </article>
@@ -540,7 +540,7 @@ export default function PaginaRestaurante({ params }) {
                 <section key={categoria.id_categoria} className="rounded-[18px] bg-white p-5 shadow-sm ring-1 ring-app-baunilha-dourada sm:p-6">
                   <div className="flex flex-wrap items-end justify-between gap-3">
                     <div>
-                      <h2 className="text-2xl font-bold">{categoria.nome}</h2>
+                      <h2 data-appono-sem-traducao className="text-2xl font-bold">{categoria.nome}</h2>
                     </div>
                     <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-app-mocha">{categoria.produtos.length}{ui(" itens")}</span>
                   </div>
@@ -552,14 +552,14 @@ export default function PaginaRestaurante({ params }) {
                         <article key={produto.id_produto} className={`grid min-w-0 gap-4 rounded-[14px] p-3 ring-1 transition md:grid-cols-[112px_minmax(0,1fr)] xl:grid-cols-[112px_minmax(0,1fr)_auto] xl:items-center ${quantidade > 0 ? "bg-app-baunilha-dourada/55 ring-app-caramelo-torrado/45" : "bg-white ring-app-baunilha-dourada/55 hover:bg-app-chantilly"}`}>
                           <div className="relative h-24 overflow-hidden rounded-[12px] bg-app-baunilha-dourada/45 md:h-24">
                             {produto.imagem_url ? (
-                              <Image src={produto.imagem_url} alt={produto.nome} fill className="object-cover" />
+                              <Image data-appono-sem-traducao src={produto.imagem_url} alt={produto.nome} fill className="object-cover" />
                             ) : (
                               <span className="flex h-full items-center justify-center text-app-caramelo-torrado">
                                 <Icon type="utensils" />
                               </span>
                             )}
                           </div>
-                          <div className="min-w-0">
+                          <div data-appono-sem-traducao className="min-w-0">
                             <div className="flex flex-wrap items-center gap-2">
                               {produto.destaque ? <span className="rounded-full bg-app-cafe-profundo px-2.5 py-1 text-[10px] font-bold uppercase text-app-creme-leve">{ui("Destaque")}</span> : null}
                             </div>
@@ -571,7 +571,7 @@ export default function PaginaRestaurante({ params }) {
                               const alergenos = produto.alergenos_produto ?? [];
                               return <div className="mt-2 flex flex-wrap gap-2 text-[11px] font-semibold">
                                 <span className={seguranca?.status === "REVISADA" ? "text-emerald-700" : "text-amber-800"}>{ui(seguranca?.status === "REVISADA" ? "Informação alimentar revisada" : "Informação alimentar incompleta")}</span>
-                                {alergenos.slice(0, 3).map((item) => <span key={`${item.tipo}-${item.alergenos_catalogo?.codigo}`} className="text-app-mocha">{item.tipo === "PRESENTE" ? ui("Contém") : item.tipo === "PODE_CONTER" ? ui("Pode conter") : ui("Risco de contaminação")}: {item.alergenos_catalogo?.nome}</span>)}
+                                {alergenos.slice(0, 3).map((item) => <span data-appono-sem-traducao key={`${item.tipo}-${item.alergenos_catalogo?.codigo}`} className="text-app-mocha">{item.tipo === "PRESENTE" ? ui("Contém") : item.tipo === "PODE_CONTER" ? ui("Pode conter") : ui("Risco de contaminação")}: {ui(item.alergenos_catalogo?.nome)}</span>)}
                               </div>;
                             })()}
                             <p className="mt-2 text-base font-bold text-app-caramelo-torrado">{produtoComDesconto(produto) ? <><span className="mr-2 text-app-cinza line-through">{formatarMoeda(produto.preco, localeUI)}</span>{formatarMoeda(precoExibidoProduto(produto), localeUI)}</> : formatarMoeda(produto.preco, localeUI)}</p>
@@ -608,7 +608,7 @@ export default function PaginaRestaurante({ params }) {
           </section>
 
           <aside id="reserva" className="h-fit rounded-[18px] bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada lg:sticky lg:top-6">
-            <VisibilidadeCampanhas campanhas={campanhas}/>{campanhas.length ? <section className="rounded-[18px] border border-app-dourado-mel/50 bg-app-creme-leve p-5 shadow-sm sm:p-6"><div className="flex flex-wrap items-end justify-between gap-3"><div><p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">Oferta Profissional</p><h2 className="mt-1 text-2xl font-bold">Ofertas disponíveis</h2></div><span className="rounded-full bg-app-cafe-profundo px-3 py-1 text-xs font-bold text-app-creme-leve">Regras visíveis antes da reserva</span></div><div className="mt-4 grid gap-3 md:grid-cols-2">{campanhas.map((campanha) => <button data-campanha-id={campanha.id_campanha} key={campanha.id_campanha} type="button" onClick={() => { registrarCampanha(campanha.id_campanha,"CLICK"); setCampanhaSelecionada((atual) => atual?.id_campanha === campanha.id_campanha ? null : campanha); }} className={`rounded-[12px] border p-4 text-left transition ${campanhaSelecionada?.id_campanha === campanha.id_campanha ? "border-app-caramelo-torrado bg-white" : "border-app-baunilha-dourada bg-white/70 hover:bg-white"}`}><div className="flex justify-between gap-3"><strong>{campanha.titulo}</strong><span className="text-xs font-bold text-app-caramelo-torrado">{campanhaSelecionada?.id_campanha === campanha.id_campanha ? "Selecionada" : "Selecionar"}</span></div><p className="mt-2 text-sm text-app-mocha">{campanha.descricao}</p><p className="mt-2 text-sm">{campanha.tipo_beneficio.replaceAll("_"," ")}{campanha.tipo_beneficio==="DESCONTO_PERCENTUAL" ? ": "+campanha.valor_beneficio+"%" : campanha.tipo_beneficio==="DESCONTO_FIXO" ? ": R$ "+campanha.valor_beneficio : campanha.tipo_beneficio==="COMBO" ? ": R$ "+campanha.preco_combo : ""}</p>{campanha.beneficio_itens?.map(i=><p key={i.id_produto}>{i.quantidade} × {i.nome??("Produto #"+i.id_produto)}</p>)}<p className="text-xs">Mínimo: {campanha.minimo_pessoas??1} pessoa(s), {campanha.minimo_itens??0} item(ns).</p><p className="mt-3 text-xs leading-5 text-app-cinza">Válida de {new Date(campanha.inicio_em).toLocaleDateString(localeUI)} até {new Date(campanha.fim_em).toLocaleDateString(localeUI)}. {campanha.regras ?? "Confira as condições na confirmação."}</p></button>)}</div>{campanhaSelecionada ? <p className="mt-4 text-sm text-app-mocha">Oferta selecionada: <strong>{campanhaSelecionada.titulo}</strong>. Ela será validada novamente na confirmação, considerando data, horário, itens e limite de uso.</p> : null}</section> : null}
+            <VisibilidadeCampanhas campanhas={campanhas}/>{campanhas.length ? <section className="rounded-[18px] border border-app-dourado-mel/50 bg-app-creme-leve p-5 shadow-sm sm:p-6"><div className="flex flex-wrap items-end justify-between gap-3"><div><p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{ui("Oferta Profissional")}</p><h2 className="mt-1 text-2xl font-bold">{ui("Ofertas disponíveis")}</h2></div><span className="rounded-full bg-app-cafe-profundo px-3 py-1 text-xs font-bold text-app-creme-leve">{ui("Regras visíveis antes da reserva")}</span></div><div className="mt-4 grid gap-3 md:grid-cols-2">{campanhas.map((campanha) => <button data-campanha-id={campanha.id_campanha} key={campanha.id_campanha} type="button" onClick={() => { registrarCampanha(campanha.id_campanha,"CLICK"); setCampanhaSelecionada((atual) => atual?.id_campanha === campanha.id_campanha ? null : campanha); }} className={`rounded-[12px] border p-4 text-left transition ${campanhaSelecionada?.id_campanha === campanha.id_campanha ? "border-app-caramelo-torrado bg-white" : "border-app-baunilha-dourada bg-white/70 hover:bg-white"}`}><div className="flex justify-between gap-3"><strong data-appono-sem-traducao>{campanha.titulo}</strong><span className="text-xs font-bold text-app-caramelo-torrado">{campanhaSelecionada?.id_campanha === campanha.id_campanha ? ui("Selecionada") : ui("Selecionar")}</span></div><p data-appono-sem-traducao className="mt-2 text-sm text-app-mocha">{campanha.descricao}</p><p className="mt-2 text-sm">{campanha.tipo_beneficio.replaceAll("_"," ")}{campanha.tipo_beneficio==="DESCONTO_PERCENTUAL" ? ": "+campanha.valor_beneficio+"%" : campanha.tipo_beneficio==="DESCONTO_FIXO" ? ": R$ "+campanha.valor_beneficio : campanha.tipo_beneficio==="COMBO" ? ": R$ "+campanha.preco_combo : ""}</p>{campanha.beneficio_itens?.map(i=><p data-appono-sem-traducao key={i.id_produto}>{i.quantidade}{ui(" × ")}{i.nome??("Produto #"+i.id_produto)}</p>)}<p className="text-xs">{ui("Mínimo: ")}{campanha.minimo_pessoas??1}{ui(" pessoa(s), ")}{campanha.minimo_itens??0}{ui(" item(ns).")}</p><p className="mt-3 text-xs leading-5 text-app-cinza">{ui("Válida de ")}{new Date(campanha.inicio_em).toLocaleDateString(localeUI)}{ui(" até ")}{new Date(campanha.fim_em).toLocaleDateString(localeUI)}. {campanha.regras ?? "Confira as condições na confirmação."}</p></button>)}</div>{campanhaSelecionada ? <p className="mt-4 text-sm text-app-mocha">{ui("Oferta selecionada: ")}<strong data-appono-sem-traducao>{campanhaSelecionada.titulo}</strong>{ui(". Ela será validada novamente na confirmação, considerando data, horário, itens e limite de uso.")}</p> : null}</section> : null}
 
             <form onSubmit={reservar}>
               <div className="flex items-center gap-3">
@@ -644,7 +644,7 @@ export default function PaginaRestaurante({ params }) {
                 {produtosSelecionados.length ? produtosSelecionados.map((produto) => (
                   <div key={produto.id_produto} className="grid grid-cols-[1fr_auto] gap-3 rounded-[10px] bg-white p-3 text-sm">
                     <div>
-                      <span><strong>{produto.quantidade}{ui("x")}</strong> {produto.nome}</span>
+                      <span data-appono-sem-traducao><strong>{produto.quantidade}{ui("x")}</strong> {produto.nome}</span>
                       {observacoesItens[produto.id_produto]?.trim() ? <p className="mt-1 text-xs text-app-cinza">{ui("Obs.: ")}{observacoesItens[produto.id_produto].trim()}</p> : null}
                     </div>
                     <strong>{formatarMoeda(Number(produto.preco ?? 0) * produto.quantidade, localeUI)}</strong>
@@ -666,7 +666,7 @@ export default function PaginaRestaurante({ params }) {
                   <strong>{formatarMoeda(valorReservaCobrado, localeUI)}</strong>
                 </div>
                 {temPedidoAntecipado ? <div className="flex justify-between gap-4"><span className="text-app-mocha">{ui("Valor do pedido")}</span><strong>{formatarMoeda(totalPedido, localeUI)}</strong></div> : null}
-                {campanhaSelecionada && temPedidoAntecipado ? <div className="flex justify-between gap-4 text-app-caramelo-torrado"><span>Desconto da oferta</span><strong>- {formatarMoeda(descontoCampanha, localeUI)}</strong></div> : null}
+                {campanhaSelecionada && temPedidoAntecipado ? <div className="flex justify-between gap-4 text-app-caramelo-torrado"><span>{ui("Desconto da oferta")}</span><strong>- {formatarMoeda(descontoCampanha, localeUI)}</strong></div> : null}
                 {tempoPreparoPedido ? <div className="flex justify-between gap-4"><span className="text-app-mocha">{ui("Preparo estimado do pedido")}</span><strong>{ui("aprox. {0} min", [tempoPreparoPedido])}</strong></div> : null}
                 <div className="flex items-center justify-between border-t border-app-baunilha-dourada pt-4">
                   <span className="font-bold">{ui("Total a pagar")}</span>

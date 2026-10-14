@@ -23,9 +23,9 @@ export function mapearRestaurante(restaurant) {
   };
 }
 
-export function formatarDistancia(valor) {
-  if (valor === null || valor === undefined || valor === "" || !Number.isFinite(Number(valor))) return "Distância indisponível";
+export function formatarDistancia(valor, localeUI = "pt-BR") {
+  if (valor === null || valor === undefined || valor === "" || !Number.isFinite(Number(valor))) return localeUI.startsWith("en") ? "Distance unavailable" : "Distância indisponível";
   const distancia = Number(valor);
   if (distancia < 1) return `${Math.max(100, Math.round(distancia * 10) * 100)} m`;
-  return `${distancia.toFixed(distancia < 10 ? 1 : 0).replace(".", ",")} km`;
+  return `${distancia.toFixed(distancia < 10 ? 1 : 0).replace(".", localeUI.startsWith("en") ? "." : ",")} km`;
 }

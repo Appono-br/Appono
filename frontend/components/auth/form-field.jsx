@@ -11,6 +11,7 @@ export function FormField({ label, className = "", ...props }) {
 
       <input
         {...props}
+        placeholder={ui(props.placeholder)}
         className="h-8 rounded-xl border border-app-baunilha-dourada bg-white px-3 text-sm text-app-cafe-profundo outline-none transition placeholder:text-app-cinza/45 hover:border-app-caramelo-torrado focus:border-app-dourado-mel focus:ring-2 focus:ring-app-dourado-mel/20"
       />
     </label>

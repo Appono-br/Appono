@@ -67,10 +67,10 @@ export default function FavoritosPage() {
                     {favoritos.map((restaurante) => (
                         <article key={restaurante.id_restaurante} className="overflow-hidden rounded-[14px] bg-white shadow-sm ring-1 ring-app-baunilha-dourada/70">
                             <div className="flex h-40 items-center justify-center bg-app-baunilha-dourada/40">
-                                {restaurante.logo_url ? <div className="logo-restaurante-circular relative h-28 w-28 overflow-hidden rounded-full bg-white ring-1 ring-app-baunilha-dourada/70"><Image src={restaurante.logo_url} alt={restaurante.nome} fill className="object-cover" /></div> : null}
+                                {restaurante.logo_url ? <div className="logo-restaurante-circular relative h-28 w-28 overflow-hidden rounded-full bg-white ring-1 ring-app-baunilha-dourada/70"><Image data-appono-sem-traducao src={restaurante.logo_url} alt={restaurante.nome} fill className="object-cover" /></div> : null}
                             </div>
                             <div className="p-5">
-                                <h2 className="text-xl font-bold">{restaurante.nome}</h2>
+                                <h2 data-appono-sem-traducao className="text-xl font-bold">{restaurante.nome}</h2>
                                 <p className="mt-2 text-sm text-app-cinza">
                                     {restaurante.avaliacao_media != null ? <>{ui(restaurante.avaliacao_media.toFixed(1))} · </> : null}{restaurante.total_avaliacoes ?? 0}{ui(" avaliações")}</p>
                                 <div className="mt-5 flex gap-3">
@@ -93,7 +93,7 @@ export default function FavoritosPage() {
                 loading={atualizando === String(favoritoParaRemover?.id_restaurante)}
                 onCancel={() => setFavoritoParaRemover(null)}
                 onConfirm={() => remover(favoritoParaRemover)}
-                details={favoritoParaRemover ? <p className="font-semibold">{favoritoParaRemover.nome}</p> : null}
+                details={favoritoParaRemover ? <p data-appono-sem-traducao className="font-semibold">{favoritoParaRemover.nome}</p> : null}
             />
         </main>
     );

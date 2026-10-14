@@ -162,7 +162,7 @@ export default function RestaurantAddressSettingsPage({ onVoltar }) {
           <div className="mt-6 grid gap-5 sm:grid-cols-2">
             <FormInput
               label={ui("Rua / Avenida")}
-              placeholder="Ex: Rua das Flores"
+              placeholder={ui("Ex: Rua das Flores")}
               required
               leftIcon={Home}
               error={errors.street}
@@ -188,7 +188,7 @@ export default function RestaurantAddressSettingsPage({ onVoltar }) {
 
             <FormInput
               label={ui("Bairro")}
-              placeholder="Ex: Jardins"
+              placeholder={ui("Ex: Jardins")}
               required
               error={errors.district}
               containerClassName="sm:col-span-2"
@@ -197,7 +197,7 @@ export default function RestaurantAddressSettingsPage({ onVoltar }) {
 
             <FormInput
               label={ui("Cidade")}
-              placeholder="Ex: São Paulo"
+              placeholder={ui("Ex: São Paulo")}
               required
               error={errors.city}
               {...register("city")}
@@ -233,7 +233,7 @@ export default function RestaurantAddressSettingsPage({ onVoltar }) {
               className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-red-600 hover:bg-red-700 px-8 text-xs font-bold uppercase tracking-wide text-white transition shadow-sm disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isSubmitting ? (
-                <><Loader2 className="h-4 w-4 animate-spin" /><span>Salvando...</span></>
+                <><Loader2 className="h-4 w-4 animate-spin" /><span>{ui("Salvando...")}</span></>
               ) : (
                 <><Save className="h-4 w-4" /><span>{ui("Salvar endereço")}</span></>
               )}

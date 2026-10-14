@@ -120,7 +120,7 @@ export default function Planos() {
               ? "border-app-caramelo-torrado bg-app-creme-leve"
               : "border-app-baunilha-dourada bg-app-creme-suave"}`}>
               <div className="flex flex-wrap items-start justify-between gap-3">
-                <h3 className="text-2xl font-semibold">{ui(plano.nome)}</h3>
+                <h3 data-appono-sem-traducao className="text-2xl font-semibold">{ui(plano.nome)}</h3>
                 {ativo ? (
                   <span className="rounded-full bg-app-caramelo-torrado px-3 py-1 text-xs font-bold text-white">
                     {ui("Plano atual")}

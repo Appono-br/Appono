@@ -3,6 +3,7 @@
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { RoutineEmpty, RoutineHero, RoutineIcon, RoutineNotice, RoutineSkeleton, RoutineStatus } from "@/components/cliente/rotina/routine-ui";
 import { useInterface } from "@/lib/use-interface";
+import { traduzirMotivoRecomendacao } from "@/lib/glossario-conteudo";
 import { apiRequest } from "@/lib/api";
 import { estadoPlanejamento, refeicaoCancelada } from "@/lib/routine-view.mjs";
 import Image from "next/image";
@@ -503,7 +504,7 @@ export default function PlanejamentoRotinaPage() {
                                 <div className="grid gap-5 lg:grid-cols-[170px_minmax(0,1fr)]">
                                     <div className="flex items-start gap-3 lg:block lg:border-r lg:border-app-baunilha-dourada/45 lg:pr-5">
                                         <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-app-chantilly text-app-caramelo-torrado"><RoutineIcon type="calendar" className="h-5 w-5" /></div>
-                                        <div className="min-w-0 lg:mt-4">
+                                        <div data-appono-sem-traducao className="min-w-0 lg:mt-4">
                                             <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">{nomeJanela(janela, ui)}</p>
                                             <strong className="mt-1 block text-xl">{String(refeicao.horario_sugerido ?? "").slice(0, 5)}</strong>
                                             {janela?.nome && janela?.tipo ? <span className="mt-1 block text-xs text-app-cinza">{ui({ CAFE: "Café", ALMOCO: "Almoço", JANTAR: "Jantar", PERSONALIZADA: "Personalizada" }[janela.tipo] ?? janela.tipo)}</span> : null}
@@ -514,14 +515,14 @@ export default function PlanejamentoRotinaPage() {
                                             <div className="min-w-0">
                                                 <RoutineStatus status={refeicao.status} />
                                                 <div className="mt-3 flex min-w-0 items-center gap-3">
-                                                    {!semSugestao && restaurante?.logo_url ? <div className="logo-restaurante-circular relative h-12 w-12 shrink-0 overflow-hidden rounded-full border border-app-baunilha-dourada/60 bg-white"><Image src={restaurante.logo_url} alt="" fill sizes="48px" className="object-cover" /></div> : <div aria-hidden="true" className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-app-chantilly text-sm font-bold text-app-mocha">{restaurante?.nome?.slice(0, 1)?.toUpperCase() ?? "A"}</div>}
-                                                    <h3 className="min-w-0 text-xl font-semibold sm:text-2xl">{semSugestao ? ui("Sem sugestão compatível") : restaurante?.nome ?? ui("Restaurante")}</h3>
+                                                    {!semSugestao && restaurante?.logo_url ? <div className="logo-restaurante-circular relative h-12 w-12 shrink-0 overflow-hidden rounded-full border border-app-baunilha-dourada/60 bg-white"><Image src={restaurante.logo_url} alt="" fill sizes="48px" className="object-cover" /></div> : <div data-appono-sem-traducao aria-hidden="true" className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-app-chantilly text-sm font-bold text-app-mocha">{restaurante?.nome?.slice(0, 1)?.toUpperCase() ?? ui("A")}</div>}
+                                                    <h3 data-appono-sem-traducao className="min-w-0 text-xl font-semibold sm:text-2xl">{semSugestao ? ui("Sem sugestão compatível") : restaurante?.nome ?? ui("Restaurante")}</h3>
                                                 </div>
-                                                <p className="mt-2 text-sm leading-6 text-app-cinza">{refeicao.motivo_recomendacao}</p>
+                                                <p className="mt-2 text-sm leading-6 text-app-cinza">{traduzirMotivoRecomendacao(refeicao.motivo_recomendacao, localeUI.startsWith("en") ? "en" : "pt-BR")}</p>
                                             </div>
                                             {!semSugestao ? (
                                                 <div className="grid gap-2 rounded-[14px] bg-app-creme-leve/65 p-4 text-sm xl:min-w-64">
-                                                    <span className="font-semibold">{produto?.nome ?? ui("Reserva sem item")}</span>
+                                                    <span data-appono-sem-traducao className="font-semibold">{produto?.nome ?? ui("Reserva sem item")}</span>
                                                     <span className="text-app-mocha">{moeda(refeicao.preco_estimado, localeUI)} · {distancia(refeicao.distancia_km)}</span>
                                                 </div>
                                             ) : null}
@@ -580,7 +581,7 @@ export default function PlanejamentoRotinaPage() {
                                                         const indice = Number(event.target.value);
                                                         setEdicao({ ...edicao, indice, horario: edicao.opcoes[indice].horario_sugerido.slice(0, 5) });
                                                     }} className="mt-2 w-full min-w-0 rounded-lg border border-app-baunilha-dourada bg-white p-3">
-                                                        {edicao.opcoes.map((opcao, indice) => <option key={`${opcao.id_restaurante}-${opcao.id_produto}`} value={indice}>{opcao.restaurante} · {opcao.prato ?? ui("Somente reserva")} · {moeda(opcao.preco_estimado, localeUI)}</option>)}
+                                                        {edicao.opcoes.map((opcao, indice) => <option data-appono-sem-traducao key={`${opcao.id_restaurante}-${opcao.id_produto}`} value={indice}>{opcao.restaurante} · {opcao.prato ?? ui("Somente reserva")} · {moeda(opcao.preco_estimado, localeUI)}</option>)}
                                                     </select>
                                                 </label>
                                                 <label className="text-sm font-semibold">{ui("Horário")}
@@ -615,7 +616,7 @@ export default function PlanejamentoRotinaPage() {
                 onConfirm={converter}
                 details={confirmacao?.refeicao ? (
                     <div>
-                        <p className="font-semibold">{confirmacao.refeicao.restaurantes?.nome ?? ui("Restaurante")}</p>
+                        <p data-appono-sem-traducao className="font-semibold">{confirmacao.refeicao.restaurantes?.nome ?? ui("Restaurante")}</p>
                         <p className="mt-1 text-xs text-app-cinza">{dataCurta(confirmacao.refeicao.data_refeicao, localeUI)} {ui("às")} {String(confirmacao.refeicao.horario_sugerido ?? "").slice(0, 5)}</p>
                     </div>
                 ) : null}
@@ -631,7 +632,7 @@ export default function PlanejamentoRotinaPage() {
                 loading={Boolean(processando?.startsWith("recusar-"))}
                 onConfirm={() => atualizarStatus(confirmacaoRecusa, "recusar")}
                 onCancel={() => setConfirmacaoRecusa(null)}
-                details={confirmacaoRecusa ? <div><p className="font-semibold">{confirmacaoRecusa.restaurantes?.nome ?? ui("Restaurante")}</p><p className="mt-1 text-xs text-app-cinza">{dataCurta(confirmacaoRecusa.data_refeicao, localeUI)} · {confirmacaoRecusa.produtos?.nome ?? ui("Somente reserva")}</p></div> : null}
+                details={confirmacaoRecusa ? <div><p data-appono-sem-traducao className="font-semibold">{confirmacaoRecusa.restaurantes?.nome ?? ui("Restaurante")}</p><p data-appono-sem-traducao className="mt-1 text-xs text-app-cinza">{dataCurta(confirmacaoRecusa.data_refeicao, localeUI)} · {confirmacaoRecusa.produtos?.nome ?? ui("Somente reserva")}</p></div> : null}
             />
             <ConfirmationDialog
                 open={confirmacaoRecusaTodas}

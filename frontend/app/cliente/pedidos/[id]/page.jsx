@@ -170,7 +170,7 @@ export default function DetalhePedidoPorId({ params }) {
                     <div className="grid gap-6 p-6 sm:p-8 lg:grid-cols-[1fr_auto] lg:items-center">
                         <div>
                             <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-app-baunilha-dourada">{ui("Pedido antecipado #")}{pedido.id_pedido}</p>
-                            <h1 className="mt-3 text-4xl font-semibold sm:text-5xl">{pedido.restaurantes?.nome ?? ui("Restaurante")}</h1>
+                            <h1 data-appono-sem-traducao className="mt-3 text-4xl font-semibold sm:text-5xl">{pedido.restaurantes?.nome ?? ui("Restaurante")}</h1>
                             <p className="mt-4 max-w-2xl text-sm leading-6 text-app-creme-suave">{ui("Acompanhe os itens do seu pedido e o vínculo com a reserva. O restaurante recebe o pedido após a confirmação do pagamento.")}</p>
                         </div>
                         <div className="rounded-[14px] bg-white/10 p-5 ring-1 ring-app-baunilha-dourada/20 lg:min-w-72">
@@ -207,10 +207,10 @@ export default function DetalhePedidoPorId({ params }) {
                     <div className="mt-5 grid gap-3">
                         {itens.length ? itens.map((item, index) => (
                             <article key={`${item.produtos?.nome ?? "item"}-${index}`} className="grid gap-4 rounded-[12px] bg-white p-4 ring-1 ring-app-baunilha-dourada/50 sm:grid-cols-[1fr_auto] sm:items-center">
-                                <div>
-                                    <h3 className="font-bold">{item.produtos?.nome ?? ui("Item")}</h3>
+                                <div data-appono-sem-traducao>
+                                    <h3 data-appono-sem-traducao className="font-bold">{item.produtos?.nome ?? ui("Item")}</h3>
                                     <p className="mt-1 text-sm text-app-cinza">{item.quantidade}{ui(" unidade(s) · ")}{moeda(item.preco_unitario)}{ui(" cada")}</p>
-                                    {item.observacoes ? <p className="mt-2 text-sm text-app-mocha">{ui("Observação: ")}{item.observacoes}</p> : null}
+                                    {item.observacoes ? <p data-appono-sem-traducao className="mt-2 text-sm text-app-mocha">{ui("Observação: ")}{item.observacoes}</p> : null}
                                 </div>
                                 <strong>{moeda(calcularSubtotal(item))}</strong>
                             </article>

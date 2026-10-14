@@ -1,5 +1,7 @@
 "use client";
 
+import { useInterface } from "@/lib/use-interface";
+
 import { Languages } from "lucide-react";
 import { useIdiomaLocal } from "@/lib/use-idioma-local";
 import { useTemaLocal } from "@/lib/use-tema-local";
@@ -15,13 +17,14 @@ function IconeIdioma() {
 }
 
 export function BotaoIdioma({ embutido = false }) {
+  const { ui } = useInterface();
   const { idioma, alternarIdioma } = useIdiomaLocal();
   const { t } = useTraducao();
   const { tema } = useTemaLocal();
   const emIngles = idioma === "en";
 
   return (
-    <section data-appono-sem-traducao className={embutido ? "mt-7" : "mt-5 rounded-xl border border-app-baunilha-dourada/60 bg-white p-5 shadow-sm"}>
+    <section data-appono-sem-traducao className={embutido ? ui("mt-7") : ui("mt-5 rounded-xl border border-app-baunilha-dourada/60 bg-white p-5 shadow-sm")}>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
           <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-app-chantilly text-app-caramelo-torrado">
@@ -30,7 +33,7 @@ export function BotaoIdioma({ embutido = false }) {
           <div>
             <h2 className="text-sm font-bold text-app-cafe-profundo">{t("settings.language")}</h2>
             <p className="mt-0.5 text-sm text-app-cinza">
-              {emIngles ? "English" : t("settings.portuguese")}
+              {emIngles ? ui("English") : t("settings.portuguese")}
             </p>
           </div>
         </div>

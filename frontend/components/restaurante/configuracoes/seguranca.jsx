@@ -177,10 +177,10 @@ export default function RestaurantSecuritySettingsPage({ onVoltar }) {
             },
         ].map((item) => (<article key={item.title} className="flex flex-col gap-4 rounded-[8px] bg-white p-5 ring-1 ring-app-baunilha-dourada/50 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <h4 className="text-lg font-medium text-app-cafe-profundo">
+                    <h4 data-appono-sem-traducao className="text-lg font-medium text-app-cafe-profundo">
                       {ui(item.title)}
                     </h4>
-                    <p className="mt-2 text-sm leading-6 text-app-cinza">
+                    <p data-appono-sem-traducao className="mt-2 text-sm leading-6 text-app-cinza">
                       {ui(item.description)}
                     </p>
                   </div>

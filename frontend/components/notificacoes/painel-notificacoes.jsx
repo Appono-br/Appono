@@ -292,8 +292,8 @@ export function PainelNotificacoes({ modulo, voltarHref, dashboardHref }) {
                                                     {ui(textoTipoEvento(notificacao.tipo_evento))}
                                                 </span>
                                             </div>
-                                            <h3 className="mt-3 text-xl font-semibold text-app-cafe-profundo">{notificacao.tipo_evento === "INFORMATIVO" ? notificacao.titulo : ui(notificacao.titulo)}</h3>
-                                            <p className="mt-2 max-w-3xl text-sm leading-6 text-app-mocha">{mensagemNotificacaoUI(notificacao, localeUI.startsWith("en") ? "en" : "pt-BR")}</p>
+                                            <h3 data-appono-sem-traducao className="mt-3 text-xl font-semibold text-app-cafe-profundo">{notificacao.tipo_evento === "INFORMATIVO" ? notificacao.titulo : ui(notificacao.titulo)}</h3>
+                                            <p data-appono-sem-traducao className="mt-2 max-w-3xl text-sm leading-6 text-app-mocha">{mensagemNotificacaoUI(notificacao, localeUI.startsWith("en") ? "en" : "pt-BR")}</p>
                                             <p className="mt-3 text-xs text-app-cinza">{formatarDataHora(notificacao.criado_em, localeUI)}</p>
                                         </div>
                                         <div className="flex flex-wrap gap-2 sm:min-w-52 sm:justify-end">
@@ -327,7 +327,7 @@ export function PainelNotificacoes({ modulo, voltarHref, dashboardHref }) {
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 px-5 backdrop-blur-[2px]" role="dialog" aria-modal="true" aria-labelledby="titulo-confirmacao-notificacao">
                     <section className="w-full max-w-md rounded-[24px] bg-white p-6 text-app-cafe-profundo shadow-2xl ring-1 ring-black/10">
                         <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">{ui("Confirmação")}</p>
-                        <h2 id="titulo-confirmacao-notificacao" className="mt-3 text-2xl font-semibold">{ui(confirmacao.titulo)}</h2>
+                        <h2 data-appono-sem-traducao id="titulo-confirmacao-notificacao" className="mt-3 text-2xl font-semibold">{ui(confirmacao.titulo)}</h2>
                         <p className="mt-3 text-sm leading-6 text-app-mocha">{ui(confirmacao.mensagem)}</p>
                         <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
                             <button type="button" onClick={() => setConfirmacao(null)} disabled={processandoConfirmacao} className="rounded-full border border-app-baunilha-dourada px-5 py-3 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:bg-app-baunilha-dourada disabled:cursor-not-allowed disabled:opacity-60">{ui("Cancelar")}</button>

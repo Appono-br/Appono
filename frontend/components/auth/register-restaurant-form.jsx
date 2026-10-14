@@ -1,5 +1,7 @@
 "use client";
 
+import { useInterface } from "@/lib/use-interface";
+
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -396,12 +398,17 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
         </div>
 
         <div className="mb-6">
+<<<<<<< HEAD
           <h1 className="text-2xl font-extrabold text-app-cafe-profundo tracking-tight">
             {ui("Torne-se um parceiro Appono")}
           </h1>
           <p className="mt-1 text-sm text-app-cinza">
             {ui("Cadastre seu restaurante e potencialize suas reservas e pedidos de mesa.")}
           </p>
+=======
+          <h1 className="text-2xl font-extrabold text-app-cafe-profundo tracking-tight">{ui("Torne-se um parceiro Appono")}</h1>
+          <p className="mt-1 text-sm text-app-cinza">{ui("Cadastre seu restaurante e potencialize suas reservas e pedidos de mesa.")}</p>
+>>>>>>> Yuji
         </div>
 
         {/* Stepper horizontal estilo iFood Partner */}
@@ -419,8 +426,8 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
         {currentStep === 0 && (
           <div className="space-y-4 animate-fadeIn">
             <FormInput
-              label="Nome fantasia da loja"
-              placeholder="Ex: Terra Artisan Gastronomia"
+              label={ui("Nome fantasia da loja")}
+              placeholder={ui("Ex: Terra Artisan Gastronomia")}
               required
               leftIcon={Building2}
               error={errors.storeName}
@@ -428,8 +435,8 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
             />
 
             <FormInput
-              label="Razão social"
-              placeholder="Ex: Terra Artisan Gastronomia LTDA"
+              label={ui("Razão social")}
+              placeholder={ui("Ex: Terra Artisan Gastronomia LTDA")}
               required
               leftIcon={FileText}
               error={errors.legalName}
@@ -437,7 +444,7 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
             />
 
             <FormInput
-              label="CNPJ"
+              label={ui("CNPJ")}
               placeholder="00.000.000/0001-00"
               required
               inputMode="numeric"
@@ -454,9 +461,9 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormInput
-                label="E-mail comercial"
+                label={ui("E-mail comercial")}
                 type="email"
-                placeholder="contato@restaurante.com"
+                placeholder={ui("contato@restaurante.com")}
                 required
                 disabled={googleFlow}
                 leftIcon={Mail}
@@ -465,7 +472,7 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
               />
 
               <FormInput
-                label="Telefone comercial"
+                label={ui("Telefone comercial")}
                 placeholder="(11) 99999-9999"
                 required
                 inputMode="tel"
@@ -486,7 +493,7 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
         {currentStep === 1 && (
           <div className="space-y-4 animate-fadeIn">
             <FormInput
-              label="CEP"
+              label={ui("CEP")}
               placeholder="00000-000"
               required
               inputMode="numeric"
@@ -504,8 +511,8 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <FormInput
-                label="Endereço / Logradouro"
-                placeholder="Rua, Avenida, etc."
+                label={ui("Endereço / Logradouro")}
+                placeholder={ui("Rua, Avenida, etc.")}
                 required
                 leftIcon={Home}
                 error={errors.address}
@@ -514,7 +521,7 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
               />
 
               <FormInput
-                label="Número"
+                label={ui("Número")}
                 placeholder="123"
                 required
                 leftIcon={Hash}
@@ -525,24 +532,24 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <FormInput
-                label="Bairro"
-                placeholder="Ex: Jardins"
+                label={ui("Bairro")}
+                placeholder={ui("Ex: Jardins")}
                 required
                 error={errors.neighborhood}
                 {...register("neighborhood")}
               />
 
               <FormInput
-                label="Cidade"
-                placeholder="Ex: São Paulo"
+                label={ui("Cidade")}
+                placeholder={ui("Ex: São Paulo")}
                 required
                 error={errors.city}
                 {...register("city")}
               />
 
               <FormInput
-                label="UF"
-                placeholder="SP"
+                label={ui("UF")}
+                placeholder={ui("SP")}
                 required
                 maxLength={2}
                 error={errors.uf}
@@ -551,8 +558,8 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
             </div>
 
             <FormInput
-              label="Complemento (opcional)"
-              placeholder="Sala 1, Bloco B, etc."
+              label={ui("Complemento (opcional)")}
+              placeholder={ui("Sala 1, Bloco B, etc.")}
               error={errors.complement}
               {...register("complement")}
             />
@@ -563,10 +570,10 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
         {currentStep === 2 && (
           <div className="space-y-5 animate-fadeIn">
             <FormInput
-              label="Capacidade de mesas para reserva"
+              label={ui("Capacidade de mesas para reserva")}
               type="number"
               min="1"
-              placeholder="Ex: 15"
+              placeholder={ui("Ex: 15")}
               required
               leftIcon={Layers}
               error={errors.tables}
@@ -576,7 +583,7 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
             {/* Categorias Culinárias com Badges estilo iFood */}
             <div className="flex flex-col gap-2">
               <label className="text-xs font-semibold text-app-cafe-profundo flex items-center">
-                <span>Especialidades culinárias</span>
+                <span>{ui("Especialidades culinárias")}</span>
                 <span className="text-app-caramelo-torrado ml-1 font-bold">*</span>
               </label>
               <div className="flex flex-wrap gap-2 pt-1">
@@ -617,17 +624,13 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
                   <span>{errors.categorias_culinarias.message}</span>
                 </p>
               ) : (
-                <p className="text-[11px] text-app-cinza">
-                  Selecione até 8 categorias para ajudar clientes a encontrar seu restaurante.
-                </p>
+                <p className="text-[11px] text-app-cinza">{ui("Selecione até 8 categorias para ajudar clientes a encontrar seu restaurante.")}</p>
               )}
             </div>
 
             {/* Upload da Imagem com Preview */}
             <div className="flex flex-col gap-2">
-              <span className="text-xs font-semibold text-app-cafe-profundo">
-                Foto de capa do restaurante (Opcional)
-              </span>
+              <span className="text-xs font-semibold text-app-cafe-profundo">{ui("Foto de capa do restaurante (Opcional)")}</span>
               <label className="flex flex-col sm:flex-row items-center gap-4 p-4 rounded-2xl border border-dashed border-app-baunilha-dourada/50 hover:border-app-caramelo-torrado bg-app-chantilly/50 hover:bg-app-caramelo-torrado/5 transition-all cursor-pointer">
                 <div
                   className="h-16 w-16 rounded-xl bg-app-chantilly flex items-center justify-center overflow-hidden shrink-0 bg-cover bg-center border border-app-caramelo-torrado"
@@ -645,11 +648,9 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
                 <div className="flex-1 text-center sm:text-left">
                   <span className="inline-flex items-center gap-1.5 text-xs font-bold text-app-caramelo-torrado">
                     <Upload className="h-3.5 w-3.5" />
-                    <span>Escolher imagem</span>
+                    <span>{ui("Escolher imagem")}</span>
                   </span>
-                  <p className="text-[11px] text-app-cinza mt-0.5">
-                    JPG, PNG ou WebP de até 5MB.
-                  </p>
+                  <p className="text-[11px] text-app-cinza mt-0.5">{ui("JPG, PNG ou WebP de até 5MB.")}</p>
                 </div>
 
                 <input
@@ -683,9 +684,7 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
                   {...register("plano")}
                 />
                 <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-extrabold text-base text-app-cafe-profundo">
-                    Inicial
-                  </h3>
+                  <h3 className="font-extrabold text-base text-app-cafe-profundo">{ui("Inicial")}</h3>
                   {watchPlano === "INICIAL" && (
                     <span className="h-5 w-5 rounded-full bg-app-dourado-mel text-white flex items-center justify-center">
                       <Check className="h-3 w-3 stroke-[3]" />
@@ -693,20 +692,18 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
                   )}
                 </div>
                 <div className="mb-3">
-                  <span className="text-3xl font-black text-app-cafe-profundo">R$ 0</span>
-                  <span className="text-xs text-app-cinza">/mês</span>
-                  <p className="text-xs font-semibold text-app-caramelo-torrado mt-0.5">
-                    8% de comissão por reserva
-                  </p>
+                  <span className="text-3xl font-black text-app-cafe-profundo">{ui("R$ 0")}</span>
+                  <span className="text-xs text-app-cinza">{ui("/mês")}</span>
+                  <p className="text-xs font-semibold text-app-caramelo-torrado mt-0.5">{ui("8% de comissão por reserva")}</p>
                 </div>
                 <ul className="text-xs text-app-cinza space-y-1.5 mb-2">
                   <li className="flex items-center gap-1.5">
                     <Check className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
-                    <span>Cardápio e reservas online</span>
+                    <span>{ui("Cardápio e reservas online")}</span>
                   </li>
                   <li className="flex items-center gap-1.5">
                     <Check className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
-                    <span>Fila operacional da cozinha</span>
+                    <span>{ui("Fila operacional da cozinha")}</span>
                   </li>
                 </ul>
               </label>
@@ -721,7 +718,7 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
               >
                 <span className="absolute -top-2.5 right-4 rounded-full bg-app-dourado-mel text-white text-[10px] font-extrabold px-2.5 py-0.5 uppercase tracking-wider flex items-center gap-1 shadow-sm">
                   <Sparkles className="h-3 w-3" />
-                  <span>Destaque</span>
+                  <span>{ui("Destaque")}</span>
                 </span>
                 <input
                   type="radio"
@@ -730,9 +727,7 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
                   {...register("plano")}
                 />
                 <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-extrabold text-base text-app-cafe-profundo">
-                    Profissional
-                  </h3>
+                  <h3 className="font-extrabold text-base text-app-cafe-profundo">{ui("Profissional")}</h3>
                   {watchPlano === "PROFISSIONAL" && (
                     <span className="h-5 w-5 rounded-full bg-app-dourado-mel text-white flex items-center justify-center">
                       <Check className="h-3 w-3 stroke-[3]" />
@@ -740,22 +735,18 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
                   )}
                 </div>
                 <div className="mb-3">
-                  <span className="text-3xl font-black text-app-cafe-profundo">
-                    R$ 200
-                  </span>
-                  <span className="text-xs text-app-cinza">/mês</span>
-                  <p className="text-xs font-semibold text-app-caramelo-torrado mt-0.5">
-                    Apenas 3% de comissão
-                  </p>
+                  <span className="text-3xl font-black text-app-cafe-profundo">{ui("R$ 200")}</span>
+                  <span className="text-xs text-app-cinza">{ui("/mês")}</span>
+                  <p className="text-xs font-semibold text-app-caramelo-torrado mt-0.5">{ui("Apenas 3% de comissão")}</p>
                 </div>
                 <ul className="text-xs text-app-cinza space-y-1.5 mb-2">
                   <li className="flex items-center gap-1.5">
                     <Check className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
-                    <span>Tudo do Inicial + Campanhas</span>
+                    <span>{ui("Tudo do Inicial + Campanhas")}</span>
                   </li>
                   <li className="flex items-center gap-1.5">
                     <Check className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
-                    <span>Prioridade e relatórios avançados</span>
+                    <span>{ui("Prioridade e relatórios avançados")}</span>
                   </li>
                 </ul>
               </label>
@@ -765,9 +756,9 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
             {!googleFlow && (
               <div className="space-y-4 pt-4 border-t border-app-baunilha-dourada/25">
                 <FormInput
-                  label="Senha da conta"
+                  label={ui("Senha da conta")}
                   type={showPassword ? "text" : "password"}
-                  placeholder="Crie uma senha segura"
+                  placeholder={ui("Crie uma senha segura")}
                   required
                   leftIcon={Lock}
                   error={errors.password}
@@ -791,9 +782,9 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
                 <PasswordRequirements value={watchPassword || ""} variant="panel" />
 
                 <FormInput
-                  label="Confirmar senha"
+                  label={ui("Confirmar senha")}
                   type={showConfirmPassword ? "text" : "password"}
-                  placeholder="Confirme a senha"
+                  placeholder={ui("Confirme a senha")}
                   required
                   leftIcon={Lock}
                   error={errors.confirmPassword}
@@ -837,14 +828,15 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
           onBack={handleBackStep}
           onNext={handleNextStep}
           isSubmitting={isSubmitting}
-          nextLabel="Avançar etapa"
-          submitLabel="Criar conta do restaurante"
+          nextLabel={ui("Avançar etapa")}
+          submitLabel={ui("Criar conta do restaurante")}
           showDivider={false}
           className="mt-8"
         />
 
         {/* Rodapé de Login */}
         <div className="mt-6 pt-4 text-center border-t border-app-baunilha-dourada/25">
+<<<<<<< HEAD
           <p className="text-xs text-app-cinza">
             {ui("Já possui uma conta?")}{" "}
             <Link
@@ -853,6 +845,13 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
             >
               {ui("Entrar")}
             </Link>
+=======
+          <p className="text-xs text-app-cinza">{ui("Já possui cadastro de parceiro?")}{" "}
+            <Link
+              href="/login"
+              className="font-bold text-app-caramelo-torrado hover:text-app-mocha transition"
+            >{ui("Fazer login")}</Link>
+>>>>>>> Yuji
           </p>
         </div>
       </div>
@@ -877,6 +876,7 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
               <span className="h-10 w-10 rounded-xl bg-app-caramelo-torrado/10 text-app-caramelo-torrado flex items-center justify-center shrink-0">
                 <Sparkles className="h-5 w-5" />
               </span>
+<<<<<<< HEAD
               <h2 className="text-lg font-bold text-app-cafe-profundo">
                 {ui("Confirmar Plano Profissional")}
               </h2>
@@ -884,15 +884,24 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
             <p className="text-xs leading-5 text-app-cinza mb-6">
               {ui("A assinatura custa R$ 200/mês com comissão reduzida de 3%. Após a criação, você seguirá para o checkout seguro do Mercado Pago.")}
             </p>
+=======
+              <h2 className="text-lg font-bold text-app-cafe-profundo">{ui("Confirmar Plano Profissional")}</h2>
+            </div>
+            <p className="text-xs leading-5 text-app-cinza mb-6">{ui("A assinatura custa R$ 200/mês com comissão reduzida de 3%. Após a criação, você seguirá para o checkout seguro do Mercado Pago.")}</p>
+>>>>>>> Yuji
             <div className="flex justify-end gap-3">
               <button
                 type="button"
                 disabled={isSubmitting}
                 onClick={() => setConfirmarPlano(false)}
                 className="px-4 py-2 text-xs font-semibold text-app-cinza hover:bg-app-chantilly-hover rounded-xl transition"
+<<<<<<< HEAD
               >
                 {ui("Voltar")}
               </button>
+=======
+              >{ui("Voltar")}</button>
+>>>>>>> Yuji
               <button
                 type="button"
                 disabled={isSubmitting}

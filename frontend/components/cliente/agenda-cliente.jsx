@@ -587,7 +587,7 @@ export function AgendaCliente() {
                             </div>
                             <div className="mt-3 grid gap-2 text-sm text-app-mocha">
                               {reservation.activeOrder.itens.slice(0, 3).map((item, indice) => (<p key={`${item.produtos?.nome ?? "item"}-${indice}`} className="flex items-center justify-between gap-3">
-                                  <span className="truncate">
+                                  <span data-appono-sem-traducao className="truncate">
                                     {item.quantidade}{ui("x ")}{item.produtos?.nome ?? ui("Item do cardápio")}
                                   </span>
                                   <strong className="shrink-0 text-app-cafe-profundo">

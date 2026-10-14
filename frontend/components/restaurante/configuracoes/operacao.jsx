@@ -321,7 +321,7 @@ export default function RestaurantOperationSettingsPage() {
               className="mt-6 inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-red-600 hover:bg-red-700 px-8 text-xs font-bold uppercase tracking-wide text-white transition shadow-sm disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isSubmitting ? (
-                <><Loader2 className="h-4 w-4 animate-spin" /><span>Salvando...</span></>
+                <><Loader2 className="h-4 w-4 animate-spin" /><span>{ui("Salvando...")}</span></>
               ) : (
                 <><Save className="h-4 w-4" /><span>{ui("Salvar operação")}</span></>
               )}

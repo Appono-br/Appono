@@ -123,7 +123,7 @@ export default function RestaurantDashboardPage() {
                 <div key={ponto.data} className="flex flex-1 flex-col items-center gap-2">
                   <span className="text-xs font-bold text-app-cafe-profundo">{ponto.valor}</span>
                   <div className="w-full rounded-t-[8px] bg-app-caramelo-torrado" style={{ height: `${Math.max(12, (ponto.valor / maiorValorSerie) * 180)}px` }} />
-                  <span className="text-[10px] font-semibold text-app-cinza">{ui(ponto.label)}</span>
+                  <span className="text-[10px] font-semibold text-app-cinza">{new Date(`${ponto.data}T12:00:00`).toLocaleDateString(localeUI, { weekday: "short" }).replace(/\.$/, "")}</span>
                 </div>
               ))}
             </div>
@@ -138,7 +138,7 @@ export default function RestaurantDashboardPage() {
                         <p className="text-xs font-bold uppercase text-app-baunilha-dourada">
                           {pedido.reserva.data_reserva} - {pedido.reserva.horario_inicio}
                         </p>
-                        <h3 className="mt-2 text-sm font-semibold text-app-creme-leve">
+                        <h3 data-appono-sem-traducao className="mt-2 text-sm font-semibold text-app-creme-leve">
                           {pedido.reserva.clientes?.nome ?? ui("Cliente")}
                         </h3>
                       </div>
@@ -165,8 +165,8 @@ export default function RestaurantDashboardPage() {
             <div className="mt-5">
               {produtoDestaque ? (
                 <div className="rounded-[10px] bg-white p-5 ring-1 ring-app-baunilha-dourada/50">
-                  <h3 className="text-xl font-semibold text-app-cafe-profundo">{produtoDestaque.nome}</h3>
-                  <p className="mt-2 text-sm leading-6 text-app-cinza">{produtoDestaque.descricao ?? ui("Item destacado no cardápio.")}</p>
+                  <h3 data-appono-sem-traducao className="text-xl font-semibold text-app-cafe-profundo">{produtoDestaque.nome}</h3>
+                  <p data-appono-sem-traducao className="mt-2 text-sm leading-6 text-app-cinza">{produtoDestaque.descricao ?? ui("Item destacado no cardápio.")}</p>
                   <strong className="mt-4 block text-app-caramelo-torrado">{formatarMoeda(produtoDestaque.preco, localeUI)}</strong>
                 </div>
               ) : (

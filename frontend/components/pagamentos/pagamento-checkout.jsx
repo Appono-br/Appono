@@ -103,7 +103,7 @@ export default function PagamentoCheckout({ params, tipo = "pedido" }) {
                             </div>
                             <div>
                                 <p className="text-[10px] font-bold uppercase text-app-cinza">{ui("Restaurante")}</p>
-                                <p className="mt-1 font-semibold">{pedido?.restaurantes?.nome ?? ui("Restaurante")}</p>
+                                <p data-appono-sem-traducao className="mt-1 font-semibold">{pedido?.restaurantes?.nome ?? ui("Restaurante")}</p>
                             </div>
                             <div>
                                 <p className="text-[10px] font-bold uppercase text-app-cinza">{ui("Reserva")}</p>

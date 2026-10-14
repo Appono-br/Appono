@@ -124,7 +124,7 @@ export default function RestaurantMessagesPage() {
                   <span className="flex h-16 w-16 items-center justify-center rounded-[16px] bg-app-cafe-profundo text-sm font-bold text-app-creme-leve ring-1 ring-app-baunilha-dourada/60">{conversa.iniciais}</span>
                   <span className="min-w-0">
                     <span className="flex flex-wrap items-center gap-2">
-                      <strong className="text-xl font-semibold">{conversa.titulo}</strong>
+                      <strong data-appono-sem-traducao className="text-xl font-semibold">{conversa.titulo}</strong>
                       {conversa.nao_lida ? <span className="rounded-full bg-app-caramelo-torrado px-2.5 py-1 text-[10px] font-bold uppercase text-white">{ui("Nova")}</span> : null}
                       <span className="rounded-full bg-app-chantilly px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-app-mocha">{conversa?.pedido ? ui("Pedido #{0}", [conversa.pedido.id_pedido]) : conversa?.reserva ? ui("Reserva #{0}", [conversa.reserva.id_reserva]) : ui("Conversa direta")}</span>
                     </span>
@@ -161,7 +161,7 @@ export default function RestaurantMessagesPage() {
         loading={arquivando}
         onCancel={() => setConversaParaArquivar(null)}
         onConfirm={arquivarConversa}
-        details={conversaParaArquivar ? <p className="font-semibold">{conversaParaArquivar.titulo}</p> : null}
+        details={conversaParaArquivar ? <p data-appono-sem-traducao className="font-semibold">{conversaParaArquivar.titulo}</p> : null}
       />
     </main>
   );

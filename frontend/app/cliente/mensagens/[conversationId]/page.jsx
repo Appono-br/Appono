@@ -28,7 +28,7 @@ function AvatarRestaurante({ conversa, size = "h-12 w-12" }) {
   return (
     <span className={`logo-restaurante-circular relative flex ${size} shrink-0 overflow-hidden rounded-full bg-app-cafe-profundo text-xs font-bold text-app-creme-leve ring-1 ring-app-baunilha-dourada/60`}>
       {logoUrl ? (
-        <Image src={logoUrl} alt={conversa?.restaurante?.nome ?? conversa?.titulo ?? "Restaurante"} fill sizes="56px" className="object-cover bg-white" />
+        <Image data-appono-sem-traducao src={logoUrl} alt={conversa?.restaurante?.nome ?? conversa?.titulo ?? ui("Restaurante")} fill sizes="56px" className="object-cover bg-white" />
       ) : (
         <span className="flex h-full w-full items-center justify-center">{conversa?.iniciais ?? ui("AP")}</span>
       )}
@@ -123,7 +123,7 @@ export default function ConversationPage() {
             </Link>
             <AvatarRestaurante conversa={conversa} />
             <div>
-              <h1 className="text-base font-semibold">{conversa?.titulo ?? ui("Carregando conversa")}</h1>
+              <h1 data-appono-sem-traducao className="text-base font-semibold">{conversa?.titulo ?? ui("Carregando conversa")}</h1>
               <p className="mt-1 text-xs font-semibold uppercase tracking-[0.16em] text-app-cinza">
                 {conversa?.pedido ? ui("Pedido #{0}", [conversa.pedido.id_pedido]) : conversa?.reserva ? ui("Reserva #{0}", [conversa.reserva.id_reserva]) : ui("Atendimento Appono")}
               </p>
@@ -141,7 +141,7 @@ export default function ConversationPage() {
             return (
               <article key={item.id_mensagem} className={`flex ${propria ? "justify-end" : "justify-start"}`}>
                 <div className={`max-w-[82%] rounded-[16px] px-4 py-3 shadow-sm ${propria ? "bg-app-cafe-profundo text-app-creme-leve" : "bg-white text-app-cafe-profundo ring-1 ring-app-baunilha-dourada/55"}`}>
-                  <p className="whitespace-pre-wrap text-sm leading-6">{item.conteudo}</p>
+                  <p data-appono-sem-traducao className="whitespace-pre-wrap text-sm leading-6">{item.conteudo}</p>
                   <p className={`mt-2 text-[10px] font-semibold ${propria ? "text-app-baunilha-dourada" : "text-app-cinza"}`}>{dataHoraUI(item.criado_em)}</p>
                 </div>
               </article>
@@ -175,7 +175,7 @@ export default function ConversationPage() {
         loading={limpando}
         onCancel={() => setConfirmarLimpeza(false)}
         onConfirm={limparHistorico}
-        details={<p className="font-semibold">{conversa?.titulo ?? ui("Conversa")}</p>}
+        details={<p data-appono-sem-traducao className="font-semibold">{conversa?.titulo ?? ui("Conversa")}</p>}
       />
     </main>
   );

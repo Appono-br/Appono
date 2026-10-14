@@ -60,8 +60,12 @@ export const FormInput = forwardRef(function FormInput(
               : "border-app-baunilha-dourada/50 hover:border-app-caramelo-torrado focus:border-app-dourado-mel focus:ring-app-dourado-mel/20"
           } ${className}`}
           {...props}
+<<<<<<< HEAD
           placeholder={props.placeholder ? ui(props.placeholder) : undefined}
           aria-label={props["aria-label"] ? ui(props["aria-label"]) : undefined}
+=======
+          placeholder={ui(props.placeholder)}
+>>>>>>> Yuji
         />
 
         {rightAction && (

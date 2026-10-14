@@ -1,4 +1,6 @@
 "use client";
+
+import { useInterface } from "@/lib/use-interface";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { apiRequest } from "@/lib/api";
@@ -6,6 +8,7 @@ import { getDashboardPath, persistAuthResponse } from "@/lib/session";
 import { supabase } from "@/lib/supabase";
 import { chaveRetornoRestaurante, obterRetornoRestaurante } from "@/lib/retorno-restaurante.mjs";
 export default function AuthCallbackPage() {
+  const { ui } = useInterface();
     const [message, setMessage] = useState("");
     useEffect(() => {
         async function confirmEmailAndRedirect() {
@@ -95,7 +98,7 @@ export default function AuthCallbackPage() {
     return (
       <main className="mx-auto max-w-lg px-5 py-8 text-app-cafe-profundo">
         <p role="alert" className="text-sm leading-6">{message}</p>
-        <Link href="/login" className="mt-4 inline-block text-sm font-semibold text-app-caramelo-torrado">Voltar ao login</Link>
+        <Link href="/login" className="mt-4 inline-block text-sm font-semibold text-app-caramelo-torrado">{ui("Voltar ao login")}</Link>
       </main>
     );
 }
