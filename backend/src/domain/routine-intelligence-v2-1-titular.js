@@ -162,18 +162,6 @@ function decidirCandidatoV2_1Titular({ controle, resultadoV2_1, politica } = {})
         amostras: 0,
     };
     if (!controle || !politica?.usarV2_1) return fallback;
-    if (resultadoV2_1?.semDiversidade) {
-        return {
-            candidato: null,
-            modelo: VERSION,
-            usouV2: false,
-            usouV2_1: true,
-            motivo: resultadoV2_1.motivo,
-            segmento: politica.segmento,
-            confianca: 0,
-            amostras: 0,
-        };
-    }
     if (!resultadoV2_1?.candidato || resultadoV2_1.falhou) {
         return { ...fallback, motivo: resultadoV2_1?.motivo ?? "V2_1_SEM_CANDIDATO" };
     }

@@ -228,9 +228,10 @@ function horarioCompativel(candidato, perfil, data, agora = new Date(), horarioE
         const fechamento = minutos(turno.close);
         if (abertura === null || fechamento === null || abertura >= fechamento) continue;
         const primeiro = horarioExato ? minutos(horarioExato) : Math.ceil(Math.max(inicio, abertura) / 30) * 30;
-        const ultimo = horarioExato ? primeiro : Math.min(fim - 30 - deslocamento, fechamento - 120);
+        const duracaoRefeicao = Math.max(30, Number(perfil.tempo_maximo_minutos ?? 60) - deslocamento * 2);
+        const ultimo = horarioExato ? primeiro : Math.min(fim - 30 - deslocamento, fechamento - duracaoRefeicao);
         for (let horario = primeiro; horario !== null && horario <= ultimo; horario += 30) {
-            if (horario < inicio || horario < abertura || horario + 120 > fechamento || horario + 30 + deslocamento > fim) continue;
+            if (horario < inicio || horario < abertura || horario + duracaoRefeicao > fechamento || horario + 30 + deslocamento > fim) continue;
             const texto = `${String(Math.floor(horario / 60)).padStart(2, "0")}:${String(horario % 60).padStart(2, "0")}:00`;
             if (new Date(`${data}T${texto}-03:00`).getTime() < instante + antecedencia * 60000) continue;
             return { horario_sugerido: texto, tempo_estimado_minutos: tempoTotal };
@@ -620,10 +621,10 @@ function gerarPlanejamentoRotina({
             });
             continue;
         }
-        usoRestaurante.set(candidatoControle.restaurante.id_restaurante, (usoRestaurante.get(candidatoControle.restaurante.id_restaurante) ?? 0) + 1);
-        if (candidatoControle.produto) {
-            usoProduto.set(candidatoControle.produto.id_produto, (usoProduto.get(candidatoControle.produto.id_produto) ?? 0) + 1);
-            const categoria = candidatoControle.produto.categorias?.nome;
+        usoRestaurante.set(candidato.restaurante.id_restaurante, (usoRestaurante.get(candidato.restaurante.id_restaurante) ?? 0) + 1);
+        if (candidato.produto) {
+            usoProduto.set(candidato.produto.id_produto, (usoProduto.get(candidato.produto.id_produto) ?? 0) + 1);
+            const categoria = candidato.produto.categorias?.nome;
             if (categoria) usoCategoria.set(categoria, (usoCategoria.get(categoria) ?? 0) + 1);
         }
         if (candidatoV2) {
