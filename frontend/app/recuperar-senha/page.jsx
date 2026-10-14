@@ -6,8 +6,10 @@ import { useEffect, useState } from "react";
 import { clearAuthResponse } from "@/lib/session";
 import { supabase } from "@/lib/supabase";
 import { senhaValida } from "@/lib/politica-senha";
+import { useInterface } from "@/lib/use-interface";
 
 export default function RecuperarSenhaPage() {
+  const { ui } = useInterface();
   const [novaSenha, setNovaSenha] = useState("");
   const [confirmacaoSenha, setConfirmacaoSenha] = useState("");
   const [mostrarSenha, setMostrarSenha] = useState(false);
@@ -107,10 +109,10 @@ export default function RecuperarSenhaPage() {
             Recuperação de senha
           </p>
           <h1 className="mt-2 text-3xl font-bold text-app-cafe-profundo">
-            Crie uma nova senha
+            {ui("Crie uma nova senha")}
           </h1>
           <p className="mt-3 text-sm leading-6 text-app-mocha">
-            {mensagem}
+            {ui(mensagem)}
           </p>
         </div>
 
@@ -118,7 +120,7 @@ export default function RecuperarSenhaPage() {
           <form onSubmit={alterarSenha} className="mt-6 space-y-4">
             <label className="flex flex-col gap-1.5">
               <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-app-mocha">
-                Nova senha
+                {ui("Nova senha")}
               </span>
               <div className="flex h-11 items-center rounded-xl bg-app-creme-suave ring-1 ring-app-baunilha-dourada transition hover:ring-app-caramelo-torrado focus-within:ring-2 focus-within:ring-app-dourado-mel">
                 <input
@@ -138,14 +140,14 @@ export default function RecuperarSenhaPage() {
                   onClick={() => setMostrarSenha((atual) => !atual)}
                   className="px-3 text-xs font-semibold text-app-caramelo-torrado transition hover:text-app-cafe-profundo"
                 >
-                  {mostrarSenha ? "Ocultar" : "Ver"}
+                  {mostrarSenha ? ui("Ocultar") : ui("Ver")}
                 </button>
               </div>
             </label>
 
             <label className="flex flex-col gap-1.5">
               <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-app-mocha">
-                Confirmar senha
+                {ui("Confirmar senha")}
               </span>
               <input
                 type={mostrarSenha ? "text" : "password"}
@@ -166,7 +168,7 @@ export default function RecuperarSenhaPage() {
               disabled={salvando}
               className="flex h-11 w-full items-center justify-center rounded-full bg-app-dourado-mel px-5 text-sm font-semibold text-white shadow-md transition hover:-translate-y-0.5 hover:bg-app-caramelo-torrado hover:shadow-lg disabled:cursor-not-allowed disabled:translate-y-0 disabled:opacity-70 disabled:shadow-none"
             >
-              {salvando ? "Salvando..." : "Salvar nova senha"}
+              {salvando ? ui("Salvando...") : ui("Salvar nova senha")}
             </button>
           </form>
         ) : null}
@@ -175,7 +177,7 @@ export default function RecuperarSenhaPage() {
           href="/login"
           className="mt-5 flex h-11 w-full items-center justify-center rounded-full border border-app-baunilha-dourada text-sm font-semibold text-app-cafe-profundo transition hover:bg-app-creme-suave"
         >
-          Voltar para login
+          {ui("Voltar para login")}
         </Link>
       </section>
     </main>

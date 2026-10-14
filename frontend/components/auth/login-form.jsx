@@ -31,6 +31,7 @@ import {
   persistAuthResponse,
 } from "@/lib/session";
 import { supabase } from "@/lib/supabase";
+import { useInterface } from "@/lib/use-interface";
 import {
   chaveRetornoRestaurante,
   obterRetornoRestaurante,
@@ -67,6 +68,7 @@ function obterUrlCallbackAutenticacao() {
 }
 
 export function LoginForm() {
+  const { ui } = useInterface();
   const toast = useToast();
   const [showPassword, setShowPassword] = useState(false);
   const [remember, setRemember] = useState(false);
@@ -214,7 +216,7 @@ export function LoginForm() {
                 className="inline-flex w-fit items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-app-cinza hover:text-app-cafe-profundo hover:bg-app-chantilly-hover transition-all"
               >
                 <ArrowLeft className="h-4 w-4" />
-                <span>Início</span>
+                <span>{ui("Início")}</span>
               </Link>
 
               <Image
@@ -229,10 +231,10 @@ export function LoginForm() {
 
             <div className="mb-6">
               <h1 className="text-2xl font-extrabold text-app-cafe-profundo tracking-tight">
-                Bem-vindo de volta
+                {ui("Bem-vindo de volta")}
               </h1>
               <p className="mt-1 text-sm text-app-cinza">
-                Entre para continuar sua jornada gastronômica ou torne-se membro.
+                {ui("Entre para continuar sua jornada gastronômica ou torne-se membro.")}
               </p>
             </div>
 
@@ -262,7 +264,7 @@ export function LoginForm() {
                     type="button"
                     onClick={() => setShowPassword((v) => !v)}
                     className="text-app-cinza hover:text-app-caramelo-torrado p-1"
-                    aria-label={showPassword ? "Ocultar senha" : "Ver senha"}
+                    aria-label={showPassword ? ui("Ocultar senha") : ui("Ver senha")}
                   >
                     {showPassword ? (
                       <EyeOff className="h-4 w-4" />
@@ -283,7 +285,7 @@ export function LoginForm() {
                     className="h-4 w-4 rounded border-app-caramelo-torrado accent-app-caramelo-torrado"
                   />
                   <span className="text-app-cinza text-xs font-medium">
-                    Lembrar-me
+                    {ui("Lembrar-me")}
                   </span>
                 </label>
 
@@ -296,7 +298,7 @@ export function LoginForm() {
                   }}
                   className="text-xs font-semibold text-app-caramelo-torrado hover:text-app-mocha transition"
                 >
-                  Esqueceu a senha?
+                  {ui("Esqueceu a senha?")}
                 </button>
               </div>
 
@@ -304,8 +306,7 @@ export function LoginForm() {
                 <div className="flex items-center gap-2 rounded-xl bg-amber-50 border border-amber-200/60 p-3 text-xs font-semibold text-amber-800">
                   <AlertCircle className="h-4 w-4 shrink-0 text-amber-600" />
                   <span>
-                    {
-                      "Esta conta já existe. Entre com seu e-mail e senha para continuar."}
+                    {ui("Esta conta já existe. Entre com seu e-mail e senha para continuar.")}
                   </span>
                 </div>
               )}
@@ -318,10 +319,10 @@ export function LoginForm() {
                 {isSubmitting ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    <span>Entrando...</span>
+                    <span>{ui("Entrando...")}</span>
                   </>
                 ) : (
-                  "Entrar na conta"
+                  ui("Entrar na conta")
                 )}
               </button>
 
@@ -330,7 +331,7 @@ export function LoginForm() {
                 onClick={() => setRegisterDialog(true)}
                 className="botao-criar-conta app-button-secondary flex h-12 w-full items-center justify-center rounded-xl text-sm font-semibold shadow-sm transition-colors"
               >
-                Criar nova conta
+                {ui("Criar nova conta")}
               </button>
             </form>
 
@@ -338,7 +339,7 @@ export function LoginForm() {
             <div className="my-5 flex items-center gap-3">
               <div className="h-px flex-1 bg-app-chantilly-hover" />
               <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-app-cinza">
-                ou continue com
+                {ui("ou continue com")}
               </span>
               <div className="h-px flex-1 bg-app-chantilly-hover" />
             </div>
@@ -357,17 +358,17 @@ export function LoginForm() {
                 <path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238A11.91 11.91 0 0124 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"/>
                 <path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 01-4.087 5.571l.003-.002 6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"/>
               </svg>
-              {isGoogleSubmitting ? "Redirecionando..." : "Continuar com Google"}
+              {isGoogleSubmitting ? ui("Redirecionando...") : ui("Continuar com Google")}
             </button>
 
             <p className="mt-4 text-center text-[10px] leading-5 tracking-wide text-app-cinza">
-              Ao continuar, você concorda com nossos{" "}
+              {ui("Ao continuar, você concorda com nossos")}{" "}
               <Link href="#" className="text-app-caramelo-torrado underline underline-offset-2 hover:text-app-mocha">
-                termos
+                {ui("termos")}
               </Link>{" "}
               &{" "}
               <Link href="#" className="text-app-caramelo-torrado underline underline-offset-2 hover:text-app-mocha">
-                privacidade
+                {ui("privacidade")}
               </Link>
             </p>
           </div>
@@ -389,10 +390,10 @@ export function LoginForm() {
             <div className="flex items-start justify-between gap-4 mb-6">
               <div>
                 <p className="text-xs font-bold uppercase tracking-widest text-app-caramelo-torrado">
-                  Criar conta
+                  {ui("Criar conta")}
                 </p>
                 <h2 className="mt-1.5 text-xl font-extrabold text-app-cafe-profundo">
-                  Escolha seu perfil
+                  {ui("Escolha seu perfil")}
                 </h2>
               </div>
               <button
@@ -415,7 +416,7 @@ export function LoginForm() {
                 </div>
                 <div className="min-w-0">
                   <strong className="block text-app-cafe-profundo font-bold">
-                    Sou cliente
+                    {ui("Sou cliente")}
                   </strong>
                   <span className="mt-0.5 block text-xs leading-5 text-app-cinza">
                     Quero reservar mesa e antecipar meu pedido.
@@ -433,7 +434,7 @@ export function LoginForm() {
                 </div>
                 <div className="min-w-0">
                   <strong className="block text-app-cafe-profundo font-bold">
-                    Sou restaurante
+                    {ui("Sou restaurante")}
                   </strong>
                   <span className="mt-0.5 block text-xs leading-5 text-app-cinza">
                     Quero organizar reservas, cardápio e pedidos antecipados.
@@ -465,10 +466,10 @@ export function LoginForm() {
                 </span>
                 <div>
                   <p className="text-xs font-bold uppercase tracking-widest text-app-caramelo-torrado">
-                    Acesso
+                    {ui("Acesso")}
                   </p>
                   <h2 className="text-lg font-extrabold text-app-cafe-profundo">
-                    Recuperar senha
+                    {ui("Recuperar senha")}
                   </h2>
                 </div>
               </div>
@@ -476,14 +477,14 @@ export function LoginForm() {
                 type="button"
                 onClick={() => setRecoveryDialog(false)}
                 className="h-9 w-9 shrink-0 flex items-center justify-center rounded-full border border-app-baunilha-dourada/50 text-app-cinza hover:bg-app-chantilly-hover transition"
-                aria-label="Fechar"
+                aria-label={ui("Fechar")}
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
 
             <p className="text-xs leading-5 text-app-cinza mb-5">
-              Informe o e-mail cadastrado. A Appono enviará um link seguro para você criar uma nova senha.
+              {ui("Informe o e-mail cadastrado. A Appono enviará um link seguro para você criar uma nova senha.")}
             </p>
 
             <form onSubmit={handleSubmitRecovery(onSubmitRecovery, onInvalid)} className="space-y-4" noValidate>
@@ -503,7 +504,7 @@ export function LoginForm() {
                   onClick={() => setRecoveryDialog(false)}
                   className="h-11 rounded-xl border border-app-baunilha-dourada/50 text-sm font-semibold text-app-cafe-profundo hover:bg-app-chantilly transition"
                 >
-                  Voltar
+                  {ui("Voltar")}
                 </button>
                 <button
                   type="submit"
@@ -513,10 +514,10 @@ export function LoginForm() {
                   {isSendingRecovery ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      <span>Enviando...</span>
+                      <span>{ui("Enviando...")}</span>
                     </>
                   ) : (
-                    "Enviar link"
+                    ui("Enviar link")
                   )}
                 </button>
               </div>

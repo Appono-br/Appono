@@ -24,6 +24,7 @@ import { mensagemValidacao, useToast } from "@/components/ui/toast-provider";
 import { FormStepper } from "@/components/ui/form-stepper";
 import { FormStepActions } from "@/components/ui/form-step-actions";
 import { PasswordRequirements } from "@/components/auth/password-requirements";
+import { useInterface } from "@/lib/use-interface";
 import { apiRequest } from "@/lib/api";
 import { getDashboardPath, persistAuthResponse } from "@/lib/session";
 import { supabase } from "@/lib/supabase";
@@ -96,6 +97,7 @@ function redirecionarParaLogin(email) {
 }
 
 export function RegisterClientForm({ googleFlow = false }) {
+  const { ui } = useInterface();
   const toast = useToast();
   const [currentStep, setCurrentStep] = useState(0);
   const [message, setMessage] = useState("");
@@ -227,7 +229,7 @@ export function RegisterClientForm({ googleFlow = false }) {
             className="inline-flex w-fit items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-app-cinza hover:text-app-cafe-profundo hover:bg-app-chantilly-hover transition-all"
           >
             <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-            <span>Início</span>
+            <span>{ui("Início")}</span>
           </Link>
 
           <Image
@@ -242,10 +244,10 @@ export function RegisterClientForm({ googleFlow = false }) {
 
         <div className="mb-6">
           <h1 className="text-2xl font-extrabold text-app-cafe-profundo tracking-tight">
-            Crie sua conta Appono
+            {ui("Crie sua conta Appono")}
           </h1>
           <p className="mt-1 text-sm text-app-cinza">
-            Cadastre-se para reservar mesas e antecipar seus pedidos de forma prática.
+            {ui("Cadastre-se para reservar mesas e antecipar seus pedidos de forma prática.")}
           </p>
         </div>
 
@@ -413,12 +415,12 @@ export function RegisterClientForm({ googleFlow = false }) {
         {/* Rodapé de Login */}
         <div className="mt-6 pt-4 text-center border-t border-app-baunilha-dourada/25">
           <p className="text-xs text-app-cinza">
-            Já tem uma conta no Appono?{" "}
+            {ui("Já possui uma conta?")}{" "}
             <Link
               href="/login"
               className="font-bold text-app-caramelo-torrado hover:text-app-mocha transition"
             >
-              Fazer login
+              {ui("Entrar")}
             </Link>
           </p>
         </div>

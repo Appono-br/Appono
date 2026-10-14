@@ -9,5 +9,6 @@ export function useTraducao() {
 }
 
 export function useTextoTraduzido(texto) {
-  return String(texto ?? "");
+  const { ui } = useIdiomaLocal();
+  return ui(texto);
 }

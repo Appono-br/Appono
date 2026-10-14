@@ -1,8 +1,12 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import { Building2, User } from "lucide-react";
+import { useInterface } from "@/lib/use-interface";
 
 export default function CompleteProfilePage() {
+  const { ui } = useInterface();
   return (
     <main className="flex min-h-screen items-center justify-center bg-app-chantilly px-5 py-10 text-app-cafe-profundo">
       <section className="auth-publica w-full max-w-3xl rounded-3xl bg-white p-6 text-center shadow-2xl sm:p-8">
@@ -15,10 +19,10 @@ export default function CompleteProfilePage() {
           priority
         />
         <p className="mt-5 text-xs font-bold uppercase tracking-[0.28em] text-app-caramelo-torrado">
-          Login com Google
+          {ui("Login com Google")}
         </p>
         <h1 className="mt-3 text-3xl font-bold text-app-cafe-profundo">
-          Complete seu perfil Appono
+          {ui("Complete seu perfil Appono")}
         </h1>
         <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-app-mocha">
           Sua conta Google já foi autenticada. Agora precisamos saber como você
@@ -34,7 +38,7 @@ export default function CompleteProfilePage() {
               <User className="h-5 w-5" aria-hidden="true" />
             </span>
             <strong className="mt-4 block text-lg text-app-cafe-profundo">
-              Sou cliente
+              {ui("Sou cliente")}
             </strong>
             <span className="mt-2 block text-sm leading-6 text-app-mocha">
               Quero reservar mesas, montar pedidos antecipados e acompanhar
@@ -50,7 +54,7 @@ export default function CompleteProfilePage() {
               <Building2 className="h-5 w-5" aria-hidden="true" />
             </span>
             <strong className="mt-4 block text-lg text-app-cafe-profundo">
-              Sou restaurante
+              {ui("Sou restaurante")}
             </strong>
             <span className="mt-2 block text-sm leading-6 text-app-mocha">
               Quero gerenciar reservas, cozinha, cardápio e recebimentos.

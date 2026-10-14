@@ -562,7 +562,7 @@ export default function RestaurantReservationsPage() {
                                                     <button
                                                         type="button"
                                                         onClick={() => finalizarReserva(reserva.id_reserva)}
-                                                        disabled={!podeFinalizarReserva(reserva) || finalizandoReserva === reserva.id_reserva}
+                                                        disabled={!podeFinalizarReserva(reserva) || (codigoTelefonePorReserva[reserva.id_reserva] ?? "").length !== 4 || finalizandoReserva === reserva.id_reserva}
                                                         className="h-9 rounded-[8px] bg-app-dourado-mel px-3 text-xs font-bold text-white transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:bg-app-cinza/50"
                                                     >
                                                         {ui(finalizandoReserva === reserva.id_reserva ? "Finalizando..." : "Finalizar atendimento")}

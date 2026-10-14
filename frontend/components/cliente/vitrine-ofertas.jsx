@@ -4,16 +4,17 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { apiRequest } from "@/lib/api";
+import { useInterface } from "@/lib/use-interface";
 
-function beneficio(campanha) {
-  if (campanha.tipo_beneficio === "DESCONTO_PERCENTUAL") return `${campanha.valor_beneficio}% de desconto`;
-  if (campanha.tipo_beneficio === "DESCONTO_FIXO") return `R$ ${Number(campanha.valor_beneficio ?? 0).toFixed(2).replace(".", ",")} de desconto`;
-  if (campanha.tipo_beneficio === "COMBO") return `Combo por R$ ${Number(campanha.preco_combo ?? 0).toFixed(2).replace(".", ",")}`;
-  return String(campanha.tipo_beneficio ?? "Oferta").replaceAll("_", " ").toLowerCase();
+function beneficio(campanha, ui) {
+  if (campanha.tipo_beneficio === "DESCONTO_PERCENTUAL") return ui("{0}% de desconto", [campanha.valor_beneficio]);
+  if (campanha.tipo_beneficio === "DESCONTO_FIXO") return `R$ ${Number(campanha.valor_beneficio ?? 0).toFixed(2).replace(".", ",")} ${ui("de desconto")}`;
+  if (campanha.tipo_beneficio === "COMBO") return `${ui("Combo por")} R$ ${Number(campanha.preco_combo ?? 0).toFixed(2).replace(".", ",")}`;
+  return ui(String(campanha.tipo_beneficio ?? "Oferta").replaceAll("_", " ").toLowerCase());
 }
 
-function validade(data) {
-  return new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "short" }).format(new Date(data)).replace(".", "");
+function validade(data, locale) {
+  return new Intl.DateTimeFormat(locale, { day: "2-digit", month: "short" }).format(new Date(data)).replace(".", "");
 }
 
 function imagemDestaque(campanha) {
@@ -21,6 +22,7 @@ function imagemDestaque(campanha) {
 }
 
 export function VitrineOfertas() {
+  const { ui, localeUI } = useInterface();
   const [campanhas, setCampanhas] = useState([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState("");
@@ -54,15 +56,15 @@ export function VitrineOfertas() {
           <div className="relative h-44 overflow-hidden bg-app-creme-leve">
             {imagem ? <Image src={imagem} alt={prato?.nome ?? campanha.titulo} fill sizes="(min-width: 1280px) 32vw, (min-width: 768px) 48vw, 100vw" className="object-cover transition duration-500 group-hover:scale-105" /> : <div className="flex h-full items-center justify-center bg-app-cafe-profundo text-4xl text-app-creme-leve">✦</div>}
             <div className="absolute inset-0 bg-gradient-to-t from-app-cafe-profundo/55 via-transparent to-transparent" />
-            <div className="absolute left-4 top-4 rounded-full bg-app-cafe-profundo px-3 py-1.5 text-xs font-bold text-app-creme-leve shadow-sm">{beneficio(campanha)}</div>
+            <div className="absolute left-4 top-4 rounded-full bg-app-cafe-profundo px-3 py-1.5 text-xs font-bold text-app-creme-leve shadow-sm">{beneficio(campanha, ui)}</div>
             {campanha.personalizada ? <span className="absolute right-4 top-4 rounded-full bg-white/95 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-app-caramelo-torrado shadow-sm">Favorito</span> : null}
             <p className="absolute bottom-3 left-4 right-4 truncate text-sm font-semibold text-white">{campanha.restaurante?.nome ?? "Restaurante Appono"}</p>
           </div>
           <div className="flex flex-1 flex-col p-5">
             <div className="flex items-start justify-between gap-3"><h3 className="text-xl font-semibold leading-snug text-app-cafe-profundo">{campanha.titulo}</h3><span className="shrink-0 rounded-full bg-app-creme-leve px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-app-caramelo-torrado">Oferta</span></div>
-            {prato ? <p className="mt-3 text-sm font-medium text-app-mocha">Válida para {prato.nome}{campanha.produtos.length > 1 ? ` e mais ${campanha.produtos.length - 1}` : ""}</p> : null}
+            {prato ? <p className="mt-3 text-sm font-medium text-app-mocha">{ui("Válida para")} {prato.nome}{campanha.produtos.length > 1 ? ` ${ui("e mais")} ${campanha.produtos.length - 1}` : ""}</p> : null}
             <p className="mt-3 line-clamp-2 text-sm leading-5 text-app-cinza">{campanha.descricao || campanha.regras || "Confira as condições da campanha antes de reservar."}</p>
-            <div className="mt-5 flex items-center justify-between gap-3 border-t border-app-baunilha-dourada/50 pt-4"><span className="text-xs font-medium text-app-cinza">Termina em {validade(campanha.fim_em)}</span><Link href={`/cliente/restaurantes/${campanha.id_restaurante}?campanha=${campanha.id_campanha}#reserva`} className="rounded-full bg-app-cafe-profundo px-4 py-2 text-sm font-semibold text-app-creme-leve transition hover:bg-app-caramelo-torrado">Escolher oferta</Link></div>
+            <div className="mt-5 flex items-center justify-between gap-3 border-t border-app-baunilha-dourada/50 pt-4"><span className="text-xs font-medium text-app-cinza">{ui("Termina em")} {validade(campanha.fim_em, localeUI)}</span><Link href={`/cliente/restaurantes/${campanha.id_restaurante}?campanha=${campanha.id_campanha}#reserva`} className="rounded-full bg-app-cafe-profundo px-4 py-2 text-sm font-semibold text-app-creme-leve transition hover:bg-app-caramelo-torrado">Escolher oferta</Link></div>
           </div>
         </div>
       </article>;

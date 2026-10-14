@@ -233,8 +233,10 @@ const textosInterfaceEn = {
 };
 
 export function traduzirInterface(idioma, chave) {
-  return chave.split(".").reduce((valor, segmento) => valor?.[segmento], dicionarios[idioma] ?? dicionarios["pt-BR"])
-    ?? chave;
+  if (!chave || typeof chave !== "string") return "";
+  const valorDicionario = chave.split(".").reduce((valor, segmento) => valor?.[segmento], dicionarios[idioma] ?? dicionarios["pt-BR"]);
+  if (valorDicionario !== undefined) return valorDicionario;
+  return traduzirTextoInterface(chave, idioma);
 }
 
 export function traduzirTextoInterface(texto, idioma) {
@@ -243,6 +245,8 @@ export function traduzirTextoInterface(texto, idioma) {
   const espacosIniciais = textoOriginal.match(/^\s*/)?.[0] ?? "";
   const espacosFinais = textoOriginal.match(/\s*$/)?.[0] ?? "";
   const termo = textoOriginal.trim();
+  if (!termo) return textoOriginal;
   const chave = termo.replace(/\s+/g, " ").toLocaleLowerCase("pt-BR");
-  return `${espacosIniciais}${interfaceEn[chave] ?? textosInterfaceEn[chave] ?? termo}${espacosFinais}`;
+  const traducao = interfaceEn[chave] ?? textosInterfaceEn[chave] ?? interfaceEn[termo] ?? textosInterfaceEn[termo] ?? termo;
+  return `${espacosIniciais}${traducao}${espacosFinais}`;
 }

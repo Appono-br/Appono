@@ -32,6 +32,7 @@ import { mensagemValidacao, useToast } from "@/components/ui/toast-provider";
 import { FormStepper } from "@/components/ui/form-stepper";
 import { FormStepActions } from "@/components/ui/form-step-actions";
 import { PasswordRequirements } from "@/components/auth/password-requirements";
+import { useInterface } from "@/lib/use-interface";
 import { CATEGORIAS_CULINARIAS } from "@/lib/categorias-culinarias";
 import { apiRequest } from "@/lib/api";
 import { getDashboardPath, persistAuthResponse } from "@/lib/session";
@@ -138,6 +139,7 @@ function redirecionarParaLogin(email) {
 }
 
 export function RegisterRestaurantForm({ googleFlow = false }) {
+  const { ui } = useInterface();
   const toast = useToast();
   const [currentStep, setCurrentStep] = useState(0);
   const [message, setMessage] = useState("");
@@ -379,7 +381,7 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
             className="inline-flex w-fit items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-app-cinza hover:text-app-cafe-profundo hover:bg-app-chantilly-hover transition-all"
           >
             <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-            <span>Início</span>
+            <span>{ui("Início")}</span>
           </Link>
 
           <Image
@@ -395,10 +397,10 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
 
         <div className="mb-6">
           <h1 className="text-2xl font-extrabold text-app-cafe-profundo tracking-tight">
-            Torne-se um parceiro Appono
+            {ui("Torne-se um parceiro Appono")}
           </h1>
           <p className="mt-1 text-sm text-app-cinza">
-            Cadastre seu restaurante e potencialize suas reservas e pedidos de mesa.
+            {ui("Cadastre seu restaurante e potencialize suas reservas e pedidos de mesa.")}
           </p>
         </div>
 
@@ -844,12 +846,12 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
         {/* Rodapé de Login */}
         <div className="mt-6 pt-4 text-center border-t border-app-baunilha-dourada/25">
           <p className="text-xs text-app-cinza">
-            Já possui cadastro de parceiro?{" "}
+            {ui("Já possui uma conta?")}{" "}
             <Link
               href="/login"
               className="font-bold text-app-caramelo-torrado hover:text-app-mocha transition"
             >
-              Fazer login
+              {ui("Entrar")}
             </Link>
           </p>
         </div>
@@ -876,12 +878,11 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
                 <Sparkles className="h-5 w-5" />
               </span>
               <h2 className="text-lg font-bold text-app-cafe-profundo">
-                Confirmar Plano Profissional
+                {ui("Confirmar Plano Profissional")}
               </h2>
             </div>
             <p className="text-xs leading-5 text-app-cinza mb-6">
-              A assinatura custa R$ 200/mês com comissão reduzida de 3%. Após a criação,
-              você seguirá para o checkout seguro do Mercado Pago.
+              {ui("A assinatura custa R$ 200/mês com comissão reduzida de 3%. Após a criação, você seguirá para o checkout seguro do Mercado Pago.")}
             </p>
             <div className="flex justify-end gap-3">
               <button
@@ -890,7 +891,7 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
                 onClick={() => setConfirmarPlano(false)}
                 className="px-4 py-2 text-xs font-semibold text-app-cinza hover:bg-app-chantilly-hover rounded-xl transition"
               >
-                Voltar
+                {ui("Voltar")}
               </button>
               <button
                 type="button"
@@ -901,7 +902,7 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
                 }}
                 className="px-5 py-2 text-xs font-bold bg-app-dourado-mel hover:bg-app-caramelo-torrado text-white rounded-xl shadow-sm transition"
               >
-                {isSubmitting ? "Criando..." : "Confirmar e criar"}
+                {isSubmitting ? ui("Criando...") : ui("Confirmar e criar")}
               </button>
             </div>
           </div>
