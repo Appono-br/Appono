@@ -338,7 +338,7 @@ function criarCandidatos({ perfil, restaurantes, preferencias = [], restricoes =
         }
         const produtosCandidatos = produtosParaPontuar.length ? produtosParaPontuar : [null];
         for (const produto of produtosCandidatos) {
-            const preco = (numeroValido(produto?.preco) ?? 0) + precoReserva;
+            const preco = produto ? (numeroValido(produto.preco) ?? 0) : precoReserva;
             const favoritoRestaurante = Boolean(restaurante.favorito_cliente) || favoritosRestaurantes.has(Number(restaurante.id_restaurante));
             const pratoFavorito = produto ? pratosFavoritos.has(Number(produto.id_produto)) : false;
             const dentroOrcamento = !Number.isFinite(orcamento) || preco <= orcamento;
