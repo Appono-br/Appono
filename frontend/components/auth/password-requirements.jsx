@@ -7,7 +7,6 @@ import { useInterface } from "@/lib/use-interface";
 export function PasswordRequirements({ value, variant = "simple" }) {
   const { ui } = useInterface();
   const senha = String(value ?? "");
-  const { ui } = useInterface();
 
   if (variant === "simple") {
     return <ul className="grid gap-1 text-xs text-app-cinza">{REQUISITOS_SENHA.map(([chave, label, validar]) => <li key={chave} className={validar(senha) ? "text-emerald-700" : ""}>{validar(senha) ? "✓" : "○"} {ui(label)}</li>)}</ul>;

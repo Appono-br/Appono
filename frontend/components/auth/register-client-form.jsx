@@ -26,7 +26,6 @@ import { mensagemValidacao, useToast } from "@/components/ui/toast-provider";
 import { FormStepper } from "@/components/ui/form-stepper";
 import { FormStepActions } from "@/components/ui/form-step-actions";
 import { PasswordRequirements } from "@/components/auth/password-requirements";
-import { useInterface } from "@/lib/use-interface";
 import { apiRequest } from "@/lib/api";
 import { getDashboardPath, persistAuthResponse } from "@/lib/session";
 import { supabase } from "@/lib/supabase";
@@ -245,17 +244,8 @@ export function RegisterClientForm({ googleFlow = false }) {
         </div>
 
         <div className="mb-6">
-<<<<<<< HEAD
-          <h1 className="text-2xl font-extrabold text-app-cafe-profundo tracking-tight">
-            {ui("Crie sua conta Appono")}
-          </h1>
-          <p className="mt-1 text-sm text-app-cinza">
-            {ui("Cadastre-se para reservar mesas e antecipar seus pedidos de forma prática.")}
-          </p>
-=======
           <h1 className="text-2xl font-extrabold text-app-cafe-profundo tracking-tight">{ui("Crie sua conta Appono")}</h1>
           <p className="mt-1 text-sm text-app-cinza">{ui("Cadastre-se para reservar mesas e antecipar seus pedidos de forma prática.")}</p>
->>>>>>> Yuji
         </div>
 
         {/* Stepper inspirado no iFood */}
@@ -421,22 +411,11 @@ export function RegisterClientForm({ googleFlow = false }) {
 
         {/* Rodapé de Login */}
         <div className="mt-6 pt-4 text-center border-t border-app-baunilha-dourada/25">
-<<<<<<< HEAD
-          <p className="text-xs text-app-cinza">
-            {ui("Já possui uma conta?")}{" "}
-            <Link
-              href="/login"
-              className="font-bold text-app-caramelo-torrado hover:text-app-mocha transition"
-            >
-              {ui("Entrar")}
-            </Link>
-=======
           <p className="text-xs text-app-cinza">{ui("Já tem uma conta no Appono?")}{" "}
             <Link
               href="/login"
               className="font-bold text-app-caramelo-torrado hover:text-app-mocha transition"
             >{ui("Fazer login")}</Link>
->>>>>>> Yuji
           </p>
         </div>
       </div>

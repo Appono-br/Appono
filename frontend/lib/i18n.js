@@ -297,11 +297,5 @@ export function traduzirTextoInterface(texto, idioma) {
   const espacosFinais = textoOriginal.match(/\s*$/)?.[0] ?? "";
   const termo = textoOriginal.trim();
   if (!termo) return textoOriginal;
-<<<<<<< HEAD
-  const chave = termo.replace(/\s+/g, " ").toLocaleLowerCase("pt-BR");
-  const traducao = interfaceEn[chave] ?? textosInterfaceEn[chave] ?? interfaceEn[termo] ?? textosInterfaceEn[termo] ?? termo;
-  return `${espacosIniciais}${traducao}${espacosFinais}`;
-=======
   return `${espacosIniciais}${traduzirTermo(termo)}${espacosFinais}`;
->>>>>>> Yuji
 }

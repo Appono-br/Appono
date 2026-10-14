@@ -1,11 +1,5 @@
 "use client";
 
-<<<<<<< HEAD
-import { useIdiomaContexto } from "@/components/internacionalizacao/provedor-idioma";
-
-export function useIdiomaLocal() {
-  return useIdiomaContexto();
-=======
 import { useSyncExternalStore } from "react";
 
 const chaveIdioma = "appono:language";
@@ -51,6 +45,33 @@ export function useIdiomaLocal() {
     window.dispatchEvent(new Event(eventoIdioma));
   }
 
-  return { idioma, alternarIdioma };
->>>>>>> Yuji
+  
+  const localeUI = idioma === "en" ? "en-US" : "pt-BR";
+
+  function ui(texto, parametros = []) {
+    if (texto === null || texto === undefined) return "";
+
+    let resultado = String(texto);
+
+    if (Array.isArray(parametros)) {
+      parametros.forEach((valor, indice) => {
+        resultado = resultado.replaceAll(`{${indice}}`, String(valor));
+      });
+    }
+
+    return resultado;
+  }
+
+  function formatDateTime(valor, opcoes = {}) {
+    return new Intl.DateTimeFormat(localeUI, opcoes).format(new Date(valor));
+  }
+
+  return {
+    idioma,
+    alternarIdioma,
+    localeUI,
+    ui,
+    formatDateTime
+  };
+
 }

@@ -34,7 +34,6 @@ import { mensagemValidacao, useToast } from "@/components/ui/toast-provider";
 import { FormStepper } from "@/components/ui/form-stepper";
 import { FormStepActions } from "@/components/ui/form-step-actions";
 import { PasswordRequirements } from "@/components/auth/password-requirements";
-import { useInterface } from "@/lib/use-interface";
 import { CATEGORIAS_CULINARIAS } from "@/lib/categorias-culinarias";
 import { apiRequest } from "@/lib/api";
 import { getDashboardPath, persistAuthResponse } from "@/lib/session";
@@ -398,17 +397,8 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
         </div>
 
         <div className="mb-6">
-<<<<<<< HEAD
-          <h1 className="text-2xl font-extrabold text-app-cafe-profundo tracking-tight">
-            {ui("Torne-se um parceiro Appono")}
-          </h1>
-          <p className="mt-1 text-sm text-app-cinza">
-            {ui("Cadastre seu restaurante e potencialize suas reservas e pedidos de mesa.")}
-          </p>
-=======
           <h1 className="text-2xl font-extrabold text-app-cafe-profundo tracking-tight">{ui("Torne-se um parceiro Appono")}</h1>
           <p className="mt-1 text-sm text-app-cinza">{ui("Cadastre seu restaurante e potencialize suas reservas e pedidos de mesa.")}</p>
->>>>>>> Yuji
         </div>
 
         {/* Stepper horizontal estilo iFood Partner */}
@@ -836,22 +826,11 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
 
         {/* Rodapé de Login */}
         <div className="mt-6 pt-4 text-center border-t border-app-baunilha-dourada/25">
-<<<<<<< HEAD
-          <p className="text-xs text-app-cinza">
-            {ui("Já possui uma conta?")}{" "}
-            <Link
-              href="/login"
-              className="font-bold text-app-caramelo-torrado hover:text-app-mocha transition"
-            >
-              {ui("Entrar")}
-            </Link>
-=======
           <p className="text-xs text-app-cinza">{ui("Já possui cadastro de parceiro?")}{" "}
             <Link
               href="/login"
               className="font-bold text-app-caramelo-torrado hover:text-app-mocha transition"
             >{ui("Fazer login")}</Link>
->>>>>>> Yuji
           </p>
         </div>
       </div>
@@ -876,32 +855,16 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
               <span className="h-10 w-10 rounded-xl bg-app-caramelo-torrado/10 text-app-caramelo-torrado flex items-center justify-center shrink-0">
                 <Sparkles className="h-5 w-5" />
               </span>
-<<<<<<< HEAD
-              <h2 className="text-lg font-bold text-app-cafe-profundo">
-                {ui("Confirmar Plano Profissional")}
-              </h2>
-            </div>
-            <p className="text-xs leading-5 text-app-cinza mb-6">
-              {ui("A assinatura custa R$ 200/mês com comissão reduzida de 3%. Após a criação, você seguirá para o checkout seguro do Mercado Pago.")}
-            </p>
-=======
               <h2 className="text-lg font-bold text-app-cafe-profundo">{ui("Confirmar Plano Profissional")}</h2>
             </div>
             <p className="text-xs leading-5 text-app-cinza mb-6">{ui("A assinatura custa R$ 200/mês com comissão reduzida de 3%. Após a criação, você seguirá para o checkout seguro do Mercado Pago.")}</p>
->>>>>>> Yuji
             <div className="flex justify-end gap-3">
               <button
                 type="button"
                 disabled={isSubmitting}
                 onClick={() => setConfirmarPlano(false)}
                 className="px-4 py-2 text-xs font-semibold text-app-cinza hover:bg-app-chantilly-hover rounded-xl transition"
-<<<<<<< HEAD
-              >
-                {ui("Voltar")}
-              </button>
-=======
               >{ui("Voltar")}</button>
->>>>>>> Yuji
               <button
                 type="button"
                 disabled={isSubmitting}

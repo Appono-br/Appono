@@ -32,13 +32,8 @@ export default function CampanhasPage(){
  const disponiveis=dados.produtos.filter(p=>p.disponivel&&!p.arquivado);
  const procurarProdutos=termo=>disponiveis.filter(p=>normalizarTexto(p.nome).includes(normalizarTexto(termo))).slice(0,12);
  const produtoPorId=id=>disponiveis.find(p=>p.id_produto===id);
-<<<<<<< HEAD
- const avancarEtapa=()=>{if(etapaAtual===0){if(!form.titulo.trim()||!form.tipo_beneficio){setErro("Informe o título e o benefício da campanha.");return;}setErro("");setEtapaAtual(1);return;}if(etapaAtual===1){if(!form.inicio_em||!form.fim_em||!form.limite_usos){setErro("Informe o período e o limite de usos da campanha.");return;}setErro("");}};
- if(estadoAcesso==="carregando")return <main className="min-h-screen bg-white px-5 py-10 text-app-cafe-profundo"><section className="mx-auto max-w-6xl"><p className="text-sm text-app-cinza">Carregando campanhas...</p></section></main>;
-=======
  const avancarEtapa=()=>{if(etapaAtual===0&&(!form.titulo.trim()||!form.tipo_beneficio)){setErro("Informe o título e o benefício da campanha.");return;}if(!form.inicio_em||!form.fim_em||!form.limite_usos){setErro("Informe o período e o limite de usos da campanha.");return;}setErro("");setEtapaAtual(1);};
  if(estadoAcesso==="carregando")return <main className="min-h-screen bg-white px-5 py-10 text-app-cafe-profundo"><section className="mx-auto max-w-6xl"><p className="text-sm text-app-cinza">{ui("Carregando campanhas...")}</p></section></main>;
->>>>>>> Yuji
  if(estadoAcesso==="bloqueado")return (
   <main className="flex min-h-dvh items-center justify-center bg-[#fcfbfa] px-5 py-12 text-app-cafe-profundo sm:py-16">
    <section aria-labelledby="campanhas-profissional-titulo" className="w-full max-w-xl rounded-2xl border border-app-baunilha-dourada/70 bg-white p-7 shadow-[0_12px_32px_rgba(62,38,27,0.06)] sm:p-8">

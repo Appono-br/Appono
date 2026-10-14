@@ -33,7 +33,6 @@ import {
   persistAuthResponse,
 } from "@/lib/session";
 import { supabase } from "@/lib/supabase";
-import { useInterface } from "@/lib/use-interface";
 import {
   chaveRetornoRestaurante,
   obterRetornoRestaurante,
@@ -232,17 +231,8 @@ export function LoginForm() {
             </div>
 
             <div className="mb-6">
-<<<<<<< HEAD
-              <h1 className="text-2xl font-extrabold text-app-cafe-profundo tracking-tight">
-                {ui("Bem-vindo de volta")}
-              </h1>
-              <p className="mt-1 text-sm text-app-cinza">
-                {ui("Entre para continuar sua jornada gastronômica ou torne-se membro.")}
-              </p>
-=======
               <h1 className="text-2xl font-extrabold text-app-cafe-profundo tracking-tight">{ui("Bem-vindo de volta")}</h1>
               <p className="mt-1 text-sm text-app-cinza">{ui("Entre para continuar sua jornada gastronômica ou torne-se membro.")}</p>
->>>>>>> Yuji
             </div>
 
             {/* Formulário de Login */}
@@ -291,13 +281,7 @@ export function LoginForm() {
                     onChange={(e) => setRemember(e.target.checked)}
                     className="h-4 w-4 rounded border-app-caramelo-torrado accent-app-caramelo-torrado"
                   />
-<<<<<<< HEAD
-                  <span className="text-app-cinza text-xs font-medium">
-                    {ui("Lembrar-me")}
-                  </span>
-=======
                   <span className="text-app-cinza text-xs font-medium">{ui("Lembrar-me")}</span>
->>>>>>> Yuji
                 </label>
 
                 <button
@@ -308,13 +292,7 @@ export function LoginForm() {
                     setRecoveryDialog(true);
                   }}
                   className="text-xs font-semibold text-app-caramelo-torrado hover:text-app-mocha transition"
-<<<<<<< HEAD
-                >
-                  {ui("Esqueceu a senha?")}
-                </button>
-=======
                 >{ui("Esqueceu a senha?")}</button>
->>>>>>> Yuji
               </div>
 
               {typeof window !== "undefined" && new URLSearchParams(window.location.search).get("cadastro") === "existente" && (
@@ -345,25 +323,13 @@ export function LoginForm() {
                 type="button"
                 onClick={() => setRegisterDialog(true)}
                 className="botao-criar-conta app-button-secondary flex h-12 w-full items-center justify-center rounded-xl text-sm font-semibold shadow-sm transition-colors"
-<<<<<<< HEAD
-              >
-                {ui("Criar nova conta")}
-              </button>
-=======
               >{ui("Criar nova conta")}</button>
->>>>>>> Yuji
             </form>
 
             {/* Separador Google */}
             <div className="my-5 flex items-center gap-3">
               <div className="h-px flex-1 bg-app-chantilly-hover" />
-<<<<<<< HEAD
-              <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-app-cinza">
-                {ui("ou continue com")}
-              </span>
-=======
               <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-app-cinza">{ui("ou continue com")}</span>
->>>>>>> Yuji
               <div className="h-px flex-1 bg-app-chantilly-hover" />
             </div>
 
@@ -384,22 +350,10 @@ export function LoginForm() {
               {isGoogleSubmitting ? ui("Redirecionando...") : ui("Continuar com Google")}
             </button>
 
-<<<<<<< HEAD
-            <p className="mt-4 text-center text-[10px] leading-5 tracking-wide text-app-cinza">
-              {ui("Ao continuar, você concorda com nossos")}{" "}
-              <Link href="#" className="text-app-caramelo-torrado underline underline-offset-2 hover:text-app-mocha">
-                {ui("termos")}
-              </Link>{" "}
-              &{" "}
-              <Link href="#" className="text-app-caramelo-torrado underline underline-offset-2 hover:text-app-mocha">
-                {ui("privacidade")}
-              </Link>
-=======
             <p className="mt-4 text-center text-[10px] leading-5 tracking-wide text-app-cinza">{ui("Ao continuar, você concorda com nossos")}{" "}
               <Link href="#" className="text-app-caramelo-torrado underline underline-offset-2 hover:text-app-mocha">{ui("termos")}</Link>{" "}
               &{" "}
               <Link href="#" className="text-app-caramelo-torrado underline underline-offset-2 hover:text-app-mocha">{ui("privacidade")}</Link>
->>>>>>> Yuji
             </p>
           </div>
         </div>
@@ -419,17 +373,8 @@ export function LoginForm() {
           <section className="w-full max-w-md rounded-3xl bg-white p-7 shadow-2xl">
             <div className="flex items-start justify-between gap-4 mb-6">
               <div>
-<<<<<<< HEAD
-                <p className="text-xs font-bold uppercase tracking-widest text-app-caramelo-torrado">
-                  {ui("Criar conta")}
-                </p>
-                <h2 className="mt-1.5 text-xl font-extrabold text-app-cafe-profundo">
-                  {ui("Escolha seu perfil")}
-                </h2>
-=======
                 <p className="text-xs font-bold uppercase tracking-widest text-app-caramelo-torrado">{ui("Criar conta")}</p>
                 <h2 className="mt-1.5 text-xl font-extrabold text-app-cafe-profundo">{ui("Escolha seu perfil")}</h2>
->>>>>>> Yuji
               </div>
               <button
                 type="button"
@@ -450,17 +395,8 @@ export function LoginForm() {
                   <User className="h-5 w-5" />
                 </div>
                 <div className="min-w-0">
-<<<<<<< HEAD
-                  <strong className="block text-app-cafe-profundo font-bold">
-                    {ui("Sou cliente")}
-                  </strong>
-                  <span className="mt-0.5 block text-xs leading-5 text-app-cinza">
-                    Quero reservar mesa e antecipar meu pedido.
-                  </span>
-=======
                   <strong className="block text-app-cafe-profundo font-bold">{ui("Sou cliente")}</strong>
                   <span className="mt-0.5 block text-xs leading-5 text-app-cinza">{ui("Quero reservar mesa e antecipar meu pedido.")}</span>
->>>>>>> Yuji
                 </div>
                 <ChevronRight className="ml-auto h-4 w-4 shrink-0 text-app-cinza transition-transform group-hover:translate-x-1 group-hover:text-app-caramelo-torrado" />
               </Link>
@@ -473,17 +409,8 @@ export function LoginForm() {
                   <UtensilsCrossed className="h-5 w-5" />
                 </div>
                 <div className="min-w-0">
-<<<<<<< HEAD
-                  <strong className="block text-app-cafe-profundo font-bold">
-                    {ui("Sou restaurante")}
-                  </strong>
-                  <span className="mt-0.5 block text-xs leading-5 text-app-cinza">
-                    Quero organizar reservas, cardápio e pedidos antecipados.
-                  </span>
-=======
                   <strong className="block text-app-cafe-profundo font-bold">{ui("Sou restaurante")}</strong>
                   <span className="mt-0.5 block text-xs leading-5 text-app-cinza">{ui("Quero organizar reservas, cardápio e pedidos antecipados.")}</span>
->>>>>>> Yuji
                 </div>
                 <ChevronRight className="ml-auto h-4 w-4 shrink-0 text-app-cinza transition-transform group-hover:translate-x-1 group-hover:text-app-caramelo-torrado" />
               </Link>
@@ -510,17 +437,8 @@ export function LoginForm() {
                   <KeyRound className="h-5 w-5" />
                 </span>
                 <div>
-<<<<<<< HEAD
-                  <p className="text-xs font-bold uppercase tracking-widest text-app-caramelo-torrado">
-                    {ui("Acesso")}
-                  </p>
-                  <h2 className="text-lg font-extrabold text-app-cafe-profundo">
-                    {ui("Recuperar senha")}
-                  </h2>
-=======
                   <p className="text-xs font-bold uppercase tracking-widest text-app-caramelo-torrado">{ui("Acesso")}</p>
                   <h2 className="text-lg font-extrabold text-app-cafe-profundo">{ui("Recuperar senha")}</h2>
->>>>>>> Yuji
                 </div>
               </div>
               <button
@@ -533,13 +451,7 @@ export function LoginForm() {
               </button>
             </div>
 
-<<<<<<< HEAD
-            <p className="text-xs leading-5 text-app-cinza mb-5">
-              {ui("Informe o e-mail cadastrado. A Appono enviará um link seguro para você criar uma nova senha.")}
-            </p>
-=======
             <p className="text-xs leading-5 text-app-cinza mb-5">{ui("Informe o e-mail cadastrado. A Appono enviará um link seguro para você criar uma nova senha.")}</p>
->>>>>>> Yuji
 
             <form onSubmit={handleSubmitRecovery(onSubmitRecovery, onInvalid)} className="space-y-4" noValidate>
               <FormInput
@@ -557,13 +469,7 @@ export function LoginForm() {
                   type="button"
                   onClick={() => setRecoveryDialog(false)}
                   className="h-11 rounded-xl border border-app-baunilha-dourada/50 text-sm font-semibold text-app-cafe-profundo hover:bg-app-chantilly transition"
-<<<<<<< HEAD
-                >
-                  {ui("Voltar")}
-                </button>
-=======
                 >{ui("Voltar")}</button>
->>>>>>> Yuji
                 <button
                   type="submit"
                   disabled={isSendingRecovery}
