@@ -88,12 +88,12 @@ export default function AdminRotinaIntelligencePage() {
                                 <article key={modelo.modelo} className="rounded-[14px] bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada/70">
                                     <h2 className="text-xl font-semibold">{modelo.modelo}</h2>
                                     <div className="mt-5 grid grid-cols-2 gap-3 text-sm">
-                                        <p>Concordancia <strong className="block text-2xl"><Percentual parte={modelo.concordancias} total={modelo.comparacoes} /></strong></p>
-                                        <p>Divergencias <strong className="block text-2xl">{modelo.divergencias}</strong></p>
+                                        <p>Concordância <strong className="block text-2xl"><Percentual parte={modelo.concordancias} total={modelo.comparacoes} /></strong></p>
+                                        <p>Divergências <strong className="block text-2xl">{modelo.divergencias}</strong></p>
                                         <p>Confiança média <strong className="block text-xl">{modelo.confianca_media.toFixed(3)}</strong></p>
                                         <p>Falhas <strong className="block text-xl">{modelo.falhas}</strong></p>
                                     </div>
-                                    <p className="mt-5 text-xs leading-5 text-app-cinza">Aprovações {modelo.resultados.aprovacoes} | recusas {modelo.resultados.recusas} | alternativas {modelo.resultados.alternativas} | conversoes {modelo.resultados.conversoes}</p>
+                                    <p className="mt-5 text-xs leading-5 text-app-cinza">Aprovações {modelo.resultados.aprovacoes} | recusas {modelo.resultados.recusas} | alternativas {modelo.resultados.alternativas} | conversões {modelo.resultados.conversoes}</p>
                                     <p className="mt-2 text-xs leading-5 text-app-cinza">Com histórico {modelo.com_historico} | sem histórico {modelo.sem_historico} | diversidade {modelo.diversidade.restaurantes} restaurantes e {modelo.diversidade.produtos} produtos</p>
                                     <p className="mt-2 text-xs leading-5 text-app-cinza">Confiança: zero {modelo.distribuicao_confianca.zero}, baixa {modelo.distribuicao_confianca.baixa}, moderada {modelo.distribuicao_confianca.moderada}, alta {modelo.distribuicao_confianca.alta}</p>
                                 </article>

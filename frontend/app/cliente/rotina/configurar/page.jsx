@@ -274,8 +274,6 @@ export default function ConfigurarRotinaPage() {
         setForm((atual) => ({ ...atual, enderecos_rotina: atual.enderecos_rotina.map((item, posicao) => posicao === indice ? { ...item, [campo]: valor } : item) }));
         if (campo === "endereco" && form.enderecos_rotina[indice]?.id === form.endereco_ativo_id) {
             atualizar("endereco_base", valor);
-            setCandidatosEndereco([]);
-            setGeocodificacaoSelecionada("");
         }
     }
 
@@ -284,8 +282,6 @@ export default function ConfigurarRotinaPage() {
             const selecionado = atual.enderecos_rotina.find((item) => item.id === id);
             return { ...atual, endereco_ativo_id: id, endereco_base: selecionado?.endereco ?? "", enderecos_rotina: atual.enderecos_rotina.map((item) => ({ ...item, ativo: item.id === id })) };
         });
-        setCandidatosEndereco([]);
-        setGeocodificacaoSelecionada("");
     }
 
     function adicionarEndereco(tipo) {
@@ -395,8 +391,6 @@ export default function ConfigurarRotinaPage() {
             setVersaoPerfil(versaoConfirmada);
             setFormSalvo(form);
             setRascunho(null);
-            setCandidatosEndereco([]);
-            setGeocodificacaoSelecionada("");
             if (gerarDepois) {
                 const parametros = new URLSearchParams({
                     origem: "configuracao",
@@ -458,7 +452,6 @@ export default function ConfigurarRotinaPage() {
                 return;
             }
             if (error.code === "ROUTINE_ADDRESS_AMBIGUOUS") {
-                setCandidatosEndereco(error.details?.candidatos ?? []);
                 setMensagem("Encontramos mais de um endereço. Escolha a opção correta e salve novamente.");
                 return;
             }
@@ -579,18 +572,18 @@ export default function ConfigurarRotinaPage() {
                             <label htmlFor="busca-catalogo-rotina" className="text-sm font-semibold">{ui("Buscar restaurante, tipo de cozinha ou prato")}</label>
                             <input id="busca-catalogo-rotina" type="search" role="combobox" aria-expanded={resultadosCatalogo.length > 0} aria-controls="resultados-catalogo-rotina" aria-autocomplete="list" value={buscaPreferidos} onChange={(event) => { const valor = event.target.value; setBuscaPreferidos(valor); if (valor.trim().length < 2) { setResultadosCatalogo([]); setErroBusca(""); } }} placeholder={ui("Digite ao menos 2 letras")} className="mt-2 h-11 min-w-0 w-full rounded-lg border border-app-baunilha-dourada bg-white px-3 focus:outline-none focus:ring-2 focus:ring-app-caramelo-torrado" />
                             <div id="resultados-catalogo-rotina" role="listbox" aria-busy={carregandoBusca} className="mt-3 grid gap-2">
-                                {carregandoBusca ? <p className="text-sm text-app-cinza">{ui("Pesquisando op??es dentro do seu raio...")}</p> : null}
+                                {carregandoBusca ? <p className="text-sm text-app-cinza">{ui("Pesquisando opções dentro do seu raio...")}</p> : null}
                                 {erroBusca ? <p role="alert" className="text-sm text-red-700">{ui(erroBusca)}</p> : null}
                                 {!carregandoBusca && buscaPreferidos.trim().length >= 2 && !erroBusca && resultadosCatalogo.length === 0 ? <p className="text-sm text-app-cinza">{ui("Nenhuma opção compatível foi encontrada nesse raio.")}</p> : null}
                                 {resultadosCatalogo.map((restaurante) => <article role="option" aria-selected={form.restaurantes_favoritos_rotina.includes(Number(restaurante.id_restaurante))} key={restaurante.id_restaurante} className="rounded-xl border border-app-baunilha-dourada/60 p-3">
                                     <div className="flex flex-wrap items-center justify-between gap-3"><div><p className="font-semibold">{restaurante.nome}</p><p className="text-xs text-app-cinza">{Number(restaurante.distancia_km).toFixed(1)} km</p></div><button type="button" onClick={() => alternarRestaurante(restaurante)} className="rounded-full border border-app-caramelo-torrado px-4 py-2 text-xs font-semibold text-app-caramelo-torrado">{ui(form.restaurantes_favoritos_rotina.includes(Number(restaurante.id_restaurante)) ? "Remover restaurante" : "Priorizar restaurante")}</button></div>
-                                    {restaurante.produtos?.length ? <div className="mt-3 flex flex-wrap gap-2">{restaurante.produtos.map((produto) => <button type="button" key={produto.id_produto} onClick={() => alternarPrato(restaurante, produto)} className={`rounded-full px-3 py-2 text-xs ${form.pratos_favoritos_rotina.includes(Number(produto.id_produto)) ? "bg-app-cafe-profundo text-white" : "bg-app-chantilly text-app-mocha"}`}>{produto.nome}{produto.categorias?.nome ? ` ? ${produto.categorias.nome}` : ""}</button>)}</div> : null}
+                                    {restaurante.produtos?.length ? <div className="mt-3 flex flex-wrap gap-2">{restaurante.produtos.map((produto) => <button type="button" key={produto.id_produto} onClick={() => alternarPrato(restaurante, produto)} className={`rounded-full px-3 py-2 text-xs ${form.pratos_favoritos_rotina.includes(Number(produto.id_produto)) ? "bg-app-cafe-profundo text-white" : "bg-app-chantilly text-app-mocha"}`}>{produto.nome}{produto.categorias?.nome ? ` · ${produto.categorias.nome}` : ""}</button>)}</div> : null}
                                 </article>)}
                             </div>
                         </div>
-                        <div><p className="text-sm font-semibold">{ui("Suas sele??es")}</p><div className="mt-3 flex flex-wrap gap-2">
-                            {form.restaurantes_favoritos_rotina.map((id) => { const item = selecoesCatalogo[`r:${id}`]; return <button type="button" key={`r:${id}`} onClick={() => alternarRestaurante({ id_restaurante: id, nome: item?.nome ?? "", produtos: [] })} className="rounded-full border border-app-baunilha-dourada px-3 py-2 text-xs">{item?.nome ?? ui("Restaurante selecionado")} ?</button>; })}
-                            {form.pratos_favoritos_rotina.map((id) => { const item = selecoesCatalogo[`p:${id}`]; return <button type="button" key={`p:${id}`} onClick={() => alternarPrato({ nome: item?.restaurante, produtos: [] }, { id_produto: id, nome: item?.nome })} className="rounded-full border border-app-baunilha-dourada px-3 py-2 text-xs">{item?.nome ?? ui("Prato selecionado")} ?</button>; })}
+                        <div><p className="text-sm font-semibold">{ui("Suas seleções")}</p><div className="mt-3 flex flex-wrap gap-2">
+                            {form.restaurantes_favoritos_rotina.map((id) => { const item = selecoesCatalogo[`r:${id}`]; return <button type="button" key={`r:${id}`} onClick={() => alternarRestaurante({ id_restaurante: id, nome: item?.nome ?? "", produtos: [] })} className="rounded-full border border-app-baunilha-dourada px-3 py-2 text-xs">{item?.nome ?? ui("Restaurante selecionado")} ×</button>; })}
+                            {form.pratos_favoritos_rotina.map((id) => { const item = selecoesCatalogo[`p:${id}`]; return <button type="button" key={`p:${id}`} onClick={() => alternarPrato({ nome: item?.restaurante, produtos: [] }, { id_produto: id, nome: item?.nome })} className="rounded-full border border-app-baunilha-dourada px-3 py-2 text-xs">{item?.nome ?? ui("Prato selecionado")} ×</button>; })}
                             {!form.restaurantes_favoritos_rotina.length && !form.pratos_favoritos_rotina.length ? <p className="text-sm text-app-cinza">{ui("Nenhum restaurante ou prato priorizado.")}</p> : null}
                         </div></div>
                         <p className="text-sm text-app-cinza sm:col-span-2">{ui("Seleção opcional. Seus favoritos já ganham prioridade; outros restaurantes e pratos continuam elegíveis. Somente pratos publicados aparecem aqui.")}</p>
