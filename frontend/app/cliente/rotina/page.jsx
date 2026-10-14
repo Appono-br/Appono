@@ -5,6 +5,7 @@ import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { apiRequest } from "@/lib/api";
 import { estadoPlanejamento } from "@/lib/routine-view.mjs";
 import { useInterface } from "@/lib/use-interface";
+import { traduzirMotivoRecomendacao } from "@/lib/glossario-conteudo";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -131,7 +132,7 @@ export default function RotinaClientePage() {
             {!carregando ? <div className="mt-5 grid items-start gap-5 lg:grid-cols-1">
                 <article className="hidden">
                     <div className="flex items-start justify-between gap-4">
-                        <div><p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{ui("Seu perfil")}</p><h2 className="mt-2 text-2xl font-semibold sm:text-3xl">{perfil?.nome ?? ui("Rotina ainda não configurada")}</h2></div>
+                        <div><p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{ui("Seu perfil")}</p><h2 data-appono-sem-traducao className="mt-2 text-2xl font-semibold sm:text-3xl">{perfil?.nome ?? ui("Rotina ainda não configurada")}</h2></div>
                         <div className="flex h-11 w-11 items-center justify-center rounded-full bg-app-cafe-profundo text-app-creme-leve"><RoutineIcon type="route" /></div>
                     </div>
                     <p className="mt-3 text-sm leading-6 text-app-cinza">{perfil ? (perfil.endereco_base || ui("Base definida pela sua localização.")) : ui("Defina dias, horários, orçamento e preferências para começar.")}</p>
@@ -139,7 +140,7 @@ export default function RotinaClientePage() {
                         <div className="rounded-[16px] border border-app-baunilha-dourada/45 p-4"><dt className="text-[10px] font-bold uppercase tracking-wider text-app-caramelo-torrado">{ui("Orçamento diário")}</dt><dd className="mt-1 text-xl font-semibold">{formatarMoeda(perfil?.orcamento_diario, localeUI)}</dd></div>
                         <div className="rounded-[16px] border border-app-baunilha-dourada/45 p-4"><dt className="text-[10px] font-bold uppercase tracking-wider text-app-caramelo-torrado">{ui("Raio máximo")}</dt><dd className="mt-1 text-xl font-semibold">{perfil?.raio_km ? `${perfil.raio_km} km` : "--"}</dd></div>
                     </dl>
-                    {perfil ? <p className="mt-4 text-sm leading-6 text-app-cinza">{perfil.dias_semana.length} {ui("dias por semana")} · {String(perfil.horario_inicio).slice(0, 5)}–{String(perfil.horario_fim).slice(0, 5)} · {ui("saída de até")} {perfil.tempo_maximo_minutos} min</p> : null}
+                    {perfil ? <p className="mt-4 text-sm leading-6 text-app-cinza">{perfil.dias_semana.length} {ui("dias por semana")} · {String(perfil.horario_inicio).slice(0, 5)}–{String(perfil.horario_fim).slice(0, 5)} · {ui("saída de até")} {perfil.tempo_maximo_minutos}{ui(" min")}</p> : null}
                     <Link href="/cliente/rotina/configurar" className="mt-6 inline-flex min-h-11 items-center justify-center rounded-full border border-app-baunilha-dourada px-6 py-3 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha hover:bg-app-chantilly">{ui(perfil ? "Editar preferências" : "Configurar rotina")}</Link>
                 </article>
 
@@ -148,9 +149,9 @@ export default function RotinaClientePage() {
                         <div className="min-w-0"><p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{ui(planejamento ? "Próxima refeição" : "Comece por aqui")}</p><h2 className="mt-2 text-2xl font-semibold sm:text-3xl">{ui(planejamento ? estado.titulo : "Configure sua rotina")}</h2></div>
                     </div>
                     {planejamento && estado.proxima ? <div className="mt-6 grid gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] sm:items-center">
-                        <div className="rounded-[16px] border border-app-baunilha-dourada/45 p-5"><p className="font-semibold capitalize">{formatarData(estado.proxima.data_refeicao, localeUI)} {ui("às")} {String(estado.proxima.horario_sugerido ?? "").slice(0, 5)}</p><p className="mt-2 text-sm text-app-cinza">{estado.proxima.produtos?.nome ?? ui("Reserva sem item definido")}</p><div className="mt-3"><RoutineStatus status={estado.proxima.status} /></div></div>
-                        <p className="max-w-sm text-sm leading-6 text-app-cinza">{estado.proxima.motivo_recomendacao}</p>
-                    </div> : <p className="mt-5 max-w-2xl text-sm leading-6 text-app-cinza">{ui(planejamento ? estado.descricao : "Informe seus horários, ponto de partida e preferências. Depois a Appono encontrará sugestões que se encaixem no seu dia.")}</p>}
+                        <div className="rounded-[16px] border border-app-baunilha-dourada/45 p-5"><p className="font-semibold capitalize">{formatarData(estado.proxima.data_refeicao, localeUI)} {ui("às")} {String(estado.proxima.horario_sugerido ?? "").slice(0, 5)}</p><p data-appono-sem-traducao className="mt-2 text-sm text-app-cinza">{estado.proxima.produtos?.nome ?? ui("Reserva sem item definido")}</p><div className="mt-3"><RoutineStatus status={estado.proxima.status} /></div></div>
+                        <p className="max-w-sm text-sm leading-6 text-app-cinza">{traduzirMotivoRecomendacao(estado.proxima.motivo_recomendacao, localeUI.startsWith("en") ? "en" : "pt-BR")}</p>
+                    </div> : <p className="mt-5 max-w-2xl text-sm leading-6 text-app-cinza">{planejamento ? traduzirMotivoRecomendacao(estado.descricao, localeUI.startsWith("en") ? "en" : "pt-BR") : ui("Informe seus horários, ponto de partida e preferências. Depois a Appono encontrará sugestões que se encaixem no seu dia.")}</p>}
                     <div className="mt-6 flex flex-wrap gap-3">{acaoPrincipal}</div>
                 </article>
 

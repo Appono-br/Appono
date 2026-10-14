@@ -4,13 +4,14 @@ import { useEffect, useRef } from "react";
 import { traduzirTextoInterface } from "@/lib/i18n";
 import { useIdiomaLocal } from "@/lib/use-idioma-local";
 
-const atributosTraduziveis = ["aria-label", "placeholder", "title"];
+const atributosTraduziveis = ["aria-label", "aria-description", "aria-valuetext", "placeholder", "title", "alt"];
+const seletorSemTraducao = '[data-appono-sem-traducao], [translate="no"]';
 const textosOriginais = new WeakMap();
 const atributosOriginais = new WeakMap();
 
 function deveIgnorar(no) {
   const tag = no.parentElement?.tagName;
-  return !tag || ["SCRIPT", "STYLE", "NOSCRIPT", "CODE", "PRE"].includes(tag) || no.parentElement.closest("[data-appono-sem-traducao]");
+  return !tag || ["SCRIPT", "STYLE", "NOSCRIPT", "CODE", "PRE", "TEXTAREA"].includes(tag) || no.parentElement.closest(`${seletorSemTraducao}, [contenteditable]:not([contenteditable="false"])`);
 }
 
 function traduzirNoDeTexto(no, idioma) {
@@ -27,7 +28,7 @@ function traduzirNoDeTexto(no, idioma) {
 }
 
 function traduzirAtributos(elemento, idioma) {
-  if (!(elemento instanceof HTMLElement) || elemento.closest("[data-appono-sem-traducao]")) return;
+  if (!(elemento instanceof Element) || elemento.closest(seletorSemTraducao)) return;
   if (!atributosOriginais.has(elemento)) atributosOriginais.set(elemento, new Map());
   const originais = atributosOriginais.get(elemento);
 
@@ -51,8 +52,8 @@ function traduzirArvore(no, idioma) {
     traduzirNoDeTexto(no, idioma);
     return;
   }
-  if (!(no instanceof HTMLElement)) return;
-  if (no.closest("[data-appono-sem-traducao]")) return;
+  if (!(no instanceof Element)) return;
+  if (no.closest(seletorSemTraducao)) return;
   traduzirAtributos(no, idioma);
   no.childNodes.forEach((filho) => traduzirArvore(filho, idioma));
 }

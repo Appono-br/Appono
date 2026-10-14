@@ -232,6 +232,57 @@ const textosInterfaceEn = {
   "switch to english": "Switch to English",
 };
 
+function normalizarTexto(texto) {
+  return texto.normalize("NFC").replace(/\s+/g, " ").replace(/…/g, "...");
+}
+
+function normalizarChave(texto) {
+  return normalizarTexto(texto).trim().toLocaleLowerCase("pt-BR");
+}
+
+function semAcentos(texto) {
+  return texto.normalize("NFD").replace(/\p{M}/gu, "");
+}
+
+const traducoesEn = { ...textosInterfaceEn, ...interfaceEn };
+const traducoesExatas = new Map(Object.entries(traducoesEn));
+const traducoesNormalizadas = new Map(
+  Object.entries(traducoesEn).map(([chave, traducao]) => [semAcentos(normalizarChave(chave)), traducao]),
+);
+
+function expressaoLiteral(texto) {
+  const acentos = { a: "[aáàâãä]", c: "[cç]", e: "[eéèêë]", i: "[iíìîï]", o: "[oóòôõö]", u: "[uúùûü]" };
+  return semAcentos(normalizarTexto(texto))
+    .replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+    .replace(/[aceiou]/gi, (letra) => acentos[letra.toLowerCase()])
+    .replace(/\s+/g, "\\s+");
+}
+
+const modelosEn = Object.entries(traducoesEn).flatMap(([chave, traducao]) => {
+  const partes = chave.split(/\{(\d+)\}/g);
+  const literal = partes.filter((_, indice) => indice % 2 === 0).join("");
+  // Short, generic templates must only be used with explicit interpolation.
+  if (partes.length === 1 || literal.replace(/[^\p{L}]/gu, "").length < 6) return [];
+  const indices = partes.filter((_, indice) => indice % 2 === 1);
+  const padrao = partes.map((parte, indice) => indice % 2 ? "(.+?)" : expressaoLiteral(parte)).join("");
+  return [{ expressao: new RegExp(`^${padrao}$`, "iu"), indices, traducao, prioridade: literal.length }];
+}).sort((a, b) => b.prioridade - a.prioridade);
+
+function traduzirTermo(termo) {
+  const chave = normalizarChave(termo);
+  const traducao = traducoesExatas.get(chave) ?? traducoesNormalizadas.get(semAcentos(chave));
+  if (traducao !== undefined) return traducao;
+
+  const texto = termo.normalize("NFC").replace(/…/g, "...");
+  for (const modelo of modelosEn) {
+    const correspondencia = texto.match(modelo.expressao);
+    if (!correspondencia) continue;
+    const valores = new Map(modelo.indices.map((indice, posicao) => [indice, correspondencia[posicao + 1]]));
+    return modelo.traducao.replace(/\{(\d+)\}/g, (original, indice) => valores.get(indice) ?? original);
+  }
+  return termo;
+}
+
 export function traduzirInterface(idioma, chave) {
   return chave.split(".").reduce((valor, segmento) => valor?.[segmento], dicionarios[idioma] ?? dicionarios["pt-BR"])
     ?? chave;
@@ -243,6 +294,6 @@ export function traduzirTextoInterface(texto, idioma) {
   const espacosIniciais = textoOriginal.match(/^\s*/)?.[0] ?? "";
   const espacosFinais = textoOriginal.match(/\s*$/)?.[0] ?? "";
   const termo = textoOriginal.trim();
-  const chave = termo.replace(/\s+/g, " ").toLocaleLowerCase("pt-BR");
-  return `${espacosIniciais}${interfaceEn[chave] ?? textosInterfaceEn[chave] ?? termo}${espacosFinais}`;
+  if (!termo) return textoOriginal;
+  return `${espacosIniciais}${traduzirTermo(termo)}${espacosFinais}`;
 }

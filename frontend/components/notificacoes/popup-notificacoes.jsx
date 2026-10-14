@@ -112,8 +112,8 @@ export function PopupNotificacoes({ id, href, onClose, onNavigate }) {
                         <ul>
                             {resultado.items.map((notificacao) => {
                                 const conteudo = <>
-                                    <h3>{notificacao.tipo_evento === "INFORMATIVO" ? notificacao.titulo : ui(notificacao.titulo)}</h3>
-                                    <p className="mt-2 text-sm text-app-mocha">{mensagemNotificacaoUI(notificacao, localeUI.startsWith("en") ? "en" : "pt-BR")}</p>
+                                    <h3 data-appono-sem-traducao>{notificacao.tipo_evento === "INFORMATIVO" ? notificacao.titulo : ui(notificacao.titulo)}</h3>
+                                    <p data-appono-sem-traducao className="mt-2 text-sm text-app-mocha">{mensagemNotificacaoUI(notificacao, localeUI.startsWith("en") ? "en" : "pt-BR")}</p>
                                     <time dateTime={notificacao.criado_em} className="mt-3 block text-xs text-app-cinza">{dataHoraUI(notificacao.criado_em)}</time>
                                 </>;
                                 return <li key={notificacao.id_notificacao}>

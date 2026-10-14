@@ -189,10 +189,10 @@ function SettingsContent({ painelInicial }) {
       <ConfirmationDialog
         open={confirmandoSaida}
         variant="logout"
-        title="Sair da conta?"
-        description="Tem certeza de que deseja sair da sua conta?"
+        title={ui("Sair da conta?")}
+        description={ui("Tem certeza de que deseja sair da sua conta?")}
         confirmLabel={t("settings.logout")}
-        cancelLabel="Cancelar"
+        cancelLabel={ui("Cancelar")}
         loading={saindo}
         onConfirm={logout}
         onCancel={() => setConfirmandoSaida(false)}

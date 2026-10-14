@@ -1,6 +1,10 @@
+"use client";
+
 import Link from "next/link";
+import { useInterface } from "@/lib/use-interface";
 
 export function BotaoVoltar({ href, children = "Voltar", className = "" }) {
+    const { ui } = useInterface();
     return (
         <Link href={href} className={`inline-flex w-fit items-center gap-2 ${className}`}>
             <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4">
@@ -13,7 +17,7 @@ export function BotaoVoltar({ href, children = "Voltar", className = "" }) {
                     strokeWidth="1.9"
                 />
             </svg>
-            <span>{children}</span>
+            <span>{ui(children)}</span>
         </Link>
     );
 }

@@ -360,10 +360,10 @@ export function PainelSuporte({ perfil, embutido = false }) {
                                 </div>
 
                                 <div className="mt-5 grid gap-4 @min-[640px]/suporte:grid-cols-3">
-                                    <article className="min-w-0 rounded-[12px] bg-white p-4 ring-1 ring-app-baunilha-dourada/60 @min-[640px]/suporte:col-span-2">
+                                    <article data-appono-sem-traducao className="min-w-0 rounded-[12px] bg-white p-4 ring-1 ring-app-baunilha-dourada/60 @min-[640px]/suporte:col-span-2">
                                         <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">{ui("Descrição")}</p>
-                                        <p className="mt-2 text-sm leading-6 text-app-mocha">{detalhe.descricao}</p>
-                                        {detalhe.resolucao ? <p className="mt-4 rounded-[10px] bg-app-chantilly p-3 text-sm font-semibold text-app-cafe-profundo">{detalhe.resolucao}</p> : null}
+                                        <p data-appono-sem-traducao className="mt-2 text-sm leading-6 text-app-mocha">{detalhe.descricao}</p>
+                                        {detalhe.resolucao ? <p data-appono-sem-traducao className="mt-4 rounded-[10px] bg-app-chantilly p-3 text-sm font-semibold text-app-cafe-profundo">{detalhe.resolucao}</p> : null}
                                     </article>
                                     <article className="rounded-[12px] bg-white p-4 ring-1 ring-app-baunilha-dourada/60">
                                         <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">{ui("Operação")}</p>
@@ -381,7 +381,7 @@ export function PainelSuporte({ perfil, embutido = false }) {
                                                 <strong className="text-sm capitalize">{ui(item.tipo_remetente)}</strong>
                                                 <span className="text-xs text-app-cinza">{formatarData(item.criado_em, localeUI)}</span>
                                             </div>
-                                            <p className="mt-2 text-sm leading-6">{item.conteudo}</p>
+                                            <p data-appono-sem-traducao className="mt-2 text-sm leading-6">{item.conteudo}</p>
                                         </article>
                                     ))}
                                 </div>

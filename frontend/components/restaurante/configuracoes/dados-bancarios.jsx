@@ -54,7 +54,7 @@ const initialBankSummary = {
 };
 
 export default function RestaurantBankSettingsPage({ onVoltar }) {
-  const { ui } = useInterface();
+  const { ui, localeUI } = useInterface();
   const { sessao, sessaoCarregada } = useSessaoLocal();
   const [bankSummary, setBankSummary] = useState(initialBankSummary);
   const [legalName, setLegalName] = useState("");
@@ -241,7 +241,7 @@ export default function RestaurantBankSettingsPage({ onVoltar }) {
                   <span>
                     {ui("Atualização: ")}<strong>
                       {ui(bankSummary.updatedAt
-                        ? new Date(bankSummary.updatedAt).toLocaleDateString("pt-BR")
+                        ? new Date(bankSummary.updatedAt).toLocaleDateString(localeUI)
                         : "Sem registro")}
                     </strong>
                   </span>
@@ -314,7 +314,7 @@ export default function RestaurantBankSettingsPage({ onVoltar }) {
             {/* Seção Pix */}
             <section className="mt-8 border-t border-app-baunilha-dourada/60 pt-8">
               <h3 className="flex items-center gap-3 text-xl font-medium text-app-cafe-profundo">
-                <span className="text-app-caramelo-torrado">Pix</span>
+                <span className="text-app-caramelo-torrado">{ui("Pix")}</span>
                 {ui("Chave de contingência")}
               </h3>
               <div className="mt-6 grid gap-5 sm:grid-cols-[0.46fr_1fr]">
@@ -409,7 +409,7 @@ export default function RestaurantBankSettingsPage({ onVoltar }) {
                 className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-red-600 hover:bg-red-700 px-8 text-xs font-bold uppercase tracking-wide text-white transition shadow-sm disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isSubmitting ? (
-                  <><Loader2 className="h-4 w-4 animate-spin" /><span>Salvando...</span></>
+                  <><Loader2 className="h-4 w-4 animate-spin" /><span>{ui("Salvando...")}</span></>
                 ) : (
                   <><Save className="h-4 w-4" /><span>{ui("Salvar dados")}</span></>
                 )}

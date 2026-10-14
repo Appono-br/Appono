@@ -294,10 +294,10 @@ export default function RestaurantSettings({ painelInicial = "conta" }) {
       <ConfirmationDialog
         open={confirmandoSaida}
         variant="logout"
-        title="Sair da conta?"
-        description="Tem certeza de que deseja sair da sua conta?"
-        confirmLabel="Sair da conta"
-        cancelLabel="Cancelar"
+        title={ui("Sair da conta?")}
+        description={ui("Tem certeza de que deseja sair da sua conta?")}
+        confirmLabel={ui("Sair da conta")}
+        cancelLabel={ui("Cancelar")}
         loading={saindo}
         onConfirm={logout}
         onCancel={() => setConfirmandoSaida(false)}

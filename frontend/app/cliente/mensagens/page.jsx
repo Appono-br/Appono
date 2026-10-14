@@ -28,7 +28,7 @@ function AvatarConversa({ conversa, size = "h-14 w-14" }) {
   return (
     <span className={`logo-restaurante-circular relative flex ${size} shrink-0 overflow-hidden rounded-full bg-app-cafe-profundo text-xs font-bold text-app-creme-leve ring-1 ring-app-baunilha-dourada/60`}>
       {logoUrl ? (
-        <Image src={logoUrl} alt={conversa?.restaurante?.nome ?? conversa?.titulo ?? "Restaurante"} fill sizes="56px" className="object-cover bg-white" />
+        <Image data-appono-sem-traducao src={logoUrl} alt={conversa?.restaurante?.nome ?? conversa?.titulo ?? ui("Restaurante")} fill sizes="56px" className="object-cover bg-white" />
       ) : (
         <span className="flex h-full w-full items-center justify-center">{conversa?.iniciais ?? ui("AP")}</span>
       )}
@@ -134,7 +134,7 @@ export default function MessagesPage() {
                     <AvatarConversa conversa={conversa} size="h-16 w-16" />
                     <span className="min-w-0">
                       <span className="flex flex-wrap items-center gap-2">
-                        <strong className="text-lg font-semibold text-app-cafe-profundo sm:text-xl">{conversa.titulo}</strong>
+                        <strong data-appono-sem-traducao className="text-lg font-semibold text-app-cafe-profundo sm:text-xl">{conversa.titulo}</strong>
                         {conversa.nao_lida ? <span className="rounded-full bg-app-caramelo-torrado px-2.5 py-1 text-[10px] font-bold uppercase text-white">{ui("Nova")}</span> : null}
                         <span className="rounded-full bg-app-chantilly px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-app-mocha">{conversa?.pedido ? ui("Pedido #{0}", [conversa.pedido.id_pedido]) : conversa?.reserva ? ui("Reserva #{0}", [conversa.reserva.id_reserva]) : ui("Conversa direta")}</span>
                       </span>
@@ -172,7 +172,7 @@ export default function MessagesPage() {
         loading={arquivando}
         onCancel={() => setConversaParaArquivar(null)}
         onConfirm={arquivarConversa}
-        details={conversaParaArquivar ? <p className="font-semibold">{conversaParaArquivar.titulo}</p> : null}
+        details={conversaParaArquivar ? <p data-appono-sem-traducao className="font-semibold">{conversaParaArquivar.titulo}</p> : null}
       />
     </main>
   );

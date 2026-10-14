@@ -18,7 +18,7 @@ function hasPartnerLogo(restaurant) {
 function RestaurantImage({ url, name }) {
   const [failed, setFailed] = useState(false);
   return <div className="public-partner-logo">
-    {url && !failed ? <Image src={url} alt={name} width={176} height={152} sizes="176px" className="restaurant-logo-image" onError={() => setFailed(true)} /> : <span className="public-restaurant-placeholder" role="img" aria-label={name}><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3"><path d="M3 10h18l-2-6H5l-2 6Zm2 0v10h14V10M9 20v-6h6v6M3 10c0 3 4.5 3 4.5 0 0 3 4.5 3 4.5 0 0 3 4.5 3 4.5 0 0 3 4.5 3 4.5 0" /></svg></span>}
+    {url && !failed ? <Image data-appono-sem-traducao src={url} alt={name} width={176} height={152} sizes="176px" className="restaurant-logo-image" onError={() => setFailed(true)} /> : <span data-appono-sem-traducao className="public-restaurant-placeholder" role="img" aria-label={name}><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3"><path d="M3 10h18l-2-6H5l-2 6Zm2 0v10h14V10M9 20v-6h6v6M3 10c0 3 4.5 3 4.5 0 0 3 4.5 3 4.5 0 0 3 4.5 3 4.5 0 0 3 4.5 3 4.5 0" /></svg></span>}
   </div>;
 }
 

@@ -2,6 +2,7 @@
 
 import React, { forwardRef } from "react";
 import { AlertCircle } from "lucide-react";
+import { useInterface } from "@/lib/use-interface";
 
 export const FormInput = forwardRef(function FormInput(
   {
@@ -18,6 +19,7 @@ export const FormInput = forwardRef(function FormInput(
   },
   ref
 ) {
+  const { ui } = useInterface();
   const inputId = id || props.name;
   const errorId = inputId ? `${inputId}-error` : undefined;
 
@@ -28,7 +30,7 @@ export const FormInput = forwardRef(function FormInput(
           htmlFor={inputId}
           className="flex items-center text-xs font-semibold text-app-cafe-profundo select-none"
         >
-          <span>{label}</span>
+          <span>{ui(label)}</span>
           {required && (
             <span className="text-app-caramelo-torrado ml-1 font-bold" aria-hidden="true">
               *
@@ -58,6 +60,7 @@ export const FormInput = forwardRef(function FormInput(
               : "border-app-baunilha-dourada/50 hover:border-app-caramelo-torrado focus:border-app-dourado-mel focus:ring-app-dourado-mel/20"
           } ${className}`}
           {...props}
+          placeholder={ui(props.placeholder)}
         />
 
         {rightAction && (
@@ -74,10 +77,10 @@ export const FormInput = forwardRef(function FormInput(
           className="flex items-center gap-1.5 text-xs font-medium text-app-vermelho-erro animate-fadeIn"
         >
           <AlertCircle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-          <span>{error.message || error}</span>
+          <span>{ui(error.message || error)}</span>
         </p>
       ) : helperText ? (
-        <p className="text-xs text-app-cinza">{helperText}</p>
+        <p className="text-xs text-app-cinza">{ui(helperText)}</p>
       ) : null}
     </div>
   );

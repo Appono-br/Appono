@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Check } from "lucide-react";
+import { useInterface } from "@/lib/use-interface";
 
 export function FormStepper({
   steps,
@@ -14,6 +15,7 @@ export function FormStepper({
   completedClassName = "bg-app-dourado-mel text-white hover:bg-app-caramelo-torrado",
   progressClassName = "bg-app-dourado-mel",
 }) {
+  const { ui } = useInterface();
   const totalSteps = steps.length;
   const progressPercent = Math.round(((currentStep + 1) / totalSteps) * 100);
   const connectorPercent = integratedProgress
@@ -27,8 +29,8 @@ export function FormStepper({
     <div className="w-full mb-8">
       {/* Indicador textual da etapa */}
       <div className="flex items-center justify-between text-xs font-semibold text-app-cinza mb-2">
-        <span className="uppercase tracking-wider text-app-caramelo-torrado">
-          Passo {currentStep + 1} de {totalSteps}: {steps[currentStep]?.title}
+        <span data-appono-sem-traducao className="uppercase tracking-wider text-app-caramelo-torrado">
+          {ui("Passo {0} de {1}: {2}", [currentStep + 1, totalSteps, ui(steps[currentStep]?.title)])}
         </span>
         {showPercentage && (
           <span className="text-app-cinza">{progressPercent}%</span>
@@ -80,7 +82,7 @@ export function FormStepper({
                       : "bg-app-chantilly text-app-cinza border border-app-baunilha-dourada/50 cursor-not-allowed"
                   }`}
                   aria-current={isCurrent ? "step" : undefined}
-                  aria-label={`Passo ${index + 1}: ${step.title}`}
+                  aria-label={ui("Passo {0}: {1}", [index + 1, ui(step.title)])}
                 >
                   {isCompleted ? (
                     <Check className="h-4 w-4 stroke-[2.5]" aria-hidden="true" />
@@ -101,7 +103,7 @@ export function FormStepper({
                       : "text-app-cinza"
                   }`}
                 >
-                  {step.title}
+                  {ui(step.title)}
                 </span>
               </div>
             );

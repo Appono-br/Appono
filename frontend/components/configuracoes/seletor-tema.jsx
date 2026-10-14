@@ -53,7 +53,7 @@ export function SeletorTema() {
                                 <span aria-hidden="true" className="text-app-caramelo-torrado">
                                     <IconeTema tema={opcao.valor} />
                                 </span>
-                                <strong className="block truncate text-sm text-app-cafe-profundo">
+                                <strong data-appono-sem-traducao className="block truncate text-sm text-app-cafe-profundo">
                                     {ui(opcao.titulo)}
                                 </strong>
                             </span>

@@ -105,7 +105,7 @@ export function PainelAnaliseReembolsos({ perfil }) {
                                 <div>
                                     <p className="text-xs font-bold uppercase text-app-caramelo-torrado">{ui("Reembolso #")}{item.id_reembolso}</p>
                                     <h2 className="mt-1 text-xl font-semibold">{ui("Pedido #")}{item.id_pedido}</h2>
-                                    <p className="mt-1 text-sm text-app-cinza">{item.clientes?.nome ?? ui("Cliente")} · {item.restaurantes?.nome ?? ui("Restaurante")}</p>
+                                    <p data-appono-sem-traducao className="mt-1 text-sm text-app-cinza">{item.clientes?.nome ?? ui("Cliente")} · {item.restaurantes?.nome ?? ui("Restaurante")}</p>
                                 </div>
                                 <div className="sm:text-right">
                                     <strong className="block text-xl">{moeda(item.valor_solicitado)}</strong>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useInterface } from "@/lib/use-interface";
+import { traduzirConteudoGlossario } from "@/lib/glossario-conteudo";
 import Image from "next/image";
 import Link from "next/link";
 import { Suspense, useEffect, useState } from "react";
@@ -96,7 +97,7 @@ function validarFormularioCardapio(form) {
 }
 
 function RestaurantMenuItemEditorContent() {
-    const { ui } = useInterface();
+    const { ui, localeUI } = useInterface();
     const { sessao, sessaoCarregada } = useSessaoLocal();
     const searchParams = useSearchParams();
     const router = useRouter();
@@ -314,8 +315,8 @@ function RestaurantMenuItemEditorContent() {
                                 <select value={form.category} onChange={(event) => updateField("category", event.target.value)} required className="h-12 w-full appearance-none rounded-[8px] border border-app-baunilha-dourada bg-app-creme-suave px-3 pr-10 text-base text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado">
                                     <option value="">{ui("Selecione")}</option>
                                     {categoriasDisponiveis.map((category) => (
-                                        <option key={category} value={category}>
-                                    {categoriasDisponiveis === categories ? ui(category) : category}
+                                        <option data-appono-sem-traducao key={category} value={category}>
+                                            {traduzirConteudoGlossario(category, localeUI === "en-US" ? "en" : "pt-BR")}
                                         </option>
                                     ))}
                                 </select>
@@ -348,8 +349,8 @@ function RestaurantMenuItemEditorContent() {
                                 {catalogoAlergenos.map((alergeno) => {
                                     const selecionado = segurancaAlimentar.alergenos.find((item) => item.codigo === alergeno.codigo);
                                     return <div key={alergeno.codigo} className="flex min-w-0 items-center gap-2 rounded-[8px] border border-app-baunilha-dourada/70 p-3">
-                                        <label className="flex min-w-0 flex-1 items-center gap-2 text-sm font-semibold text-app-mocha"><input type="checkbox" checked={Boolean(selecionado)} onChange={() => alternarAlergeno(alergeno.codigo)} className="h-4 w-4 accent-app-caramelo-torrado" /><span>{alergeno.nome}</span></label>
-                                        {selecionado ? <select value={selecionado.tipo} onChange={(event) => atualizarTipoAlergeno(alergeno.codigo, event.target.value)} aria-label={`${alergeno.nome}: tipo de risco`} className="max-w-36 rounded-[6px] border border-app-baunilha-dourada bg-white px-2 py-1 text-xs text-app-mocha"><option value="PRESENTE">{ui("Presente")}</option><option value="PODE_CONTER">{ui("Pode conter")}</option><option value="CONTAMINACAO_CRUZADA">{ui("Contaminação cruzada")}</option></select> : null}
+                                        <label className="flex min-w-0 flex-1 items-center gap-2 text-sm font-semibold text-app-mocha"><input type="checkbox" checked={Boolean(selecionado)} onChange={() => alternarAlergeno(alergeno.codigo)} className="h-4 w-4 accent-app-caramelo-torrado" /><span data-appono-sem-traducao>{ui(alergeno.nome)}</span></label>
+                                        {selecionado ? <select data-appono-sem-traducao value={selecionado.tipo} onChange={(event) => atualizarTipoAlergeno(alergeno.codigo, event.target.value)} aria-label={ui("{0}: tipo de risco", [ui(alergeno.nome)])} className="max-w-36 rounded-[6px] border border-app-baunilha-dourada bg-white px-2 py-1 text-xs text-app-mocha"><option value="PRESENTE">{ui("Presente")}</option><option value="PODE_CONTER">{ui("Pode conter")}</option><option value="CONTAMINACAO_CRUZADA">{ui("Contaminação cruzada")}</option></select> : null}
                                     </div>;
                                 })}
                             </div> : <p className="text-sm text-app-cinza">{ui("O catálogo de alérgenos estará disponível após a migration de segurança alimentar.")}</p>}

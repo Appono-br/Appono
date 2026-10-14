@@ -2,6 +2,7 @@
 
 import React, { forwardRef } from "react";
 import { AlertCircle, ChevronDown } from "lucide-react";
+import { useInterface } from "@/lib/use-interface";
 
 export const FormSelect = forwardRef(function FormSelect(
   {
@@ -18,6 +19,7 @@ export const FormSelect = forwardRef(function FormSelect(
   },
   ref
 ) {
+  const { ui } = useInterface();
   const selectId = id || props.name;
   const errorId = selectId ? `${selectId}-error` : undefined;
 
@@ -28,7 +30,7 @@ export const FormSelect = forwardRef(function FormSelect(
           htmlFor={selectId}
           className="flex items-center text-xs font-semibold text-slate-700 select-none"
         >
-          <span>{label}</span>
+          <span>{ui(label)}</span>
           {required && (
             <span className="text-red-500 ml-1 font-bold" aria-hidden="true">
               *
@@ -74,10 +76,10 @@ export const FormSelect = forwardRef(function FormSelect(
           className="flex items-center gap-1.5 text-xs font-medium text-red-600 animate-fadeIn"
         >
           <AlertCircle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-          <span>{error.message || error}</span>
+          <span>{ui(error.message || error)}</span>
         </p>
       ) : helperText ? (
-        <p className="text-xs text-slate-500">{helperText}</p>
+        <p className="text-xs text-slate-500">{ui(helperText)}</p>
       ) : null}
     </div>
   );

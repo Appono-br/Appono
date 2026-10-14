@@ -1,5 +1,7 @@
 "use client";
 
+import { useInterface } from "@/lib/use-interface";
+
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -67,6 +69,7 @@ function obterUrlCallbackAutenticacao() {
 }
 
 export function LoginForm() {
+  const { ui } = useInterface();
   const toast = useToast();
   const [showPassword, setShowPassword] = useState(false);
   const [remember, setRemember] = useState(false);
@@ -214,7 +217,7 @@ export function LoginForm() {
                 className="inline-flex w-fit items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-app-cinza hover:text-app-cafe-profundo hover:bg-app-chantilly-hover transition-all"
               >
                 <ArrowLeft className="h-4 w-4" />
-                <span>Início</span>
+                <span>{ui("Início")}</span>
               </Link>
 
               <Image
@@ -228,21 +231,17 @@ export function LoginForm() {
             </div>
 
             <div className="mb-6">
-              <h1 className="text-2xl font-extrabold text-app-cafe-profundo tracking-tight">
-                Bem-vindo de volta
-              </h1>
-              <p className="mt-1 text-sm text-app-cinza">
-                Entre para continuar sua jornada gastronômica ou torne-se membro.
-              </p>
+              <h1 className="text-2xl font-extrabold text-app-cafe-profundo tracking-tight">{ui("Bem-vindo de volta")}</h1>
+              <p className="mt-1 text-sm text-app-cinza">{ui("Entre para continuar sua jornada gastronômica ou torne-se membro.")}</p>
             </div>
 
             {/* Formulário de Login */}
             <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-4" noValidate>
               <FormInput
-                label="Endereço de e-mail"
+                label={ui("Endereço de e-mail")}
                 type="email"
                 autoComplete="email"
-                placeholder="nome@exemplo.com"
+                placeholder={ui("nome@exemplo.com")}
                 required
                 leftIcon={Mail}
                 error={errors.email}
@@ -250,10 +249,10 @@ export function LoginForm() {
               />
 
               <FormInput
-                label="Senha"
+                label={ui("Senha")}
                 type={showPassword ? "text" : "password"}
                 autoComplete="current-password"
-                placeholder="Digite sua senha"
+                placeholder={ui("Digite sua senha")}
                 required
                 leftIcon={Lock}
                 error={errors.password}
@@ -282,9 +281,7 @@ export function LoginForm() {
                     onChange={(e) => setRemember(e.target.checked)}
                     className="h-4 w-4 rounded border-app-caramelo-torrado accent-app-caramelo-torrado"
                   />
-                  <span className="text-app-cinza text-xs font-medium">
-                    Lembrar-me
-                  </span>
+                  <span className="text-app-cinza text-xs font-medium">{ui("Lembrar-me")}</span>
                 </label>
 
                 <button
@@ -295,9 +292,7 @@ export function LoginForm() {
                     setRecoveryDialog(true);
                   }}
                   className="text-xs font-semibold text-app-caramelo-torrado hover:text-app-mocha transition"
-                >
-                  Esqueceu a senha?
-                </button>
+                >{ui("Esqueceu a senha?")}</button>
               </div>
 
               {typeof window !== "undefined" && new URLSearchParams(window.location.search).get("cadastro") === "existente" && (
@@ -318,10 +313,10 @@ export function LoginForm() {
                 {isSubmitting ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    <span>Entrando...</span>
+                    <span>{ui("Entrando...")}</span>
                   </>
                 ) : (
-                  "Entrar na conta"
+                  ui("Entrar na conta")
                 )}
               </button>
 
@@ -329,17 +324,13 @@ export function LoginForm() {
                 type="button"
                 onClick={() => setRegisterDialog(true)}
                 className="botao-criar-conta app-button-secondary flex h-12 w-full items-center justify-center rounded-xl text-sm font-semibold shadow-sm transition-colors"
-              >
-                Criar nova conta
-              </button>
+              >{ui("Criar nova conta")}</button>
             </form>
 
             {/* Separador Google */}
             <div className="my-5 flex items-center gap-3">
               <div className="h-px flex-1 bg-app-chantilly-hover" />
-              <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-app-cinza">
-                ou continue com
-              </span>
+              <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-app-cinza">{ui("ou continue com")}</span>
               <div className="h-px flex-1 bg-app-chantilly-hover" />
             </div>
 
@@ -357,18 +348,13 @@ export function LoginForm() {
                 <path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238A11.91 11.91 0 0124 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"/>
                 <path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 01-4.087 5.571l.003-.002 6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"/>
               </svg>
-              {isGoogleSubmitting ? "Redirecionando..." : "Continuar com Google"}
+              {isGoogleSubmitting ? ui("Redirecionando...") : ui("Continuar com Google")}
             </button>
 
-            <p className="mt-4 text-center text-[10px] leading-5 tracking-wide text-app-cinza">
-              Ao continuar, você concorda com nossos{" "}
-              <Link href="#" className="text-app-caramelo-torrado underline underline-offset-2 hover:text-app-mocha">
-                termos
-              </Link>{" "}
+            <p className="mt-4 text-center text-[10px] leading-5 tracking-wide text-app-cinza">{ui("Ao continuar, você concorda com nossos")}{" "}
+              <Link href="#" className="text-app-caramelo-torrado underline underline-offset-2 hover:text-app-mocha">{ui("termos")}</Link>{" "}
               &{" "}
-              <Link href="#" className="text-app-caramelo-torrado underline underline-offset-2 hover:text-app-mocha">
-                privacidade
-              </Link>
+              <Link href="#" className="text-app-caramelo-torrado underline underline-offset-2 hover:text-app-mocha">{ui("privacidade")}</Link>
             </p>
           </div>
         </div>
@@ -380,7 +366,7 @@ export function LoginForm() {
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-5 backdrop-blur-sm"
           role="dialog"
           aria-modal="true"
-          aria-label="Escolha de cadastro"
+          aria-label={ui("Escolha de cadastro")}
           onMouseDown={(e) => {
             if (e.target === e.currentTarget) setRegisterDialog(false);
           }}
@@ -388,18 +374,14 @@ export function LoginForm() {
           <section className="w-full max-w-md rounded-3xl bg-white p-7 shadow-2xl">
             <div className="flex items-start justify-between gap-4 mb-6">
               <div>
-                <p className="text-xs font-bold uppercase tracking-widest text-app-caramelo-torrado">
-                  Criar conta
-                </p>
-                <h2 className="mt-1.5 text-xl font-extrabold text-app-cafe-profundo">
-                  Escolha seu perfil
-                </h2>
+                <p className="text-xs font-bold uppercase tracking-widest text-app-caramelo-torrado">{ui("Criar conta")}</p>
+                <h2 className="mt-1.5 text-xl font-extrabold text-app-cafe-profundo">{ui("Escolha seu perfil")}</h2>
               </div>
               <button
                 type="button"
                 onClick={() => setRegisterDialog(false)}
                 className="h-9 w-9 shrink-0 flex items-center justify-center rounded-full border border-app-baunilha-dourada/50 text-app-cinza hover:bg-app-chantilly-hover transition"
-                aria-label="Fechar"
+                aria-label={ui("Fechar")}
               >
                 <X className="h-4 w-4" />
               </button>
@@ -414,12 +396,8 @@ export function LoginForm() {
                   <User className="h-5 w-5" />
                 </div>
                 <div className="min-w-0">
-                  <strong className="block text-app-cafe-profundo font-bold">
-                    Sou cliente
-                  </strong>
-                  <span className="mt-0.5 block text-xs leading-5 text-app-cinza">
-                    Quero reservar mesa e antecipar meu pedido.
-                  </span>
+                  <strong className="block text-app-cafe-profundo font-bold">{ui("Sou cliente")}</strong>
+                  <span className="mt-0.5 block text-xs leading-5 text-app-cinza">{ui("Quero reservar mesa e antecipar meu pedido.")}</span>
                 </div>
                 <ChevronRight className="ml-auto h-4 w-4 shrink-0 text-app-cinza transition-transform group-hover:translate-x-1 group-hover:text-app-caramelo-torrado" />
               </Link>
@@ -432,12 +410,8 @@ export function LoginForm() {
                   <UtensilsCrossed className="h-5 w-5" />
                 </div>
                 <div className="min-w-0">
-                  <strong className="block text-app-cafe-profundo font-bold">
-                    Sou restaurante
-                  </strong>
-                  <span className="mt-0.5 block text-xs leading-5 text-app-cinza">
-                    Quero organizar reservas, cardápio e pedidos antecipados.
-                  </span>
+                  <strong className="block text-app-cafe-profundo font-bold">{ui("Sou restaurante")}</strong>
+                  <span className="mt-0.5 block text-xs leading-5 text-app-cinza">{ui("Quero organizar reservas, cardápio e pedidos antecipados.")}</span>
                 </div>
                 <ChevronRight className="ml-auto h-4 w-4 shrink-0 text-app-cinza transition-transform group-hover:translate-x-1 group-hover:text-app-caramelo-torrado" />
               </Link>
@@ -452,7 +426,7 @@ export function LoginForm() {
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-5 backdrop-blur-sm"
           role="dialog"
           aria-modal="true"
-          aria-label="Recuperação de senha"
+          aria-label={ui("Recuperação de senha")}
           onMouseDown={(e) => {
             if (e.target === e.currentTarget) setRecoveryDialog(false);
           }}
@@ -464,33 +438,27 @@ export function LoginForm() {
                   <KeyRound className="h-5 w-5" />
                 </span>
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-widest text-app-caramelo-torrado">
-                    Acesso
-                  </p>
-                  <h2 className="text-lg font-extrabold text-app-cafe-profundo">
-                    Recuperar senha
-                  </h2>
+                  <p className="text-xs font-bold uppercase tracking-widest text-app-caramelo-torrado">{ui("Acesso")}</p>
+                  <h2 className="text-lg font-extrabold text-app-cafe-profundo">{ui("Recuperar senha")}</h2>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setRecoveryDialog(false)}
                 className="h-9 w-9 shrink-0 flex items-center justify-center rounded-full border border-app-baunilha-dourada/50 text-app-cinza hover:bg-app-chantilly-hover transition"
-                aria-label="Fechar"
+                aria-label={ui("Fechar")}
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
 
-            <p className="text-xs leading-5 text-app-cinza mb-5">
-              Informe o e-mail cadastrado. A Appono enviará um link seguro para você criar uma nova senha.
-            </p>
+            <p className="text-xs leading-5 text-app-cinza mb-5">{ui("Informe o e-mail cadastrado. A Appono enviará um link seguro para você criar uma nova senha.")}</p>
 
             <form onSubmit={handleSubmitRecovery(onSubmitRecovery, onInvalid)} className="space-y-4" noValidate>
               <FormInput
-                label="E-mail da conta"
+                label={ui("E-mail da conta")}
                 type="email"
-                placeholder="nome@exemplo.com"
+                placeholder={ui("nome@exemplo.com")}
                 required
                 leftIcon={Mail}
                 error={recoveryErrors.recoveryEmail}
@@ -502,9 +470,7 @@ export function LoginForm() {
                   type="button"
                   onClick={() => setRecoveryDialog(false)}
                   className="h-11 rounded-xl border border-app-baunilha-dourada/50 text-sm font-semibold text-app-cafe-profundo hover:bg-app-chantilly transition"
-                >
-                  Voltar
-                </button>
+                >{ui("Voltar")}</button>
                 <button
                   type="submit"
                   disabled={isSendingRecovery}
@@ -513,10 +479,10 @@ export function LoginForm() {
                   {isSendingRecovery ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      <span>Enviando...</span>
+                      <span>{ui("Enviando...")}</span>
                     </>
                   ) : (
-                    "Enviar link"
+                    ui("Enviar link")
                   )}
                 </button>
               </div>

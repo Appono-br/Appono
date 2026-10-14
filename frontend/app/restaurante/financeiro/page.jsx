@@ -109,7 +109,7 @@ function RepassesTable({ repasses }) {
             <strong className="block text-app-cafe-profundo">{ui("Pedido #")}{repasse.id_pedido}</strong>
             <span className="text-xs text-app-cinza">{formatarData(repasse.data_pagamento ?? repasse.atualizado_em, localeUI)}</span>
           </div>
-          <span>{repasse.pedido?.clientes?.nome ?? ui("Cliente")}</span>
+          <span data-appono-sem-traducao>{repasse.pedido?.clientes?.nome ?? ui("Cliente")}</span>
           <span>{formatarReserva(repasse.pedido?.reservas?.data_reserva, repasse.pedido?.reservas?.horario_inicio, localeUI)}</span>
           <span>{ui(textoStatusPedido(repasse.pedido?.status_pedido))}</span>
           <div>
@@ -313,14 +313,14 @@ export default function RestaurantFinancialReportPage() {
         </section>
 
         <section className="mt-8 rounded-[8px] bg-app-creme-leve p-6 shadow-sm ring-1 ring-app-baunilha-dourada/60 sm:p-8">
-          <p className="text-xs font-bold text-app-caramelo-torrado">Mercado Pago</p>
-          <h2 className="mt-2 text-2xl font-medium text-app-cafe-profundo">Conta de recebimento</h2>
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-app-mocha">A conexão e as credenciais de recebimento são administradas nas configurações do restaurante.</p>
-          <Link href="/restaurante/configuracoes/mercado-pago" className="mt-5 inline-flex rounded-full bg-app-cafe-profundo px-5 py-3 text-sm font-semibold text-white">Gerenciar conexão</Link>
+          <p className="text-xs font-bold text-app-caramelo-torrado">{ui("Mercado Pago")}</p>
+          <h2 className="mt-2 text-2xl font-medium text-app-cafe-profundo">{ui("Conta de recebimento")}</h2>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-app-mocha">{ui("A conexão e as credenciais de recebimento são administradas nas configurações do restaurante.")}</p>
+          <Link href="/restaurante/configuracoes/mercado-pago" className="mt-5 inline-flex rounded-full bg-app-cafe-profundo px-5 py-3 text-sm font-semibold text-white">{ui("Gerenciar conexão")}</Link>
         </section>
 
         <section className="mt-10">
-          <div className="mb-4 flex flex-wrap items-end gap-3"><label className="grid gap-1 text-sm">Status<select value={filtroStatus} onChange={(e) => setFiltroStatus(e.target.value)} className="rounded-lg border border-app-baunilha-dourada px-3 py-2"><option value="todos">Todos</option><option value="AGUARDANDO_ENTREGA">Pendente</option><option value="LIBERADO_PARA_REPASSE">Disponível</option><option value="REPASSADO">Repassado</option><option value="ESTORNADO">Estornado</option></select></label><label className="grid gap-1 text-sm">Tipo<select value={filtroTipo} onChange={(e) => setFiltroTipo(e.target.value)} className="rounded-lg border border-app-baunilha-dourada px-3 py-2"><option value="todos">Todos</option><option value="MARKETPLACE">Marketplace</option><option value="DIRETO">Direto</option></select></label><p className="text-xs text-app-cinza">Os cartões mostram o total do período; estes filtros alteram apenas as linhas abaixo.</p></div>
+          <div className="mb-4 flex flex-wrap items-end gap-3"><label className="grid gap-1 text-sm">{ui("Status")}<select value={filtroStatus} onChange={(e) => setFiltroStatus(e.target.value)} className="rounded-lg border border-app-baunilha-dourada px-3 py-2"><option value="todos">{ui("Todos")}</option><option value="AGUARDANDO_ENTREGA">{ui("Pendente")}</option><option value="LIBERADO_PARA_REPASSE">{ui("Disponível")}</option><option value="REPASSADO">{ui("Repassado")}</option><option value="ESTORNADO">{ui("Estornado")}</option></select></label><label className="grid gap-1 text-sm">{ui("Tipo")}<select value={filtroTipo} onChange={(e) => setFiltroTipo(e.target.value)} className="rounded-lg border border-app-baunilha-dourada px-3 py-2"><option value="todos">{ui("Todos")}</option><option value="MARKETPLACE">{ui("Marketplace")}</option><option value="DIRETO">{ui("Direto")}</option></select></label><p className="text-xs text-app-cinza">{ui("Os cartões mostram o total do período; estes filtros alteram apenas as linhas abaixo.")}</p></div>
           {!carregandoFinanceiro && !estadoFinanceiro.erro ? <RepassesTable repasses={repassesFiltrados} /> : null}
         </section>
 

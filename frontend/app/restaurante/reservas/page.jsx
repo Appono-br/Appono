@@ -474,7 +474,7 @@ export default function RestaurantReservationsPage() {
                                                 <div>
                                                     <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{ui("Reserva #")}{reserva.id_reserva}
                                                     </p>
-                                                    <h3 className="mt-2 text-xl font-semibold text-app-cafe-profundo">
+                                                    <h3 data-appono-sem-traducao className="mt-2 text-xl font-semibold text-app-cafe-profundo">
                                                         {reserva.clientes?.nome ?? ui("Cliente")}
                                                     </h3>
                                                 </div>
@@ -614,7 +614,7 @@ export default function RestaurantReservationsPage() {
                             <p className="mt-3 rounded-[10px] bg-white p-3 text-sm font-semibold leading-6 text-app-cafe-profundo ring-1 ring-app-baunilha-dourada/60">{ui("Existe pedido antecipado vinculado. Se estiver pago, o cancelamento só será concluído após o estorno; se estiver pendente, ele será cancelado.")}</p>
                         ) : null}
                         <div className="mt-6 rounded-[10px] bg-white p-4 ring-1 ring-app-baunilha-dourada/60">
-                            <p className="text-sm font-semibold">
+                            <p data-appono-sem-traducao className="text-sm font-semibold">
                                 {reservaParaCancelar.clientes?.nome ?? ui("Cliente")}
                             </p>
                             <p className="mt-1 text-xs text-app-cinza">
@@ -652,7 +652,7 @@ export default function RestaurantReservationsPage() {
                 onConfirm={() => excluirReservaDaLista(reservaParaExcluir.id_reserva)}
                 details={reservaParaExcluir ? (
                     <div>
-                        <p className="font-semibold">{reservaParaExcluir.clientes?.nome ?? ui("Cliente")}</p>
+                        <p data-appono-sem-traducao className="font-semibold">{reservaParaExcluir.clientes?.nome ?? ui("Cliente")}</p>
                         <p className="mt-1 text-xs text-app-cinza">
                             {reservaParaExcluir.data_reserva} - {reservaParaExcluir.horario_inicio}
                         </p>

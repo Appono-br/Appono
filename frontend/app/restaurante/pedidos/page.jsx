@@ -43,16 +43,17 @@ function escaparHtml(valor) {
         .replaceAll('"', "&quot;")
         .replaceAll("'", "&#039;");
 }
-function imprimirComandaCozinha(pedido) {
+function imprimirComandaCozinha(pedido, localeUI, ui) {
     const janela = window.open("", "_blank", "width=420,height=680");
     if (!janela) return false;
-    const itens = (pedido.itens_pedido ?? []).map((item) => `<div class="item"><strong>${escaparHtml(item.quantidade)}x ${escaparHtml(item.produtos?.nome ?? "Item")}</strong>${item.observacoes ? `<small>Obs.: ${escaparHtml(item.observacoes)}</small>` : ""}</div>`).join("");
+    const texto = (valor) => escaparHtml(ui(valor));
+    const itens = (pedido.itens_pedido ?? []).map((item) => `<div class="item"><strong>${escaparHtml(item.quantidade)}x ${escaparHtml(item.produtos?.nome ?? ui("Item"))}</strong>${item.observacoes ? `<small>${texto("Obs.:")} ${escaparHtml(item.observacoes)}</small>` : ""}</div>`).join("");
     const idPedido = escaparHtml(pedido.id_pedido);
-    const nomeCliente = escaparHtml(pedido.clientes?.nome ?? "Não informado");
+    const nomeCliente = escaparHtml(pedido.clientes?.nome ?? ui("Não informado"));
     const numeroMesa = escaparHtml(pedido.reservas?.mesas?.numero_mesa ?? "-");
-    const dataPedido = escaparHtml(new Date(pedido.data_pedido ?? Date.now()).toLocaleString("pt-BR"));
-    const observacao = pedido.observacoes ? `<div class="obs">Observação: ${escaparHtml(pedido.observacoes)}</div>` : "";
-    janela.document.write(`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Comanda #${idPedido}</title><style>@page{size:80mm auto;margin:4mm}*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;color:#000;font-size:12px}.comanda{width:72mm;margin:auto}.centro{text-align:center}.titulo{font-size:18px;font-weight:800;margin:0 0 4px}.linha{border-top:1px dashed #000;margin:8px 0}.meta{line-height:1.5}.item{padding:7px 0;border-bottom:1px dotted #666}.item strong{display:block;font-size:14px}.item small{display:block;margin-top:3px}.obs{margin-top:8px;font-weight:700;white-space:pre-wrap}@media print{.comanda{width:100%}}</style></head><body><main class="comanda"><div class="centro"><p class="titulo">COMANDA DE COZINHA</p><strong>Pedido #${idPedido}</strong></div><div class="linha"></div><div class="meta"><div>Cliente: ${nomeCliente}</div><div>Mesa: ${numeroMesa}</div><div>Data: ${dataPedido}</div></div><div class="linha"></div>${itens || "<div>Sem itens detalhados</div>"}${observacao}<div class="linha"></div><div class="centro">Appono</div></main><script>window.onload=()=>{window.print();window.onafterprint=()=>window.close()}</script></body></html>`);
+    const dataPedido = escaparHtml(new Date(pedido.data_pedido ?? Date.now()).toLocaleString(localeUI));
+    const observacao = pedido.observacoes ? `<div class="obs">${texto("Observação:")} ${escaparHtml(pedido.observacoes)}</div>` : "";
+    janela.document.write(`<!doctype html><html lang="${localeUI}"><head><meta charset="utf-8"><title>${texto("Comanda")} #${idPedido}</title><style>@page{size:80mm auto;margin:4mm}*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;color:#000;font-size:12px}.comanda{width:72mm;margin:auto}.centro{text-align:center}.titulo{font-size:18px;font-weight:800;margin:0 0 4px}.linha{border-top:1px dashed #000;margin:8px 0}.meta{line-height:1.5}.item{padding:7px 0;border-bottom:1px dotted #666}.item strong{display:block;font-size:14px}.item small{display:block;margin-top:3px}.obs{margin-top:8px;font-weight:700;white-space:pre-wrap}@media print{.comanda{width:100%}}</style></head><body><main class="comanda"><div class="centro"><p class="titulo">${texto("COMANDA DE COZINHA")}</p><strong>${texto("Pedido")} #${idPedido}</strong></div><div class="linha"></div><div class="meta"><div>${texto("Cliente:")} ${nomeCliente}</div><div>${texto("Mesa:")} ${numeroMesa}</div><div>${texto("Data:")} ${dataPedido}</div></div><div class="linha"></div>${itens || `<div>${texto("Sem itens detalhados")}</div>`}${observacao}<div class="linha"></div><div class="centro">Appono</div></main><script>window.onload=()=>{window.print();window.onafterprint=()=>window.close()}</script></body></html>`);
     janela.document.close();
     return true;
 }
@@ -439,11 +440,11 @@ export default function RestaurantOrdersPage() {
                                                 </span>
                                             </div>
 
-                                            <div className="min-w-0 px-5 py-5">
+                                            <div data-appono-sem-traducao className="min-w-0 px-5 py-5">
                                                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                                                     <div>
                                                         <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-app-caramelo-torrado">{ui("Reserva vinculada")}</p>
-                                                        <h3 className="mt-2 text-xl font-semibold text-app-cafe-profundo">
+                                                        <h3 data-appono-sem-traducao className="mt-2 text-xl font-semibold text-app-cafe-profundo">
                                                             {reserva.clientes?.nome ?? ui("Cliente")}
                                                         </h3>
                                                     </div>
@@ -473,12 +474,12 @@ export default function RestaurantOrdersPage() {
                                                             key={`${item.produtos?.nome ?? "item"}-${indice}`}
                                                             className="flex items-start justify-between gap-4 rounded-[10px] bg-white px-4 py-3 text-sm text-app-mocha ring-1 ring-app-baunilha-dourada/45"
                                                         >
-                                                            <div className="min-w-0">
-                                                                <p className="font-semibold text-app-cafe-profundo">
+                                                            <div data-appono-sem-traducao className="min-w-0">
+                                                                <p data-appono-sem-traducao className="font-semibold text-app-cafe-profundo">
                                                                     {item.quantidade}{ui("x ")}{item.produtos?.nome ?? ui("Item")}
                                                                 </p>
                                                                 {item.observacoes ? (
-                                                                    <p className="mt-1 text-xs text-app-cinza">{ui("Obs.: ")}{item.observacoes}
+                                                                    <p data-appono-sem-traducao className="mt-1 text-xs text-app-cinza">{ui("Obs.: ")}{item.observacoes}
                                                                     </p>
                                                                 ) : null}
                                                             </div>
@@ -490,7 +491,7 @@ export default function RestaurantOrdersPage() {
                                                 </div>
 
                                                 {pedido.observacoes ? (
-                                                    <p className="mt-4 rounded-[10px] bg-app-creme-suave px-4 py-3 text-sm text-app-mocha">{ui("Observação geral: ")}{pedido.observacoes}
+                                                    <p data-appono-sem-traducao className="mt-4 rounded-[10px] bg-app-creme-suave px-4 py-3 text-sm text-app-mocha">{ui("Observação geral: ")}{pedido.observacoes}
                                                     </p>
                                                 ) : null}
                                             </div>
@@ -536,7 +537,7 @@ export default function RestaurantOrdersPage() {
                                                         {ui(abrindoChatPedidoId === pedido.id_pedido ? "Abrindo..." : "Falar com cliente")}
                                                     </button>
 
-                                                    <button type="button" onClick={() => imprimirComandaCozinha(pedido)} className="inline-flex h-11 items-center justify-center gap-2 rounded-[9px] bg-app-cafe-profundo px-4 text-xs font-bold uppercase tracking-[0.14em] text-white transition hover:bg-app-caramelo-torrado">
+                                                    <button type="button" onClick={() => imprimirComandaCozinha(pedido, localeUI, ui)} className="inline-flex h-11 items-center justify-center gap-2 rounded-[9px] bg-app-cafe-profundo px-4 text-xs font-bold uppercase tracking-[0.14em] text-white transition hover:bg-app-caramelo-torrado">
                                                         <Icon type="print" className="h-4 w-4" />{ui("Imprimir comanda")}
                                                     </button>
 

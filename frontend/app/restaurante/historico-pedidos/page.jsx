@@ -266,67 +266,68 @@ function escaparHtml(valor) {
         .replaceAll("'", "&#39;");
 }
 
-function gerarCsvHistórico(pedidos, localeUI = "pt-BR") {
+function gerarCsvHistórico(pedidos, localeUI, ui) {
     const linhas = [
-        ["Pedido", "Cliente", "Data", "Horário", "Status", "Itens", "Valor total", "Valor pago", "Repasse"].map(escaparCsv).join(";"),
+        ["Pedido", "Cliente", "Data", "Horário", "Status", "Itens", "Valor total", "Valor pago", "Repasse"].map((texto) => escaparCsv(ui(texto))).join(";"),
         ...pedidos.map((pedido) => {
             const pagamento = obterPagamentoPrincipal(pedido);
             return [
                 pedido.id_pedido,
-                pedido.clientes?.nome ?? "Cliente",
+                pedido.clientes?.nome ?? ui("Cliente"),
                 formatarData(pedido.reservas?.data_reserva, localeUI),
                 pedido.reservas?.horario_inicio?.slice(0, 5) ?? "--:--",
-                textoStatusPedido(pedido.status_pedido),
-                obterItensResumo(pedido),
+                ui(textoStatusPedido(pedido.status_pedido)),
+                pedido.itens_pedido?.length ? obterItensResumo(pedido) : ui("Sem itens detalhados"),
                 Number(pedido.valor_total ?? 0).toFixed(2).replace(".", ","),
                 Number(pagamento?.valor_pago ?? 0).toFixed(2).replace(".", ","),
-                textoStatusRepasse(pagamento?.status_repasse ?? "NAO_APLICAVEL"),
+                ui(textoStatusRepasse(pagamento?.status_repasse ?? "NAO_APLICAVEL")),
             ].map(escaparCsv).join(";");
         }),
     ];
     return linhas.join("\n");
 }
 
-function gerarCsvReservas(reservas, localeUI = "pt-BR") {
+function gerarCsvReservas(reservas, localeUI, ui) {
     const linhas = [
-        ["Reserva", "Cliente", "Data", "Horário", "Mesa", "Pessoas", "Status", "Tipo"].map(escaparCsv).join(";"),
+        ["Reserva", "Cliente", "Data", "Horário", "Mesa", "Pessoas", "Status", "Tipo"].map((texto) => escaparCsv(ui(texto))).join(";"),
         ...reservas.map((reserva) => {
             const pedidosAtivos = obterPedidosAtivos(reserva);
             return [
                 reserva.id_reserva,
-                reserva.clientes?.nome ?? "Cliente",
+                reserva.clientes?.nome ?? ui("Cliente"),
                 formatarData(reserva.data_reserva, localeUI),
                 reserva.horario_inicio?.slice(0, 5) ?? "--:--",
                 reserva.mesas?.numero_mesa ?? "-",
                 reserva.quantidade_pessoas ?? "-",
-                textoStatusReserva(reserva.status_reserva),
-                pedidosAtivos.length ? "Com pedido antecipado" : "Somente reserva",
+                ui(textoStatusReserva(reserva.status_reserva)),
+                ui(pedidosAtivos.length ? "Com pedido antecipado" : "Somente reserva"),
             ].map(escaparCsv).join(";");
         }),
     ];
     return linhas.join("\n");
 }
 
-function montarHtmlComanda(pedido, localeUI = "pt-BR") {
+function montarHtmlComanda(pedido, localeUI, ui) {
+    const texto = (valor) => escaparHtml(ui(valor));
     const itens = pedido.itens_pedido ?? [];
     const pagamento = obterPagamentoPrincipal(pedido);
     const linhasItens = itens.map((item) => `
         <tr>
             <td>
-                <strong>${escaparHtml(item.quantidade)}x ${escaparHtml(item.produtos?.nome ?? "Item")}</strong>
-                ${item.observacoes ? `<small>Obs.: ${escaparHtml(item.observacoes)}</small>` : ""}
+                <strong>${escaparHtml(item.quantidade)}x ${escaparHtml(item.produtos?.nome ?? ui("Item"))}</strong>
+                ${item.observacoes ? `<small>${texto("Obs.:")} ${escaparHtml(item.observacoes)}</small>` : ""}
             </td>
             <td>${escaparHtml(formatarMoeda(calcularSubtotalItem(item), localeUI))}</td>
         </tr>
     `).join("");
-    const fallbackItens = "<tr><td>Sem itens detalhados</td><td>-</td></tr>";
+    const fallbackItens = `<tr><td>${texto("Sem itens detalhados")}</td><td>-</td></tr>`;
 
     return `
         <!doctype html>
-        <html lang="pt-BR">
+        <html lang="${localeUI}">
             <head>
                 <meta charset="utf-8" />
-                <title>Comanda Pedido #${escaparHtml(pedido.id_pedido)}</title>
+                <title>${escaparHtml(ui("Comanda Pedido #{0}", [pedido.id_pedido]))}</title>
                 <style>
                     * { box-sizing: border-box; }
                     body {
@@ -404,14 +405,14 @@ function montarHtmlComanda(pedido, localeUI = "pt-BR") {
             </head>
             <body>
                 <section class="comanda">
-                    <h1>Pedido #${escaparHtml(pedido.id_pedido)}</h1>
-                    <h2>${escaparHtml(pedido.clientes?.nome ?? "Cliente")}</h2>
+                    <h1>${texto("Pedido")} #${escaparHtml(pedido.id_pedido)}</h1>
+                    <h2>${escaparHtml(pedido.clientes?.nome ?? ui("Cliente"))}</h2>
                     <div class="meta">
-                        <div><strong>Status:</strong> ${escaparHtml(textoStatusPedido(pedido.status_pedido))}</div>
-                        <div><strong>Data:</strong> ${escaparHtml(formatarData(pedido.reservas?.data_reserva, localeUI))}</div>
-                        <div><strong>Horário:</strong> ${escaparHtml(pedido.reservas?.horario_inicio?.slice(0, 5) ?? "--:--")}</div>
-                        <div><strong>Mesa:</strong> ${escaparHtml(pedido.reservas?.mesas?.numero_mesa ?? "-")}</div>
-                        <div><strong>Pessoas:</strong> ${escaparHtml(pedido.reservas?.quantidade_pessoas ?? "-")}</div>
+                        <div><strong>${texto("Status:")}</strong> ${texto(textoStatusPedido(pedido.status_pedido))}</div>
+                        <div><strong>${texto("Data:")}</strong> ${escaparHtml(formatarData(pedido.reservas?.data_reserva, localeUI))}</div>
+                        <div><strong>${texto("Horário:")}</strong> ${escaparHtml(pedido.reservas?.horario_inicio?.slice(0, 5) ?? "--:--")}</div>
+                        <div><strong>${texto("Mesa:")}</strong> ${escaparHtml(pedido.reservas?.mesas?.numero_mesa ?? "-")}</div>
+                        <div><strong>${texto("Pessoas:")}</strong> ${escaparHtml(pedido.reservas?.quantidade_pessoas ?? "-")}</div>
                     </div>
                     <table>
                         <tbody>
@@ -419,11 +420,11 @@ function montarHtmlComanda(pedido, localeUI = "pt-BR") {
                         </tbody>
                     </table>
                     <div class="total">
-                        <span>Total</span>
+                        <span>${texto("Total")}</span>
                         <span>${escaparHtml(formatarMoeda(pagamento?.valor_pago ?? pedido.valor_total ?? 0, localeUI))}</span>
                     </div>
-                    ${pedido.observacoes ? `<div class="rodape"><strong>Obs. pedido:</strong> ${escaparHtml(pedido.observacoes)}</div>` : ""}
-                    <div class="rodape">Impresso pela Appono em ${escaparHtml(new Date().toLocaleString(localeUI))}</div>
+                    ${pedido.observacoes ? `<div class="rodape"><strong>${texto("Obs. pedido:")}</strong> ${escaparHtml(pedido.observacoes)}</div>` : ""}
+                    <div class="rodape">${escaparHtml(ui("Impresso pela Appono em {0}", [new Date().toLocaleString(localeUI)]))}</div>
                 </section>
                 <script>
                     window.onload = function() {
@@ -531,8 +532,8 @@ export default function RestaurantOrderHistoryPage() {
 
     function exportarCsv() {
         const csv = abaAtiva === "PEDIDOS"
-            ? gerarCsvHistórico(pedidosFiltrados, localeUI)
-            : gerarCsvReservas(reservasFiltradas, localeUI);
+            ? gerarCsvHistórico(pedidosFiltrados, localeUI, ui)
+            : gerarCsvReservas(reservasFiltradas, localeUI, ui);
         const blob = new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8;" });
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
@@ -550,7 +551,7 @@ export default function RestaurantOrderHistoryPage() {
         }
 
         janela.document.open();
-        janela.document.write(montarHtmlComanda(pedido, localeUI));
+        janela.document.write(montarHtmlComanda(pedido, localeUI, ui));
         janela.document.close();
     }
 
@@ -692,7 +693,7 @@ export default function RestaurantOrderHistoryPage() {
                                                         {pedido.ocultado_cozinha ? <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-bold text-app-cinza ring-1 ring-app-baunilha-dourada/60">{ui("Removido")}</span> : null}
                                                     </div>
 
-                                                    <h2 className="mt-2 truncate text-xl font-semibold text-app-cafe-profundo">{pedido.clientes?.nome ?? ui("Cliente")}</h2>
+                                                    <h2 data-appono-sem-traducao className="mt-2 truncate text-xl font-semibold text-app-cafe-profundo">{pedido.clientes?.nome ?? ui("Cliente")}</h2>
                                                     <p className="mt-1 text-sm text-app-cinza">
                                                         {formatarData(pedido.reservas?.data_reserva, localeUI)} - {ui(pedido.reservas?.horario_inicio?.slice(0, 5) ?? "--:--")}{ui(" - Mesa ")}{ui(pedido.reservas?.mesas?.numero_mesa ?? "-")} - {ui(pedido.reservas?.quantidade_pessoas ?? "-")}{ui(" pessoas")}</p>
                                                     <p className="mt-2 truncate text-sm text-app-mocha">{obterItensResumo(pedido)}</p>
@@ -719,9 +720,9 @@ export default function RestaurantOrderHistoryPage() {
                                                     <div className="grid gap-2">
                                                         {(pedido.itens_pedido ?? []).map((item, indice) => (
                                                             <div key={`${pedido.id_pedido}-${item.produtos?.nome ?? indice}`} className="flex items-start justify-between gap-4 rounded-[10px] bg-white px-3 py-2 text-sm text-app-mocha ring-1 ring-app-baunilha-dourada/45">
-                                                                <div className="min-w-0">
-                                                                    <p className="font-semibold text-app-cafe-profundo">{item.quantidade}{ui("x ")}{item.produtos?.nome ?? ui("Item")}</p>
-                                                                    {item.observacoes ? <p className="mt-1 text-xs text-app-cinza">{ui("Obs.: ")}{item.observacoes}</p> : null}
+                                                                <div data-appono-sem-traducao className="min-w-0">
+                                                                    <p data-appono-sem-traducao className="font-semibold text-app-cafe-profundo">{item.quantidade}{ui("x ")}{item.produtos?.nome ?? ui("Item")}</p>
+                                                                    {item.observacoes ? <p data-appono-sem-traducao className="mt-1 text-xs text-app-cinza">{ui("Obs.: ")}{item.observacoes}</p> : null}
                                                                 </div>
                                                                 <strong className="shrink-0 text-app-cafe-profundo">{formatarMoeda(calcularSubtotalItem(item), localeUI)}</strong>
                                                             </div>
@@ -730,7 +731,7 @@ export default function RestaurantOrderHistoryPage() {
                                                     <div className="mt-3 grid gap-2 rounded-[10px] bg-app-cafe-profundo px-3 py-3 text-xs text-app-creme-suave sm:grid-cols-3">
                                                         <span>{ui("Liquido: ")}<strong className="text-app-creme-leve">{formatarMoeda(pagamento?.valor_restaurante ?? 0, localeUI)}</strong></span>
                                                         <span>{ui("Comissão: ")}<strong className="text-app-creme-leve">{formatarMoeda(pagamento?.valor_comissao_app ?? 0, localeUI)}</strong></span>
-                                                        <span>{ui("Data pagamento: ")}<strong className="text-app-creme-leve">{ui(pagamento?.data_pagamento ? new Date(pagamento.data_pagamento).toLocaleDateString("pt-BR") : "Não informado")}</strong></span>
+                                                        <span>{ui("Data pagamento: ")}<strong className="text-app-creme-leve">{pagamento?.data_pagamento ? new Date(pagamento.data_pagamento).toLocaleDateString(localeUI) : ui("Não informado")}</strong></span>
                                                     </div>
                                                 </div>
                                             ) : null}
@@ -757,7 +758,7 @@ export default function RestaurantOrderHistoryPage() {
                                                         {ui(pedidosAtivos.length ? "Com pedido" : "Somente reserva")}
                                                     </span>
                                                 </div>
-                                                <h2 className="mt-2 truncate text-xl font-semibold text-app-cafe-profundo">{reserva.clientes?.nome ?? ui("Cliente")}</h2>
+                                                <h2 data-appono-sem-traducao className="mt-2 truncate text-xl font-semibold text-app-cafe-profundo">{reserva.clientes?.nome ?? ui("Cliente")}</h2>
                                                 <p className="mt-1 text-sm text-app-cinza">
                                                     {formatarData(reserva.data_reserva, localeUI)} - {ui(reserva.horario_inicio?.slice(0, 5) ?? "--:--")}{ui(" até ")}{ui(reserva.horario_fim?.slice(0, 5) ?? "--:--")}{ui(" - Mesa ")}{ui(reserva.mesas?.numero_mesa ?? "-")}
                                                 </p>

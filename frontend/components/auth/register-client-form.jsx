@@ -1,5 +1,7 @@
 "use client";
 
+import { useInterface } from "@/lib/use-interface";
+
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -96,6 +98,7 @@ function redirecionarParaLogin(email) {
 }
 
 export function RegisterClientForm({ googleFlow = false }) {
+  const { ui } = useInterface();
   const toast = useToast();
   const [currentStep, setCurrentStep] = useState(0);
   const [message, setMessage] = useState("");
@@ -227,7 +230,7 @@ export function RegisterClientForm({ googleFlow = false }) {
             className="inline-flex w-fit items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold text-app-cinza hover:text-app-cafe-profundo hover:bg-app-chantilly-hover transition-all"
           >
             <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-            <span>Início</span>
+            <span>{ui("Início")}</span>
           </Link>
 
           <Image
@@ -241,12 +244,8 @@ export function RegisterClientForm({ googleFlow = false }) {
         </div>
 
         <div className="mb-6">
-          <h1 className="text-2xl font-extrabold text-app-cafe-profundo tracking-tight">
-            Crie sua conta Appono
-          </h1>
-          <p className="mt-1 text-sm text-app-cinza">
-            Cadastre-se para reservar mesas e antecipar seus pedidos de forma prática.
-          </p>
+          <h1 className="text-2xl font-extrabold text-app-cafe-profundo tracking-tight">{ui("Crie sua conta Appono")}</h1>
+          <p className="mt-1 text-sm text-app-cinza">{ui("Cadastre-se para reservar mesas e antecipar seus pedidos de forma prática.")}</p>
         </div>
 
         {/* Stepper inspirado no iFood */}
@@ -264,8 +263,8 @@ export function RegisterClientForm({ googleFlow = false }) {
         {currentStep === 0 && (
           <div className="space-y-4 animate-fadeIn">
             <FormInput
-              label="Nome completo"
-              placeholder="Ex: Maria Silva"
+              label={ui("Nome completo")}
+              placeholder={ui("Ex: Maria Silva")}
               required
               leftIcon={User}
               error={errors.name}
@@ -274,7 +273,7 @@ export function RegisterClientForm({ googleFlow = false }) {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormInput
-                label="Data de nascimento"
+                label={ui("Data de nascimento")}
                 type="date"
                 required
                 leftIcon={Calendar}
@@ -283,7 +282,7 @@ export function RegisterClientForm({ googleFlow = false }) {
               />
 
               <FormInput
-                label="CPF"
+                label={ui("CPF")}
                 placeholder="000.000.000-00"
                 required
                 inputMode="numeric"
@@ -304,9 +303,9 @@ export function RegisterClientForm({ googleFlow = false }) {
         {currentStep === 1 && (
           <div className="space-y-4 animate-fadeIn">
             <FormInput
-              label="E-mail"
+              label={ui("E-mail")}
               type="email"
-              placeholder="seu.email@exemplo.com"
+              placeholder={ui("seu.email@exemplo.com")}
               required
               disabled={googleFlow}
               leftIcon={Mail}
@@ -315,7 +314,7 @@ export function RegisterClientForm({ googleFlow = false }) {
             />
 
             <FormInput
-              label="Telefone / Celular (WhatsApp)"
+              label={ui("Telefone / Celular (WhatsApp)")}
               placeholder="(11) 99999-9999"
               required
               inputMode="tel"
@@ -332,9 +331,9 @@ export function RegisterClientForm({ googleFlow = false }) {
             {!googleFlow && (
               <>
                 <FormInput
-                  label="Senha de acesso"
+                  label={ui("Senha de acesso")}
                   type={showPassword ? "text" : "password"}
-                  placeholder="Crie uma senha segura"
+                  placeholder={ui("Crie uma senha segura")}
                   required
                   leftIcon={Lock}
                   error={errors.password}
@@ -358,9 +357,9 @@ export function RegisterClientForm({ googleFlow = false }) {
                 <PasswordRequirements value={watchPassword || ""} variant="panel" />
 
                 <FormInput
-                  label="Confirmar senha"
+                  label={ui("Confirmar senha")}
                   type={showConfirmPassword ? "text" : "password"}
-                  placeholder="Digite a senha novamente"
+                  placeholder={ui("Digite a senha novamente")}
                   required
                   leftIcon={Lock}
                   error={errors.confirmPassword}
@@ -404,22 +403,19 @@ export function RegisterClientForm({ googleFlow = false }) {
           onBack={handleBackStep}
           onNext={handleNextStep}
           isSubmitting={isSubmitting}
-          nextLabel="Avançar para Acesso"
-          submitLabel="Concluir Cadastro"
+          nextLabel={ui("Avançar para Acesso")}
+          submitLabel={ui("Concluir Cadastro")}
           showDivider={false}
           className="mt-8"
         />
 
         {/* Rodapé de Login */}
         <div className="mt-6 pt-4 text-center border-t border-app-baunilha-dourada/25">
-          <p className="text-xs text-app-cinza">
-            Já tem uma conta no Appono?{" "}
+          <p className="text-xs text-app-cinza">{ui("Já tem uma conta no Appono?")}{" "}
             <Link
               href="/login"
               className="font-bold text-app-caramelo-torrado hover:text-app-mocha transition"
-            >
-              Fazer login
-            </Link>
+            >{ui("Fazer login")}</Link>
           </p>
         </div>
       </div>

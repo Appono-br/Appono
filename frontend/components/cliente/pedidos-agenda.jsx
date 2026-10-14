@@ -105,7 +105,7 @@ export function PedidosAgenda({ dataSelecionada = null, atualizacao = 0 }) {
                                         </div>
                                         <div className="min-w-0">
                                             <p className="break-all text-[10px] font-bold uppercase tracking-[0.12em] text-app-caramelo-torrado">{ui("Pedido #")}{pedido.id_pedido}</p>
-                                            <h3 className="mt-1 break-words text-lg font-semibold">{pedido.restaurantes?.nome ?? ui("Restaurante")}</h3>
+                                            <h3 data-appono-sem-traducao className="mt-1 break-words text-lg font-semibold">{pedido.restaurantes?.nome ?? ui("Restaurante")}</h3>
                                         </div>
                                     </div>
                                     <span className="max-w-full rounded-full border border-app-baunilha-dourada/60 px-3 py-1 text-xs font-semibold">{ui(textoStatusPedido(pedido.status_pedido))}</span>
@@ -154,7 +154,7 @@ export function PedidosAgenda({ dataSelecionada = null, atualizacao = 0 }) {
                 details={pedidoParaExcluir ? (
                     <div>
                         <p className="font-semibold">{ui("Pedido #")}{pedidoParaExcluir.id_pedido}</p>
-                        <p className="mt-1 text-xs text-app-cinza">{pedidoParaExcluir.restaurantes?.nome ?? ui("Restaurante")} - {moeda(pedidoParaExcluir.valor_total, localeUI)}</p>
+                        <p data-appono-sem-traducao className="mt-1 text-xs text-app-cinza">{pedidoParaExcluir.restaurantes?.nome ?? ui("Restaurante")} - {moeda(pedidoParaExcluir.valor_total, localeUI)}</p>
                     </div>
                 ) : null}
             />

@@ -21,7 +21,7 @@ function AvatarRestaurante({ conversa, size = "h-16 w-16" }) {
   return (
     <span className={`logo-restaurante-circular relative flex ${size} shrink-0 overflow-hidden rounded-full bg-white text-xs font-bold text-app-cafe-profundo ring-1 ring-app-baunilha-dourada/55`}>
       {logoUrl ? (
-        <Image src={logoUrl} alt={conversa?.restaurante?.nome ?? "Restaurante"} fill sizes="72px" className="object-cover" />
+        <Image data-appono-sem-traducao src={logoUrl} alt={conversa?.restaurante?.nome ?? ui("Restaurante")} fill sizes="72px" className="object-cover" />
       ) : (
         <span className="flex h-full w-full items-center justify-center">{ui("AP")}</span>
       )}
@@ -117,7 +117,7 @@ export default function RestaurantConversationPage() {
               <div className="flex items-center gap-3">
                 <span className="flex h-12 w-12 items-center justify-center rounded-[14px] bg-app-mocha text-sm font-bold">{conversa?.iniciais ?? ui("CL")}</span>
                 <div>
-                  <h1 className="text-xl font-semibold">{conversa?.titulo ?? ui("Carregando conversa")}</h1>
+                  <h1 data-appono-sem-traducao className="text-xl font-semibold">{conversa?.titulo ?? ui("Carregando conversa")}</h1>
                   <p className="mt-1 text-xs font-bold uppercase tracking-[0.16em] text-app-baunilha-dourada">{ui("Atendimento seguro")}</p>
                 </div>
               </div>
@@ -133,7 +133,7 @@ export default function RestaurantConversationPage() {
               return (
                 <article key={item.id_mensagem} className={`flex ${propria ? "justify-end" : "justify-start"}`}>
                   <div className={`max-w-[82%] rounded-[16px] px-4 py-3 shadow-sm ${propria ? "bg-app-cafe-profundo text-app-creme-leve" : "bg-white text-app-cafe-profundo ring-1 ring-app-baunilha-dourada/55"}`}>
-                    <p className="whitespace-pre-wrap text-sm leading-6">{item.conteudo}</p>
+                    <p data-appono-sem-traducao className="whitespace-pre-wrap text-sm leading-6">{item.conteudo}</p>
                     <p className={`mt-2 text-[10px] font-semibold ${propria ? "text-app-baunilha-dourada" : "text-app-cinza"}`}>{dataHoraUI(item.criado_em)}</p>
                   </div>
                 </article>
@@ -165,13 +165,13 @@ export default function RestaurantConversationPage() {
             <AvatarRestaurante conversa={conversa} />
             <div className="min-w-0">
               <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-app-cinza">{ui("Restaurante")}</span>
-              <strong className="mt-1 block truncate text-app-cafe-profundo">{conversa?.restaurante?.nome ?? ui("Restaurante")}</strong>
+              <strong data-appono-sem-traducao className="mt-1 block truncate text-app-cafe-profundo">{conversa?.restaurante?.nome ?? ui("Restaurante")}</strong>
             </div>
           </div>
           <div className="mt-5 grid gap-3 text-sm">
             <div className="rounded-[12px] bg-app-chantilly p-4">
               <span className="text-xs font-bold uppercase tracking-[0.14em] text-app-cinza">{ui("Cliente")}</span>
-              <strong className="mt-1 block">{conversa?.cliente?.nome ?? conversa?.titulo ?? ui("--")}</strong>
+              <strong data-appono-sem-traducao className="mt-1 block">{conversa?.cliente?.nome ?? conversa?.titulo ?? ui("--")}</strong>
             </div>
             <div className="rounded-[12px] bg-app-chantilly p-4">
               <span className="text-xs font-bold uppercase tracking-[0.14em] text-app-cinza">{ui("Reserva")}</span>
@@ -198,7 +198,7 @@ export default function RestaurantConversationPage() {
         loading={limpando}
         onCancel={() => setConfirmarLimpeza(false)}
         onConfirm={limparHistorico}
-        details={<p className="font-semibold">{conversa?.titulo ?? ui("Conversa")}</p>}
+        details={<p data-appono-sem-traducao className="font-semibold">{conversa?.titulo ?? ui("Conversa")}</p>}
       />
     </main>
   );

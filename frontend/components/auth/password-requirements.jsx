@@ -1,17 +1,21 @@
+"use client";
+
 import { Check } from "lucide-react";
 import { REQUISITOS_SENHA } from "@/lib/politica-senha";
+import { useInterface } from "@/lib/use-interface";
 
 export function PasswordRequirements({ value, variant = "simple" }) {
+  const { ui } = useInterface();
   const senha = String(value ?? "");
 
   if (variant === "simple") {
-    return <ul className="grid gap-1 text-xs text-app-cinza">{REQUISITOS_SENHA.map(([chave, label, validar]) => <li key={chave} className={validar(senha) ? "text-emerald-700" : ""}>{validar(senha) ? "✓" : "○"} {label}</li>)}</ul>;
+    return <ul className="grid gap-1 text-xs text-app-cinza">{REQUISITOS_SENHA.map(([chave, label, validar]) => <li key={chave} className={validar(senha) ? "text-emerald-700" : ""}>{validar(senha) ? "✓" : "○"} {ui(label)}</li>)}</ul>;
   }
 
   return (
     <div>
       <p className="text-xs font-semibold text-app-cafe-profundo">
-        Sua senha precisa ter:
+        {ui("Sua senha precisa ter:")}
       </p>
       <ul className="mt-2 grid gap-1.5">
         {REQUISITOS_SENHA.map(([chave, label, validar]) => {
@@ -35,9 +39,9 @@ export function PasswordRequirements({ value, variant = "simple" }) {
                 {concluido && <Check className="h-3 w-3" strokeWidth={3} />}
               </span>
               <span>
-                {label}
+                {ui(label)}
                 <span className="sr-only">
-                  {concluido ? ": concluído" : ": pendente"}
+                  {ui(concluido ? ": concluído" : ": pendente")}
                 </span>
               </span>
             </li>

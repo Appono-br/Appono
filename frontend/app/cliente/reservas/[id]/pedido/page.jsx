@@ -218,7 +218,7 @@ export default function PaginaPedidoAntecipado({ params }) {
                     <div className="grid gap-6 p-6 sm:p-8 lg:grid-cols-[1fr_auto] lg:items-end">
                         <div>
                             <p className="text-xs font-bold uppercase tracking-[0.22em] text-app-areia-quente">{ui("Pedido antecipado")}</p>
-                            <h1 className="mt-2 text-3xl font-bold sm:text-4xl">
+                            <h1 data-appono-sem-traducao className="mt-2 text-3xl font-bold sm:text-4xl">
                                 {dados.reserva.restaurantes?.nome ?? ui("Restaurante")}
                             </h1>
                             <p className="mt-3 max-w-3xl text-sm leading-6 text-app-creme-suave">{ui("Escolha os itens antes da sua chegada. O restaurante recebe o pedido vinculado à sua reserva e consegue se preparar para o horário combinado.")}</p>
@@ -260,20 +260,20 @@ export default function PaginaPedidoAntecipado({ params }) {
                                         <article key={`${produto.nome ?? "item"}-${indice}`} className="grid gap-4 rounded-[12px] bg-white p-4 ring-1 ring-app-baunilha-dourada/55 sm:grid-cols-[120px_1fr_auto] sm:items-center">
                                             <div className="relative h-28 overflow-hidden rounded-[10px] bg-app-baunilha-dourada/45">
                                                 {produto.imagem_url ? (
-                                                    <Image src={produto.imagem_url} alt={produto.nome ?? "Item do pedido"} fill className="object-cover" />
+                                                    <Image data-appono-sem-traducao src={produto.imagem_url} alt={produto.nome ?? ui("Item do pedido")} fill className="object-cover" />
                                                 ) : (
                                                     <span className="flex h-full items-center justify-center text-app-caramelo-torrado">
                                                         <Icon type="utensils" />
                                                     </span>
                                                 )}
                                             </div>
-                                            <div>
+                                            <div data-appono-sem-traducao>
                                                 <p className="text-xs font-bold uppercase text-app-caramelo-torrado">{item.quantidade}{ui(" unidade(s)")}</p>
-                                                <h3 className="mt-1 text-xl font-bold text-app-cafe-profundo">{produto.nome ?? ui("Item")}</h3>
-                                                {produto.descricao ? <p className="mt-2 text-sm leading-6 text-app-mocha">{produto.descricao}</p> : null}
+                                                <h3 data-appono-sem-traducao className="mt-1 text-xl font-bold text-app-cafe-profundo">{produto.nome ?? ui("Item")}</h3>
+                                                {produto.descricao ? <p data-appono-sem-traducao className="mt-2 text-sm leading-6 text-app-mocha">{produto.descricao}</p> : null}
                                                 {item.observacoes ? (
                                                     <div className="mt-2 text-xs font-semibold text-app-cinza">
-                                                        <span>{ui("Obs: ")}{item.observacoes}</span>
+                                                        <span data-appono-sem-traducao>{ui("Obs: ")}{item.observacoes}</span>
                                                     </div>
                                                 ) : null}
                                             </div>
@@ -290,7 +290,7 @@ export default function PaginaPedidoAntecipado({ params }) {
                             </div>
                         </div>
 
-                        <aside className="h-fit rounded-[14px] bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada lg:sticky lg:top-6">
+                        <aside data-appono-sem-traducao className="h-fit rounded-[14px] bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada lg:sticky lg:top-6">
                             <div className="flex items-center gap-3">
                                 <span className="flex h-11 w-11 items-center justify-center rounded-[10px] bg-app-baunilha-dourada text-app-cafe-profundo">
                                     <Icon type="receipt" />
@@ -317,7 +317,7 @@ export default function PaginaPedidoAntecipado({ params }) {
                                 </div>
                             </div>
                             {pedidoAtivo.observacoes ? (
-                                <p className="mt-5 rounded-[8px] bg-white p-4 text-sm leading-6 text-app-mocha">
+                                <p data-appono-sem-traducao className="mt-5 rounded-[8px] bg-white p-4 text-sm leading-6 text-app-mocha">
                                     <strong>{ui("Observações:")}</strong> {pedidoAtivo.observacoes}
                                 </p>
                             ) : null}
@@ -330,7 +330,7 @@ export default function PaginaPedidoAntecipado({ params }) {
                                 <article key={categoria.id_categoria} className="rounded-[14px] bg-white p-5 shadow-sm ring-1 ring-app-baunilha-dourada sm:p-6">
                                     <div className="flex flex-wrap items-end justify-between gap-3">
                                         <div>
-                                            <h2 className="text-2xl font-bold">{categoria.nome}</h2>
+                                            <h2 data-appono-sem-traducao className="text-2xl font-bold">{categoria.nome}</h2>
                                         </div>
                                         <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-app-mocha">
                                             {(categoria.produtos ?? []).length}{ui(" itens")}</span>
@@ -344,7 +344,7 @@ export default function PaginaPedidoAntecipado({ params }) {
                                                 <div key={produto.id_produto} className="grid gap-4 rounded-[12px] bg-white p-3 ring-1 ring-app-baunilha-dourada/55 sm:grid-cols-[128px_1fr_auto] sm:items-center">
                                                     <div className="relative h-28 overflow-hidden rounded-[10px] bg-app-baunilha-dourada/45">
                                                         {produto.imagem_url ? (
-                                                            <Image src={produto.imagem_url} alt={produto.nome} fill className="object-cover" />
+                                                            <Image data-appono-sem-traducao src={produto.imagem_url} alt={produto.nome} fill className="object-cover" />
                                                         ) : (
                                                             <span className="flex h-full items-center justify-center text-app-caramelo-torrado">
                                                                 <Icon type="utensils" />
@@ -352,14 +352,14 @@ export default function PaginaPedidoAntecipado({ params }) {
                                                         )}
                                                     </div>
 
-                                                    <div>
+                                                    <div data-appono-sem-traducao>
                                                         <div className="flex flex-wrap items-center gap-2">
                                                             {produto.destaque ? (
                                                                 <span className="rounded-full bg-app-cafe-profundo px-2.5 py-1 text-[10px] font-bold uppercase text-app-creme-leve">{ui("Destaque")}</span>
                                                             ) : null}
                                                         </div>
-                                                        <h3 className="mt-2 text-lg font-bold text-app-cafe-profundo">{produto.nome}</h3>
-                                                        {produto.descricao ? <p className="mt-1 text-sm leading-6 text-app-mocha">{produto.descricao}</p> : null}
+                                                        <h3 data-appono-sem-traducao className="mt-2 text-lg font-bold text-app-cafe-profundo">{produto.nome}</h3>
+                                                        {produto.descricao ? <p data-appono-sem-traducao className="mt-1 text-sm leading-6 text-app-mocha">{produto.descricao}</p> : null}
                                                         {(() => {
                                                             const seguranca = Array.isArray(produto.seguranca_alimentar_produto) ? produto.seguranca_alimentar_produto[0] : produto.seguranca_alimentar_produto;
                                                             return <p className={`mt-2 text-[11px] font-semibold ${seguranca?.status === "REVISADA" ? "text-emerald-700" : "text-amber-800"}`}>{ui(seguranca?.status === "REVISADA" ? "Informação alimentar revisada" : "Informação alimentar incompleta")}</p>;
@@ -415,7 +415,7 @@ export default function PaginaPedidoAntecipado({ params }) {
                                 {produtosSelecionados.length ? produtosSelecionados.map((produto) => (
                                     <div key={produto.id_produto} className="grid grid-cols-[1fr_auto] gap-3 rounded-[8px] bg-white p-3 text-sm">
                                         <div>
-                                            <span>
+                                            <span data-appono-sem-traducao>
                                                 <strong>{produto.quantidade}{ui("x")}</strong> {produto.nome}
                                             </span>
                                             {observacoesItens[produto.id_produto]?.trim() ? (

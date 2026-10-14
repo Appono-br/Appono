@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useInterface } from "@/lib/use-interface";
 
 const caminhos = {
     arrow: "M19 12H5m6-6-6 6 6 6",
@@ -16,16 +19,18 @@ export function RoutineIcon({ type, className = "h-5 w-5" }) {
 }
 
 export function RoutineBreadcrumb({ href = "/cliente/rotina", children = "Voltar para Appono Rotina" }) {
-    return <Link href={href} className="inline-flex min-h-11 items-center gap-2 rounded-full px-1 text-sm font-bold text-app-caramelo-torrado transition hover:text-app-cafe-profundo"><RoutineIcon type="arrow" className="h-4 w-4" />{children}</Link>;
+    const { ui } = useInterface();
+    return <Link href={href} className="inline-flex min-h-11 items-center gap-2 rounded-full px-1 text-sm font-bold text-app-caramelo-torrado transition hover:text-app-cafe-profundo"><RoutineIcon type="arrow" className="h-4 w-4" />{ui(children)}</Link>;
 }
 
 export function RoutineHero({ eyebrow, title, description, aside }) {
+    const { ui } = useInterface();
     return <header className="overflow-hidden rounded-[24px] bg-app-cafe-profundo px-6 py-8 text-app-creme-leve shadow-sm ring-1 ring-app-baunilha-dourada/35 sm:px-8 sm:py-10">
         <div className={`grid gap-7 ${aside ? "lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end" : ""}`}>
             <div className="min-w-0">
-                <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-app-baunilha-dourada">{eyebrow}</p>
-                <h1 className="mt-3 max-w-4xl text-3xl font-semibold leading-tight sm:text-4xl lg:text-5xl">{title}</h1>
-                {description ? <p className="mt-4 max-w-2xl text-sm leading-6 text-app-creme-suave">{description}</p> : null}
+                <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-app-baunilha-dourada">{ui(eyebrow)}</p>
+                <h1 className="mt-3 max-w-4xl text-3xl font-semibold leading-tight sm:text-4xl lg:text-5xl">{ui(title)}</h1>
+                {description ? <p className="mt-4 max-w-2xl text-sm leading-6 text-app-creme-suave">{ui(description)}</p> : null}
             </div>
             {aside}
         </div>
@@ -58,22 +63,25 @@ const statusMap = {
 };
 
 export function RoutineStatus({ status }) {
+    const { ui } = useInterface();
     const [label, className] = statusMap[status] ?? [status, "text-app-mocha"];
-    return <span className={`inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.14em] ${className}`}><span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-current" />{label}</span>;
+    return <span className={`inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.14em] ${className}`}><span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-current" />{ui(label)}</span>;
 }
 
 export function RoutineEmpty({ title, description, action, icon = "spark" }) {
+    const { ui } = useInterface();
     return <section className="rounded-[24px] border border-dashed border-app-baunilha-dourada bg-white px-6 py-12 text-center shadow-sm">
         <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-app-cafe-profundo text-app-creme-leve"><RoutineIcon type={icon} /></div>
-        <h2 className="mt-5 text-2xl font-semibold">{title}</h2>
-        <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-app-cinza">{description}</p>
+        <h2 className="mt-5 text-2xl font-semibold">{ui(title)}</h2>
+        <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-app-cinza">{ui(description)}</p>
         {action ? <div className="mt-6 flex justify-center">{action}</div> : null}
     </section>;
 }
 
 export function RoutineSkeleton({ cards = 2 }) {
-    return <div aria-label="Carregando conteúdo" aria-busy="true" className="grid gap-5">
-        <span className="sr-only">Carregando...</span>
+    const { ui } = useInterface();
+    return <div aria-label={ui("Carregando conteúdo")} aria-busy="true" className="grid gap-5">
+        <span className="sr-only">{ui("Carregando...")}</span>
         <div className="h-44 animate-pulse rounded-[24px] bg-app-creme-suave ring-1 ring-app-baunilha-dourada/40" />
         <div className="grid gap-5 md:grid-cols-2">
             {Array.from({ length: cards }, (_, index) => <div key={index} className="h-64 animate-pulse rounded-[24px] bg-app-creme-suave ring-1 ring-app-baunilha-dourada/40" />)}

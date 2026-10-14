@@ -3,6 +3,7 @@
 import { AlertCircle, CheckCircle2, Info, X, XCircle } from "lucide-react";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { useInterface } from "@/lib/use-interface";
 
 const ToastContext = createContext(null);
 
@@ -39,7 +40,21 @@ function normalizarToast(entrada, tipoPadrao) {
   };
 }
 
+function mensagemCampoInvalido(elemento, ui) {
+  const { validity } = elemento;
+  if (validity.valueMissing) return ui("Preencha este campo.");
+  if (validity.typeMismatch) return ui(elemento.type === "email" ? "Informe um endereço de e-mail válido." : "Informe uma URL válida.");
+  if (validity.tooShort) return ui("Use pelo menos {0} caracteres.", [elemento.minLength]);
+  if (validity.tooLong) return ui("Use no máximo {0} caracteres.", [elemento.maxLength]);
+  if (validity.rangeUnderflow) return ui("Informe um valor maior ou igual a {0}.", [elemento.min]);
+  if (validity.rangeOverflow) return ui("Informe um valor menor ou igual a {0}.", [elemento.max]);
+  if (validity.badInput || validity.stepMismatch) return ui("Informe um valor válido.");
+  if (validity.patternMismatch) return ui("Use o formato solicitado para este campo.");
+  return ui(elemento.validationMessage || "Revise os campos destacados antes de continuar.");
+}
+
 export function ToastProvider({ children }) {
+  const { ui, localeUI } = useInterface();
   const [toasts, setToasts] = useState([]);
   const [toastsSaindo, setToastsSaindo] = useState(() => new Set());
   const [montado, setMontado] = useState(false);
@@ -76,7 +91,10 @@ export function ToastProvider({ children }) {
     function exibirErroNativo(evento) {
       const elemento = evento.target;
       if (!(elemento instanceof HTMLInputElement || elemento instanceof HTMLSelectElement || elemento instanceof HTMLTextAreaElement)) return;
-      const mensagem = elemento.validationMessage || "Revise os campos destacados antes de continuar.";
+      if (localeUI === "en-US") evento.preventDefault();
+      const mensagem = localeUI === "en-US"
+        ? mensagemCampoInvalido(elemento, ui)
+        : elemento.validationMessage || "Revise os campos destacados antes de continuar.";
       const agora = Date.now();
       if (ultimaValidacao.current.mensagem === mensagem && agora - ultimaValidacao.current.tempo < 500) return;
       ultimaValidacao.current = { mensagem, tempo: agora };
@@ -84,7 +102,7 @@ export function ToastProvider({ children }) {
     }
     document.addEventListener("invalid", exibirErroNativo, true);
     return () => document.removeEventListener("invalid", exibirErroNativo, true);
-  }, [exibir]);
+  }, [exibir, localeUI, ui]);
 
   useEffect(() => {
     const timers = toasts
@@ -111,10 +129,10 @@ export function ToastProvider({ children }) {
           <div key={toast.id} role={toast.tipo === "erro" ? "alert" : "status"} className={`pointer-events-auto flex w-full items-start gap-3 rounded-[16px] border p-4 shadow-[0_16px_45px_rgba(52,31,22,0.18)] ${estilo.classe} ${toastsSaindo.has(toast.id) ? "toast-saindo" : "toast-entrando"}`} style={{ minHeight: 72 }}>
             <Icone className={`mt-0.5 h-5 w-5 shrink-0 ${toast.tipo === "erro" ? "text-app-vermelho-erro" : "text-app-caramelo-torrado"}`} aria-hidden="true" />
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-bold">{toast.titulo ?? estilo.titulo}</p>
-              <p className="mt-1 text-sm leading-5 text-app-mocha">{toast.mensagem}</p>
+              <p data-appono-sem-traducao className="text-sm font-bold">{ui(toast.titulo ?? estilo.titulo)}</p>
+              <p className="mt-1 text-sm leading-5 text-app-mocha">{ui(toast.mensagem)}</p>
             </div>
-            <button type="button" onClick={() => fechar(toast.id)} className="rounded-full p-1 text-app-cinza transition hover:bg-app-chantilly hover:text-app-cafe-profundo" aria-label="Fechar aviso">
+            <button type="button" onClick={() => fechar(toast.id)} className="rounded-full p-1 text-app-cinza transition hover:bg-app-chantilly hover:text-app-cafe-profundo" aria-label={ui("Fechar aviso")}>
               <X className="h-4 w-4" aria-hidden="true" />
             </button>
           </div>

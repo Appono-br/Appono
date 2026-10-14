@@ -17,15 +17,15 @@ function FotoPrato({ src, nome }) {
       <span>{ui("Sem foto")}</span>
     </span>;
   }
-  return <Image src={src} alt={nome} fill sizes="(min-width: 1280px) 220px, (min-width: 1024px) 25vw, (min-width: 600px) 30vw, 45vw" className="dish-photo" onError={() => setFalhou(true)} />;
+  return <Image data-appono-sem-traducao src={src} alt={nome} fill sizes="(min-width: 1280px) 220px, (min-width: 1024px) 25vw, (min-width: 600px) 30vw, 45vw" className="dish-photo" onError={() => setFalhou(true)} />;
 }
 
 function LogoRestaurante({ restaurante }) {
   const [falhou, setFalhou] = useState(false);
-  return <span className="dish-restaurant-logo" title={restaurante.name}>
+  return <span data-appono-sem-traducao className="dish-restaurant-logo" title={restaurante.name}>
     {restaurante.imageUrl && !falhou
-      ? <Image src={restaurante.imageUrl} alt={restaurante.name} fill sizes="36px" className="dish-logo-image" onError={() => setFalhou(true)} />
-      : <span className="dish-logo-placeholder" aria-label={restaurante.name}>
+      ? <Image data-appono-sem-traducao src={restaurante.imageUrl} alt={restaurante.name} fill sizes="36px" className="dish-logo-image" onError={() => setFalhou(true)} />
+      : <span data-appono-sem-traducao className="dish-logo-placeholder" aria-label={restaurante.name}>
         <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
           <path d="M4 3v6a2 2 0 0 0 4 0V3M6 3v18M18 3v18M18 3c-4 2-4 9 0 9" />
         </svg>
@@ -34,12 +34,12 @@ function LogoRestaurante({ restaurante }) {
 }
 
 function CartaoPrato({ prato, restaurante, moeda, ui }) {
-  return <Link href={`/cliente/restaurantes/${restaurante.id}`} className="dish-card" aria-label={ui("{0}, {1}. Ver cardápio de {2}", [prato.nome, moeda.format(prato.preco), restaurante.name])}>
+  return <Link data-appono-sem-traducao href={`/cliente/restaurantes/${restaurante.id}`} className="dish-card" aria-label={ui("{0}, {1}. Ver cardápio de {2}", [prato.nome, moeda.format(prato.preco), restaurante.name])}>
     <span className="dish-photo-wrap">
       <FotoPrato src={prato.imagem_url} nome={prato.nome} />
       <LogoRestaurante restaurante={restaurante} />
     </span>
-    <h3 className="dish-name">{prato.nome}</h3>
+    <h3 data-appono-sem-traducao className="dish-name">{prato.nome}</h3>
     <span className="dish-price">{moeda.format(prato.preco)}</span>
   </Link>;
 }
@@ -58,7 +58,7 @@ function LinhaPratos({ titulo, itens, restaurante, moeda, ui, limitePorLinha }) 
     </div>
     <div className="dish-grid">
       {itens.slice(0, limitePorLinha).map(({ prato, restaurante: restauranteDoPrato }) => <CartaoPrato key={`${restauranteDoPrato.id}-${prato.id_produto}`} prato={prato} restaurante={restauranteDoPrato} moeda={moeda} ui={ui} />)}
-      {restaurante && itens.length > limitePorLinha ? <Link href={`/cliente/restaurantes/${restaurante.id}`} className="dish-show-more" aria-label={ui("Ver mais pratos de {0}", [restaurante.name])}>
+      {restaurante && itens.length > limitePorLinha ? <Link data-appono-sem-traducao href={`/cliente/restaurantes/${restaurante.id}`} className="dish-show-more" aria-label={ui("Ver mais pratos de {0}", [restaurante.name])}>
         <span className="dish-show-more-icon" aria-hidden="true">→</span>
         <span>{ui("Ver mais")}</span>
       </Link> : null}
@@ -98,7 +98,7 @@ export function VitrinePratos({ restaurantes, carregando, limiteInicial = 12, me
 
   return <section className={`dish-showcase${horizontal ? " dish-showcase-horizontal" : ""}`} aria-label={ui("Pratos")} aria-busy={carregando}>
     <h2 className="dish-section-title">{ui("Pratos")}</h2>
-    {!carregando && exibirAtalhosCategoria && categoriasDestaque.length ? <nav className="dish-category-shortcuts" aria-label={ui("Categorias de pratos")}>{categoriasDestaque.map(([categoria, itens]) => <Link key={categoria} href={`/cliente/busca?categoria=${encodeURIComponent(categoria)}`} className="dish-category-shortcut" aria-label={ui("Ver restaurantes de {0}", [categoria])}><span className="dish-category-icon">{itens[0]?.prato?.imagem_url ? <Image src={itens[0].prato.imagem_url} alt="" fill sizes="64px" className="dish-category-image" /> : <IconeCategoria nome={categoria} />}</span><span className="dish-category-name">{categoria}</span><span className="dish-category-count">{ui("{0} pratos", [itens.length])}</span></Link>)}</nav> : null}
+    {!carregando && exibirAtalhosCategoria && categoriasDestaque.length ? <nav className="dish-category-shortcuts" aria-label={ui("Categorias de pratos")}>{categoriasDestaque.map(([categoria, itens]) => <Link key={categoria} href={`/cliente/busca?categoria=${encodeURIComponent(categoria)}`} className="dish-category-shortcut" aria-label={ui("Ver restaurantes de {0}", [categoria])}><span data-appono-sem-traducao className="dish-category-icon">{itens[0]?.prato?.imagem_url ? <Image src={itens[0].prato.imagem_url} alt="" fill sizes="64px" className="dish-category-image" /> : <IconeCategoria nome={categoria} />}</span><span className="dish-category-name">{categoria}</span><span className="dish-category-count">{ui("{0} pratos", [itens.length])}</span></Link>)}</nav> : null}
     {carregando ? <div className="dish-grid" aria-label={ui("Carregando pratos...")}>
       {Array.from({ length: 8 }, (_, indice) => <div key={indice} className="dish-skeleton" aria-hidden="true" />)}
     </div> : pratos.length && agrupada ? <div className="dish-groupings">

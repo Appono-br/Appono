@@ -1,5 +1,7 @@
 "use client";
 
+import { useInterface } from "@/lib/use-interface";
+
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { apiRequest } from "@/lib/api";
@@ -10,6 +12,7 @@ function Percentual({ parte, total }) {
 }
 
 export default function AdminRotinaIntelligencePage() {
+  const { ui } = useInterface();
     const [dias, setDias] = useState(30);
     const [dados, setDados] = useState(null);
     const [erro, setErro] = useState("");
@@ -36,42 +39,42 @@ export default function AdminRotinaIntelligencePage() {
             <section className="mx-auto max-w-7xl">
                 <div className="flex flex-col gap-5 rounded-[16px] bg-app-cafe-profundo p-7 text-app-creme-leve shadow-lg sm:flex-row sm:items-end sm:justify-between">
                     <div>
-                        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-baunilha-dourada">Demonstração acadêmica</p>
-                        <h1 className="mt-3 text-3xl font-semibold">Appono Intelligence V2.1</h1>
-                        <p className="mt-3 max-w-2xl text-sm leading-6 text-app-creme-suave">Versão experimental titular da demonstração, com controle determinístico disponível como fallback.</p>
+                        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-baunilha-dourada">{ui("Demonstração acadêmica")}</p>
+                        <h1 className="mt-3 text-3xl font-semibold">{ui("Appono Intelligence V2.1")}</h1>
+                        <p className="mt-3 max-w-2xl text-sm leading-6 text-app-creme-suave">{ui("Versão experimental titular da demonstração, com controle determinístico disponível como fallback.")}</p>
                     </div>
                     <div className="flex gap-3">
-                        <Link href="/admin/financeiro" className="rounded-[8px] border border-app-baunilha-dourada/70 px-4 py-2 text-sm font-bold">Financeiro</Link>
-                        <select value={dias} onChange={alterarPeriodo} className="rounded-[8px] bg-app-creme-leve px-4 py-2 text-sm font-bold text-app-cafe-profundo" aria-label="Período de avaliação">
-                            <option value={7}>7 dias</option>
-                            <option value={30}>30 dias</option>
-                            <option value={90}>90 dias</option>
+                        <Link href="/admin/financeiro" className="rounded-[8px] border border-app-baunilha-dourada/70 px-4 py-2 text-sm font-bold">{ui("Financeiro")}</Link>
+                        <select value={dias} onChange={alterarPeriodo} className="rounded-[8px] bg-app-creme-leve px-4 py-2 text-sm font-bold text-app-cafe-profundo" aria-label={ui("Período de avaliação")}>
+                            <option value={7}>{ui("7 dias")}</option>
+                            <option value={30}>{ui("30 dias")}</option>
+                            <option value={90}>{ui("90 dias")}</option>
                         </select>
                     </div>
                 </div>
 
-                {carregando ? <p className="mt-8 rounded-[14px] bg-app-creme-leve p-6">Carregando métricas agregadas...</p> : null}
-                {erro ? <p role="alert" className="mt-8 rounded-[14px] border border-app-vermelho-erro p-6 text-app-vermelho-erro">{erro}</p> : null}
+                {carregando ? <p className="mt-8 rounded-[14px] bg-app-creme-leve p-6">{ui("Carregando métricas agregadas...")}</p> : null}
+                {erro ? <p role="alert" className="mt-8 rounded-[14px] border border-app-vermelho-erro p-6 text-app-vermelho-erro">{ui(erro)}</p> : null}
                 {!carregando && !erro && !dados?.comparacoes ? (
-                    <p className="mt-8 rounded-[14px] bg-app-creme-leve p-6 text-app-mocha">Ainda não há comparações sombra neste período. Isso é diferente de um modelo sem confiança.</p>
+                    <p className="mt-8 rounded-[14px] bg-app-creme-leve p-6 text-app-mocha">{ui("Ainda não há comparações sombra neste período. Isso é diferente de um modelo sem confiança.")}</p>
                 ) : null}
 
                 {dados?.configuracao ? (
                     <section className="mt-8 rounded-[14px] bg-app-creme-suave p-6 ring-1 ring-app-baunilha-dourada/70" aria-labelledby="estado-intelligence">
                         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                             <div>
-                                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">Estado operacional</p>
+                                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">{ui("Estado operacional")}</p>
                                 <h2 id="estado-intelligence" className="mt-2 text-xl font-semibold">{dados.configuracao.modelo_disponivel}</h2>
                             </div>
                             <strong className={`w-fit rounded-full px-3 py-1 text-xs ${dados.configuracao.kill_switch ? "bg-app-vermelho-erro text-white" : "bg-app-cafe-profundo text-app-creme-leve"}`}>
-                                {dados.configuracao.kill_switch ? "Kill switch ativo" : "Fallback disponível"}
+                                {dados.configuracao.kill_switch ? ui("Kill switch ativo") : ui("Fallback disponível")}
                             </strong>
                         </div>
                         <div className="mt-5 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
-                            <p className="rounded-[10px] bg-white p-4">Rollout público<strong className="mt-1 block text-xl">{dados.configuracao.rollout_percentual}%</strong></p>
-                            <p className="rounded-[10px] bg-white p-4">Contas internas<strong className="mt-1 block text-xl">{dados.configuracao.contas_internas_configuradas}</strong></p>
-                            <p className="rounded-[10px] bg-white p-4">Confiança mínima<strong className="mt-1 block text-xl">{Number(dados.configuracao.confianca_minima).toFixed(2)}</strong></p>
-                            <p className="rounded-[10px] bg-white p-4">Padrão público<strong className="mt-1 block text-xl">{dados.configuracao.modo_padrao}</strong></p>
+                            <p className="rounded-[10px] bg-white p-4">{ui("Rollout público")}<strong className="mt-1 block text-xl">{dados.configuracao.rollout_percentual}%</strong></p>
+                            <p className="rounded-[10px] bg-white p-4">{ui("Contas internas")}<strong className="mt-1 block text-xl">{dados.configuracao.contas_internas_configuradas}</strong></p>
+                            <p className="rounded-[10px] bg-white p-4">{ui("Confiança mínima")}<strong className="mt-1 block text-xl">{Number(dados.configuracao.confianca_minima).toFixed(2)}</strong></p>
+                            <p className="rounded-[10px] bg-white p-4">{ui("Padrão público")}<strong className="mt-1 block text-xl">{dados.configuracao.modo_padrao}</strong></p>
                         </div>
                     </section>
                 ) : null}
@@ -79,23 +82,23 @@ export default function AdminRotinaIntelligencePage() {
                 {dados?.comparacoes ? (
                     <>
                         <div className="mt-8 grid gap-4 sm:grid-cols-3">
-                            <article className="rounded-[14px] bg-app-creme-leve p-5 ring-1 ring-app-baunilha-dourada"><span className="text-xs uppercase text-app-cinza">Comparações</span><strong className="mt-3 block text-3xl">{dados.comparacoes}</strong></article>
-                            <article className="rounded-[14px] bg-app-creme-leve p-5 ring-1 ring-app-baunilha-dourada"><span className="text-xs uppercase text-app-cinza">Modelo oficial</span><strong className="mt-3 block text-xl">{dados.modelo_oficial}</strong></article>
-                            <article className="rounded-[14px] bg-app-creme-leve p-5 ring-1 ring-app-baunilha-dourada"><span className="text-xs uppercase text-app-cinza">Decisão atual</span><strong className="mt-3 block text-lg">{dados.decisao_atual}</strong></article>
+                            <article className="rounded-[14px] bg-app-creme-leve p-5 ring-1 ring-app-baunilha-dourada"><span className="text-xs uppercase text-app-cinza">{ui("Comparações")}</span><strong className="mt-3 block text-3xl">{dados.comparacoes}</strong></article>
+                            <article className="rounded-[14px] bg-app-creme-leve p-5 ring-1 ring-app-baunilha-dourada"><span className="text-xs uppercase text-app-cinza">{ui("Modelo oficial")}</span><strong className="mt-3 block text-xl">{dados.modelo_oficial}</strong></article>
+                            <article className="rounded-[14px] bg-app-creme-leve p-5 ring-1 ring-app-baunilha-dourada"><span className="text-xs uppercase text-app-cinza">{ui("Decisão atual")}</span><strong className="mt-3 block text-lg">{dados.decisao_atual}</strong></article>
                         </div>
                         <section className="mt-8 grid gap-5 lg:grid-cols-2">
                             {dados.modelos.map((modelo) => (
                                 <article key={modelo.modelo} className="rounded-[14px] bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada/70">
                                     <h2 className="text-xl font-semibold">{modelo.modelo}</h2>
                                     <div className="mt-5 grid grid-cols-2 gap-3 text-sm">
-                                        <p>Concordância <strong className="block text-2xl"><Percentual parte={modelo.concordancias} total={modelo.comparacoes} /></strong></p>
-                                        <p>Divergências <strong className="block text-2xl">{modelo.divergencias}</strong></p>
-                                        <p>Confiança média <strong className="block text-xl">{modelo.confianca_media.toFixed(3)}</strong></p>
-                                        <p>Falhas <strong className="block text-xl">{modelo.falhas}</strong></p>
+                                        <p>{ui("Concordância ")}<strong className="block text-2xl"><Percentual parte={modelo.concordancias} total={modelo.comparacoes} /></strong></p>
+                                        <p>{ui("Divergências ")}<strong className="block text-2xl">{modelo.divergencias}</strong></p>
+                                        <p>{ui("Confiança média ")}<strong className="block text-xl">{modelo.confianca_media.toFixed(3)}</strong></p>
+                                        <p>{ui("Falhas ")}<strong className="block text-xl">{modelo.falhas}</strong></p>
                                     </div>
-                                    <p className="mt-5 text-xs leading-5 text-app-cinza">Aprovações {modelo.resultados.aprovacoes} | recusas {modelo.resultados.recusas} | alternativas {modelo.resultados.alternativas} | conversões {modelo.resultados.conversoes}</p>
-                                    <p className="mt-2 text-xs leading-5 text-app-cinza">Com histórico {modelo.com_historico} | sem histórico {modelo.sem_historico} | diversidade {modelo.diversidade.restaurantes} restaurantes e {modelo.diversidade.produtos} produtos</p>
-                                    <p className="mt-2 text-xs leading-5 text-app-cinza">Confiança: zero {modelo.distribuicao_confianca.zero}, baixa {modelo.distribuicao_confianca.baixa}, moderada {modelo.distribuicao_confianca.moderada}, alta {modelo.distribuicao_confianca.alta}</p>
+                                    <p className="mt-5 text-xs leading-5 text-app-cinza">{ui("Aprovações ")}{modelo.resultados.aprovacoes}{ui(" | recusas ")}{modelo.resultados.recusas}{ui(" | alternativas ")}{modelo.resultados.alternativas}{ui(" | conversões ")}{modelo.resultados.conversoes}</p>
+                                    <p className="mt-2 text-xs leading-5 text-app-cinza">{ui("Com histórico ")}{modelo.com_historico}{ui(" | sem histórico ")}{modelo.sem_historico}{ui(" | diversidade ")}{modelo.diversidade.restaurantes}{ui(" restaurantes e ")}{modelo.diversidade.produtos}{ui(" produtos")}</p>
+                                    <p className="mt-2 text-xs leading-5 text-app-cinza">{ui("Confiança: zero ")}{modelo.distribuicao_confianca.zero}{ui(", baixa ")}{modelo.distribuicao_confianca.baixa}{ui(", moderada ")}{modelo.distribuicao_confianca.moderada}{ui(", alta ")}{modelo.distribuicao_confianca.alta}</p>
                                 </article>
                             ))}
                         </section>
