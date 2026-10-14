@@ -26,7 +26,7 @@ export default function LayoutCliente({ children }) {
         return <TelaCarregandoSessao />;
     }
     return (<RotaProtegida perfisPermitidos={perfisPermitidos}>
-      <div data-appono-sem-traducao className={`area-autenticada area-cliente min-h-full ${tema === "escuro" ? "tema-escuro" : ""}`}>
+      <div className={`area-autenticada area-cliente min-h-full ${tema === "escuro" ? "tema-escuro" : ""}`}>
         <ClienteHeader />
         {children}
       </div>

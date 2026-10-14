@@ -93,7 +93,7 @@ begin
 
   antecedencia_minutos := greatest(
     coalesce(nullif(configuracao ->> 'antecedenciaMinutosReserva', '')::integer, 60),
-    0
+    60
   );
 
   if data_escolhida + inicio < agora_local + make_interval(mins => antecedencia_minutos) then

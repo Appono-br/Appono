@@ -21,7 +21,7 @@ export default function LayoutRestaurante({ children }) {
         return <TelaCarregandoSessao />;
     }
     return (<RotaProtegida perfisPermitidos={perfisPermitidos}>
-      <div data-appono-sem-traducao className={`area-autenticada area-restaurante restaurant-shell min-h-full ${tema === "escuro" ? "tema-escuro" : ""}`}>
+      <div className={`area-autenticada area-restaurante restaurant-shell min-h-full ${tema === "escuro" ? "tema-escuro" : ""}`}>
         <RestauranteSidebar />
         <div className="restaurant-page-content">{children}</div>
       </div>

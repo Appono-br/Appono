@@ -509,7 +509,7 @@ export default function RestaurantReservationsPage() {
                                                         {pedidoPrincipal ? ui("Pedido antecipado #{0}", [pedidoPrincipal.id_pedido]) : ui("Reserva simples")}
                                                     </p>
                                                     <p className="mt-1 text-xs text-app-cinza">
-                                                        {pedidoPrincipal ? ui("{0}{1}", [obterStatusPedido(pedidoPrincipal.status_pedido), totalPedidosAtivos > 1 ? ` + ${totalPedidosAtivos - 1} pedido(s)` : ""]) : ui("Sem pedido vinculado para a cozinha.")}
+                                                        {pedidoPrincipal ? ui("{0}{1}", [obterStatusPedido(pedidoPrincipal.status_pedido), totalPedidosAtivos > 1 ? ` + ${totalPedidosAtivos - 1} ${ui("pedido(s)")}` : ""]) : ui("Sem pedido vinculado para a cozinha.")}
                                                     </p>
                                                 </div>
                                                 {pedidoPrincipal ? (
@@ -541,7 +541,7 @@ export default function RestaurantReservationsPage() {
                                                     <button
                                                         type="button"
                                                         onClick={() => registrarCheckIn(reserva.id_reserva)}
-                                                        disabled={!janelaCheckIn.liberado || registrandoCheckIn === reserva.id_reserva}
+                                                        disabled={!janelaCheckIn.liberado || (codigoTelefonePorReserva[reserva.id_reserva] ?? "").length !== 4 || registrandoCheckIn === reserva.id_reserva}
                                                         className="h-9 rounded-[8px] bg-app-cafe-profundo px-3 text-xs font-bold text-white transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:bg-app-cinza/50"
                                                     >
                                                         {ui(registrandoCheckIn === reserva.id_reserva ? "Registrando..." : "Registrar check-in")}
