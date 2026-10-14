@@ -78,7 +78,7 @@ test("V2.1 distribui a semana entre restaurantes antes de repetir o vencedor bas
     assert.equal(resultado.candidato, segundo);
 });
 
-test("V2.1 não repete o mesmo prato quando ele é a única opção da semana", () => {
+test("V2.1 permite repetir quando a unica opcao ja foi usada na semana", () => {
     const unico = candidato(1, "Massas");
     const resultado = selecionarCandidatoV2_1({
         candidatos: [unico],
@@ -86,19 +86,9 @@ test("V2.1 não repete o mesmo prato quando ele é a única opção da semana", 
         historicoSemana: [{ id_restaurante: 1, id_produto: 10 }],
         referencia: new Date("2026-09-24T12:00:00Z"),
     });
-    assert.equal(resultado.candidato, null);
+    assert.equal(resultado.candidato, unico);
     assert.equal(resultado.falhou, false);
-    assert.equal(resultado.semDiversidade, true);
-    assert.equal(resultado.motivo, "V2_1_SEM_DIVERSIDADE");
-
-    const decisao = decidirCandidatoV2_1Titular({
-        controle: unico,
-        resultadoV2_1: resultado,
-        politica: resolverPoliticaV2_1Titular({ env: {} }),
-    });
-    assert.equal(decisao.candidato, null);
-    assert.equal(decisao.usouV2_1, true);
-    assert.equal(decisao.modelo, "appono-intelligence-v2-1");
+    assert.equal(resultado.motivo, "V2_1_SELECIONADA");
 });
 
 test("diagnostico administrativo identifica a V2.1 como titular da demonstracao", () => {

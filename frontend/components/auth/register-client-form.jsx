@@ -64,7 +64,6 @@ const clientFormSchema = z
       .default(""),
   })
   .superRefine((data, ctx) => {
-    // Validação de senha condicional
     if (data.password || data.confirmPassword) {
       if (!senhaValida(data.password)) {
         ctx.addIssue({

@@ -11,10 +11,6 @@ function obterAccessTokenMercadoPago() {
     const tokenPadrao = process.env.MERCADO_PAGO_ACCESS_TOKEN?.trim() ?? "";
     if (producaoPermitida) return tokenPadrao;
 
-    // O Mercado Pago usa APP_USR- tanto para tokens de teste quanto para
-    // tokens de producao. Neste modo, a origem da credencial (variavel de
-    // teste ou modo de producao bloqueado) define qual token pode ser usado;
-    // o prefixo TEST- nao identifica corretamente as credenciais atuais.
     return tokenTeste || tokenPadrao;
 }
 

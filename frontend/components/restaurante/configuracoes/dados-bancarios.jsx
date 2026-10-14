@@ -135,7 +135,6 @@ export default function RestaurantBankSettingsPage({ onVoltar }) {
         updatedAt: dadosBancarios?.updated_at ?? "",
       });
 
-      // Limpa campos sensíveis após salvar
       setValue("bankCode", "");
       setValue("agency", "");
       setValue("account", "");

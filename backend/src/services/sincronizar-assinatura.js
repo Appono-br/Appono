@@ -3,7 +3,6 @@
 const { supabaseAdmin: db } = require("../lib/supabase");
 const { buscarFaturasAssinaturaMercadoPago, consultarPagamentoMercadoPago, consultarContaMercadoPago } = require("./pagamentos/mercado-pago");
 
-// Reconsultar o provedor torna notificacoes repetidas ou fora de ordem seguras.
 async function aplicarEstadoAssinaturaMercadoPago(assinatura, mp) {
   const conta = await consultarContaMercadoPago();
   if (mp.collector_id != null && String(mp.collector_id) !== String(conta.id)) throw new Error("Vendedor da assinatura divergente.");
@@ -58,13 +57,8 @@ async function aplicarEstadoAssinaturaMercadoPago(assinatura, mp) {
     const data = new Date(inicio);
     data.setUTCMonth(data.getUTCMonth() + 1);
     fim = data.toISOString();
-    // A proxima cobranca do provedor delimita o ciclo, se posterior ao pagamento.
-    // Nunca prolongar um periodo pago porque uma cobranca futura foi reagendada.
     if (mp.next_payment_date && new Date(mp.next_payment_date) > new Date(inicio) && new Date(mp.next_payment_date) < new Date(fim)) fim = mp.next_payment_date;
   } else if (["authorized", "active"].includes(String(mp.status ?? "").toLowerCase())) {
-    // O Mercado Pago pode autorizar a assinatura antes de publicar a fatura
-    // em /authorized_payments. O status autorizado já representa a aprovação
-    // do checkout; a fatura será conciliada quando o webhook chegar.
     inicio = mp.date_created ?? mp.last_modified ?? new Date().toISOString();
     const data = new Date(inicio);
     data.setUTCMonth(data.getUTCMonth() + 1);

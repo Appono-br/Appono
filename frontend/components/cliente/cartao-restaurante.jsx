@@ -13,7 +13,6 @@ function Icon({ type, filled = false, className }) {
   return <svg aria-hidden="true" viewBox="0 0 24 24" className={className}><path d={path} fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" /></svg>;
 }
 
-// Card extraído da busca para reutilizar a apresentação nas listagens.
 export function CartaoRestaurante({ restaurant, updatingFavorite, onToggleFavorite }) {
   const { ui } = useInterface();
   const [imagemFalhou, setImagemFalhou] = useState(false);

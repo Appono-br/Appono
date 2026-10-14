@@ -452,7 +452,6 @@ export default function ConfigurarRotinaPage() {
                         return salvar(event, gerarExplicitamente, versaoAtual, tentativasConflito + 1);
                     }
                 } catch {
-                    // A próxima tentativa mantém o estado do formulário sem exigir recarga manual.
                 }
                 return salvar(event, gerarExplicitamente, versaoForcada, tentativasConflito + 1);
             }

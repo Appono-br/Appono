@@ -70,7 +70,6 @@ export function VitrinePratos({ restaurantes, carregando, limiteInicial = 12, me
   const { ui, localeUI } = useInterface();
   const [limite, setLimite] = useState(limiteInicial);
   const pratosPorRestaurante = restaurantes.map((restaurante) => (restaurante.publishedDishes ?? []).map((prato) => ({ prato, restaurante })));
-  // Intercala os restaurantes para dar variedade à primeira linha.
   const pratos = [];
   for (let indice = 0; pratosPorRestaurante.some((lista) => indice < lista.length); indice += 1) {
     for (const lista of pratosPorRestaurante) {

@@ -56,7 +56,6 @@ export default function RestaurantAddressSettingsPage({ onVoltar }) {
   const [apiMessage, setApiMessage] = useState("");
   const [apiSuccess, setApiSuccess] = useState(false);
 
-  // Carrega dados existentes
   useEffect(() => {
     if (!sessaoCarregada || sessao?.type !== "restaurant") return;
     apiRequest("/me")
@@ -86,7 +85,6 @@ export default function RestaurantAddressSettingsPage({ onVoltar }) {
       if (address.cidade) setValue("city", address.cidade);
       if (address.estado) setValue("state", address.estado);
     } catch {
-      // Não bloqueia o usuário se o CEP não puder ser consultado
     }
   }
 

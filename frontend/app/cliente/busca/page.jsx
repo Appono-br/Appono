@@ -114,7 +114,6 @@ function BuscaClienteContent() {
 
   const resultados = useMemo(() => {
     if (!temBusca) return [];
-    // A API já filtra por prato, restaurante e endereço; aqui só ordenamos a relevância.
     const base = debouncedTermo ? restaurantes
       .map((restaurant, indice) => ({
         restaurant,

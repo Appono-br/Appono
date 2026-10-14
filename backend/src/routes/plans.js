@@ -66,7 +66,6 @@ plansRouter.get("/catalogo", (_req, res) => res.json({ planos: PUBLIC_PLANOS }))
 plansRouter.get("/campanhas-publicas", async (req,res) => { try { res.json({campanhas:await require("./campaigns").publicas(req.query.restaurante_id)}); } catch(e) {res.status(400).json({error:e.message});} });
 
 plansRouter.use((req, res, next) => {
-  // Webhooks nÃ£o possuem sessÃ£o de usuÃ¡rio: a assinatura do provedor Ã© validada na rota.
   if (req.path === "/webhook/mercado-pago") return next();
   return requireAuth(req, res, () => requireRole("restaurante")(req, res, next));
 });
@@ -213,7 +212,6 @@ plansRouter.post("/cancelar-renovacao", async (req, res) => {
   } catch (error) { return res.status(error.statusCode ?? 400).json({ error: error.message }); }
 });
 
-// Rotas de campanhas foram movidas para /api/campanhas.
 plansRouter.post("/webhook/mercado-pago", async (req, res) => {
   const topic = String(req.body?.type ?? req.body?.topic ?? req.query?.type ?? req.query?.topic ?? "").toLowerCase();
   if (topic && !["subscription_preapproval", "preapproval", "subscription_authorized_payment", "payment"].includes(topic)) return res.json({ status: "ignored" });

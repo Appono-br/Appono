@@ -7,7 +7,6 @@ export function validarCpf(cpf) {
   const limpo = somenteNumeros(cpf);
   if (!limpo || limpo.length !== 11) return false;
   
-  // Rejeita números com todos os dígitos iguais (ex: 111.111.111-11)
   if (/^(\d)\1{10}$/.test(limpo)) return false;
 
   let soma = 0;
@@ -36,7 +35,6 @@ export function validarCnpj(cnpj) {
   const limpo = somenteNumeros(cnpj);
   if (!limpo || limpo.length !== 14) return false;
 
-  // Rejeita sequências com todos os dígitos iguais
   if (/^(\d)\1{13}$/.test(limpo)) return false;
 
   let tamanho = limpo.length - 2;

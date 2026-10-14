@@ -442,7 +442,6 @@ async function aplicarPagamentoMercadoPago(pagamentoMercadoPago, fallbackReferen
                 if (!existente) await supabase_1.supabaseAdmin.from("eventos_campanha_inteligente")
                     .insert({ id_campanha: resgate.id_campanha, tipo: "PEDIDO_PAGO", id_cliente: pedido.id_cliente, id_reserva: pedido.id_reserva, id_pedido: pedido.id_pedido });
             }
-            // Pagamento nao confirma entrega fisica do beneficio; a entrega tem operacao propria.
         }
         const pedidoAtualizado = await atualizarPedidoPorPagamento(
             pedido.id_pedido,

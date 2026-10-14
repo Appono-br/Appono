@@ -213,8 +213,6 @@ exports.restaurantDashboardRouter.get("/desempenho", async (req, res) => {
     const [reservasR, pedidosR, avaliacoesR] = await Promise.all([
         banco.from("reservas").select("id_reserva, status_reserva, status_confirmacao_presenca, data_reserva").eq("id_restaurante", restaurante.id_restaurante).gte("data_reserva", dataInicio),
         banco.from("pedidos").select("id_pedido, status_pedido, valor_total, data_pedido").eq("id_restaurante", restaurante.id_restaurante).gte("data_pedido", `${dataInicio}T00:00:00-03:00`),
-        // A média e a quantidade exibidas no cartão de avaliações são históricas;
-        // o filtro de período continua sendo aplicado apenas a reservas e pedidos.
         banco.from("avaliacoes_restaurante").select("nota, created_at").eq("id_restaurante", restaurante.id_restaurante),
     ]);
     const falha = [reservasR, pedidosR, avaliacoesR].find((item) => item.error);

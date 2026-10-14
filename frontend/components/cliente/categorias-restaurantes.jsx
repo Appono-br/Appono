@@ -6,7 +6,6 @@ import { useEffect, useState } from "react";
 import { apiRequest } from "@/lib/api";
 import { useInterface } from "@/lib/use-interface";
 
-// Apenas imagens de apresentação. Os itens e nomes vêm exclusivamente do banco.
 const fotos = {
   Brasileira: "/images/categorias/brasileira-feijoada.webp",
   Italiana: "/images/categorias/italiana.webp",

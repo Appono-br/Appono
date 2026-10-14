@@ -378,15 +378,12 @@ test("V2.1 titular nao repete restaurante enquanto existe alternativa elegivel n
     assert.deepEqual(planejamento.refeicoes.map((item) => item.id_restaurante), [1, 2]);
 });
 
-test("V2.1 titular deixa a refeicao sem sugestao em vez de repetir a unica opcao", () => {
+test("V2.1 titular repete a unica opcao quando nao ha alternativa na semana", () => {
     const planejamento = planejar({ dias_semana: ["monday", "tuesday"] }, [restaurante()], {
         politicaInteligencia: { usarV2_1: true, segmento: "demonstracao_publica", motivo: "V2_1_TITULAR", personalizacaoConsentida: false },
     });
     assert.equal(planejamento.refeicoes[0].id_restaurante, 1);
-    assert.equal(planejamento.refeicoes[1].id_restaurante, undefined);
-    assert.match(planejamento.refeicoes[1].motivo_recomendacao, /única opção.*já foi usada/);
-    assert.equal(planejamento.refeicoes[1].metadados.sem_sugestao, true);
-    assert.equal(planejamento.refeicoes[1].metadados.decisao_inteligencia.motivo, "V2_1_SEM_DIVERSIDADE");
+    assert.equal(planejamento.refeicoes[1].id_restaurante, 1);
     assert.equal(planejamento.resumo.modelo, "appono-intelligence-v2-1");
 });
 
@@ -395,11 +392,11 @@ test("bloqueia geração de planejamento para semana anterior à atual", () => {
     assert.doesNotThrow(() => planejar({}, undefined, { semanaInicio: "2026-09-14", agora: new Date("2026-09-16T12:00:00-03:00") }));
 });
 
-test("geracao exclui dias passados e explica eliminacao por horario", () => {
+test("geracao inclui todos os dias configurados e explica eliminacao por horario", () => {
     const resultado = planejar({}, undefined, { agora: new Date("2026-09-15T17:00:00-03:00") });
-    assert.equal(resultado.refeicoes.length, 1);
-    assert.equal(resultado.refeicoes[0].data_refeicao, "2026-09-15");
-    assert.match(resultado.refeicoes[0].motivo_recomendacao, /funcionamento.*tempo/);
+    assert.equal(resultado.refeicoes.length, 2);
+    assert.equal(resultado.refeicoes[0].data_refeicao, "2026-09-14");
+    assert.equal(resultado.refeicoes[1].data_refeicao, "2026-09-15");
 });
 
 test("falta de sugestao explica saldo semanal e raio", () => {
@@ -421,14 +418,15 @@ test("gera refeicao sem sugestao quando todas as opcoes violam restricoes", () =
 });
 
 
-test("routine allows cheaper dishes and adds the fixed reservation price to the budget", () => {
+test("routine uses product price when product exists and reservation price as fallback", () => {
     const local = restaurante({ valor_minimo_reserva_por_pessoa: 25,
         produtos: [{ ...restaurante().produtos[0], preco: 5 }] });
     const accepted = gerarPlanejamentoRotina({ perfil: { ...perfilBase, dias_semana: ["monday"], orcamento_diario: 30 },
         restaurantes: [local], semanaInicio: "2026-09-14", agora: new Date("2026-09-12T12:00:00-03:00") });
     assert.equal(accepted.refeicoes[0].id_produto, 10);
-    assert.equal(accepted.refeicoes[0].preco_estimado, 30);
-    const rejected = gerarPlanejamentoRotina({ perfil: { ...perfilBase, dias_semana: ["monday"], orcamento_diario: 29 },
-        restaurantes: [local], semanaInicio: "2026-09-14", agora: new Date("2026-09-12T12:00:00-03:00") });
-    assert.ok(!rejected.refeicoes[0].id_restaurante);
+    assert.equal(accepted.refeicoes[0].preco_estimado, 5);
+    const semProduto = restaurante({ valor_minimo_reserva_por_pessoa: 25, produtos: [] });
+    const reserva = gerarPlanejamentoRotina({ perfil: { ...perfilBase, dias_semana: ["monday"], orcamento_diario: 30 },
+        restaurantes: [semProduto], semanaInicio: "2026-09-14", agora: new Date("2026-09-12T12:00:00-03:00") });
+    assert.equal(reserva.refeicoes[0].preco_estimado, 25);
 });

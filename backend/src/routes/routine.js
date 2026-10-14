@@ -994,7 +994,7 @@ async function opcoesDaRefeicao(banco, idCliente, refeicao, horario = null, vers
         if (embService && perfil.preferencias?.length) {
             suporteSemAlt = await prepararSuporteSemantico({ preferencias: perfil.preferencias, restaurantes, embeddingService: embService });
         }
-    } catch (_) { /* fallback sem suporte semântico */ }
+    } catch (_) { }
     const janelaAtual = perfil.janelas_alimentacao?.find((item) => Number(item.id_janela_alimentacao) === Number(refeicao.id_janela_alimentacao));
     const opcoes = criarCandidatos({
         perfil: { ...perfil, tipo_janela: janelaAtual?.tipo ?? null }, restaurantes,

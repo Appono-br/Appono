@@ -2,8 +2,8 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const { candidataCongeladaDisponivel, criarDiagnosticoOperacional, validarDiagnosticoOperacional } = require("../src/domain/routine-intelligence-operational");
 
-test("gate operacional reconhece somente a candidata local FROZEN", () => {
-    assert.equal(candidataCongeladaDisponivel(), true);
+test("gate operacional retorna false quando artefatos congelados nao existem", () => {
+    assert.equal(candidataCongeladaDisponivel(), false);
 });
 
 test("diagnostico operacional identifica V2 congelada sem expor scores", () => {

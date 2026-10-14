@@ -211,7 +211,6 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
         setValue("legalName", company.razaoSocial);
       }
     } catch {
-      // Ignora falha de busca remota não bloqueante
     }
   }
 
@@ -228,7 +227,6 @@ export function RegisterRestaurantForm({ googleFlow = false }) {
       if (address.cidade) setValue("city", address.cidade);
       if (address.estado) setValue("uf", address.estado);
     } catch {
-      // Ignora falha de busca remota não bloqueante
     }
   }
 

@@ -11,7 +11,6 @@ const maxPartners = 6;
 function hasPartnerLogo(restaurant) {
   const logo = String(restaurant.logo_url ?? "").trim();
   const demo = /\[demo\]/i.test(restaurant.nome ?? "") || /^demo\.rotina\./i.test(restaurant.email ?? "");
-  // Os dados povoados usam fotos ilustrativas do Unsplash no lugar de logos.
   const stockPhoto = /^https?:\/\/images\.unsplash\.com(?:[/?]|$)/i.test(logo);
   return Boolean(logo) && !demo && !stockPhoto;
 }
