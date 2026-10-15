@@ -33,6 +33,7 @@ import {
   persistAuthResponse,
 } from "@/lib/session";
 import { supabase } from "@/lib/supabase";
+import { solicitarRecuperacaoSenha } from "@/lib/recuperacao-senha";
 import {
   chaveRetornoRestaurante,
   obterRetornoRestaurante,
@@ -53,13 +54,6 @@ const recoverySchema = z.object({
     .min(1, "Informe o e-mail cadastrado na Appono.")
     .email("Informe um e-mail válido."),
 });
-
-function obterUrlRecuperacaoSenha() {
-  const urlConfigurada =
-    process.env.NEXT_PUBLIC_PASSWORD_RECOVERY_REDIRECT_URL?.trim();
-  if (urlConfigurada) return urlConfigurada;
-  return `${window.location.origin}/recuperar-senha`;
-}
 
 function obterUrlCallbackAutenticacao() {
   const urlConfigurada =
@@ -154,12 +148,7 @@ export function LoginForm() {
     setRecoveryMessage({ text: "", success: false });
     setIsSendingRecovery(true);
     try {
-      const redirectTo = obterUrlRecuperacaoSenha();
-      const { error } = await supabase.auth.resetPasswordForEmail(
-        data.recoveryEmail.trim().toLowerCase(),
-        { redirectTo }
-      );
-      if (error) throw error;
+      await solicitarRecuperacaoSenha(data.recoveryEmail);
       setRecoveryMessage({
         text: "Enviamos um link para redefinir sua senha. Confira sua caixa de entrada e spam.",
         success: true,
