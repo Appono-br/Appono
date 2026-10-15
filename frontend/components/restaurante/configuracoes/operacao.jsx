@@ -85,7 +85,12 @@ export default function RestaurantOperationSettingsPage() {
         setStoreName(perfil.nome ?? cfg.storeName ?? "");
         setPhone(aplicarMascaraTelefone(cfg.phone ?? perfil.telefone ?? ""));
         setAntecedencia(Number(cfg.antecedenciaMinutosReserva ?? 60));
-        setDays(cfg.days ?? initialDays);
+        setDays(cfg.days
+          ? initialDays.map((base) => {
+              const saved = cfg.days.find((d) => d.id === base.id);
+              return saved ? { ...base, enabled: saved.enabled, shifts: saved.shifts } : base;
+            })
+          : initialDays);
       })
       .catch((error) => {
         setApiMessage(error instanceof Error ? error.message : "Não foi possível carregar as configurações.");
@@ -281,8 +286,8 @@ export default function RestaurantOperationSettingsPage() {
               </p>
               {resumoCliente.length ? (
                 <div className="mt-3 grid gap-1.5 text-sm text-app-mocha">
-                  {resumoCliente.map((linha) => (
-                    <p key={horarioUI ? horarioUI(linha) : linha}>{linha}</p>
+                  {resumoCliente.map((linha, idx) => (
+                    <p key={idx}>{horarioUI ? horarioUI(linha) : linha}</p>
                   ))}
                 </div>
               ) : (
@@ -318,7 +323,8 @@ export default function RestaurantOperationSettingsPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="mt-6 inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-red-600 hover:bg-red-700 px-8 text-xs font-bold uppercase tracking-wide text-white transition shadow-sm disabled:cursor-not-allowed disabled:opacity-60"
+              className="mt-6 inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl px-8 text-xs font-bold uppercase tracking-wide text-white transition shadow-sm disabled:cursor-not-allowed disabled:opacity-60"
+              style={{ backgroundColor: isSubmitting ? "#b91c1c" : "#dc2626" }}
             >
               {isSubmitting ? (
                 <><Loader2 className="h-4 w-4 animate-spin" /><span>{ui("Salvando...")}</span></>

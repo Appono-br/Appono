@@ -84,8 +84,10 @@ campaignsRouter.get("/meus-beneficios",requireRole("cliente"),run(async(req,res)
 campaignsRouter.use(requireRole("restaurante"));
 campaignsRouter.get("/",run(async(req,res)=>{
  const r=await restaurante(res);
+ const temOperacao = r.configuracao_operacao && Array.isArray(r.configuracao_operacao.days) && r.configuracao_operacao.days.some(d => d.enabled);
  res.json({campanhas:await result(db.from("campanhas_inteligentes_restaurante").select("*,campanhas_inteligentes_produtos(id_produto)").eq("id_restaurante",r.id_restaurante).order("criado_em",{ascending:false})),
- produtos:await result(db.from("produtos").select("id_produto,nome,preco,disponivel,arquivado").eq("id_restaurante",r.id_restaurante))});
+ produtos:await result(db.from("produtos").select("id_produto,nome,preco,disponivel,arquivado").eq("id_restaurante",r.id_restaurante)),
+ temOperacao});
 }));
 campaignsRouter.post("/",run(async(req,res)=>{await salvar(req,res,null);}));
 campaignsRouter.patch("/:id",run(async(req,res)=>{await salvar(req,res,Number(req.params.id));}));
