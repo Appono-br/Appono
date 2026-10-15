@@ -5,25 +5,26 @@ import { useInterface } from "@/lib/use-interface";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { ArrowLeft, Bell, DollarSign, Landmark, LogOut, ReceiptText, RefreshCw, ShieldCheck, TrendingUp, Users, Utensils, CalendarCheck, Package, CreditCard, AlertTriangle, FileDown, Search, Headset } from "lucide-react";
 import { apiRequest } from "@/lib/api";
 import { textoFluxoPagamento, textoStatusPedido, textoStatusRepasse, textoTipoEvento } from "@/lib/formatadores-status";
 import { encerrarSessao } from "@/lib/session";
 
 const cardsResumo = [
-    { label: "Valor transacionado", key: "valor_transacionado", destaque: true },
-    { label: "Receita Appono", key: "receita_app" },
-    { label: "Retido até entrega", key: "valor_retido" },
-    { label: "Liberado a restaurantes", key: "valor_liberado" },
-    { label: "Estornado", key: "valor_estornado" },
+    { label: "Valor transacionado", key: "valor_transacionado", destaque: true, icon: TrendingUp },
+    { label: "Receita Appono", key: "receita_app", icon: Landmark },
+    { label: "Retido até entrega", key: "valor_retido", icon: Package },
+    { label: "Liberado a restaurantes", key: "valor_liberado", icon: CreditCard },
+    { label: "Estornado", key: "valor_estornado", icon: AlertTriangle },
 ];
 
 const cardsOperacao = [
-    { label: "Clientes", key: "total_clientes" },
-    { label: "Restaurantes", key: "total_restaurantes" },
-    { label: "Restaurantes conectados", key: "restaurantes_conectados" },
-    { label: "Reservas", key: "total_reservas" },
-    { label: "Pedidos", key: "total_pedidos" },
-    { label: "Ticket médio", key: "ticket_medio", moeda: true },
+    { label: "Clientes", key: "total_clientes", icon: Users },
+    { label: "Restaurantes", key: "total_restaurantes", icon: Utensils },
+    { label: "Restaurantes conectados", key: "restaurantes_conectados", icon: ShieldCheck },
+    { label: "Reservas", key: "total_reservas", icon: CalendarCheck },
+    { label: "Pedidos", key: "total_pedidos", icon: ReceiptText },
+    { label: "Ticket médio", key: "ticket_medio", moeda: true, icon: DollarSign },
 ];
 
 const abas = [
@@ -88,25 +89,31 @@ function textoConexaoMercadoPago(conexao) {
     return statusMap[conexao.status] ?? conexao.status ?? "Não conectado";
 }
 
-function CardResumo({ label, value, destaque }) {
+function CardResumo({ label, value, destaque, icon: Icon }) {
     const { ui, localeUI } = useInterface();
     return (
-        <article className={`rounded-[14px] p-5 shadow-sm ring-1 ${destaque
+        <article className={`rounded-lg p-5 shadow-sm ring-1 ${destaque
             ? "bg-app-cafe-profundo text-app-creme-leve ring-app-cafe-profundo"
-            : "bg-app-creme-leve text-app-cafe-profundo ring-app-baunilha-dourada/70"}`}>
-            <p className={`text-[10px] font-bold uppercase tracking-[0.18em] ${destaque ? "text-app-baunilha-dourada" : "text-app-cinza"}`}>
-                {ui(label)}
-            </p>
-            <strong className="mt-5 block text-2xl font-semibold">{formatarMoeda(value, localeUI)}</strong>
+            : "bg-white text-app-cafe-profundo ring-app-baunilha-dourada/70"}`}>
+            <div className="flex items-center justify-between">
+                <p className={`text-[10px] font-bold uppercase tracking-[0.18em] ${destaque ? "text-app-baunilha-dourada" : "text-app-cinza"}`}>
+                    {ui(label)}
+                </p>
+                {Icon ? <Icon size={18} className={destaque ? "text-app-baunilha-dourada" : "text-app-caramelo-torrado"} aria-hidden="true" /> : null}
+            </div>
+            <strong className="mt-4 block text-2xl font-semibold">{formatarMoeda(value, localeUI)}</strong>
         </article>
     );
 }
 
-function CardOperacao({ label, value, moeda }) {
+function CardOperacao({ label, value, moeda, icon: Icon }) {
     const { ui, localeUI } = useInterface();
     return (
-        <article className="rounded-[14px] bg-app-creme-leve p-5 shadow-sm ring-1 ring-app-baunilha-dourada/70">
-            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-cinza">{ui(label)}</p>
+        <article className="rounded-lg bg-white p-5 shadow-sm ring-1 ring-app-baunilha-dourada/70">
+            <div className="flex items-center justify-between">
+                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-cinza">{ui(label)}</p>
+                {Icon ? <Icon size={16} className="text-app-caramelo-torrado" aria-hidden="true" /> : null}
+            </div>
             <strong className="mt-4 block text-2xl font-semibold text-app-cafe-profundo">
                 {moeda ? formatarMoeda(value, localeUI) : Number(value ?? 0).toLocaleString(localeUI)}
             </strong>
@@ -121,7 +128,7 @@ function Pill({ children, tone = "neutral" }) {
         alert: "bg-app-baunilha-dourada/45 text-app-cafe-profundo ring-app-baunilha-dourada",
     };
     return (
-        <span className={`inline-flex w-fit items-center rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-[0.12em] ring-1 ${tones[tone]}`}>
+        <span className={`inline-flex w-fit items-center rounded-md px-3 py-1 text-[10px] font-bold uppercase tracking-[0.12em] ring-1 ${tones[tone]}`}>
             {children}
         </span>
     );
@@ -132,7 +139,7 @@ function GraficoFinanceiro({ serie }) {
     const pontos = serie?.length ? serie : [];
     const maiorValor = Math.max(...pontos.map((ponto) => Number(ponto.valor_transacionado ?? 0)), 1);
     return (
-        <section className="mt-8 rounded-[14px] bg-app-creme-leve p-6 shadow-sm ring-1 ring-app-baunilha-dourada/60">
+        <section className="mt-8 rounded-lg bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada/60">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                     <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">{ui("Evolução financeira")}</p>
@@ -140,7 +147,7 @@ function GraficoFinanceiro({ serie }) {
                 </div>
                 <p className="text-sm text-app-cinza">{ui("Somente pedidos pagos e não cancelados.")}</p>
             </div>
-            <div className="mt-6 flex h-56 items-end gap-2 overflow-x-auto rounded-[12px] bg-app-chantilly p-4 ring-1 ring-app-baunilha-dourada/45">
+            <div className="mt-6 flex h-56 items-end gap-2 overflow-x-auto rounded-lg bg-app-chantilly p-4 ring-1 ring-app-baunilha-dourada/45">
                 {pontos.map((ponto) => {
                     const altura = Math.max((Number(ponto.valor_transacionado ?? 0) / maiorValor) * 100, ponto.pedidos ? 8 : 2);
                     return (
@@ -310,11 +317,11 @@ export default function AdminFinanceiroPage() {
 
     if (carregando) {
         return (
-            <main className="flex min-h-screen items-center justify-center bg-app-chantilly px-5 text-app-cafe-profundo">
-                <section className="w-full max-w-md rounded-[14px] bg-app-creme-leve p-8 text-center shadow-sm ring-1 ring-app-baunilha-dourada">
+            <main className="flex min-h-screen items-center justify-center bg-white px-5 text-app-cafe-profundo">
+                <section className="w-full max-w-md rounded-lg bg-white p-8 text-center shadow-sm ring-1 ring-app-baunilha-dourada">
                     <Image src="/brand/appono-mark.svg" alt="Appono" width={88} height={88} className="mx-auto h-20 w-20" priority />
                     <h1 className="mt-6 text-3xl font-semibold">{ui("Carregando administração")}</h1>
-                    <p className="mt-3 text-sm leading-6 text-app-cinza">{ui("Estamos conferindo suas permissoes.")}</p>
+                    <p className="mt-3 text-sm leading-6 text-app-cinza">{ui("Estamos conferindo suas permissões.")}</p>
                 </section>
             </main>
         );
@@ -322,35 +329,40 @@ export default function AdminFinanceiroPage() {
 
     if (erro) {
         return (
-            <main className="flex min-h-screen items-center justify-center bg-app-chantilly px-5 text-app-cafe-profundo">
-                <section className="w-full max-w-md rounded-[14px] bg-app-creme-leve p-8 text-center shadow-sm ring-1 ring-app-baunilha-dourada">
+            <main className="flex min-h-screen items-center justify-center bg-white px-5 text-app-cafe-profundo">
+                <section className="w-full max-w-md rounded-lg bg-white p-8 text-center shadow-sm ring-1 ring-app-baunilha-dourada">
                     <Image src="/brand/appono-mark.svg" alt="Appono" width={88} height={88} className="mx-auto h-20 w-20" priority />
                     <h1 className="mt-6 text-3xl font-semibold">{ui("Acesso indisponível")}</h1>
                     <p className="mt-3 text-sm leading-6 text-app-cinza">{ui(erro)}</p>
-                    <Link href="/login" className="mt-6 inline-flex h-11 items-center justify-center rounded-[8px] bg-app-caramelo-torrado px-6 text-sm font-bold text-white transition hover:bg-app-mocha">{ui("Entrar novamente")}</Link>
+                    <Link href="/login" className="mt-6 inline-flex h-11 items-center justify-center rounded-lg bg-app-caramelo-torrado px-6 text-sm font-bold text-white transition hover:bg-app-mocha">{ui("Entrar novamente")}</Link>
                 </section>
             </main>
         );
     }
 
     return (
-        <main className="min-h-screen bg-app-chantilly text-app-cafe-profundo">
-            <header className="border-b border-app-baunilha-dourada/60 bg-app-creme-leve/95 px-5 py-5 shadow-sm">
+        <main className="min-h-screen bg-white text-app-cafe-profundo">
+            <header className="border-b border-app-baunilha-dourada/60 bg-white px-5 py-4 shadow-sm">
                 <div className="mx-auto flex max-w-7xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="flex items-center gap-4">
-                        <Image src="/brand/appono-mark.svg" alt="Appono" width={72} height={72} className="h-12 w-12" priority />
+                    <div className="flex items-center gap-3">
+                        <Image src="/brand/appono-mark.svg" alt="Appono" width={72} height={72} className="h-10 w-10" priority />
                         <div>
                             <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-app-caramelo-torrado">{ui("Appono Admin")}</p>
-                            <strong className="text-lg font-semibold">{ui("Central administrativa")}</strong>
+                            <strong className="text-base font-semibold">{ui("Central administrativa")}</strong>
                         </div>
                     </div>
-                    <div className="grid gap-3 sm:flex sm:flex-wrap sm:items-center">
-                        <span data-appono-sem-traducao className="rounded-full bg-app-cafe-profundo px-4 py-2 text-center text-xs font-bold uppercase tracking-[0.12em] text-app-creme-leve">
-                            {admin?.nome ?? ui("Administracao")}
+                    <nav className="flex flex-wrap items-center gap-2">
+                        <span data-appono-sem-traducao className="inline-flex items-center gap-1.5 rounded-lg bg-app-cafe-profundo px-4 py-2.5 text-xs font-bold uppercase tracking-[0.12em] text-app-creme-leve">
+                            <ShieldCheck size={14} aria-hidden="true" />
+                            {admin?.nome ?? ui("Administração")}
                         </span>
-                        <Link href="/admin/notificacoes" className="rounded-full border border-app-baunilha-dourada bg-app-chantilly px-4 py-2 text-center text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:bg-app-baunilha-dourada">{ui("Notificações")}</Link>
-                        <button type="button" onClick={sairParaHome} className="app-logout rounded-full border border-app-baunilha-dourada bg-app-chantilly px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-app-mocha transition hover:bg-app-baunilha-dourada">{ui("Sair para home")}</button>
-                    </div>
+                        <Link href="/admin/notificacoes" className="inline-flex items-center gap-1.5 rounded-lg border border-app-baunilha-dourada bg-white px-4 py-2.5 text-xs font-bold text-app-mocha transition hover:bg-app-chantilly">
+                            <Bell size={14} aria-hidden="true" />{ui("Notificações")}
+                        </Link>
+                        <button type="button" onClick={sairParaHome} className="app-logout inline-flex items-center gap-1.5 rounded-lg border border-app-baunilha-dourada bg-white px-4 py-2.5 text-xs font-bold text-app-mocha transition hover:bg-app-chantilly">
+                            <LogOut size={14} aria-hidden="true" />{ui("Sair")}
+                        </button>
+                    </nav>
                 </div>
             </header>
 
@@ -358,14 +370,23 @@ export default function AdminFinanceiroPage() {
                 <div className="grid gap-8 lg:grid-cols-[1fr_380px] lg:items-start">
                     <div>
                         <p className="text-xs font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{ui("Marketplace financeiro")}</p>
-                        <Link href="/admin/reembolsos" className="mt-4 inline-flex rounded-full border border-app-caramelo-torrado px-5 py-2 text-xs font-bold uppercase tracking-[0.12em] text-app-caramelo-torrado">{ui("Analisar reembolsos")}</Link>
-                        <Link href="/admin/suporte" className="ml-0 mt-3 inline-flex rounded-full border border-app-cafe-profundo px-5 py-2 text-xs font-bold uppercase tracking-[0.12em] text-app-cafe-profundo sm:ml-3">{ui("Central de suporte")}</Link>
+                        <div className="mt-4 flex flex-wrap gap-2">
+                            <Link href="/admin/reembolsos" className="inline-flex items-center gap-1.5 rounded-lg border border-app-caramelo-torrado px-4 py-2.5 text-xs font-bold uppercase tracking-[0.12em] text-app-caramelo-torrado transition hover:bg-app-caramelo-torrado hover:text-white">
+                                <DollarSign size={14} aria-hidden="true" />{ui("Analisar reembolsos")}
+                            </Link>
+                            <Link href="/admin/suporte" className="inline-flex items-center gap-1.5 rounded-lg border border-app-cafe-profundo px-4 py-2.5 text-xs font-bold uppercase tracking-[0.12em] text-app-cafe-profundo transition hover:bg-app-cafe-profundo hover:text-app-creme-leve">
+                                <Headset size={14} aria-hidden="true" />{ui("Central de suporte")}
+                            </Link>
+                        </div>
                         <h1 className="mt-3 max-w-3xl text-3xl font-semibold leading-tight sm:text-5xl">{ui("Retenção, comissão e repasses da Appono")}</h1>
                         <p className="mt-4 max-w-3xl text-sm leading-6 text-app-mocha">{ui("Painel da plataforma para acompanhar pagamentos, taxa de ")}{Number(dados.politica_financeira?.percentual_comissao_app ?? 13).toLocaleString(localeUI)}{ui("%, valores retidos até entrega e liberação de repasses.")}</p>
                     </div>
 
-                    <article className="rounded-[14px] bg-app-cafe-profundo p-6 text-app-creme-leve shadow-sm">
-                        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-baunilha-dourada">{ui("Acompanhamento financeiro")}</p>
+                    <article className="rounded-lg bg-app-cafe-profundo p-6 text-app-creme-leve shadow-sm">
+                        <div className="flex items-center gap-2">
+                            <AlertTriangle size={16} className="text-app-baunilha-dourada" aria-hidden="true" />
+                            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-baunilha-dourada">{ui("Acompanhamento financeiro")}</p>
+                        </div>
                         <strong className="mt-4 block text-3xl">{dados.pendencias?.abertos ?? dados.suporte?.abertos ?? 0}</strong>
                         <p className="mt-2 text-sm leading-6 text-app-creme-suave">{ui("pendências operacionais por retenção, cancelamento ou restaurante sem conexão.")}</p>
                     </article>
@@ -373,24 +394,24 @@ export default function AdminFinanceiroPage() {
 
                 <section className="mt-10 grid gap-5 sm:grid-cols-2 xl:grid-cols-5">
                     {cardsResumo.map((card) => (
-                        <CardResumo key={card.key} label={card.label} value={dados.resumo?.[card.key]} destaque={card.destaque} />
+                        <CardResumo key={card.key} label={card.label} value={dados.resumo?.[card.key]} destaque={card.destaque} icon={card.icon} />
                     ))}
                 </section>
 
                 <section className="mt-8 grid gap-5 sm:grid-cols-2 xl:grid-cols-6">
                     {cardsOperacao.map((card) => (
-                        <CardOperacao key={card.key} label={card.label} value={dados.metricas_gerais?.[card.key]} moeda={card.moeda} />
+                        <CardOperacao key={card.key} label={card.label} value={dados.metricas_gerais?.[card.key]} moeda={card.moeda} icon={card.icon} />
                     ))}
                 </section>
 
-                <section className="mt-8 flex flex-col gap-4 rounded-[14px] bg-app-creme-leve p-5 shadow-sm ring-1 ring-app-baunilha-dourada/60 lg:flex-row lg:items-center lg:justify-between">
+                <section className="mt-8 flex flex-col gap-4 rounded-lg bg-white p-5 shadow-sm ring-1 ring-app-baunilha-dourada/60 lg:flex-row lg:items-center lg:justify-between">
                     <div>
                         <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">{ui("Período analisado")}</p>
                         <p className="mt-2 text-sm leading-6 text-app-mocha">{ui("Use o recorte para explicar a evolução do caixa sem misturar testes antigos com dados recentes.")}</p>
                     </div>
                     <div className="flex flex-wrap gap-2">
                         {filtrosPeriodo.map((periodo) => (
-                            <button key={periodo.value} type="button" onClick={() => setPeriodoAtivo(periodo.value)} className={`rounded-full px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] transition ${periodoAtivo === periodo.value ? "bg-app-cafe-profundo text-app-creme-leve" : "bg-app-chantilly text-app-mocha hover:bg-app-baunilha-dourada"}`}>
+                            <button key={periodo.value} type="button" onClick={() => setPeriodoAtivo(periodo.value)} className={`rounded-lg px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] transition ${periodoAtivo === periodo.value ? "bg-app-cafe-profundo text-app-creme-leve" : "bg-white text-app-mocha ring-1 ring-app-baunilha-dourada hover:bg-app-chantilly"}`}>
                                 {periodo.label}
                             </button>
                         ))}
@@ -399,20 +420,22 @@ export default function AdminFinanceiroPage() {
 
                 <GraficoFinanceiro serie={dados.serie_financeira} />
 
-                <section className="mt-10 rounded-[14px] bg-app-creme-leve p-5 shadow-sm ring-1 ring-app-baunilha-dourada/60">
+                <section className="mt-10 rounded-lg bg-white p-5 shadow-sm ring-1 ring-app-baunilha-dourada/60">
                     <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                         <div className="flex flex-wrap gap-2">
                             {abas.map((aba) => (
-                                <button key={aba.value} type="button" onClick={() => setAbaAtiva(aba.value)} className={`rounded-full px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] transition ${abaAtiva === aba.value ? "bg-app-cafe-profundo text-app-creme-leve" : "bg-app-chantilly text-app-mocha hover:bg-app-baunilha-dourada"}`}>
+                                <button key={aba.value} type="button" onClick={() => setAbaAtiva(aba.value)} className={`rounded-lg px-4 py-2.5 text-xs font-bold uppercase tracking-[0.12em] transition ${abaAtiva === aba.value ? "bg-app-cafe-profundo text-app-creme-leve" : "bg-white text-app-mocha ring-1 ring-app-baunilha-dourada hover:bg-app-chantilly"}`}>
                                     {ui(aba.label)}
                                 </button>
                             ))}
                         </div>
                         <div className="flex flex-col gap-3 sm:min-w-80 sm:flex-row">
-                            <label className="campo-busca-app flex h-10 items-center rounded-full border border-app-baunilha-dourada/70 bg-app-chantilly px-4 transition">
+                            <label className="campo-busca-app flex h-10 items-center gap-2 rounded-lg border border-app-baunilha-dourada/70 bg-white px-3 transition">
+                                <Search size={15} className="shrink-0 text-app-cinza" aria-hidden="true" />
                                 <input value={busca} onChange={(event) => setBusca(event.target.value)} placeholder={ui("Buscar no painel...")} className="input-busca-app h-full min-w-0 flex-1 bg-transparent text-sm text-app-cafe-profundo placeholder:text-app-cinza/60" />
                             </label>
-                            <button type="button" onClick={atualizarPainel} disabled={atualizando} className="h-10 rounded-full bg-app-caramelo-torrado px-5 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-app-mocha disabled:cursor-not-allowed disabled:opacity-60">
+                            <button type="button" onClick={atualizarPainel} disabled={atualizando} className="inline-flex h-10 items-center gap-1.5 rounded-lg bg-app-caramelo-torrado px-5 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-app-mocha disabled:cursor-not-allowed disabled:opacity-60">
+                                <RefreshCw size={14} className={atualizando ? "animate-spin" : ""} aria-hidden="true" />
                                 {atualizando ? ui("Atualizando...") : ui("Atualizar")}
                             </button>
                         </div>
@@ -420,7 +443,7 @@ export default function AdminFinanceiroPage() {
                 </section>
 
                 {abaAtiva === "pedidos" ? (
-                    <section className="mt-8 rounded-[14px] bg-app-creme-leve p-6 shadow-sm ring-1 ring-app-baunilha-dourada/60">
+                    <section className="mt-8 rounded-lg bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada/60">
                         <div className="flex flex-col gap-4 border-b border-app-baunilha-dourada/60 pb-5 lg:flex-row lg:items-end lg:justify-between">
                             <div>
                                 <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">{ui("Conciliação")}</p>
@@ -429,12 +452,14 @@ export default function AdminFinanceiroPage() {
                             <div className="flex flex-col gap-3 sm:items-end">
                                 <div className="flex flex-wrap gap-2">
                                     {filtrosStatus.map((filtro) => (
-                                        <button key={filtro.value} type="button" onClick={() => setFiltroStatus(filtro.value)} className={`rounded-full px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.12em] transition ${filtroStatus === filtro.value ? "bg-app-cafe-profundo text-app-creme-leve" : "bg-app-chantilly text-app-mocha hover:bg-app-baunilha-dourada"}`}>
+                                        <button key={filtro.value} type="button" onClick={() => setFiltroStatus(filtro.value)} className={`rounded-lg px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.12em] transition ${filtroStatus === filtro.value ? "bg-app-cafe-profundo text-app-creme-leve" : "bg-white text-app-mocha ring-1 ring-app-baunilha-dourada hover:bg-app-chantilly"}`}>
                                             {ui(filtro.label)}
                                         </button>
                                     ))}
                                 </div>
-                                <button type="button" onClick={exportarRelatorioCsv} disabled={!pagamentosFiltrados.length} className="h-10 rounded-full border border-app-caramelo-torrado px-5 text-xs font-bold uppercase tracking-[0.12em] text-app-caramelo-torrado transition hover:bg-app-caramelo-torrado hover:text-white disabled:cursor-not-allowed disabled:opacity-50">{ui("Exportar CSV")}</button>
+                                <button type="button" onClick={exportarRelatorioCsv} disabled={!pagamentosFiltrados.length} className="inline-flex h-10 items-center gap-1.5 rounded-lg border border-app-caramelo-torrado px-5 text-xs font-bold uppercase tracking-[0.12em] text-app-caramelo-torrado transition hover:bg-app-caramelo-torrado hover:text-white disabled:cursor-not-allowed disabled:opacity-50">
+                                    <FileDown size={14} aria-hidden="true" />{ui("Exportar CSV")}
+                                </button>
                             </div>
                         </div>
 
@@ -469,12 +494,12 @@ export default function AdminFinanceiroPage() {
                 ) : null}
 
                 {abaAtiva === "eventos" ? (
-                    <section className="mt-8 rounded-[14px] bg-app-creme-leve p-6 shadow-sm ring-1 ring-app-baunilha-dourada/60">
+                    <section className="mt-8 rounded-lg bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada/60">
                         <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">{ui("Histórico financeiro")}</p>
                         <h2 className="mt-2 text-2xl font-semibold">{ui("Eventos recentes")}</h2>
                         <div className="mt-5 grid gap-3 md:grid-cols-2">
                             {eventosRecentes.length ? eventosRecentes.map((evento) => (
-                                <div key={evento.id_evento} className="rounded-[12px] bg-app-chantilly p-4 ring-1 ring-app-baunilha-dourada/55">
+                                <div key={evento.id_evento} className="rounded-lg bg-app-chantilly p-4 ring-1 ring-app-baunilha-dourada/55">
                                     <div className="flex items-start justify-between gap-3">
                                         <strong className="text-sm text-app-cafe-profundo">{ui(textoTipoEvento(evento.tipo_evento))}</strong>
                                         <span className="text-xs text-app-cinza">{formatarDataHora(evento.criado_em, localeUI)}</span>
@@ -483,14 +508,14 @@ export default function AdminFinanceiroPage() {
                                     <p className="mt-2 text-xs font-semibold text-app-caramelo-torrado">{ui("Pedido #")}{evento.id_pedido ?? "-"} | {formatarMoeda(evento.valor, localeUI)}</p>
                                 </div>
                             )) : (
-                                <p className="rounded-[12px] bg-app-chantilly p-4 text-sm text-app-cinza ring-1 ring-app-baunilha-dourada/55">{ui("Os eventos financeiros aparecerão conforme pagamentos, cancelamentos e entregas forem processados.")}</p>
+                                <p className="rounded-lg bg-app-chantilly p-4 text-sm text-app-cinza ring-1 ring-app-baunilha-dourada/55">{ui("Os eventos financeiros aparecerão conforme pagamentos, cancelamentos e entregas forem processados.")}</p>
                             )}
                         </div>
                     </section>
                 ) : null}
 
                 {abaAtiva === "restaurantes" ? (
-                    <section className="mt-8 rounded-[14px] bg-app-creme-leve p-6 shadow-sm ring-1 ring-app-baunilha-dourada/60">
+                    <section className="mt-8 rounded-lg bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada/60">
                         <div className="flex flex-col gap-3 border-b border-app-baunilha-dourada/60 pb-5 sm:flex-row sm:items-end sm:justify-between">
                             <div>
                                 <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">{ui("Parceiros")}</p>
@@ -500,7 +525,7 @@ export default function AdminFinanceiroPage() {
                         </div>
                         <div className="mt-5 grid gap-3 lg:grid-cols-2">
                             {restaurantesFiltrados.slice(0, 12).map((restaurante) => (
-                                <button key={restaurante.id_restaurante} type="button" onClick={() => setRestauranteSelecionado(restaurante)} className="grid gap-4 rounded-[12px] bg-app-chantilly p-4 text-left text-sm ring-1 ring-app-baunilha-dourada/55 transition hover:-translate-y-0.5 hover:bg-app-baunilha-dourada/35 md:grid-cols-[1fr_auto]">
+                                <button key={restaurante.id_restaurante} type="button" onClick={() => setRestauranteSelecionado(restaurante)} className="grid gap-4 rounded-lg bg-app-chantilly p-4 text-left text-sm ring-1 ring-app-baunilha-dourada/55 transition hover:-translate-y-0.5 hover:bg-app-baunilha-dourada/35 md:grid-cols-[1fr_auto]">
                                     <div>
                                         <strong data-appono-sem-traducao className="block text-app-cafe-profundo">{restaurante.nome}</strong>
                                         <span className="text-xs text-app-cinza">{restaurante.email ?? restaurante.telefone ?? "Contato não informado"}</span>
@@ -519,32 +544,32 @@ export default function AdminFinanceiroPage() {
                             ))}
                         </div>
                         {restaurantesFiltrados.length ? null : (
-                            <p className="mt-5 rounded-[12px] bg-app-chantilly p-4 text-sm text-app-cinza ring-1 ring-app-baunilha-dourada/55">{ui("Nenhum restaurante encontrado para a busca atual.")}</p>
+                            <p className="mt-5 rounded-lg bg-app-chantilly p-4 text-sm text-app-cinza ring-1 ring-app-baunilha-dourada/55">{ui("Nenhum restaurante encontrado para a busca atual.")}</p>
                         )}
                         {restauranteSelecionado ? (
-                            <article className="mt-6 rounded-[14px] bg-app-cafe-profundo p-6 text-app-creme-leve shadow-sm">
+                            <article className="mt-6 rounded-lg bg-app-cafe-profundo p-6 text-app-creme-leve shadow-sm">
                                 <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                                     <div>
                                         <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-baunilha-dourada">{ui("Detalhe do parceiro")}</p>
                                         <h3 data-appono-sem-traducao className="mt-2 text-2xl font-semibold">{restauranteSelecionado.nome}</h3>
                                         <p className="mt-2 text-sm text-app-creme-suave">{restauranteSelecionado.email ?? restauranteSelecionado.telefone ?? "Contato não informado"}</p>
                                     </div>
-                                    <button type="button" onClick={() => setRestauranteSelecionado(null)} className="w-fit rounded-full border border-app-baunilha-dourada/70 px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-app-creme-leve transition hover:bg-app-baunilha-dourada/20">{ui("Fechar")}</button>
+                                    <button type="button" onClick={() => setRestauranteSelecionado(null)} className="w-fit rounded-lg border border-app-baunilha-dourada/70 px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-app-creme-leve transition hover:bg-app-baunilha-dourada/20">{ui("Fechar")}</button>
                                 </div>
                                 <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                                    <div className="rounded-[12px] bg-app-mocha/55 p-4">
+                                    <div className="rounded-lg bg-app-mocha/55 p-4">
                                         <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-app-baunilha-dourada">{ui("Mercado Pago")}</span>
                                         <strong className="mt-2 block">{ui(textoConexaoMercadoPago(restauranteSelecionado.conexao_mercado_pago))}</strong>
                                     </div>
-                                    <div className="rounded-[12px] bg-app-mocha/55 p-4">
+                                    <div className="rounded-lg bg-app-mocha/55 p-4">
                                         <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-app-baunilha-dourada">{ui("Pedidos pagos")}</span>
                                         <strong className="mt-2 block">{restauranteSelecionado.metricas?.pedidos_pagos ?? 0}</strong>
                                     </div>
-                                    <div className="rounded-[12px] bg-app-mocha/55 p-4">
+                                    <div className="rounded-lg bg-app-mocha/55 p-4">
                                         <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-app-baunilha-dourada">{ui("Retido")}</span>
                                         <strong className="mt-2 block">{formatarMoeda(restauranteSelecionado.metricas?.valor_retido, localeUI)}</strong>
                                     </div>
-                                    <div className="rounded-[12px] bg-app-mocha/55 p-4">
+                                    <div className="rounded-lg bg-app-mocha/55 p-4">
                                         <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-app-baunilha-dourada">{ui("Liberado")}</span>
                                         <strong className="mt-2 block">{formatarMoeda(restauranteSelecionado.metricas?.valor_liberado, localeUI)}</strong>
                                     </div>
@@ -555,13 +580,13 @@ export default function AdminFinanceiroPage() {
                 ) : null}
 
                 {abaAtiva === "pendencias" ? (
-                    <section className="mt-8 rounded-[14px] bg-app-creme-leve p-6 shadow-sm ring-1 ring-app-baunilha-dourada/60">
+                    <section className="mt-8 rounded-lg bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada/60">
                         <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado">{ui("Acompanhamento financeiro")}</p>
                         <h2 className="mt-2 text-2xl font-semibold">{ui("Pendências operacionais")}</h2>
                         <p className="mt-3 text-sm leading-6 text-app-mocha">{ui("Casos com valor retido, cancelamento ou parceiro sem conexão Mercado Pago aparecem aqui para acompanhamento interno da Appono.")}</p>
                         <div className="mt-5 grid gap-3">
                             {((dados.pendencias?.itens ?? dados.suporte?.itens)?.length ? (dados.pendencias?.itens ?? dados.suporte?.itens) : restaurantesComAtencao).slice(0, 6).map((item, index) => (
-                                <div key={item.id_pagamento ?? item.id_restaurante ?? index} className="rounded-[12px] bg-app-chantilly p-4 text-sm ring-1 ring-app-baunilha-dourada/55">
+                                <div key={item.id_pagamento ?? item.id_restaurante ?? index} className="rounded-lg bg-app-chantilly p-4 text-sm ring-1 ring-app-baunilha-dourada/55">
                                     <strong data-appono-sem-traducao className="block text-app-cafe-profundo">
                                         {item.restaurante ?? item.nome ?? ui("Ocorrência operacional")}
                                     </strong>
@@ -574,7 +599,7 @@ export default function AdminFinanceiroPage() {
                                 </div>
                             ))}
                             {!(dados.pendencias?.itens ?? dados.suporte?.itens)?.length && !restaurantesComAtencao.length ? (
-                                <p className="rounded-[12px] bg-app-chantilly p-4 text-sm text-app-cinza ring-1 ring-app-baunilha-dourada/55">{ui("Nenhuma ocorrência operacional no momento.")}</p>
+                                <p className="rounded-lg bg-app-chantilly p-4 text-sm text-app-cinza ring-1 ring-app-baunilha-dourada/55">{ui("Nenhuma ocorrência operacional no momento.")}</p>
                             ) : null}
                         </div>
                     </section>

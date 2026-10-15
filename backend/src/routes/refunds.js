@@ -159,6 +159,7 @@ refundsRouter.patch("/:id/analisar", requireRole("restaurante", "admin"), async 
             } else {
                 updated = result.data;
             }
+            await supabaseAdmin.from("pagamentos").update({ valor_reembolsado: refund.valor_solicitado, atualizado_em: new Date().toISOString() }).eq("id_pagamento", refund.id_pagamento);
         } else {
             if (response.length < 10) return res.status(400).json({ error: "Informe uma justificativa de pelo menos 10 caracteres para recusar." });
             const result = await supabaseAdmin.from("solicitacoes_reembolso").update({ status_reembolso: "RECUSADO", resposta: response, id_auth_analista: res.locals.user.id, analisado_em: new Date().toISOString(), atualizado_em: new Date().toISOString() })
@@ -168,6 +169,14 @@ refundsRouter.patch("/:id/analisar", requireRole("restaurante", "admin"), async 
             await supabaseAdmin.from("eventos_financeiros").insert({ id_pagamento: refund.id_pagamento, id_pedido: refund.id_pedido, id_reserva: refund.id_reserva, tipo_evento: "REEMBOLSO_RECUSADO", descricao: response, valor: refund.valor_solicitado });
         }
         await notificarCliente(refund.id_cliente, { titulo: decision === "APROVAR" ? "Reembolso de teste aprovado" : "Reembolso recusado", mensagem: decision === "APROVAR" ? `A solicitação do pedido #${refund.id_pedido} foi concluída no ambiente de testes do Mercado Pago.` : response, tipo_evento: decision === "APROVAR" ? "REEMBOLSO_CONCLUIDO" : "REEMBOLSO_RECUSADO", link_destino: `/cliente/pedidos/${refund.id_pedido}`, dados: { id_reembolso: id, id_pedido: refund.id_pedido } });
+        const { data: chamadoVinculado } = await supabaseAdmin.from("chamados_suporte").select("id_chamado").eq("id_reembolso", id).maybeSingle();
+        if (chamadoVinculado) {
+            const msgReembolso = decision === "APROVAR"
+                ? `Reembolso de R$ ${Number(refund.valor_solicitado).toFixed(2)} aprovado e concluído. O valor foi estornado na conta teste.`
+                : `Reembolso recusado. Motivo: ${response}`;
+            await supabaseAdmin.from("mensagens_suporte").insert({ id_chamado: chamadoVinculado.id_chamado, tipo_remetente: "sistema", conteudo: msgReembolso, dados: { tipo: "reembolso", decisao: decision, id_reembolso: id } });
+            await supabaseAdmin.from("chamados_suporte").update({ atualizado_em: new Date().toISOString() }).eq("id_chamado", chamadoVinculado.id_chamado);
+        }
         return res.json(updated);
     } catch (error) {
         return res.status(400).json({ error: error instanceof Error ? error.message : "Não foi possível analisar o reembolso." });

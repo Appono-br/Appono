@@ -450,9 +450,9 @@ export function AgendaCliente() {
             <p className="mt-2 max-w-2xl text-sm leading-6 text-app-mocha">{ui("Gerencie suas reservas, acompanhe os pedidos e acesse pagamentos em um só lugar.")}</p>
         </header>
 
-        <div className="mt-6 grid items-start gap-5 md:grid-cols-[280px_minmax(0,1fr)] lg:grid-cols-[300px_minmax(0,1fr)]">
+        <div className="mt-6 grid items-start gap-5 md:grid-cols-[300px_minmax(0,1fr)] lg:grid-cols-[320px_minmax(0,1fr)]">
           <aside className="agenda-calendar min-w-0 rounded-2xl border border-app-baunilha-dourada/60 bg-white p-5 md:sticky md:top-24">
-            <h2 className="flex items-center gap-2 text-base font-semibold text-app-cafe-profundo">
+            <h2 className="flex items-center gap-2 whitespace-nowrap text-base font-semibold text-app-cafe-profundo">
               <CalendarDays aria-hidden="true" className="h-5 w-5 text-app-caramelo-torrado" />
               {ui("Calendário da agenda")}
             </h2>

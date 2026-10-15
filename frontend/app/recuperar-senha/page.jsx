@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { clearAuthResponse } from "@/lib/session";
 import { supabase } from "@/lib/supabase";
+import { ArrowLeft } from "lucide-react";
 import { senhaValida } from "@/lib/politica-senha";
 
 export default function RecuperarSenhaPage() {
@@ -169,7 +170,7 @@ export default function RecuperarSenhaPage() {
         <Link
           href="/login"
           className="mt-5 flex h-11 w-full items-center justify-center rounded-full border border-app-baunilha-dourada text-sm font-semibold text-app-cafe-profundo transition hover:bg-app-creme-suave"
-        >{ui("Voltar para login")}</Link>
+        ><ArrowLeft size={16} aria-hidden="true" className="mr-1.5" />{ui("Voltar para login")}</Link>
       </section>
     </main>
   );

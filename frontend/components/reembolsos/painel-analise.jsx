@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { apiRequest } from "@/lib/api";
 import { textoStatusReembolso } from "@/lib/formatadores-status";
+import { ArrowLeft } from "lucide-react";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 import { useToast } from "@/components/ui/toast-provider";
 
@@ -81,7 +82,7 @@ export function PainelAnaliseReembolsos({ perfil }) {
     return (
         <main className="min-h-screen bg-app-chantilly px-5 py-10 text-app-cafe-profundo">
             <section className="mx-auto max-w-6xl">
-                <Link href={perfil === "admin" ? "/admin/financeiro" : "/restaurante/financeiro"} className="text-sm font-bold text-app-caramelo-torrado">{ui("← Voltar ao financeiro")}</Link>
+                <Link href={perfil === "admin" ? "/admin/financeiro" : "/restaurante/financeiro"} className="inline-flex items-center gap-1.5 text-sm font-bold text-app-caramelo-torrado"><ArrowLeft size={16} aria-hidden="true" />{ui("Voltar ao financeiro")}</Link>
 
                 <header className="mt-6 rounded-[16px] bg-app-cafe-profundo p-7 text-app-creme-leve">
                     <p className="text-xs font-bold uppercase tracking-[0.18em] text-app-baunilha-dourada">{ui("Controle financeiro")}</p>

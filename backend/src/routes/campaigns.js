@@ -92,11 +92,9 @@ campaignsRouter.patch("/:id",run(async(req,res)=>{await salvar(req,res,Number(re
 async function salvar(req,res,id){
  const restauranteAtual=await restaurante(res);
  const d=validarCampanha(req.body,res.locals.user.id,process.env.SUPABASE_URL);
- if (["AGENDADA","ATIVA"].includes(d.status) && (!instanteDentroDaOperacao(restauranteAtual.configuracao_operacao,d.inicio_em) || !instanteDentroDaOperacao(restauranteAtual.configuracao_operacao,d.fim_em))) {
-  const erro=new Error("A campanha deve começar e terminar dentro do horário de funcionamento do restaurante."); erro.statusCode=422; throw erro;
- }
+ const avisoHorario = ["AGENDADA","ATIVA"].includes(d.status) && (!instanteDentroDaOperacao(restauranteAtual.configuracao_operacao,d.inicio_em) || !instanteDentroDaOperacao(restauranteAtual.configuracao_operacao,d.fim_em));
  const campanha=await result(db.rpc("salvar_campanha_atomica",{p_actor:res.locals.user.id,p_id:id,p_versao:req.body.versao??null,p_dados:d}));
- res.json({campanha});
+ res.json({campanha,aviso:avisoHorario?"A campanha está fora do horário de funcionamento do restaurante.":null});
 }
 campaignsRouter.get("/sugestoes",run(async(req,res)=>{
  const r=await restaurante(res);

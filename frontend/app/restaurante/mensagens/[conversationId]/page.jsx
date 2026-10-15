@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { apiRequest } from "@/lib/api";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
+import { ArrowLeft } from "lucide-react";
 import { RestaurantIcon as Icon } from "@/components/restaurante/restaurant-icon";
 
 
@@ -108,7 +109,7 @@ export default function RestaurantConversationPage() {
 
   return (
     <main className="flex min-h-screen flex-col bg-white text-app-cafe-profundo">
-      <div className="px-5 pt-6"><Link href="/restaurante/mensagens" className="inline-flex items-center gap-2 text-sm font-semibold text-app-caramelo-torrado"><span aria-hidden="true">&larr;</span>{ui("Voltar para mensagens")}</Link></div>
+      <div className="px-5 pt-6"><Link href="/restaurante/mensagens" className="inline-flex items-center gap-1.5 text-sm font-semibold text-app-caramelo-torrado"><ArrowLeft size={16} aria-hidden="true" />{ui("Voltar para mensagens")}</Link></div>
 
       <section className="mx-auto grid w-full max-w-7xl flex-1 gap-6 px-5 py-8 xl:grid-cols-[1fr_340px]">
         <section className="flex min-h-[680px] flex-col">

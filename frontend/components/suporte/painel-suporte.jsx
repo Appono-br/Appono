@@ -5,6 +5,7 @@ import Link from "next/link";
 import { apiRequest } from "@/lib/api";
 import { textoMotivoSuporte, textoStatusSuporte } from "@/lib/formatadores-status";
 import { useInterface } from "@/lib/use-interface";
+import { ArrowLeft } from "lucide-react";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 
 const motivos = [
@@ -72,6 +73,18 @@ function obterReembolso(chamado) {
     return Array.isArray(relacao) ? relacao[0] : relacao;
 }
 
+function classeReembolso(status) {
+    if (status === "CONCLUIDO") return "bg-emerald-50 text-emerald-700 ring-emerald-200";
+    if (status === "RECUSADO" || status === "CANCELADO") return "bg-red-50 text-red-700 ring-red-200";
+    if (status === "APROVADO") return "bg-blue-50 text-blue-700 ring-blue-200";
+    return "bg-amber-50 text-amber-700 ring-amber-200";
+}
+
+function textoReembolso(status) {
+    const map = { SOLICITADO: "Aguardando análise", EM_ANALISE: "Em análise", APROVADO: "Aprovado", RECUSADO: "Recusado", CONCLUIDO: "Concluído", CANCELADO: "Cancelado" };
+    return map[status] ?? status;
+}
+
 
 function estadoInicialForm(searchParams) {
     return {
@@ -109,6 +122,7 @@ export function PainelSuporte({ perfil, embutido = false }) {
     const [confirmacao, setConfirmacao] = useState(null);
     const [form, setForm] = useState(() => estadoInicialForm(parametrosIniciais));
     const [mostrarNovo, setMostrarNovo] = useState(() => perfil === "cliente" && Boolean(parametrosIniciais.get("pedido") || parametrosIniciais.get("reserva") || parametrosIniciais.get("restaurante")));
+    const [respostaReembolso, setRespostaReembolso] = useState("");
 
     const carregarChamados = useCallback(async () => {
         setCarregando(true);
@@ -217,10 +231,29 @@ export function PainelSuporte({ perfil, embutido = false }) {
             });
             setMensagem("");
             setConfirmacao(null);
-            setDetalhe(resposta);
+            setDetalhe(resposta.chamado ?? resposta);
             await carregarChamados();
         } catch (error) {
             setErro(error instanceof Error ? error.message : "Não foi possível atualizar o chamado.");
+        } finally {
+            setProcessando(false);
+        }
+    }
+
+    async function analisarReembolso(idReembolso, decisao) {
+        setProcessando(true);
+        setErro("");
+        try {
+            await apiRequest(`/reembolsos/${idReembolso}/analisar`, {
+                method: "PATCH",
+                body: JSON.stringify({ decisao, resposta: respostaReembolso || (decisao === "APROVAR" ? "Reembolso aprovado via suporte." : respostaReembolso) }),
+            });
+            setRespostaReembolso("");
+            setConfirmacao(null);
+            if (detalhe) await carregarDetalhe(detalhe.id_chamado);
+            await carregarChamados();
+        } catch (error) {
+            setErro(error instanceof Error ? error.message : "Não foi possível processar o reembolso.");
         } finally {
             setProcessando(false);
         }
@@ -234,8 +267,9 @@ export function PainelSuporte({ perfil, embutido = false }) {
             <section className="mx-auto max-w-7xl">
                 <div className="flex flex-col gap-4 @min-[640px]/suporte:flex-row @min-[640px]/suporte:items-center @min-[640px]/suporte:justify-between">
                     <div className="min-w-0 flex-1">
-                        {!embutido && <Link href={perfil === "cliente" ? "/cliente/configuracoes" : perfil === "restaurante" ? "/restaurante/dashboard" : "/admin/financeiro"} className="text-sm font-bold text-app-caramelo-torrado">
-                            {ui(perfil === "cliente" ? "← Voltar às configurações" : "← Voltar")}
+                        {!embutido && <Link href={perfil === "cliente" ? "/cliente/configuracoes" : perfil === "restaurante" ? "/restaurante/dashboard" : "/admin/financeiro"} className="inline-flex items-center gap-1.5 text-sm font-bold text-app-caramelo-torrado">
+                            <ArrowLeft size={16} aria-hidden="true" />
+                            {ui(perfil === "cliente" ? "Voltar às configurações" : "Voltar")}
                         </Link>}
                         <p className={`${embutido ? "" : "mt-8 "}text-[10px] font-bold uppercase tracking-[0.22em] text-app-caramelo-torrado`}>{ui("Suporte Appono")}</p>
                         <Heading className={embutido ? "mt-2 text-3xl font-medium" : "mt-2 text-4xl font-semibold sm:text-5xl"}>{ui(perfil === "cliente" ? "Meus chamados" : "Central de suporte")}</Heading>
@@ -243,21 +277,21 @@ export function PainelSuporte({ perfil, embutido = false }) {
                             {ui("Registre, acompanhe e resolva ocorrências com protocolo, contexto e histórico preservado.")}
                         </p>
                     </div>
-                    <article className="support-acompanhamento-card shrink-0 rounded-[14px] bg-app-cafe-profundo p-5 text-app-creme-leve shadow-sm @min-[640px]/suporte:min-w-52">
+                    <article className="support-acompanhamento-card shrink-0 rounded bg-app-cafe-profundo p-5 text-app-creme-leve shadow-sm @min-[640px]/suporte:min-w-52">
                         <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-baunilha-dourada">{ui("Em acompanhamento")}</p>
                         <strong className="mt-3 block text-3xl">{totalAbertos}</strong>
                     </article>
                 </div>
 
-                {erro ? <p role="alert" className="mt-6 rounded-[10px] bg-red-50 p-4 text-sm font-semibold text-red-800 ring-1 ring-red-200">{ui(erro)}</p> : null}
+                {erro ? <p role="alert" className="mt-6 rounded bg-red-50 p-4 text-sm font-semibold text-red-800 ring-1 ring-red-200">{ui(erro)}</p> : null}
 
                 {perfil === "cliente" ? (
-                    <section className="mt-8 rounded-[16px] bg-white p-5 shadow-sm ring-1 ring-app-baunilha-dourada/70">
+                    <section className="mt-8 rounded bg-white p-5 shadow-sm ring-1 ring-app-baunilha-dourada/70">
                         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                             <div>
                                 <h2 className="text-2xl font-semibold">{ui("Abrir chamado")}</h2>
                             </div>
-                            <button type="button" onClick={() => setMostrarNovo((atual) => !atual)} className="rounded-[8px] bg-app-cafe-profundo px-5 py-3 text-xs font-bold uppercase tracking-[0.12em] text-app-creme-leve transition hover:bg-app-caramelo-torrado">
+                            <button type="button" onClick={() => setMostrarNovo((atual) => !atual)} className="rounded bg-app-cafe-profundo px-5 py-3 text-xs font-bold uppercase tracking-[0.12em] text-app-creme-leve transition hover:bg-app-caramelo-torrado">
                                 {ui(mostrarNovo ? "Fechar formulário" : "Novo chamado")}
                             </button>
                         </div>
@@ -265,30 +299,30 @@ export function PainelSuporte({ perfil, embutido = false }) {
                             <form onSubmit={abrirChamado} className="mt-5 grid gap-4 lg:grid-cols-3">
                                 <label className="grid gap-1 text-xs font-bold uppercase tracking-[0.12em] text-app-caramelo-torrado">
                                     {ui("Motivo")}
-                                    <select value={form.motivo} onChange={(event) => setForm((atual) => ({ ...atual, motivo: event.target.value }))} className="h-11 rounded-[8px] border border-app-baunilha-dourada bg-white px-3 text-sm font-semibold normal-case tracking-normal text-app-cafe-profundo">
+                                    <select value={form.motivo} onChange={(event) => setForm((atual) => ({ ...atual, motivo: event.target.value }))} className="h-11 rounded border border-app-baunilha-dourada bg-white px-3 text-sm font-semibold normal-case tracking-normal text-app-cafe-profundo">
                                         {motivos.map((item) => <option key={item.value} value={item.value}>{ui(item.label)}</option>)}
                                     </select>
                                 </label>
                                 <label className="grid gap-1 text-xs font-bold uppercase tracking-[0.12em] text-app-caramelo-torrado">
                                     {ui("Pedido")}
-                                    <input value={form.id_pedido} onChange={(event) => setForm((atual) => ({ ...atual, id_pedido: event.target.value }))} inputMode="numeric" placeholder={ui("Ex: 54")} className="h-11 rounded-[8px] border border-app-baunilha-dourada bg-white px-3 text-sm font-semibold normal-case tracking-normal text-app-cafe-profundo" />
+                                    <input value={form.id_pedido} onChange={(event) => setForm((atual) => ({ ...atual, id_pedido: event.target.value }))} inputMode="numeric" placeholder={ui("Ex: 54")} className="h-11 rounded border border-app-baunilha-dourada bg-white px-3 text-sm font-semibold normal-case tracking-normal text-app-cafe-profundo" />
                                 </label>
                                 <label className="grid gap-1 text-xs font-bold uppercase tracking-[0.12em] text-app-caramelo-torrado">
                                     {ui("Reserva ou restaurante")}
                                     <div className="grid grid-cols-2 gap-2">
-                                        <input value={form.id_reserva} onChange={(event) => setForm((atual) => ({ ...atual, id_reserva: event.target.value }))} inputMode="numeric" placeholder={ui("Reserva")} className="h-11 rounded-[8px] border border-app-baunilha-dourada bg-white px-3 text-sm font-semibold normal-case tracking-normal text-app-cafe-profundo" />
-                                        <input value={form.id_restaurante} onChange={(event) => setForm((atual) => ({ ...atual, id_restaurante: event.target.value }))} inputMode="numeric" placeholder={ui("Restaurante")} className="h-11 rounded-[8px] border border-app-baunilha-dourada bg-white px-3 text-sm font-semibold normal-case tracking-normal text-app-cafe-profundo" />
+                                        <input value={form.id_reserva} onChange={(event) => setForm((atual) => ({ ...atual, id_reserva: event.target.value }))} inputMode="numeric" placeholder={ui("Reserva")} className="h-11 rounded border border-app-baunilha-dourada bg-white px-3 text-sm font-semibold normal-case tracking-normal text-app-cafe-profundo" />
+                                        <input value={form.id_restaurante} onChange={(event) => setForm((atual) => ({ ...atual, id_restaurante: event.target.value }))} inputMode="numeric" placeholder={ui("Restaurante")} className="h-11 rounded border border-app-baunilha-dourada bg-white px-3 text-sm font-semibold normal-case tracking-normal text-app-cafe-profundo" />
                                     </div>
                                 </label>
                                 <label className="grid gap-1 text-xs font-bold uppercase tracking-[0.12em] text-app-caramelo-torrado lg:col-span-3">
                                     {ui("Descrição")}
-                                    <textarea value={form.descricao} onChange={(event) => setForm((atual) => ({ ...atual, descricao: event.target.value }))} rows={4} maxLength={1200} placeholder={ui("Explique o ocorrido. Inclua horário, pedido, chegada e o que foi informado pelo restaurante.")} className="rounded-[8px] border border-app-baunilha-dourada bg-white p-3 text-sm font-semibold normal-case tracking-normal text-app-cafe-profundo" />
+                                    <textarea value={form.descricao} onChange={(event) => setForm((atual) => ({ ...atual, descricao: event.target.value }))} rows={4} maxLength={1200} placeholder={ui("Explique o ocorrido. Inclua horário, pedido, chegada e o que foi informado pelo restaurante.")} className="rounded border border-app-baunilha-dourada bg-white p-3 text-sm font-semibold normal-case tracking-normal text-app-cafe-profundo" />
                                 </label>
                                 <label className="flex items-center gap-3 text-sm font-semibold text-app-mocha lg:col-span-2">
                                     <input type="checkbox" checked={form.solicita_reembolso} onChange={(event) => setForm((atual) => ({ ...atual, solicita_reembolso: event.target.checked }))} />
                                     {ui("Este caso pode exigir reembolso")}
                                 </label>
-                                <button type="submit" disabled={processando || form.descricao.trim().length < 10} className="h-11 rounded-[8px] bg-app-dourado-mel px-5 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-50">
+                                <button type="submit" disabled={processando || form.descricao.trim().length < 10} className="h-11 rounded bg-app-dourado-mel px-5 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-50">
                                     {ui(processando ? "Abrindo..." : "Abrir chamado")}
                                 </button>
                             </form>
@@ -297,8 +331,8 @@ export function PainelSuporte({ perfil, embutido = false }) {
                 ) : null}
 
                 <section className={`mt-8 grid gap-6 ${embutido ? "" : "lg:grid-cols-[420px_minmax(0,1fr)]"}`}>
-                    <aside className="@container/filtros min-w-0 rounded-[16px] bg-white p-4 shadow-sm ring-1 ring-app-baunilha-dourada/70">
-                        <label className="campo-busca-app flex h-11 items-center rounded-[10px] border border-app-baunilha-dourada/70 bg-white px-4 transition">
+                    <aside className="@container/filtros min-w-0 rounded bg-white p-4 shadow-sm ring-1 ring-app-baunilha-dourada/70">
+                        <label className="campo-busca-app flex h-11 items-center rounded border border-app-baunilha-dourada/70 bg-white px-4 transition">
                             <input value={busca} onChange={(event) => setBusca(event.target.value)} placeholder={ui("Buscar chamado, cliente, restaurante ou pedido...")} className="input-busca-app h-full min-w-0 flex-1 bg-transparent text-sm text-app-cafe-profundo placeholder:text-app-cinza/60" />
                         </label>
                         <div className="mt-4 grid gap-3 border-t border-app-baunilha-dourada/50 pt-4 @min-[340px]/filtros:grid-cols-2">
@@ -316,33 +350,33 @@ export function PainelSuporte({ perfil, embutido = false }) {
                                 </select>
                             </label>
                         </div>
-                        <div className="mt-4 grid grid-cols-2 gap-2">
+                        <div className="mt-4 grid grid-cols-3 gap-2">
                             {filtros.map((item) => (
-                                <button key={item.value} type="button" onClick={() => setFiltro(item.value)} className={`w-full rounded-full px-3 py-2 text-[10px] font-bold uppercase tracking-[0.12em] ring-1 transition ${filtro === item.value ? "bg-app-cafe-profundo text-app-creme-leve ring-app-cafe-profundo" : "bg-white text-app-mocha ring-app-baunilha-dourada hover:bg-app-chantilly"}`}>
+                                <button key={item.value} type="button" onClick={() => setFiltro(item.value)} className={`w-full rounded px-3 py-2.5 text-[10px] font-bold uppercase tracking-[0.12em] ring-1 transition ${filtro === item.value ? "bg-app-cafe-profundo text-app-creme-leve ring-app-cafe-profundo" : "bg-white text-app-mocha ring-app-baunilha-dourada hover:bg-app-chantilly"}`}>
                                     {ui(item.label)}
                                 </button>
                             ))}
                         </div>
                         <div className="mt-4 grid gap-3">
-                            {carregando ? [1, 2, 3].map((item) => <div key={item} className="h-28 animate-pulse rounded-[12px] bg-app-chantilly" />) : null}
+                            {carregando ? [1, 2, 3].map((item) => <div key={item} className="h-28 animate-pulse rounded bg-app-chantilly" />) : null}
                             {!carregando && chamadosFiltrados.map((chamado) => (
-                                <button key={chamado.id_chamado} type="button" onClick={() => carregarDetalhe(chamado.id_chamado)} className={`rounded-[12px] p-4 text-left ring-1 transition hover:-translate-y-0.5 hover:shadow-md ${detalhe?.id_chamado === chamado.id_chamado ? "bg-app-cafe-profundo text-app-creme-leve ring-app-cafe-profundo" : "bg-white text-app-cafe-profundo ring-app-baunilha-dourada/70 hover:bg-app-chantilly"}`}>
+                                <button key={chamado.id_chamado} type="button" onClick={() => carregarDetalhe(chamado.id_chamado)} className={`rounded p-4 text-left ring-1 transition hover:-translate-y-0.5 hover:shadow-md ${detalhe?.id_chamado === chamado.id_chamado ? "bg-app-cafe-profundo text-app-creme-leve ring-app-cafe-profundo" : "bg-white text-app-cafe-profundo ring-app-baunilha-dourada/70 hover:bg-app-chantilly"}`}>
                                     <div className="flex items-start justify-between gap-3">
                                         <div>
                                             <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">{ui("Chamado #")}{chamado.id_chamado}</p>
                                             <strong className="mt-2 block text-lg">{obterTitulo(chamado, perfil)}</strong>
                                         </div>
-                                        <span className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.08em] ring-1 ${classeStatus(chamado.status)}`}>{ui(textoStatusSuporte(chamado.status))}</span>
+                                        <span className={`rounded-md px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.08em] ring-1 ${classeStatus(chamado.status)}`}>{ui(textoStatusSuporte(chamado.status))}</span>
                                     </div>
                                     <p className="mt-3 text-sm">{ui(textoMotivoSuporte(chamado.motivo))}</p>
                                     <p className="mt-1 text-xs opacity-75">{contextoChamado(chamado)} · {formatarData(chamado.atualizado_em, localeUI)}</p>
                                 </button>
                             ))}
-                            {!carregando && !chamadosFiltrados.length ? <p className="rounded-[12px] bg-app-chantilly p-5 text-sm text-app-cinza ring-1 ring-app-baunilha-dourada/60">{ui("Nenhum chamado encontrado.")}</p> : null}
+                            {!carregando && !chamadosFiltrados.length ? <p className="rounded bg-app-chantilly p-5 text-sm text-app-cinza ring-1 ring-app-baunilha-dourada/60">{ui("Nenhum chamado encontrado.")}</p> : null}
                         </div>
                     </aside>
 
-                    <section className="min-h-[520px] rounded-[16px] bg-white p-5 shadow-sm ring-1 ring-app-baunilha-dourada/70">
+                    <section className="min-h-[520px] rounded bg-white p-5 shadow-sm ring-1 ring-app-baunilha-dourada/70">
                         {!detalhe ? (
                             <div className="flex h-full min-h-[420px] flex-col items-center justify-center text-center">
                                 <h2 className="text-2xl font-semibold">{ui("Selecione um chamado")}</h2>
@@ -356,27 +390,47 @@ export function PainelSuporte({ perfil, embutido = false }) {
                                         <h2 className="mt-2 text-3xl font-semibold">{obterTitulo(detalhe, perfil)}</h2>
                                         <p className="mt-2 text-sm text-app-cinza">{ui(textoMotivoSuporte(detalhe.motivo))} · {contextoChamado(detalhe)}</p>
                                     </div>
-                                    <span className={`w-fit rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-[0.1em] ring-1 ${classeStatus(detalhe.status)}`}>{ui(textoStatusSuporte(detalhe.status))}</span>
+                                    <span className={`w-fit rounded-md px-3 py-1 text-[10px] font-bold uppercase tracking-[0.1em] ring-1 ${classeStatus(detalhe.status)}`}>{ui(textoStatusSuporte(detalhe.status))}</span>
                                 </div>
 
                                 <div className="mt-5 grid gap-4 @min-[640px]/suporte:grid-cols-3">
-                                    <article data-appono-sem-traducao className="min-w-0 rounded-[12px] bg-white p-4 ring-1 ring-app-baunilha-dourada/60 @min-[640px]/suporte:col-span-2">
+                                    <article data-appono-sem-traducao className="min-w-0 rounded bg-white p-4 ring-1 ring-app-baunilha-dourada/60 @min-[640px]/suporte:col-span-2">
                                         <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">{ui("Descrição")}</p>
                                         <p data-appono-sem-traducao className="mt-2 text-sm leading-6 text-app-mocha">{detalhe.descricao}</p>
-                                        {detalhe.resolucao ? <p data-appono-sem-traducao className="mt-4 rounded-[10px] bg-app-chantilly p-3 text-sm font-semibold text-app-cafe-profundo">{detalhe.resolucao}</p> : null}
+                                        {detalhe.resolucao ? <p data-appono-sem-traducao className="mt-4 rounded bg-app-chantilly p-3 text-sm font-semibold text-app-cafe-profundo">{detalhe.resolucao}</p> : null}
                                     </article>
-                                    <article className="rounded-[12px] bg-white p-4 ring-1 ring-app-baunilha-dourada/60">
+                                    <article className="rounded bg-white p-4 ring-1 ring-app-baunilha-dourada/60">
                                         <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">{ui("Operação")}</p>
-                                        <p className="mt-2 text-sm text-app-mocha">{ui("Prioridade: ")}<strong>{detalhe.prioridade}</strong></p>
-                                        <p className="mt-1 text-sm text-app-mocha">{ui("Procedência: ")}<strong>{detalhe.procedencia}</strong></p>
-                                        <p className="mt-1 text-sm text-app-mocha">{ui("Impacto: ")}<strong>{Number(detalhe.impacto_reputacao ?? 0)}</strong></p>
-                                        {reembolsoDetalhe ? <p className="mt-1 text-sm text-app-mocha">{ui("Reembolso: ")}<strong>{reembolsoDetalhe.status_reembolso}</strong></p> : null}
+                                        <dl className="mt-2 grid gap-1.5 text-sm">
+                                            <div className="flex items-center justify-between"><dt className="text-app-cinza">{ui("Prioridade")}</dt><dd className="font-semibold">{detalhe.prioridade}</dd></div>
+                                            <div className="flex items-center justify-between"><dt className="text-app-cinza">{ui("Procedência")}</dt><dd className="font-semibold">{detalhe.procedencia === "NAO_ANALISADA" ? ui("Pendente") : detalhe.procedencia}</dd></div>
+                                            {Number(detalhe.impacto_reputacao ?? 0) > 0 ? <div className="flex items-center justify-between"><dt className="text-app-cinza">{ui("Impacto")}</dt><dd className="font-semibold text-red-700">-{Number(detalhe.impacto_reputacao)}</dd></div> : null}
+                                        </dl>
+                                        {reembolsoDetalhe ? (
+                                            <div className="mt-4 border-t border-app-baunilha-dourada/50 pt-3">
+                                                <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-app-caramelo-torrado">{ui("Reembolso")}</p>
+                                                <div className="mt-2 flex items-center justify-between">
+                                                    <span className={`rounded-md px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.08em] ring-1 ${classeReembolso(reembolsoDetalhe.status_reembolso)}`}>{ui(textoReembolso(reembolsoDetalhe.status_reembolso))}</span>
+                                                    {reembolsoDetalhe.valor_solicitado ? <strong className="text-sm">R$ {Number(reembolsoDetalhe.valor_solicitado).toFixed(2)}</strong> : null}
+                                                </div>
+                                                {reembolsoDetalhe.resposta ? <p className="mt-2 text-xs text-app-mocha">{reembolsoDetalhe.resposta}</p> : null}
+                                                {reembolsoDetalhe.status_reembolso === "SOLICITADO" && (perfil === "restaurante" || perfil === "admin") ? (
+                                                    <div className="mt-3 grid gap-2">
+                                                        <textarea value={respostaReembolso} onChange={(e) => setRespostaReembolso(e.target.value)} rows={2} maxLength={500} placeholder={ui("Justificativa (obrigatória para recusar)")} className="w-full rounded border border-app-baunilha-dourada bg-white p-2 text-xs text-app-cafe-profundo" />
+                                                        <div className="flex gap-2">
+                                                            <button type="button" disabled={processando} onClick={() => setConfirmacao("APROVAR_REEMBOLSO")} className="flex-1 rounded bg-emerald-600 px-3 py-2 text-[10px] font-bold uppercase tracking-[0.1em] text-white transition hover:bg-emerald-700 disabled:opacity-50">{ui("Aprovar")}</button>
+                                                            <button type="button" disabled={processando || respostaReembolso.trim().length < 10} onClick={() => setConfirmacao("RECUSAR_REEMBOLSO")} className="flex-1 rounded border border-red-300 px-3 py-2 text-[10px] font-bold uppercase tracking-[0.1em] text-red-700 transition hover:bg-red-50 disabled:opacity-50">{ui("Recusar")}</button>
+                                                        </div>
+                                                    </div>
+                                                ) : null}
+                                            </div>
+                                        ) : null}
                                     </article>
                                 </div>
 
                                 <div className="mt-6 grid gap-3">
                                     {(detalhe.mensagens ?? []).map((item) => (
-                                        <article key={item.id_mensagem} className={`rounded-[12px] p-4 ring-1 ${item.tipo_remetente === "sistema" ? "bg-app-chantilly text-app-mocha ring-app-baunilha-dourada/60" : "bg-white text-app-cafe-profundo ring-app-baunilha-dourada/70"}`}>
+                                        <article key={item.id_mensagem} className={`rounded p-4 ring-1 ${item.tipo_remetente === "sistema" ? "bg-app-chantilly text-app-mocha ring-app-baunilha-dourada/60" : "bg-white text-app-cafe-profundo ring-app-baunilha-dourada/70"}`}>
                                             <div className="flex flex-wrap items-center justify-between gap-2">
                                                 <strong className="text-sm capitalize">{ui(item.tipo_remetente)}</strong>
                                                 <span className="text-xs text-app-cinza">{formatarData(item.criado_em, localeUI)}</span>
@@ -387,19 +441,19 @@ export function PainelSuporte({ perfil, embutido = false }) {
                                 </div>
 
                                 {!["RESOLVIDO", "RECUSADO", "CANCELADO"].includes(detalhe.status) ? (
-                                    <form onSubmit={enviarMensagem} className="mt-6 rounded-[12px] bg-white p-4 ring-1 ring-app-baunilha-dourada/60">
+                                    <form onSubmit={enviarMensagem} className="mt-6 rounded bg-white p-4 ring-1 ring-app-baunilha-dourada/60">
                                         <label className="text-xs font-bold uppercase tracking-[0.14em] text-app-caramelo-torrado">{ui("Responder")}</label>
-                                        <textarea value={mensagem} onChange={(event) => setMensagem(event.target.value)} rows={3} maxLength={1200} placeholder={ui("Escreva uma resposta objetiva para manter o histórico claro.")} className="mt-2 w-full rounded-[8px] border border-app-baunilha-dourada bg-white p-3 text-sm text-app-cafe-profundo" />
+                                        <textarea value={mensagem} onChange={(event) => setMensagem(event.target.value)} rows={3} maxLength={1200} placeholder={ui("Escreva uma resposta objetiva para manter o histórico claro.")} className="mt-2 w-full rounded border border-app-baunilha-dourada bg-white p-3 text-sm text-app-cafe-profundo" />
                                         <div className="mt-3 flex flex-wrap gap-2">
-                                            <button type="submit" disabled={processando || !mensagem.trim()} className="rounded-[8px] bg-app-cafe-profundo px-5 py-3 text-xs font-bold uppercase tracking-[0.12em] text-app-creme-leve transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-50">{ui(processando ? "Enviando..." : "Enviar resposta")}</button>
-                                            {perfil === "cliente" && detalhe.status === "AGUARDANDO_CLIENTE" ? <button type="button" onClick={() => setConfirmacao("CONFIRMAR_RESOLUCAO")} className="rounded-[8px] bg-app-dourado-mel px-5 py-3 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-app-caramelo-torrado">{ui("Confirmar solução")}</button> : null}
-                                            {perfil === "cliente" ? <button type="button" onClick={() => executarAcao("ANALISE_ADMIN")} className="rounded-[8px] border border-app-caramelo-torrado px-5 py-3 text-xs font-bold uppercase tracking-[0.12em] text-app-caramelo-torrado transition hover:bg-app-chantilly">{ui("Pedir análise Appono")}</button> : null}
-                                            {perfil === "cliente" ? <button type="button" onClick={() => setConfirmacao("CANCELAR")} className="rounded-[8px] border border-red-300 px-5 py-3 text-xs font-bold uppercase tracking-[0.12em] text-red-700 transition hover:bg-red-50">{ui("Cancelar chamado")}</button> : null}
-                                            {perfil === "restaurante" ? <button type="button" onClick={() => executarAcao("ASSUMIR")} className="rounded-[8px] border border-app-caramelo-torrado px-5 py-3 text-xs font-bold uppercase tracking-[0.12em] text-app-caramelo-torrado transition hover:bg-app-chantilly">{ui("Assumir")}</button> : null}
-                                            {perfil === "restaurante" ? <button type="button" onClick={() => executarAcao("CONTESTAR")} className="rounded-[8px] border border-app-caramelo-torrado px-5 py-3 text-xs font-bold uppercase tracking-[0.12em] text-app-caramelo-torrado transition hover:bg-app-chantilly">{ui("Contestar")}</button> : null}
-                                            {perfil === "restaurante" ? <button type="button" onClick={() => setConfirmacao("RESOLVER")} className="rounded-[8px] bg-app-dourado-mel px-5 py-3 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-app-caramelo-torrado">{ui("Marcar resolvido")}</button> : null}
-                                            {perfil === "admin" ? <button type="button" onClick={() => setConfirmacao("PROCEDENTE")} className="rounded-[8px] bg-app-dourado-mel px-5 py-3 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-app-caramelo-torrado">{ui("Procedente")}</button> : null}
-                                            {perfil === "admin" ? <button type="button" onClick={() => setConfirmacao("IMPROCEDENTE")} className="rounded-[8px] border border-red-300 px-5 py-3 text-xs font-bold uppercase tracking-[0.12em] text-red-700 transition hover:bg-red-50">{ui("Improcedente")}</button> : null}
+                                            <button type="submit" disabled={processando || !mensagem.trim()} className="rounded bg-app-cafe-profundo px-5 py-3 text-xs font-bold uppercase tracking-[0.12em] text-app-creme-leve transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-50">{ui(processando ? "Enviando..." : "Enviar resposta")}</button>
+                                            {perfil === "cliente" && detalhe.status === "AGUARDANDO_CLIENTE" ? <button type="button" onClick={() => setConfirmacao("CONFIRMAR_RESOLUCAO")} className="rounded bg-app-dourado-mel px-5 py-3 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-app-caramelo-torrado">{ui("Confirmar solução")}</button> : null}
+                                            {perfil === "cliente" ? <button type="button" onClick={() => executarAcao("ANALISE_ADMIN")} className="rounded border border-app-caramelo-torrado px-5 py-3 text-xs font-bold uppercase tracking-[0.12em] text-app-caramelo-torrado transition hover:bg-app-chantilly">{ui("Pedir análise Appono")}</button> : null}
+                                            {perfil === "cliente" ? <button type="button" onClick={() => setConfirmacao("CANCELAR")} className="rounded border border-red-300 px-5 py-3 text-xs font-bold uppercase tracking-[0.12em] text-red-700 transition hover:bg-red-50">{ui("Cancelar chamado")}</button> : null}
+                                            {perfil === "restaurante" ? <button type="button" onClick={() => executarAcao("ASSUMIR")} className="rounded border border-app-caramelo-torrado px-5 py-3 text-xs font-bold uppercase tracking-[0.12em] text-app-caramelo-torrado transition hover:bg-app-chantilly">{ui("Assumir")}</button> : null}
+                                            {perfil === "restaurante" ? <button type="button" onClick={() => executarAcao("CONTESTAR")} className="rounded border border-app-caramelo-torrado px-5 py-3 text-xs font-bold uppercase tracking-[0.12em] text-app-caramelo-torrado transition hover:bg-app-chantilly">{ui("Contestar")}</button> : null}
+                                            {perfil === "restaurante" ? <button type="button" onClick={() => setConfirmacao("RESOLVER")} className="rounded bg-app-dourado-mel px-5 py-3 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-app-caramelo-torrado">{ui("Marcar resolvido")}</button> : null}
+                                            {perfil === "admin" ? <button type="button" onClick={() => setConfirmacao("PROCEDENTE")} className="rounded bg-app-dourado-mel px-5 py-3 text-xs font-bold uppercase tracking-[0.12em] text-white transition hover:bg-app-caramelo-torrado">{ui("Procedente")}</button> : null}
+                                            {perfil === "admin" ? <button type="button" onClick={() => setConfirmacao("IMPROCEDENTE")} className="rounded border border-red-300 px-5 py-3 text-xs font-bold uppercase tracking-[0.12em] text-red-700 transition hover:bg-red-50">{ui("Improcedente")}</button> : null}
                                         </div>
                                     </form>
                                 ) : null}
@@ -412,8 +466,8 @@ export function PainelSuporte({ perfil, embutido = false }) {
             <ConfirmationDialog
                 open={Boolean(confirmacao)}
                 eyebrow={ui("Suporte")}
-                title={ui(confirmacao === "CANCELAR" ? "Cancelar chamado?" : confirmacao === "RESOLVER" ? "Enviar solução?" : confirmacao === "CONFIRMAR_RESOLUCAO" ? "Confirmar que resolveu?" : "Confirmar decisão?")}
-                description={ui(confirmacao === "PROCEDENTE" ? "Chamados procedentes podem reduzir levemente o score operacional do restaurante." : "Essa ação ficará registrada na timeline do chamado.")}
+                title={ui(confirmacao === "CANCELAR" ? "Cancelar chamado?" : confirmacao === "RESOLVER" ? "Enviar solução?" : confirmacao === "CONFIRMAR_RESOLUCAO" ? "Confirmar que resolveu?" : confirmacao === "APROVAR_REEMBOLSO" ? "Aprovar reembolso?" : confirmacao === "RECUSAR_REEMBOLSO" ? "Recusar reembolso?" : "Confirmar decisão?")}
+                description={ui(confirmacao === "PROCEDENTE" ? "Chamados procedentes podem reduzir levemente o score operacional do restaurante." : confirmacao === "APROVAR_REEMBOLSO" ? "O valor será estornado ao cliente. Essa ação não pode ser desfeita." : confirmacao === "RECUSAR_REEMBOLSO" ? "O cliente será notificado sobre a recusa." : "Essa ação ficará registrada na timeline do chamado.")}
                 confirmLabel={ui(confirmacao === "CANCELAR" ? "Cancelar chamado" : confirmacao === "CONFIRMAR_RESOLUCAO" ? "Confirmar solução" : "Confirmar")}
                 cancelLabel={ui("Voltar")}
                 loading={processando}
@@ -424,6 +478,8 @@ export function PainelSuporte({ perfil, embutido = false }) {
                     if (confirmacao === "RESOLVER") return executarAcao("RESOLVER");
                     if (confirmacao === "PROCEDENTE") return executarAcao("DECIDIR", { procedencia: "PROCEDENTE" });
                     if (confirmacao === "IMPROCEDENTE") return executarAcao("DECIDIR", { procedencia: "IMPROCEDENTE" });
+                    if (confirmacao === "APROVAR_REEMBOLSO" && reembolsoDetalhe) return analisarReembolso(reembolsoDetalhe.id_reembolso, "APROVAR");
+                    if (confirmacao === "RECUSAR_REEMBOLSO" && reembolsoDetalhe) return analisarReembolso(reembolsoDetalhe.id_reembolso, "RECUSAR");
                     return null;
                 }}
                 details={detalhe ? <p className="font-semibold">{ui("Chamado #")}{detalhe.id_chamado} · {ui(textoMotivoSuporte(detalhe.motivo))}</p> : null}

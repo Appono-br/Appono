@@ -19,7 +19,7 @@ const paymentConfig = require("../services/pagamentos/config");
 const supportRouter = Router();
 
 const SELECT_CHAMADO_LISTA = "*, clientes(nome, telefone, email), restaurantes(nome, telefone, email, logo_url), reservas(data_reserva, horario_inicio, status_reserva), pedidos(status_pedido, valor_total), solicitacoes_reembolso(status_reembolso, valor_solicitado)";
-const SELECT_CHAMADO_DETALHE = "*, clientes(nome, telefone, email), restaurantes(nome, telefone, email, logo_url), reservas(data_reserva, horario_inicio, status_reserva, status_confirmacao_presenca), pedidos(status_pedido, valor_total, data_pedido), solicitacoes_reembolso(status_reembolso, valor_solicitado, motivo), mensagens_suporte(*)";
+const SELECT_CHAMADO_DETALHE = "*, clientes(nome, telefone, email), restaurantes(nome, telefone, email, logo_url), reservas(data_reserva, horario_inicio, status_reserva, status_confirmacao_presenca), pedidos(status_pedido, valor_total, data_pedido), solicitacoes_reembolso(id_reembolso, status_reembolso, valor_solicitado, motivo, resposta), mensagens_suporte(*)";
 
 supportRouter.use(requireAuth);
 
@@ -632,7 +632,7 @@ supportRouter.patch("/:id", async (req, res) => {
                 dedupe_key: `suporte:${data.id_chamado}:status:${data.status}`,
             });
         }
-        return res.json(montarDetalhe(await buscarChamadoPorId(data.id_chamado, perfil)));
+        return res.json({ chamado: montarDetalhe(await buscarChamadoPorId(data.id_chamado, perfil)) });
     } catch (error) {
         return res.status(error.status ?? 400).json({ error: error.message ?? "Não foi possível atualizar o chamado." });
     }

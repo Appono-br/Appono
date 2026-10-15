@@ -7,6 +7,7 @@ import Link from "next/link";
 import { Suspense, useEffect, useState } from "react";
 import { z } from "zod";
 import { useRouter, useSearchParams } from "next/navigation";
+import { ArrowLeft } from "lucide-react";
 import { apiRequest } from "@/lib/api";
 import { enviarImagemCardapio, validarImagemCardapio } from "@/lib/imagem-cardapio";
 import { TelaCarregandoSessao, useSessaoLocal } from "@/lib/use-sessao-local";
@@ -292,7 +293,7 @@ function RestaurantMenuItemEditorContent() {
 
     return (
         <main className="flex min-h-screen flex-col bg-white text-app-cafe-profundo">
-            <div className="px-5 pt-6"><Link href="/restaurante/cardapio" className="inline-flex items-center gap-2 text-sm font-semibold text-app-caramelo-torrado"><span aria-hidden="true">&larr;</span>{ui("Voltar para gestão de cardápio")}</Link></div>
+            <div className="px-5 pt-6"><Link href="/restaurante/cardapio" className="inline-flex items-center gap-1.5 text-sm font-semibold text-app-caramelo-torrado"><ArrowLeft size={16} aria-hidden="true" />{ui("Voltar para gestão de cardápio")}</Link></div>
 
             <section className="mx-auto w-full max-w-6xl flex-1 px-5 py-10 sm:py-14">
                 <div className="mx-auto max-w-4xl">

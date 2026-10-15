@@ -286,7 +286,7 @@ exports.adminRouter.get("/financeiro/resumo", async (req, res) => {
         const { data: pagamentos, error } = await supabase_1.supabaseAdmin
             .from("pagamentos")
             .select("id_pagamento, id_pedido, valor_pago, valor, status_pagamento, tipo_fluxo_pagamento, percentual_comissao_app, valor_comissao_app, valor_restaurante, status_repasse, data_aprovacao, data_pagamento, atualizado_em")
-            .eq("status_pagamento", "APROVADO")
+            .in("status_pagamento", ["APROVADO", "ESTORNADO"])
             .order("atualizado_em", { ascending: false });
         if (error) {
             throw new Error(error.message);
@@ -303,7 +303,7 @@ exports.adminRouter.get("/financeiro/resumo", async (req, res) => {
             const bruto = Number(pagamento.valor_pago ?? pagamento.valor ?? 0);
             const comissao = Number(pagamento.valor_comissao_app ?? 0);
             const restaurante = Number(pagamento.valor_restaurante ?? 0);
-            const foiCancelado = pagamento.status_repasse === "ESTORNADO" || pagamento.pedido?.status_pedido === "CANCELADO";
+            const foiCancelado = pagamento.status_pagamento === "ESTORNADO" || pagamento.status_repasse === "ESTORNADO" || pagamento.pedido?.status_pedido === "CANCELADO";
             acc.quantidade_pagamentos += 1;
             if (foiCancelado) {
                 acc.valor_estornado += bruto;

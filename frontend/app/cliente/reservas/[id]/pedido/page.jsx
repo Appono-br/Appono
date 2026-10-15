@@ -4,6 +4,7 @@ import { useInterface } from "@/lib/use-interface";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { ArrowLeft } from "lucide-react";
 import { apiRequest } from "@/lib/api";
 
 function formatarMoeda(valor, localeUI = "pt-BR") {
@@ -212,7 +213,7 @@ export default function PaginaPedidoAntecipado({ params }) {
     return (
         <main className="min-h-screen bg-white px-5 py-8 text-app-cafe-profundo">
             <div className="mx-auto max-w-7xl">
-                <Link href="/cliente/agenda?visao=reservas" className="text-sm font-bold text-app-caramelo-torrado">{ui("Voltar para agenda")}</Link>
+                <Link href="/cliente/agenda?visao=reservas" className="inline-flex items-center gap-1.5 text-sm font-bold text-app-caramelo-torrado"><ArrowLeft size={16} aria-hidden="true" />{ui("Voltar para agenda")}</Link>
 
                 <header className="mt-6 overflow-hidden rounded-[14px] bg-app-cafe-profundo text-app-creme-leve shadow-sm ring-1 ring-app-baunilha-dourada/50">
                     <div className="grid gap-6 p-6 sm:p-8 lg:grid-cols-[1fr_auto] lg:items-end">

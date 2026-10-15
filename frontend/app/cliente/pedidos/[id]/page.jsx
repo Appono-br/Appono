@@ -7,6 +7,7 @@ import { apiRequest } from "@/lib/api";
 import { textoStatusPedido, textoStatusReembolso } from "@/lib/formatadores-status";
 import { reservaAceitaPagamento } from "@/lib/elegibilidade-pagamento";
 import { useRouter } from "next/navigation";
+import { ArrowLeft } from "lucide-react";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";
 
 const moeda = (valor) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(Number(valor ?? 0));
@@ -150,7 +151,7 @@ export default function DetalhePedidoPorId({ params }) {
                     <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{ui("Pedido")}</p>
                     <h1 className="mt-3 text-2xl font-semibold">{ui("Pedido indisponível")}</h1>
                     <p className="mt-3 text-sm leading-6 text-app-cinza">{ui(erro)}</p>
-                    <Link className="mt-6 inline-flex h-11 items-center justify-center rounded-[8px] bg-app-cafe-profundo px-6 text-xs font-bold uppercase tracking-[0.12em] text-app-creme-leve" href="/cliente/agenda?visao=pedidos">{ui("Voltar para agenda")}</Link>
+                    <Link className="mt-6 inline-flex h-11 items-center justify-center gap-1.5 rounded-[8px] bg-app-cafe-profundo px-6 text-xs font-bold uppercase tracking-[0.12em] text-app-creme-leve" href="/cliente/agenda?visao=pedidos"><ArrowLeft size={16} aria-hidden="true" />{ui("Voltar para agenda")}</Link>
                 </section>
             </main>
         );
@@ -162,7 +163,7 @@ export default function DetalhePedidoPorId({ params }) {
     return (
         <main className="min-h-screen bg-white px-5 py-10 text-app-cafe-profundo">
             <section className="mx-auto max-w-6xl">
-                <Link href="/cliente/agenda?visao=pedidos" className="text-sm font-bold text-app-caramelo-torrado">{ui("← Voltar para agenda")}</Link>
+                <Link href="/cliente/agenda?visao=pedidos" className="inline-flex items-center gap-1.5 text-sm font-bold text-app-caramelo-torrado"><ArrowLeft size={16} aria-hidden="true" />{ui("Voltar para agenda")}</Link>
 
                 {erro ? <p role="alert" className="mt-5 rounded-[10px] bg-red-50 p-4 text-sm font-semibold text-red-800 ring-1 ring-red-200">{ui(erro)}</p> : null}
 

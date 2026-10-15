@@ -208,7 +208,7 @@ exports.marketplaceRouter.get("/financeiro/resumo", auth_1.requireAuth, (0, auth
         }
         const inicioPeriodo = obterInicioPeriodo(String(req.query.periodo ?? "todos"));
         const pagamentosValidos = (pagamentos ?? []).filter((pagamento) => {
-            if (pagamento.status_pagamento !== "APROVADO") {
+            if (pagamento.status_pagamento !== "APROVADO" && pagamento.status_pagamento !== "ESTORNADO") {
                 return false;
             }
             if (!inicioPeriodo) {
@@ -223,7 +223,7 @@ exports.marketplaceRouter.get("/financeiro/resumo", auth_1.requireAuth, (0, auth
             const valorReembolsado = Number(pagamento.valor_reembolsado ?? 0);
             const valorRestaurante = Number(pagamento.valor_restaurante ?? 0);
             const valorRecebido = Math.max(0, valorPago - valorReembolsado);
-            const foiCanceladoSemRetencao = pagamento.status_repasse === "ESTORNADO" ||
+            const foiCanceladoSemRetencao = pagamento.status_pagamento === "ESTORNADO" || pagamento.status_repasse === "ESTORNADO" ||
                 (pedido?.status_pedido === "CANCELADO" && valorRestaurante <= 0);
             acumulado.quantidade_pagamentos += 1;
             acumulado.valor_reembolsado += valorReembolsado;

@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { CartaoRestaurante } from "@/components/cliente/cartao-restaurante";
 import { apiRequest } from "@/lib/api";
 import { mapearRestaurante } from "@/lib/restaurantes-descoberta";
+import { ArrowLeft } from "lucide-react";
 import { useInterface } from "@/lib/use-interface";
 
 function RestaurantesContent() {
@@ -107,7 +108,7 @@ function RestaurantesContent() {
   return <main className="min-h-screen bg-white text-app-cafe-profundo">
     <section className="border-b border-app-baunilha-dourada/50 bg-app-chantilly/45 px-5 py-8">
       <div className="mx-auto max-w-7xl">
-        <Link href="/cliente/dashboard" className="text-sm font-semibold text-app-caramelo-torrado hover:underline">← {ui("Voltar ao início")}</Link>
+        <Link href="/cliente/dashboard" className="inline-flex items-center gap-1.5 text-sm font-semibold text-app-caramelo-torrado hover:underline"><ArrowLeft size={16} aria-hidden="true" />{ui("Voltar ao início")}</Link>
         <h1 className="mt-5 text-3xl font-semibold sm:text-4xl">{categoria ? ui("Restaurantes de {0}", [categoria]) : ui("Restaurantes")}</h1>
       </div>
     </section>

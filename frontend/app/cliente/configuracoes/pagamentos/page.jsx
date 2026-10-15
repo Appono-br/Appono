@@ -3,6 +3,7 @@
 import { useInterface } from "@/lib/use-interface";
 import Link from "next/link";
 import { useState } from "react";
+import { ArrowLeft } from "lucide-react";
 
 const CHAVES_PAGAMENTO_LEGADAS = ["appono:paymentDraft", "appono:paymentMethod", "appono:card", "appono:cartao"];
 
@@ -21,7 +22,7 @@ export default function PaymentSettingsPage() {
     return (
         <main className="flex min-h-screen flex-col bg-white text-app-cafe-profundo">
             <section className="mx-auto w-full max-w-4xl flex-1 px-5 py-12 sm:py-16">
-                <Link href="/cliente/configuracoes" className="inline-flex min-h-10 items-center gap-2 rounded-full px-1 text-sm font-bold text-app-caramelo-torrado transition hover:text-app-cafe-profundo">← {ui("Voltar para configurações")}</Link>
+                <Link href="/cliente/configuracoes" className="inline-flex min-h-10 items-center gap-1.5 rounded-full px-1 text-sm font-bold text-app-caramelo-torrado transition hover:text-app-cafe-profundo"><ArrowLeft size={16} aria-hidden="true" />{ui("Voltar para configurações")}</Link>
                 <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{ui("Pagamentos seguros")}</p>
                 <h1 className="mt-3 text-4xl font-medium sm:text-5xl">{ui("Seus dados ficam com o Mercado Pago")}</h1>
                 <p className="mt-5 max-w-3xl text-base leading-7 text-app-mocha">{ui("A Appono não coleta, armazena nem processa número de cartão, validade ou CVV. Ao pagar, você será direcionado ao checkout seguro do Mercado Pago.")}</p>

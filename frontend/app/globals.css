@@ -699,13 +699,13 @@ html {
 .area-autenticada section[class*="bg-app-creme-leve"],
 .area-autenticada div[class*="bg-app-creme-leve"],
 .area-autenticada form[class*="bg-app-creme-leve"] {
-  border-radius: 1.5rem;
+  border-radius: 0.5rem;
 }
 
 .area-autenticada article[class*="bg-app-chantilly"],
 .area-autenticada section[class*="bg-app-chantilly"],
 .area-autenticada div[class*="bg-app-chantilly"] {
-  border-radius: 1.25rem;
+  border-radius: 0.5rem;
 }
 
 :where(html:not([data-tema=escuro])) .area-autenticada article[class*="ring-1"],
@@ -725,7 +725,7 @@ html {
 .area-autenticada a[class*="bg-app-caramelo-torrado"],
 .area-autenticada button[class*="bg-app-dourado-mel"],
 .area-autenticada a[class*="bg-app-dourado-mel"] {
-  border-radius: 999px;
+  border-radius: 0.5rem;
 }
 
 :where(html:not([data-tema=escuro])) .area-autenticada button[class*="bg-app-caramelo-torrado"],
@@ -736,7 +736,7 @@ html {
 }
 
 .area-autenticada :is(button, a)[class*="border-app"] {
-  border-radius: 999px;
+  border-radius: 0.5rem;
 }
 
 .area-autenticada :is(h1, h2, h3) {
@@ -765,11 +765,11 @@ html {
 .area-autenticada input,
 .area-autenticada textarea,
 .area-autenticada select {
-  border-radius: 0.9rem;
+  border-radius: 0.5rem;
 }
 
 .area-autenticada .campo-busca-app {
-  border-radius: 999px !important;
+  border-radius: 0.5rem !important;
 }
 
 :where(html:not([data-tema=escuro])) .area-autenticada .campo-busca-app {
@@ -993,7 +993,7 @@ html {
 }
 
 .area-restaurante main > header button {
-  border-radius: 999px !important;
+  border-radius: 0.5rem !important;
 }
 
 :where(html:not([data-tema=escuro])) .area-restaurante main > header button {
@@ -1027,19 +1027,19 @@ html {
 }
 
 .area-restaurante :is(section, article, aside, form)[class*="rounded-["] {
-  border-radius: 1.5rem;
+  border-radius: 0.5rem;
 }
 
 .area-restaurante :is(div)[class*="rounded-["] {
-  border-radius: 1rem;
+  border-radius: 0.5rem;
 }
 
 .area-restaurante :is(button, a)[class*="rounded-["] {
-  border-radius: 999px;
+  border-radius: 0.5rem;
 }
 
 .area-restaurante :is(input, textarea, select)[class*="rounded-["] {
-  border-radius: 0.9rem;
+  border-radius: 0.5rem;
 }
 
 :where(html:not([data-tema=escuro])) .area-restaurante :is(section, article, aside, form)[class*="shadow"],
@@ -1147,7 +1147,7 @@ html {
 }
 
 .area-cliente main > header nav a {
-  border-radius: 999px;
+  border-radius: 0.5rem;
   padding: 0.4rem 0.75rem;
 }
 
@@ -1161,7 +1161,7 @@ html {
 }
 
 .area-cliente main > header button {
-  border-radius: 999px !important;
+  border-radius: 0.5rem !important;
 }
 
 :where(html:not([data-tema=escuro])) .area-cliente main > header button {
@@ -1195,19 +1195,19 @@ html {
 }
 
 .area-cliente :is(section, article, aside, form)[class*="rounded-["] {
-  border-radius: 1.5rem;
+  border-radius: 0.5rem;
 }
 
 .area-cliente :is(div)[class*="rounded-["] {
-  border-radius: 1rem;
+  border-radius: 0.5rem;
 }
 
 .area-cliente :is(button, a)[class*="rounded-["] {
-  border-radius: 999px;
+  border-radius: 0.5rem;
 }
 
 .area-cliente :is(input, textarea, select)[class*="rounded-["] {
-  border-radius: 0.9rem;
+  border-radius: 0.5rem;
 }
 
 :where(html:not([data-tema=escuro])) .area-cliente :is(section, article, aside, form)[class*="shadow"],
