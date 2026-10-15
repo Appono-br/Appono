@@ -1,0 +1,3825 @@
+[
+  {
+    "url": "/cliente/configuracoes",
+    "width": 320,
+    "documentWidth": 305,
+    "height": 1416,
+    "title": "Configurações",
+    "bodyText": "1\nConfigurações\nConta\nAparência\nSuporte\nSair da conta\nDados da Conta\nNOME COMPLETO\nDATA DE NASCIMENTO\nCPF\nENDEREÇO DE E-MAIL\nTELEFONE\nSalvar alterações\nPolítica de Privacidade\nTermos de Uso\nContato\n\n© 2026 APPONO. Todos os direitos reservados.",
+    "overflow": [],
+    "scrolls": [],
+    "clips": [],
+    "overlaps": [],
+    "requests": [
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/notificacoes/contador",
+        "method": "GET"
+      },
+      {
+        "path": "/me",
+        "method": "GET"
+      }
+    ],
+    "scenario": "cabecalho-cliente",
+    "route": "/cliente/configuracoes",
+    "errors": [],
+    "detail": [
+      {
+        "tag": "A",
+        "label": "Favoritos",
+        "x": 52,
+        "w": 40
+      },
+      {
+        "tag": "A",
+        "label": "Mensagens",
+        "x": 104,
+        "w": 40
+      },
+      {
+        "tag": "A",
+        "label": "Configurações",
+        "x": 156,
+        "w": 40
+      },
+      {
+        "tag": "BUTTON",
+        "label": "1 notificações não lidas",
+        "x": 208,
+        "w": 40
+      },
+      {
+        "tag": "BUTTON",
+        "label": "Abrir menu",
+        "x": 260,
+        "w": 36
+      }
+    ],
+    "requestedWidth": 320,
+    "mobile": false
+  },
+  {
+    "url": "/cliente/configuracoes",
+    "width": 360,
+    "documentWidth": 345,
+    "height": 1416,
+    "title": "Configurações",
+    "bodyText": "1\nConfigurações\nConta\nAparência\nSuporte\nSair da conta\nDados da Conta\nNOME COMPLETO\nDATA DE NASCIMENTO\nCPF\nENDEREÇO DE E-MAIL\nTELEFONE\nSalvar alterações\nPolítica de Privacidade\nTermos de Uso\nContato\n\n© 2026 APPONO. Todos os direitos reservados.",
+    "overflow": [],
+    "scrolls": [],
+    "clips": [],
+    "overlaps": [],
+    "requests": [
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/notificacoes/contador",
+        "method": "GET"
+      },
+      {
+        "path": "/me",
+        "method": "GET"
+      }
+    ],
+    "scenario": "cabecalho-cliente",
+    "route": "/cliente/configuracoes",
+    "errors": [],
+    "detail": [
+      {
+        "tag": "A",
+        "label": "Ir para o início da Appono",
+        "x": 20,
+        "w": 29
+      },
+      {
+        "tag": "IMG",
+        "label": "Appono",
+        "x": 20,
+        "w": 29
+      },
+      {
+        "tag": "A",
+        "label": "Favoritos",
+        "x": 81,
+        "w": 40
+      },
+      {
+        "tag": "A",
+        "label": "Mensagens",
+        "x": 133,
+        "w": 40
+      },
+      {
+        "tag": "A",
+        "label": "Configurações",
+        "x": 185,
+        "w": 40
+      },
+      {
+        "tag": "BUTTON",
+        "label": "1 notificações não lidas",
+        "x": 237,
+        "w": 40
+      },
+      {
+        "tag": "BUTTON",
+        "label": "Abrir menu",
+        "x": 289,
+        "w": 36
+      }
+    ],
+    "requestedWidth": 360,
+    "mobile": false
+  },
+  {
+    "url": "/cliente/configuracoes",
+    "width": 390,
+    "documentWidth": 375,
+    "height": 1416,
+    "title": "Configurações",
+    "bodyText": "1\nConfigurações\nConta\nAparência\nSuporte\nSair da conta\nDados da Conta\nNOME COMPLETO\nDATA DE NASCIMENTO\nCPF\nENDEREÇO DE E-MAIL\nTELEFONE\nSalvar alterações\nPolítica de Privacidade\nTermos de Uso\nContato\n\n© 2026 APPONO. Todos os direitos reservados.",
+    "overflow": [],
+    "scrolls": [],
+    "clips": [],
+    "overlaps": [],
+    "requests": [
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/notificacoes/contador",
+        "method": "GET"
+      },
+      {
+        "path": "/me",
+        "method": "GET"
+      }
+    ],
+    "scenario": "cabecalho-cliente",
+    "route": "/cliente/configuracoes",
+    "errors": [],
+    "detail": [
+      {
+        "tag": "A",
+        "label": "Ir para o início da Appono",
+        "x": 20,
+        "w": 44
+      },
+      {
+        "tag": "IMG",
+        "label": "Appono",
+        "x": 20,
+        "w": 44
+      },
+      {
+        "tag": "A",
+        "label": "Favoritos",
+        "x": 111,
+        "w": 40
+      },
+      {
+        "tag": "A",
+        "label": "Mensagens",
+        "x": 163,
+        "w": 40
+      },
+      {
+        "tag": "A",
+        "label": "Configurações",
+        "x": 215,
+        "w": 40
+      },
+      {
+        "tag": "BUTTON",
+        "label": "1 notificações não lidas",
+        "x": 267,
+        "w": 40
+      },
+      {
+        "tag": "BUTTON",
+        "label": "Abrir menu",
+        "x": 319,
+        "w": 36
+      }
+    ],
+    "requestedWidth": 390,
+    "mobile": false
+  },
+  {
+    "url": "/cliente/rotina/configurar",
+    "width": 320,
+    "documentWidth": 347,
+    "height": 2702,
+    "title": "Defina como sua semana deve funcionar.",
+    "bodyText": "1\nVoltar para Appono Rotina\n\nCONFIGURAÇÃO DA ROTINA\n\nDefina como sua semana deve funcionar.\n\nOrganize sua base, janela de almoço, orçamento e preferências. Você poderá revisar tudo antes de gerar sugestões.\n\n1\nHorários e endereço\n2\nDietas e orçamento\n3\nIntegrações\n4\nPreferências\nMeus endereços\n\nEscolha onde você está. O endereço ativo define a dist",
+    "overflow": [
+      {
+        "tag": "SECTION",
+        "text": "Meus endereços Escolha onde você está. O endereço ativo define a distância usada nas sugestões. 1/10 Usar neste momento Casa Escol",
+        "class": "rounded-[24px] bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada/55",
+        "rect": {
+          "x": 16,
+          "y": -25,
+          "w": 331,
+          "h": 570
+        },
+        "client": 329,
+        "scroll": 329,
+        "overflow": "visible"
+      },
+      {
+        "tag": "SECTION",
+        "text": "JANELAS ALIMENTARES Organize café, almoço, jantar ou um horário próprio. Cada janela recebe sugestões, limites e distância compatí",
+        "class": "rounded-[24px] bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada/55",
+        "rect": {
+          "x": 16,
+          "y": 565,
+          "w": 331,
+          "h": 1080
+        },
+        "client": 329,
+        "scroll": 329,
+        "overflow": "visible"
+      }
+    ],
+    "scrolls": [],
+    "clips": [
+      {
+        "tag": "INPUT",
+        "text": "",
+        "class": "h-10 rounded-lg border border-app-baunilha-dourada px-3 text-sm font-semibold normal-case tracking-normal",
+        "rect": {
+          "x": 71,
+          "y": 358,
+          "w": 221,
+          "h": 40
+        },
+        "client": 219,
+        "scroll": 343,
+        "overflow": "clip"
+      }
+    ],
+    "overlaps": [],
+    "requests": [
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/notificacoes/contador",
+        "method": "GET"
+      },
+      {
+        "path": "/rotina/perfil",
+        "method": "GET"
+      },
+      {
+        "path": "/rotina/agenda",
+        "method": "GET"
+      },
+      {
+        "path": "/rotina/perfil",
+        "method": "GET"
+      },
+      {
+        "path": "/rotina/agenda",
+        "method": "GET"
+      },
+      {
+        "path": "/rotina/catalogo/busca",
+        "method": "GET"
+      }
+    ],
+    "scenario": "rotina-enderecos",
+    "route": "/cliente/rotina/configurar",
+    "errors": [],
+    "requestedWidth": 320,
+    "mobile": false
+  },
+  {
+    "url": "/cliente/rotina/configurar",
+    "width": 360,
+    "documentWidth": 347,
+    "height": 2681,
+    "title": "Defina como sua semana deve funcionar.",
+    "bodyText": "1\nVoltar para Appono Rotina\n\nCONFIGURAÇÃO DA ROTINA\n\nDefina como sua semana deve funcionar.\n\nOrganize sua base, janela de almoço, orçamento e preferências. Você poderá revisar tudo antes de gerar sugestões.\n\n1\nHorários e endereço\n2\nDietas e orçamento\n3\nIntegrações\n4\nPreferências\nMeus endereços\n\nEscolha onde você está. O endereço ativo define a dist",
+    "overflow": [],
+    "scrolls": [],
+    "clips": [
+      {
+        "tag": "INPUT",
+        "text": "",
+        "class": "h-10 rounded-lg border border-app-baunilha-dourada px-3 text-sm font-semibold normal-case tracking-normal",
+        "rect": {
+          "x": 71,
+          "y": 358,
+          "w": 221,
+          "h": 40
+        },
+        "client": 219,
+        "scroll": 343,
+        "overflow": "clip"
+      }
+    ],
+    "overlaps": [],
+    "requests": [
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/notificacoes/contador",
+        "method": "GET"
+      },
+      {
+        "path": "/rotina/perfil",
+        "method": "GET"
+      },
+      {
+        "path": "/rotina/agenda",
+        "method": "GET"
+      },
+      {
+        "path": "/rotina/perfil",
+        "method": "GET"
+      },
+      {
+        "path": "/rotina/agenda",
+        "method": "GET"
+      },
+      {
+        "path": "/rotina/catalogo/busca",
+        "method": "GET"
+      }
+    ],
+    "scenario": "rotina-enderecos",
+    "route": "/cliente/rotina/configurar",
+    "errors": [],
+    "requestedWidth": 360,
+    "mobile": false
+  },
+  {
+    "url": "/cliente/rotina/configurar",
+    "width": 390,
+    "documentWidth": 375,
+    "height": 2681,
+    "title": "Defina como sua semana deve funcionar.",
+    "bodyText": "1\nVoltar para Appono Rotina\n\nCONFIGURAÇÃO DA ROTINA\n\nDefina como sua semana deve funcionar.\n\nOrganize sua base, janela de almoço, orçamento e preferências. Você poderá revisar tudo antes de gerar sugestões.\n\n1\nHorários e endereço\n2\nDietas e orçamento\n3\nIntegrações\n4\nPreferências\nMeus endereços\n\nEscolha onde você está. O endereço ativo define a dist",
+    "overflow": [],
+    "scrolls": [],
+    "clips": [
+      {
+        "tag": "INPUT",
+        "text": "",
+        "class": "h-10 rounded-lg border border-app-baunilha-dourada px-3 text-sm font-semibold normal-case tracking-normal",
+        "rect": {
+          "x": 71,
+          "y": 358,
+          "w": 233,
+          "h": 40
+        },
+        "client": 231,
+        "scroll": 343,
+        "overflow": "clip"
+      }
+    ],
+    "overlaps": [],
+    "requests": [
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/notificacoes/contador",
+        "method": "GET"
+      },
+      {
+        "path": "/rotina/perfil",
+        "method": "GET"
+      },
+      {
+        "path": "/rotina/agenda",
+        "method": "GET"
+      },
+      {
+        "path": "/rotina/perfil",
+        "method": "GET"
+      },
+      {
+        "path": "/rotina/agenda",
+        "method": "GET"
+      },
+      {
+        "path": "/rotina/catalogo/busca",
+        "method": "GET"
+      }
+    ],
+    "scenario": "rotina-enderecos",
+    "route": "/cliente/rotina/configurar",
+    "errors": [],
+    "requestedWidth": 390,
+    "mobile": false
+  },
+  {
+    "url": "/cliente/rotina/configurar",
+    "width": 768,
+    "documentWidth": 753,
+    "height": 1928,
+    "title": "Defina como sua semana deve funcionar.",
+    "bodyText": "1\nVoltar para Appono Rotina\n\nCONFIGURAÇÃO DA ROTINA\n\nDefina como sua semana deve funcionar.\n\nOrganize sua base, janela de almoço, orçamento e preferências. Você poderá revisar tudo antes de gerar sugestões.\n\n1\nHorários e endereço\n2\nDietas e orçamento\n3\nIntegrações\n4\nPreferências\nMeus endereços\n\nEscolha onde você está. O endereço ativo define a dist",
+    "overflow": [],
+    "scrolls": [],
+    "clips": [],
+    "overlaps": [],
+    "requests": [
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/notificacoes/contador",
+        "method": "GET"
+      },
+      {
+        "path": "/rotina/perfil",
+        "method": "GET"
+      },
+      {
+        "path": "/rotina/agenda",
+        "method": "GET"
+      },
+      {
+        "path": "/rotina/perfil",
+        "method": "GET"
+      },
+      {
+        "path": "/rotina/agenda",
+        "method": "GET"
+      },
+      {
+        "path": "/rotina/catalogo/busca",
+        "method": "GET"
+      }
+    ],
+    "scenario": "rotina-enderecos",
+    "route": "/cliente/rotina/configurar",
+    "errors": [],
+    "requestedWidth": 768,
+    "mobile": false
+  },
+  {
+    "url": "/cliente/rotina/configurar",
+    "width": 1024,
+    "documentWidth": 1009,
+    "height": 1679,
+    "title": "Defina como sua semana deve funcionar.",
+    "bodyText": "Início\nAppono Rotina\nAgenda\n1\nVoltar para Appono Rotina\n\nCONFIGURAÇÃO DA ROTINA\n\nDefina como sua semana deve funcionar.\n\nOrganize sua base, janela de almoço, orçamento e preferências. Você poderá revisar tudo antes de gerar sugestões.\n\n1\nHorários e endereço\n2\nDietas e orçamento\n3\nIntegrações\n4\nPreferências\nMeus endereços\n\nEscolha onde você está. O ",
+    "overflow": [],
+    "scrolls": [],
+    "clips": [],
+    "overlaps": [
+      [
+        {
+          "tag": "A",
+          "text": "Início",
+          "class": "rounded-md px-2 py-3 outline-none transition hover:text-app-cafe-profundo focus-visible:ring-2 focus-visible:ring-app-caramelo-torrado aria-[current=page]:text-app-cafe-profundo aria-[current=page]:underline aria-[current=page]:decoration-app-caramelo-torrado aria-[current=page]:decoration-2 aria-[current=page]:underline-offset-8",
+          "rect": {
+            "x": 354,
+            "y": 18,
+            "w": 53,
+            "h": 45
+          },
+          "client": 53,
+          "scroll": 53,
+          "overflow": "visible"
+        },
+        {
+          "tag": "INPUT",
+          "text": "",
+          "class": "h-10 rounded-lg border border-app-baunilha-dourada px-3 text-sm font-semibold normal-case tracking-normal",
+          "rect": {
+            "x": 79,
+            "y": -7,
+            "w": 420,
+            "h": 40
+          },
+          "client": 418,
+          "scroll": 418,
+          "overflow": "clip"
+        }
+      ],
+      [
+        {
+          "tag": "A",
+          "text": "Appono Rotina",
+          "class": "rounded-md px-2 py-3 outline-none transition hover:text-app-cafe-profundo focus-visible:ring-2 focus-visible:ring-app-caramelo-torrado aria-[current=page]:text-app-cafe-profundo aria-[current=page]:underline aria-[current=page]:decoration-app-caramelo-torrado aria-[current=page]:decoration-2 aria-[current=page]:underline-offset-8",
+          "rect": {
+            "x": 439,
+            "y": 18,
+            "w": 116,
+            "h": 45
+          },
+          "client": 116,
+          "scroll": 116,
+          "overflow": "visible"
+        },
+        {
+          "tag": "INPUT",
+          "text": "",
+          "class": "h-10 rounded-lg border border-app-baunilha-dourada px-3 text-sm font-semibold normal-case tracking-normal",
+          "rect": {
+            "x": 79,
+            "y": -7,
+            "w": 420,
+            "h": 40
+          },
+          "client": 418,
+          "scroll": 418,
+          "overflow": "clip"
+        }
+      ]
+    ],
+    "requests": [
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/notificacoes/contador",
+        "method": "GET"
+      },
+      {
+        "path": "/rotina/perfil",
+        "method": "GET"
+      },
+      {
+        "path": "/rotina/agenda",
+        "method": "GET"
+      },
+      {
+        "path": "/rotina/perfil",
+        "method": "GET"
+      },
+      {
+        "path": "/rotina/agenda",
+        "method": "GET"
+      },
+      {
+        "path": "/rotina/catalogo/busca",
+        "method": "GET"
+      }
+    ],
+    "scenario": "rotina-enderecos",
+    "route": "/cliente/rotina/configurar",
+    "errors": [],
+    "requestedWidth": 1024,
+    "mobile": false
+  },
+  {
+    "url": "/cliente/rotina/configurar",
+    "width": 320,
+    "documentWidth": 347,
+    "height": 2702,
+    "title": "Defina como sua semana deve funcionar.",
+    "bodyText": "1\nVoltar para Appono Rotina\n\nCONFIGURAÇÃO DA ROTINA\n\nDefina como sua semana deve funcionar.\n\nOrganize sua base, janela de almoço, orçamento e preferências. Você poderá revisar tudo antes de gerar sugestões.\n\n1\nHorários e endereço\n2\nDietas e orçamento\n3\nIntegrações\n4\nPreferências\nMeus endereços\n\nEscolha onde você está. O endereço ativo define a dist",
+    "overflow": [
+      {
+        "tag": "SECTION",
+        "text": "Meus endereços Escolha onde você está. O endereço ativo define a distância usada nas sugestões. 1/10 Usar neste momento Casa Escol",
+        "class": "rounded-[24px] bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada/55",
+        "rect": {
+          "x": 16,
+          "y": -590,
+          "w": 331,
+          "h": 570
+        },
+        "client": 329,
+        "scroll": 329,
+        "overflow": "visible"
+      },
+      {
+        "tag": "SECTION",
+        "text": "JANELAS ALIMENTARES Organize café, almoço, jantar ou um horário próprio. Cada janela recebe sugestões, limites e distância compatí",
+        "class": "rounded-[24px] bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada/55",
+        "rect": {
+          "x": 16,
+          "y": 0,
+          "w": 331,
+          "h": 1080
+        },
+        "client": 329,
+        "scroll": 329,
+        "overflow": "visible"
+      }
+    ],
+    "scrolls": [],
+    "clips": [
+      {
+        "tag": "INPUT",
+        "text": "",
+        "class": "h-10 rounded-lg border border-app-baunilha-dourada px-3 text-sm font-semibold normal-case tracking-normal",
+        "rect": {
+          "x": 71,
+          "y": -207,
+          "w": 221,
+          "h": 40
+        },
+        "client": 219,
+        "scroll": 343,
+        "overflow": "clip"
+      }
+    ],
+    "overlaps": [],
+    "requests": [
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/notificacoes/contador",
+        "method": "GET"
+      },
+      {
+        "path": "/rotina/perfil",
+        "method": "GET"
+      },
+      {
+        "path": "/rotina/agenda",
+        "method": "GET"
+      },
+      {
+        "path": "/rotina/perfil",
+        "method": "GET"
+      },
+      {
+        "path": "/rotina/agenda",
+        "method": "GET"
+      },
+      {
+        "path": "/rotina/catalogo/busca",
+        "method": "GET"
+      }
+    ],
+    "scenario": "rotina-horarios",
+    "route": "/cliente/rotina/configurar",
+    "errors": [],
+    "requestedWidth": 320,
+    "mobile": false
+  },
+  {
+    "url": "/cliente/rotina/configurar",
+    "width": 390,
+    "documentWidth": 375,
+    "height": 2681,
+    "title": "Defina como sua semana deve funcionar.",
+    "bodyText": "1\nVoltar para Appono Rotina\n\nCONFIGURAÇÃO DA ROTINA\n\nDefina como sua semana deve funcionar.\n\nOrganize sua base, janela de almoço, orçamento e preferências. Você poderá revisar tudo antes de gerar sugestões.\n\n1\nHorários e endereço\n2\nDietas e orçamento\n3\nIntegrações\n4\nPreferências\nMeus endereços\n\nEscolha onde você está. O endereço ativo define a dist",
+    "overflow": [],
+    "scrolls": [],
+    "clips": [
+      {
+        "tag": "INPUT",
+        "text": "",
+        "class": "h-10 rounded-lg border border-app-baunilha-dourada px-3 text-sm font-semibold normal-case tracking-normal",
+        "rect": {
+          "x": 71,
+          "y": -207,
+          "w": 233,
+          "h": 40
+        },
+        "client": 231,
+        "scroll": 343,
+        "overflow": "clip"
+      }
+    ],
+    "overlaps": [],
+    "requests": [
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/notificacoes/contador",
+        "method": "GET"
+      },
+      {
+        "path": "/rotina/perfil",
+        "method": "GET"
+      },
+      {
+        "path": "/rotina/agenda",
+        "method": "GET"
+      },
+      {
+        "path": "/rotina/perfil",
+        "method": "GET"
+      },
+      {
+        "path": "/rotina/agenda",
+        "method": "GET"
+      },
+      {
+        "path": "/rotina/catalogo/busca",
+        "method": "GET"
+      }
+    ],
+    "scenario": "rotina-horarios",
+    "route": "/cliente/rotina/configurar",
+    "errors": [],
+    "requestedWidth": 390,
+    "mobile": false
+  },
+  {
+    "url": "/restaurante/configuracoes",
+    "width": 768,
+    "documentWidth": 753,
+    "height": 2319,
+    "title": "Configurações do Perfil",
+    "bodyText": "Menu\nConfigurações do Perfil\nInformações da loja\nEndereço da loja\nPlanos\nSegurança e acesso\nMercado Pago\nOperação & logística\nAparência\nSuporte\nSair da conta\nDados Cadastrais\nLogotipo da Loja\n\nFormatos suportados: JPG, PNG. Tamanho recomendado: 500x500px.\n\nNOME DA LOJA\nCategorias culinárias\nBrasileira\nItaliana\nJaponesa\nChinesa\nÁrabe\nMexicana\nHambur",
+    "overflow": [],
+    "scrolls": [],
+    "clips": [
+      {
+        "tag": "INPUT",
+        "text": "",
+        "class": "sr-only",
+        "rect": {
+          "x": 101,
+          "y": 138,
+          "w": 1,
+          "h": 1
+        },
+        "client": 1,
+        "scroll": 313,
+        "overflow": "clip"
+      }
+    ],
+    "overlaps": [
+      [
+        {
+          "tag": "BUTTON",
+          "text": "Menu",
+          "class": "restaurant-menu-trigger",
+          "rect": {
+            "x": 16,
+            "y": 835,
+            "w": 102,
+            "h": 45
+          },
+          "client": 102,
+          "scroll": 102,
+          "overflow": "visible"
+        },
+        {
+          "tag": "INPUT",
+          "text": "",
+          "class": "h-12 rounded-[8px] border border-app-baunilha-dourada bg-app-creme-suave px-4 text-sm text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20 disabled:cursor-not-allowed disabled:opacity-65",
+          "rect": {
+            "x": 53,
+            "y": 834,
+            "w": 647,
+            "h": 48
+          },
+          "client": 645,
+          "scroll": 645,
+          "overflow": "clip"
+        }
+      ]
+    ],
+    "requests": [
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/notificacoes/contador",
+        "method": "GET"
+      },
+      {
+        "path": "/me",
+        "method": "GET"
+      }
+    ],
+    "scenario": "configuracoes-restaurante",
+    "route": "/restaurante/configuracoes",
+    "errors": [],
+    "requestedWidth": 768,
+    "mobile": false
+  },
+  {
+    "url": "/restaurante/configuracoes",
+    "width": 1024,
+    "documentWidth": 1105,
+    "height": 1595,
+    "title": "Configurações do Perfil",
+    "bodyText": "Dashboard\nGestão de cardápio\nDesempenho\nCampanhas Inteligentes\nRelatório financeiro\nReservas\nCozinha\nHistórico\nMensagens\nConfigurações\n1\nNotificações\nSair da conta\nConfigurações do Perfil\nInformações da loja\nEndereço da loja\nPlanos\nSegurança e acesso\nMercado Pago\nOperação & logística\nAparência\nSuporte\nSair da conta\nDados Cadastrais\nLogotipo da Loja",
+    "overflow": [
+      {
+        "tag": "SPAN",
+        "text": "RAZÃO SOCIAL",
+        "class": "text-xs font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado",
+        "rect": {
+          "x": 802,
+          "y": 31,
+          "w": 229,
+          "h": 18
+        },
+        "client": 229,
+        "scroll": 229,
+        "overflow": "visible"
+      },
+      {
+        "tag": "INPUT",
+        "text": "",
+        "class": "h-12 rounded-[8px] border border-app-baunilha-dourada bg-app-creme-suave px-4 text-sm text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20 disabled:cursor-not-allowed disabled:opacity-65",
+        "rect": {
+          "x": 802,
+          "y": 57,
+          "w": 229,
+          "h": 48
+        },
+        "client": 227,
+        "scroll": 227,
+        "overflow": "clip"
+      },
+      {
+        "tag": "LABEL",
+        "text": "CEP",
+        "class": "grid gap-2 ",
+        "rect": {
+          "x": 876,
+          "y": 513,
+          "w": 229,
+          "h": 74
+        },
+        "client": 229,
+        "scroll": 229,
+        "overflow": "visible"
+      },
+      {
+        "tag": "SPAN",
+        "text": "CEP",
+        "class": "text-xs font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado",
+        "rect": {
+          "x": 876,
+          "y": 513,
+          "w": 229,
+          "h": 18
+        },
+        "client": 229,
+        "scroll": 229,
+        "overflow": "visible"
+      },
+      {
+        "tag": "INPUT",
+        "text": "",
+        "class": "h-12 rounded-[8px] border border-app-baunilha-dourada bg-app-creme-suave px-4 text-sm text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20 disabled:cursor-not-allowed disabled:opacity-65",
+        "rect": {
+          "x": 876,
+          "y": 539,
+          "w": 229,
+          "h": 48
+        },
+        "client": 227,
+        "scroll": 227,
+        "overflow": "clip"
+      }
+    ],
+    "scrolls": [],
+    "clips": [
+      {
+        "tag": "INPUT",
+        "text": "",
+        "class": "sr-only",
+        "rect": {
+          "x": 671,
+          "y": -480,
+          "w": 1,
+          "h": 1
+        },
+        "client": 1,
+        "scroll": 313,
+        "overflow": "clip"
+      },
+      {
+        "tag": "INPUT",
+        "text": "",
+        "class": "h-12 rounded-[8px] border border-app-baunilha-dourada bg-app-creme-suave px-4 text-sm text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20 disabled:cursor-not-allowed disabled:opacity-65",
+        "rect": {
+          "x": 623,
+          "y": 539,
+          "w": 229,
+          "h": 48
+        },
+        "client": 227,
+        "scroll": 351,
+        "overflow": "clip"
+      }
+    ],
+    "overlaps": [
+      [
+        {
+          "tag": "INPUT",
+          "text": "",
+          "class": "h-12 rounded-[8px] border border-app-baunilha-dourada bg-app-creme-suave px-4 text-sm text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20 disabled:cursor-not-allowed disabled:opacity-65",
+          "rect": {
+            "x": 623,
+            "y": 57,
+            "w": 229,
+            "h": 48
+          },
+          "client": 227,
+          "scroll": 227,
+          "overflow": "clip"
+        },
+        {
+          "tag": "INPUT",
+          "text": "",
+          "class": "h-12 rounded-[8px] border border-app-baunilha-dourada bg-app-creme-suave px-4 text-sm text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20 disabled:cursor-not-allowed disabled:opacity-65",
+          "rect": {
+            "x": 802,
+            "y": 57,
+            "w": 229,
+            "h": 48
+          },
+          "client": 227,
+          "scroll": 227,
+          "overflow": "clip"
+        }
+      ]
+    ],
+    "requests": [
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/notificacoes/contador",
+        "method": "GET"
+      },
+      {
+        "path": "/me",
+        "method": "GET"
+      }
+    ],
+    "scenario": "configuracoes-restaurante",
+    "route": "/restaurante/configuracoes",
+    "errors": [],
+    "requestedWidth": 1024,
+    "mobile": false
+  },
+  {
+    "url": "/restaurante/configuracoes",
+    "width": 1100,
+    "documentWidth": 1105,
+    "height": 1550,
+    "title": "Configurações do Perfil",
+    "bodyText": "Dashboard\nGestão de cardápio\nDesempenho\nCampanhas Inteligentes\nRelatório financeiro\nReservas\nCozinha\nHistórico\nMensagens\nConfigurações\n1\nNotificações\nSair da conta\nConfigurações do Perfil\nInformações da loja\nEndereço da loja\nPlanos\nSegurança e acesso\nMercado Pago\nOperação & logística\nAparência\nSuporte\nSair da conta\nDados Cadastrais\nLogotipo da Loja",
+    "overflow": [
+      {
+        "tag": "LABEL",
+        "text": "CEP",
+        "class": "grid gap-2 ",
+        "rect": {
+          "x": 876,
+          "y": 513,
+          "w": 229,
+          "h": 74
+        },
+        "client": 229,
+        "scroll": 229,
+        "overflow": "visible"
+      },
+      {
+        "tag": "SPAN",
+        "text": "CEP",
+        "class": "text-xs font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado",
+        "rect": {
+          "x": 876,
+          "y": 513,
+          "w": 229,
+          "h": 18
+        },
+        "client": 229,
+        "scroll": 229,
+        "overflow": "visible"
+      },
+      {
+        "tag": "INPUT",
+        "text": "",
+        "class": "h-12 rounded-[8px] border border-app-baunilha-dourada bg-app-creme-suave px-4 text-sm text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20 disabled:cursor-not-allowed disabled:opacity-65",
+        "rect": {
+          "x": 876,
+          "y": 539,
+          "w": 229,
+          "h": 48
+        },
+        "client": 227,
+        "scroll": 227,
+        "overflow": "clip"
+      }
+    ],
+    "scrolls": [],
+    "clips": [
+      {
+        "tag": "INPUT",
+        "text": "",
+        "class": "sr-only",
+        "rect": {
+          "x": 671,
+          "y": -435,
+          "w": 1,
+          "h": 1
+        },
+        "client": 1,
+        "scroll": 313,
+        "overflow": "clip"
+      },
+      {
+        "tag": "INPUT",
+        "text": "",
+        "class": "h-12 rounded-[8px] border border-app-baunilha-dourada bg-app-creme-suave px-4 text-sm text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20 disabled:cursor-not-allowed disabled:opacity-65",
+        "rect": {
+          "x": 623,
+          "y": 539,
+          "w": 229,
+          "h": 48
+        },
+        "client": 227,
+        "scroll": 351,
+        "overflow": "clip"
+      }
+    ],
+    "overlaps": [
+      [
+        {
+          "tag": "INPUT",
+          "text": "",
+          "class": "h-12 rounded-[8px] border border-app-baunilha-dourada bg-app-creme-suave px-4 text-sm text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20 disabled:cursor-not-allowed disabled:opacity-65",
+          "rect": {
+            "x": 623,
+            "y": 57,
+            "w": 229,
+            "h": 48
+          },
+          "client": 227,
+          "scroll": 227,
+          "overflow": "clip"
+        },
+        {
+          "tag": "INPUT",
+          "text": "",
+          "class": "h-12 rounded-[8px] border border-app-baunilha-dourada bg-app-creme-suave px-4 text-sm text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20 disabled:cursor-not-allowed disabled:opacity-65",
+          "rect": {
+            "x": 840,
+            "y": 57,
+            "w": 229,
+            "h": 48
+          },
+          "client": 227,
+          "scroll": 227,
+          "overflow": "clip"
+        }
+      ]
+    ],
+    "requests": [
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/notificacoes/contador",
+        "method": "GET"
+      },
+      {
+        "path": "/me",
+        "method": "GET"
+      }
+    ],
+    "scenario": "configuracoes-restaurante",
+    "route": "/restaurante/configuracoes",
+    "errors": [],
+    "requestedWidth": 1100,
+    "mobile": false
+  },
+  {
+    "url": "/restaurante/configuracoes",
+    "width": 1280,
+    "documentWidth": 1265,
+    "height": 1505,
+    "title": "Configurações do Perfil",
+    "bodyText": "Dashboard\nGestão de cardápio\nDesempenho\nCampanhas Inteligentes\nRelatório financeiro\nReservas\nCozinha\nHistórico\nMensagens\nConfigurações\n1\nNotificações\nSair da conta\nConfigurações do Perfil\nInformações da loja\nEndereço da loja\nPlanos\nSegurança e acesso\nMercado Pago\nOperação & logística\nAparência\nSuporte\nSair da conta\nDados Cadastrais\nLogotipo da Loja",
+    "overflow": [],
+    "scrolls": [],
+    "clips": [
+      {
+        "tag": "INPUT",
+        "text": "",
+        "class": "sr-only",
+        "rect": {
+          "x": 688,
+          "y": -375,
+          "w": 1,
+          "h": 1
+        },
+        "client": 1,
+        "scroll": 313,
+        "overflow": "clip"
+      },
+      {
+        "tag": "INPUT",
+        "text": "",
+        "class": "h-12 rounded-[8px] border border-app-baunilha-dourada bg-app-creme-suave px-4 text-sm text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20 disabled:cursor-not-allowed disabled:opacity-65",
+        "rect": {
+          "x": 641,
+          "y": 554,
+          "w": 318,
+          "h": 48
+        },
+        "client": 316,
+        "scroll": 351,
+        "overflow": "clip"
+      }
+    ],
+    "overlaps": [],
+    "requests": [
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/notificacoes/contador",
+        "method": "GET"
+      },
+      {
+        "path": "/me",
+        "method": "GET"
+      }
+    ],
+    "scenario": "configuracoes-restaurante",
+    "route": "/restaurante/configuracoes",
+    "errors": [],
+    "requestedWidth": 1280,
+    "mobile": false
+  },
+  {
+    "url": "/restaurante/configuracoes",
+    "width": 1440,
+    "documentWidth": 1425,
+    "height": 1460,
+    "title": "Configurações do Perfil",
+    "bodyText": "Dashboard\nGestão de cardápio\nDesempenho\nCampanhas Inteligentes\nRelatório financeiro\nReservas\nCozinha\nHistórico\nMensagens\nConfigurações\n1\nNotificações\nSair da conta\nConfigurações do Perfil\nInformações da loja\nEndereço da loja\nPlanos\nSegurança e acesso\nMercado Pago\nOperação & logística\nAparência\nSuporte\nSair da conta\nDados Cadastrais\nLogotipo da Loja",
+    "overflow": [],
+    "scrolls": [],
+    "clips": [
+      {
+        "tag": "INPUT",
+        "text": "",
+        "class": "sr-only",
+        "rect": {
+          "x": 736,
+          "y": -330,
+          "w": 1,
+          "h": 1
+        },
+        "client": 1,
+        "scroll": 313,
+        "overflow": "clip"
+      }
+    ],
+    "overlaps": [],
+    "requests": [
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/notificacoes/contador",
+        "method": "GET"
+      },
+      {
+        "path": "/me",
+        "method": "GET"
+      }
+    ],
+    "scenario": "configuracoes-restaurante",
+    "route": "/restaurante/configuracoes",
+    "errors": [],
+    "requestedWidth": 1440,
+    "mobile": false
+  },
+  {
+    "url": "/restaurante/configuracoes",
+    "width": 1024,
+    "documentWidth": 1105,
+    "height": 1595,
+    "title": "Configurações do Perfil",
+    "bodyText": "Dashboard\nGestão de cardápio\nDesempenho\nCampanhas Inteligentes\nRelatório financeiro\nReservas\nCozinha\nHistórico\nMensagens\nConfigurações\n1\nNotificações\nSair da conta\nConfigurações do Perfil\nInformações da loja\nEndereço da loja\nPlanos\nSegurança e acesso\nMercado Pago\nOperação & logística\nAparência\nSuporte\nSair da conta\nDados Cadastrais\nLogotipo da Loja",
+    "overflow": [
+      {
+        "tag": "SPAN",
+        "text": "RAZÃO SOCIAL",
+        "class": "text-xs font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado",
+        "rect": {
+          "x": 802,
+          "y": 31,
+          "w": 229,
+          "h": 18
+        },
+        "client": 229,
+        "scroll": 229,
+        "overflow": "visible"
+      },
+      {
+        "tag": "INPUT",
+        "text": "",
+        "class": "h-12 rounded-[8px] border border-app-baunilha-dourada bg-app-creme-suave px-4 text-sm text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20 disabled:cursor-not-allowed disabled:opacity-65",
+        "rect": {
+          "x": 802,
+          "y": 57,
+          "w": 229,
+          "h": 48
+        },
+        "client": 227,
+        "scroll": 227,
+        "overflow": "clip"
+      },
+      {
+        "tag": "LABEL",
+        "text": "CEP",
+        "class": "grid gap-2 ",
+        "rect": {
+          "x": 876,
+          "y": 513,
+          "w": 229,
+          "h": 74
+        },
+        "client": 229,
+        "scroll": 229,
+        "overflow": "visible"
+      },
+      {
+        "tag": "SPAN",
+        "text": "CEP",
+        "class": "text-xs font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado",
+        "rect": {
+          "x": 876,
+          "y": 513,
+          "w": 229,
+          "h": 18
+        },
+        "client": 229,
+        "scroll": 229,
+        "overflow": "visible"
+      },
+      {
+        "tag": "INPUT",
+        "text": "",
+        "class": "h-12 rounded-[8px] border border-app-baunilha-dourada bg-app-creme-suave px-4 text-sm text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20 disabled:cursor-not-allowed disabled:opacity-65",
+        "rect": {
+          "x": 876,
+          "y": 539,
+          "w": 229,
+          "h": 48
+        },
+        "client": 227,
+        "scroll": 227,
+        "overflow": "clip"
+      }
+    ],
+    "scrolls": [],
+    "clips": [
+      {
+        "tag": "INPUT",
+        "text": "",
+        "class": "sr-only",
+        "rect": {
+          "x": 671,
+          "y": -480,
+          "w": 1,
+          "h": 1
+        },
+        "client": 1,
+        "scroll": 313,
+        "overflow": "clip"
+      },
+      {
+        "tag": "INPUT",
+        "text": "",
+        "class": "h-12 rounded-[8px] border border-app-baunilha-dourada bg-app-creme-suave px-4 text-sm text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20 disabled:cursor-not-allowed disabled:opacity-65",
+        "rect": {
+          "x": 623,
+          "y": 539,
+          "w": 229,
+          "h": 48
+        },
+        "client": 227,
+        "scroll": 351,
+        "overflow": "clip"
+      }
+    ],
+    "overlaps": [
+      [
+        {
+          "tag": "INPUT",
+          "text": "",
+          "class": "h-12 rounded-[8px] border border-app-baunilha-dourada bg-app-creme-suave px-4 text-sm text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20 disabled:cursor-not-allowed disabled:opacity-65",
+          "rect": {
+            "x": 623,
+            "y": 57,
+            "w": 229,
+            "h": 48
+          },
+          "client": 227,
+          "scroll": 227,
+          "overflow": "clip"
+        },
+        {
+          "tag": "INPUT",
+          "text": "",
+          "class": "h-12 rounded-[8px] border border-app-baunilha-dourada bg-app-creme-suave px-4 text-sm text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20 disabled:cursor-not-allowed disabled:opacity-65",
+          "rect": {
+            "x": 802,
+            "y": 57,
+            "w": 229,
+            "h": 48
+          },
+          "client": 227,
+          "scroll": 227,
+          "overflow": "clip"
+        }
+      ]
+    ],
+    "requests": [
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/notificacoes/contador",
+        "method": "GET"
+      },
+      {
+        "path": "/me",
+        "method": "GET"
+      }
+    ],
+    "scenario": "configuracoes-localizacao",
+    "route": "/restaurante/configuracoes",
+    "errors": [],
+    "requestedWidth": 1024,
+    "mobile": false
+  },
+  {
+    "url": "/restaurante/configuracoes",
+    "width": 1100,
+    "documentWidth": 1105,
+    "height": 1550,
+    "title": "Configurações do Perfil",
+    "bodyText": "Dashboard\nGestão de cardápio\nDesempenho\nCampanhas Inteligentes\nRelatório financeiro\nReservas\nCozinha\nHistórico\nMensagens\nConfigurações\n1\nNotificações\nSair da conta\nConfigurações do Perfil\nInformações da loja\nEndereço da loja\nPlanos\nSegurança e acesso\nMercado Pago\nOperação & logística\nAparência\nSuporte\nSair da conta\nDados Cadastrais\nLogotipo da Loja",
+    "overflow": [
+      {
+        "tag": "LABEL",
+        "text": "CEP",
+        "class": "grid gap-2 ",
+        "rect": {
+          "x": 876,
+          "y": 513,
+          "w": 229,
+          "h": 74
+        },
+        "client": 229,
+        "scroll": 229,
+        "overflow": "visible"
+      },
+      {
+        "tag": "SPAN",
+        "text": "CEP",
+        "class": "text-xs font-bold uppercase tracking-[0.18em] text-app-caramelo-torrado",
+        "rect": {
+          "x": 876,
+          "y": 513,
+          "w": 229,
+          "h": 18
+        },
+        "client": 229,
+        "scroll": 229,
+        "overflow": "visible"
+      },
+      {
+        "tag": "INPUT",
+        "text": "",
+        "class": "h-12 rounded-[8px] border border-app-baunilha-dourada bg-app-creme-suave px-4 text-sm text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20 disabled:cursor-not-allowed disabled:opacity-65",
+        "rect": {
+          "x": 876,
+          "y": 539,
+          "w": 229,
+          "h": 48
+        },
+        "client": 227,
+        "scroll": 227,
+        "overflow": "clip"
+      }
+    ],
+    "scrolls": [],
+    "clips": [
+      {
+        "tag": "INPUT",
+        "text": "",
+        "class": "sr-only",
+        "rect": {
+          "x": 671,
+          "y": -435,
+          "w": 1,
+          "h": 1
+        },
+        "client": 1,
+        "scroll": 313,
+        "overflow": "clip"
+      },
+      {
+        "tag": "INPUT",
+        "text": "",
+        "class": "h-12 rounded-[8px] border border-app-baunilha-dourada bg-app-creme-suave px-4 text-sm text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20 disabled:cursor-not-allowed disabled:opacity-65",
+        "rect": {
+          "x": 623,
+          "y": 539,
+          "w": 229,
+          "h": 48
+        },
+        "client": 227,
+        "scroll": 351,
+        "overflow": "clip"
+      }
+    ],
+    "overlaps": [
+      [
+        {
+          "tag": "INPUT",
+          "text": "",
+          "class": "h-12 rounded-[8px] border border-app-baunilha-dourada bg-app-creme-suave px-4 text-sm text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20 disabled:cursor-not-allowed disabled:opacity-65",
+          "rect": {
+            "x": 623,
+            "y": 57,
+            "w": 229,
+            "h": 48
+          },
+          "client": 227,
+          "scroll": 227,
+          "overflow": "clip"
+        },
+        {
+          "tag": "INPUT",
+          "text": "",
+          "class": "h-12 rounded-[8px] border border-app-baunilha-dourada bg-app-creme-suave px-4 text-sm text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20 disabled:cursor-not-allowed disabled:opacity-65",
+          "rect": {
+            "x": 840,
+            "y": 57,
+            "w": 229,
+            "h": 48
+          },
+          "client": 227,
+          "scroll": 227,
+          "overflow": "clip"
+        }
+      ]
+    ],
+    "requests": [
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/notificacoes/contador",
+        "method": "GET"
+      },
+      {
+        "path": "/me",
+        "method": "GET"
+      }
+    ],
+    "scenario": "configuracoes-localizacao",
+    "route": "/restaurante/configuracoes",
+    "errors": [],
+    "requestedWidth": 1100,
+    "mobile": false
+  },
+  {
+    "url": "/restaurante/configuracoes",
+    "width": 1280,
+    "documentWidth": 1265,
+    "height": 1505,
+    "title": "Configurações do Perfil",
+    "bodyText": "Dashboard\nGestão de cardápio\nDesempenho\nCampanhas Inteligentes\nRelatório financeiro\nReservas\nCozinha\nHistórico\nMensagens\nConfigurações\n1\nNotificações\nSair da conta\nConfigurações do Perfil\nInformações da loja\nEndereço da loja\nPlanos\nSegurança e acesso\nMercado Pago\nOperação & logística\nAparência\nSuporte\nSair da conta\nDados Cadastrais\nLogotipo da Loja",
+    "overflow": [],
+    "scrolls": [],
+    "clips": [
+      {
+        "tag": "INPUT",
+        "text": "",
+        "class": "sr-only",
+        "rect": {
+          "x": 688,
+          "y": -375,
+          "w": 1,
+          "h": 1
+        },
+        "client": 1,
+        "scroll": 313,
+        "overflow": "clip"
+      },
+      {
+        "tag": "INPUT",
+        "text": "",
+        "class": "h-12 rounded-[8px] border border-app-baunilha-dourada bg-app-creme-suave px-4 text-sm text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20 disabled:cursor-not-allowed disabled:opacity-65",
+        "rect": {
+          "x": 641,
+          "y": 554,
+          "w": 318,
+          "h": 48
+        },
+        "client": 316,
+        "scroll": 351,
+        "overflow": "clip"
+      }
+    ],
+    "overlaps": [],
+    "requests": [
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/notificacoes/contador",
+        "method": "GET"
+      },
+      {
+        "path": "/me",
+        "method": "GET"
+      }
+    ],
+    "scenario": "configuracoes-localizacao",
+    "route": "/restaurante/configuracoes",
+    "errors": [],
+    "requestedWidth": 1280,
+    "mobile": false
+  },
+  {
+    "url": "/cliente/agenda",
+    "width": 320,
+    "documentWidth": 305,
+    "height": 1842,
+    "title": "Minha agenda",
+    "bodyText": "1\n\nRESERVAS E PEDIDOS\n\nMinha agenda\n\nGerencie suas reservas, acompanhe os pedidos e acesse pagamentos em um só lugar.\n\nCalendário da agenda\nTodos\n\nOutubro 2026\n\nDom\nSeg\nTer\nQua\nQui\nSex\nSab\n27\n28\n29\n30\n1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n\nVocê possui 1 reservas confirmadas na sua agenda.\n\nReservas\nPedi",
+    "overflow": [
+      {
+        "tag": "A",
+        "text": "Adicionar pedido antecipado",
+        "class": "app-button-primary inline-flex items-center justify-center rounded-[8px] px-4 py-2 text-xs font-bold transition",
+        "rect": {
+          "x": 213,
+          "y": 640,
+          "w": 224,
+          "h": 37
+        },
+        "client": 224,
+        "scroll": 224,
+        "overflow": "visible"
+      },
+      {
+        "tag": "A",
+        "text": "Suporte",
+        "class": "app-button-primary inline-flex items-center justify-center gap-2 rounded-[8px] px-4 py-2 text-xs font-bold transition",
+        "rect": {
+          "x": 445,
+          "y": 640,
+          "w": 109,
+          "h": 37
+        },
+        "client": 109,
+        "scroll": 109,
+        "overflow": "visible"
+      },
+      {
+        "tag": "BUTTON",
+        "text": "Falar com restaurante",
+        "class": "agenda-reservation-chat inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition disabled:cursor-not-allowed disabled:opacity-60",
+        "rect": {
+          "x": 562,
+          "y": 640,
+          "w": 36,
+          "h": 36
+        },
+        "client": 36,
+        "scroll": 36,
+        "overflow": "visible"
+      },
+      {
+        "tag": "BUTTON",
+        "text": "Desmarcar reserva",
+        "class": "agenda-reservation-cancel ml-auto inline-flex items-center justify-center rounded-[8px] px-4 py-2 text-xs font-bold text-app-vermelho-erro transition",
+        "rect": {
+          "x": 606,
+          "y": 640,
+          "w": 158,
+          "h": 37
+        },
+        "client": 158,
+        "scroll": 158,
+        "overflow": "visible"
+      }
+    ],
+    "scrolls": [
+      {
+        "tag": "DIV",
+        "text": "Confirmar presença Adicionar pedido antecipado Suporte Desmarcar reserva",
+        "class": "agenda-reservation-actions mt-5 flex min-w-0 flex-nowrap items-center gap-2 overflow-x-auto whitespace-nowrap border-t border-app-baunilha-dourada/60 px-1 pb-2 pt-4 [&>a]:shrink-0 [&>button]:shrink-0",
+        "rect": {
+          "x": 37,
+          "y": 623,
+          "w": 231,
+          "h": 77
+        },
+        "client": 231,
+        "scroll": 731,
+        "overflow": "auto"
+      }
+    ],
+    "clips": [
+      {
+        "tag": "H2",
+        "text": "Reservas",
+        "class": "sr-only",
+        "rect": {
+          "x": 19,
+          "y": 14,
+          "w": 1,
+          "h": 1
+        },
+        "client": 1,
+        "scroll": 17,
+        "overflow": "hidden"
+      }
+    ],
+    "overlaps": [],
+    "requests": [
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/notificacoes/contador",
+        "method": "GET"
+      },
+      {
+        "path": "/pedidos",
+        "method": "GET"
+      },
+      {
+        "path": "/reservas",
+        "method": "GET"
+      },
+      {
+        "path": "/pedidos",
+        "method": "GET"
+      },
+      {
+        "path": "/reservas",
+        "method": "GET"
+      },
+      {
+        "path": "/pedidos",
+        "method": "GET"
+      },
+      {
+        "path": "/pedidos",
+        "method": "GET"
+      }
+    ],
+    "scenario": "agenda-com-reserva",
+    "route": "/cliente/agenda",
+    "errors": [],
+    "requestedWidth": 320,
+    "mobile": false
+  },
+  {
+    "url": "/cliente/agenda",
+    "width": 390,
+    "documentWidth": 375,
+    "height": 1692,
+    "title": "Minha agenda",
+    "bodyText": "1\n\nRESERVAS E PEDIDOS\n\nMinha agenda\n\nGerencie suas reservas, acompanhe os pedidos e acesse pagamentos em um só lugar.\n\nCalendário da agenda\nTodos\n\nOutubro 2026\n\nDom\nSeg\nTer\nQua\nQui\nSex\nSab\n27\n28\n29\n30\n1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n\nVocê possui 1 reservas confirmadas na sua agenda.\n\nReservas\nPedi",
+    "overflow": [
+      {
+        "tag": "A",
+        "text": "Adicionar pedido antecipado",
+        "class": "app-button-primary inline-flex items-center justify-center rounded-[8px] px-4 py-2 text-xs font-bold transition",
+        "rect": {
+          "x": 213,
+          "y": 562,
+          "w": 224,
+          "h": 37
+        },
+        "client": 224,
+        "scroll": 224,
+        "overflow": "visible"
+      },
+      {
+        "tag": "A",
+        "text": "Suporte",
+        "class": "app-button-primary inline-flex items-center justify-center gap-2 rounded-[8px] px-4 py-2 text-xs font-bold transition",
+        "rect": {
+          "x": 445,
+          "y": 562,
+          "w": 109,
+          "h": 37
+        },
+        "client": 109,
+        "scroll": 109,
+        "overflow": "visible"
+      },
+      {
+        "tag": "BUTTON",
+        "text": "Falar com restaurante",
+        "class": "agenda-reservation-chat inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition disabled:cursor-not-allowed disabled:opacity-60",
+        "rect": {
+          "x": 562,
+          "y": 563,
+          "w": 36,
+          "h": 36
+        },
+        "client": 36,
+        "scroll": 36,
+        "overflow": "visible"
+      },
+      {
+        "tag": "BUTTON",
+        "text": "Desmarcar reserva",
+        "class": "agenda-reservation-cancel ml-auto inline-flex items-center justify-center rounded-[8px] px-4 py-2 text-xs font-bold text-app-vermelho-erro transition",
+        "rect": {
+          "x": 606,
+          "y": 562,
+          "w": 158,
+          "h": 37
+        },
+        "client": 158,
+        "scroll": 158,
+        "overflow": "visible"
+      }
+    ],
+    "scrolls": [
+      {
+        "tag": "DIV",
+        "text": "Confirmar presença Adicionar pedido antecipado Suporte Desmarcar reserva",
+        "class": "agenda-reservation-actions mt-5 flex min-w-0 flex-nowrap items-center gap-2 overflow-x-auto whitespace-nowrap border-t border-app-baunilha-dourada/60 px-1 pb-2 pt-4 [&>a]:shrink-0 [&>button]:shrink-0",
+        "rect": {
+          "x": 37,
+          "y": 545,
+          "w": 301,
+          "h": 77
+        },
+        "client": 301,
+        "scroll": 731,
+        "overflow": "auto"
+      }
+    ],
+    "clips": [
+      {
+        "tag": "H2",
+        "text": "Reservas",
+        "class": "sr-only",
+        "rect": {
+          "x": 19,
+          "y": 14,
+          "w": 1,
+          "h": 1
+        },
+        "client": 1,
+        "scroll": 17,
+        "overflow": "hidden"
+      }
+    ],
+    "overlaps": [],
+    "requests": [
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/notificacoes/contador",
+        "method": "GET"
+      },
+      {
+        "path": "/pedidos",
+        "method": "GET"
+      },
+      {
+        "path": "/reservas",
+        "method": "GET"
+      },
+      {
+        "path": "/pedidos",
+        "method": "GET"
+      },
+      {
+        "path": "/reservas",
+        "method": "GET"
+      },
+      {
+        "path": "/pedidos",
+        "method": "GET"
+      },
+      {
+        "path": "/pedidos",
+        "method": "GET"
+      }
+    ],
+    "scenario": "agenda-com-reserva",
+    "route": "/cliente/agenda",
+    "errors": [],
+    "requestedWidth": 390,
+    "mobile": false
+  },
+  {
+    "url": "/cliente/agenda",
+    "width": 768,
+    "documentWidth": 753,
+    "height": 1056,
+    "title": "Minha agenda",
+    "bodyText": "1\n\nRESERVAS E PEDIDOS\n\nMinha agenda\n\nGerencie suas reservas, acompanhe os pedidos e acesse pagamentos em um só lugar.\n\nCalendário da agenda\nTodos\n\nOutubro 2026\n\nDom\nSeg\nTer\nQua\nQui\nSex\nSab\n27\n28\n29\n30\n1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n\nVocê possui 1 reservas confirmadas na sua agenda.\n\nReservas\nPedi",
+    "overflow": [
+      {
+        "tag": "A",
+        "text": "Suporte",
+        "class": "app-button-primary inline-flex items-center justify-center gap-2 rounded-[8px] px-4 py-2 text-xs font-bold transition",
+        "rect": {
+          "x": 745,
+          "y": 587,
+          "w": 109,
+          "h": 37
+        },
+        "client": 109,
+        "scroll": 109,
+        "overflow": "visible"
+      },
+      {
+        "tag": "BUTTON",
+        "text": "Falar com restaurante",
+        "class": "agenda-reservation-chat inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition disabled:cursor-not-allowed disabled:opacity-60",
+        "rect": {
+          "x": 862,
+          "y": 587,
+          "w": 36,
+          "h": 36
+        },
+        "client": 36,
+        "scroll": 36,
+        "overflow": "visible"
+      },
+      {
+        "tag": "BUTTON",
+        "text": "Desmarcar reserva",
+        "class": "agenda-reservation-cancel ml-auto inline-flex items-center justify-center rounded-[8px] px-4 py-2 text-xs font-bold text-app-vermelho-erro transition",
+        "rect": {
+          "x": 906,
+          "y": 587,
+          "w": 158,
+          "h": 37
+        },
+        "client": 158,
+        "scroll": 158,
+        "overflow": "visible"
+      }
+    ],
+    "scrolls": [
+      {
+        "tag": "DIV",
+        "text": "Confirmar presença Adicionar pedido antecipado Suporte Desmarcar reserva",
+        "class": "agenda-reservation-actions mt-5 flex min-w-0 flex-nowrap items-center gap-2 overflow-x-auto whitespace-nowrap border-t border-app-baunilha-dourada/60 px-1 pb-2 pt-4 [&>a]:shrink-0 [&>button]:shrink-0",
+        "rect": {
+          "x": 337,
+          "y": 570,
+          "w": 379,
+          "h": 77
+        },
+        "client": 379,
+        "scroll": 731,
+        "overflow": "auto"
+      }
+    ],
+    "clips": [
+      {
+        "tag": "H2",
+        "text": "Reservas",
+        "class": "sr-only",
+        "rect": {
+          "x": 319,
+          "y": 134,
+          "w": 1,
+          "h": 1
+        },
+        "client": 1,
+        "scroll": 17,
+        "overflow": "hidden"
+      }
+    ],
+    "overlaps": [],
+    "requests": [
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/notificacoes/contador",
+        "method": "GET"
+      },
+      {
+        "path": "/pedidos",
+        "method": "GET"
+      },
+      {
+        "path": "/reservas",
+        "method": "GET"
+      },
+      {
+        "path": "/pedidos",
+        "method": "GET"
+      },
+      {
+        "path": "/reservas",
+        "method": "GET"
+      },
+      {
+        "path": "/pedidos",
+        "method": "GET"
+      },
+      {
+        "path": "/pedidos",
+        "method": "GET"
+      }
+    ],
+    "scenario": "agenda-com-reserva",
+    "route": "/cliente/agenda",
+    "errors": [],
+    "requestedWidth": 768,
+    "mobile": false
+  },
+  {
+    "url": "/cliente/agenda",
+    "width": 1024,
+    "documentWidth": 1009,
+    "height": 929,
+    "title": "Minha agenda",
+    "bodyText": "Início\nAppono Rotina\nAgenda\n1\n\nRESERVAS E PEDIDOS\n\nMinha agenda\n\nGerencie suas reservas, acompanhe os pedidos e acesse pagamentos em um só lugar.\n\nCalendário da agenda\nTodos\n\nOutubro 2026\n\nDom\nSeg\nTer\nQua\nQui\nSex\nSab\n27\n28\n29\n30\n1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n\nVocê possui 1 reservas confirmadas n",
+    "overflow": [
+      {
+        "tag": "BUTTON",
+        "text": "Desmarcar reserva",
+        "class": "agenda-reservation-cancel ml-auto inline-flex items-center justify-center rounded-[8px] px-4 py-2 text-xs font-bold text-app-vermelho-erro transition",
+        "rect": {
+          "x": 1002,
+          "y": 598,
+          "w": 158,
+          "h": 37
+        },
+        "client": 158,
+        "scroll": 158,
+        "overflow": "visible"
+      }
+    ],
+    "scrolls": [
+      {
+        "tag": "DIV",
+        "text": "Confirmar presença Adicionar pedido antecipado Suporte Desmarcar reserva",
+        "class": "agenda-reservation-actions mt-5 flex min-w-0 flex-nowrap items-center gap-2 overflow-x-auto whitespace-nowrap border-t border-app-baunilha-dourada/60 px-1 pb-2 pt-4 [&>a]:shrink-0 [&>button]:shrink-0",
+        "rect": {
+          "x": 433,
+          "y": 581,
+          "w": 535,
+          "h": 77
+        },
+        "client": 535,
+        "scroll": 731,
+        "overflow": "auto"
+      }
+    ],
+    "clips": [
+      {
+        "tag": "H2",
+        "text": "Reservas",
+        "class": "sr-only",
+        "rect": {
+          "x": 339,
+          "y": 277,
+          "w": 1,
+          "h": 1
+        },
+        "client": 1,
+        "scroll": 17,
+        "overflow": "hidden"
+      }
+    ],
+    "overlaps": [],
+    "requests": [
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/notificacoes/contador",
+        "method": "GET"
+      },
+      {
+        "path": "/pedidos",
+        "method": "GET"
+      },
+      {
+        "path": "/reservas",
+        "method": "GET"
+      },
+      {
+        "path": "/pedidos",
+        "method": "GET"
+      },
+      {
+        "path": "/reservas",
+        "method": "GET"
+      },
+      {
+        "path": "/pedidos",
+        "method": "GET"
+      },
+      {
+        "path": "/pedidos",
+        "method": "GET"
+      }
+    ],
+    "scenario": "agenda-com-reserva",
+    "route": "/cliente/agenda",
+    "errors": [],
+    "requestedWidth": 1024,
+    "mobile": false
+  },
+  {
+    "url": "/cliente/mensagens/1",
+    "width": 320,
+    "documentWidth": 305,
+    "height": 1202,
+    "title": "Restaurante Sabor da Casa",
+    "bodyText": "1\nAP\nRestaurante Sabor da Casa\n\nPEDIDO #1\n\nLimpar histórico\n\nOlá! Sua mesa está confirmada. Podemos ajudar com mais alguma coisa?\n\n14 de out., 09:00\n\nPolítica de Privacidade\nTermos de Uso\nContato\n\n© 2026 APPONO. Todos os direitos reservados.",
+    "overflow": [],
+    "scrolls": [],
+    "clips": [],
+    "overlaps": [],
+    "requests": [
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/notificacoes/contador",
+        "method": "GET"
+      },
+      {
+        "path": "/mensagens/1",
+        "method": "GET"
+      },
+      {
+        "path": "/mensagens/1",
+        "method": "GET"
+      }
+    ],
+    "scenario": "chat-cliente",
+    "route": "/cliente/mensagens/1",
+    "errors": [],
+    "requestedWidth": 320,
+    "mobile": false
+  },
+  {
+    "url": "/cliente/mensagens/1",
+    "width": 390,
+    "documentWidth": 375,
+    "height": 1202,
+    "title": "Restaurante Sabor da Casa",
+    "bodyText": "1\nAP\nRestaurante Sabor da Casa\n\nPEDIDO #1\n\nLimpar histórico\n\nOlá! Sua mesa está confirmada. Podemos ajudar com mais alguma coisa?\n\n14 de out., 09:00\n\nPolítica de Privacidade\nTermos de Uso\nContato\n\n© 2026 APPONO. Todos os direitos reservados.",
+    "overflow": [],
+    "scrolls": [],
+    "clips": [],
+    "overlaps": [],
+    "requests": [
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/notificacoes/contador",
+        "method": "GET"
+      },
+      {
+        "path": "/mensagens/1",
+        "method": "GET"
+      },
+      {
+        "path": "/mensagens/1",
+        "method": "GET"
+      }
+    ],
+    "scenario": "chat-cliente",
+    "route": "/cliente/mensagens/1",
+    "errors": [],
+    "requestedWidth": 390,
+    "mobile": false
+  },
+  {
+    "url": "/cliente/mensagens/1",
+    "width": 768,
+    "documentWidth": 753,
+    "height": 1169,
+    "title": "Restaurante Sabor da Casa",
+    "bodyText": "1\nAP\nRestaurante Sabor da Casa\n\nPEDIDO #1\n\nLimpar histórico\n\nOlá! Sua mesa está confirmada. Podemos ajudar com mais alguma coisa?\n\n14 de out., 09:00\n\nPolítica de Privacidade\nTermos de Uso\nContato\n\n© 2026 APPONO. Todos os direitos reservados.",
+    "overflow": [],
+    "scrolls": [],
+    "clips": [],
+    "overlaps": [],
+    "requests": [
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/notificacoes/contador",
+        "method": "GET"
+      },
+      {
+        "path": "/mensagens/1",
+        "method": "GET"
+      },
+      {
+        "path": "/mensagens/1",
+        "method": "GET"
+      }
+    ],
+    "scenario": "chat-cliente",
+    "route": "/cliente/mensagens/1",
+    "errors": [],
+    "requestedWidth": 768,
+    "mobile": false
+  },
+  {
+    "url": "/cliente/mensagens/1?stress=1",
+    "width": 320,
+    "documentWidth": 359,
+    "height": 1202,
+    "title": "Restaurante Sabor da Casa",
+    "bodyText": "1\nAP\nRestaurante Sabor da Casa\n\nPEDIDO #1\n\nLimpar histórico\n\nVeja este link: https://restaurante.example.test/cardapio/almoco-de-domingo-com-opcoes-vegetarianas-e-reservas-para-familias\n\n14 de out., 09:00\n\nPolítica de Privacidade\nTermos de Uso\nContato\n\n© 2026 APPONO. Todos os direitos reservados.",
+    "overflow": [],
+    "scrolls": [],
+    "clips": [],
+    "overlaps": [],
+    "requests": [
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/notificacoes/contador",
+        "method": "GET"
+      },
+      {
+        "path": "/mensagens/1",
+        "method": "GET"
+      },
+      {
+        "path": "/mensagens/1",
+        "method": "GET"
+      }
+    ],
+    "scenario": "chat-cliente-link",
+    "route": "/cliente/mensagens/1?stress=1",
+    "errors": [],
+    "requestedWidth": 320,
+    "mobile": false
+  },
+  {
+    "url": "/cliente/mensagens/1?stress=1",
+    "width": 390,
+    "documentWidth": 375,
+    "height": 1202,
+    "title": "Restaurante Sabor da Casa",
+    "bodyText": "1\nAP\nRestaurante Sabor da Casa\n\nPEDIDO #1\n\nLimpar histórico\n\nVeja este link: https://restaurante.example.test/cardapio/almoco-de-domingo-com-opcoes-vegetarianas-e-reservas-para-familias\n\n14 de out., 09:00\n\nPolítica de Privacidade\nTermos de Uso\nContato\n\n© 2026 APPONO. Todos os direitos reservados.",
+    "overflow": [],
+    "scrolls": [],
+    "clips": [],
+    "overlaps": [],
+    "requests": [
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/notificacoes/contador",
+        "method": "GET"
+      },
+      {
+        "path": "/mensagens/1",
+        "method": "GET"
+      },
+      {
+        "path": "/mensagens/1",
+        "method": "GET"
+      }
+    ],
+    "scenario": "chat-cliente-link",
+    "route": "/cliente/mensagens/1?stress=1",
+    "errors": [],
+    "requestedWidth": 390,
+    "mobile": false
+  },
+  {
+    "url": "/cliente/mensagens/1?stress=1",
+    "width": 768,
+    "documentWidth": 753,
+    "height": 1169,
+    "title": "Restaurante Sabor da Casa",
+    "bodyText": "1\nAP\nRestaurante Sabor da Casa\n\nPEDIDO #1\n\nLimpar histórico\n\nVeja este link: https://restaurante.example.test/cardapio/almoco-de-domingo-com-opcoes-vegetarianas-e-reservas-para-familias\n\n14 de out., 09:00\n\nPolítica de Privacidade\nTermos de Uso\nContato\n\n© 2026 APPONO. Todos os direitos reservados.",
+    "overflow": [],
+    "scrolls": [],
+    "clips": [],
+    "overlaps": [],
+    "requests": [
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/notificacoes/contador",
+        "method": "GET"
+      },
+      {
+        "path": "/mensagens/1",
+        "method": "GET"
+      },
+      {
+        "path": "/mensagens/1",
+        "method": "GET"
+      }
+    ],
+    "scenario": "chat-cliente-link",
+    "route": "/cliente/mensagens/1?stress=1",
+    "errors": [],
+    "requestedWidth": 768,
+    "mobile": false
+  },
+  {
+    "url": "/restaurante/mensagens/1",
+    "width": 320,
+    "documentWidth": 320,
+    "height": 900,
+    "title": "This page couldn’t load",
+    "bodyText": "This page couldn’t load\n\nReload to try again, or go back.\n\nReload\nBack",
+    "overflow": [],
+    "scrolls": [],
+    "clips": [],
+    "overlaps": [],
+    "requests": [
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/notificacoes/contador",
+        "method": "GET"
+      },
+      {
+        "path": "/mensagens/1",
+        "method": "GET"
+      },
+      {
+        "path": "/mensagens/1",
+        "method": "GET"
+      }
+    ],
+    "scenario": "chat-restaurante",
+    "route": "/restaurante/mensagens/1",
+    "errors": [
+      "ReferenceError: dataHoraUI is not defined"
+    ],
+    "requestedWidth": 320,
+    "mobile": false
+  },
+  {
+    "url": "/restaurante/mensagens/1",
+    "width": 390,
+    "documentWidth": 390,
+    "height": 900,
+    "title": "This page couldn’t load",
+    "bodyText": "This page couldn’t load\n\nReload to try again, or go back.\n\nReload\nBack",
+    "overflow": [],
+    "scrolls": [],
+    "clips": [],
+    "overlaps": [],
+    "requests": [
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/notificacoes/contador",
+        "method": "GET"
+      },
+      {
+        "path": "/mensagens/1",
+        "method": "GET"
+      },
+      {
+        "path": "/mensagens/1",
+        "method": "GET"
+      }
+    ],
+    "scenario": "chat-restaurante",
+    "route": "/restaurante/mensagens/1",
+    "errors": [
+      "ReferenceError: dataHoraUI is not defined"
+    ],
+    "requestedWidth": 390,
+    "mobile": false
+  },
+  {
+    "url": "/restaurante/dashboard",
+    "width": 320,
+    "documentWidth": 307,
+    "height": 2479,
+    "title": "Visão Geral do Restaurante",
+    "bodyText": "Menu\nVisão Geral do Restaurante\n\nAcompanhe o desempenho da cozinha, do salão e das reservas do dia.\n\nRESERVAS HOJE\n\n12\n\nRECEITA DO DIA\n\nR$ 1.240,00\n\nPEDIDOS ATIVOS\n\n8\n\nCLIENTES ATENDIDOS\n\n32\nReservas recentes\n\nVolume real de reservas dos ultimos 7 dias.\n\nReservas\n5\nsex\n6\nsáb\n7\ndom\n8\nseg\n9\nter\n10\nqua\n11\nqui\nCozinha\n\n2026-10-18 - 12:30:00\n\nMariana Ol",
+    "overflow": [],
+    "scrolls": [],
+    "clips": [],
+    "overlaps": [],
+    "requests": [
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/notificacoes/contador",
+        "method": "GET"
+      },
+      {
+        "path": "/restaurante/dashboard/resumo",
+        "method": "GET"
+      }
+    ],
+    "scenario": "dashboard-restaurante",
+    "route": "/restaurante/dashboard",
+    "errors": [],
+    "requestedWidth": 320,
+    "mobile": false
+  },
+  {
+    "url": "/restaurante/dashboard",
+    "width": 768,
+    "documentWidth": 753,
+    "height": 1966,
+    "title": "Visão Geral do Restaurante",
+    "bodyText": "Menu\nVisão Geral do Restaurante\n\nAcompanhe o desempenho da cozinha, do salão e das reservas do dia.\n\nRESERVAS HOJE\n\n12\n\nRECEITA DO DIA\n\nR$ 1.240,00\n\nPEDIDOS ATIVOS\n\n8\n\nCLIENTES ATENDIDOS\n\n32\nReservas recentes\n\nVolume real de reservas dos ultimos 7 dias.\n\nReservas\n5\nsex\n6\nsáb\n7\ndom\n8\nseg\n9\nter\n10\nqua\n11\nqui\nCozinha\n\n2026-10-18 - 12:30:00\n\nMariana Ol",
+    "overflow": [],
+    "scrolls": [],
+    "clips": [],
+    "overlaps": [],
+    "requests": [
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/notificacoes/contador",
+        "method": "GET"
+      },
+      {
+        "path": "/restaurante/dashboard/resumo",
+        "method": "GET"
+      }
+    ],
+    "scenario": "dashboard-restaurante",
+    "route": "/restaurante/dashboard",
+    "errors": [],
+    "requestedWidth": 768,
+    "mobile": false
+  },
+  {
+    "url": "/restaurante/dashboard",
+    "width": 1024,
+    "documentWidth": 1009,
+    "height": 1389,
+    "title": "Visão Geral do Restaurante",
+    "bodyText": "Dashboard\nGestão de cardápio\nDesempenho\nCampanhas Inteligentes\nRelatório financeiro\nReservas\nCozinha\nHistórico\nMensagens\nConfigurações\n1\nNotificações\nSair da conta\nVisão Geral do Restaurante\n\nAcompanhe o desempenho da cozinha, do salão e das reservas do dia.\n\nRESERVAS HOJE\n\n12\n\nRECEITA DO DIA\n\nR$ 1.240,00\n\nPEDIDOS ATIVOS\n\n8\n\nCLIENTES ATENDIDOS\n\n32\n",
+    "overflow": [],
+    "scrolls": [],
+    "clips": [],
+    "overlaps": [],
+    "requests": [
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/notificacoes/contador",
+        "method": "GET"
+      },
+      {
+        "path": "/restaurante/dashboard/resumo",
+        "method": "GET"
+      }
+    ],
+    "scenario": "dashboard-restaurante",
+    "route": "/restaurante/dashboard",
+    "errors": [],
+    "requestedWidth": 1024,
+    "mobile": false
+  },
+  {
+    "url": "/restaurante/dashboard",
+    "width": 1280,
+    "documentWidth": 1265,
+    "height": 1200,
+    "title": "Visão Geral do Restaurante",
+    "bodyText": "Dashboard\nGestão de cardápio\nDesempenho\nCampanhas Inteligentes\nRelatório financeiro\nReservas\nCozinha\nHistórico\nMensagens\nConfigurações\n1\nNotificações\nSair da conta\nVisão Geral do Restaurante\n\nAcompanhe o desempenho da cozinha, do salão e das reservas do dia.\n\nRESERVAS HOJE\n\n12\n\nRECEITA DO DIA\n\nR$ 1.240,00\n\nPEDIDOS ATIVOS\n\n8\n\nCLIENTES ATENDIDOS\n\n32\n",
+    "overflow": [],
+    "scrolls": [],
+    "clips": [],
+    "overlaps": [],
+    "requests": [
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/notificacoes/contador",
+        "method": "GET"
+      },
+      {
+        "path": "/restaurante/dashboard/resumo",
+        "method": "GET"
+      }
+    ],
+    "scenario": "dashboard-restaurante",
+    "route": "/restaurante/dashboard",
+    "errors": [],
+    "requestedWidth": 1280,
+    "mobile": false
+  },
+  {
+    "url": "/restaurante/financeiro",
+    "width": 390,
+    "documentWidth": 375,
+    "height": 3348,
+    "title": "Relatório financeiro",
+    "bodyText": "Menu\nRelatório financeiro\nAnalisar reembolsos\n\nAcompanhe valores pagos, reembolsos e repasses. Ausência avisada pode manter o mínimo do restaurante e devolver apenas o excedente ao cliente.\n\nHoje\n7 dias\n30 dias\nTodos\nResumo do período\n\nPeríodo: 30 dias\n\nVenda bruta\nIndisponível\n\nFaltam valores ou estados financeiros suficientes na resposta.\n\nTaxas\n",
+    "overflow": [],
+    "scrolls": [],
+    "clips": [],
+    "overlaps": [],
+    "requests": [
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/notificacoes/contador",
+        "method": "GET"
+      },
+      {
+        "path": "/marketplace/mercado-pago/status",
+        "method": "GET"
+      },
+      {
+        "path": "/marketplace/financeiro/resumo",
+        "method": "GET"
+      }
+    ],
+    "scenario": "financeiro-restaurante",
+    "route": "/restaurante/financeiro",
+    "errors": [],
+    "requestedWidth": 390,
+    "mobile": false
+  },
+  {
+    "url": "/restaurante/financeiro",
+    "width": 1024,
+    "documentWidth": 1009,
+    "height": 2068,
+    "title": "Relatório financeiro",
+    "bodyText": "Dashboard\nGestão de cardápio\nDesempenho\nCampanhas Inteligentes\nRelatório financeiro\nReservas\nCozinha\nHistórico\nMensagens\nConfigurações\n1\nNotificações\nSair da conta\nRelatório financeiro\nAnalisar reembolsos\n\nAcompanhe valores pagos, reembolsos e repasses. Ausência avisada pode manter o mínimo do restaurante e devolver apenas o excedente ao cliente.\n\n",
+    "overflow": [],
+    "scrolls": [],
+    "clips": [],
+    "overlaps": [],
+    "requests": [
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/notificacoes/contador",
+        "method": "GET"
+      },
+      {
+        "path": "/marketplace/mercado-pago/status",
+        "method": "GET"
+      },
+      {
+        "path": "/marketplace/financeiro/resumo",
+        "method": "GET"
+      }
+    ],
+    "scenario": "financeiro-restaurante",
+    "route": "/restaurante/financeiro",
+    "errors": [],
+    "requestedWidth": 1024,
+    "mobile": false
+  },
+  {
+    "url": "/restaurante/financeiro",
+    "width": 1100,
+    "documentWidth": 1085,
+    "height": 1970,
+    "title": "Relatório financeiro",
+    "bodyText": "Dashboard\nGestão de cardápio\nDesempenho\nCampanhas Inteligentes\nRelatório financeiro\nReservas\nCozinha\nHistórico\nMensagens\nConfigurações\n1\nNotificações\nSair da conta\nRelatório financeiro\nAnalisar reembolsos\n\nAcompanhe valores pagos, reembolsos e repasses. Ausência avisada pode manter o mínimo do restaurante e devolver apenas o excedente ao cliente.\n\n",
+    "overflow": [],
+    "scrolls": [],
+    "clips": [],
+    "overlaps": [],
+    "requests": [
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/notificacoes/contador",
+        "method": "GET"
+      },
+      {
+        "path": "/marketplace/mercado-pago/status",
+        "method": "GET"
+      },
+      {
+        "path": "/marketplace/financeiro/resumo",
+        "method": "GET"
+      }
+    ],
+    "scenario": "financeiro-restaurante",
+    "route": "/restaurante/financeiro",
+    "errors": [],
+    "requestedWidth": 1100,
+    "mobile": false
+  },
+  {
+    "url": "/restaurante/financeiro",
+    "width": 1280,
+    "documentWidth": 1265,
+    "height": 1851,
+    "title": "Relatório financeiro",
+    "bodyText": "Dashboard\nGestão de cardápio\nDesempenho\nCampanhas Inteligentes\nRelatório financeiro\nReservas\nCozinha\nHistórico\nMensagens\nConfigurações\n1\nNotificações\nSair da conta\nRelatório financeiro\nAnalisar reembolsos\n\nAcompanhe valores pagos, reembolsos e repasses. Ausência avisada pode manter o mínimo do restaurante e devolver apenas o excedente ao cliente.\n\n",
+    "overflow": [],
+    "scrolls": [],
+    "clips": [],
+    "overlaps": [],
+    "requests": [
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/notificacoes/contador",
+        "method": "GET"
+      },
+      {
+        "path": "/marketplace/mercado-pago/status",
+        "method": "GET"
+      },
+      {
+        "path": "/marketplace/financeiro/resumo",
+        "method": "GET"
+      }
+    ],
+    "scenario": "financeiro-restaurante",
+    "route": "/restaurante/financeiro",
+    "errors": [],
+    "requestedWidth": 1280,
+    "mobile": false
+  },
+  {
+    "url": "/restaurante/financeiro",
+    "width": 1440,
+    "documentWidth": 1425,
+    "height": 1830,
+    "title": "Relatório financeiro",
+    "bodyText": "Dashboard\nGestão de cardápio\nDesempenho\nCampanhas Inteligentes\nRelatório financeiro\nReservas\nCozinha\nHistórico\nMensagens\nConfigurações\n1\nNotificações\nSair da conta\nRelatório financeiro\nAnalisar reembolsos\n\nAcompanhe valores pagos, reembolsos e repasses. Ausência avisada pode manter o mínimo do restaurante e devolver apenas o excedente ao cliente.\n\n",
+    "overflow": [],
+    "scrolls": [],
+    "clips": [],
+    "overlaps": [],
+    "requests": [
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/notificacoes/contador",
+        "method": "GET"
+      },
+      {
+        "path": "/marketplace/mercado-pago/status",
+        "method": "GET"
+      },
+      {
+        "path": "/marketplace/financeiro/resumo",
+        "method": "GET"
+      }
+    ],
+    "scenario": "financeiro-restaurante",
+    "route": "/restaurante/financeiro",
+    "errors": [],
+    "requestedWidth": 1440,
+    "mobile": false
+  },
+  {
+    "url": "/",
+    "width": 320,
+    "documentWidth": 305,
+    "height": 4264,
+    "title": "Sua semana com mais sabor e menos decisões.",
+    "bodyText": "English\nMenu\nInício\nRestaurantes\nSobre\nCriar conta\nEntrar\n\nAPPONO ROTINA\n\nSua semana com mais sabor e menos decisões.\n\nOrganize seus almoços com sugestões que consideram suas preferências e transforme seu planejamento em reservas quando decidir.\n\nRESERVA DE MESA\n\nSeu encontro começa antes de chegar.\n\nEscolha o restaurante, o horário e a quantidade ",
+    "overflow": [],
+    "scrolls": [],
+    "clips": [],
+    "overlaps": [
+      [
+        {
+          "tag": "BUTTON",
+          "text": "Ativar modo escuro",
+          "class": "home-theme-toggle app-icon-button flex h-12 w-12 items-center justify-center rounded-full border border-app-baunilha-dourada bg-white text-app-cafe-profundo shadow-lg transition hover:bg-app-chantilly focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-app-caramelo-torrado",
+          "rect": {
+            "x": 237,
+            "y": 832,
+            "w": 48,
+            "h": 48
+          },
+          "client": 48,
+          "scroll": 48,
+          "overflow": "visible"
+        },
+        {
+          "tag": "BUTTON",
+          "text": "←",
+          "class": "home-carousel-control",
+          "rect": {
+            "x": 208,
+            "y": 832,
+            "w": 44,
+            "h": 44
+          },
+          "client": 44,
+          "scroll": 44,
+          "overflow": "visible"
+        }
+      ],
+      [
+        {
+          "tag": "BUTTON",
+          "text": "Ativar modo escuro",
+          "class": "home-theme-toggle app-icon-button flex h-12 w-12 items-center justify-center rounded-full border border-app-baunilha-dourada bg-white text-app-cafe-profundo shadow-lg transition hover:bg-app-chantilly focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-app-caramelo-torrado",
+          "rect": {
+            "x": 237,
+            "y": 832,
+            "w": 48,
+            "h": 48
+          },
+          "client": 48,
+          "scroll": 48,
+          "overflow": "visible"
+        },
+        {
+          "tag": "BUTTON",
+          "text": "→",
+          "class": "home-carousel-control",
+          "rect": {
+            "x": 260,
+            "y": 832,
+            "w": 44,
+            "h": 44
+          },
+          "client": 44,
+          "scroll": 44,
+          "overflow": "visible"
+        }
+      ]
+    ],
+    "requests": [
+      {
+        "path": "/restaurantes",
+        "method": "GET"
+      },
+      {
+        "path": "/restaurantes",
+        "method": "GET"
+      }
+    ],
+    "scenario": "home-menu",
+    "route": "/",
+    "errors": [],
+    "requestedWidth": 320,
+    "mobile": false
+  },
+  {
+    "url": "/",
+    "width": 320,
+    "documentWidth": 305,
+    "height": 3933,
+    "title": "Sua semana com mais sabor e menos decisões.",
+    "bodyText": "English\nMenu\n\nAPPONO ROTINA\n\nSua semana com mais sabor e menos decisões.\n\nOrganize seus almoços com sugestões que consideram suas preferências e transforme seu planejamento em reservas quando decidir.\n\nRESERVA DE MESA\n\nSeu encontro começa antes de chegar.\n\nEscolha o restaurante, o horário e a quantidade de pessoas. Planeje sua próxima experiência à",
+    "overflow": [],
+    "scrolls": [],
+    "clips": [],
+    "overlaps": [
+      [
+        {
+          "tag": "BUTTON",
+          "text": "English",
+          "class": "home-header-action home-header-soft-action flex h-10 min-w-[96px] shrink-0 items-center justify-center whitespace-nowrap rounded-full px-3 text-xs font-bold transition",
+          "rect": {
+            "x": 126,
+            "y": 28,
+            "w": 99,
+            "h": 40
+          },
+          "client": 97,
+          "scroll": 97,
+          "overflow": "visible"
+        },
+        {
+          "tag": "BUTTON",
+          "text": "Fechar",
+          "class": "app-icon-button flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-app-baunilha-dourada text-app-cafe-profundo transition hover:bg-app-chantilly",
+          "rect": {
+            "x": 198,
+            "y": 44,
+            "w": 44,
+            "h": 44
+          },
+          "client": 44,
+          "scroll": 44,
+          "overflow": "visible"
+        }
+      ],
+      [
+        {
+          "tag": "BUTTON",
+          "text": "Menu",
+          "class": "shrink-0 rounded-full border border-app-baunilha-dourada px-3 py-2 text-sm font-semibold text-app-cafe-profundo lg:hidden",
+          "rect": {
+            "x": 232,
+            "y": 30,
+            "w": 61,
+            "h": 37
+          },
+          "client": 61,
+          "scroll": 61,
+          "overflow": "visible"
+        },
+        {
+          "tag": "BUTTON",
+          "text": "Fechar",
+          "class": "app-icon-button flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-app-baunilha-dourada text-app-cafe-profundo transition hover:bg-app-chantilly",
+          "rect": {
+            "x": 198,
+            "y": 44,
+            "w": 44,
+            "h": 44
+          },
+          "client": 44,
+          "scroll": 44,
+          "overflow": "visible"
+        }
+      ],
+      [
+        {
+          "tag": "BUTTON",
+          "text": "Ativar modo escuro",
+          "class": "home-theme-toggle app-icon-button flex h-12 w-12 items-center justify-center rounded-full border border-app-baunilha-dourada bg-white text-app-cafe-profundo shadow-lg transition hover:bg-app-chantilly focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-app-caramelo-torrado",
+          "rect": {
+            "x": 237,
+            "y": 500,
+            "w": 48,
+            "h": 48
+          },
+          "client": 48,
+          "scroll": 48,
+          "overflow": "visible"
+        },
+        {
+          "tag": "BUTTON",
+          "text": "←",
+          "class": "home-carousel-control",
+          "rect": {
+            "x": 208,
+            "y": 501,
+            "w": 44,
+            "h": 44
+          },
+          "client": 44,
+          "scroll": 44,
+          "overflow": "visible"
+        }
+      ],
+      [
+        {
+          "tag": "BUTTON",
+          "text": "Ativar modo escuro",
+          "class": "home-theme-toggle app-icon-button flex h-12 w-12 items-center justify-center rounded-full border border-app-baunilha-dourada bg-white text-app-cafe-profundo shadow-lg transition hover:bg-app-chantilly focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-app-caramelo-torrado",
+          "rect": {
+            "x": 237,
+            "y": 500,
+            "w": 48,
+            "h": 48
+          },
+          "client": 48,
+          "scroll": 48,
+          "overflow": "visible"
+        },
+        {
+          "tag": "BUTTON",
+          "text": "→",
+          "class": "home-carousel-control",
+          "rect": {
+            "x": 260,
+            "y": 501,
+            "w": 44,
+            "h": 44
+          },
+          "client": 44,
+          "scroll": 44,
+          "overflow": "visible"
+        }
+      ],
+      [
+        {
+          "tag": "BUTTON",
+          "text": "Appono Rotina",
+          "class": "home-carousel-dot flex h-11 w-9 items-center justify-center rounded-full",
+          "rect": {
+            "x": 24,
+            "y": 501,
+            "w": 36,
+            "h": 44
+          },
+          "client": 36,
+          "scroll": 36,
+          "overflow": "visible"
+        },
+        {
+          "tag": "BUTTON",
+          "text": "Sou restaurante Quero organizar reservas, cardápio e pedidos antecipados.",
+          "class": "home-profile-option group relative flex min-w-0 items-center gap-4 rounded-2xl p-4 text-left transition-all duration-200 hover:-translate-y-0.5",
+          "rect": {
+            "x": 48,
+            "y": 417,
+            "w": 194,
+            "h": 246
+          },
+          "client": 194,
+          "scroll": 194,
+          "overflow": "visible"
+        }
+      ],
+      [
+        {
+          "tag": "BUTTON",
+          "text": "Reserva de mesa",
+          "class": "home-carousel-dot flex h-11 w-9 items-center justify-center rounded-full",
+          "rect": {
+            "x": 68,
+            "y": 501,
+            "w": 36,
+            "h": 44
+          },
+          "client": 36,
+          "scroll": 36,
+          "overflow": "visible"
+        },
+        {
+          "tag": "BUTTON",
+          "text": "Sou restaurante Quero organizar reservas, cardápio e pedidos antecipados.",
+          "class": "home-profile-option group relative flex min-w-0 items-center gap-4 rounded-2xl p-4 text-left transition-all duration-200 hover:-translate-y-0.5",
+          "rect": {
+            "x": 48,
+            "y": 417,
+            "w": 194,
+            "h": 246
+          },
+          "client": 194,
+          "scroll": 194,
+          "overflow": "visible"
+        }
+      ],
+      [
+        {
+          "tag": "BUTTON",
+          "text": "Pedido antecipado",
+          "class": "home-carousel-dot flex h-11 w-9 items-center justify-center rounded-full",
+          "rect": {
+            "x": 112,
+            "y": 501,
+            "w": 36,
+            "h": 44
+          },
+          "client": 36,
+          "scroll": 36,
+          "overflow": "visible"
+        },
+        {
+          "tag": "BUTTON",
+          "text": "Sou restaurante Quero organizar reservas, cardápio e pedidos antecipados.",
+          "class": "home-profile-option group relative flex min-w-0 items-center gap-4 rounded-2xl p-4 text-left transition-all duration-200 hover:-translate-y-0.5",
+          "rect": {
+            "x": 48,
+            "y": 417,
+            "w": 194,
+            "h": 246
+          },
+          "client": 194,
+          "scroll": 194,
+          "overflow": "visible"
+        }
+      ],
+      [
+        {
+          "tag": "BUTTON",
+          "text": "Tudo conectado",
+          "class": "home-carousel-dot flex h-11 w-9 items-center justify-center rounded-full",
+          "rect": {
+            "x": 156,
+            "y": 501,
+            "w": 36,
+            "h": 44
+          },
+          "client": 36,
+          "scroll": 36,
+          "overflow": "visible"
+        },
+        {
+          "tag": "BUTTON",
+          "text": "Sou restaurante Quero organizar reservas, cardápio e pedidos antecipados.",
+          "class": "home-profile-option group relative flex min-w-0 items-center gap-4 rounded-2xl p-4 text-left transition-all duration-200 hover:-translate-y-0.5",
+          "rect": {
+            "x": 48,
+            "y": 417,
+            "w": 194,
+            "h": 246
+          },
+          "client": 194,
+          "scroll": 194,
+          "overflow": "visible"
+        }
+      ]
+    ],
+    "requests": [
+      {
+        "path": "/restaurantes",
+        "method": "GET"
+      },
+      {
+        "path": "/restaurantes",
+        "method": "GET"
+      }
+    ],
+    "scenario": "home-cadastro-dialog",
+    "route": "/",
+    "errors": [],
+    "requestedWidth": 320,
+    "mobile": false
+  },
+  {
+    "url": "/cliente/configuracoes",
+    "width": 320,
+    "documentWidth": 305,
+    "height": 1682,
+    "title": "Configurações",
+    "bodyText": "1\nInício\nAppono Rotina\nAgenda\nFavoritos\nMensagens\nConfigurações\nConta\nAparência\nSuporte\nSair da conta\nDados da Conta\nNOME COMPLETO\nDATA DE NASCIMENTO\nCPF\nENDEREÇO DE E-MAIL\nTELEFONE\nSalvar alterações\nPolítica de Privacidade\nTermos de Uso\nContato\n\n© 2026 APPONO. Todos os direitos reservados.",
+    "overflow": [],
+    "scrolls": [],
+    "clips": [],
+    "overlaps": [],
+    "requests": [
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/notificacoes/contador",
+        "method": "GET"
+      },
+      {
+        "path": "/me",
+        "method": "GET"
+      }
+    ],
+    "scenario": "cliente-menu",
+    "route": "/cliente/configuracoes",
+    "errors": [],
+    "requestedWidth": 320,
+    "mobile": false
+  },
+  {
+    "url": "/cliente/configuracoes",
+    "width": 320,
+    "documentWidth": 320,
+    "height": 1416,
+    "title": "Configurações",
+    "bodyText": "1\nConfigurações\nConta\nAparência\nSuporte\nSair da conta\nDados da Conta\nNOME COMPLETO\nDATA DE NASCIMENTO\nCPF\nENDEREÇO DE E-MAIL\nTELEFONE\nSalvar alterações\nPolítica de Privacidade\nTermos de Uso\nContato\n\n© 2026 APPONO. Todos os direitos reservados.\n\nNotificações\n\nNotificações recentes\n\nSua reserva foi confirmada\n\nSua mesa para duas pessoas está confirma",
+    "overflow": [],
+    "scrolls": [],
+    "clips": [],
+    "overlaps": [
+      [
+        {
+          "tag": "BUTTON",
+          "text": "Sair da conta",
+          "class": "app-logout mt-3 flex min-h-12 w-full items-center gap-3 rounded-[8px] px-3 text-left text-sm font-bold text-app-vermelho-erro outline-none transition hover:bg-app-vermelho-claro focus-visible:ring-2 focus-visible:ring-app-vermelho-erro",
+          "rect": {
+            "x": 41,
+            "y": 374,
+            "w": 238,
+            "h": 48
+          },
+          "client": 238,
+          "scroll": 238,
+          "overflow": "visible"
+        },
+        {
+          "tag": "A",
+          "text": "Ver mais",
+          "class": "app-button-primary flex min-h-11 items-center justify-center gap-2 rounded-xl px-5 py-3",
+          "rect": {
+            "x": 37,
+            "y": 392,
+            "w": 246,
+            "h": 45
+          },
+          "client": 246,
+          "scroll": 246,
+          "overflow": "visible"
+        }
+      ]
+    ],
+    "requests": [
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/notificacoes/contador",
+        "method": "GET"
+      },
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/notificacoes",
+        "method": "GET"
+      },
+      {
+        "path": "/notificacoes",
+        "method": "GET"
+      }
+    ],
+    "scenario": "cliente-notificacoes-dialog",
+    "route": "/cliente/configuracoes",
+    "errors": [],
+    "requestedWidth": 320,
+    "mobile": false
+  },
+  {
+    "url": "/restaurante/configuracoes/operacao",
+    "width": 320,
+    "documentWidth": 320,
+    "height": 4380,
+    "title": "Configurações do Perfil",
+    "bodyText": "Menu\nDashboard\nGestão de cardápio\nDesempenho\nCampanhas Inteligentes\nRelatório financeiro\nReservas\nCozinha\nHistórico\nMensagens\nConfigurações\n1\nNotificações\nSair da conta\nConfigurações do Perfil\nInformações da loja\nEndereço da loja\nPlanos\nSegurança e acesso\nMercado Pago\nOperação & logística\nAparência\nSuporte\nSair da conta\nDisponibilidade\n\nREGRAS GERA",
+    "overflow": [],
+    "scrolls": [],
+    "clips": [],
+    "overlaps": [
+      [
+        {
+          "tag": "BUTTON",
+          "text": "Menu",
+          "class": "restaurant-menu-trigger",
+          "rect": {
+            "x": 16,
+            "y": 503,
+            "w": 102,
+            "h": 45
+          },
+          "client": 102,
+          "scroll": 102,
+          "overflow": "visible"
+        },
+        {
+          "tag": "A",
+          "text": "Mensagens",
+          "class": "",
+          "rect": {
+            "x": 16,
+            "y": 512,
+            "w": 234,
+            "h": 45
+          },
+          "client": 234,
+          "scroll": 234,
+          "overflow": "visible"
+        }
+      ],
+      [
+        {
+          "tag": "BUTTON",
+          "text": "Menu",
+          "class": "restaurant-menu-trigger",
+          "rect": {
+            "x": 16,
+            "y": 503,
+            "w": 102,
+            "h": 45
+          },
+          "client": 102,
+          "scroll": 102,
+          "overflow": "visible"
+        },
+        {
+          "tag": "BUTTON",
+          "text": "Operação & logística",
+          "class": "flex w-full items-center justify-between gap-4 rounded-[8px] px-5 py-4 text-left transition bg-app-botao-aba-ativa text-app-botao-aba-ativa-texto",
+          "rect": {
+            "x": 41,
+            "y": 495,
+            "w": 238,
+            "h": 74
+          },
+          "client": 238,
+          "scroll": 238,
+          "overflow": "visible"
+        }
+      ],
+      [
+        {
+          "tag": "A",
+          "text": "Gestão de cardápio",
+          "class": "",
+          "rect": {
+            "x": 16,
+            "y": 162,
+            "w": 234,
+            "h": 45
+          },
+          "client": 234,
+          "scroll": 234,
+          "overflow": "visible"
+        },
+        {
+          "tag": "BUTTON",
+          "text": "Informações da loja",
+          "class": "flex w-full items-center justify-between gap-4 rounded-[8px] px-5 py-4 text-left transition text-app-mocha hover:bg-app-creme-leve",
+          "rect": {
+            "x": 41,
+            "y": 169,
+            "w": 238,
+            "h": 53
+          },
+          "client": 238,
+          "scroll": 238,
+          "overflow": "visible"
+        }
+      ],
+      [
+        {
+          "tag": "A",
+          "text": "Desempenho",
+          "class": "",
+          "rect": {
+            "x": 16,
+            "y": 212,
+            "w": 234,
+            "h": 45
+          },
+          "client": 234,
+          "scroll": 234,
+          "overflow": "visible"
+        },
+        {
+          "tag": "BUTTON",
+          "text": "Informações da loja",
+          "class": "flex w-full items-center justify-between gap-4 rounded-[8px] px-5 py-4 text-left transition text-app-mocha hover:bg-app-creme-leve",
+          "rect": {
+            "x": 41,
+            "y": 169,
+            "w": 238,
+            "h": 53
+          },
+          "client": 238,
+          "scroll": 238,
+          "overflow": "visible"
+        }
+      ],
+      [
+        {
+          "tag": "A",
+          "text": "Desempenho",
+          "class": "",
+          "rect": {
+            "x": 16,
+            "y": 212,
+            "w": 234,
+            "h": 45
+          },
+          "client": 234,
+          "scroll": 234,
+          "overflow": "visible"
+        },
+        {
+          "tag": "BUTTON",
+          "text": "Endereço da loja",
+          "class": "flex w-full items-center justify-between gap-4 rounded-[8px] px-5 py-4 text-left transition text-app-mocha hover:bg-app-creme-leve",
+          "rect": {
+            "x": 41,
+            "y": 230,
+            "w": 238,
+            "h": 53
+          },
+          "client": 238,
+          "scroll": 238,
+          "overflow": "visible"
+        }
+      ],
+      [
+        {
+          "tag": "A",
+          "text": "Campanhas Inteligentes",
+          "class": "",
+          "rect": {
+            "x": 16,
+            "y": 262,
+            "w": 234,
+            "h": 45
+          },
+          "client": 234,
+          "scroll": 234,
+          "overflow": "visible"
+        },
+        {
+          "tag": "BUTTON",
+          "text": "Endereço da loja",
+          "class": "flex w-full items-center justify-between gap-4 rounded-[8px] px-5 py-4 text-left transition text-app-mocha hover:bg-app-creme-leve",
+          "rect": {
+            "x": 41,
+            "y": 230,
+            "w": 238,
+            "h": 53
+          },
+          "client": 238,
+          "scroll": 238,
+          "overflow": "visible"
+        }
+      ],
+      [
+        {
+          "tag": "A",
+          "text": "Campanhas Inteligentes",
+          "class": "",
+          "rect": {
+            "x": 16,
+            "y": 262,
+            "w": 234,
+            "h": 45
+          },
+          "client": 234,
+          "scroll": 234,
+          "overflow": "visible"
+        },
+        {
+          "tag": "BUTTON",
+          "text": "Planos",
+          "class": "flex w-full items-center justify-between gap-4 rounded-[8px] px-5 py-4 text-left transition text-app-mocha hover:bg-app-creme-leve",
+          "rect": {
+            "x": 41,
+            "y": 291,
+            "w": 238,
+            "h": 53
+          },
+          "client": 238,
+          "scroll": 238,
+          "overflow": "visible"
+        }
+      ],
+      [
+        {
+          "tag": "A",
+          "text": "Relatório financeiro",
+          "class": "",
+          "rect": {
+            "x": 16,
+            "y": 312,
+            "w": 234,
+            "h": 45
+          },
+          "client": 234,
+          "scroll": 234,
+          "overflow": "visible"
+        },
+        {
+          "tag": "BUTTON",
+          "text": "Planos",
+          "class": "flex w-full items-center justify-between gap-4 rounded-[8px] px-5 py-4 text-left transition text-app-mocha hover:bg-app-creme-leve",
+          "rect": {
+            "x": 41,
+            "y": 291,
+            "w": 238,
+            "h": 53
+          },
+          "client": 238,
+          "scroll": 238,
+          "overflow": "visible"
+        }
+      ]
+    ],
+    "requests": [
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/notificacoes/contador",
+        "method": "GET"
+      },
+      {
+        "path": "/me",
+        "method": "GET"
+      }
+    ],
+    "scenario": "restaurante-menu",
+    "route": "/restaurante/configuracoes/operacao",
+    "errors": [],
+    "requestedWidth": 320,
+    "mobile": false
+  },
+  {
+    "url": "/restaurante/configuracoes/operacao",
+    "width": 812,
+    "documentWidth": 812,
+    "height": 3401,
+    "title": "Configurações do Perfil",
+    "bodyText": "Menu\nDashboard\nGestão de cardápio\nDesempenho\nCampanhas Inteligentes\nRelatório financeiro\nReservas\nCozinha\nHistórico\nMensagens\nConfigurações\n1\nNotificações\nSair da conta\nConfigurações do Perfil\nInformações da loja\nEndereço da loja\nPlanos\nSegurança e acesso\nMercado Pago\nOperação & logística\nAparência\nSuporte\nSair da conta\nDisponibilidade\n\nREGRAS GERA",
+    "overflow": [],
+    "scrolls": [],
+    "clips": [],
+    "overlaps": [
+      [
+        {
+          "tag": "BUTTON",
+          "text": "Menu",
+          "class": "restaurant-menu-trigger",
+          "rect": {
+            "x": 16,
+            "y": 310,
+            "w": 102,
+            "h": 45
+          },
+          "client": 102,
+          "scroll": 102,
+          "overflow": "visible"
+        },
+        {
+          "tag": "A",
+          "text": "Relatório financeiro",
+          "class": "",
+          "rect": {
+            "x": 16,
+            "y": 312,
+            "w": 240,
+            "h": 45
+          },
+          "client": 240,
+          "scroll": 240,
+          "overflow": "visible"
+        }
+      ],
+      [
+        {
+          "tag": "BUTTON",
+          "text": "Menu",
+          "class": "restaurant-menu-trigger",
+          "rect": {
+            "x": 16,
+            "y": 310,
+            "w": 102,
+            "h": 45
+          },
+          "client": 102,
+          "scroll": 102,
+          "overflow": "visible"
+        },
+        {
+          "tag": "BUTTON",
+          "text": "Planos",
+          "class": "flex w-full items-center justify-between gap-4 rounded-[8px] px-5 py-4 text-left transition text-app-mocha hover:bg-app-creme-leve",
+          "rect": {
+            "x": 45,
+            "y": 276,
+            "w": 722,
+            "h": 53
+          },
+          "client": 722,
+          "scroll": 722,
+          "overflow": "visible"
+        }
+      ],
+      [
+        {
+          "tag": "BUTTON",
+          "text": "Menu",
+          "class": "restaurant-menu-trigger",
+          "rect": {
+            "x": 16,
+            "y": 310,
+            "w": 102,
+            "h": 45
+          },
+          "client": 102,
+          "scroll": 102,
+          "overflow": "visible"
+        },
+        {
+          "tag": "BUTTON",
+          "text": "Segurança e acesso",
+          "class": "flex w-full items-center justify-between gap-4 rounded-[8px] px-5 py-4 text-left transition text-app-mocha hover:bg-app-creme-leve",
+          "rect": {
+            "x": 45,
+            "y": 337,
+            "w": 722,
+            "h": 53
+          },
+          "client": 722,
+          "scroll": 722,
+          "overflow": "visible"
+        }
+      ],
+      [
+        {
+          "tag": "A",
+          "text": "Gestão de cardápio",
+          "class": "",
+          "rect": {
+            "x": 16,
+            "y": 162,
+            "w": 240,
+            "h": 45
+          },
+          "client": 240,
+          "scroll": 240,
+          "overflow": "visible"
+        },
+        {
+          "tag": "BUTTON",
+          "text": "Informações da loja",
+          "class": "flex w-full items-center justify-between gap-4 rounded-[8px] px-5 py-4 text-left transition text-app-mocha hover:bg-app-creme-leve",
+          "rect": {
+            "x": 45,
+            "y": 154,
+            "w": 722,
+            "h": 53
+          },
+          "client": 722,
+          "scroll": 722,
+          "overflow": "visible"
+        }
+      ],
+      [
+        {
+          "tag": "A",
+          "text": "Desempenho",
+          "class": "",
+          "rect": {
+            "x": 16,
+            "y": 212,
+            "w": 240,
+            "h": 45
+          },
+          "client": 240,
+          "scroll": 240,
+          "overflow": "visible"
+        },
+        {
+          "tag": "BUTTON",
+          "text": "Endereço da loja",
+          "class": "flex w-full items-center justify-between gap-4 rounded-[8px] px-5 py-4 text-left transition text-app-mocha hover:bg-app-creme-leve",
+          "rect": {
+            "x": 45,
+            "y": 215,
+            "w": 722,
+            "h": 53
+          },
+          "client": 722,
+          "scroll": 722,
+          "overflow": "visible"
+        }
+      ],
+      [
+        {
+          "tag": "A",
+          "text": "Campanhas Inteligentes",
+          "class": "",
+          "rect": {
+            "x": 16,
+            "y": 262,
+            "w": 240,
+            "h": 45
+          },
+          "client": 240,
+          "scroll": 240,
+          "overflow": "visible"
+        },
+        {
+          "tag": "BUTTON",
+          "text": "Endereço da loja",
+          "class": "flex w-full items-center justify-between gap-4 rounded-[8px] px-5 py-4 text-left transition text-app-mocha hover:bg-app-creme-leve",
+          "rect": {
+            "x": 45,
+            "y": 215,
+            "w": 722,
+            "h": 53
+          },
+          "client": 722,
+          "scroll": 722,
+          "overflow": "visible"
+        }
+      ],
+      [
+        {
+          "tag": "A",
+          "text": "Campanhas Inteligentes",
+          "class": "",
+          "rect": {
+            "x": 16,
+            "y": 262,
+            "w": 240,
+            "h": 45
+          },
+          "client": 240,
+          "scroll": 240,
+          "overflow": "visible"
+        },
+        {
+          "tag": "BUTTON",
+          "text": "Planos",
+          "class": "flex w-full items-center justify-between gap-4 rounded-[8px] px-5 py-4 text-left transition text-app-mocha hover:bg-app-creme-leve",
+          "rect": {
+            "x": 45,
+            "y": 276,
+            "w": 722,
+            "h": 53
+          },
+          "client": 722,
+          "scroll": 722,
+          "overflow": "visible"
+        }
+      ],
+      [
+        {
+          "tag": "A",
+          "text": "Relatório financeiro",
+          "class": "",
+          "rect": {
+            "x": 16,
+            "y": 312,
+            "w": 240,
+            "h": 45
+          },
+          "client": 240,
+          "scroll": 240,
+          "overflow": "visible"
+        },
+        {
+          "tag": "BUTTON",
+          "text": "Planos",
+          "class": "flex w-full items-center justify-between gap-4 rounded-[8px] px-5 py-4 text-left transition text-app-mocha hover:bg-app-creme-leve",
+          "rect": {
+            "x": 45,
+            "y": 276,
+            "w": 722,
+            "h": 53
+          },
+          "client": 722,
+          "scroll": 722,
+          "overflow": "visible"
+        }
+      ]
+    ],
+    "requests": [
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/me",
+        "method": "GET"
+      },
+      {
+        "path": "/notificacoes/contador",
+        "method": "GET"
+      },
+      {
+        "path": "/me",
+        "method": "GET"
+      }
+    ],
+    "scenario": "restaurante-menu-paisagem",
+    "route": "/restaurante/configuracoes/operacao",
+    "errors": [],
+    "requestedWidth": 812,
+    "mobile": false
+  }
+]

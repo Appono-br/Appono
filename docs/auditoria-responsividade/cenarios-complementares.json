@@ -1,0 +1,207 @@
+[
+  {
+    "name": "revisao--cliente-mensagens",
+    "route": "/cliente/mensagens",
+    "widths": [
+      320,
+      390,
+      768,
+      1024,
+      1440
+    ],
+    "capture": false
+  },
+  {
+    "name": "revisao--restaurante-mensagens",
+    "route": "/restaurante/mensagens",
+    "widths": [
+      320,
+      390,
+      768,
+      1024,
+      1440
+    ],
+    "capture": false
+  },
+  {
+    "name": "revisao--restaurante-campanhas",
+    "route": "/restaurante/campanhas",
+    "widths": [
+      320,
+      390,
+      768,
+      1024,
+      1440
+    ],
+    "capture": false
+  },
+  {
+    "name": "revisao--restaurante-campanhas-1",
+    "route": "/restaurante/campanhas/1",
+    "widths": [
+      320,
+      390,
+      768,
+      1024,
+      1440
+    ],
+    "capture": false
+  },
+  {
+    "name": "revisao--restaurante-cardapio",
+    "route": "/restaurante/cardapio",
+    "widths": [
+      320,
+      390,
+      768,
+      1024,
+      1440
+    ],
+    "capture": false
+  },
+  {
+    "name": "revisao--cliente-favoritos",
+    "route": "/cliente/favoritos",
+    "widths": [
+      320,
+      390,
+      768,
+      1024,
+      1440
+    ],
+    "capture": false
+  },
+  {
+    "name": "revisao--cliente-agenda-visao=pedidos",
+    "route": "/cliente/agenda?visao=pedidos",
+    "widths": [
+      320,
+      390,
+      768,
+      1024,
+      1440
+    ],
+    "capture": false
+  },
+  {
+    "name": "mobile-cabecalho",
+    "route": "/cliente/configuracoes",
+    "widths": [
+      320,
+      360,
+      390
+    ],
+    "mobile": true,
+    "detail": "[...document.querySelector('header').querySelectorAll('img')].map(e=>({alt:e.alt,width:e.getBoundingClientRect().width,client:document.documentElement.clientWidth,inner:innerWidth}))"
+  },
+  {
+    "name": "mobile-rotina",
+    "route": "/cliente/rotina/configurar",
+    "width": 320,
+    "mobile": true,
+    "script": "scrollTo({top:[...document.querySelectorAll('h2')].find(e=>e.textContent==='Meus endereços').closest('section').getBoundingClientRect().top+scrollY-80,behavior:'instant'})"
+  },
+  {
+    "name": "mobile-chat",
+    "route": "/cliente/mensagens/1",
+    "widths": [
+      320,
+      390
+    ],
+    "mobile": true
+  },
+  {
+    "name": "mobile-chat-link",
+    "route": "/cliente/mensagens/1?stress=1",
+    "width": 320,
+    "mobile": true
+  },
+  {
+    "name": "tablet-configuracoes",
+    "route": "/restaurante/configuracoes",
+    "width": 1024,
+    "script": "scrollTo({top:[...document.querySelectorAll('h3')].find(e=>e.textContent.includes('Localização')).getBoundingClientRect().top+scrollY-100,behavior:'instant'})"
+  },
+  {
+    "name": "tablet-dashboard",
+    "route": "/restaurante/dashboard",
+    "width": 1024,
+    "script": "scrollTo({top:[...document.querySelectorAll('h2')].find(e=>e.textContent==='Cozinha').closest('article').getBoundingClientRect().top+scrollY-24,behavior:'instant'})"
+  },
+  {
+    "name": "rotina-dietas",
+    "route": "/cliente/rotina/configurar",
+    "widths": [
+      320,
+      390,
+      768
+    ],
+    "script": "(async()=>{[...document.querySelectorAll('button')].find(e=>e.textContent==='Continuar').click();await new Promise(r=>setTimeout(r,200));scrollTo({top:650,behavior:'instant'})})()"
+  },
+  {
+    "name": "rotina-integracoes",
+    "route": "/cliente/rotina/configurar",
+    "widths": [
+      320,
+      390,
+      768
+    ],
+    "capture": false,
+    "script": "(async()=>{for(let i=0;i<2;i++){[...document.querySelectorAll('button')].find(e=>e.textContent==='Continuar').click();await new Promise(r=>setTimeout(r,150))}})()"
+  },
+  {
+    "name": "rotina-preferencias",
+    "route": "/cliente/rotina/configurar",
+    "widths": [
+      320,
+      390,
+      768
+    ],
+    "capture": false,
+    "script": "(async()=>{for(let i=0;i<3;i++){[...document.querySelectorAll('button')].find(e=>e.textContent==='Continuar').click();await new Promise(r=>setTimeout(r,150))}})()"
+  },
+  {
+    "name": "cadastro-localizacao",
+    "route": "/cadastro/restaurante",
+    "widths": [
+      320,
+      390,
+      768
+    ],
+    "script": "(async()=>{for(const [name,value] of Object.entries({\"storeName\":\"Restaurante Sabor da Casa\",\"legalName\":\"Restaurante Exemplo Ltda\",\"cnpj\":\"11222333000181\",\"email\":\"teste@example.test\",\"phone\":\"11999999999\"})){const e=document.querySelector('[name='+name+']');Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(e,value);e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true}));}await new Promise(r=>setTimeout(r,100));[...document.querySelectorAll('button')].find(e=>e.textContent==='Avançar etapa').click();await new Promise(r=>setTimeout(r,350));scrollTo({top:0,behavior:'instant'});})()",
+    "detail": "document.querySelector('[data-appono-sem-traducao].uppercase')?.textContent"
+  },
+  {
+    "name": "cadastro-operacao",
+    "route": "/cadastro/restaurante",
+    "widths": [
+      320,
+      390,
+      768
+    ],
+    "script": "(async()=>{for(const [name,value] of Object.entries({\"storeName\":\"Restaurante Sabor da Casa\",\"legalName\":\"Restaurante Exemplo Ltda\",\"cnpj\":\"11222333000181\",\"email\":\"teste@example.test\",\"phone\":\"11999999999\"})){const e=document.querySelector('[name='+name+']');Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(e,value);e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true}));}await new Promise(r=>setTimeout(r,100));[...document.querySelectorAll('button')].find(e=>e.textContent==='Avançar etapa').click();await new Promise(r=>setTimeout(r,350));for(const [name,value] of Object.entries({\"cep\":\"01001000\",\"address\":\"Rua das Flores\",\"number\":\"123\",\"neighborhood\":\"Centro\",\"city\":\"São Paulo\",\"uf\":\"SP\"})){const e=document.querySelector('[name='+name+']');Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(e,value);e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true}));}await new Promise(r=>setTimeout(r,100));[...document.querySelectorAll('button')].find(e=>e.textContent==='Avançar etapa').click();await new Promise(r=>setTimeout(r,350));scrollTo({top:0,behavior:'instant'});})()",
+    "detail": "document.querySelector('[data-appono-sem-traducao].uppercase')?.textContent"
+  },
+  {
+    "name": "cadastro-plano",
+    "route": "/cadastro/restaurante",
+    "widths": [
+      320,
+      390,
+      768
+    ],
+    "script": "(async()=>{for(const [name,value] of Object.entries({\"storeName\":\"Restaurante Sabor da Casa\",\"legalName\":\"Restaurante Exemplo Ltda\",\"cnpj\":\"11222333000181\",\"email\":\"teste@example.test\",\"phone\":\"11999999999\"})){const e=document.querySelector('[name='+name+']');Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(e,value);e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true}));}await new Promise(r=>setTimeout(r,100));[...document.querySelectorAll('button')].find(e=>e.textContent==='Avançar etapa').click();await new Promise(r=>setTimeout(r,350));for(const [name,value] of Object.entries({\"cep\":\"01001000\",\"address\":\"Rua das Flores\",\"number\":\"123\",\"neighborhood\":\"Centro\",\"city\":\"São Paulo\",\"uf\":\"SP\"})){const e=document.querySelector('[name='+name+']');Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(e,value);e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true}));}await new Promise(r=>setTimeout(r,100));[...document.querySelectorAll('button')].find(e=>e.textContent==='Avançar etapa').click();await new Promise(r=>setTimeout(r,350));for(const [name,value] of Object.entries({\"tables\":\"12\"})){const e=document.querySelector('[name='+name+']');Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(e,value);e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true}));}await new Promise(r=>setTimeout(r,100));[...document.querySelectorAll('button')].find(e=>e.textContent==='Brasileira').click();await new Promise(r=>setTimeout(r,100));[...document.querySelectorAll('button')].find(e=>e.textContent==='Avançar etapa').click();await new Promise(r=>setTimeout(r,350));scrollTo({top:0,behavior:'instant'});})()",
+    "detail": "document.querySelector('[data-appono-sem-traducao].uppercase')?.textContent"
+  },
+  {
+    "name": "cadastro-cliente-acesso",
+    "route": "/cadastro/cliente",
+    "widths": [
+      320,
+      390,
+      768
+    ],
+    "script": "(async()=>{for(const [name,value] of Object.entries({\"name\":\"Mariana Oliveira\",\"birthDate\":\"1995-05-20\",\"cpf\":\"52998224725\"})){const e=document.querySelector('[name='+name+']');Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(e,value);e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true}));}await new Promise(r=>setTimeout(r,100));[...document.querySelectorAll('button')].find(e=>e.textContent==='Avançar para Acesso').click();await new Promise(r=>setTimeout(r,300));scrollTo({top:0,behavior:'instant'});})()",
+    "detail": "document.querySelector('[data-appono-sem-traducao].uppercase')?.textContent"
+  }
+]

@@ -1,0 +1,19 @@
+[
+  {"name":"cabecalho-cliente","route":"/cliente/configuracoes","widths":[320,360,390],"detail":"[...document.querySelector('header').querySelectorAll('a,button,img')].filter(e=>e.getBoundingClientRect().width).map(e=>({tag:e.tagName,label:e.getAttribute('aria-label')||e.alt||e.textContent,x:Math.round(e.getBoundingClientRect().x),w:Math.round(e.getBoundingClientRect().width)}))"},
+  {"name":"rotina-enderecos","route":"/cliente/rotina/configurar","widths":[320,360,390,768,1024],"script":"[...document.querySelectorAll('h2')].find(e=>e.textContent==='Meus endereços').closest('section').scrollIntoView({block:'start',behavior:'instant'})"},
+  {"name":"rotina-horarios","route":"/cliente/rotina/configurar","widths":[320,390],"script":"[...document.querySelectorAll('p')].find(e=>e.textContent==='Janelas alimentares').closest('section').scrollIntoView({block:'start',behavior:'instant'})"},
+  {"name":"configuracoes-restaurante","route":"/restaurante/configuracoes","widths":[768,1024,1100,1280,1440],"script":"[...document.querySelectorAll('h2')].find(e=>e.textContent==='Dados Cadastrais').scrollIntoView({block:'start',behavior:'instant'})"},
+  {"name":"configuracoes-localizacao","route":"/restaurante/configuracoes","widths":[1024,1100,1280],"script":"[...document.querySelectorAll('h3')].find(e=>e.textContent.includes('Localização')).scrollIntoView({block:'start',behavior:'instant'})"},
+  {"name":"agenda-com-reserva","route":"/cliente/agenda","widths":[320,390,768,1024],"script":"(async()=>{[...document.querySelectorAll('button')].find(e=>e.textContent==='Todos').click();await new Promise(r=>setTimeout(r,300));document.querySelector('[aria-labelledby=agenda-reservas-titulo]').scrollIntoView({block:'start',behavior:'instant'})})()"},
+  {"name":"chat-cliente","route":"/cliente/mensagens/1","widths":[320,390,768]},
+  {"name":"chat-cliente-link","route":"/cliente/mensagens/1?stress=1","widths":[320,390,768]},
+  {"name":"chat-restaurante","route":"/restaurante/mensagens/1","widths":[320,390]},
+  {"name":"dashboard-restaurante","route":"/restaurante/dashboard","widths":[320,768,1024,1280],"script":"[...document.querySelectorAll('h2')].find(e=>e.textContent==='Cozinha').closest('article').scrollIntoView({block:'start',behavior:'instant'})"},
+  {"name":"financeiro-restaurante","route":"/restaurante/financeiro","widths":[390,1024,1100,1280,1440],"script":"[...document.querySelectorAll('strong')].find(e=>e.textContent==='Pedido #1').closest('article').parentElement.parentElement.scrollIntoView({block:'start',behavior:'instant'})"},
+  {"name":"home-menu","route":"/","width":320,"script":"document.querySelector('[aria-controls=mobile-menu]').click()"},
+  {"name":"home-cadastro-dialog","route":"/","width":320,"height":568,"script":"[...document.querySelectorAll('button')].find(e=>e.textContent==='Criar conta').click()"},
+  {"name":"cliente-menu","route":"/cliente/configuracoes","width":320,"script":"document.querySelector('[aria-controls=cliente-menu-compartilhado]').click()"},
+  {"name":"cliente-notificacoes-dialog","route":"/cliente/configuracoes","width":320,"height":568,"script":"document.querySelector('.notificacoes-trigger').click()"},
+  {"name":"restaurante-menu","route":"/restaurante/configuracoes/operacao","width":320,"height":568,"script":"document.querySelector('.restaurant-menu-trigger').click()"},
+  {"name":"restaurante-menu-paisagem","route":"/restaurante/configuracoes/operacao","width":812,"height":375,"script":"document.querySelector('.restaurant-menu-trigger').click()"}
+]
