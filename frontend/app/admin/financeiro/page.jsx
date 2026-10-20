@@ -412,7 +412,7 @@ export default function AdminFinanceiroPage() {
                     <div className="flex flex-wrap gap-2">
                         {filtrosPeriodo.map((periodo) => (
                             <button key={periodo.value} type="button" onClick={() => setPeriodoAtivo(periodo.value)} className={`rounded-lg px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] transition ${periodoAtivo === periodo.value ? "bg-app-cafe-profundo text-app-creme-leve" : "bg-white text-app-mocha ring-1 ring-app-baunilha-dourada hover:bg-app-chantilly"}`}>
-                                {periodo.label}
+                                {ui(periodo.label)}
                             </button>
                         ))}
                     </div>
@@ -528,7 +528,7 @@ export default function AdminFinanceiroPage() {
                                 <button key={restaurante.id_restaurante} type="button" onClick={() => setRestauranteSelecionado(restaurante)} className="grid gap-4 rounded-lg bg-app-chantilly p-4 text-left text-sm ring-1 ring-app-baunilha-dourada/55 transition hover:-translate-y-0.5 hover:bg-app-baunilha-dourada/35 md:grid-cols-[1fr_auto]">
                                     <div>
                                         <strong data-appono-sem-traducao className="block text-app-cafe-profundo">{restaurante.nome}</strong>
-                                        <span className="text-xs text-app-cinza">{restaurante.email ?? restaurante.telefone ?? "Contato não informado"}</span>
+                                        <span className="text-xs text-app-cinza">{restaurante.email ?? restaurante.telefone ?? ui("Contato não informado")}</span>
                                         <div className="mt-3 flex flex-wrap gap-2">
                                             <Pill tone={restaurante.conexao_mercado_pago?.status === "CONECTADO" ? "strong" : "alert"}>
                                                 {ui(textoConexaoMercadoPago(restaurante.conexao_mercado_pago))}
@@ -552,7 +552,7 @@ export default function AdminFinanceiroPage() {
                                     <div>
                                         <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-app-baunilha-dourada">{ui("Detalhe do parceiro")}</p>
                                         <h3 data-appono-sem-traducao className="mt-2 text-2xl font-semibold">{restauranteSelecionado.nome}</h3>
-                                        <p className="mt-2 text-sm text-app-creme-suave">{restauranteSelecionado.email ?? restauranteSelecionado.telefone ?? "Contato não informado"}</p>
+                                        <p className="mt-2 text-sm text-app-creme-suave">{restauranteSelecionado.email ?? restauranteSelecionado.telefone ?? ui("Contato não informado")}</p>
                                     </div>
                                     <button type="button" onClick={() => setRestauranteSelecionado(null)} className="w-fit rounded-lg border border-app-baunilha-dourada/70 px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-app-creme-leve transition hover:bg-app-baunilha-dourada/20">{ui("Fechar")}</button>
                                 </div>
