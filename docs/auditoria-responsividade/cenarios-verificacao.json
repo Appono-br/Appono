@@ -1,0 +1,60 @@
+[
+  {
+    "name": "cadastro-plano-acoes",
+    "route": "/cadastro/restaurante",
+    "widths": [
+      320,
+      390
+    ],
+    "script": "(async()=>{for(const [name,value] of Object.entries({\"storeName\":\"Restaurante Sabor da Casa\",\"legalName\":\"Restaurante Exemplo Ltda\",\"cnpj\":\"11222333000181\",\"email\":\"teste@example.test\",\"phone\":\"11999999999\"})){const e=document.querySelector('[name='+name+']');Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(e,value);e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true}));}await new Promise(r=>setTimeout(r,100));[...document.querySelectorAll('button')].find(e=>e.textContent==='Avançar etapa').click();await new Promise(r=>setTimeout(r,350));for(const [name,value] of Object.entries({\"cep\":\"01001000\",\"address\":\"Rua das Flores\",\"number\":\"123\",\"neighborhood\":\"Centro\",\"city\":\"São Paulo\",\"uf\":\"SP\"})){const e=document.querySelector('[name='+name+']');Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(e,value);e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true}));}await new Promise(r=>setTimeout(r,100));[...document.querySelectorAll('button')].find(e=>e.textContent==='Avançar etapa').click();await new Promise(r=>setTimeout(r,350));for(const [name,value] of Object.entries({\"tables\":\"12\"})){const e=document.querySelector('[name='+name+']');Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(e,value);e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true}));}await new Promise(r=>setTimeout(r,100));[...document.querySelectorAll('button')].find(e=>e.textContent==='Brasileira').click();await new Promise(r=>setTimeout(r,100));[...document.querySelectorAll('button')].find(e=>e.textContent==='Avançar etapa').click();await new Promise(r=>setTimeout(r,350));scrollTo({top:0,behavior:'instant'});})();scrollTo({top:document.body.scrollHeight,behavior:'instant'})",
+    "detail": "[...document.querySelectorAll('form button')].filter(e=>/Voltar|Concluir/.test(e.innerText)).map(e=>({text:e.innerText,x:e.getBoundingClientRect().x,width:e.getBoundingClientRect().width,right:e.getBoundingClientRect().right}))"
+  },
+  {
+    "name": "mobile-cadastro-plano",
+    "route": "/cadastro/restaurante",
+    "widths": [
+      320
+    ],
+    "script": "(async()=>{for(const [name,value] of Object.entries({\"storeName\":\"Restaurante Sabor da Casa\",\"legalName\":\"Restaurante Exemplo Ltda\",\"cnpj\":\"11222333000181\",\"email\":\"teste@example.test\",\"phone\":\"11999999999\"})){const e=document.querySelector('[name='+name+']');Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(e,value);e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true}));}await new Promise(r=>setTimeout(r,100));[...document.querySelectorAll('button')].find(e=>e.textContent==='Avançar etapa').click();await new Promise(r=>setTimeout(r,350));for(const [name,value] of Object.entries({\"cep\":\"01001000\",\"address\":\"Rua das Flores\",\"number\":\"123\",\"neighborhood\":\"Centro\",\"city\":\"São Paulo\",\"uf\":\"SP\"})){const e=document.querySelector('[name='+name+']');Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(e,value);e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true}));}await new Promise(r=>setTimeout(r,100));[...document.querySelectorAll('button')].find(e=>e.textContent==='Avançar etapa').click();await new Promise(r=>setTimeout(r,350));for(const [name,value] of Object.entries({\"tables\":\"12\"})){const e=document.querySelector('[name='+name+']');Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(e,value);e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true}));}await new Promise(r=>setTimeout(r,100));[...document.querySelectorAll('button')].find(e=>e.textContent==='Brasileira').click();await new Promise(r=>setTimeout(r,100));[...document.querySelectorAll('button')].find(e=>e.textContent==='Avançar etapa').click();await new Promise(r=>setTimeout(r,350));scrollTo({top:0,behavior:'instant'});})();scrollTo({top:document.body.scrollHeight,behavior:'instant'})",
+    "detail": "document.querySelector('[data-appono-sem-traducao].uppercase')?.textContent",
+    "mobile": true
+  },
+  {
+    "name": "escuro-rotina",
+    "route": "/cliente/rotina/configurar",
+    "widths": [
+      320,
+      390,
+      1024
+    ],
+    "script": "document.documentElement.dataset.tema='escuro'",
+    "capture": false
+  },
+  {
+    "name": "escuro-configuracoes-restaurante",
+    "route": "/restaurante/configuracoes",
+    "widths": [
+      320,
+      768,
+      1024,
+      1280
+    ],
+    "script": "document.documentElement.dataset.tema='escuro'",
+    "capture": false
+  },
+  {
+    "name": "escuro-chat-cliente",
+    "route": "/cliente/mensagens/1?stress=1",
+    "widths": [
+      320,
+      390
+    ],
+    "script": "document.documentElement.dataset.tema='escuro'",
+    "capture": false
+  },
+  {
+    "name": "erro-chat-restaurante",
+    "route": "/restaurante/mensagens/1",
+    "width": 390
+  }
+]
