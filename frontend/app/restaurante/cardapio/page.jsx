@@ -390,7 +390,7 @@ export default function RestaurantMenuManagementPage() {
                                             <Icon type="star" className="h-4 w-4" />
                                             {ui(produto.destaque ? "Remover destaque" : "Destacar")}
                                         </button>
-                                        <Link href={`/restaurante/cardapio/editar?produto=${produto.id_produto}`} className="inline-flex h-9 items-center justify-center gap-2 rounded-[8px] border border-app-baunilha-dourada bg-transparent px-3 text-xs font-bold uppercase text-app-mocha transition hover:border-app-caramelo-torrado">
+                                        <Link href={`/restaurante/cardapio/editar?produto=${produto.id_produto}`} className="produto-acao-editar inline-flex h-9 items-center justify-center gap-2 rounded-[8px] border border-app-baunilha-dourada bg-transparent px-3 text-xs font-bold uppercase text-app-mocha transition hover:border-app-caramelo-torrado">
                                             <Icon type="pencil" className="h-4 w-4" />{ui("Editar")}</Link>
                                         <button type="button" onClick={() => setProdutoParaExcluir(produto)} disabled={produtoExcluindoId === produto.id_produto} className="inline-flex h-9 items-center justify-center gap-2 rounded-[8px] border border-red-300 bg-transparent px-3 text-xs font-bold uppercase text-red-800 transition hover:border-app-vermelho-erro hover:text-app-vermelho-erro disabled:cursor-not-allowed disabled:opacity-60">
                                             <Icon type="trash" className="h-4 w-4" />

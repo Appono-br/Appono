@@ -9,6 +9,7 @@ export function FormStepper({
   currentStep,
   onStepClick,
   showPercentage = true,
+  showProgressBar = true,
   stepsClassName = "",
   wrapLabels = false,
   integratedProgress = false,
@@ -39,7 +40,7 @@ export function FormStepper({
 
       <div className={stepsClassName}>
         {/* Barra de progresso contínua */}
-        {!integratedProgress && (
+        {showProgressBar && !integratedProgress && (
           <div className={`h-1.5 w-full bg-app-cinza/20 rounded-full overflow-hidden ${wrapLabels ? "mb-3" : "mb-6"}`}>
             <div
               className={`h-full transition-all duration-300 ease-out ${progressClassName}`}

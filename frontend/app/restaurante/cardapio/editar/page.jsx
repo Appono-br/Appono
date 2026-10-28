@@ -11,7 +11,6 @@ import { ArrowLeft } from "lucide-react";
 import { apiRequest } from "@/lib/api";
 import { enviarImagemCardapio, validarImagemCardapio } from "@/lib/imagem-cardapio";
 import { TelaCarregandoSessao, useSessaoLocal } from "@/lib/use-sessao-local";
-import { RestaurantIcon as Icon } from "@/components/restaurante/restaurant-icon";
 import { FormStepper } from "@/components/ui/form-stepper";
 import { FormStepActions } from "@/components/ui/form-step-actions";
 
@@ -305,7 +304,7 @@ function RestaurantMenuItemEditorContent() {
                 </div>
 
                 <form onSubmit={submitForm} className="mx-auto mt-10 grid max-w-4xl gap-6 rounded-[12px] bg-app-creme-leve p-6 shadow-sm ring-1 ring-app-baunilha-dourada/60 sm:p-8">
-                    <FormStepper steps={etapasFormulario} currentStep={etapaAtual} onStepClick={setEtapaAtual} completedClassName="bg-app-dourado-mel text-app-creme-leve hover:bg-app-caramelo-torrado" progressClassName="bg-app-dourado-mel" />
+                    <FormStepper steps={etapasFormulario} currentStep={etapaAtual} onStepClick={setEtapaAtual} showPercentage={false} showProgressBar={false} wrapLabels completedClassName="bg-app-dourado-mel text-app-creme-leve hover:bg-app-caramelo-torrado" progressClassName="bg-app-dourado-mel" />
                     <div className={etapaAtual === 0 ? "grid gap-6" : "hidden"}>
                     <Field label={ui("Nome do prato")} value={form.name} onChange={(value) => updateField("name", value)} placeholder={ui("Ex: Risoto de cogumelos")} required />
 
@@ -381,15 +380,6 @@ function RestaurantMenuItemEditorContent() {
                         </span>
                     </label>
 
-                    <button type="button" onClick={() => updateField("available", !form.available)} className="inline-flex w-fit items-center gap-3 rounded-full bg-app-baunilha-dourada/45 px-4 py-2 text-sm font-semibold text-app-mocha transition hover:bg-app-baunilha-dourada">
-                        <span className={`flex h-5 w-5 items-center justify-center rounded-[4px] border border-app-baunilha-dourada bg-white ${form.available ? "text-app-caramelo-torrado" : "text-transparent"}`}>
-                            <Icon type="check" className="h-3 w-3" />
-                        </span>{ui("Item disponível para pedidos")}</button>
-
-                    <button type="button" onClick={() => updateField("featured", !form.featured)} className="inline-flex w-fit items-center gap-3 rounded-full bg-app-cafe-profundo px-4 py-2 text-sm font-semibold text-app-creme-leve transition hover:bg-app-caramelo-torrado">
-                        <span className={`flex h-5 w-5 items-center justify-center rounded-[4px] border border-app-baunilha-dourada bg-white ${form.featured ? "text-app-caramelo-torrado" : "text-transparent"}`}>
-                            <Icon type="check" className="h-3 w-3" />
-                        </span>{ui("Marcar como destaque do cardápio")}</button>
                     </div>
 
                     <FormStepActions currentStep={etapaAtual} totalSteps={etapasFormulario.length} onBack={() => setEtapaAtual((etapa) => etapa - 1)} onNext={avancarEtapa} isSubmitting={isSubmitting} submitLabel={ui(produtoId ? "Salvar alterações" : "Publicar item")} primaryClassName="!bg-app-dourado-mel !text-app-creme-leve hover:!bg-app-caramelo-torrado focus:!ring-app-dourado-mel/30" />

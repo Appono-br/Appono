@@ -420,6 +420,14 @@ html[data-tema] .area-autenticada.area-restaurante .produto-cardapio-acoes :is(b
   background: transparent !important;
 }
 
+html[data-tema] .area-autenticada.area-restaurante .produto-cardapio-acoes .produto-acao-editar:is(:hover, :focus-visible) {
+  color: var(--app-caramelo-torrado) !important;
+}
+
+html[data-tema] .area-autenticada.area-restaurante .produto-cardapio-acoes .produto-acao-editar svg {
+  color: inherit !important;
+}
+
 html[data-tema] .area-autenticada.area-restaurante .produto-cardapio-acoes .produto-acao-destaque {
   --painel-botao-texto: #eab308;
   --painel-botao-borda: #eab308;

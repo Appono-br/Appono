@@ -40,7 +40,10 @@ export function FormStepActions({
 
       <button
         type={isLastStep ? "submit" : "button"}
-        onClick={isLastStep ? undefined : onNext}
+        onClick={isLastStep ? undefined : (event) => {
+          event.preventDefault();
+          onNext?.(event);
+        }}
         disabled={isSubmitting}
         className={`inline-flex items-center justify-center gap-2 px-7 py-3 rounded-xl bg-app-dourado-mel hover:bg-app-caramelo-torrado text-white text-sm font-bold shadow-md hover:shadow-lg transition-all focus:outline-none focus:ring-2 focus:ring-app-dourado-mel/20 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer ${primaryClassName}`}
       >
