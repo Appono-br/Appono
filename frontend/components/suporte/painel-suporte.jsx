@@ -47,7 +47,7 @@ function formatarData(valor, localeUI = "pt-BR") {
 }
 
 function classeStatus(status) {
-    if (status === "RESOLVIDO") return "bg-emerald-50 text-emerald-700 ring-emerald-200";
+    if (status === "RESOLVIDO") return "support-status-resolvido bg-emerald-50 text-emerald-700 ring-emerald-200";
     if (status === "RECUSADO" || status === "CANCELADO") return "bg-red-50 text-red-700 ring-red-200";
     if (status === "EM_ANALISE_ADMIN") return "bg-app-dourado-mel/15 text-app-cafe-profundo ring-app-dourado-mel/45";
     return "bg-app-cafe-profundo text-app-creme-leve ring-app-cafe-profundo";

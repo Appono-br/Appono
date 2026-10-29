@@ -1480,7 +1480,7 @@ html[data-tema] .app-button-secondary:hover:not(:disabled) {
   background-color: var(--app-botao-secundario-hover) !important;
 }
 
-html[data-tema] :is(.app-button-primary, .app-button-secondary, .botao-confirmacao-marrom, button.bg-app-primaria, a.bg-app-primaria, button.bg-app-cafe-profundo, a.bg-app-cafe-profundo, button.bg-app-caramelo-torrado, a.bg-app-caramelo-torrado, button.bg-app-dourado-mel, a.bg-app-dourado-mel, button.bg-app-botao-aba-ativa, a.bg-app-botao-aba-ativa) :is(span, strong, p, svg, small) {
+html[data-tema] :is(.app-button-primary, .app-button-secondary, .botao-confirmacao-marrom, button.bg-app-primaria, a.bg-app-primaria, button.bg-app-cafe-profundo, a.bg-app-cafe-profundo, button.bg-app-caramelo-torrado, a.bg-app-caramelo-torrado, button.bg-app-dourado-mel, a.bg-app-dourado-mel, button.bg-app-botao-aba-ativa, a.bg-app-botao-aba-ativa) :is(span, strong, p, svg, small):not(.support-status-resolvido) {
   color: inherit !important;
 }
 

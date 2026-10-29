@@ -230,7 +230,7 @@ export default function RestaurantAddressSettingsPage({ onVoltar }) {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-red-600 hover:bg-red-700 px-8 text-xs font-bold uppercase tracking-wide text-white transition shadow-sm disabled:cursor-not-allowed disabled:opacity-60"
+              className="app-button-primary inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-app-primaria hover:bg-app-primaria-hover px-8 text-xs font-bold uppercase tracking-wide text-app-sobre-primaria transition shadow-sm disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isSubmitting ? (
                 <><Loader2 className="h-4 w-4 animate-spin" /><span>{ui("Salvando...")}</span></>

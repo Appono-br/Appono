@@ -394,8 +394,14 @@ html[data-tema] .area-autenticada:is(.area-cliente, .area-restaurante) :is(
   a[class*="bg-app-"],
   a[class*="border-app"],
   [role="button"]
-):not(:is(.produto-cardapio-acoes *, .agenda-calendar-day, .app-button-secondary, .app-logout, .notificacoes-trigger, .agenda-reservation-chat, .botao-acao-critica, [class*="vermelho-erro"], [class*="text-red-"], [class*="bg-red-"], [class*="text-rose-"], [class*="bg-rose-"])) :is(span, strong, p, svg, div, small, h2, h3) {
+):not(:is(.produto-cardapio-acoes *, .agenda-calendar-day, .app-button-secondary, .app-logout, .notificacoes-trigger, .agenda-reservation-chat, .botao-acao-critica, [class*="vermelho-erro"], [class*="text-red-"], [class*="bg-red-"], [class*="text-rose-"], [class*="bg-rose-"])) :is(span, strong, p, svg, div, small, h2, h3):not(.support-status-resolvido) {
   color: inherit !important;
+}
+
+/* O status mantém contraste próprio dentro dos cartões clicáveis do suporte. */
+html[data-tema] .support-status-resolvido {
+  background-color: var(--app-verde-sucesso-claro) !important;
+  color: var(--app-verde-sucesso) !important;
 }
 
 html[data-tema] .area-autenticada:is(.area-cliente, .area-restaurante) :is(button, [role="button"]):is(:disabled, [aria-disabled="true"]) {

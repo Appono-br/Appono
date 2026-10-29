@@ -398,7 +398,7 @@ export default function PaginaRestaurante({ params }) {
 
   return (
     <main className="min-h-screen bg-white px-4 py-6 text-app-cafe-profundo sm:px-5 sm:py-8">
-      <div className="mx-auto max-w-6xl">
+      <div className="mx-auto max-w-7xl">
         <BotaoVoltar href="/cliente/dashboard" className="text-sm font-bold text-app-caramelo-torrado transition hover:text-app-cafe-profundo">{ui("Voltar aos restaurantes")}</BotaoVoltar>
 
         <section className="mt-5 overflow-hidden rounded-[18px] bg-white shadow-[0_18px_55px_rgba(74,44,10,0.10)] ring-1 ring-app-baunilha-dourada">
@@ -477,7 +477,7 @@ export default function PaginaRestaurante({ params }) {
           </div>
         </section>
 
-        <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_400px]">
           <section className="flex flex-col gap-6">
             {false && <section className="rounded-[18px] bg-white p-5 shadow-sm ring-1 ring-app-baunilha-dourada sm:p-6">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -607,10 +607,11 @@ export default function PaginaRestaurante({ params }) {
             <SecaoAvaliacoes totalAvaliacoes={totalAvaliacoes} avaliacaoMedia={avaliacaoMedia} avaliacoesRecentes={avaliacoesRecentes} localeUI={localeUI} ui={ui} />
           </section>
 
-          <aside id="reserva" className="h-fit rounded-[18px] bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada lg:sticky lg:top-6">
+          <aside id="reserva" className="h-fit scroll-mt-24 rounded-[18px] bg-white p-6 shadow-sm ring-1 ring-app-baunilha-dourada lg:sticky lg:top-24 lg:flex lg:max-h-[calc(100dvh-7rem)] lg:flex-col lg:self-start">
+            <form onSubmit={reservar} className="min-h-0 lg:flex lg:flex-1 lg:flex-col">
+              <div className="min-h-0 lg:overflow-y-auto lg:overscroll-contain lg:p-1 lg:pr-4">
             <VisibilidadeCampanhas campanhas={campanhas}/>{campanhas.length ? <section className="rounded-[18px] border border-app-dourado-mel/50 bg-app-creme-leve p-5 shadow-sm sm:p-6"><div className="flex flex-wrap items-end justify-between gap-3"><div><p className="text-[10px] font-bold uppercase tracking-[0.2em] text-app-caramelo-torrado">{ui("Oferta Profissional")}</p><h2 className="mt-1 text-2xl font-bold">{ui("Ofertas disponíveis")}</h2></div><span className="rounded-full bg-app-cafe-profundo px-3 py-1 text-xs font-bold text-app-creme-leve">{ui("Regras visíveis antes da reserva")}</span></div><div className="mt-4 grid gap-3 md:grid-cols-2">{campanhas.map((campanha) => <button data-campanha-id={campanha.id_campanha} key={campanha.id_campanha} type="button" onClick={() => { registrarCampanha(campanha.id_campanha,"CLICK"); setCampanhaSelecionada((atual) => atual?.id_campanha === campanha.id_campanha ? null : campanha); }} className={`rounded-[12px] border p-4 text-left transition ${campanhaSelecionada?.id_campanha === campanha.id_campanha ? "border-app-caramelo-torrado bg-white" : "border-app-baunilha-dourada bg-white/70 hover:bg-white"}`}><div className="flex justify-between gap-3"><strong data-appono-sem-traducao>{campanha.titulo}</strong><span className="text-xs font-bold text-app-caramelo-torrado">{campanhaSelecionada?.id_campanha === campanha.id_campanha ? ui("Selecionada") : ui("Selecionar")}</span></div><p data-appono-sem-traducao className="mt-2 text-sm text-app-mocha">{campanha.descricao}</p><p className="mt-2 text-sm">{campanha.tipo_beneficio.replaceAll("_"," ")}{campanha.tipo_beneficio==="DESCONTO_PERCENTUAL" ? ": "+campanha.valor_beneficio+"%" : campanha.tipo_beneficio==="DESCONTO_FIXO" ? ": R$ "+campanha.valor_beneficio : campanha.tipo_beneficio==="COMBO" ? ": R$ "+campanha.preco_combo : ""}</p>{campanha.beneficio_itens?.map(i=><p data-appono-sem-traducao key={i.id_produto}>{i.quantidade}{ui(" × ")}{i.nome??("Produto #"+i.id_produto)}</p>)}<p className="text-xs">{ui("Mínimo: ")}{campanha.minimo_pessoas??1}{ui(" pessoa(s), ")}{campanha.minimo_itens??0}{ui(" item(ns).")}</p><p className="mt-3 text-xs leading-5 text-app-cinza">{ui("Válida de ")}{new Date(campanha.inicio_em).toLocaleDateString(localeUI)}{ui(" até ")}{new Date(campanha.fim_em).toLocaleDateString(localeUI)}. {campanha.regras ?? "Confira as condições na confirmação."}</p></button>)}</div>{campanhaSelecionada ? <p className="mt-4 text-sm text-app-mocha">{ui("Oferta selecionada: ")}<strong data-appono-sem-traducao>{campanhaSelecionada.titulo}</strong>{ui(". Ela será validada novamente na confirmação, considerando data, horário, itens e limite de uso.")}</p> : null}</section> : null}
 
-            <form onSubmit={reservar}>
               <div className="flex items-center gap-3">
                 <span className="flex h-11 w-11 items-center justify-center rounded-[10px] bg-app-baunilha-dourada text-app-cafe-profundo">
                   <Icon type="receipt" />
@@ -622,9 +623,9 @@ export default function PaginaRestaurante({ params }) {
               </div>
 
               <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                <label className="grid min-w-0 gap-1 text-xs font-bold uppercase text-app-cinza">{ui("Data")}<input type="date" min={obterDataPermitida()} max={obterDataLimiteReserva()} value={data} onChange={(evento) => setData(evento.target.value)} className="h-11 w-full min-w-0 rounded-[10px] border border-app-baunilha-dourada bg-white px-3 text-sm font-normal normal-case text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20" />
+                <label className="grid min-w-0 gap-1 text-xs font-bold uppercase text-app-cinza lg:col-span-2">{ui("Data")}<input type="date" min={obterDataPermitida()} max={obterDataLimiteReserva()} value={data} onChange={(evento) => setData(evento.target.value)} className="h-11 w-full min-w-0 rounded-[10px] border border-app-baunilha-dourada bg-white px-3 text-sm font-normal normal-case text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20" />
                 </label>
-                <label className="grid min-w-0 gap-1 text-xs font-bold uppercase text-app-cinza">{ui("Horário")}<select value={horarioSelecionado} onChange={(evento) => setHorario(evento.target.value)} disabled={!horariosDisponiveis.length} className="h-11 w-full min-w-0 rounded-[10px] border border-app-baunilha-dourada bg-white px-3 text-sm font-normal normal-case text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20 disabled:cursor-not-allowed disabled:opacity-60">
+                <label className="grid min-w-0 gap-1 text-xs font-bold uppercase text-app-cinza lg:col-span-2">{ui("Horário")}<select value={horarioSelecionado} onChange={(evento) => setHorario(evento.target.value)} disabled={!horariosDisponiveis.length} className="h-11 w-full min-w-0 rounded-[10px] border border-app-baunilha-dourada bg-white px-3 text-sm font-normal normal-case text-app-cafe-profundo outline-none transition focus:border-app-caramelo-torrado focus:ring-2 focus:ring-app-dourado-mel/20 disabled:cursor-not-allowed disabled:opacity-60">
                     {horariosDisponiveis.length ? horariosDisponiveis.map((slot) => (
                       <option key={slot.horario} value={slot.horario}>
                         {slot.horario}
@@ -659,7 +660,7 @@ export default function PaginaRestaurante({ params }) {
                 </label>
               ) : null}
 
-              <div className="mt-5 grid gap-3 rounded-[14px] bg-white p-4 text-sm ring-1 ring-app-baunilha-dourada/60">
+              <div className="mt-5 grid gap-3 rounded-[14px] border border-app-baunilha-dourada/60 bg-white p-4 text-sm">
                 <p className="rounded-[10px] bg-white px-3 py-2 text-xs leading-5 text-app-mocha">{ui("Valor fixo por reserva, independentemente do número de pessoas.")}</p>
                 <div className="flex justify-between gap-4">
                   <span className="text-app-mocha">{ui(temPedidoAntecipado ? "Reserva (isenta)" : "Preço da reserva")}</span>
@@ -668,10 +669,6 @@ export default function PaginaRestaurante({ params }) {
                 {temPedidoAntecipado ? <div className="flex justify-between gap-4"><span className="text-app-mocha">{ui("Valor do pedido")}</span><strong>{formatarMoeda(totalPedido, localeUI)}</strong></div> : null}
                 {campanhaSelecionada && temPedidoAntecipado ? <div className="flex justify-between gap-4 text-app-caramelo-torrado"><span>{ui("Desconto da oferta")}</span><strong>- {formatarMoeda(descontoCampanha, localeUI)}</strong></div> : null}
                 {tempoPreparoPedido ? <div className="flex justify-between gap-4"><span className="text-app-mocha">{ui("Preparo estimado do pedido")}</span><strong>{ui("aprox. {0} min", [tempoPreparoPedido])}</strong></div> : null}
-                <div className="flex items-center justify-between border-t border-app-baunilha-dourada pt-4">
-                  <span className="font-bold">{ui("Total a pagar")}</span>
-                  <strong className="text-2xl text-app-cafe-profundo">{formatarMoeda(totalAPagar, localeUI)}</strong>
-                </div>
               </div>
 
               {!carregandoHorarios && !operacaoConfigurada ? (
@@ -685,10 +682,18 @@ export default function PaginaRestaurante({ params }) {
                 </p>
               ) : null}
 
+              </div>
+
+              <div className="mt-5 border-t border-app-baunilha-dourada pt-4 lg:shrink-0">
+                <div className="flex items-center justify-between gap-4 text-sm">
+                  <span className="font-bold">{ui("Total a pagar")}</span>
+                  <strong className="text-2xl text-app-cafe-profundo">{formatarMoeda(totalAPagar, localeUI)}</strong>
+                </div>
               <button type="submit" disabled={enviando || !operacaoConfigurada || !horariosDisponiveis.length} className="mt-5 h-12 w-full rounded-[8px] bg-app-dourado-mel text-xs font-bold uppercase tracking-wide text-white transition hover:bg-app-caramelo-torrado disabled:cursor-not-allowed disabled:opacity-50">
                 {ui(enviando ? "Confirmando..." : temPedidoAntecipado ? "Pagar pedido antecipado" : valorMinimoTotal > 0 ? "Pagar reserva" : "Confirmar reserva sem pedido")}
               </button>
               {mensagem ? <p className="mt-3 text-sm font-semibold text-app-caramelo-torrado">{ui(mensagem)}</p> : null}
+              </div>
             </form>
           </aside>
         </div>
